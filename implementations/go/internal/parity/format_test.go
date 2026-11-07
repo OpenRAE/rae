@@ -1,6 +1,10 @@
 package parity
 
-import "testing"
+import (
+	"encoding/json"
+	"os"
+	"testing"
+)
 
 func TestFormatArguments(t *testing.T) {
 	cases := []struct {
@@ -64,5 +68,50 @@ func TestFormatCommandNewlinesAndRefusals(t *testing.T) {
 				t.Error(diff)
 			}
 		})
+	}
+}
+
+func TestFormatCommandSemanticRefusals(t *testing.T) {
+	raw, err := os.ReadFile("../sdl/authoring/testdata/reference.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var fixture struct {
+		Cases []struct {
+			Name   string `json:"name"`
+			Source string `json:"source"`
+		} `json:"cases"`
+	}
+	if err = json.Unmarshal(raw, &fixture); err != nil {
+		t.Fatal(err)
+	}
+	selected := map[string]bool{"materialized-undefined-feature": false, "materialized-stateful-orphan": false, "materialized-behavior-missing-mode": false}
+	run := formatRunner()
+	for _, row := range fixture.Cases {
+		if _, needed := selected[row.Name]; !needed {
+			continue
+		}
+		selected[row.Name] = true
+		t.Run(row.Name, func(t *testing.T) { checkFormatSemanticRefusal(t, run, row.Source) })
+	}
+	for name, found := range selected {
+		if !found {
+			t.Errorf("missing independent input %s", name)
+		}
+	}
+}
+
+func checkFormatSemanticRefusal(t *testing.T, run Runner, source string) {
+	t.Helper()
+	got, err := run(t.Context(), Case{Args: []string{"sdl", "format", "input.yaml"}, Files: map[string][]byte{"input.yaml": []byte(source)}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	difference, err := compareResults([]byte(`{"exit_code":1,"stdout":null}`), got)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if difference != "" {
+		t.Error(difference)
 	}
 }

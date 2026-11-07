@@ -46,7 +46,7 @@ func (e *Validator) materializationArchive(i validation.Invocation) (err error) 
 		return invalid()
 	}
 	path := "runs/" + stringAt(provenance, "run_id") + "/attestations/" + stringAt(provenance, "attestation_id") + ".sdl"
-	if stringAt(v, "reference", "ref_path") != path || stringAt(v, "artifact", "checksum", "value") != strings.TrimPrefix(digest.SHA256(source), "sha256:") || !numericEqual(at(v, "artifact", "size_bytes"), json.Number(strconv.Itoa(len(source)))) || !equal(at(v, "artifact", "source"), at(provenance, "producer", termName)) {
+	if stringAt(v, "reference", "ref_path") != path || stringAt(v, "artifact", "checksum", "value") != strings.TrimPrefix(digest.SHA256(source), "sha256:") || !numericEqual(at(v, "artifact", "size_bytes"), json.Number(strconv.Itoa(len(source)))) || !equal(at(v, "artifact", termSource), at(provenance, "producer", termName)) {
 		return invalid()
 	}
 	created, err := materializationISO(stringAt(provenance, "recorded_at"))

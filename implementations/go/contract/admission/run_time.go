@@ -39,7 +39,7 @@ func (e *Validator) runTimeModel(i validation.Invocation) error {
 
 func timeProvenanceBindings(v, declared, realized any) error {
 	known := map[string]bool{}
-	for _, section := range []string{"domains", "clocks", fieldMappings, fieldProgressionPolicies, "temporal_constraints"} {
+	for _, section := range []string{termDomains, "clocks", fieldMappings, fieldProgressionPolicies, "temporal_constraints"} {
 		if !equalSet(keySet(at(declared, section)), keySet(at(realized, section))) {
 			return invalid()
 		}

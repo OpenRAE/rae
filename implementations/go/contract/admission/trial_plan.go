@@ -183,7 +183,7 @@ func trialCleanupJoins(v any) error {
 func trialEntryDraws(plan, entry any) error {
 	for _, draw := range array(at(entry, "stochastic_draws")) {
 		binding := at(plan, "stochastic_controls", stringAt(draw, "control_id"), "executable_binding")
-		if binding == nil || !equal(at(binding, "namespace"), at(draw, "address", "namespace")) || !equal(at(entry, "coordinate"), at(draw, "address", "trial_coordinate")) {
+		if binding == nil || !equal(at(binding, termNamespace), at(draw, "address", termNamespace)) || !equal(at(entry, "coordinate"), at(draw, "address", "trial_coordinate")) {
 			return invalid()
 		}
 	}

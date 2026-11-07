@@ -117,7 +117,7 @@ func descriptionBinding(root any, subject, host string, provenance any) error {
 			return invalid()
 		}
 		children := array(at(binding, "children"))
-		if len(rowSet(children, "binding_id")) != len(children) {
+		if len(rowSet(children, termBindingID)) != len(children) {
 			return invalid()
 		}
 		for _, child := range children {

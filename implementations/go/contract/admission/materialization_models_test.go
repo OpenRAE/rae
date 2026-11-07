@@ -103,3 +103,21 @@ func TestMaterializationProvenanceUsesExactNullableInstanceIdentity(t *testing.T
 		}
 	}
 }
+
+func TestMaterializedConcretenessUsesSourceSizeBound(t *testing.T) {
+	values := make([]any, 100001)
+	raw := controlJSON(t, values)
+	work := 0
+	if !materializationConcreteBound(values, &work, len(raw)) {
+		t.Fatal("bounded JSON was refused by a smaller generic ceiling")
+	}
+	work = 0
+	if materializationConcrete(values, &work) {
+		t.Fatal("generic materialization work ceiling changed")
+	}
+	values[100000] = "${unresolved}"
+	work = 0
+	if materializationConcreteBound(values, &work, len(raw)+20) {
+		t.Fatal("large materialized source hid an unresolved token")
+	}
+}

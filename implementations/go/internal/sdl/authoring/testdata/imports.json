@@ -1012,5 +1012,315 @@
     },
     "accepted": false,
     "error": "SDLParseError"
+  },
+  {
+    "name": "tool-ambiguity-bare",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"same\": {\"type\": \"compute\"}}, \"features\": {\"same\": {\"type\": \"service\", \"source\": \"pkg\"}}, \"behavior_specifications\": {\"b\": {\"semantic_version\": \"1\", \"participant_refs\": [\"p\"], \"tool_affordances\": {\"t\": {\"action_contract_refs\": [\"a\"], \"observation_boundary_refs\": [\"b\"], \"tool_ref\": \"same\"}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLValidationError"
+  },
+  {
+    "name": "authority-ambiguity-bare",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"same\": {\"type\": \"compute\"}}, \"features\": {\"same\": {\"type\": \"service\", \"source\": \"pkg\"}}, \"behavior_specifications\": {\"b\": {\"semantic_version\": \"1\", \"participant_refs\": [\"p\"], \"authority_scope_refs\": [\"same\"]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLValidationError"
+  },
+  {
+    "name": "tool-ambiguity-qualified",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"same\": {\"type\": \"compute\"}}, \"features\": {\"same\": {\"type\": \"service\", \"source\": \"pkg\"}}, \"behavior_specifications\": {\"b\": {\"semantic_version\": \"1\", \"participant_refs\": [\"p\"], \"tool_affordances\": {\"t\": {\"action_contract_refs\": [\"a\"], \"observation_boundary_refs\": [\"b\"], \"tool_ref\": \"nodes.same\"}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "authority-ambiguity-qualified",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"same\": {\"type\": \"compute\"}}, \"features\": {\"same\": {\"type\": \"service\", \"source\": \"pkg\"}}, \"behavior_specifications\": {\"b\": {\"semantic_version\": \"1\", \"participant_refs\": [\"p\"], \"authority_scope_refs\": [\"nodes.same\"]}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "authority-support-name",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"same\": {\"type\": \"compute\"}}, \"variables\": {\"same\": {\"type\": \"string\"}}, \"behavior_specifications\": {\"b\": {\"semantic_version\": \"1\", \"participant_refs\": [\"p\"], \"authority_scope_refs\": [\"same\"]}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "control-context-ambiguity-bare",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"same\": {\"type\": \"compute\"}}, \"features\": {\"same\": {\"type\": \"service\", \"source\": \"pkg\"}}, \"behavior_specifications\": {\"b\": {\"semantic_version\": \"1\", \"participant_refs\": [\"p\"], \"control_context\": {\"c\": {\"declaration_ref\": \"same\", \"asset_ref\": {\"asset_id\": \"a\", \"asset_version\": \"1\", \"asset_digest\": \"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLValidationError"
+  },
+  {
+    "name": "control-context-ambiguity-qualified",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"same\": {\"type\": \"compute\"}}, \"features\": {\"same\": {\"type\": \"service\", \"source\": \"pkg\"}}, \"behavior_specifications\": {\"b\": {\"semantic_version\": \"1\", \"participant_refs\": [\"p\"], \"control_context\": {\"c\": {\"declaration_ref\": \"nodes.same\", \"asset_ref\": {\"asset_id\": \"a\", \"asset_version\": \"1\", \"asset_digest\": \"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "augmentation-missing-agent",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"augmentation_scope\": {\"scopes\": [{\"scope\": \"/forwarding_agents/0\", \"permission\": \"open\"}]}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "augmentation-present-agent",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"forwarding_agents\": [{\"forwarding_agent_id\": \"a\", \"description\": \"x\"}], \"augmentation_scope\": {\"scopes\": [{\"scope\": \"/forwarding_agents/0/description\", \"permission\": \"closed\"}]}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "augmentation-default-merge",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\"}}, \"augmentation_scope\": {\"default\": \"closed\", \"scopes\": [{\"scope\": \"/nodes/n\", \"permission\": \"open\"}]}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "augmentation-duplicate-scopes",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"augmentation_scope\": {\"scopes\": [{\"scope\": \"\", \"permission\": \"open\"}, {\"scope\": \"\", \"permission\": \"closed\"}]}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "execution-default-merge",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\"}}, \"execution_policy\": {\"default\": {\"policy_id\": \"p\", \"response\": \"terminate\"}, \"scopes\": [{\"scope\": \"/nodes/n\", \"policy\": {\"policy_id\": \"p\", \"response\": \"terminate\"}}]}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "execution-duplicate-after-merge",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}], \"execution_policy\": {\"scopes\": [{\"namespace\": [\"demo\"], \"scope\": \"\", \"policy\": {\"policy_id\": \"p\", \"response\": \"terminate\"}}]}}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"execution_policy\": {\"default\": {\"policy_id\": \"p\", \"response\": \"terminate\"}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "ValidationError"
+  },
+  {
+    "name": "augmentation-duplicate-after-merge",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}], \"augmentation_scope\": {\"scopes\": [{\"namespace\": [\"demo\"], \"scope\": \"\", \"permission\": \"open\"}]}}\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"augmentation_scope\": {\"default\": \"closed\"}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "ValidationError"
+  },
+  {
+    "name": "import-constructor-condition-empty",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"conditions\": {\"c\": {}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-content-missing-anchors",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"content\": {\"c\": {\"type\": \"file\"}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-account-node",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"accounts\": {\"u\": {\"username\": \"alice\"}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-success-empty",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"objectives\": {\"o\": {\"owner\": \"team\", \"success\": {}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-subset-bounds",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"variation_points\": {\"s\": {\"kind\": \"subset\", \"target\": {\"owner\": \"n\", \"slot\": \"nodes.features\"}, \"members\": {\"x\": {\"reference\": \"f\"}}, \"minimum\": 2}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-step-objective",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"workflows\": {\"w\": {\"start\": \"s\", \"steps\": {\"s\": {\"type\": \"objective\"}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-clock-jump",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"clocks\": {\"c\": {\"time_domain_ref\": \"t\", \"authority_kind\": \"runtime\", \"authority_ref\": \"r\", \"monotonicity\": \"may_jump\", \"description\": \"clock\"}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-attestation-absent-verified",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\", \"source\": {\"name\": \"image\", \"build\": {\"attestation\": {\"status\": \"absent\", \"verification\": \"verified\"}}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-relative-filesystem",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\", \"runtime\": {\"filesystem_inventory\": [{\"path\": \"relative\"}]}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-image-duplicate-build-args",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\", \"source\": {\"name\": \"image\", \"build\": {\"build_args\": [{\"name\": \"ARG\", \"value\": \"a\"}, {\"name\": \"ARG\", \"value\": \"b\"}]}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-image-duplicate-environment",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\", \"source\": {\"name\": \"image\", \"build\": {\"config\": {\"default_environment\": [{\"name\": \"ENV\", \"value\": \"a\"}, {\"name\": \"ENV\", \"value\": \"b\"}]}}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-image-input-checksum",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\", \"source\": {\"name\": \"image\", \"build\": {\"source_inputs\": [{\"identifier\": \"i\", \"checksum\": \"abc\"}]}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-image-relative-copy",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\", \"source\": {\"name\": \"image\", \"build\": {\"copied_sources\": [{\"source_path\": \"src\", \"destination_path\": \"relative\"}]}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-image-blank-build-name",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\", \"source\": {\"name\": \"image\", \"build\": {\"build_args\": [{\"name\": \" \"}]}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-image-invalid-env-name",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"nodes\": {\"n\": {\"type\": \"compute\", \"source\": {\"name\": \"image\", \"build\": {\"config\": {\"default_environment\": [{\"name\": \"A=B\"}]}}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-control-asset-token-asset_id",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"behavior_specifications\": {\"b\": {\"semantic_version\": \"1\", \"participant_refs\": [\"p\"], \"control_context\": {\"c\": {\"declaration_ref\": \"a\", \"asset_ref\": {\"asset_id\": \"prefix${v}\", \"asset_version\": \"1\", \"asset_digest\": \"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "import-constructor-control-asset-token-asset_version",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module.yaml\", namespace: demo}]\n",
+      "module.yaml": "{\"name\": \"a\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\"}, \"behavior_specifications\": {\"b\": {\"semantic_version\": \"1\", \"participant_refs\": [\"p\"], \"control_context\": {\"c\": {\"declaration_ref\": \"a\", \"asset_ref\": {\"asset_id\": \"a\", \"asset_version\": \"prefix${v}\", \"asset_digest\": \"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
   }
 ]

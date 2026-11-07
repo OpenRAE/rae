@@ -43,7 +43,7 @@ func controlRequest(v any, v2 bool) error {
 	if !equal(at(selection, termApparatus), at(context, termApparatus)) {
 		return invalid()
 	}
-	for field, bound := range map[string]string{"depth": "max_depth", "effects_consumed": "max_effects", termAttempt: "max_attempts", termOrder: "expires_at_order"} {
+	for field, bound := range map[string]string{"depth": "max_depth", "effects_consumed": "max_effects", termAttempt: termMaxAttempts, termOrder: "expires_at_order"} {
 		if numericGreater(at(context, field), at(selection, "bounds", bound)) {
 			return invalid()
 		}

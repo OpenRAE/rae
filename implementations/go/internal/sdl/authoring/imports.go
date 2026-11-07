@@ -14,13 +14,15 @@ import (
 )
 
 type composition struct {
-	parser      *Parser
-	request     Request
-	supplied    *source.Sources
-	budget      *source.Budget
-	seen        map[string]bool
-	localDenied map[string]bool
-	records     map[string][]map[string]any
+	parser       *Parser
+	request      Request
+	supplied     *source.Sources
+	budget       *source.Budget
+	copies       copyBudget
+	modelBuffers *copyBudget
+	seen         map[string]bool
+	localDenied  map[string]bool
+	records      map[string][]map[string]any
 }
 
 func (p *Parser) checkImports(document *Document, request Request, captured *source.Sources) error {
@@ -42,6 +44,7 @@ func (p *Parser) checkImports(document *Document, request Request, captured *sou
 	if err != nil {
 		return err
 	}
+	c.copies.remaining = p.limits.MaxComposedBytes
 	c.supplied = captured
 	name := request.Name
 	if captured == nil {
@@ -119,12 +122,15 @@ func (c *composition) edge(parent, decl map[string]any, importer string, depth i
 	if err != nil {
 		return err
 	}
-	child, err := c.parser.decode(raw, name, "reject")
+	child, err := c.parser.decodeDocument(raw, name, "reject", true)
 	if err != nil {
 		return err
 	}
 	value, err := c.parser.modelValue(child)
 	if err != nil {
+		return err
+	}
+	if err = indexDeclarations(value).effectTargets(value); err != nil {
 		return err
 	}
 	descriptor, err := admittedModule(child, value, decl, raw, c.localDenied[importer])

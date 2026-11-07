@@ -318,13 +318,13 @@ Each line below commits this design to that interface.
 
 <!-- go-api implementations/go/contract/diagnostic 040441af1c0bec9978fafa927a6a3366d0e3b5bb302581c35fdcf809819b376e -->
 
-<!-- go-api implementations/go/contract/concept 64ac6e17fb1aa48cb971e1ad5cfb040754fcbbb500e993d88961e0e6d75ef617 -->
+<!-- go-api implementations/go/contract/concept d6861ce78451cf3d07e03ca17bb051a51a44651b9e238e9a5de724ced47c11cd -->
 
-<!-- go-api implementations/go/contract/profile 29d675043d931404f9cf4e3d794721ced7a22294a5d6c5db08da5ce619756d51 -->
+<!-- go-api implementations/go/contract/profile 4ac84f8912b9e07e288358a13b71fee3e3a7a87f094d0a58f795899278c69417 -->
 
 <!-- go-api implementations/go/internal/contract/domainprofile 1e611b77eb3507157548369c33197223032cef8639f34cc59147901f53624b9c -->
 
-<!-- go-api implementations/go/internal/contract/packaged ee65b5d95cdbd2413bdffde902d31005f1f862e0137e118c5220db88d9feb8a7 -->
+<!-- go-api implementations/go/internal/contract/packaged 1e02037593ff0b098dbc63bbc77fe9aac3b14e58388406c8ec1a3c0900afdf61 -->
 
 ## Findings from the review
 

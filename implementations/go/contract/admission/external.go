@@ -13,7 +13,7 @@ func (e *Validator) externalRules() map[string]definition {
 			if at(i.Instance, "source_locator") == nil {
 				return nil
 			}
-			return require(urisafety.Check(stringAt(i.Instance, "source_locator"), urisafety.Options{ForbiddenSchemes: []string{"file", "data"}, ForbidFragment: true}) == nil)
+			return require(urisafety.Check(stringAt(i.Instance, "source_locator"), urisafety.Options{ForbiddenSchemes: []string{termFile, "data"}, ForbidFragment: true}) == nil)
 		}},
 		"external-concept-source-pinned": {check: func(i validation.Invocation) error {
 			return require(at(i.Instance, "source_locator") != nil || at(i.Instance, "source_digest") != nil)
@@ -56,7 +56,7 @@ func externalReview(i validation.Invocation) error {
 
 func externalIdentities(i validation.Invocation) error {
 	bindings := at(i.Instance, termBindings)
-	if !keyed(bindings, "binding_id") {
+	if !keyed(bindings, termBindingID) {
 		return invalid()
 	}
 	identities := make([]string, 0, len(object(bindings)))

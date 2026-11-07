@@ -33,7 +33,7 @@ func (r *materializationInventory) membership() error {
 // closed record of keyed collections containing exact identity records. This
 // is the owner's canonical profile, not a general recursive-constraint API.
 func materializationMembershipCollection(rule any, actual map[string]any, fallback any) error {
-	if stringAt(rule, "kind") != "keyed-collection" || stringAt(rule, "collection_kind") != "portable-node" || !equal(at(rule, "identity_fields"), []string{"address"}) || len(array(at(rule, "aliases"))) > 0 {
+	if stringAt(rule, "kind") != "keyed-collection" || stringAt(rule, "collection_kind") != "portable-node" || !equal(at(rule, "identity_fields"), []string{fieldAddress}) || len(array(at(rule, "aliases"))) > 0 {
 		return invalid()
 	}
 	minimum, maxok := integer(defaultMember(rule, "min_items", jsonZero))
@@ -107,7 +107,7 @@ func materializationMembershipEntry(key string, entry any, groups map[string]map
 	if kind != termNode && kind != termNetwork {
 		return nil
 	}
-	name := stringAt(entry, "payload", "name")
+	name := stringAt(entry, "payload", termName)
 	if !materializationQualified(name) {
 		return invalid()
 	}
@@ -118,6 +118,6 @@ func materializationMembershipEntry(key string, entry any, groups map[string]map
 	if groups[namespace] == nil {
 		return invalid()
 	}
-	groups[namespace][key] = map[string]any{"address": key, "name": name, "resource_type": kind}
+	groups[namespace][key] = map[string]any{fieldAddress: key, termName: name, "resource_type": kind}
 	return nil
 }

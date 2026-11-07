@@ -126,7 +126,7 @@ func opacityGraphDomains(v any) error {
 		return err
 	}
 	states := array(at(v, "states"))
-	for _, prefix := range []string{"strategy", "scheduler", "environment", termOrder} {
+	for _, prefix := range []string{"strategy", "scheduler", termEnvironment, termOrder} {
 		if !equalSet(rowSet(states, prefix+"_ref"), set(at(assumptions, prefix+"_refs"))) {
 			return invalid()
 		}

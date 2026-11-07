@@ -72,7 +72,7 @@ func (r *materializationExecution) entryMatches(entry, resource any, requirement
 		return err
 	}
 	d := materializationDiff{identities: r.current.identities, remaining: 100000}
-	path := []string{"nodes", name}
+	path := []string{termNodes, name}
 	if err = d.walk(materializationOperand{left, true, path}, materializationOperand{right, true, path}); err != nil {
 		return err
 	}

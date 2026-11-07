@@ -51,7 +51,11 @@ func newCatalogOwner(schemas *validation.Validator) (*Validator, error) {
 	if err != nil {
 		return nil, err
 	}
-	owner := &Validator{authority: authority, owners: owners, documents: append(authority.Documents(), owners.Documents()...), streams: map[string]any{}, definitions: definitionRules()}
+	fields, err := readSDLFieldRules()
+	if err != nil {
+		return nil, err
+	}
+	owner := &Validator{authority: authority, owners: owners, documents: append(authority.Documents(), owners.Documents()...), streams: map[string]any{}, definitions: withSDLFieldRules(definitionRules(), fields)}
 	byPath := make(map[string][]byte, len(owner.documents))
 	for _, document := range owner.documents {
 		byPath[document.Path] = document.JSON

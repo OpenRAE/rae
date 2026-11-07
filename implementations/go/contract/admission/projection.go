@@ -72,7 +72,7 @@ func projectionProfile(v any) error {
 	case lossy:
 		posture = "lossy"
 	}
-	producer := map[string]string{"declared": termSdlAuthoringInputV1, "admitted": "validation-basis-disclosure-v1", basisObserved: termPropositionTruthResultV1, statusVerified: "artifact-transformation-report-v1"}[predicate]
+	producer := map[string]string{assuranceDeclared: termSdlAuthoringInputV1, "admitted": "validation-basis-disclosure-v1", basisObserved: termPropositionTruthResultV1, statusVerified: "artifact-transformation-report-v1"}[predicate]
 	if stringAt(v, termProfileID) != "semantic-projection-"+predicate+"-"+posture+"/v1" || stringAt(v, "profile_version") != "1" || stringAt(v, "adapter_id") != predicate+"-owner-adapter" || stringAt(v, "adapter_version") != "1" || stringAt(v, "producer_contract_id") != producer {
 		return invalid()
 	}
@@ -83,7 +83,7 @@ func projectionProfile(v any) error {
 	if adapter != stringAt(v, "adapter_digest") {
 		return invalid()
 	}
-	for axis, applicable := range map[string]bool{termConfiguration: predicate == "declared", termState: predicate == basisObserved, "transformations": predicate == statusVerified} {
+	for axis, applicable := range map[string]bool{termConfiguration: predicate == assuranceDeclared, termState: predicate == basisObserved, "transformations": predicate == statusVerified} {
 		expected := notApplicable
 		if axis == "transformations" {
 			expected = termForbidden
@@ -111,7 +111,7 @@ func (e *Validator) projectionWitnesses(i validation.Invocation) error {
 	}
 	frame := at(v, "frame")
 	for _, row := range array(at(v, "rows")) {
-		if !orderedRows(at(row, termBindings), "binding_id") || !sortedUnique(stringsOf(at(row, "reason_codes"))) {
+		if !orderedRows(at(row, termBindings), termBindingID) || !sortedUnique(stringsOf(at(row, "reason_codes"))) {
 			return invalid()
 		}
 		if (stringAt(row, "classification") == classificationWitness) != (len(array(at(row, "witnesses"))) > 0) {

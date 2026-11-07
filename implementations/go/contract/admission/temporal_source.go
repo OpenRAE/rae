@@ -53,7 +53,7 @@ func temporalSourceBinding(v any, name string, temporal any) error {
 	if stringAt(bound, "constraint_kind") != expected {
 		return invalid()
 	}
-	if stringAt(temporal, "temporal_kind") == "dwell" {
+	if stringAt(temporal, "temporal_kind") == termDwell {
 		if err := temporalDwellSource(v, name, binding, bound); err != nil {
 			return err
 		}
@@ -89,7 +89,7 @@ func temporalBoundarySupport(boundary, condition any) error {
 	observable := set(at(boundary, "observable_refs"))
 	for _, rule := range array(at(boundary, "view_rules")) {
 		ref := stringAt(rule, "information_ref")
-		if slices.Contains([]string{"observable", termDisclosed, "discovered", "inferred", "deceptive"}, stringAt(rule, "disposition")) {
+		if slices.Contains([]string{"observable", termDisclosed, termDiscovered, termInferred, termDeceptive}, stringAt(rule, "disposition")) {
 			observable[ref] = true
 		} else {
 			delete(observable, ref)
@@ -170,8 +170,8 @@ func temporalClockDomain(v any, clock string, temporal any) error {
 }
 
 func temporalDwellInterval(constraint any) error {
-	if at(constraint, "start") != nil && at(constraint, "end") != nil {
-		order, ok := coordinateCompare(at(constraint, "start"), at(constraint, "end"))
+	if at(constraint, termStart) != nil && at(constraint, termEnd) != nil {
+		order, ok := coordinateCompare(at(constraint, termStart), at(constraint, termEnd))
 		if !ok || order >= 0 {
 			return invalid()
 		}

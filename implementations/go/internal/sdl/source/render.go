@@ -98,12 +98,10 @@ func (e *emitter) mapping(n *node, scope string, indent int, prefix string) {
 	}
 }
 func (e *emitter) mappingEntry(entry member, key, scope string, indent int, lead string) {
-	rendered := e.scalar(key, indent+2)
-	if needsDouble(key) && utf8.RuneCountInString(key)+5 < 128 && !strings.ContainsRune(key, '\n') {
-		rendered = doublePresentation(key, indent+2, indent, false)
-	}
+	simple := utf8.RuneCountInString(key)+5 < 128 && key != "" && !strings.ContainsRune(key, '\n')
+	rendered := e.mappingKey(key, indent, simple)
 	child := childScope(scope, key, entry.value)
-	if utf8.RuneCountInString(key)+5 >= 128 || key == "" || strings.ContainsRune(key, '\n') {
+	if !simple {
 		e.write(lead + "? " + rendered + "\n")
 		lead = strings.Repeat(" ", indent) + ":"
 	} else {
@@ -119,6 +117,19 @@ func (e *emitter) mappingEntry(entry member, key, scope string, indent int, lead
 		next = indent
 	}
 	e.node(entry.value, child, next, "")
+}
+
+func (e *emitter) mappingKey(key string, indent int, simple bool) string {
+	if !simple {
+		return e.scalar(key, indent+2)
+	}
+	if needsDouble(key) {
+		return doublePresentation(key, indent+2, indent, false)
+	}
+	if strings.TrimSpace(key) != key || e.resolved(key) || indicator(key) {
+		return "'" + strings.ReplaceAll(key, "'", "''") + "'"
+	}
+	return key
 }
 
 func (e *emitter) sequence(n *node, scope string, indent int, prefix string) {

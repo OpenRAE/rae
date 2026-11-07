@@ -17,7 +17,7 @@ func (e *Validator) artifactRules() map[string]definition {
 }
 
 func exactArtifact(v any, version bool) error {
-	source := at(v, "source")
+	source := at(v, termSource)
 	requirement := at(source, "artifact_requirement")
 	if stringAt(requirement, "explicitness") != postureExact {
 		return nil
@@ -33,14 +33,14 @@ func exactArtifact(v any, version bool) error {
 }
 
 func materializationInputs(i validation.Invocation) error {
-	requirement := at(i.Instance, "source", "artifact_requirement")
+	requirement := at(i.Instance, termSource, "artifact_requirement")
 	declared := map[string]bool{}
 	for _, input := range array(at(requirement, "locked_inputs")) {
 		declared[stringAt(input, "input_id")] = true
 	}
 	for _, spec := range array(at(requirement, "materialization_specifications")) {
 		mechanism := stringAt(spec, termProfile, "mechanism")
-		if mechanism != "materialization-specification" && !strings.HasPrefix(mechanism, "x-") {
+		if mechanism != termMaterializationSpecification && !strings.HasPrefix(mechanism, "x-") {
 			return invalid()
 		}
 		if !subset(stringsOf(at(spec, "locked_input_ids")), declared) {

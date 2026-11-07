@@ -18175,6 +18175,80 @@
           }
         }
       ]
+    },
+    {
+      "name": "undefined-alias-after-valid",
+      "source": "a: &ok x\nb: *ok\nc: *missing\n",
+      "options": {},
+      "limits": {},
+      "error": true,
+      "value": null,
+      "diagnostics": [
+        {
+          "stage": "parse",
+          "severity": "error",
+          "code": "sdl.parse",
+          "path": "",
+          "range": {
+            "start": {
+              "line": 3,
+              "column": 4
+            },
+            "end": {
+              "line": 3,
+              "column": 4
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "simple-key-with-spaces",
+      "source": "\"word word word word word word word word word word word word word word word word word word word word end\": value\n",
+      "options": {
+        "mapping_keys": "data"
+      },
+      "limits": {},
+      "error": false,
+      "value": {
+        "word word word word word word word word word word word word word word word word word word word word end": "value"
+      },
+      "diagnostics": [],
+      "rendered": "word word word word word word word word word word word word word word word word word word word word end: value\n",
+      "ranges": {
+        "": {
+          "start": {
+            "line": 1,
+            "column": 1
+          },
+          "end": {
+            "line": 2,
+            "column": 1
+          }
+        },
+        "/word word word word word word word word word word word word word word word word word word word word end": {
+          "start": {
+            "line": 1,
+            "column": 108
+          },
+          "end": {
+            "line": 1,
+            "column": 113
+          }
+        }
+      },
+      "key_ranges": {
+        "/word word word word word word word word word word word word word word word word word word word word end": {
+          "start": {
+            "line": 1,
+            "column": 1
+          },
+          "end": {
+            "line": 1,
+            "column": 106
+          }
+        }
+      }
     }
   ]
 }

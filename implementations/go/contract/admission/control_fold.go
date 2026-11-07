@@ -94,7 +94,7 @@ func (f *controlEpisodeFold) script(v any) error {
 
 func (f *controlEpisodeFold) authority(v, transition any) error {
 	source, destination := f.states[stringAt(transition, "from_state_ref")], f.states[stringAt(transition, "to_state_ref")]
-	if !matchingFields(v, source, "controller_ref", "authority_basis_refs") || !subset(stringsOf(at(v, "controlled_scope_refs")), set(at(source, "scope_refs"))) || !subset(stringsOf(at(v, "controlled_scope_refs")), set(at(f.policy, "behavior_scope_refs"))) {
+	if !matchingFields(v, source, "controller_ref", termAuthorityBasisRefs) || !subset(stringsOf(at(v, "controlled_scope_refs")), set(at(source, termScopeRefs))) || !subset(stringsOf(at(v, "controlled_scope_refs")), set(at(f.policy, "behavior_scope_refs"))) {
 		return invalid()
 	}
 	return require(stringAt(source, "authority_status") != termRevoked && stringAt(destination, "authority_status") != termRevoked)

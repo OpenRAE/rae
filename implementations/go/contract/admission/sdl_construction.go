@@ -19,6 +19,20 @@ func (e *Validator) CheckSDLConstruction(id, pointer string, data []byte, limits
 	return e.low.CheckSDLConstruction(id, pointer, data, limits, check.instance)
 }
 
+// CheckSDLLocalSemantics checks native SDL construction and the stock local
+// semantic rules. It grants no contextual, phase or execution authority.
+func (e *Validator) CheckSDLLocalSemantics(id string, data []byte, limits ingress.Limits) error {
+	if e == nil || e.low == nil {
+		return fragmentInvalid()
+	}
+	data, err := e.prepare(id, data, limits)
+	if err != nil {
+		return err
+	}
+	check := constructionModels{owner: e, id: id, pointer: "#", data: data, defaults: map[string]any{}}
+	return e.low.CheckSDLLocalSemantics(id, data, limits, check.instance)
+}
+
 type constructionModels struct {
 	owner       *Validator
 	id, pointer string

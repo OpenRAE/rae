@@ -6,20 +6,20 @@ import (
 	"math/big"
 	"strconv"
 
-	"regexp"
 	"strings"
 )
 
 type substitution struct {
-	values    map[string]any
-	preserved map[string]bool
-	tokens    *regexp.Regexp
-	inline    map[string]string
+	keepUnknown bool
+	values      map[string]any
+	preserved   map[string]bool
+	copies      *copyBudget
+	inline      map[string]string
 }
 
 func (c *composition) bind(value, decl, descriptor map[string]any) (map[string]any, error) {
-	variables := object(value["variables"])
-	s := substitution{values: map[string]any{}, preserved: preservedVariables(value), tokens: variableTokens, inline: map[string]string{}}
+	variables := object(value[variablesSection])
+	s := substitution{values: map[string]any{}, preserved: preservedVariables(value), copies: &c.copies, inline: map[string]string{}}
 	if err := s.resolveValues(variables, object(decl["parameters"]), descriptor); err != nil {
 		return nil, err
 	}
@@ -41,22 +41,22 @@ func (c *composition) bind(value, decl, descriptor map[string]any) (map[string]a
 		return nil, err
 	}
 	kept := map[string]any{}
-	for name, definition := range object(result["variables"]) {
+	for name, definition := range object(result[variablesSection]) {
 		if s.preserved[name] {
 			kept[name] = definition
 		}
 	}
-	result["variables"] = kept
+	result[variablesSection] = kept
 	delete(result, "module")
 	delete(result, "realization")
 	return c.validateBound(result)
 }
 func preservedVariables(value map[string]any) map[string]bool {
 	result := map[string]bool{}
-	for _, raw := range object(value["variation_points"]) {
+	for _, raw := range object(value[variationPointsField]) {
 		point := object(raw)
 		if point["kind"] == "parameter" {
-			result[text(object(point["target"])["variable"])] = true
+			result[text(object(point[targetField])["variable"])] = true
 		}
 	}
 	return result
@@ -90,7 +90,7 @@ func (s *substitution) resolveValues(variables, parameters, descriptor map[strin
 func bindingCandidate(name string, definition, parameters map[string]any) (any, bool, error) {
 	candidate, present := parameters[name]
 	if !present {
-		candidate = definition["default"]
+		candidate = definition[defaultField]
 		present = candidate != nil
 	}
 	if !present {
@@ -178,29 +178,16 @@ func (s *substitution) string(value string) (any, error) {
 	if cached, present := s.inline[value]; present {
 		return cached, nil
 	}
-	matches := s.tokens.FindAllStringSubmatchIndex(value, -1)
-	if len(matches) == 0 {
-		return value, nil
+	replaced, err := s.copies.replace(value, s.inlineToken)
+	if err != nil {
+		return nil, err
 	}
-	var result strings.Builder
-	previous := 0
-	for _, match := range matches {
-		result.WriteString(value[previous:match[0]])
-		token, err := s.inlineToken(value[match[0]:match[1]], value[match[2]:match[3]])
-		if err != nil {
-			return nil, err
-		}
-		result.WriteString(token)
-		previous = match[1]
-	}
-	result.WriteString(value[previous:])
-	replaced := result.String()
 	s.inline[value] = replaced
 	return replaced, nil
 }
 func (s *substitution) wholeToken(token string) (any, error) {
 	name := token[2 : len(token)-1]
-	if s.preserved[name] {
+	if s.preserved[name] || (s.keepUnknown && s.values[name] == nil) {
 		return token, nil
 	}
 	replacement, ok := s.values[name]
@@ -210,7 +197,7 @@ func (s *substitution) wholeToken(token string) (any, error) {
 	return replacement, nil
 }
 func (s *substitution) inlineToken(token, name string) (string, error) {
-	if !s.preserved[name] {
+	if !s.preserved[name] && (!s.keepUnknown || s.values[name] != nil) {
 		replacement, ok := s.values[name]
 		if !ok {
 			return "", importError("parameter-refused")

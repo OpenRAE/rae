@@ -21,10 +21,14 @@ type field struct {
 type ordered []field
 
 type normalizer struct {
-	parser   *Parser
-	id       string
-	hints    map[string][]string
-	patterns map[string]*regexp.Regexp
+	parser                        *Parser
+	id                            string
+	hints                         map[string][]string
+	patterns                      map[string]*regexp.Regexp
+	workingLimit, scalarRemaining int64
+	scalars                       map[string]string
+	fields                        map[fieldValueKey]any
+	casing                        map[textValueKey]string
 }
 
 func resolve(root map[string]any, pointer string) map[string]any {
@@ -41,6 +45,9 @@ func (w *normalizer) dereference(schema map[string]any, pointer string) (map[str
 	for range 16 {
 		ref := text(schema["$ref"])
 		if ref == "" {
+			if model, selected := w.intersectionModel(schema); model != nil {
+				return model, selected
+			}
 			return schema, pointer
 		}
 		pointer = ref
@@ -48,8 +55,36 @@ func (w *normalizer) dereference(schema map[string]any, pointer string) (map[str
 	}
 	return nil, pointer
 }
+
+func (w *normalizer) intersectionModel(schema map[string]any) (map[string]any, string) {
+	if schema["properties"] != nil {
+		return nil, ""
+	}
+	var selected map[string]any
+	pointer := ""
+	for _, raw := range array(schema["allOf"]) {
+		reference := text(object(raw)["$ref"])
+		if reference == "" || len(w.parser.layoutFor(w.id, reference).Fields) == 0 {
+			continue
+		}
+		model := resolve(w.parser.schemas[w.id], reference)
+		if model["properties"] == nil {
+			continue
+		}
+		if selected != nil {
+			return nil, ""
+		}
+		selected, pointer = model, reference
+	}
+	return selected, pointer
+}
 func (w *normalizer) walk(schema map[string]any, pointer string, value any, path []string, policy scalarPolicy, view source.View) (result any, failure error) {
-	defer func() { failure = locatedModelError(failure, path) }()
+	defer func() {
+		if failure == nil {
+			result, failure = w.shareScalar(result)
+		}
+		failure = locatedModelError(failure, path)
+	}()
 	schema, pointer = w.dereference(schema, pointer)
 	if schema == nil {
 		schema = map[string]any{}
@@ -64,9 +99,11 @@ func (w *normalizer) walk(schema map[string]any, pointer string, value any, path
 			return nil, invalid()
 		}
 	}
-	if chosen, selected := w.choose(alternatives(schema), value); chosen != nil {
-		policy.Convert = nil
-		return w.walk(chosen, selected, value, path, policy, view)
+	if schema["properties"] == nil {
+		if chosen, selected := w.choose(alternatives(schema), value); chosen != nil {
+			policy.Convert = nil
+			return w.walk(chosen, selected, value, path, policy, view)
+		}
 	}
 	return w.walkValue(schema, pointer, value, path, policy, view)
 }
@@ -119,8 +156,19 @@ func alternatives(schema map[string]any) []any {
 	return array(schema["oneOf"])
 }
 func (w *normalizer) choose(branches []any, value any) (map[string]any, string) {
+	return w.chooseBranches(branches, value, 0)
+}
+func (w *normalizer) chooseBranches(branches []any, value any, depth int) (map[string]any, string) {
+	if depth >= 16 {
+		return nil, ""
+	}
 	for _, item := range branches {
 		schema, pointer := w.dereference(object(item), "")
+		if schema["properties"] == nil {
+			if nested, selected := w.chooseBranches(alternatives(schema), value, depth+1); nested != nil {
+				return nested, selected
+			}
+		}
 		_, isString := value.(string)
 		if schemaMatches(schema, value) || pointer == "#/$defs/Source" && isString {
 			return object(item), pointer
@@ -161,13 +209,18 @@ func objectMatches(schema, value map[string]any) bool {
 		}
 	}
 	for name, raw := range object(schema["properties"]) {
-		if expected, present := object(raw)["const"]; present && value[name] != expected {
+		actual, supplied := value[name]
+		if expected, present := object(raw)["const"]; supplied && present && actual != expected {
 			return false
 		}
 	}
 	return true
 }
 func (w *normalizer) mapping(schema map[string]any, pointer string, value map[string]any, path []string, policy scalarPolicy, view source.View) (any, error) {
+	if pointer == "#/$defs/DomainProfileSchemaModel" && value["schema_digest"] == nil {
+		value = maps.Clone(value)
+		delete(value, "schema_digest")
+	}
 	presentation := w.parser.layoutFor(w.id, pointer)
 	keys := fieldOrder(w.keys(value, path, view), presentation.Fields)
 	result := make(ordered, 0, len(value))
@@ -176,7 +229,7 @@ func (w *normalizer) mapping(schema map[string]any, pointer string, value map[st
 		if err != nil {
 			return nil, err
 		}
-		raw, err := w.fieldInput(pointer, name, value[name])
+		raw, err := w.memoField(pointer, name, value[name])
 		if err != nil {
 			return nil, err
 		}
@@ -194,6 +247,11 @@ func (w *normalizer) mapping(schema map[string]any, pointer string, value map[st
 		}
 		normalized = omitInferredTarget(pointer, name, value[name], normalized)
 		result = append(result, field{name: name, value: normalized, omit: omitted(normalized, presentation.Omit[name])})
+	}
+	result = modelOutput(pointer, result, presentation.Fields)
+	result, err := w.profileSchemaOutput(pointer, result, presentation.Fields)
+	if err != nil {
+		return nil, err
 	}
 	if err := w.modelCheck(pointer, object(result)); err != nil {
 		return nil, err

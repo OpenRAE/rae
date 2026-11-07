@@ -53,7 +53,7 @@ func (r *controlResolution) load() error {
 		name, model string
 		values      map[string][]byte
 	}{
-		{termBindings, bindingModel, s.InstalledBindings}, {"effective", "ControlEffectiveSupportModel", s.EffectiveSupport},
+		{termBindings, bindingModel, s.InstalledBindings}, {termEffective, "ControlEffectiveSupportModel", s.EffectiveSupport},
 		{"results", resultModel, s.ResolvedResults}, {termEffects, termParticipantControlContextModel, s.AuthorizedEffects},
 		{"receipts", "ControlRealizationBindingModel", s.RealizationReceipts},
 	}

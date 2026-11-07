@@ -16,7 +16,7 @@ func timeManagementModel(v any) error {
 		return require(at(v, "advance_by") != nil)
 	case "rollback":
 		return require(len(array(at(v, "rollback_event_refs"))) > 0)
-	case "unsupported":
+	case statusUnsupported:
 		return require(boolean(at(v, "unsupported_disclosure")))
 	default:
 		return nil

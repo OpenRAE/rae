@@ -39,7 +39,194 @@ func (e *Validator) definitionModel(instance validation.SchemaInstance) error {
 }
 
 func definitionRules() map[string]func(any) error {
-	return map[string]func(any) error{
+	rules := map[string]func(any) error{
+		"NodePresenceAlternative":                 sdlNodePresence,
+		"ServiceMaterialization":                  sdlServiceMaterializationFields,
+		"ServiceSearchIndexSchemaMaterialization": sdlServiceMaterializationFields,
+		"ExperimentArtifactRefModel":              func(v any) error { return timestamps(v, "created_at") },
+		"RealizationDesignation":                  sdlDesignation,
+		"OrderVariationPoint":                     sdlOrder,
+		"AlternativeVariationPoint":               sdlAlternative,
+		"ParticipantInjectDelivery":               sdlInjectDelivery,
+		"ParticipantControlContextAssetModel": func(v any) error {
+			return controlContextLocal(termParticipantControlContextAssetV1, v)
+		},
+		"AugmentationScopePolicy":                augmentationScopeModel,
+		"IdentityDomain":                         sdlIdentityDomain,
+		"ArtifactConstraint":                     sdlUniqueLists("allowed_values"),
+		"ArtifactMechanismProfile":               sdlArtifactProfile,
+		"ParticipantBehaviorSpecification":       behaviorSpecificationModel,
+		"ImageConfig":                            imageConfigShape,
+		"ContainerImageBuildProvenance":          imageBuildShape,
+		"ImageBuildArg":                          imageEnvironmentName,
+		"ImageEnvironmentDefault":                imageEnvironmentName,
+		"ImageSourceInput":                       imageSourceInput,
+		"ImageCopiedSource":                      imageCopiedSource,
+		"ParticipantControlContextReference":     func(v any) error { work := 0; return require(materializationConcrete(at(v, "asset_ref"), &work)) },
+		"TimeDomain":                             sdlTimeDomain,
+		"TimeDomainMapping":                      sdlTimeMapping,
+		"TimeProgressionPolicy":                  sdlTimeProgression,
+		"TemporalConstraint":                     sdlTemporalConstraint,
+		"ParticipantActionContract":              sdlActionContract,
+		"ParticipantActionArgumentDefinition":    sdlActionArgument,
+		"ParticipantInteractionDeclaration":      sdlInteraction,
+		"ParticipantViewRule":                    sdlViewRule,
+		"ParticipantViewTransition":              sdlViewTransition,
+		"ParticipantObservationBoundary":         sdlObservationBoundary,
+		"ParticipantEvaluationAuthority":         sdlEvaluationAuthority,
+		"ParticipantActivityTiming":              func(v any) error { return sdlOptionalInterval(v, "minimum_ticks", "maximum_ticks") },
+		"ParticipantActivityActionCandidate":     sdlActivityCandidate,
+		"ParticipantAutonomousExecutionPolicyV1": func(v any) error { return require(nonblankSDLRefs(v, "temporal_constraint_refs", "action_order")) },
+		"ParticipantAutonomousExecutionPolicyV2": sdlActivityPolicy,
+		"ParticipantAutonomousExecutionPolicyV3": sdlResourceActivityPolicy,
+		"ParticipantResourceBudgetDimension":     sdlResourceDimension,
+		"ParticipantResourceBudgetPolicy":        sdlResourcePolicy,
+		"ParticipantSharedTimeBinding":           sdlSharedTimeBinding,
+		"ParticipantTemporalContract":            sdlParticipantTemporal,
+		"ParticipantBackendTimingDisclosure":     sdlTimingDisclosure,
+		"MixedControlControllerState":            sdlControllerState,
+		"MixedControlTransition":                 sdlMixedTransition,
+		"MixedControlParticipantOperation":       sdlMixedOperation,
+		"MixedControlPolicy":                     sdlMixedPolicy,
+		"MixedControlPermittedTransition": func(v any) error {
+			return sdlOptionalInterval(v, termValidFromOrder, termValidUntilOrder)
+		},
+		"MixedControlScriptStep":                sdlMixedScriptStep,
+		"RandomValueFormat":                     sdlRandomFormat,
+		"RandomValueRecipe":                     func(v any) error { return randomRecipe(v, countAt(v, "min_entropy_bits")) },
+		"ParticipantActionPrecondition":         sdlActionPrecondition,
+		"ParticipantActionEffect":               sdlActionEffect,
+		"ParticipantBackendFailureMapping":      func(v any) error { return require(nonblankSDLFields(v, "backend_error_code", "diagnostic")) },
+		"Node":                                  sdlNode,
+		"ServicePort":                           sdlServicePort,
+		"InfraNode":                             sdlInfrastructure,
+		"RuntimeApplicationRoute":               sdlApplicationRoute,
+		"RuntimeApplicationSurface":             sdlApplicationSurface,
+		"RuntimeCapabilityPolicy":               sdlCapabilityPolicy,
+		"RuntimeProcessCapabilityOverride":      sdlCapabilityOverride,
+		"RuntimeContainerConfiguration":         sdlContainerConfiguration,
+		"RuntimeLocalIdentityInventory":         sdlIdentityInventory,
+		"RuntimeLocalUser":                      sdlLocalUser,
+		"RuntimeLocalGroup":                     func(v any) error { return require(nonblankSDLFields(v, termName)) },
+		"RuntimeSudoRule":                       func(v any) error { return require(nonblankSDLFields(v, "principal")) },
+		"RuntimeProcessIdentity":                func(v any) error { return require(sdlAbsoluteFields(v, true, termWorkingDirectory)) },
+		"RuntimeDeviceMapping":                  func(v any) error { return require(sdlAbsoluteFields(v, false, "host_path", "container_path")) },
+		"RuntimeExtraHost":                      func(v any) error { return require(nonblankSDLFields(v, "hostname", "address")) },
+		"RuntimeNetworkNamespace":               func(v any) error { return require(nonblankSDLFields(v, "target_node_ref")) },
+		"RuntimeInitProcess":                    func(v any) error { return require(sdlAbsoluteFields(v, true, "executable_path")) },
+		"RuntimeSoftwareComponentHash":          func(v any) error { return require(nonblankSDLFields(v, "algorithm", "value")) },
+		"RuntimeAptPackageRepository":           sdlAptRepository,
+		"RuntimePackageRepositorySigningKey":    func(v any) error { return require(sdlHTTPS(stringAt(v, "uri"))) },
+		"RuntimePackage":                        sdlPackage,
+		"RuntimePublishedPort":                  sdlPublishedPort,
+		"RuntimeNetworkEndpoint":                sdlNetworkEndpoint,
+		"RuntimeNetworkRealization":             sdlNetworkRealization,
+		"RuntimeNetworkSensor":                  sdlNetworkSensor,
+		"RuntimeNetworkDetectionEngine":         sdlNetworkDetectionEngine,
+		"RuntimeNetworkDetectionNetworkSet":     sdlNetworkSet,
+		"RuntimeNetworkDetectionOutputStream":   func(v any) error { return require(sdlSymbolField(v, "stream_id") && fieldsUnique(v, "event_types")) },
+		"RuntimeNetworkDetectionControlChannel": func(v any) error { return require(sdlSymbolField(v, "channel_id") && fieldsUnique(v, "capabilities")) },
+		"SshMatchRule":                          sdlSSHMatch,
+		"SshMatchCriterion":                     func(v any) error { return require(nonblankSDLFields(v, "pattern")) },
+		"RuntimeSshServer":                      sdlSSHServer,
+		"SshForcedCommand":                      func(v any) error { return sdlCommand(v, true) },
+		"ServiceUnitExecStart":                  func(v any) error { return sdlCommand(v, false) },
+		"ServiceManagerUnit":                    sdlServiceManagerUnit,
+		"RuntimeProcessResourceLimit":           sdlProcessLimit,
+		"RuntimeResourceLimits":                 sdlResourceLimits,
+		"RuntimeEnvironmentVariable":            sdlEnvironmentVariable,
+		"RuntimeMount":                          func(v any) error { return require(sdlAbsoluteFields(v, false, "target")) },
+		"RuntimeControlInterface":               sdlControlInterface,
+		"RuntimeAppAuthorization":               sdlLocalIdentities("app_authorization_id", [2]string{"principals", "principal_id"}, [2]string{termRoles, "role_id"}, [2]string{"permission_grants", "grant_id"}, [2]string{"role_mappings", termMappingID}, [2]string{"tenants", "tenant_id"}),
+		"RuntimeAppAuthorizationGrant":          sdlUniqueLists("actions", "resource_patterns"),
+		"RuntimeAppAuthorizationPrincipal":      sdlUniqueLists("backend_roles"),
+		"RuntimeAppAuthorizationRoleMapping":    sdlUniqueLists("backend_roles", "users", "hosts"),
+		"Database":                              sdlUniqueCollections([2]string{"schemas", "schema_id"}),
+		"DatabaseSchema":                        sdlUniqueCollections([2]string{"tables", "table_id"}),
+		"DatabaseGrant":                         sdlDatabaseGrant,
+		"RuntimeDatabaseService":                sdlDatabaseService,
+		"RuntimeIdentityAuthority":              sdlLocalIdentities("identity_authority_id", [2]string{"services", "service_id"}, [2]string{"subjects", "subject_id"}, [2]string{"policies", "policy_id"}, [2]string{"relationships", "relationship_id"}, [2]string{"resource_scopes", "scope_id"}, [2]string{"identity_uses", "use_id"}, [2]string{"access_observations", termObservationID}),
+		"RuntimeIdentityRelationship": func(v any) error {
+			return require((stringAt(v, "target_ref") != "") != (stringAt(v, "external_target") != ""))
+		},
+		"RuntimeIdentityPolicy": func(v any) error {
+			return require(fieldsUnique(v, "applies_to_refs") && sdlUniqueKey(at(v, termSettings), termName, false))
+		},
+		"RuntimeIdentitySubject": func(v any) error {
+			return require(fieldsUnique(v, "service_principal_names") && sdlUniqueKey(at(v, "attributes"), termName, false))
+		},
+		"DnsSoaRdata":  func(v any) error { return require(sdlDNSNames(v, "mname", "rname")) },
+		"DnsMxRdata":   func(v any) error { return require(sdlDNSNames(v, "exchange")) },
+		"DnsSrvRdata":  func(v any) error { return require(sdlDNSNames(v, "target")) },
+		"DnsForwarder": func(v any) error { return require(sdlDNSNames(v, fieldAddress)) },
+		"DnsResolverPolicy": func(v any) error {
+			for _, item := range stringsOf(at(v, "allow_recursion")) {
+				if !sdlDNSName(item) {
+					return invalid()
+				}
+			}
+			return nil
+		},
+		"DnsZone":                                 sdlDNSZone,
+		"DnsResourceRecordSet":                    sdlDNSRRSet,
+		"DnsResourceRecord":                       sdlDNSRecord,
+		"RuntimeDnsService":                       sdlDNSService,
+		"RuntimeDatastoreService":                 sdlDatastoreService,
+		"RuntimeDatastoreNode":                    sdlDatastoreNode,
+		"RuntimeDatastoreMapping":                 sdlUniqueLists("evidence_refs"),
+		"RuntimeDatastoreTemplate":                sdlUniqueLists("index_patterns", "evidence_refs"),
+		"RuntimeFileService":                      sdlLocalIdentities("file_service_id", [2]string{"shares", "share_id"}, [2]string{"principals", "principal_id"}, [2]string{"access_rules", "rule_id"}, [2]string{"access_observations", termObservationID}),
+		"RuntimeMailService":                      sdlLocalIdentities("mail_service_id", [2]string{"components", termComponentID}, [2]string{"listeners", "listener_id"}, [2]string{termDomains, "domain_id"}, [2]string{"mailbox_stores", "store_id"}, [2]string{"mailboxes", "mailbox_id"}, [2]string{"aliases", "alias_id"}, [2]string{"routing_rules", "rule_id"}, [2]string{"queues", "queue_id"}, [2]string{termSettings, termSettingID}),
+		"RuntimeForwardingAgent":                  sdlLocalIdentityRule("forwarding_agent_id", materializationQualified, [2]string{"sources", termSourceID}, [2]string{"transforms", "transform_id"}, [2]string{"ship_targets", "target_id"}, [2]string{"reload_channels", "reload_channel_id"}, [2]string{termSettings, termSettingID}),
+		"RuntimeOrchestrationAuthority":           sdlLocalIdentities("orchestration_authority_id", [2]string{"spawn_templates", "template_id"}, [2]string{"realized_children", "workload_id"}),
+		"RuntimePlatformApplication":              sdlLocalIdentities("platform_application_id", [2]string{"capabilities", "capability_id"}, [2]string{"organizations", "organization_id"}, [2]string{"tenants", "tenant_id"}, [2]string{"content_objects", "content_object_id"}, [2]string{"markings", "marking_id"}, [2]string{"upstream_bindings", termBindingID}, [2]string{"connectors", "connector_id"}, [2]string{termSettings, termSettingID}, [2]string{"secrets", "secret_id"}, [2]string{"cloud_limits", "limit_id"}),
+		"RuntimeSecurityMonitoringManager":        sdlLocalIdentities("security_monitoring_manager_id", [2]string{"listeners", "listener_id"}, [2]string{"components", termComponentID}, [2]string{"agents", "agent_id"}, [2]string{"agent_groups", "group_id"}, [2]string{"content_sets", "content_id"}, [2]string{"detection_definitions", "definition_id"}, [2]string{termSettings, termSettingID}),
+		"RuntimePlatformApplicationCapability":    sdlUniqueLists("evidence_refs"),
+		"RuntimePlatformApplicationContentObject": sdlUniqueLists("references", "marking_refs", "evidence_refs"),
+		"RuntimeSecretConsumer":                   sdlSecretConsumer,
+		"RuntimeSecretVersion": func(v any) error {
+			return require(stringAt(v, "state") != "destroyed" || stringAt(v, "payload_content_ref") == "")
+		},
+		"RuntimeServiceSecret":                         sdlServiceSecret,
+		"RuntimeIdentityAccessObservation":             sdlAccessObservation,
+		"RuntimeIdentityPermissionBinding":             sdlPermissionBinding,
+		"RuntimeIdentityResourceAccess":                sdlIdentityResourceAccess,
+		"RuntimeSecurityMonitoringDetectionDefinition": sdlSecurityDefinition,
+		"RuntimeIdentityAttribute":                     sdlIdentityAttribute,
+		"RuntimeServiceListener":                       sdlListenerModel,
+		"RuntimePublishedPortRef":                      sdlPublishedPort,
+		"RelationshipForwardingEdge":                   sdlForwardingEdge,
+		"Objective":                                    sdlObjective,
+		"WorkflowCompensationPolicy":                   sdlCompensationPolicy,
+		"WorkflowPredicate":                            sdlWorkflowPredicate,
+		"WorkflowStepStateRef":                         sdlUniqueLists("outcomes"),
+		"SelectionRelation":                            sdlUniqueLists("members"),
+		"OrderPrecedence":                              func(v any) error { return require(stringAt(v, "before") != stringAt(v, "after")) },
+		"ArtifactMaterializationSpecification":         sdlMaterializationSpecification,
+		"GeneratedArtifact":                            generatedArtifact,
+		"GeneratedArtifactConsumer":                    sdlUniqueLists("selected_outputs"),
+		"PersistentVolume":                             persistentVolume,
+		"RuntimeConfiguration":                         sdlRuntimeConfiguration,
+		"RuntimeSoftwareComponent":                     sdlSoftwareComponent,
+		"RuntimeSoftwareRepositoryState":               sdlRepositoryState,
+		"RuntimeSoftwareRepository":                    func(v any) error { return sdlRepositoryRefinements(v, "repository-state") },
+		"RuntimeSoftwareTrustBinding":                  func(v any) error { return sdlRepositoryRefinements(v, "repository-trust") },
+		"Proposition":                                  propositionShape,
+		"StringPredicate":                              stringPredicateShape,
+		"ExactRatio": func(v any) error {
+			return require(reducedRatio(v))
+		},
+		"Condition":            probeShape,
+		"Content":              contentAnchors,
+		"Account":              func(v any) error { return require(stringAt(v, "node") != "") },
+		"ObjectiveSuccess":     successCriteria,
+		"SubsetVariationPoint": subsetBounds,
+		"WorkflowStep":         workflowShape,
+		"Clock":                clockJump,
+		"ImageAttestation": func(v any) error {
+			return require(stringAt(v, "status") != "absent" || stringAt(v, "verification") != "verified")
+		},
+		"RuntimeFilesystemEntry":                           runtimeFilesystemModel,
 		"AdmittedApparatusBindingModel":                    apparatusBindingModel,
 		"AdmittedMixedCompositionBindingModel":             mixedCompositionBindingModel,
 		"AdmittedTrialPlanInputRefsModel":                  trialInputRefsModel,
@@ -68,6 +255,7 @@ func definitionRules() map[string]func(any) error {
 		"TrialProcessorPlanReferenceModel":                 processorPlanReference,
 		"VersionDomain":                                    versionDomainModel,
 	}
+	return rules
 }
 
 // referenceKind checks an experiment reference kind and an optional digest pin.
@@ -159,7 +347,7 @@ func controlProfileObligation(v any) error {
 // controlResultSlot checks the constraint kinds and the constraints of a
 // bounded strength.
 func controlResultSlot(v any) error {
-	constraints := at(v, "constraints")
+	constraints := at(v, termConstraints)
 	return require(controlKinds(constraints, termConstraint) && (stringAt(v, "required_strength") != assuranceBounded || len(array(constraints)) > 0))
 }
 
@@ -183,7 +371,7 @@ func evidenceRequirementModel(v any) error {
 	}
 	present := func(field string) bool { return stringAt(v, field) != "" }
 	listed := func(field string) bool { return len(array(at(v, field))) > 0 }
-	if !listed("source_refs") && at(v, "source_class") == nil || !listed("scope_refs") && !present("scope") {
+	if !listed("source_refs") && at(v, "source_class") == nil || !listed(termScopeRefs) && !present("scope") {
 		return invalid()
 	}
 	if !present("window") && !present("trigger_ref") && !present("boundary_ref") && !present("boundary_kind") {
@@ -217,9 +405,9 @@ func evidenceTerms(v any) bool {
 // evidenceLists reports whether each evidence list has unique, non-blank
 // members and whether each field selector is a canonical JSON Pointer.
 func evidenceLists(v any) bool {
-	for _, field := range []string{"source_refs", "scope_refs", "channel_refs", "media_types", "field_selectors", "notes"} {
+	for _, field := range []string{"source_refs", termScopeRefs, "channel_refs", "media_types", "field_selectors", "notes"} {
 		values := stringsOf(at(v, field))
-		if !unique(values) || slices.ContainsFunc(values, func(value string) bool { return strings.TrimSpace(value) == "" }) {
+		if !unique(values) || slices.ContainsFunc(values, sdlBlank) {
 			return false
 		}
 	}
@@ -368,6 +556,10 @@ func realizationSupportDeclaration(v any) error {
 }
 
 func versionDomainModel(v any) error {
+	_, err := modelVersionDomain(v)
+	return require(err == nil)
+}
+func modelVersionDomain(v any) (softwareversion.Domain, error) {
 	relation := at(v, "relation")
 	bound := func(field string) *string {
 		if at(v, field) == nil {
@@ -377,6 +569,5 @@ func versionDomainModel(v any) error {
 		return &value
 	}
 	identity := softwareversion.Relation{Authority: stringAt(relation, termAuthority), ID: stringAt(relation, "contract_id"), Revision: stringAt(relation, termRevision), Digest: stringAt(relation, "digest")}
-	_, err := softwareversion.NewDomain(identity, bound("lower"), bound("upper"), boolean(defaultMember(v, "lower_closed", true)), boolean(defaultMember(v, "upper_closed", true)))
-	return require(err == nil)
+	return softwareversion.NewDomain(identity, bound("lower"), bound("upper"), boolean(defaultMember(v, "lower_closed", true)), boolean(defaultMember(v, "upper_closed", true)))
 }

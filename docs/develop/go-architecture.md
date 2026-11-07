@@ -305,7 +305,7 @@ flowchart BT
 | `implementations/go/internal/contract/packaged` | contract | false | false | implementations/go/base/ingress, implementations/go/contract/validation |
 | `implementations/go/contract/admission` | contract | true | true | implementations/go/contract/validation, implementations/go/contract/binding, implementations/go/base/canonjson, implementations/go/base/digest, implementations/go/internal/base/timestamp, implementations/go/internal/base/graph, implementations/go/internal/base/urisafety, implementations/go/base/address, implementations/go/internal/base/jsonpointer, implementations/go/internal/base/value, implementations/go/internal/base/domain, implementations/go/internal/base/randstream, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/concept, implementations/go/contract/profile, implementations/go/internal/contract/domainprofile, implementations/go/internal/base/softwareversion |
 | `implementations/go/internal/sdl/source` | sdl | true | false | implementations/go/base/fault, implementations/go/internal/base/jsonpointer |
-| `implementations/go/internal/sdl/authoring` | sdl | true | false | implementations/go/base/canonjson, implementations/go/base/digest, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/admission, implementations/go/contract/concept, implementations/go/contract/validation, implementations/go/internal/base/jsonpointer, implementations/go/internal/contract/corpus, implementations/go/internal/sdl/source |
+| `implementations/go/internal/sdl/authoring` | sdl | true | false | implementations/go/base/canonjson, implementations/go/base/digest, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/admission, implementations/go/contract/concept, implementations/go/contract/validation, implementations/go/internal/base/graph, implementations/go/internal/base/jsonpointer, implementations/go/internal/contract/corpus, implementations/go/internal/sdl/source |
 
 | Consumer repository owner | Module |
 | --- | --- |
@@ -351,7 +351,7 @@ flowchart BT
 | `raes` | runtime | `RUNTIME/cmd/raes` | rae:command/authoring, runtime:runtime/control |
 | `raes-mcp` | rae | `github.com/OpenRAE/rae/implementations/go/cmd/raes-mcp` | rae:sdl/language, rae:processor, rae:contract/admission |
 
-<!-- go-consumer ddcc4b2c32730845bd4eceef0208665ff6e7800d98aecb0899337de9468781e2 -->
+<!-- go-consumer 3cb94362a564884e3487b35ec851dd7b03f7938af9fed9b4743797717ae0e269 -->
 
 | Trust-view evidence | SHA-256 |
 | --- | --- |
@@ -370,24 +370,24 @@ flowchart BT
 | `docs/decisions/issue-1779-ingress-design.md` | `0dcde22676a7429a0c92d01ed2e8d0eaf15da84d5be800404e12c9414348bed1` |
 | `docs/decisions/issue-1779-random-streams-design.md` | `dae79083acb2909a63a43849e9aeb0ddf4594d3e7d54d118b2a1dd54f68cdb8b` |
 | `docs/decisions/issue-1779-shared-primitives-completion.md` | `53b8dcd5ef5e1ad44ca2948eca10fff0d180028b807a496ddbe82e61e9e573ed` |
-| `docs/decisions/issue-1780-contract-validation-design.md` | `1121f86e9cee64ef7b46c007971b49f31244f1457e1c4334a6021e487d91b2dd` |
+| `docs/decisions/issue-1780-contract-validation-design.md` | `af16cabe834eb350d8074c0856a1ac783c2f56f775a0eddd79326a99b3f84269` |
 | `docs/decisions/issue-1825-public-go-api.md` | `6f264cb6dd7fef28567fcb804a56b8b94f63b883f59f4be35d0ffc41095ca721` |
 | `docs/decisions/issue-1859-go-architecture-contract-design.md` | `0057d0da3d7466e02c34cf5545aa14245bc398486519d3dd15457e515f6230ce` |
 | `docs/decisions/issue-1891-runtime-repository-boundary.md` | `e8233ecdf836dbbad4dda9ef373572dd466f1cf59ad0eeb4ab01cc9fd476e406` |
 | `docs/decisions/issue-1892-public-go-packages-design.md` | `e66f0bb12f0615a6b5614fe149a2a78b13289c42845c683537df80ec1907fc53` |
 | `specs/sdl/diagnostics.md` | `422c46a1080f4dced095729967658f300520fa59b16c1923d113a758422a231e` |
 | `specs/sdl/document-model.md` | `496290792659c189242ab93923f6f50e305e383d50588a4d75269d9ade2e2970` |
-<!-- go-component base 7a998f97a1a182a0e07205bdb8457323aea063d519da089b25aba74c0e1ae9ae -->
-<!-- go-component contract e5b2df957be5d017f1c04ee2125a6f8473f8f77c6e2484d8e78fda09af28510d -->
-<!-- go-component sdl c835dafb8ce056ba9ee2e264324c3173ea2239a141076f49c655d967524b57ab -->
-<!-- go-component processor 4df48406939bbd804d2eb21a2fd1b2c46307f76313d5bcd987694f8e9b5b086e -->
-<!-- go-component backend 83357376ef4b752d63b7734502b82f7e5b6d170065d60b9446dd30548ad64095 -->
-<!-- go-component runtime 11bf2d8e5203149c625058c497ab1717ffca92cc4f3395f739b0ac116c8605fe -->
-<!-- go-component conformance cbebb6e46a7f672691bf69663cccb183a6c456153bc40c701aa5cde2677d6514 -->
-<!-- go-component app 151bbe68b640ee938ddb1df8bdd9831558672bebebdda73af5d6bfffd061ffce -->
-<!-- go-component adapter c4fdeb0222ab4b10f04922ac2d16676dc0e1f5b0870312cfdcb7c0a0a17ebd45 -->
-<!-- go-component command fc11fdd85f45c56a5e969e21d4119b19aa7458a2ae6991739cf52291d82ffa19 -->
-<!-- go-component parity de644f1c0b6a6717dabaca188073b5aa252aef1ea548abe8122f5c903d474064 -->
-<!-- go-component tooling a376efe99ef0f05848e6f76976c236385cfc096f629de55f7a21a858a665985a -->
+<!-- go-component base e2bf04550ed6ad3aeffb34b1ab07f1bce7ea36169dab80b36cb8f3428d31df70 -->
+<!-- go-component contract c83fdb9c674d48bff418add00811ab83c7e7506df398a994534032be377f4393 -->
+<!-- go-component sdl 4ddbff6bfbc2944ac0b7001f5059c8008df17e065aa9e8c7a3d849384214c043 -->
+<!-- go-component processor d9d40cf6265f6fc82ec30207e5778bb772e27178490bb84156bd5e56959b64eb -->
+<!-- go-component backend e4d4a3d5fa825015eec17ac8bb38d4e4fc3072122f895484266ff8344e60fdd5 -->
+<!-- go-component runtime 9c520ec3bc21c27668864101a120ff8a659c6d051fc3d4d8ee32cdc0ca98491c -->
+<!-- go-component conformance c32ceb9a04be917dd078736ad6e349878b77199c36a88d711b39a79483931cee -->
+<!-- go-component app f2c7cb54020a65018a2ef785136dc6855dd8108bd8a4e7d9a4b3359a000fd383 -->
+<!-- go-component adapter c8140e44bfd5636d8fc225308e895d01736f0481824b0fde55518f9c6494e024 -->
+<!-- go-component command f2519fe70e60d36235dc5de82059c69e0835141f34965313bcf7b63af86b1b1c -->
+<!-- go-component parity 2dce27cfb2a4707ca45ce646bb98ba3f2758ebcd62b37e149fb956bde38a5902 -->
+<!-- go-component tooling 8867859facdda3b76bab5e3d2a87ad6bcefadf1c7d5e37d3f5b4e9aca21e6584 -->
 
 <!-- /go-view -->

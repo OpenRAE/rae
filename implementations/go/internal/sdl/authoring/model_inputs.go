@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"maps"
 	"regexp"
+	"slices"
 	"strconv"
 )
 
@@ -12,6 +13,8 @@ var permissionMode = regexp.MustCompile(`^(0o)?[0-7]{3,4}$`)
 // These conversions change model shape before the published schema applies.
 func structuredInput(model, name string, value any) (any, error) {
 	switch model + "/" + name {
+	case "RuntimeAptPackageRepository/components":
+		return aptComponents(value)
 	case "RuntimeFilesystemEntry/mode":
 		return filesystemMode(value)
 	case "Workflow/timeout":
@@ -27,9 +30,9 @@ func structuredInput(model, name string, value any) (any, error) {
 		}
 		return pythonScalar(value), nil
 	case "RuntimeDatastoreService/templates":
-		return manifestEntries(value, "template_id"), nil
+		return manifestEntries(value, templateIDField), nil
 	case "RuntimeDatastoreService/mappings":
-		return manifestEntries(value, "mapping_id"), nil
+		return manifestEntries(value, mappingIDField), nil
 	case "OutcomeInterpretationRule/participant_scope":
 		if s, ok := value.(string); ok {
 			return lower(pythonTrim(s)), nil
@@ -47,7 +50,7 @@ func structuredInput(model, name string, value any) (any, error) {
 }
 
 func omitInferredTarget(pointer, name string, original, normalized any) any {
-	if pointer != "#/$defs/AlternativeVariationPoint" || name != "target" || object(original) == nil {
+	if pointer != "#/$defs/AlternativeVariationPoint" || name != targetField || object(original) == nil {
 		return normalized
 	}
 	if _, present := object(original)["kind"]; present {
@@ -107,4 +110,25 @@ func manifestEntries(value any, id string) any {
 		return result
 	}
 	return value
+}
+
+func aptComponents(value any) (any, error) {
+	rows, ok := value.([]any)
+	if !ok {
+		return nil, invalid()
+	}
+	values := make([]string, len(rows))
+	for i, row := range rows {
+		var valid bool
+		values[i], valid = row.(string)
+		if !valid {
+			return nil, invalid()
+		}
+	}
+	slices.Sort(values)
+	result := make([]any, len(values))
+	for i, value := range values {
+		result[i] = value
+	}
+	return result, nil
 }

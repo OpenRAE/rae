@@ -3,6 +3,7 @@ package authoring
 import (
 	"encoding/json"
 	"math/big"
+	"regexp"
 	"slices"
 	"strings"
 )
@@ -93,9 +94,13 @@ func (w *normalizer) scalarOperation(schema map[string]any, value any, operation
 	switch operation {
 	case "normalize":
 		if s, ok := value.(string); ok {
-			return strings.ReplaceAll(lower(s), "-", "_"), nil
+			return w.caseText(s, true)
 		}
 		return value, nil
+	case "account-vocabulary":
+		return w.accountVocabulary(value, policy)
+	case "capability":
+		return w.capability(value)
 	case "enum", "vocabulary":
 		return w.enum(schema, value, operation == "vocabulary", policy)
 	case integerType:
@@ -108,14 +113,12 @@ func (w *normalizer) scalarOperation(schema map[string]any, value any, operation
 		return ram(value)
 	case "duration":
 		return duration(value)
-	case architectureField:
-		return architecture(value), nil
-	case "distribution":
-		if s, ok := value.(string); ok {
-			return lower(s), nil
-		}
-		return nil, invalid()
+	case architectureField, "distribution":
+		return w.platformToken(value, operation)
 	case "os-version":
+		if s, ok := value.(string); !ok || !osReleaseToken.MatchString(s) {
+			return nil, invalid()
+		}
 		return value, nil // The published token constraints apply unchanged.
 	case "limit":
 		if value == "unlimited" {
@@ -138,7 +141,11 @@ func (w *normalizer) enum(schema map[string]any, value any, extension bool, poli
 	if len(members) == 0 {
 		members = w.enumMembers(schema, 0)
 	}
-	if normalized, err := normalizeEnum(s, members); err == nil {
+	cased, err := w.caseText(s, true)
+	if err != nil {
+		return nil, err
+	}
+	if normalized, err := normalizeEnum(cased, members); err == nil {
 		return normalized, nil
 	}
 	if extension {
@@ -264,4 +271,52 @@ func scalarNumberBounds(value any, policy scalarPolicy) error {
 		}
 	}
 	return nil
+}
+
+var (
+	accountExtension = regexp.MustCompile(`^x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*\z`)
+	osReleaseToken   = regexp.MustCompile(`^(?:[!-~](?:[ -~]{0,126}[!-~])?)?\z`)
+)
+
+func (w *normalizer) accountVocabulary(value any, policy scalarPolicy) (any, error) {
+	text, ok := value.(string)
+	if !ok {
+		return nil, invalid()
+	}
+	normalized, err := w.caseText(text, true)
+	if err != nil {
+		return nil, err
+	}
+	if slices.Contains(policy.Members, normalized) {
+		return normalized, nil
+	}
+	extension, err := w.caseText(text, false)
+	if err != nil {
+		return nil, err
+	}
+	if accountExtension.MatchString(extension) {
+		return extension, nil
+	}
+	return nil, invalid()
+}
+
+func (w *normalizer) platformToken(value any, operation string) (any, error) {
+	s, ok := value.(string)
+	if ok && strings.ContainsAny(s, "\r\n") {
+		return nil, invalid()
+	}
+	if operation == architectureField {
+		if !ok {
+			return architecture(value), nil
+		}
+		cased, err := w.caseText(s, false)
+		if err != nil {
+			return nil, err
+		}
+		return architecture(cased), nil
+	}
+	if !ok {
+		return nil, invalid()
+	}
+	return w.caseText(s, false)
 }

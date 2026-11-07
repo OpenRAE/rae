@@ -217,17 +217,21 @@ func grammarError(err error, tokens token.Tokens, data []byte, options Options) 
 		}
 	}
 	if strings.Contains(text, "unknown anchor") {
-		for _, t := range tokens {
-			if t.Type == token.AliasType {
-				pos = Position{t.Position.Line, t.Position.Column}
-				break
-			}
-		}
+		pos = unknownAnchorPosition(text, tokens, pos)
 	}
 	if strings.Contains(text, "end of stream") || strings.Contains(text, "expected node content") {
 		pos = endPosition(data)
 	}
 	return failure("sdl.parse", Range{pos, pos}, options)
+}
+
+func unknownAnchorPosition(message string, tokens token.Tokens, fallback Position) Position {
+	for _, t := range tokens {
+		if t.Type == token.AliasType && t.Next != nil && strings.HasSuffix(message, "unknown anchor '"+t.Next.Value+"' referenced") {
+			return Position{t.Position.Line, t.Position.Column}
+		}
+	}
+	return fallback
 }
 
 func (s *syntax) build(n *yaml.Node) (*node, error) {

@@ -1,6 +1,9 @@
 {
   "$shared": {
     "#/$defs/ACLRule": {
+      "factory_defaults": {
+        "ports": []
+      },
       "fields": [
         "name",
         "direction",
@@ -38,6 +41,10 @@
       }
     },
     "#/$defs/Account": {
+      "factory_defaults": {
+        "credential_bindings": [],
+        "groups": []
+      },
       "fields": [
         "username",
         "node",
@@ -62,7 +69,12 @@
       "scalar": {
         "auth_method": {
           "convert": [
-            "normalize"
+            "account-vocabulary"
+          ],
+          "members": [
+            "certificate",
+            "key",
+            "password"
           ]
         },
         "disabled": {
@@ -88,6 +100,7 @@
       }
     },
     "#/$defs/AccountCredentialBinding": {
+      "factory_defaults": {},
       "fields": [
         "credential_id",
         "purpose",
@@ -98,17 +111,38 @@
       "scalar": {
         "auth_method": {
           "convert": [
-            "normalize"
+            "account-vocabulary"
+          ],
+          "members": [
+            "certificate",
+            "key",
+            "password"
           ]
         },
         "purpose": {
           "convert": [
-            "normalize"
+            "account-vocabulary"
+          ],
+          "members": [
+            "administrative_authentication",
+            "primary_authentication"
           ]
         }
       }
     },
     "#/$defs/Agent": {
+      "factory_defaults": {
+        "actions": [],
+        "affiliations": [],
+        "allowed_subnets": [],
+        "authority_anchors": [],
+        "control_context": {},
+        "interactive_access": {},
+        "observation_boundaries": [],
+        "operating_scope": [],
+        "starting_accounts": [],
+        "starting_assertions": []
+      },
       "fields": [
         "control_context",
         "affiliations",
@@ -148,6 +182,7 @@
       }
     },
     "#/$defs/ArtifactCandidate": {
+      "factory_defaults": {},
       "fields": [
         "candidate_id",
         "artifact"
@@ -156,6 +191,7 @@
       "scalar": {}
     },
     "#/$defs/ArtifactConstraint": {
+      "factory_defaults": {},
       "fields": [
         "constraint_id",
         "kind",
@@ -165,6 +201,7 @@
       "scalar": {}
     },
     "#/$defs/ArtifactIdentity": {
+      "factory_defaults": {},
       "fields": [
         "artifact_id",
         "version",
@@ -175,6 +212,7 @@
       "scalar": {}
     },
     "#/$defs/ArtifactLockedInput": {
+      "factory_defaults": {},
       "fields": [
         "input_id",
         "artifact",
@@ -185,6 +223,9 @@
       "scalar": {}
     },
     "#/$defs/ArtifactMaterializationSpecification": {
+      "factory_defaults": {
+        "locked_input_ids": []
+      },
       "fields": [
         "specification_id",
         "profile",
@@ -195,6 +236,7 @@
       "scalar": {}
     },
     "#/$defs/ArtifactMechanismProfile": {
+      "factory_defaults": {},
       "fields": [
         "mechanism",
         "profile",
@@ -205,6 +247,14 @@
       "scalar": {}
     },
     "#/$defs/ArtifactRequirement": {
+      "factory_defaults": {
+        "associated_artifact_manifest_refs": [],
+        "candidates": [],
+        "constraints": [],
+        "locked_inputs": [],
+        "materialization_specifications": [],
+        "trust_policy_refs": []
+      },
       "fields": [
         "requirement_id",
         "explicitness",
@@ -221,6 +271,7 @@
       "scalar": {}
     },
     "#/$defs/ArtifactSatisfactionRoute": {
+      "factory_defaults": {},
       "fields": [
         "mechanism",
         "acquisition",
@@ -230,6 +281,7 @@
       "scalar": {}
     },
     "#/$defs/Assertion": {
+      "factory_defaults": {},
       "fields": [
         "description",
         "proposition",
@@ -240,6 +292,7 @@
       "scalar": {}
     },
     "#/$defs/AssetValue": {
+      "factory_defaults": {},
       "fields": [
         "confidentiality",
         "integrity",
@@ -286,6 +339,7 @@
       }
     },
     "#/$defs/AugmentationScopePolicy": {
+      "factory_defaults": {},
       "fields": [
         "default",
         "scopes"
@@ -294,6 +348,7 @@
       "scalar": {}
     },
     "#/$defs/AugmentationScopeRule": {
+      "factory_defaults": {},
       "fields": [
         "scope",
         "permission",
@@ -303,6 +358,7 @@
       "scalar": {}
     },
     "#/$defs/BooleanPredicate": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "property",
@@ -320,6 +376,7 @@
       }
     },
     "#/$defs/Clock": {
+      "factory_defaults": {},
       "fields": [
         "time_domain_ref",
         "authority_kind",
@@ -350,6 +407,9 @@
       }
     },
     "#/$defs/Condition": {
+      "factory_defaults": {
+        "environment": []
+      },
       "fields": [
         "name",
         "proposition",
@@ -395,6 +455,13 @@
       }
     },
     "#/$defs/ContainerImageBuildProvenance": {
+      "factory_defaults": {
+        "build_args": [],
+        "copied_sources": [],
+        "instructions": [],
+        "layers": [],
+        "source_inputs": []
+      },
       "fields": [
         "base_image",
         "base_image_digest",
@@ -412,6 +479,10 @@
       "scalar": {}
     },
     "#/$defs/Content": {
+      "factory_defaults": {
+        "items": [],
+        "tags": []
+      },
       "fields": [
         "type",
         "description",
@@ -450,6 +521,9 @@
       }
     },
     "#/$defs/ContentItem": {
+      "factory_defaults": {
+        "tags": []
+      },
       "fields": [
         "name",
         "display_name",
@@ -460,6 +534,9 @@
       "scalar": {}
     },
     "#/$defs/Database": {
+      "factory_defaults": {
+        "schemas": []
+      },
       "fields": [
         "database_id",
         "name",
@@ -487,6 +564,9 @@
       }
     },
     "#/$defs/DatabaseGrant": {
+      "factory_defaults": {
+        "privileges": []
+      },
       "fields": [
         "grantee_role_ref",
         "object_type",
@@ -527,6 +607,7 @@
       }
     },
     "#/$defs/DatabaseListener": {
+      "factory_defaults": {},
       "fields": [
         "address",
         "port",
@@ -549,6 +630,7 @@
       }
     },
     "#/$defs/DatabaseRole": {
+      "factory_defaults": {},
       "fields": [
         "role_id",
         "name",
@@ -605,6 +687,9 @@
       }
     },
     "#/$defs/DatabaseSchema": {
+      "factory_defaults": {
+        "tables": []
+      },
       "fields": [
         "schema_id",
         "name",
@@ -632,6 +717,7 @@
       }
     },
     "#/$defs/DatabaseSetting": {
+      "factory_defaults": {},
       "fields": [
         "name",
         "value",
@@ -677,6 +763,7 @@
       }
     },
     "#/$defs/DatabaseTable": {
+      "factory_defaults": {},
       "fields": [
         "table_id",
         "name",
@@ -686,6 +773,7 @@
       "scalar": {}
     },
     "#/$defs/DeploymentCell": {
+      "factory_defaults": {},
       "fields": [
         "tenant_ref",
         "node_refs",
@@ -704,6 +792,7 @@
       }
     },
     "#/$defs/DeploymentTenant": {
+      "factory_defaults": {},
       "fields": [
         "description"
       ],
@@ -711,6 +800,10 @@
       "scalar": {}
     },
     "#/$defs/DnsDynamicUpdatePolicy": {
+      "factory_defaults": {
+        "allowed_clients": [],
+        "key_names": []
+      },
       "fields": [
         "enabled",
         "allowed_clients",
@@ -743,6 +836,7 @@
       }
     },
     "#/$defs/DnsForwarder": {
+      "factory_defaults": {},
       "fields": [
         "address",
         "port",
@@ -782,6 +876,7 @@
       }
     },
     "#/$defs/DnsMxRdata": {
+      "factory_defaults": {},
       "fields": [
         "preference",
         "exchange"
@@ -802,6 +897,10 @@
       }
     },
     "#/$defs/DnsResolverPolicy": {
+      "factory_defaults": {
+        "allow_recursion": [],
+        "forwarders": []
+      },
       "fields": [
         "recursion_enabled",
         "allow_recursion",
@@ -886,6 +985,9 @@
       }
     },
     "#/$defs/DnsResourceRecord": {
+      "factory_defaults": {
+        "text": []
+      },
       "fields": [
         "rdata",
         "address",
@@ -906,6 +1008,9 @@
       }
     },
     "#/$defs/DnsResourceRecordSet": {
+      "factory_defaults": {
+        "records": []
+      },
       "fields": [
         "rrset_id",
         "owner",
@@ -1013,6 +1118,7 @@
       }
     },
     "#/$defs/DnsRuntimeSetting": {
+      "factory_defaults": {},
       "fields": [
         "name",
         "value",
@@ -1058,6 +1164,7 @@
       }
     },
     "#/$defs/DnsSoaRdata": {
+      "factory_defaults": {},
       "fields": [
         "mname",
         "rname",
@@ -1127,6 +1234,7 @@
       }
     },
     "#/$defs/DnsSrvRdata": {
+      "factory_defaults": {},
       "fields": [
         "priority",
         "weight",
@@ -1171,6 +1279,10 @@
       }
     },
     "#/$defs/DnsZone": {
+      "factory_defaults": {
+        "rrsets": [],
+        "zone_file_refs": []
+      },
       "fields": [
         "zone_id",
         "name",
@@ -1264,6 +1376,11 @@
       }
     },
     "#/$defs/DnsZoneTransferPolicy": {
+      "factory_defaults": {
+        "allowed_clients": [],
+        "primary_servers": [],
+        "secondary_servers": []
+      },
       "fields": [
         "axfr_enabled",
         "ixfr_enabled",
@@ -1312,6 +1429,9 @@
       }
     },
     "#/$defs/DockerfileInstruction": {
+      "factory_defaults": {
+        "arguments": []
+      },
       "fields": [
         "instruction",
         "arguments",
@@ -1356,6 +1476,7 @@
       }
     },
     "#/$defs/DomainProfileBindingModel": {
+      "factory_defaults": {},
       "fields": [
         "schema_version",
         "binding_id",
@@ -1369,6 +1490,7 @@
       "scalar": {}
     },
     "#/$defs/DomainProfileBindingOwnerModel": {
+      "factory_defaults": {},
       "fields": [
         "owning_contract_id",
         "canonical_address",
@@ -1381,6 +1503,7 @@
       "scalar": {}
     },
     "#/$defs/DomainProfileBindingProvenanceModel": {
+      "factory_defaults": {},
       "fields": [
         "basis",
         "source_ref",
@@ -1390,6 +1513,7 @@
       "scalar": {}
     },
     "#/$defs/DomainProfileCoordinateModel": {
+      "factory_defaults": {},
       "fields": [
         "namespace",
         "authority",
@@ -1401,6 +1525,7 @@
       "scalar": {}
     },
     "#/$defs/DomainProfileDefinitionModel": {
+      "factory_defaults": {},
       "fields": [
         "schema_version",
         "coordinate",
@@ -1412,6 +1537,7 @@
       "scalar": {}
     },
     "#/$defs/DomainProfileSchemaModel": {
+      "factory_defaults": {},
       "fields": [
         "dialect",
         "schema_id",
@@ -1424,6 +1550,7 @@
       "scalar": {}
     },
     "#/$defs/DomainProfileSemanticContractModel": {
+      "factory_defaults": {},
       "fields": [
         "authority",
         "contract_id",
@@ -1434,6 +1561,11 @@
       "scalar": {}
     },
     "#/$defs/Entity": {
+      "factory_defaults": {
+        "entities": {},
+        "events": [],
+        "facts": {}
+      },
       "fields": [
         "name",
         "description",
@@ -1459,6 +1591,10 @@
       }
     },
     "#/$defs/Event": {
+      "factory_defaults": {
+        "assertions": [],
+        "injects": []
+      },
       "fields": [
         "name",
         "source",
@@ -1470,6 +1606,14 @@
       "scalar": {}
     },
     "#/$defs/EvidenceRequirement": {
+      "factory_defaults": {
+        "channel_refs": [],
+        "field_selectors": [],
+        "media_types": [],
+        "notes": [],
+        "scope_refs": [],
+        "source_refs": []
+      },
       "fields": [
         "description",
         "source_refs",
@@ -1592,7 +1736,8 @@
         },
         "sensitivity": {
           "convert": [
-            "enum"
+            "enum",
+            "vocabulary"
           ],
           "members": [
             "operator_secret",
@@ -1629,6 +1774,7 @@
       }
     },
     "#/$defs/ExactRatio": {
+      "factory_defaults": {},
       "fields": [
         "numerator",
         "denominator"
@@ -1648,6 +1794,14 @@
       }
     },
     "#/$defs/ExecutionPolicy": {
+      "factory_defaults": {
+        "retry": {
+          "after_effect_policy": "disallow",
+          "compensation_refs": [],
+          "max_attempts": 1,
+          "reset_obligation_refs": []
+        }
+      },
       "fields": [
         "schema_version",
         "policy_id",
@@ -1687,6 +1841,7 @@
       }
     },
     "#/$defs/ExecutionPolicyDocument": {
+      "factory_defaults": {},
       "fields": [
         "default",
         "scopes"
@@ -1695,6 +1850,7 @@
       "scalar": {}
     },
     "#/$defs/ExecutionPolicyScope": {
+      "factory_defaults": {},
       "fields": [
         "namespace",
         "scope",
@@ -1704,6 +1860,10 @@
       "scalar": {}
     },
     "#/$defs/ExecutionRetryPolicyModel": {
+      "factory_defaults": {
+        "compensation_refs": [],
+        "reset_obligation_refs": []
+      },
       "fields": [
         "max_attempts",
         "after_effect_policy",
@@ -1720,6 +1880,9 @@
       }
     },
     "#/$defs/ExperimentArtifactRefModel": {
+      "factory_defaults": {
+        "satisfies_refs": []
+      },
       "fields": [
         "artifact_id",
         "role",
@@ -1743,6 +1906,7 @@
       }
     },
     "#/$defs/ExperimentChecksumModel": {
+      "factory_defaults": {},
       "fields": [
         "algorithm",
         "value"
@@ -1751,6 +1915,7 @@
       "scalar": {}
     },
     "#/$defs/ExperimentEvidenceSatisfactionReferenceModel": {
+      "factory_defaults": {},
       "fields": [
         "ref_kind",
         "ref_id",
@@ -1760,6 +1925,10 @@
       "scalar": {}
     },
     "#/$defs/Feature": {
+      "factory_defaults": {
+        "dependencies": [],
+        "environment": []
+      },
       "fields": [
         "name",
         "type",
@@ -1779,6 +1948,11 @@
       }
     },
     "#/$defs/GeneratedArtifact": {
+      "factory_defaults": {
+        "consumers": [],
+        "ordering_dependencies": [],
+        "refresh_dependencies": []
+      },
       "fields": [
         "generator",
         "lifecycle",
@@ -1801,6 +1975,9 @@
       "scalar": {}
     },
     "#/$defs/GeneratedArtifactConsumer": {
+      "factory_defaults": {
+        "selected_outputs": []
+      },
       "fields": [
         "node",
         "mount_destination",
@@ -1819,6 +1996,7 @@
       "scalar": {}
     },
     "#/$defs/GeneratedArtifactOutput": {
+      "factory_defaults": {},
       "fields": [
         "name",
         "path",
@@ -1829,6 +2007,7 @@
       "scalar": {}
     },
     "#/$defs/GeneratedArtifactValueSource": {
+      "factory_defaults": {},
       "fields": [
         "generated_artifact",
         "output"
@@ -1837,6 +2016,7 @@
       "scalar": {}
     },
     "#/$defs/IdentityDomain": {
+      "factory_defaults": {},
       "fields": [
         "profile",
         "dns_name",
@@ -1856,6 +2036,7 @@
       }
     },
     "#/$defs/IdentityFacade": {
+      "factory_defaults": {},
       "fields": [
         "service_ref",
         "protocol"
@@ -1873,6 +2054,7 @@
       }
     },
     "#/$defs/IdentityForest": {
+      "factory_defaults": {},
       "fields": [
         "root_domain_ref",
         "domain_refs"
@@ -1881,6 +2063,7 @@
       "scalar": {}
     },
     "#/$defs/ImageAttestation": {
+      "factory_defaults": {},
       "fields": [
         "status",
         "verification",
@@ -1938,6 +2121,7 @@
       }
     },
     "#/$defs/ImageBuildArg": {
+      "factory_defaults": {},
       "fields": [
         "name",
         "value",
@@ -1965,6 +2149,13 @@
       }
     },
     "#/$defs/ImageConfig": {
+      "factory_defaults": {
+        "command": [],
+        "default_environment": [],
+        "entrypoint": [],
+        "exposed_ports": [],
+        "labels": {}
+      },
       "fields": [
         "entrypoint",
         "command",
@@ -1994,6 +2185,7 @@
       }
     },
     "#/$defs/ImageCopiedSource": {
+      "factory_defaults": {},
       "fields": [
         "source_path",
         "destination_path",
@@ -2004,6 +2196,7 @@
       "scalar": {}
     },
     "#/$defs/ImageEnvironmentDefault": {
+      "factory_defaults": {},
       "fields": [
         "name",
         "value",
@@ -2031,6 +2224,7 @@
       }
     },
     "#/$defs/ImageLayer": {
+      "factory_defaults": {},
       "fields": [
         "digest",
         "created_by",
@@ -2064,6 +2258,7 @@
       }
     },
     "#/$defs/ImageSourceInput": {
+      "factory_defaults": {},
       "fields": [
         "identifier",
         "source_path",
@@ -2076,6 +2271,11 @@
       "scalar": {}
     },
     "#/$defs/InfraNode": {
+      "factory_defaults": {
+        "acls": [],
+        "dependencies": [],
+        "links": []
+      },
       "fields": [
         "count",
         "links",
@@ -2099,6 +2299,12 @@
       }
     },
     "#/$defs/InitialKnowledge": {
+      "factory_defaults": {
+        "accounts": [],
+        "hosts": [],
+        "services": [],
+        "subnets": []
+      },
       "fields": [
         "hosts",
         "subnets",
@@ -2109,6 +2315,10 @@
       "scalar": {}
     },
     "#/$defs/Inject": {
+      "factory_defaults": {
+        "environment": [],
+        "to_entities": []
+      },
       "fields": [
         "name",
         "source",
@@ -2121,6 +2331,7 @@
       "scalar": {}
     },
     "#/$defs/LocalOutcomeCriterion": {
+      "factory_defaults": {},
       "fields": [
         "criterion_id",
         "source_id",
@@ -2130,6 +2341,7 @@
       "scalar": {}
     },
     "#/$defs/LocalOutcomeDefinition": {
+      "factory_defaults": {},
       "fields": [
         "model_version",
         "category",
@@ -2143,6 +2355,7 @@
       "scalar": {}
     },
     "#/$defs/MixedControlControllerState": {
+      "factory_defaults": {},
       "fields": [
         "controller_ref",
         "authority_basis_refs",
@@ -2168,6 +2381,7 @@
       }
     },
     "#/$defs/MixedControlDispositionRules": {
+      "factory_defaults": {},
       "fields": [
         "duplicate",
         "stale",
@@ -2180,6 +2394,7 @@
       "scalar": {}
     },
     "#/$defs/MixedControlParticipantOperation": {
+      "factory_defaults": {},
       "fields": [
         "participant_ref",
         "policy_revision",
@@ -2193,6 +2408,7 @@
       "scalar": {}
     },
     "#/$defs/MixedControlPermittedTransition": {
+      "factory_defaults": {},
       "fields": [
         "transition_kind",
         "from_state_ref",
@@ -2218,6 +2434,7 @@
       }
     },
     "#/$defs/MixedControlPolicy": {
+      "factory_defaults": {},
       "fields": [
         "semantics",
         "form",
@@ -2234,6 +2451,7 @@
       "scalar": {}
     },
     "#/$defs/MixedControlScriptStep": {
+      "factory_defaults": {},
       "fields": [
         "step_id",
         "permitted_transition_ref",
@@ -2266,6 +2484,9 @@
       }
     },
     "#/$defs/MixedControlTransition": {
+      "factory_defaults": {
+        "completion_evidence_refs": []
+      },
       "fields": [
         "transition_kind",
         "from_state_ref",
@@ -2317,6 +2538,13 @@
       }
     },
     "#/$defs/Node": {
+      "factory_defaults": {
+        "conditions": {},
+        "features": {},
+        "injects": {},
+        "roles": {},
+        "services": []
+      },
       "fields": [
         "type",
         "description",
@@ -2388,6 +2616,7 @@
       }
     },
     "#/$defs/NumericPredicate": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "property",
@@ -2408,6 +2637,11 @@
       }
     },
     "#/$defs/Objective": {
+      "factory_defaults": {
+        "actions": [],
+        "depends_on": [],
+        "targets": []
+      },
       "fields": [
         "name",
         "description",
@@ -2423,6 +2657,9 @@
       "scalar": {}
     },
     "#/$defs/ObjectiveSuccess": {
+      "factory_defaults": {
+        "assertions": []
+      },
       "fields": [
         "mode",
         "assertions",
@@ -2449,6 +2686,13 @@
       }
     },
     "#/$defs/ObjectiveWindow": {
+      "factory_defaults": {
+        "events": [],
+        "scripts": [],
+        "steps": [],
+        "stories": [],
+        "workflows": []
+      },
       "fields": [
         "stories",
         "scripts",
@@ -2460,6 +2704,7 @@
       "scalar": {}
     },
     "#/$defs/ObservationDemandRule": {
+      "factory_defaults": {},
       "fields": [
         "rule_id",
         "scope",
@@ -2486,6 +2731,7 @@
       }
     },
     "#/$defs/ObservationSelector": {
+      "factory_defaults": {},
       "fields": [
         "semantic_scope",
         "excluded_scopes",
@@ -2507,6 +2753,7 @@
       }
     },
     "#/$defs/OperatorSecretCredentialMaterial": {
+      "factory_defaults": {},
       "fields": [
         "classification",
         "reference_id"
@@ -2515,6 +2762,9 @@
       "scalar": {}
     },
     "#/$defs/OutcomeInterpretationRule": {
+      "factory_defaults": {
+        "diagnostics": []
+      },
       "fields": [
         "semantic_version",
         "participant_scope",
@@ -2531,6 +2781,11 @@
       "scalar": {}
     },
     "#/$defs/OutcomeInterpretationSourceBinding": {
+      "factory_defaults": {
+        "diagnostics": [],
+        "evidence_refs": [],
+        "provenance_refs": []
+      },
       "fields": [
         "source_id",
         "source_layer",
@@ -2544,6 +2799,11 @@
       "scalar": {}
     },
     "#/$defs/OutcomeInterpretationTargetBinding": {
+      "factory_defaults": {
+        "diagnostics": [],
+        "evidence_refs": [],
+        "limitations": []
+      },
       "fields": [
         "target_id",
         "target_layer",
@@ -2558,6 +2818,9 @@
       "scalar": {}
     },
     "#/$defs/ParticipantActionArgumentDefinition": {
+      "factory_defaults": {
+        "allowed_values": []
+      },
       "fields": [
         "value_type",
         "cardinality",
@@ -2652,6 +2915,19 @@
       }
     },
     "#/$defs/ParticipantActionContract": {
+      "factory_defaults": {
+        "arguments": {},
+        "backend_failure_mappings": [],
+        "backend_timing_disclosures": [],
+        "effects": [],
+        "evidence_expectations": [],
+        "failure_classes": [],
+        "interactions": [],
+        "observation_expectations": [],
+        "preconditions": [],
+        "state_transition_effects": [],
+        "temporal_contracts": []
+      },
       "fields": [
         "semantic_version",
         "lifecycle_state",
@@ -2675,6 +2951,10 @@
       "scalar": {}
     },
     "#/$defs/ParticipantActionEffect": {
+      "factory_defaults": {
+        "evidence_refs": [],
+        "target_refs": []
+      },
       "fields": [
         "effect_id",
         "effect_class",
@@ -2686,6 +2966,10 @@
       "scalar": {}
     },
     "#/$defs/ParticipantActionPrecondition": {
+      "factory_defaults": {
+        "evidence_refs": [],
+        "support_refs": []
+      },
       "fields": [
         "precondition_id",
         "precondition_class",
@@ -2697,6 +2981,10 @@
       "scalar": {}
     },
     "#/$defs/ParticipantActivityActionCandidate": {
+      "factory_defaults": {
+        "depends_on": [],
+        "retryable_failure_classes": []
+      },
       "fields": [
         "action_ref",
         "weight",
@@ -2737,6 +3025,7 @@
       }
     },
     "#/$defs/ParticipantActivityTiming": {
+      "factory_defaults": {},
       "fields": [
         "minimum_ticks",
         "maximum_ticks"
@@ -2764,6 +3053,7 @@
       }
     },
     "#/$defs/ParticipantAutonomousExecutionPolicyV1": {
+      "factory_defaults": {},
       "fields": [
         "profile",
         "participant_implementation_ref",
@@ -2801,6 +3091,9 @@
       }
     },
     "#/$defs/ParticipantAutonomousExecutionPolicyV2": {
+      "factory_defaults": {
+        "pause_window_refs": []
+      },
       "fields": [
         "profile",
         "participant_implementation_ref",
@@ -2863,6 +3156,9 @@
       }
     },
     "#/$defs/ParticipantAutonomousExecutionPolicyV3": {
+      "factory_defaults": {
+        "pause_window_refs": []
+      },
       "fields": [
         "profile",
         "participant_implementation_ref",
@@ -2926,6 +3222,7 @@
       }
     },
     "#/$defs/ParticipantBackendFailureMapping": {
+      "factory_defaults": {},
       "fields": [
         "backend_error_code",
         "failure_class",
@@ -2935,6 +3232,9 @@
       "scalar": {}
     },
     "#/$defs/ParticipantBackendTimingDisclosure": {
+      "factory_defaults": {
+        "limitations": []
+      },
       "fields": [
         "disclosure_id",
         "disclosure_kind",
@@ -2947,6 +3247,20 @@
       "scalar": {}
     },
     "#/$defs/ParticipantBehaviorSpecification": {
+      "factory_defaults": {
+        "action_contract_refs": [],
+        "authority_scope_refs": [],
+        "backend_feature_support_refs": [],
+        "control_context": {},
+        "evidence_contract_refs": [],
+        "extensions": {},
+        "observation_boundary_refs": [],
+        "outcome_interpretation_rule_refs": [],
+        "participant_inject_deliveries": {},
+        "participant_refs": [],
+        "participant_role_refs": [],
+        "tool_affordances": {}
+      },
       "fields": [
         "semantic_version",
         "lifecycle_state",
@@ -2980,6 +3294,10 @@
       "scalar": {}
     },
     "#/$defs/ParticipantControlContextAssetModel": {
+      "factory_defaults": {
+        "participant_addresses": [],
+        "role_refs": []
+      },
       "fields": [
         "schema_version",
         "asset_id",
@@ -2996,6 +3314,7 @@
       "scalar": {}
     },
     "#/$defs/ParticipantControlContextAssetReferenceModel": {
+      "factory_defaults": {},
       "fields": [
         "asset_id",
         "asset_version",
@@ -3005,6 +3324,7 @@
       "scalar": {}
     },
     "#/$defs/ParticipantControlContextReference": {
+      "factory_defaults": {},
       "fields": [
         "declaration_ref",
         "asset_ref",
@@ -3014,6 +3334,12 @@
       "scalar": {}
     },
     "#/$defs/ParticipantEvaluationAuthority": {
+      "factory_defaults": {
+        "objective_refs": [],
+        "proof_producer_refs": [],
+        "receipt_authority_refs": [],
+        "score_authority_refs": []
+      },
       "fields": [
         "mode",
         "objective_refs",
@@ -3025,6 +3351,10 @@
       "scalar": {}
     },
     "#/$defs/ParticipantInjectDelivery": {
+      "factory_defaults": {
+        "control_authority_scope_refs": [],
+        "control_evidence_refs": []
+      },
       "fields": [
         "participant_ref",
         "inject_ref",
@@ -3070,6 +3400,7 @@
       }
     },
     "#/$defs/ParticipantInjectDeliveryControl": {
+      "factory_defaults": {},
       "fields": [
         "semantics",
         "policy_revision",
@@ -3082,6 +3413,7 @@
       "scalar": {}
     },
     "#/$defs/ParticipantInjectDeliveryPolicy": {
+      "factory_defaults": {},
       "fields": [
         "policy_ref",
         "policy_revision",
@@ -3094,6 +3426,7 @@
       "scalar": {}
     },
     "#/$defs/ParticipantInjectOccurrenceAnchor": {
+      "factory_defaults": {},
       "fields": [
         "event_ref",
         "script_ref",
@@ -3103,6 +3436,10 @@
       "scalar": {}
     },
     "#/$defs/ParticipantInteractionDeclaration": {
+      "factory_defaults": {
+        "related_actions": [],
+        "shared_state_refs": []
+      },
       "fields": [
         "interaction_class",
         "target",
@@ -3122,6 +3459,7 @@
       }
     },
     "#/$defs/ParticipantInteractiveAccess": {
+      "factory_defaults": {},
       "fields": [
         "target_ref",
         "channel",
@@ -3141,6 +3479,14 @@
       }
     },
     "#/$defs/ParticipantObservationBoundary": {
+      "factory_defaults": {
+        "evidence_refs": [],
+        "hidden_refs": [],
+        "observable_refs": [],
+        "observer_effects": [],
+        "view_rules": [],
+        "view_transitions": []
+      },
       "fields": [
         "projection_basis",
         "observable_refs",
@@ -3157,6 +3503,15 @@
       "scalar": {}
     },
     "#/$defs/ParticipantRelationship": {
+      "factory_defaults": {
+        "authority_basis_refs": [],
+        "behavior_specification_refs": [],
+        "objective_refs": [],
+        "observation_boundary_refs": [],
+        "scope_refs": [],
+        "source_action_refs": [],
+        "target_action_refs": []
+      },
       "fields": [
         "kind",
         "source_action_refs",
@@ -3172,6 +3527,9 @@
       "scalar": {}
     },
     "#/$defs/ParticipantResourceBudgetDimension": {
+      "factory_defaults": {
+        "evidence_refs": []
+      },
       "fields": [
         "owner_ref",
         "pool_ref",
@@ -3207,6 +3565,7 @@
       }
     },
     "#/$defs/ParticipantResourceBudgetPolicy": {
+      "factory_defaults": {},
       "fields": [
         "policy_id",
         "owners",
@@ -3217,6 +3576,7 @@
       "scalar": {}
     },
     "#/$defs/ParticipantResourceFairness": {
+      "factory_defaults": {},
       "fields": [
         "policy",
         "priority_class",
@@ -3252,6 +3612,7 @@
       }
     },
     "#/$defs/ParticipantResourceOwner": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "ref"
@@ -3260,6 +3621,7 @@
       "scalar": {}
     },
     "#/$defs/ParticipantSharedTimeBinding": {
+      "factory_defaults": {},
       "fields": [
         "profile",
         "clock_ref",
@@ -3280,6 +3642,9 @@
       "scalar": {}
     },
     "#/$defs/ParticipantTemporalContract": {
+      "factory_defaults": {
+        "backend_disclosure_refs": []
+      },
       "fields": [
         "temporal_id",
         "temporal_kind",
@@ -3304,6 +3669,10 @@
       "scalar": {}
     },
     "#/$defs/ParticipantToolAffordance": {
+      "factory_defaults": {
+        "participant_refs": [],
+        "participant_role_refs": []
+      },
       "fields": [
         "tool_ref",
         "action_contract_refs",
@@ -3315,6 +3684,9 @@
       "scalar": {}
     },
     "#/$defs/ParticipantViewRule": {
+      "factory_defaults": {
+        "evidence_refs": []
+      },
       "fields": [
         "information_ref",
         "boundary_class",
@@ -3331,6 +3703,9 @@
       "scalar": {}
     },
     "#/$defs/ParticipantViewTransition": {
+      "factory_defaults": {
+        "evidence_refs": []
+      },
       "fields": [
         "transition_id",
         "transition_kind",
@@ -3358,6 +3733,10 @@
       }
     },
     "#/$defs/PersistentVolume": {
+      "factory_defaults": {
+        "ordering_dependencies": [],
+        "refresh_dependencies": []
+      },
       "fields": [
         "lifecycle",
         "access_mode",
@@ -3369,6 +3748,7 @@
       "scalar": {}
     },
     "#/$defs/PresencePredicate": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "property",
@@ -3379,6 +3759,9 @@
       "scalar": {}
     },
     "#/$defs/Proposition": {
+      "factory_defaults": {
+        "evidence_requirements": []
+      },
       "fields": [
         "description",
         "subjects",
@@ -3399,6 +3782,7 @@
       }
     },
     "#/$defs/RandomValueFormat": {
+      "factory_defaults": {},
       "fields": [
         "prefix",
         "suffix"
@@ -3407,6 +3791,7 @@
       "scalar": {}
     },
     "#/$defs/RandomValueRecipe": {
+      "factory_defaults": {},
       "fields": [
         "alphabet",
         "custom_alphabet",
@@ -3457,6 +3842,9 @@
       }
     },
     "#/$defs/Relationship": {
+      "factory_defaults": {
+        "properties": {}
+      },
       "fields": [
         "type",
         "source",
@@ -3486,6 +3874,7 @@
       }
     },
     "#/$defs/RelationshipCarrierPlacement": {
+      "factory_defaults": {},
       "fields": [
         "kernel_boundary"
       ],
@@ -3503,6 +3892,7 @@
       }
     },
     "#/$defs/RelationshipDatabaseAccess": {
+      "factory_defaults": {},
       "fields": [
         "role_ref",
         "auth_method",
@@ -3536,11 +3926,13 @@
       }
     },
     "#/$defs/RelationshipDomainController": {
+      "factory_defaults": {},
       "fields": [],
       "omit": {},
       "scalar": {}
     },
     "#/$defs/RelationshipDomainJoin": {
+      "factory_defaults": {},
       "fields": [
         "controller_refs"
       ],
@@ -3548,6 +3940,7 @@
       "scalar": {}
     },
     "#/$defs/RelationshipForestTrust": {
+      "factory_defaults": {},
       "fields": [
         "trust_type",
         "direction"
@@ -3575,6 +3968,7 @@
       }
     },
     "#/$defs/RelationshipForwardingEdge": {
+      "factory_defaults": {},
       "fields": [
         "forwarder_ref",
         "target_listener_role",
@@ -3643,6 +4037,7 @@
       }
     },
     "#/$defs/RelationshipIdentityFederation": {
+      "factory_defaults": {},
       "fields": [
         "direction",
         "protocol",
@@ -3688,6 +4083,7 @@
       }
     },
     "#/$defs/RelationshipMailAccess": {
+      "factory_defaults": {},
       "fields": [
         "protocol",
         "auth_mechanism",
@@ -3763,6 +4159,7 @@
       }
     },
     "#/$defs/RelationshipProxyUpstream": {
+      "factory_defaults": {},
       "fields": [
         "route_ref",
         "upstream_node_ref",
@@ -3797,6 +4194,7 @@
       }
     },
     "#/$defs/RelationshipServiceIntegration": {
+      "factory_defaults": {},
       "fields": [
         "consumer_ref",
         "engine_ref",
@@ -3851,6 +4249,9 @@
       }
     },
     "#/$defs/RelationshipSharedService": {
+      "factory_defaults": {
+        "mutable_state_refs": []
+      },
       "fields": [
         "tenant_isolation",
         "workload_authentication",
@@ -3904,6 +4305,7 @@
       }
     },
     "#/$defs/Resources": {
+      "factory_defaults": {},
       "fields": [
         "ram",
         "cpu"
@@ -3932,6 +4334,9 @@
       }
     },
     "#/$defs/Role": {
+      "factory_defaults": {
+        "entities": []
+      },
       "fields": [
         "username",
         "entities"
@@ -3940,6 +4345,13 @@
       "scalar": {}
     },
     "#/$defs/RuntimeAppAuthorization": {
+      "factory_defaults": {
+        "permission_grants": [],
+        "principals": [],
+        "role_mappings": [],
+        "roles": [],
+        "tenants": []
+      },
       "fields": [
         "app_authorization_id",
         "resource_vocabulary",
@@ -3983,6 +4395,10 @@
       }
     },
     "#/$defs/RuntimeAppAuthorizationGrant": {
+      "factory_defaults": {
+        "actions": [],
+        "resource_patterns": []
+      },
       "fields": [
         "grant_id",
         "role_ref",
@@ -4035,6 +4451,9 @@
       }
     },
     "#/$defs/RuntimeAppAuthorizationPrincipal": {
+      "factory_defaults": {
+        "backend_roles": []
+      },
       "fields": [
         "principal_id",
         "kind",
@@ -4104,6 +4523,7 @@
       }
     },
     "#/$defs/RuntimeAppAuthorizationRole": {
+      "factory_defaults": {},
       "fields": [
         "role_id",
         "name",
@@ -4113,6 +4533,11 @@
       "scalar": {}
     },
     "#/$defs/RuntimeAppAuthorizationRoleMapping": {
+      "factory_defaults": {
+        "backend_roles": [],
+        "hosts": [],
+        "users": []
+      },
       "fields": [
         "mapping_id",
         "role_ref",
@@ -4141,6 +4566,7 @@
       }
     },
     "#/$defs/RuntimeAppAuthorizationTenant": {
+      "factory_defaults": {},
       "fields": [
         "tenant_id",
         "name",
@@ -4150,6 +4576,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeApplicationDisclosure": {
+      "factory_defaults": {},
       "fields": [
         "trigger",
         "status_code",
@@ -4190,6 +4617,7 @@
       }
     },
     "#/$defs/RuntimeApplicationExposedField": {
+      "factory_defaults": {},
       "fields": [
         "name",
         "sensitivity",
@@ -4217,6 +4645,7 @@
       }
     },
     "#/$defs/RuntimeApplicationParameter": {
+      "factory_defaults": {},
       "fields": [
         "name",
         "location",
@@ -4258,6 +4687,7 @@
       }
     },
     "#/$defs/RuntimeApplicationRedirect": {
+      "factory_defaults": {},
       "fields": [
         "target",
         "status_code",
@@ -4281,6 +4711,7 @@
       }
     },
     "#/$defs/RuntimeApplicationResponse": {
+      "factory_defaults": {},
       "fields": [
         "status_code",
         "content_type",
@@ -4302,6 +4733,16 @@
       }
     },
     "#/$defs/RuntimeApplicationRoute": {
+      "factory_defaults": {
+        "disclosures": [],
+        "exposed_fields": [],
+        "methods": [],
+        "parameters": [],
+        "redirects": [],
+        "responses": [],
+        "static_assets": [],
+        "templates": []
+      },
       "fields": [
         "route_id",
         "path",
@@ -4360,6 +4801,7 @@
       }
     },
     "#/$defs/RuntimeApplicationRouteUpstreamTarget": {
+      "factory_defaults": {},
       "fields": [
         "target_node_ref",
         "target_service",
@@ -4393,6 +4835,9 @@
       }
     },
     "#/$defs/RuntimeApplicationSurface": {
+      "factory_defaults": {
+        "routes": []
+      },
       "fields": [
         "application_id",
         "service",
@@ -4424,6 +4869,7 @@
       }
     },
     "#/$defs/RuntimeAptPackageRepository": {
+      "factory_defaults": {},
       "fields": [
         "repository_profile",
         "profile_version",
@@ -4436,6 +4882,13 @@
       "scalar": {}
     },
     "#/$defs/RuntimeCapabilityPolicy": {
+      "factory_defaults": {
+        "add": [],
+        "drop": [],
+        "effective": [],
+        "process_overrides": [],
+        "required": []
+      },
       "fields": [
         "required",
         "effective",
@@ -4448,27 +4901,32 @@
       "scalar": {
         "add": {
           "convert": [
+            "capability",
             "strings"
           ]
         },
         "drop": {
           "convert": [
+            "capability",
             "strings"
           ]
         },
         "effective": {
           "convert": [
+            "capability",
             "strings"
           ]
         },
         "required": {
           "convert": [
+            "capability",
             "strings"
           ]
         }
       }
     },
     "#/$defs/RuntimeCloudServiceLimit": {
+      "factory_defaults": {},
       "fields": [
         "limit_id",
         "name",
@@ -4487,6 +4945,35 @@
       }
     },
     "#/$defs/RuntimeConfiguration": {
+      "factory_defaults": {
+        "app_authorizations": [],
+        "applications": [],
+        "database_services": [],
+        "datastore_services": [],
+        "dependency_manifests": [],
+        "dns_services": [],
+        "environment": [],
+        "environment_files": [],
+        "file_services": [],
+        "filesystem_inventory": [],
+        "forwarding_agents": [],
+        "identity_authorities": [],
+        "local_control_interfaces": [],
+        "mail_services": [],
+        "mounts": [],
+        "network_detection_engines": [],
+        "network_sensors": [],
+        "orchestration_authorities": [],
+        "packages": [],
+        "platform_applications": [],
+        "processes": [],
+        "scheduled_jobs": [],
+        "security_monitoring_managers": [],
+        "service_listeners": [],
+        "service_manager_units": [],
+        "software_components": [],
+        "ssh_servers": []
+      },
       "fields": [
         "mounts",
         "filesystem_inventory",
@@ -4526,6 +5013,21 @@
       "scalar": {}
     },
     "#/$defs/RuntimeContainerConfiguration": {
+      "factory_defaults": {
+        "command": [],
+        "device_cgroup_rules": [],
+        "devices": [],
+        "dns": [],
+        "dns_options": [],
+        "dns_search": [],
+        "entrypoint": [],
+        "extra_hosts": [],
+        "group_add": [],
+        "log_options": {},
+        "masked_paths": [],
+        "read_only_paths": [],
+        "security_opt": []
+      },
       "fields": [
         "entrypoint",
         "command",
@@ -4658,6 +5160,7 @@
       }
     },
     "#/$defs/RuntimeControlInterface": {
+      "factory_defaults": {},
       "fields": [
         "control_interface_id",
         "path",
@@ -4718,6 +5221,13 @@
       }
     },
     "#/$defs/RuntimeDatabaseService": {
+      "factory_defaults": {
+        "databases": [],
+        "grants": [],
+        "listeners": [],
+        "roles": [],
+        "settings": []
+      },
       "fields": [
         "database_service_id",
         "service",
@@ -4774,6 +5284,7 @@
       }
     },
     "#/$defs/RuntimeDatastoreCluster": {
+      "factory_defaults": {},
       "fields": [
         "cluster_id",
         "uuid",
@@ -4849,6 +5360,7 @@
       }
     },
     "#/$defs/RuntimeDatastoreEnginePlugin": {
+      "factory_defaults": {},
       "fields": [
         "plugin_id",
         "name",
@@ -4859,6 +5371,10 @@
       "scalar": {}
     },
     "#/$defs/RuntimeDatastoreMapping": {
+      "factory_defaults": {
+        "evidence_refs": [],
+        "field_type_census": {}
+      },
       "fields": [
         "mapping_id",
         "name",
@@ -4938,6 +5454,11 @@
       }
     },
     "#/$defs/RuntimeDatastoreNode": {
+      "factory_defaults": {
+        "endpoints": [],
+        "plugins": [],
+        "roles": []
+      },
       "fields": [
         "node_id",
         "name",
@@ -5037,6 +5558,7 @@
       }
     },
     "#/$defs/RuntimeDatastoreNodeEndpoint": {
+      "factory_defaults": {},
       "fields": [
         "endpoint_id",
         "role",
@@ -5076,6 +5598,10 @@
       }
     },
     "#/$defs/RuntimeDatastorePartition": {
+      "factory_defaults": {
+        "datatype_census": {},
+        "per_dc_factor_map": {}
+      },
       "fields": [
         "partition_id",
         "kind",
@@ -5231,6 +5757,9 @@
       }
     },
     "#/$defs/RuntimeDatastorePersistence": {
+      "factory_defaults": {
+        "rdb_save_points": []
+      },
       "fields": [
         "persistence_id",
         "rdb_save_points",
@@ -5279,6 +5808,19 @@
       }
     },
     "#/$defs/RuntimeDatastoreService": {
+      "factory_defaults": {
+        "aliases": [],
+        "backup_targets": [],
+        "ingest_pipelines": [],
+        "lifecycle_policies": [],
+        "mappings": [],
+        "nodes": [],
+        "partitions": [],
+        "pubsub_channels": [],
+        "queues_streams": [],
+        "settings": [],
+        "templates": []
+      },
       "fields": [
         "datastore_service_id",
         "service",
@@ -5374,6 +5916,7 @@
       }
     },
     "#/$defs/RuntimeDatastoreSetting": {
+      "factory_defaults": {},
       "fields": [
         "setting_id",
         "scope",
@@ -5435,6 +5978,11 @@
       }
     },
     "#/$defs/RuntimeDatastoreTemplate": {
+      "factory_defaults": {
+        "evidence_refs": [],
+        "index_patterns": [],
+        "settings_summary": {}
+      },
       "fields": [
         "template_id",
         "name",
@@ -5469,6 +6017,7 @@
       }
     },
     "#/$defs/RuntimeDatastoreTransportSecurity": {
+      "factory_defaults": {},
       "fields": [
         "transport_security_id",
         "mode",
@@ -5514,6 +6063,7 @@
       }
     },
     "#/$defs/RuntimeDependencyManifest": {
+      "factory_defaults": {},
       "fields": [
         "ecosystem",
         "path",
@@ -5525,6 +6075,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeDeviceMapping": {
+      "factory_defaults": {},
       "fields": [
         "host_path",
         "container_path",
@@ -5535,6 +6086,13 @@
       "scalar": {}
     },
     "#/$defs/RuntimeDnsService": {
+      "factory_defaults": {
+        "configuration_file_refs": [],
+        "log_file_refs": [],
+        "roles": [],
+        "settings": [],
+        "zones": []
+      },
       "fields": [
         "dns_service_id",
         "service",
@@ -5607,6 +6165,7 @@
       }
     },
     "#/$defs/RuntimeEnvironmentFile": {
+      "factory_defaults": {},
       "fields": [
         "name",
         "value_from",
@@ -5616,6 +6175,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeEnvironmentVariable": {
+      "factory_defaults": {},
       "fields": [
         "name",
         "value",
@@ -5667,6 +6227,7 @@
       }
     },
     "#/$defs/RuntimeExtraHost": {
+      "factory_defaults": {},
       "fields": [
         "hostname",
         "address",
@@ -5676,6 +6237,12 @@
       "scalar": {}
     },
     "#/$defs/RuntimeFileService": {
+      "factory_defaults": {
+        "access_observations": [],
+        "access_rules": [],
+        "principals": [],
+        "shares": []
+      },
       "fields": [
         "file_service_id",
         "service",
@@ -5712,6 +6279,7 @@
       }
     },
     "#/$defs/RuntimeFileServiceAccessObservation": {
+      "factory_defaults": {},
       "fields": [
         "observation_id",
         "subject_ref",
@@ -5797,6 +6365,7 @@
       }
     },
     "#/$defs/RuntimeFileServiceAccessRule": {
+      "factory_defaults": {},
       "fields": [
         "rule_id",
         "subject_ref",
@@ -5864,6 +6433,7 @@
       }
     },
     "#/$defs/RuntimeFileServicePrincipal": {
+      "factory_defaults": {},
       "fields": [
         "principal_id",
         "kind",
@@ -5950,6 +6520,12 @@
       }
     },
     "#/$defs/RuntimeFileServiceShare": {
+      "factory_defaults": {
+        "invalid_users": [],
+        "valid_groups": [],
+        "valid_users": [],
+        "write_users": []
+      },
       "fields": [
         "share_id",
         "name",
@@ -6035,6 +6611,7 @@
       }
     },
     "#/$defs/RuntimeFilesystemEntry": {
+      "factory_defaults": {},
       "fields": [
         "path",
         "entry_type",
@@ -6158,6 +6735,13 @@
       }
     },
     "#/$defs/RuntimeForwardingAgent": {
+      "factory_defaults": {
+        "reload_channels": [],
+        "settings": [],
+        "ship_targets": [],
+        "sources": [],
+        "transforms": []
+      },
       "fields": [
         "forwarding_agent_id",
         "implementation",
@@ -6226,6 +6810,7 @@
       }
     },
     "#/$defs/RuntimeForwardingBufferPolicy": {
+      "factory_defaults": {},
       "fields": [
         "buffer_policy_id",
         "queue_capacity",
@@ -6287,6 +6872,7 @@
       }
     },
     "#/$defs/RuntimeForwardingReloadChannel": {
+      "factory_defaults": {},
       "fields": [
         "reload_channel_id",
         "target_ref",
@@ -6315,6 +6901,7 @@
       }
     },
     "#/$defs/RuntimeForwardingSetting": {
+      "factory_defaults": {},
       "fields": [
         "setting_id",
         "name",
@@ -6357,6 +6944,7 @@
       }
     },
     "#/$defs/RuntimeForwardingShipTarget": {
+      "factory_defaults": {},
       "fields": [
         "target_id",
         "target_node_ref",
@@ -6430,6 +7018,7 @@
       }
     },
     "#/$defs/RuntimeForwardingSource": {
+      "factory_defaults": {},
       "fields": [
         "source_id",
         "kind",
@@ -6479,6 +7068,7 @@
       }
     },
     "#/$defs/RuntimeForwardingTransform": {
+      "factory_defaults": {},
       "fields": [
         "transform_id",
         "kind",
@@ -6505,6 +7095,10 @@
       }
     },
     "#/$defs/RuntimeIdentityAccessObservation": {
+      "factory_defaults": {
+        "context_refs": [],
+        "evidence_refs": []
+      },
       "fields": [
         "observation_id",
         "principal_ref",
@@ -6519,6 +7113,9 @@
       "scalar": {}
     },
     "#/$defs/RuntimeIdentityAttribute": {
+      "factory_defaults": {
+        "values": []
+      },
       "fields": [
         "name",
         "values",
@@ -6591,6 +7188,15 @@
       }
     },
     "#/$defs/RuntimeIdentityAuthority": {
+      "factory_defaults": {
+        "access_observations": [],
+        "identity_uses": [],
+        "policies": [],
+        "relationships": [],
+        "resource_scopes": [],
+        "services": [],
+        "subjects": []
+      },
       "fields": [
         "identity_authority_id",
         "kind",
@@ -6633,6 +7239,7 @@
       }
     },
     "#/$defs/RuntimeIdentityAuthorityService": {
+      "factory_defaults": {},
       "fields": [
         "service_id",
         "service",
@@ -6679,6 +7286,9 @@
       }
     },
     "#/$defs/RuntimeIdentityPermissionBinding": {
+      "factory_defaults": {
+        "actions": []
+      },
       "fields": [
         "binding_id",
         "principal_refs",
@@ -6693,6 +7303,10 @@
       "scalar": {}
     },
     "#/$defs/RuntimeIdentityPolicy": {
+      "factory_defaults": {
+        "applies_to_refs": [],
+        "settings": []
+      },
       "fields": [
         "policy_id",
         "policy_kind",
@@ -6732,6 +7346,7 @@
       }
     },
     "#/$defs/RuntimeIdentityPolicyCondition": {
+      "factory_defaults": {},
       "fields": [
         "language",
         "expression"
@@ -6740,6 +7355,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeIdentityRelationship": {
+      "factory_defaults": {},
       "fields": [
         "relationship_id",
         "relationship_type",
@@ -6774,6 +7390,9 @@
       }
     },
     "#/$defs/RuntimeIdentityResourceAccess": {
+      "factory_defaults": {
+        "bindings": []
+      },
       "fields": [
         "attachment_ref",
         "bindings",
@@ -6783,6 +7402,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeIdentityResourceScope": {
+      "factory_defaults": {},
       "fields": [
         "scope_id",
         "provider",
@@ -6797,6 +7417,10 @@
       "scalar": {}
     },
     "#/$defs/RuntimeIdentitySubject": {
+      "factory_defaults": {
+        "attributes": [],
+        "service_principal_names": []
+      },
       "fields": [
         "subject_id",
         "kind",
@@ -6872,6 +7496,7 @@
       }
     },
     "#/$defs/RuntimeIdentityUse": {
+      "factory_defaults": {},
       "fields": [
         "use_id",
         "workload_ref",
@@ -6884,6 +7509,9 @@
       "scalar": {}
     },
     "#/$defs/RuntimeInitProcess": {
+      "factory_defaults": {
+        "argv": []
+      },
       "fields": [
         "enabled",
         "implementation",
@@ -6932,6 +7560,9 @@
       }
     },
     "#/$defs/RuntimeListenerReadiness": {
+      "factory_defaults": {
+        "evidence_refs": []
+      },
       "fields": [
         "probe",
         "criteria",
@@ -6948,6 +7579,9 @@
       }
     },
     "#/$defs/RuntimeLocalGroup": {
+      "factory_defaults": {
+        "members": []
+      },
       "fields": [
         "name",
         "gid",
@@ -6992,6 +7626,11 @@
       }
     },
     "#/$defs/RuntimeLocalIdentityInventory": {
+      "factory_defaults": {
+        "groups": [],
+        "sudo_rules": [],
+        "users": []
+      },
       "fields": [
         "users",
         "groups",
@@ -7002,6 +7641,9 @@
       "scalar": {}
     },
     "#/$defs/RuntimeLocalUser": {
+      "factory_defaults": {
+        "supplemental_groups": []
+      },
       "fields": [
         "username",
         "uid",
@@ -7112,6 +7754,10 @@
       }
     },
     "#/$defs/RuntimeMailAlias": {
+      "factory_defaults": {
+        "external_targets": [],
+        "target_refs": []
+      },
       "fields": [
         "alias_id",
         "address",
@@ -7135,6 +7781,7 @@
       }
     },
     "#/$defs/RuntimeMailComponent": {
+      "factory_defaults": {},
       "fields": [
         "component_id",
         "kind",
@@ -7170,6 +7817,7 @@
       }
     },
     "#/$defs/RuntimeMailDomain": {
+      "factory_defaults": {},
       "fields": [
         "domain_id",
         "name",
@@ -7199,6 +7847,11 @@
       }
     },
     "#/$defs/RuntimeMailListener": {
+      "factory_defaults": {
+        "auth_mechanisms": [],
+        "capabilities": [],
+        "tls_versions": []
+      },
       "fields": [
         "listener_id",
         "service",
@@ -7314,6 +7967,9 @@
       }
     },
     "#/$defs/RuntimeMailMailbox": {
+      "factory_defaults": {
+        "auth_mechanisms": []
+      },
       "fields": [
         "mailbox_id",
         "address",
@@ -7413,6 +8069,7 @@
       }
     },
     "#/$defs/RuntimeMailMailboxStore": {
+      "factory_defaults": {},
       "fields": [
         "store_id",
         "kind",
@@ -7441,6 +8098,7 @@
       }
     },
     "#/$defs/RuntimeMailQueue": {
+      "factory_defaults": {},
       "fields": [
         "queue_id",
         "kind",
@@ -7501,6 +8159,7 @@
       }
     },
     "#/$defs/RuntimeMailRoutingRule": {
+      "factory_defaults": {},
       "fields": [
         "rule_id",
         "kind",
@@ -7533,6 +8192,17 @@
       }
     },
     "#/$defs/RuntimeMailService": {
+      "factory_defaults": {
+        "aliases": [],
+        "components": [],
+        "domains": [],
+        "listeners": [],
+        "mailbox_stores": [],
+        "mailboxes": [],
+        "queues": [],
+        "routing_rules": [],
+        "settings": []
+      },
       "fields": [
         "mail_service_id",
         "service",
@@ -7554,6 +8224,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeMailSetting": {
+      "factory_defaults": {},
       "fields": [
         "setting_id",
         "component_ref",
@@ -7603,6 +8274,9 @@
       }
     },
     "#/$defs/RuntimeMount": {
+      "factory_defaults": {
+        "options": []
+      },
       "fields": [
         "target",
         "source",
@@ -7726,6 +8400,7 @@
       }
     },
     "#/$defs/RuntimeNamespaceConfiguration": {
+      "factory_defaults": {},
       "fields": [
         "cgroup",
         "ipc",
@@ -7738,6 +8413,10 @@
       "scalar": {}
     },
     "#/$defs/RuntimeNetworkBackendDetail": {
+      "factory_defaults": {
+        "driver_options": {},
+        "ipam_options": {}
+      },
       "fields": [
         "driver",
         "ipam_driver",
@@ -7768,6 +8447,9 @@
       }
     },
     "#/$defs/RuntimeNetworkDetectionControlChannel": {
+      "factory_defaults": {
+        "capabilities": []
+      },
       "fields": [
         "channel_id",
         "kind",
@@ -7849,6 +8531,16 @@
       }
     },
     "#/$defs/RuntimeNetworkDetectionEngine": {
+      "factory_defaults": {
+        "app_layer_protocols": [],
+        "configuration_file_refs": [],
+        "control_channels": [],
+        "evidence_refs": [],
+        "log_file_refs": [],
+        "network_sets": [],
+        "output_streams": [],
+        "rule_sources": []
+      },
       "fields": [
         "network_detection_engine_id",
         "implementation",
@@ -7975,6 +8667,10 @@
       }
     },
     "#/$defs/RuntimeNetworkDetectionNetworkSet": {
+      "factory_defaults": {
+        "network_refs": [],
+        "selector_values": []
+      },
       "fields": [
         "set_id",
         "kind",
@@ -8016,6 +8712,9 @@
       }
     },
     "#/$defs/RuntimeNetworkDetectionOutputStream": {
+      "factory_defaults": {
+        "event_types": []
+      },
       "fields": [
         "stream_id",
         "format",
@@ -8109,6 +8808,9 @@
       }
     },
     "#/$defs/RuntimeNetworkDetectionRuleSource": {
+      "factory_defaults": {
+        "file_refs": []
+      },
       "fields": [
         "source_id",
         "kind",
@@ -8191,6 +8893,10 @@
       }
     },
     "#/$defs/RuntimeNetworkEndpoint": {
+      "factory_defaults": {
+        "aliases": [],
+        "dns_names": []
+      },
       "fields": [
         "network",
         "ip_address",
@@ -8229,6 +8935,7 @@
       }
     },
     "#/$defs/RuntimeNetworkNamespace": {
+      "factory_defaults": {},
       "fields": [
         "target_node_ref"
       ],
@@ -8236,6 +8943,10 @@
       "scalar": {}
     },
     "#/$defs/RuntimeNetworkRealization": {
+      "factory_defaults": {
+        "endpoints": [],
+        "published_ports": []
+      },
       "fields": [
         "hostname",
         "domainname",
@@ -8247,6 +8958,13 @@
       "scalar": {}
     },
     "#/$defs/RuntimeNetworkSensor": {
+      "factory_defaults": {
+        "capture_interfaces": [],
+        "configuration_file_refs": [],
+        "evidence_refs": [],
+        "log_file_refs": [],
+        "monitored_network_refs": []
+      },
       "fields": [
         "network_sensor_id",
         "implementation",
@@ -8362,6 +9080,7 @@
       }
     },
     "#/$defs/RuntimeOperationalPolicy": {
+      "factory_defaults": {},
       "fields": [
         "restart",
         "resource_limits",
@@ -8388,6 +9107,10 @@
       }
     },
     "#/$defs/RuntimeOrchestrationAuthority": {
+      "factory_defaults": {
+        "realized_children": [],
+        "spawn_templates": []
+      },
       "fields": [
         "orchestration_authority_id",
         "control_interface_ref",
@@ -8437,6 +9160,7 @@
       }
     },
     "#/$defs/RuntimeOrchestrationLifecyclePolicy": {
+      "factory_defaults": {},
       "fields": [
         "timeout",
         "cleanup",
@@ -8447,6 +9171,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeOrchestrationRealizedChild": {
+      "factory_defaults": {},
       "fields": [
         "workload_id",
         "image_ref",
@@ -8470,6 +9195,7 @@
       }
     },
     "#/$defs/RuntimeOrchestrationScope": {
+      "factory_defaults": {},
       "fields": [
         "organization_ref",
         "environment_name",
@@ -8479,6 +9205,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeOrchestrationSpawnTemplate": {
+      "factory_defaults": {},
       "fields": [
         "template_id",
         "image_ref",
@@ -8489,6 +9216,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimePackage": {
+      "factory_defaults": {},
       "fields": [
         "manager",
         "name",
@@ -8508,6 +9236,7 @@
       }
     },
     "#/$defs/RuntimePackageRepositorySigningKey": {
+      "factory_defaults": {},
       "fields": [
         "uri",
         "format",
@@ -8517,6 +9246,18 @@
       "scalar": {}
     },
     "#/$defs/RuntimePlatformApplication": {
+      "factory_defaults": {
+        "capabilities": [],
+        "cloud_limits": [],
+        "connectors": [],
+        "content_objects": [],
+        "markings": [],
+        "organizations": [],
+        "secrets": [],
+        "settings": [],
+        "tenants": [],
+        "upstream_bindings": []
+      },
       "fields": [
         "platform_application_id",
         "service",
@@ -8561,6 +9302,9 @@
       }
     },
     "#/$defs/RuntimePlatformApplicationCapability": {
+      "factory_defaults": {
+        "evidence_refs": []
+      },
       "fields": [
         "capability_id",
         "kind",
@@ -8595,6 +9339,7 @@
       }
     },
     "#/$defs/RuntimePlatformApplicationConnector": {
+      "factory_defaults": {},
       "fields": [
         "connector_id",
         "kind",
@@ -8648,6 +9393,12 @@
       }
     },
     "#/$defs/RuntimePlatformApplicationContentObject": {
+      "factory_defaults": {
+        "attributes": {},
+        "evidence_refs": [],
+        "marking_refs": [],
+        "references": []
+      },
       "fields": [
         "content_object_id",
         "kind",
@@ -8706,6 +9457,7 @@
       }
     },
     "#/$defs/RuntimePlatformApplicationExecutionPolicy": {
+      "factory_defaults": {},
       "fields": [
         "policy_id",
         "runner",
@@ -8730,6 +9482,7 @@
       }
     },
     "#/$defs/RuntimePlatformApplicationMarking": {
+      "factory_defaults": {},
       "fields": [
         "marking_id",
         "scheme",
@@ -8755,6 +9508,7 @@
       }
     },
     "#/$defs/RuntimePlatformApplicationOrganization": {
+      "factory_defaults": {},
       "fields": [
         "organization_id",
         "name",
@@ -8764,6 +9518,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimePlatformApplicationSetting": {
+      "factory_defaults": {},
       "fields": [
         "setting_id",
         "name",
@@ -8808,6 +9563,7 @@
       }
     },
     "#/$defs/RuntimePlatformApplicationTenant": {
+      "factory_defaults": {},
       "fields": [
         "tenant_id",
         "name",
@@ -8817,6 +9573,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimePlatformApplicationUpstreamBinding": {
+      "factory_defaults": {},
       "fields": [
         "binding_id",
         "role",
@@ -8846,6 +9603,11 @@
       }
     },
     "#/$defs/RuntimeProcessCapabilityOverride": {
+      "factory_defaults": {
+        "add": [],
+        "drop": [],
+        "effective": []
+      },
       "fields": [
         "subject",
         "scope",
@@ -8858,16 +9620,19 @@
       "scalar": {
         "add": {
           "convert": [
+            "capability",
             "strings"
           ]
         },
         "drop": {
           "convert": [
+            "capability",
             "strings"
           ]
         },
         "effective": {
           "convert": [
+            "capability",
             "strings"
           ]
         },
@@ -8886,6 +9651,9 @@
       }
     },
     "#/$defs/RuntimeProcessIdentity": {
+      "factory_defaults": {
+        "command": []
+      },
       "fields": [
         "name",
         "pid",
@@ -8956,6 +9724,7 @@
       }
     },
     "#/$defs/RuntimeProcessResourceLimit": {
+      "factory_defaults": {},
       "fields": [
         "resource",
         "soft",
@@ -8989,6 +9758,7 @@
       }
     },
     "#/$defs/RuntimePublishedPort": {
+      "factory_defaults": {},
       "fields": [
         "container_port",
         "protocol",
@@ -9024,6 +9794,7 @@
       }
     },
     "#/$defs/RuntimePublishedPortRef": {
+      "factory_defaults": {},
       "fields": [
         "container_port",
         "protocol",
@@ -9058,6 +9829,9 @@
       }
     },
     "#/$defs/RuntimeResourceLimits": {
+      "factory_defaults": {
+        "process_limits": []
+      },
       "fields": [
         "memory",
         "memory_swap",
@@ -9113,6 +9887,7 @@
       }
     },
     "#/$defs/RuntimeScheduledJob": {
+      "factory_defaults": {},
       "fields": [
         "scheduled_job_id",
         "name",
@@ -9137,6 +9912,7 @@
       }
     },
     "#/$defs/RuntimeScheduledJobRunState": {
+      "factory_defaults": {},
       "fields": [
         "last_run",
         "next_run",
@@ -9162,6 +9938,7 @@
       }
     },
     "#/$defs/RuntimeScheduledJobSchedule": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "spec",
@@ -9195,6 +9972,9 @@
       }
     },
     "#/$defs/RuntimeSecretConsumer": {
+      "factory_defaults": {
+        "resolution_evidence_refs": []
+      },
       "fields": [
         "selection_id",
         "consumer_ref",
@@ -9209,6 +9989,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeSecretSelector": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "value"
@@ -9217,6 +9998,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeSecretVersion": {
+      "factory_defaults": {},
       "fields": [
         "version_id",
         "native_id",
@@ -9229,6 +10011,9 @@
       "scalar": {}
     },
     "#/$defs/RuntimeSecurityMonitoringAgent": {
+      "factory_defaults": {
+        "group_refs": []
+      },
       "fields": [
         "agent_id",
         "name",
@@ -9268,6 +10053,10 @@
       }
     },
     "#/$defs/RuntimeSecurityMonitoringAgentGroup": {
+      "factory_defaults": {
+        "configuration_file_refs": [],
+        "member_refs": []
+      },
       "fields": [
         "group_id",
         "name",
@@ -9290,6 +10079,7 @@
       }
     },
     "#/$defs/RuntimeSecurityMonitoringComponent": {
+      "factory_defaults": {},
       "fields": [
         "component_id",
         "kind",
@@ -9360,6 +10150,9 @@
       }
     },
     "#/$defs/RuntimeSecurityMonitoringContentSet": {
+      "factory_defaults": {
+        "file_refs": []
+      },
       "fields": [
         "content_id",
         "kind",
@@ -9442,6 +10235,26 @@
       }
     },
     "#/$defs/RuntimeSecurityMonitoringDetectionDefinition": {
+      "factory_defaults": {
+        "compliance_tags": [],
+        "decoded_as": [],
+        "decoder_fields": [],
+        "decoder_names": [],
+        "evidence_refs": [],
+        "field_predicates": [],
+        "groups": [],
+        "if_matched_sid_refs": [],
+        "if_sid_refs": [],
+        "match_strings": [],
+        "mitre_attack_ids": [],
+        "parent_definition_refs": [],
+        "regex_patterns": [],
+        "same_source_constraints": [],
+        "tactic_labels": [],
+        "tags": [],
+        "target_refs": [],
+        "technique_labels": []
+      },
       "fields": [
         "definition_id",
         "engine",
@@ -9699,6 +10512,7 @@
       }
     },
     "#/$defs/RuntimeSecurityMonitoringFieldPredicate": {
+      "factory_defaults": {},
       "fields": [
         "field",
         "operator",
@@ -9730,6 +10544,7 @@
       }
     },
     "#/$defs/RuntimeSecurityMonitoringListener": {
+      "factory_defaults": {},
       "fields": [
         "listener_id",
         "service",
@@ -9783,6 +10598,18 @@
       }
     },
     "#/$defs/RuntimeSecurityMonitoringManager": {
+      "factory_defaults": {
+        "agent_groups": [],
+        "agents": [],
+        "components": [],
+        "configuration_file_refs": [],
+        "content_sets": [],
+        "detection_definitions": [],
+        "evidence_refs": [],
+        "listeners": [],
+        "log_file_refs": [],
+        "settings": []
+      },
       "fields": [
         "security_monitoring_manager_id",
         "service",
@@ -9860,6 +10687,7 @@
       }
     },
     "#/$defs/RuntimeSecurityMonitoringSetting": {
+      "factory_defaults": {},
       "fields": [
         "setting_id",
         "component_ref",
@@ -9909,6 +10737,10 @@
       }
     },
     "#/$defs/RuntimeServiceListener": {
+      "factory_defaults": {
+        "evidence_refs": [],
+        "published_port_refs": []
+      },
       "fields": [
         "service_listener_id",
         "service",
@@ -10020,6 +10852,11 @@
       }
     },
     "#/$defs/RuntimeServiceSecret": {
+      "factory_defaults": {
+        "consumers": [],
+        "replica_locations": [],
+        "versions": []
+      },
       "fields": [
         "secret_id",
         "resource_scope_ref",
@@ -10037,6 +10874,12 @@
       "scalar": {}
     },
     "#/$defs/RuntimeSoftwareComponent": {
+      "factory_defaults": {
+        "hashes": [],
+        "installed_paths": [],
+        "refinements": [],
+        "repository_refs": []
+      },
       "fields": [
         "component_id",
         "name",
@@ -10111,6 +10954,7 @@
       }
     },
     "#/$defs/RuntimeSoftwareComponentHash": {
+      "factory_defaults": {},
       "fields": [
         "algorithm",
         "value"
@@ -10119,6 +10963,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeSoftwareComponentRefinement": {
+      "factory_defaults": {},
       "fields": [
         "refinement_id",
         "purpose",
@@ -10129,6 +10974,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeSoftwarePackageReference": {
+      "factory_defaults": {},
       "fields": [
         "manager",
         "name",
@@ -10144,6 +10990,9 @@
       }
     },
     "#/$defs/RuntimeSoftwareRepository": {
+      "factory_defaults": {
+        "refinements": []
+      },
       "fields": [
         "repository_id",
         "presence",
@@ -10154,6 +11003,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeSoftwareRepositoryRefinement": {
+      "factory_defaults": {},
       "fields": [
         "refinement_id",
         "purpose",
@@ -10164,6 +11014,10 @@
       "scalar": {}
     },
     "#/$defs/RuntimeSoftwareRepositoryState": {
+      "factory_defaults": {
+        "repositories": [],
+        "trust_bindings": []
+      },
       "fields": [
         "repositories",
         "trust_bindings"
@@ -10172,6 +11026,9 @@
       "scalar": {}
     },
     "#/$defs/RuntimeSoftwareTrustBinding": {
+      "factory_defaults": {
+        "refinements": []
+      },
       "fields": [
         "trust_id",
         "presence",
@@ -10181,6 +11038,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeSoftwareTrustRefinement": {
+      "factory_defaults": {},
       "fields": [
         "refinement_id",
         "purpose",
@@ -10191,6 +11049,15 @@
       "scalar": {}
     },
     "#/$defs/RuntimeSshServer": {
+      "factory_defaults": {
+        "accept_env": [],
+        "allow_groups": [],
+        "allow_users": [],
+        "authentication_methods": [],
+        "deny_groups": [],
+        "deny_users": [],
+        "match_rules": []
+      },
       "fields": [
         "forced_command",
         "accept_env",
@@ -10274,6 +11141,11 @@
       }
     },
     "#/$defs/RuntimeSudoRule": {
+      "factory_defaults": {
+        "commands": [],
+        "run_as_groups": [],
+        "run_as_users": []
+      },
       "fields": [
         "principal",
         "principal_kind",
@@ -10338,6 +11210,7 @@
       }
     },
     "#/$defs/Script": {
+      "factory_defaults": {},
       "fields": [
         "name",
         "start_time",
@@ -10390,6 +11263,7 @@
       }
     },
     "#/$defs/SecretFixtureCredentialMaterial": {
+      "factory_defaults": {},
       "fields": [
         "classification",
         "value"
@@ -10398,6 +11272,7 @@
       "scalar": {}
     },
     "#/$defs/ServiceManagerUnit": {
+      "factory_defaults": {},
       "fields": [
         "unit_id",
         "manager_kind",
@@ -10560,6 +11435,9 @@
       }
     },
     "#/$defs/ServiceMaterialization": {
+      "factory_defaults": {
+        "ordering_content_refs": []
+      },
       "fields": [
         "target_service_ref",
         "shared_service_relationship_ref",
@@ -10575,6 +11453,7 @@
       "scalar": {}
     },
     "#/$defs/ServiceMaterializationRequirements": {
+      "factory_defaults": {},
       "fields": [
         "operation",
         "conflict_policy",
@@ -10584,6 +11463,7 @@
       "scalar": {}
     },
     "#/$defs/ServicePort": {
+      "factory_defaults": {},
       "fields": [
         "port",
         "protocol",
@@ -10606,6 +11486,9 @@
       }
     },
     "#/$defs/ServiceSearchIndexSchemaMaterialization": {
+      "factory_defaults": {
+        "ordering_content_refs": []
+      },
       "fields": [
         "target_service_ref",
         "shared_service_relationship_ref",
@@ -10621,6 +11504,7 @@
       "scalar": {}
     },
     "#/$defs/ServiceSearchIndexSchemaRequirements": {
+      "factory_defaults": {},
       "fields": [
         "operation",
         "conflict_policy",
@@ -10631,6 +11515,7 @@
       "scalar": {}
     },
     "#/$defs/ServiceUnitExecStart": {
+      "factory_defaults": {},
       "fields": [
         "command_kind",
         "command",
@@ -10663,6 +11548,7 @@
       }
     },
     "#/$defs/SimpleProperties": {
+      "factory_defaults": {},
       "fields": [
         "cidr",
         "gateway",
@@ -10682,6 +11568,7 @@
       }
     },
     "#/$defs/Source": {
+      "factory_defaults": {},
       "fields": [
         "name",
         "version",
@@ -10692,6 +11579,7 @@
       "scalar": {}
     },
     "#/$defs/SshForcedCommand": {
+      "factory_defaults": {},
       "fields": [
         "command_kind",
         "command",
@@ -10725,6 +11613,7 @@
       }
     },
     "#/$defs/SshMatchCriterion": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "pattern"
@@ -10752,6 +11641,15 @@
       }
     },
     "#/$defs/SshMatchRule": {
+      "factory_defaults": {
+        "accept_env": [],
+        "allow_groups": [],
+        "allow_users": [],
+        "authentication_methods": [],
+        "criteria": [],
+        "deny_groups": [],
+        "deny_users": []
+      },
       "fields": [
         "forced_command",
         "accept_env",
@@ -10834,6 +11732,7 @@
       }
     },
     "#/$defs/StatefulResourceConsumer": {
+      "factory_defaults": {},
       "fields": [
         "node",
         "mount_destination",
@@ -10843,6 +11742,7 @@
       "scalar": {}
     },
     "#/$defs/Story": {
+      "factory_defaults": {},
       "fields": [
         "name",
         "speed",
@@ -10864,6 +11764,7 @@
       }
     },
     "#/$defs/StringPredicate": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "property",
@@ -10880,6 +11781,7 @@
       "scalar": {}
     },
     "#/$defs/TemporalConstraint": {
+      "factory_defaults": {},
       "fields": [
         "constraint_kind",
         "clock_ref",
@@ -10907,6 +11809,7 @@
       }
     },
     "#/$defs/TimeCoordinate": {
+      "factory_defaults": {},
       "fields": [
         "tick",
         "microstep"
@@ -10926,6 +11829,7 @@
       }
     },
     "#/$defs/TimeDomain": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "tick_period_seconds",
@@ -10937,6 +11841,12 @@
       "scalar": {}
     },
     "#/$defs/TimeDomainMapping": {
+      "factory_defaults": {
+        "scale": {
+          "denominator": 1,
+          "numerator": 1
+        }
+      },
       "fields": [
         "source_domain_ref",
         "target_domain_ref",
@@ -10955,6 +11865,12 @@
       }
     },
     "#/$defs/TimeProgressionPolicy": {
+      "factory_defaults": {
+        "pacing_ratio": {
+          "denominator": 1,
+          "numerator": 1
+        }
+      },
       "fields": [
         "clock_ref",
         "advancement_mode",
@@ -10983,6 +11899,7 @@
       }
     },
     "#/$defs/VersionDomain": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "relation",
@@ -11006,6 +11923,7 @@
       }
     },
     "#/$defs/Workflow": {
+      "factory_defaults": {},
       "fields": [
         "description",
         "start",
@@ -11017,6 +11935,9 @@
       "scalar": {}
     },
     "#/$defs/WorkflowCompensationPolicy": {
+      "factory_defaults": {
+        "on": []
+      },
       "fields": [
         "mode",
         "on",
@@ -11027,6 +11948,11 @@
       "scalar": {}
     },
     "#/$defs/WorkflowPredicate": {
+      "factory_defaults": {
+        "assertions": [],
+        "objectives": [],
+        "steps": []
+      },
       "fields": [
         "assertions",
         "objectives",
@@ -11036,6 +11962,15 @@
       "scalar": {}
     },
     "#/$defs/WorkflowStep": {
+      "factory_defaults": {
+        "allowed_action_families": [],
+        "branches": [],
+        "capability_refs": [],
+        "cases": [],
+        "fact_binding_refs": [],
+        "scaffold_refs": [],
+        "tool_affordance_refs": []
+      },
       "fields": [
         "type",
         "execution_mode",
@@ -11083,6 +12018,7 @@
       }
     },
     "#/$defs/WorkflowStepStateRef": {
+      "factory_defaults": {},
       "fields": [
         "step",
         "outcomes",
@@ -11104,6 +12040,7 @@
       }
     },
     "#/$defs/WorkflowSwitchCase": {
+      "factory_defaults": {},
       "fields": [
         "when",
         "next",
@@ -11113,6 +12050,7 @@
       "scalar": {}
     },
     "#/$defs/WorkflowTimeoutPolicy": {
+      "factory_defaults": {},
       "fields": [
         "seconds"
       ],
@@ -11132,6 +12070,44 @@
   },
   "materialized-scenario-v1": {
     "#": {
+      "factory_defaults": {
+        "accounts": {},
+        "action_contracts": {},
+        "agents": {},
+        "assertions": {},
+        "behavior_specifications": {},
+        "clocks": {},
+        "conditions": {},
+        "content": {},
+        "control_context_assets": {},
+        "deployment_cells": {},
+        "deployment_tenants": {},
+        "entities": {},
+        "events": {},
+        "evidence_requirements": {},
+        "features": {},
+        "forwarding_agents": [],
+        "generated_artifacts": {},
+        "identity_domains": {},
+        "identity_facades": {},
+        "identity_forests": {},
+        "infrastructure": {},
+        "injects": {},
+        "nodes": {},
+        "objectives": {},
+        "observation_boundaries": {},
+        "outcome_interpretation_rules": {},
+        "persistent_volumes": {},
+        "propositions": {},
+        "relationships": {},
+        "scripts": {},
+        "stories": {},
+        "temporal_constraints": {},
+        "time_domain_mappings": {},
+        "time_domains": {},
+        "time_progression_policies": {},
+        "workflows": {}
+      },
       "fields": [
         "name",
         "version",
@@ -11198,6 +12174,7 @@
       "scalar": {}
     },
     "#/$defs/InstantiatedMaterializationDigest": {
+      "factory_defaults": {},
       "fields": [
         "profile",
         "algorithm",
@@ -11207,6 +12184,7 @@
       "scalar": {}
     },
     "#/$defs/MaterializationOrigin": {
+      "factory_defaults": {},
       "fields": [
         "field_pointer",
         "source_pointer",
@@ -11217,6 +12195,7 @@
       "scalar": {}
     },
     "#/$defs/MaterializationProducer": {
+      "factory_defaults": {},
       "fields": [
         "name",
         "version",
@@ -11227,6 +12206,7 @@
       "scalar": {}
     },
     "#/$defs/MaterializationProvenance": {
+      "factory_defaults": {},
       "fields": [
         "profile",
         "attestation_id",
@@ -11252,6 +12232,7 @@
       "scalar": {}
     },
     "#/$defs/MaterializedResourceBinding": {
+      "factory_defaults": {},
       "fields": [
         "address",
         "node_name",
@@ -11269,6 +12250,7 @@
       }
     },
     "#/$defs/RuntimeConcernSelection": {
+      "factory_defaults": {},
       "fields": [
         "address",
         "field_path",
@@ -11278,6 +12260,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeDescendantBinding": {
+      "factory_defaults": {},
       "fields": [
         "address",
         "parent_address",
@@ -11298,6 +12281,7 @@
       }
     },
     "#/$defs/RuntimeInventoryEvidence": {
+      "factory_defaults": {},
       "fields": [
         "run_id",
         "operation_id",
@@ -11308,6 +12292,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeInventoryReport": {
+      "factory_defaults": {},
       "fields": [
         "contract_id",
         "attempt_id",
@@ -11336,6 +12321,7 @@
       }
     },
     "#/$defs/SemanticDigest": {
+      "factory_defaults": {},
       "fields": [
         "profile",
         "algorithm",
@@ -11347,6 +12333,47 @@
   },
   "sdl-authoring-input-v1": {
     "#": {
+      "factory_defaults": {
+        "accounts": {},
+        "action_contracts": {},
+        "agents": {},
+        "assertions": {},
+        "behavior_specifications": {},
+        "clocks": {},
+        "conditions": {},
+        "content": {},
+        "control_context_assets": {},
+        "deployment_cells": {},
+        "deployment_tenants": {},
+        "entities": {},
+        "events": {},
+        "evidence_requirements": {},
+        "features": {},
+        "forwarding_agents": [],
+        "generated_artifacts": {},
+        "identity_domains": {},
+        "identity_facades": {},
+        "identity_forests": {},
+        "imports": [],
+        "infrastructure": {},
+        "injects": {},
+        "nodes": {},
+        "objectives": {},
+        "observation_boundaries": {},
+        "outcome_interpretation_rules": {},
+        "persistent_volumes": {},
+        "propositions": {},
+        "relationships": {},
+        "scripts": {},
+        "stories": {},
+        "temporal_constraints": {},
+        "time_domain_mappings": {},
+        "time_domains": {},
+        "time_progression_policies": {},
+        "variables": {},
+        "variation_points": {},
+        "workflows": {}
+      },
       "fields": [
         "name",
         "version",
@@ -11417,6 +12444,7 @@
       "scalar": {}
     },
     "#/$defs/AlternativeVariationPoint": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "target",
@@ -11427,6 +12455,7 @@
       "scalar": {}
     },
     "#/$defs/BooleanDomain": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "value"
@@ -11442,6 +12471,7 @@
       }
     },
     "#/$defs/CollectionTarget": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "owner",
@@ -11451,6 +12481,7 @@
       "scalar": {}
     },
     "#/$defs/ConsumerSelector": {
+      "factory_defaults": {},
       "fields": [
         "node",
         "mount_destination"
@@ -11459,6 +12490,10 @@
       "scalar": {}
     },
     "#/$defs/DeclarationPresenceAlternative": {
+      "factory_defaults": {
+        "excludes": [],
+        "requires": []
+      },
       "fields": [
         "description",
         "requires",
@@ -11476,6 +12511,7 @@
       }
     },
     "#/$defs/EnumDomain": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "values"
@@ -11495,6 +12531,7 @@
       }
     },
     "#/$defs/ExactDomain": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "value"
@@ -11512,6 +12549,7 @@
       }
     },
     "#/$defs/GovernedReferenceDomain": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "authority",
@@ -11521,6 +12559,7 @@
       "scalar": {}
     },
     "#/$defs/GovernedReferenceVariationPoint": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "target",
@@ -11531,6 +12570,9 @@
       "scalar": {}
     },
     "#/$defs/ImportDecl": {
+      "factory_defaults": {
+        "parameters": {}
+      },
       "fields": [
         "source",
         "path",
@@ -11543,6 +12585,7 @@
       "scalar": {}
     },
     "#/$defs/LogicalTimingTarget": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "owner",
@@ -11552,6 +12595,7 @@
       "scalar": {}
     },
     "#/$defs/LogicalTimingVariationPoint": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "target",
@@ -11563,6 +12607,10 @@
       "scalar": {}
     },
     "#/$defs/ModuleDescriptor": {
+      "factory_defaults": {
+        "exports": {},
+        "parameters": []
+      },
       "fields": [
         "id",
         "version",
@@ -11574,6 +12622,11 @@
       "scalar": {}
     },
     "#/$defs/NodePresenceAlternative": {
+      "factory_defaults": {
+        "excludes": [],
+        "inventory": {},
+        "requires": []
+      },
       "fields": [
         "description",
         "requires",
@@ -11592,6 +12645,7 @@
       }
     },
     "#/$defs/NumericIntervalDomain": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "numeric_type",
@@ -11625,6 +12679,7 @@
       }
     },
     "#/$defs/OrderPrecedence": {
+      "factory_defaults": {},
       "fields": [
         "before",
         "after"
@@ -11633,6 +12688,10 @@
       "scalar": {}
     },
     "#/$defs/OrderVariationPoint": {
+      "factory_defaults": {
+        "fixed_positions": {},
+        "precedence": []
+      },
       "fields": [
         "kind",
         "target",
@@ -11653,6 +12712,7 @@
       }
     },
     "#/$defs/ParameterVariationPoint": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "target",
@@ -11663,6 +12723,7 @@
       "scalar": {}
     },
     "#/$defs/RealizationConstraintDesignation": {
+      "factory_defaults": {},
       "fields": [
         "namespace",
         "field_pointer",
@@ -11679,6 +12740,7 @@
       "scalar": {}
     },
     "#/$defs/RealizationDesignation": {
+      "factory_defaults": {},
       "fields": [
         "default",
         "scopes",
@@ -11688,6 +12750,7 @@
       "scalar": {}
     },
     "#/$defs/RealizationScopeDesignation": {
+      "factory_defaults": {},
       "fields": [
         "namespace",
         "field_pointer",
@@ -11697,6 +12760,7 @@
       "scalar": {}
     },
     "#/$defs/RecordDomain": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "fields",
@@ -11712,6 +12776,7 @@
       }
     },
     "#/$defs/ReferenceTarget": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "owner",
@@ -11721,6 +12786,10 @@
       "scalar": {}
     },
     "#/$defs/ResourceConsumersAlternative": {
+      "factory_defaults": {
+        "excludes": [],
+        "requires": []
+      },
       "fields": [
         "description",
         "requires",
@@ -11732,6 +12801,10 @@
       "scalar": {}
     },
     "#/$defs/RuntimeInventoryAlternative": {
+      "factory_defaults": {
+        "excludes": [],
+        "requires": []
+      },
       "fields": [
         "description",
         "requires",
@@ -11743,6 +12816,7 @@
       "scalar": {}
     },
     "#/$defs/SelectionRelation": {
+      "factory_defaults": {},
       "fields": [
         "point",
         "members"
@@ -11751,6 +12825,7 @@
       "scalar": {}
     },
     "#/$defs/StructuralTarget": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "owner",
@@ -11760,6 +12835,7 @@
       "scalar": {}
     },
     "#/$defs/SubsetVariationPoint": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "target",
@@ -11784,6 +12860,9 @@
       }
     },
     "#/$defs/Variable": {
+      "factory_defaults": {
+        "allowed_values": []
+      },
       "fields": [
         "type",
         "default",
@@ -11825,6 +12904,7 @@
       }
     },
     "#/$defs/VariableTarget": {
+      "factory_defaults": {},
       "fields": [
         "kind",
         "variable"
@@ -11833,6 +12913,10 @@
       "scalar": {}
     },
     "#/$defs/VariationMember": {
+      "factory_defaults": {
+        "excludes": [],
+        "requires": []
+      },
       "fields": [
         "description",
         "requires",

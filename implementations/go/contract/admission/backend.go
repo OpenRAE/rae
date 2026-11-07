@@ -119,7 +119,7 @@ func backendOutcome(v any) error {
 	if state != outcomeIndeterminate && !known {
 		return invalid()
 	}
-	if state == outcomeSucceeded && (stringAt(v, "satisfaction") != termSatisfied || !boolean(at(v, "release_gates_satisfied")) || at(v, "result") == nil || stringAt(v, termEffects, "effect") == statusPartial) {
+	if state == outcomeSucceeded && (stringAt(v, "satisfaction") != termSatisfied || !boolean(at(v, "release_gates_satisfied")) || at(v, termResult) == nil || stringAt(v, termEffects, "effect") == statusPartial) {
 		return invalid()
 	}
 	if state == outcomeFailed && stringAt(v, "satisfaction") != "unsatisfied" {

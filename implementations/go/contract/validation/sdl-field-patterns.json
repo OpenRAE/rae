@@ -1,0 +1,1375 @@
+{
+  "contracts": {
+    "materialized-scenario-v1": {
+      "ArtifactCandidate": {
+        "candidate_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ]
+      },
+      "ArtifactConstraint": {
+        "constraint_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ],
+        "kind": [
+          {
+            "max_length": 128,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ]
+      },
+      "ArtifactIdentity": {
+        "artifact_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ],
+        "digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ]
+      },
+      "ArtifactLockedInput": {
+        "input_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ]
+      },
+      "ArtifactMaterializationSpecification": {
+        "digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ],
+        "locked_input_ids": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ],
+        "specification_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ]
+      },
+      "ArtifactMechanismProfile": {
+        "digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ],
+        "profile": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ]
+      },
+      "ArtifactRequirement": {
+        "requirement_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ]
+      },
+      "AugmentationScopeRule": {
+        "scope": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "BooleanPredicate": {
+        "property": [
+          {
+            "max_length": 512,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$"
+          }
+        ],
+        "semantic_ref": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$"
+          }
+        ]
+      },
+      "DomainProfileBindingOwnerModel": {
+        "canonical_address": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^#(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "DomainProfileCoordinateModel": {
+        "definition_digest": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$"
+          }
+        ],
+        "namespace": [
+          {
+            "max_length": 253,
+            "path": [],
+            "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+          }
+        ],
+        "profile_id": [
+          {
+            "max_length": 128,
+            "path": [],
+            "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$"
+          }
+        ],
+        "revision": [
+          {
+            "max_length": 128,
+            "path": [],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$"
+          }
+        ]
+      },
+      "DomainProfileSchemaModel": {
+        "revision": [
+          {
+            "max_length": 128,
+            "path": [],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$"
+          }
+        ],
+        "schema_digest": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$"
+          }
+        ]
+      },
+      "DomainProfileSemanticContractModel": {
+        "contract_id": [
+          {
+            "max_length": 128,
+            "path": [],
+            "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$"
+          }
+        ],
+        "digest": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$"
+          }
+        ],
+        "revision": [
+          {
+            "max_length": 128,
+            "path": [],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$"
+          }
+        ]
+      },
+      "ExecutionPolicyScope": {
+        "scope": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "ExperimentChecksumModel": {
+        "value": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[A-Fa-f0-9]+$"
+          }
+        ]
+      },
+      "InstantiatedMaterializationDigest": {
+        "value": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ]
+      },
+      "LocalOutcomeCriterion": {
+        "criterion_id": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ],
+        "effect_id": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ],
+        "source_id": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "LocalOutcomeDefinition": {
+        "criterion_basis": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "MaterializationOrigin": {
+        "field_pointer": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ],
+        "source_pointer": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "MaterializationProducer": {
+        "configuration_digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ],
+        "manifest_digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ],
+        "name": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[^\\s\\x00-\\x1f]+$"
+          }
+        ],
+        "version": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[^\\s\\x00-\\x1f]+$"
+          }
+        ]
+      },
+      "MaterializationProvenance": {
+        "operation_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[^\\s\\x00-\\x1f]+$"
+          }
+        ],
+        "plan_digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ],
+        "predecessor_digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ],
+        "run_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[^\\s\\x00-\\x1f]+$"
+          }
+        ]
+      },
+      "MixedControlPermittedTransition": {
+        "completion_evidence_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "evidence_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "NumericPredicate": {
+        "property": [
+          {
+            "max_length": 512,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$"
+          }
+        ],
+        "semantic_ref": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$"
+          }
+        ],
+        "unit": [
+          {
+            "max_length": 512,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$"
+          }
+        ],
+        "unit_semantic_ref": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$"
+          }
+        ]
+      },
+      "ObservationDemandRule": {
+        "scope": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "ObservationSelector": {
+        "semantic_scope": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "OperatorSecretCredentialMaterial": {
+        "reference_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$"
+          }
+        ]
+      },
+      "ParticipantBehaviorSpecification": {
+        "semantic_version": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantControlContextAssetReferenceModel": {
+        "asset_digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ]
+      },
+      "ParticipantControlContextReference": {
+        "declaration_ref": [
+          {
+            "max_length": 1024,
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantInjectDeliveryControl": {
+        "controller_ref": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ],
+        "policy_revision": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantRelationship": {
+        "authority_basis_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "behavior_specification_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "control_specification_ref": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ],
+        "objective_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "observation_boundary_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "scope_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "source_action_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "target_action_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantToolAffordance": {
+        "action_contract_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "observation_boundary_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "participant_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "participant_role_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "PresencePredicate": {
+        "property": [
+          {
+            "max_length": 512,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$"
+          }
+        ],
+        "semantic_ref": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$"
+          }
+        ]
+      },
+      "RuntimeAptPackageRepository": {
+        "components": [
+          {
+            "max_length": 128,
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9.+_~-]{0,127}$"
+          }
+        ],
+        "suite": [
+          {
+            "max_length": 128,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9.+_~:-]{0,127}$"
+          }
+        ],
+        "uri": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s#]+|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$",
+            "schema_sha256": "38a1094070dbfb13f9b4de0c952c6c0bcdbf8eb3be7d2c73d95a6002478b3cbc"
+          }
+        ]
+      },
+      "RuntimeConcernSelection": {
+        "requirement_kind": [
+          {
+            "max_length": 128,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          }
+        ]
+      },
+      "RuntimeDescendantBinding": {
+        "native_identity_digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ]
+      },
+      "RuntimeInventoryEvidence": {
+        "attempt_id": [
+          {
+            "max_length": 128,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          }
+        ],
+        "evidence_digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ],
+        "operation_id": [
+          {
+            "max_length": 128,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          }
+        ],
+        "run_id": [
+          {
+            "max_length": 128,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          }
+        ]
+      },
+      "RuntimeInventoryReport": {
+        "attempt_id": [
+          {
+            "max_length": 128,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          }
+        ],
+        "run_id": [
+          {
+            "max_length": 128,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$"
+          }
+        ],
+        "source_digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ],
+        "target_scope": [
+          {
+            "max_length": 256,
+            "min_length": 8,
+            "path": [],
+            "pattern": "^target:[^\\s\\x00-\\x1f]+$"
+          }
+        ]
+      },
+      "RuntimePackageRepositorySigningKey": {
+        "digest": [
+          {
+            "path": [],
+            "pattern": "^(?:sha256:[a-f0-9]{64}|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$"
+          }
+        ],
+        "uri": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s#]+|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$",
+            "schema_sha256": "e697b3cc83b2505dccd639c6b101fbe14284cc4d11d087cf30ab48fc87b9bda1"
+          }
+        ]
+      },
+      "SemanticDigest": {
+        "value": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ]
+      },
+      "ServiceManagerUnit": {
+        "unit_name": [
+          {
+            "path": [],
+            "pattern": "^\\S+$"
+          }
+        ]
+      },
+      "StringPredicate": {
+        "property": [
+          {
+            "max_length": 512,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$"
+          }
+        ],
+        "semantic_ref": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$"
+          }
+        ]
+      }
+    },
+    "sdl-authoring-input-v1": {
+      "ArtifactCandidate": {
+        "candidate_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ]
+      },
+      "ArtifactConstraint": {
+        "constraint_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ],
+        "kind": [
+          {
+            "max_length": 128,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ]
+      },
+      "ArtifactIdentity": {
+        "artifact_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ],
+        "digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ]
+      },
+      "ArtifactLockedInput": {
+        "input_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ]
+      },
+      "ArtifactMaterializationSpecification": {
+        "digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ],
+        "locked_input_ids": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ],
+        "specification_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ]
+      },
+      "ArtifactMechanismProfile": {
+        "digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ],
+        "profile": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ]
+      },
+      "ArtifactRequirement": {
+        "requirement_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ]
+      },
+      "AugmentationScopeRule": {
+        "scope": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "BooleanPredicate": {
+        "property": [
+          {
+            "max_length": 512,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$"
+          }
+        ],
+        "semantic_ref": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$"
+          }
+        ]
+      },
+      "DomainProfileBindingOwnerModel": {
+        "canonical_address": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^#(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "DomainProfileCoordinateModel": {
+        "definition_digest": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$"
+          }
+        ],
+        "namespace": [
+          {
+            "max_length": 253,
+            "path": [],
+            "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+          }
+        ],
+        "profile_id": [
+          {
+            "max_length": 128,
+            "path": [],
+            "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$"
+          }
+        ],
+        "revision": [
+          {
+            "max_length": 128,
+            "path": [],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$"
+          }
+        ]
+      },
+      "DomainProfileSchemaModel": {
+        "revision": [
+          {
+            "max_length": 128,
+            "path": [],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$"
+          }
+        ],
+        "schema_digest": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$"
+          }
+        ]
+      },
+      "DomainProfileSemanticContractModel": {
+        "contract_id": [
+          {
+            "max_length": 128,
+            "path": [],
+            "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$"
+          }
+        ],
+        "digest": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$"
+          }
+        ],
+        "revision": [
+          {
+            "max_length": 128,
+            "path": [],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$"
+          }
+        ]
+      },
+      "ExecutionPolicyScope": {
+        "scope": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "ExperimentChecksumModel": {
+        "value": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[A-Fa-f0-9]+$"
+          }
+        ]
+      },
+      "LocalOutcomeCriterion": {
+        "criterion_id": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ],
+        "effect_id": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ],
+        "source_id": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "LocalOutcomeDefinition": {
+        "criterion_basis": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "MixedControlPermittedTransition": {
+        "completion_evidence_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "evidence_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "NumericPredicate": {
+        "property": [
+          {
+            "max_length": 512,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$"
+          }
+        ],
+        "semantic_ref": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$"
+          }
+        ],
+        "unit": [
+          {
+            "max_length": 512,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$"
+          }
+        ],
+        "unit_semantic_ref": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$"
+          }
+        ]
+      },
+      "ObservationDemandRule": {
+        "scope": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "ObservationSelector": {
+        "semantic_scope": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "OperatorSecretCredentialMaterial": {
+        "reference_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$"
+          }
+        ]
+      },
+      "ParticipantBehaviorSpecification": {
+        "semantic_version": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantControlContextAssetReferenceModel": {
+        "asset_digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ]
+      },
+      "ParticipantControlContextReference": {
+        "declaration_ref": [
+          {
+            "max_length": 1024,
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantInjectDeliveryControl": {
+        "controller_ref": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ],
+        "policy_revision": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantRelationship": {
+        "authority_basis_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "behavior_specification_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "control_specification_ref": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ],
+        "objective_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "observation_boundary_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "scope_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "source_action_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "target_action_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantToolAffordance": {
+        "action_contract_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "observation_boundary_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "participant_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "participant_role_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "PresencePredicate": {
+        "property": [
+          {
+            "max_length": 512,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$"
+          }
+        ],
+        "semantic_ref": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$"
+          }
+        ]
+      },
+      "RealizationConstraintDesignation": {
+        "field_pointer": [
+          {
+            "max_length": 4096,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "RealizationScopeDesignation": {
+        "field_pointer": [
+          {
+            "max_length": 4096,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "RuntimeAptPackageRepository": {
+        "components": [
+          {
+            "max_length": 128,
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9.+_~-]{0,127}$"
+          }
+        ],
+        "suite": [
+          {
+            "max_length": 128,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9.+_~:-]{0,127}$"
+          }
+        ],
+        "uri": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s#]+|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$",
+            "schema_sha256": "e9d9a2a2d8194c602b03451b9828086c5e91d14e5fc32aed9ad2886381dacd0d"
+          }
+        ]
+      },
+      "RuntimePackageRepositorySigningKey": {
+        "digest": [
+          {
+            "path": [],
+            "pattern": "^(?:sha256:[a-f0-9]{64}|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$"
+          }
+        ],
+        "uri": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s#]+|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$",
+            "schema_sha256": "fbf8ef00ed44c04378ebfb4f2fb6b0bc269767377faa6c929fe478b3ec7901fe"
+          }
+        ]
+      },
+      "ServiceManagerUnit": {
+        "unit_name": [
+          {
+            "path": [],
+            "pattern": "^\\S+$"
+          }
+        ]
+      },
+      "StringPredicate": {
+        "property": [
+          {
+            "max_length": 512,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$"
+          }
+        ],
+        "semantic_ref": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$"
+          }
+        ]
+      }
+    }
+  },
+  "reference": "9ce61105e833d4edfe465bbc0bebce12cd8a9a6d"
+}

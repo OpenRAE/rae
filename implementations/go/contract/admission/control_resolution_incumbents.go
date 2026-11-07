@@ -55,7 +55,7 @@ func (r *controlResolution) crossing(cut any, index *crossingIndex) error {
 		return invalid()
 	}
 	v := at(record, "occurrence")
-	if !equal(at(v, "subject"), at(cut, "subject")) || !equal(at(v, "policy"), at(cut, "policy")) || !matchingFields(v, cut, "direction", "controller_ref") || !equal(at(v, "audience_scope_ref"), at(cut, "audience_ref")) || !set(at(v, "authority_basis_refs"))[stringAt(cut, termAuthority, "ref")] {
+	if !equal(at(v, "subject"), at(cut, "subject")) || !equal(at(v, "policy"), at(cut, "policy")) || !matchingFields(v, cut, "direction", "controller_ref") || !equal(at(v, "audience_scope_ref"), at(cut, "audience_ref")) || !set(at(v, termAuthorityBasisRefs))[stringAt(cut, termAuthority, "ref")] {
 		return invalid()
 	}
 	// The reference binds exclude_unset JSON, so hash the original wire record.

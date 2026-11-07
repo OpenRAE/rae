@@ -21,7 +21,7 @@ const nodeSemanticClauses = "3778bdc61d14bbcb0626bf210050815770870a81d2c19a742c0
 
 func (v *Validator) loadSDLConstruction() error {
 	v.construction = map[string]contract{}
-	for _, id := range []string{"sdl-authoring-input-v1", "materialized-scenario-v1"} {
+	for _, id := range []string{"sdl-authoring-input-v1", sdlMaterializedContract} {
 		published, present := v.contracts[id]
 		if !present {
 			continue // Small isolated schema fixtures need not contain SDL.
@@ -31,6 +31,8 @@ func (v *Validator) loadSDLConstruction() error {
 			return err
 		}
 		v.construction[id] = constructed
+		published.constructionWork = constructionGraphWork(published.schema)
+		v.contracts[id] = published
 	}
 	return nil
 }
@@ -39,7 +41,7 @@ func compileSDLConstruction(id string, published contract) (contract, error) {
 	defs, _ := published.raw["$defs"].(map[string]any)
 	node, _ := defs["Node"].(map[string]any)
 	expected := nodeSemanticClauses
-	if id == "materialized-scenario-v1" {
+	if id == sdlMaterializedContract {
 		expected = "0561d2939f767c14777c625fdf74ca9bc374203062b1d7f5e335799d560fa518"
 		if !stageDigestMatches(defs["_r221"], "1c6a3f6fa1a26b7c577915a3a7e4bb7af706c46260ad4e40ed2a37ac16dc8c34") {
 			return contract{}, failure(fault.Operational, "sdl-construction-stage-invalid")
@@ -54,7 +56,15 @@ func compileSDLConstruction(id string, published contract) (contract, error) {
 	delete(node, "allOf")
 	defs["Node"] = node
 	root["$defs"] = defs
-	constructed, err := compileDocument(id, root, published.annotations)
+	root, err := applySDLFieldPatterns(id, root)
+	if err != nil {
+		return contract{}, err
+	}
+	annotations, err := constructionAnnotations(published.annotations)
+	if err != nil {
+		return contract{}, err
+	}
+	constructed, err := compileDocument(id, root, annotations)
 	if err != nil {
 		return contract{}, err
 	}
@@ -67,6 +77,16 @@ func compileSDLConstruction(id string, published contract) (contract, error) {
 // selects the root ("#") or a reachable object fragment. The published schema
 // checks remain unchanged. This operation grants no SDL semantic authority.
 func (v *Validator) CheckSDLConstruction(id, pointer string, data []byte, limits ingress.Limits, check func(SchemaInstance) error) error {
+	return v.checkSDLConstruction(id, pointer, data, limits, check, false)
+}
+
+// CheckSDLLocalSemantics checks the native SDL model view and all stock local
+// rules, including the root rules. It grants no contextual or phase authority.
+func (v *Validator) CheckSDLLocalSemantics(id string, data []byte, limits ingress.Limits, check func(SchemaInstance) error) error {
+	return v.checkSDLConstruction(id, "#", data, limits, check, true)
+}
+
+func (v *Validator) checkSDLConstruction(id, pointer string, data []byte, limits ingress.Limits, check func(SchemaInstance) error, rootRules bool) error {
 	if v == nil || v.construction[id].schema == nil {
 		return failure(fault.InvalidInput, "sdl-construction-contract-unknown")
 	}
@@ -77,6 +97,9 @@ func (v *Validator) CheckSDLConstruction(id, pointer string, data []byte, limits
 		return failure(fault.InvalidInput, codeContractFragmentUnknown)
 	}
 	entry := v.construction[id]
+	if rootRules {
+		entry.annotations = v.contracts[id].annotations
+	}
 	schema := findSchemaFragment(entry.schema, pointer)
 	if schema == nil {
 		return failure(fault.InvalidInput, codeContractFragmentUnknown)
@@ -142,4 +165,27 @@ func stageDigestMatches(value any, expected string) bool {
 	}
 	canonical, err := canonjson.Sorted(raw, true)
 	return err == nil && fmt.Sprintf("%x", sha256.Sum256(canonical)) == expected
+}
+
+func constructionAnnotations(published map[string][]annotation) (map[string][]annotation, error) {
+	for _, rule := range published["#"] {
+		switch rule.ID {
+		case "required-evidence-media-type-provable", "stateful-generated-artifact-semantics", "stateful-persistent-volume-semantics", "stateful-cross-resource-semantics", "initial-service-state-semantics", "participant-shared-time-source-bindings", "materialized-sdl-source-and-inventory-binding":
+		default:
+			return nil, failure(fault.Operational, "sdl-construction-stage-invalid")
+		}
+	}
+	result := maps.Clone(published)
+	delete(result, "#")
+	return result, nil
+}
+
+func (c contract) walkBound(size int) int {
+	if c.constructionWork == 0 || size == 0 {
+		return 100000
+	}
+	if size > math.MaxInt/c.constructionWork {
+		return math.MaxInt
+	}
+	return size * c.constructionWork
 }

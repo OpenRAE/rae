@@ -65,6 +65,9 @@ func formatRefusal(err error) (json.RawMessage, error) {
 		error
 		Code() string
 	}](err)
+	if hasCode && classified.Code() == "sdl-semantic-invalid" {
+		return formatEnvelope(1, nil)
+	}
 	category, known := fault.CategoryOf(err)
 	if known && category == fault.InvalidInput || hasCode && strings.HasPrefix(classified.Code(), "sdl.import.") {
 		return formatEnvelope(2, nil)

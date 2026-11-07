@@ -52,7 +52,7 @@ func (e *Validator) synthesisSource(i validation.Invocation) error {
 	if err != nil {
 		return err
 	}
-	assertions, source := at(v, "assertions"), at(v, "source")
+	assertions, source := at(v, "assertions"), at(v, termSource)
 	actual, err := jsonDigest(assertions)
 	if err != nil {
 		return err
@@ -92,7 +92,7 @@ func synthesisInputOrder(i validation.Invocation) error {
 	if !orderedRows(at(v, "assertions"), "assertion_id") || !orderedRows(at(v, fieldAssumptions), "assumption_id") || !orderedRows(at(v, "decisions"), termDecisionID) || !orderedRows(at(v, "decisions"), termTargetRef) {
 		return invalid()
 	}
-	if !orderedRows(at(v, "source", "information_flow_policy_refs"), termProfileID, "version", termDigest) {
+	if !orderedRows(at(v, termSource, "information_flow_policy_refs"), termProfileID, "version", termDigest) {
 		return invalid()
 	}
 	for _, assertion := range array(at(v, "assertions")) {

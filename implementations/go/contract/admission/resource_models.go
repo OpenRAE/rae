@@ -16,7 +16,10 @@ func resourceQuantity(v any) error {
 }
 
 func resourceDemand(v any) error {
-	return require(!numericGreater(at(v, "reservation"), at(v, "limit")) && (stringAt(v, "quantity", "accounting_mode") == termWindowedCounter) == (at(v, "window_ticks") != nil) && fieldsUnique(v, "evidence_refs") && (stringAt(v, "quantity", "resource_kind") != termStorageGrowth || stringAt(v, "reset") == "reconciled"))
+	return resourceDemandQuantity(v, at(v, "quantity"))
+}
+func resourceDemandQuantity(v, quantity any) error {
+	return require(!numericGreater(at(v, "reservation"), at(v, "limit")) && (stringAt(quantity, "accounting_mode") == termWindowedCounter) == (at(v, "window_ticks") != nil) && fieldsUnique(v, "evidence_refs") && (stringAt(quantity, "resource_kind") != termStorageGrowth || stringAt(v, "reset") == "reconciled"))
 }
 
 func resourceCapacity(v any) error {

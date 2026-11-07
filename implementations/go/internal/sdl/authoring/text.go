@@ -15,6 +15,13 @@ func lower(value string) string {
 	return cases.Lower(language.Und).String(value)
 }
 
+func upper(value string) string {
+	if strings.IndexFunc(value, func(r rune) bool { return r > unicode.MaxASCII }) < 0 {
+		return strings.ToUpper(value)
+	}
+	return cases.Upper(language.Und).String(value)
+}
+
 func asciiDecimalDigits(value string) string {
 	if strings.IndexFunc(value, func(r rune) bool { return r > unicode.MaxASCII }) < 0 {
 		return value

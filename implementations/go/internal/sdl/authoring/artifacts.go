@@ -1,17 +1,7 @@
 package authoring
 
-import "regexp"
-
-var extensionMechanism = regexp.MustCompile(`^x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*$`)
-
 func artifactModel(model string, value map[string]any) error {
 	switch model {
-	case "ArtifactConstraint":
-		if !uniqueStrings(array(value["allowed_values"])) {
-			return invalid()
-		}
-	case "ArtifactMechanismProfile":
-		return mechanismModel(text(value["mechanism"]))
 	case "ArtifactRequirement":
 		return artifactRequirement(value)
 	case "Source":
@@ -28,17 +18,6 @@ func artifactModel(model string, value map[string]any) error {
 		}
 	}
 	return nil
-}
-func mechanismModel(mechanism string) error {
-	switch mechanism {
-	case "exact-artifact", "backend-owned-artifact", "published-candidate", "dynamic-composition", "materialization-specification":
-		return nil
-	default:
-		if !extensionMechanism.MatchString(mechanism) {
-			return invalid()
-		}
-		return nil
-	}
 }
 func artifactRequirement(value map[string]any) error {
 	for section, identity := range map[string]string{

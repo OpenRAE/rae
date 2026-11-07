@@ -8,6 +8,7 @@ import (
 
 func (w *normalizer) modelCheck(pointer string, value map[string]any) error {
 	model := strings.TrimPrefix(pointer, "#/$defs/")
+
 	if err := artifactModel(model, value); err != nil {
 		return err
 	}
@@ -20,10 +21,6 @@ func (w *normalizer) modelCheck(pointer string, value map[string]any) error {
 		if populated(value["from_entity"]) != populated(value["to_entities"]) {
 			return invalid()
 		}
-	case "Node":
-		return nodeModel(value)
-	case "InfraNode":
-		return infrastructureModel(value)
 	case "SimpleProperties":
 		return networkModel(value)
 	case "ModuleDescriptor":
@@ -37,62 +34,6 @@ func (w *normalizer) modelCheck(pointer string, value map[string]any) error {
 		}
 	case "Scenario", "MaterializedScenario":
 		return nil
-	}
-	return nil
-}
-func nodeModel(value map[string]any) error {
-	if strings.EqualFold(text(value["type"]), "switch") {
-		if err := switchModel(value); err != nil {
-			return err
-		}
-	}
-	names := map[string]bool{}
-	ports := map[string]bool{}
-	for _, raw := range array(value["services"]) {
-		row := object(raw)
-		name := text(row[nameField])
-		if name != "" && names[name] {
-			return invalid()
-		}
-		names[name] = true
-		key, err := servicePortKey(row)
-		if err != nil {
-			return err
-		}
-		if key == "" {
-			continue
-		}
-		if ports[key] {
-			return invalid()
-		}
-		ports[key] = true
-	}
-	return nil
-}
-func servicePortKey(row map[string]any) (string, error) {
-	if variable(row["port"]) || variable(row["protocol"]) {
-		return "", nil
-	}
-	port, err := normalizeInteger(row["port"], true)
-	if err != nil {
-		return "", err
-	}
-	protocol := text(row["protocol"])
-	if protocol == "" {
-		protocol = "tcp"
-	}
-	return lower(protocol) + ":" + stringNumber(port), nil
-}
-func switchModel(value map[string]any) error {
-	for _, key := range []string{sourceField, "resources", "os", "os_distribution", architectureField, "asset_value", "endpoint_persona", "runtime"} {
-		if value[key] != nil {
-			return invalid()
-		}
-	}
-	for _, key := range []string{"os_version", featuresSection, conditionsSection, injectsSection, "roles", "services"} {
-		if populated(value[key]) {
-			return invalid()
-		}
 	}
 	return nil
 }
@@ -111,28 +52,6 @@ func populated(value any) bool {
 	default:
 		return true
 	}
-}
-func stringNumber(value any) string {
-	if n, ok := value.(json.Number); ok {
-		return n.String()
-	}
-	return ""
-}
-func infrastructureModel(value map[string]any) error {
-	for _, key := range []string{"links", "dependencies"} {
-		if !uniqueStrings(array(value[key])) {
-			return invalid()
-		}
-	}
-	names := map[string]bool{}
-	for _, raw := range array(value["acls"]) {
-		name := text(object(raw)[nameField])
-		if name != "" && names[name] {
-			return invalid()
-		}
-		names[name] = true
-	}
-	return nil
 }
 func uniqueStrings(values []any) bool {
 	seen := map[string]bool{}
@@ -165,6 +84,13 @@ func moduleModel(value map[string]any) error {
 }
 func (w *normalizer) fieldInput(pointer, name string, value any) (any, error) {
 	model := strings.TrimPrefix(pointer, "#/$defs/")
+	if (model == "RuntimePublishedPort" || model == "RuntimePublishedPortRef") && name == protocolField && !variable(value) {
+		protocol, ok := value.(string)
+		if !ok || pythonTrim(protocol) == "" {
+			return nil, invalid()
+		}
+		return w.caseText(pythonTrim(protocol), false)
+	}
 	if bound, ok := integerBound(model, name); ok && !variable(value) {
 		return boundedInteger(value, bound)
 	}
@@ -188,7 +114,7 @@ func scriptInput(name string, value any) (any, error) {
 	switch name {
 	case "start_time", "end_time":
 		return duration(value)
-	case "events":
+	case eventsSection:
 		return eventDurations(value)
 	case "speed":
 		if !variable(value) {
@@ -230,6 +156,10 @@ func integerBound(model, name string) (integerRange, bool) {
 	switch model + "/" + name {
 	case "Resources/cpu", "InfraNode/count":
 		return integerRange{minimum: 1}, true
+	case "Condition/interval", "Condition/timeout":
+		return integerRange{minimum: 1}, true
+	case "Condition/retries", "Condition/start_period":
+		return integerRange{}, true
 	case "ServicePort/port":
 		return integerRange{minimum: 1, maximum: 65535}, true
 	}
@@ -280,7 +210,7 @@ func speed(value any, model string) (any, error) {
 }
 func variableModel(value map[string]any) error {
 	kind := lower(text(value["type"]))
-	if v := value["default"]; v != nil && (!variableType(v, kind) || !allowedValue(v, array(value["allowed_values"]))) {
+	if v := value[defaultField]; v != nil && (!variableType(v, kind) || !allowedValue(v, array(value["allowed_values"]))) {
 		return invalid()
 	}
 	for _, v := range array(value["allowed_values"]) {
@@ -310,7 +240,7 @@ func scriptModel(value map[string]any) error {
 	if !mOK || !xOK || minimum.Cmp(maximum) > 0 {
 		return invalid()
 	}
-	for _, raw := range object(value["events"]) {
+	for _, raw := range object(value[eventsSection]) {
 		parsed, err := duration(raw)
 		if err != nil {
 			return err

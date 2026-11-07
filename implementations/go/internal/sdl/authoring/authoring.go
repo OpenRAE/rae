@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"io/fs"
 	"maps"
-	"math"
 	"path"
 	"slices"
 	"strings"
@@ -48,17 +47,19 @@ type Result struct {
 // Parser holds immutable schemas, presentation metadata and input ceilings.
 // It is safe for concurrent requests; composition state is request-local.
 type Parser struct {
-	limits    source.Limits
-	models    *admission.Validator
-	authority *concept.Authority
-	schemas   map[string]map[string]any
-	layouts   map[string]map[string]layout
+	evidenceContracts map[string]bool
+	limits            source.Limits
+	models            *admission.Validator
+	authority         *concept.Authority
+	schemas           map[string]map[string]any
+	layouts           map[string]map[string]layout
 }
 
 type layout struct {
-	Fields []string                `json:"fields"`
-	Omit   map[string][]string     `json:"omit"`
-	Scalar map[string]scalarPolicy `json:"scalar"`
+	Fields          []string                   `json:"fields"`
+	Omit            map[string][]string        `json:"omit"`
+	Scalar          map[string]scalarPolicy    `json:"scalar"`
+	FactoryDefaults map[string]json.RawMessage `json:"factory_defaults"`
 }
 
 // New loads the packaged contracts and checks presentation metadata against them.
@@ -83,6 +84,10 @@ func New(limits source.Limits) (*Parser, error) {
 		return nil, err
 	}
 	p := &Parser{limits: limits, models: models, authority: authority, schemas: map[string]map[string]any{}}
+	p.evidenceContracts, err = manifestEvidenceContracts(packaged)
+	if err != nil {
+		return nil, err
+	}
 	raw, err := presentation.ReadFile("layout.json")
 	if err != nil {
 		return nil, err
@@ -112,6 +117,11 @@ func (p *Parser) checkLayout(id string) error {
 		props := object(schema["properties"])
 		for _, name := range l.Fields {
 			if _, ok := props[name]; !ok {
+				return fault.New(fault.Operational, "sdl-presentation-contract", nil)
+			}
+		}
+		for name, raw := range l.FactoryDefaults {
+			if _, present := props[name]; !present || len(raw) > 16384 || !json.Valid(raw) {
 				return fault.New(fault.Operational, "sdl-presentation-contract", nil)
 			}
 		}
@@ -161,6 +171,7 @@ func (p *Parser) Format(request Request) (Result, error) {
 	}
 	options := p.options(request.Name, "reject")
 	options.KeyScope = dataScope
+	options.BasePointer = "/formatted_model"
 	options.Limits.MaxInputBytes = int64(len(d.data))
 	options.Limits.MaxScalarBytes = int64(len(d.data))
 	options.Limits.MaxNodes = len(d.data)
@@ -182,6 +193,9 @@ func (p *Parser) Format(request Request) (Result, error) {
 	if err = p.checkImports(strict, request, captured); err != nil {
 		return Result{}, err
 	}
+	if err = p.checkFormatPhase(strict); err != nil {
+		return Result{}, err
+	}
 	return Result{Content: content, Diagnostics: d.warnings}, nil
 }
 func (p *Parser) options(name, policy string) source.Options {
@@ -193,6 +207,9 @@ func (p *Parser) options(name, policy string) source.Options {
 	return options
 }
 func (p *Parser) decode(raw []byte, name, policy string) (*Document, error) {
+	return p.decodeDocument(raw, name, policy, false)
+}
+func (p *Parser) decodeDocument(raw []byte, name, policy string, imported bool) (*Document, error) {
 	parsed, err := source.Decode(raw, p.options(name, policy))
 	if err != nil {
 		return nil, err
@@ -222,25 +239,41 @@ func (p *Parser) decode(raw []byte, name, policy string) (*Document, error) {
 	if containsVariable(value[controlAssetsSection]) {
 		return nil, invalid()
 	}
-	walk := normalizer{parser: p, id: id, hints: hints}
-	normalized, err := walk.walk(p.schemas[id], "#", value, nil, scalarPolicy{}, parsed.View())
-	if err != nil {
+	if err = p.precheckComposition(value, imported); err != nil {
 		return nil, err
 	}
-	encoded, err := encode(normalized, math.MaxInt64, false)
-	if err != nil {
-		return nil, err
-	}
-	limits := modelLimits(encoded)
-	if err = p.models.CheckSDLConstruction(id, "#", encoded, limits); err != nil {
-		return nil, &modelError{path: "", cause: err}
-	}
-	encoded, err = encode(normalized, math.MaxInt64, true)
+	encoded, err := p.construct(value, id, hints, parsed)
 	if err != nil {
 		return nil, err
 	}
 	warnings := append(parsed.Diagnostics(), migrated...)
 	return &Document{compositionValue: value, contract: id, data: encoded, source: parsed, warnings: warnings}, nil
+}
+func (p *Parser) precheckComposition(value map[string]any, imported bool) error {
+	if !imported && len(array(value["imports"])) == 0 {
+		return nil
+	}
+	budget, err := source.NewBudget(p.limits)
+	if err != nil {
+		return err
+	}
+	return budget.AddValue(value)
+}
+func (p *Parser) construct(value map[string]any, id string, hints map[string][]string, parsed *source.Document) ([]byte, error) {
+	limit := jsonWorkingLimit(p.limits.MaxInputBytes, p.limits.MaxExpandedNodes)
+	walk := normalizer{parser: p, id: id, hints: hints, workingLimit: limit}
+	normalized, err := walk.walk(p.schemas[id], "#", value, nil, scalarPolicy{}, parsed.View())
+	if err != nil {
+		return nil, err
+	}
+	encoded, err := encode(normalized, limit, false)
+	if err != nil {
+		return nil, err
+	}
+	if err = p.models.CheckSDLConstruction(id, "#", encoded, modelLimits(encoded)); err != nil {
+		return nil, &modelError{path: "", cause: err}
+	}
+	return encode(normalized, limit, true)
 }
 func invalid() error { return fault.New(fault.InvalidInput, "sdl-model-invalid", nil) }
 func object(value any) map[string]any {

@@ -12,15 +12,15 @@ type referenceFields struct{ path, fields []string }
 
 func authoredReferenceFields() []referenceFields {
 	return []referenceFields{
-		{[]string{behaviorSection, "*"}, []string{"participant_refs", "action_contract_refs", "observation_boundary_refs", "outcome_interpretation_rule_refs", "authority_scope_refs"}},
-		{[]string{agentsSection, "*"}, []string{"affiliations", "actions", "observation_boundaries", "starting_accounts", "allowed_subnets", "starting_assertions", "authority_anchors", "operating_scope"}},
-		{[]string{agentsSection, "*", "initial_knowledge"}, []string{"hosts", "subnets", "services", "accounts"}},
+		{[]string{behaviorSection, "*"}, []string{participantRefsField, actionRefsField, boundaryRefsField, outcomeRefsField, authorityScopeRefsField}},
+		{[]string{agentsSection, "*"}, []string{"affiliations", "actions", boundariesSection, "starting_accounts", "allowed_subnets", "starting_assertions", "authority_anchors", "operating_scope"}},
+		{[]string{agentsSection, "*", "initial_knowledge"}, []string{"hosts", "subnets", servicesField, accountsSection}},
 		{[]string{agentsSection, "*", "interactive_access", "*"}, []string{"target_ref", "account_ref"}},
-		{[]string{agentsSection, "*", "control_context", "*"}, []string{"declaration_ref"}},
-		{[]string{behaviorSection, "*", "control_context", "*"}, []string{"declaration_ref"}},
-		{[]string{behaviorSection, "*", "tool_affordances", "*"}, []string{"participant_refs", "action_contract_refs", "observation_boundary_refs", "tool_ref"}},
-		{[]string{behaviorSection, "*", "participant_inject_deliveries", "*"}, []string{"participant_ref", "inject_ref", "observation_boundary_ref", "source_item_ref", "result_item_ref", "controller_ref", "temporal_constraint_refs", "evidence_requirement_refs", "control_authority_scope_refs", "control_evidence_refs"}},
-		{[]string{behaviorSection, "*", "participant_inject_deliveries", "*", "occurrence"}, []string{"event_ref", "script_ref", "story_ref"}},
+		{[]string{agentsSection, "*", controlContextField, "*"}, []string{declarationRefField}},
+		{[]string{behaviorSection, "*", controlContextField, "*"}, []string{declarationRefField}},
+		{[]string{behaviorSection, "*", toolAffordancesField, "*"}, []string{participantRefsField, actionRefsField, boundaryRefsField, toolRefField}},
+		{[]string{behaviorSection, "*", participantInjectDeliveriesField, "*"}, []string{"participant_ref", "inject_ref", "observation_boundary_ref", "source_item_ref", "result_item_ref", "controller_ref", "temporal_constraint_refs", evidenceRequirementRefsField, "control_authority_scope_refs", "control_evidence_refs"}},
+		{[]string{behaviorSection, "*", participantInjectDeliveriesField, "*", "occurrence"}, []string{"event_ref", "script_ref", "story_ref"}},
 	}
 }
 func authoredReferences(value, generated any) error {

@@ -20,7 +20,7 @@ type materializationOffer struct {
 }
 
 func materializationOfferIn(node any, prefix string, presence map[string][]string, expression any) error {
-	offer := materializationOffer{domains: object(at(expression, "domains")), leaves: map[string]materializationOfferLeaf{}, closed: map[string]map[string]bool{}, remaining: 100000}
+	offer := materializationOffer{domains: object(at(expression, termDomains)), leaves: map[string]materializationOfferLeaf{}, closed: map[string]map[string]bool{}, remaining: 100000}
 	bindings := slices.Clone(array(at(expression, "bindings")))
 	slices.SortStableFunc(bindings, materializationOfferOrder)
 	for _, binding := range bindings {

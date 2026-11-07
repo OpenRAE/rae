@@ -9,7 +9,7 @@ import (
 )
 
 func shorthands(value map[string]any, hints map[string][]string) error {
-	infrastructure := object(value["infrastructure"])
+	infrastructure := object(value[infrastructureField])
 	for key, item := range infrastructure {
 		if _, ok := item.(json.Number); ok || variable(item) {
 			infrastructure[key] = map[string]any{"count": item}
@@ -79,7 +79,7 @@ func migrateVM(value map[string]any, document *source.Document, policy, name str
 		if err = addVMConstraint(realization, pointer); err != nil {
 			return nil, err
 		}
-		object(nodes[key])["type"] = "compute"
+		object(nodes[key])["type"] = computeType
 		span, ok := document.View().Child(nodesSection).Child(key).Child("type").Range()
 		if !ok {
 			span = source.Range{Start: source.Position{Line: 1, Column: 1}, End: source.Position{Line: 1, Column: 1}}

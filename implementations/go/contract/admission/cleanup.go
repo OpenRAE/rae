@@ -82,7 +82,7 @@ func cleanupRetry(v any) error {
 			return err
 		}
 	}
-	attempts, ok := number(at(retry, "max_attempts"))
+	attempts, ok := number(at(retry, termMaxAttempts))
 	if !ok {
 		return invalid()
 	}

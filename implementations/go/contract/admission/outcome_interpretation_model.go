@@ -1,24 +1,22 @@
 package admission
 
-import "strings"
+import "slices"
 
 func outcomeReferences(v any, fields ...string) error {
 	if !fieldsUnique(v, fields...) {
 		return invalid()
 	}
 	for _, field := range fields {
-		for _, ref := range stringsOf(at(v, field)) {
-			if strings.TrimSpace(ref) == "" {
-				return invalid()
-			}
+		if slices.ContainsFunc(stringsOf(at(v, field)), sdlBlank) {
+			return invalid()
 		}
 	}
 	return nil
 }
 
 func outcomeSourceBinding(v any) error {
-	for _, field := range []string{"source_id", "ref", "interpretation_role"} {
-		if strings.TrimSpace(stringAt(v, field)) == "" {
+	for _, field := range []string{termSourceID, "ref", "interpretation_role"} {
+		if sdlBlank(stringAt(v, field)) {
 			return invalid()
 		}
 	}
@@ -35,11 +33,11 @@ func outcomeSourceBinding(v any) error {
 
 func outcomeTargetBinding(v any) error {
 	for _, field := range []string{"target_id", "ref", "relation"} {
-		if strings.TrimSpace(stringAt(v, field)) == "" {
+		if sdlBlank(stringAt(v, field)) {
 			return invalid()
 		}
 	}
-	if at(v, "governance_ref") != nil && strings.TrimSpace(stringAt(v, "governance_ref")) == "" {
+	if at(v, "governance_ref") != nil && sdlBlank(stringAt(v, "governance_ref")) {
 		return invalid()
 	}
 	if err := outcomeReferences(v, "evidence_refs", "limitations", "diagnostics"); err != nil {
@@ -50,7 +48,7 @@ func outcomeTargetBinding(v any) error {
 
 func outcomeInterpretation(v any) error {
 	for _, field := range []string{"semantic_version", "observation_point_basis", "interpretation_basis"} {
-		if strings.TrimSpace(stringAt(v, field)) == "" {
+		if sdlBlank(stringAt(v, field)) {
 			return invalid()
 		}
 	}
@@ -59,7 +57,7 @@ func outcomeInterpretation(v any) error {
 	}
 	sources, targets := array(at(v, "source_bindings")), array(at(v, "target_bindings"))
 	local := at(v, "local_outcome")
-	if len(rowSet(sources, "source_id")) != len(sources) || len(rowSet(targets, "target_id")) != len(targets) {
+	if len(rowSet(sources, termSourceID)) != len(sources) || len(rowSet(targets, "target_id")) != len(targets) {
 		return invalid()
 	}
 	if local == nil {
@@ -68,9 +66,9 @@ func outcomeInterpretation(v any) error {
 	if stringAt(v, "semantic_version") != "2.0.0" {
 		return invalid()
 	}
-	index := controlRows(sources, "source_id")
+	index := controlRows(sources, termSourceID)
 	for _, criterion := range array(at(local, "criteria")) {
-		if stringAt(index[stringAt(criterion, "source_id")], "source_layer") != "participant_action_outcome" {
+		if stringAt(index[stringAt(criterion, termSourceID)], "source_layer") != "participant_action_outcome" {
 			return invalid()
 		}
 	}

@@ -363,6 +363,8 @@ def record():
         migration_policy="accept",
     )
     add("merge-nested-invalid", "target: {<<: {<<: 3}}\n", migration_policy="accept")
+    add("undefined-alias-after-valid", "a: &ok x\nb: *ok\nc: *missing\n")
+    add("simple-key-with-spaces", "\"" + "word " * 20 + "end\": value\n", mapping_keys="data")
     for c in cases:
         if not c["error"]:
             c["rendered"] = yaml.safe_dump(

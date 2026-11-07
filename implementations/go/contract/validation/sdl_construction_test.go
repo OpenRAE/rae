@@ -51,3 +51,44 @@ func constructionObject(t *testing.T, value any) map[string]any {
 	}
 	return object
 }
+
+func TestSDLConstructionRejectsUnknownRootStage(t *testing.T) {
+	if _, err := constructionAnnotations(map[string][]annotation{"#": {{ID: "future-semantic-stage"}}}); err == nil {
+		t.Fatal("unknown root annotation was silently omitted")
+	}
+}
+
+func TestSDLLocalSemanticsRestoresRootRules(t *testing.T) {
+	owner, err := New(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	const id = "sdl-authoring-input-v1"
+	called := 0
+	for _, key := range owner.Keys() {
+		owner.rules[key] = Rule{Key: key, Check: func(Invocation) error { return nil }}
+	}
+	for _, annotation := range owner.contracts[id].annotations["#"] {
+		key := Key{id, annotation.ID}
+		owner.rules[key] = Rule{Key: key, Check: func(Invocation) error { called++; return nil }}
+	}
+	data := []byte(`{"name":"a"}`)
+	limits := ingress.Limits{MaxBytes: len(data)}
+	check := func(SchemaInstance) error { return nil }
+	if err := owner.CheckSDLConstruction(id, "#", data, limits, check); err != nil || called != 0 {
+		t.Fatalf("construction invoked semantic root: calls=%d err=%v", called, err)
+	}
+	if err := owner.CheckSDLLocalSemantics(id, data, limits, check); err != nil || called != len(owner.contracts[id].annotations["#"]) || called == 0 {
+		t.Fatalf("local semantics omitted root rules: calls=%d err=%v", called, err)
+	}
+	if owner.CheckSDLLocalSemantics(id, data, limits, nil) == nil {
+		t.Fatal("local semantics allowed missing model check")
+	}
+	if owner.CheckSDLLocalSemantics("unknown", data, limits, check) == nil {
+		t.Fatal("unknown local semantic contract accepted")
+	}
+	var absent *Validator
+	if absent.CheckSDLLocalSemantics(id, data, limits, check) == nil {
+		t.Fatal("nil local semantic owner accepted")
+	}
+}

@@ -10,7 +10,7 @@ func (r *materializationExecution) nodeBindings() error {
 			return err
 		}
 	}
-	if !equalSet(nodes, keySet(at(r.current.full, "nodes"))) {
+	if !equalSet(nodes, keySet(at(r.current.full, termNodes))) {
 		return invalid()
 	}
 	for address, indices := range instances {
@@ -60,7 +60,7 @@ func (r *materializationExecution) nodeBinding(row any, nodes map[string]bool, i
 	if resource == nil || stringAt(resource, "payload", termName) != name {
 		return invalid()
 	}
-	_, original := object(at(r.original.full, "nodes"))[name]
+	_, original := object(at(r.original.full, termNodes))[name]
 	if original && stringAt(row, "source_node") != name || !original && at(row, "source_node") != nil {
 		return invalid()
 	}

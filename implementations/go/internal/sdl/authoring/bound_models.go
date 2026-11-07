@@ -1,7 +1,6 @@
 package authoring
 
 import (
-	"math"
 	"slices"
 
 	"github.com/OpenRAE/rae/implementations/go/internal/base/jsonpointer"
@@ -12,7 +11,7 @@ import (
 // Each declaration still uses its unchanged published model and local rules.
 func (c *composition) validateBound(value map[string]any) (map[string]any, error) {
 	id := authoringContract
-	walk := normalizer{parser: c.parser, id: id}
+	walk := normalizer{parser: c.parser, id: id, workingLimit: jsonWorkingLimit(c.parser.limits.MaxComposedBytes, c.parser.limits.MaxComposedNodes)}
 	normalized, err := walk.walk(c.parser.schemas[id], "#", value, nil, scalarPolicy{}, source.View{})
 	if err != nil {
 		return nil, err
@@ -23,7 +22,7 @@ func (c *composition) validateBound(value map[string]any) (map[string]any, error
 			return nil, err
 		}
 	}
-	return root, nil
+	return object(modelValue(normalized)), nil
 }
 func (c *composition) checkBoundSection(name string, value any) error {
 	switch {
@@ -64,10 +63,51 @@ func (c *composition) declarationPointer(section string) string {
 	return ""
 }
 func (c *composition) checkBoundFragment(pointer string, value any) error {
-	data, err := encode(value, math.MaxInt64, false)
+	allowance := c.modelAllowance()
+	limit := min(allowance.remaining, jsonWorkingLimit(c.parser.limits.MaxComposedBytes, c.parser.limits.MaxComposedNodes))
+	data, err := encode(value, limit, false)
 	if err != nil {
+		return err
+	}
+	if err = c.modelBuffers.reserve(int64(len(data))); err != nil {
 		return err
 	}
 	limits := modelLimits(data)
 	return c.parser.models.CheckSDLConstruction(authoringContract, pointer, data, limits)
+}
+
+// Drop presentation carriers before passing model JSON to shared owners.
+// Strings remain shared; this conversion never serializes or expands them.
+func modelValue(value any) any {
+	switch v := value.(type) {
+	case ordered:
+		result := make(map[string]any, len(v))
+		for _, entry := range v {
+			if !entry.omit {
+				result[entry.name] = modelValue(entry.value)
+			}
+		}
+		return result
+	case []any:
+		result := make([]any, len(v))
+		for i, child := range v {
+			result[i] = modelValue(child)
+		}
+		return result
+	case map[string]any:
+		result := make(map[string]any, len(v))
+		for name, child := range v {
+			result[name] = modelValue(child)
+		}
+		return result
+	default:
+		return value
+	}
+}
+
+func (c *composition) modelAllowance() *copyBudget {
+	if c.modelBuffers == nil {
+		c.modelBuffers = &copyBudget{remaining: compositionJSONWork(c.parser.limits)}
+	}
+	return c.modelBuffers
 }

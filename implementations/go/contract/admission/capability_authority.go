@@ -5,7 +5,7 @@ func supportedManifestContracts(key string) []string {
 	switch key {
 	case kindBackend:
 		return []string{"artifact-requirement-v1", "backend-augmentation-scope-v1", termBackendManifestV2, termBackendMaterializationAttestationV1, termBackendOperationCapabilitiesV1, termBackendOperationControlV1, termBackendOperationRequestV1, termBackendOperationResponseV1, "backend-realization-preparation-v1", termBackendRuntimeDescendantsV1, "evaluation-history-event-stream-v1", termEvaluationPlanV1, "evaluation-result-envelope-v1", termExperimentBindingDescriptorsV1, "experiment-capture-spec-v1", "experiment-derived-measure-v1", termExperimentEvidenceRecordV1, "experiment-run-v1", termInjectOccurrenceOutcomeV1, "inject-occurrence-v1", termMixedBackendExecutionBindingV1, termMixedBackendStageReportV1, termOperationReceiptV1, termOperationStatusV1, termOrchestrationPlanV1, termParticipantBehaviorHistoryEventStreamV1, termParticipantControlEvaluationV1, "participant-control-evaluation-v2", termParticipantControlOccurrenceV1, "participant-control-selection-v1", "participant-control-selection-v2", termParticipantCrossingOccurrenceV1, termParticipantEpisodeHistoryEventStreamV1, termParticipantEpisodeStateEnvelopeV1, termParticipantExecutionBindingV1, termParticipantExecutionControlV1, termParticipantExecutionServiceStateV1, termParticipantFlowControlRelationV1, termParticipantJointActionRecordV1, "participant-lifecycle-event-v1", termParticipantObservationEnvelopeV1, "participant-outcome-report-v1", "participant-resource-budget-event-v1", termParticipantResourceBudgetPolicyV1, "participant-resource-budget-state-v1", "participant-resource-pool-capacity-v1", termParticipantSharedStateRecordV1, termParticipantTimeManagementContextV1, "plan-realization-profiles-v1", termPropositionTruthResultV1, termProvisioningPlanV1, termRealizationEnvelopeV1, termRealizedTimeModelV1, termRuntimeSnapshotV1, termTimeModelV1, termTimeRuntimeStateV1, termTrialCleanupPlanV1, termTrialCleanupReceiptV1, "workflow-history-event-stream-v1", "workflow-result-envelope-v1"}
-	case "participant":
+	case termParticipant:
 		return []string{termExperimentBindingDescriptorsV1, termParticipantBehaviorHistoryEventStreamV1, "participant-configuration-result-v1", termParticipantDecisionSurfaceV2, termParticipantEpisodeHistoryEventStreamV1, termParticipantEpisodeStateEnvelopeV1, termParticipantImplementationManifestV1, "participant-implementation-provenance-v1"}
 	case "processor":
 		return []string{"evaluation-history-event-stream-v1", termEvaluationPlanV1, "evaluation-result-envelope-v1", termExperimentBindingDescriptorsV1, termOperationReceiptV1, termOperationStatusV1, termOrchestrationPlanV1, termParticipantBehaviorHistoryEventStreamV1, termParticipantEpisodeHistoryEventStreamV1, termParticipantEpisodeStateEnvelopeV1, termParticipantResourceBudgetPolicyV1, termProcessorManifestV2, termPropositionTruthResultV1, termProvisioningPlanV1, termRuntimeSnapshotV1, termTimeModelV1, "workflow-cancellation-request-v1", "workflow-history-event-stream-v1", "workflow-result-envelope-v1"}
@@ -76,11 +76,11 @@ func participantFeatureContracts(key string) []string {
 func timeCapabilityTerms(key string) []string {
 	switch key {
 	case "supported_advancement_modes":
-		return []string{"dilated", "event_driven", "externally_paced", "real_time", "stepped"}
+		return []string{advancementDilated, "event_driven", "externally_paced", advancementRealTime, advancementStepped}
 	case "supported_authority_kinds":
 		return []string{kindBackend, termExternal, "runtime", "system"}
 	case "supported_constraint_kinds":
-		return []string{"cadence", "deadline", "duration", "precedence", termWindow}
+		return []string{constraintCadence, kindDeadline, constraintDuration, constraintPrecedence, termWindow}
 	case "supported_domain_kinds":
 		return []string{termExternal, "logical", termMonotonic, "simulated", termWallClock}
 	case "supported_mapping_kinds":

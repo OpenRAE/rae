@@ -120,7 +120,7 @@ A model check is not proof of runtime behavior or formatter-command parity.
 
 The pre-code package and dependency design check passed. The issue plan records that order.
 The final typed API snapshot was reviewed after implementation and added to the model.
-The current fixture has 318 source cases from Python commit `9ce61105e833d4edfe465bbc0bebce12cd8a9a6d`.
+The current fixture has 320 source cases from Python commit `9ce61105e833d4edfe465bbc0bebce12cd8a9a6d`.
 Targeted source tests pass. CI runs the full coverage, race, fuzz and mutation lanes.
 Selected canonical-profile corpus cases and two example sources pass their source-boundary checks.
 Fuzz seeds are present. Full fuzz and mutation runs belong to CI.
@@ -144,13 +144,20 @@ A document exposes copied normalized JSON. Contract bindings remain with the exi
 No caller flag can create an admitted document or mark it semantically valid.
 The existing public SDL consumer plan remains with its delivery owners. No placeholder public operations are added.
 
-The owner reads the packaged, unchanged published schemas and reuses contract model predicates through `CheckPortable`.
+The owner reads the packaged, unchanged published schemas and reuses contract model predicates through `CheckSDLConstruction`.
 A non-authoritative compatibility layout preserves the reference's field order and serializer omissions.
 Its records name published definition IDs and fields. They contain no Python code paths or copied class tree.
 A schema-directed normalization walk preserves enum aliases, whole-field variables, scalar conversions and supplied-field omission.
+An object model keeps its own properties when a local `anyOf` or `oneOf` states an intrinsic constraint.
+Only a schema without its own property set selects a union branch for normalization.
+An omitted optional constant property does not prevent model selection. Required fields and later discriminator checks retain their own rules.
+An intersection wrapper with one direct named object model uses that model's normalization layout.
+The wrapper's field restrictions remain enforced by construction validation.
 Go-specific shorthands and legacy VM migration run before structural validation.
 Decoded input and every retry, copy and serialization remain bounded.
 The output is reparsed under strict source policy and model-checked before return.
+The internal normalized JSON carrier is read as an opaque data fragment with a base pointer outside the SDL root.
+It retains checked field order without applying authored identifier rules to qualified materialized names. Strict SDL readmission still checks the final YAML at its real root.
 
 Import validation shares one request budget and ancestry set.
 It reads only an explicitly supplied filesystem or captured source map.
@@ -316,14 +323,32 @@ No resolution record is exposed as admitted phase evidence.
 
 Source limits apply to authored input and rendered strict source.
 Import budgets count raw normalized input across the import tree.
-They do not count JSON working buffers or charge shared parameter values again.
+They do not charge shared parameter values again.
+Before model serialization, each imported source also passes a local composition-budget check.
+The later aggregate charge still counts each input once.
 A source without imports does not use an import budget.
 Model trees come from bounded source graphs and fixed conversion rules.
-JSON checks use the actual encoded length.
+JSON working buffers have a separate ceiling: six times the source-byte limit plus 128 bytes per expanded source node.
+Bound import fragments have the corresponding per-graph ceiling.
+They share a cumulative JSON work allowance multiplied by the maximum import depth plus one.
+This permits required checks at each parent in a nested import chain.
+Each fragment consumes its encoded byte count from that allowance.
+This also bounds repeated whole-token parameter values across separate declarations.
+The factors cover JSON escaping, container syntax and fixed model conversions.
+Memoize pure scalar field conversions and text casing within each normalization walk.
+Intern immutable scalar results and reserve newly retained bytes before adding them to the model tree.
+A size-only walk then refuses excessive repeated bytes before encoding.
+A coercion that shrinks aliased strings keeps its reference outcome.
+Every map and sequence then uses the bounded JSON writer.
+JSON model checks use the actual encoded length.
 The format parser also uses that length as its work bound.
 It then checks the emitted bytes with the original source limits.
 Unchanged strings and whole-token replacements share their bytes.
 Each binding caches repeated inline replacements.
+A separate request-local copy allowance starts at the composed-byte ceiling.
+Inline substitution and variable namespace rewriting reserve their complete result size before allocating a string.
+They share this allowance across nested imports.
+Arithmetic saturates or refuses before overflow.
 
 ### Structured inputs and nested variables
 
@@ -426,3 +451,218 @@ The outer diagnostic takes precedence over the wrapped cause.
 Diagnostic accessors return copies and grant no model authority.
 Resolve optional policy and lock symlinks within the caller filesystem before reading.
 A policy link can cross its importing directory, but cannot escape the caller's filesystem authority.
+
+### Review repairs
+
+Apply the service protocol default only when the field is absent.
+Keep simple mapping keys on one line; only explicit-key syntax may fold them.
+Locate an undefined alias by the name in the grammar failure, not the first alias token.
+Reference cases lock these three boundaries.
+
+Construction runs nested intrinsic contract rules, but skips the root scenario semantic rules.
+Keep an explicit reviewed list of those root rules; fail on an unknown stage assignment.
+Condition integer fields use their model-level parsing rules and ranges before schema checks.
+Account vocabulary conversion retains hyphens in governed extension tokens.
+OS-version and extension-token validators require full matches, including at final newlines.
+
+
+### Import reference and policy composition
+
+Build a collision-preserving declaration index for each bound import before namespacing.
+Index canonical addresses and aliases, including nested content, entities, runtime inventories and workflow members.
+Retain runtime collection paths as declaration types. Resolve typed references through that index without interpreting address delimiters.
+Use the explicit declaration categories for authority-scope eligibility.
+Tool and control-context references retain every candidate. Authority scopes use the general-target domain and require an eligible candidate.
+An ambiguous reference fails before any namespace rewrite can choose a candidate.
+
+Compose augmentation and execution policy fields alongside declarations.
+Rewrite declaration pointers through the same symbol map and preserve nested lexical namespaces.
+An imported default becomes a rule at the import namespace; the parent keeps its default.
+Merge scopes through their published constructor checks, including duplicate and size limits.
+Forwarding-agent augmentation scopes must resolve to stable identities through the shared contract address owner.
+Pinned control-context asset contents remain outside variable rewriting.
+
+
+### Materialized formatter semantics
+
+Authored formatting skips scenario semantic checks. Materialized formatting must run them after strict reparsing.
+The native authoring owner first reuses `CheckSDLLocalSemantics` for the native model view and local semantic rules.
+It then runs native SDL reference and graph checks; success here still grants no backend admission.
+Reuse the existing base graph owner for dependency cycles.
+Keep source-anchored import effect-target checks separate: they run before substitution can remove declarations.
+A materialized constructor alone cannot satisfy this stage.
+The native semantic pass inventory must cover the unchanged reference before formatter parity is complete.
+
+Time-domain constructors reuse the shared ratio and coordinate primitives.
+Materialized time checks resolve source identities, reject duplicate mappings and clock owners, and check lifecycle support.
+The declaration index distinguishes declared support objects from unreferenceable structural members.
+
+Participant action constructors check typed preconditions, effects, failure mappings and local temporal references before composition.
+These intrinsic checks use the shared model boundary. They do not run scenario-level participant semantics during authored formatting.
+
+Node and infrastructure constructor predicates live in the shared model owner.
+The formatter retains scalar input conversion and presentation order.
+Service binding identity uses the existing Unicode casing library so protocol comparisons match Python.
+
+Runtime constructors enforce stable row identities and local software references.
+Package and repository joins compare declared identities and presence. Equal names do not imply a relation.
+Version membership reuses the existing installed relation owner and preserves its unsupported outcome.
+
+
+Simple identifier field predicates use compatibility records keyed by published definition and field names.
+The shared model owner checks these records before its explicit model predicates.
+The recorder accepts direct returns from known helpers. It also accepts exact nonblank and uniqueness guards.
+An explicit loop with the same item predicate and a separate uniqueness guard records the same collection operation.
+Scalar, nullable and list guards remain distinct. Other validators remain explicit native rules.
+The recorder also follows field annotation wrappers to the same known helpers.
+Collection item predicates do not become predicates on their containing collection.
+Package the records as immutable JSON without Python class paths or executable Python.
+The shared model owner refuses invalid packaged records during construction.
+
+
+Identity-attribute normalization runs after field conversion.
+A known provenance fills an unknown origin before serialization.
+Conflicting known values fail in the shared model check.
+
+
+The field records also cover direct nonblank-text and absolute-path predicates.
+Optional records preserve empty values only where the reference helper permits them.
+
+
+Runtime listener constructors check supplied endpoint facts without inventing missing facts.
+Materialized formatter checks use supplied field presence for TCP facts.
+
+### Native field-pattern stage
+
+Field constraints use the reference model's pattern engine. Published schema patterns use their own engine.
+The validation owner builds the construction view from recorded field facts. The reference stays unchanged.
+It copies scalar and list-item schema views. It checks the recorded target and compiles bounded RE2 patterns.
+Strict end anchors and Unicode digit and whitespace classes follow the field engine.
+The records name published definitions and fields. They contain no code or class paths.
+
+The materialized formatter calls `admission.Validator.CheckSDLLocalSemantics` after strict reparsing.
+That operation uses `validation.Validator.CheckSDLLocalSemantics` to run root-local rules on the native model view.
+The formatter then runs its native reference and graph passes.
+This preserves the published contract entry points and grants no phase, trust or execution authority.
+
+Mixed-control constructor rules remain in the shared admission owner.
+Legacy policies check state revisions in effective-order sequence. They resolve proposal links without parsing addresses.
+Reusable policies check state membership and finite-script identities. Script windows can only form ordered pairs.
+Use exact integer comparisons for revisions and coordinates. These intrinsic checks grant no controller authority.
+Artifact constructors reuse the governed RFC 3339 timestamp parser.
+Realization designations reuse the shared substrate-domain predicate and compare structured namespace identities.
+Participant inject deliveries check their complete control agreement before the semantic reference pass.
+Variation constructors compare the selected semantic values independently of descriptions and selection relations.
+Order constructors reuse the base graph owner for cycle checks. Fixed-position constraints use the reference's lexical search and 100,000-state ceiling.
+Use one mutable placement bitmap with iterative search frames. Cache failed states by SHA-256. Do not copy the full placement set for each state.
+
+Typed relationship checks preserve each reference field's resolution domain.
+Mail access joins child identities within the exact owning mail service.
+Integration endpoints use platform-application identities. Their principals belong to the engine node's authorization store.
+Forwarding edges compare concrete protocol knowledge against the selected agent's ship targets.
+Proxy upstreams resolve routes on the source application surface. They compare shared target facts through the service-owner index.
+Identity topology builds explicit controller and member bindings per domain.
+Use section-local identities to check role facts, join candidates and memberships. Use them for account domains and authority placement too.
+Enterprise identity checks forest membership and named facade services. It also checks typed trust pairs and single facade authority.
+Normalize the inert JSON document first. Then fill a missing or null schema digest.
+Use the bounded JSON writer, the shared JCS implementation and the shared SHA-256 renderer. The model owner verifies all supplied digests.
+Constructor-only content references and outcome lists use the same Python-compatible blank-text predicate as the field records.
+Nested control-context asset constructors reuse the existing local URI and applicability checks without invoking trusted-context agreement.
+Deployment tenancy indexes node-to-cell and cell-to-tenant membership once.
+Carrier placement requires compute endpoints and a carrier target. Each source has one carrier in the same cell. Placement cannot nest.
+Shared-service bindings check tenant isolation and workload authentication. State/reset ownership must agree.
+State references resolve within persistent volumes and check their declared consumers. Cross-cell service consumption requires the matching tenant/service binding.
+Cloud checks use exact canonical declaration addresses and explicit resource categories.
+Only compute nodes, named services and application surfaces qualify as workloads.
+Runtime records retain their constructed parent address. Use that address for secret-version ownership, without splitting qualified names.
+Scope parents retain provider identity and form an acyclic graph. A policy can inherit from a declared ancestor scope. It can also inherit through the exact secret-to-version relation.
+Reuse the shared graph owner for scope and policy cycles. These checks grant no access or secret-disclosure authority.
+
+Evidence scopes use a private query view. They reuse the shared semantic-address resolver.
+Resolve omitted scalar defaults from the published schema and factory defaults from immutable reference records.
+The factory inventory contains only empty lists/maps and the three audited retry/ratio factories.
+Copy each queried container at most once. Add defaults only along requested paths. Keep the semantic model and formatter output unchanged.
+Evidence reference joins retain target eligibility. Forwarding apparatus roles require matching inbound apparatus evidence.
+Execution policies resolve native scopes, lexical namespaces, clock references and evidence references.
+Choose the nearest complete policy by namespace depth and scope depth, preserving source order for ties.
+Workflow invocation retries cannot multiply native step retries. A step policy must agree with the authored retry bound.
+
+Participant interactive access uses section-local identities. It resolves compute targets and account ownership.
+An access account must belong to the target and to the participant's starting accounts.
+Endpoint uniqueness uses the canonical node and channel coordinate.
+Outcome interpretation binds each source and target in its declared layer. Local criteria bind effects in the selected action contract.
+Objective joins check participant action authority and entity ownership. They check target eligibility, assertion roles and cycles too.
+Window checks follow story-to-script and script-to-event reachability and resolve qualified workflow steps.
+
+Workflow validation uses the existing graph owner for cycle checks and dependency order.
+Build one closed local graph and one combined call/compensation graph. Resolve every step reference before graph analysis.
+Each parallel join has one owning parallel. Only its branches can enter the join. Every branch path must reach it.
+Check each referenced state in graph order. Do not build a quadratic table of state sets.
+Join state includes the owning parallel and the states guaranteed by its branches. Vocabulary references reuse the existing concept authority.
+
+### Library reuse check
+
+Use the existing standard-library JSON, exact arithmetic, address, URI and hashing operations.
+YAML grammar uses the [YAML organization package](https://github.com/yaml/go-yaml).
+JSON Schema checks use the existing [jsonschema/v6 compiler](https://pkg.go.dev/github.com/santhosh-tekuri/jsonschema/v6).
+Unicode casing uses [x/text](https://pkg.go.dev/golang.org/x/text/cases).
+Reuse the existing base graph owner for cycle checks and dependency order. [Gonum](https://github.com/gonum/gonum/blob/master/graph/topo/tarjan.go) offers these operations with different ordering and recursive traversal.
+The existing owner also preserves reference ordering and iterative traversal.
+[Go struct-tag validators](https://github.com/go-playground/validator) require custom checks for scenario joins.
+They do not supply Python model construction or serializer behavior. Keep published schema validation in its existing owner.
+[Aqua Security's PEP 440 package](https://github.com/aquasecurity/go-pep440-version/blob/main/version.go) uses uint64 version components. The pinned reference accepts larger numeric components; preserve exact comparisons with standard-library arithmetic.
+[CockroachDB apd](https://pkg.go.dev/github.com/cockroachdb/apd/v3#pkg-constants) implements decimal contexts.
+Its exponent range cannot represent the reference's full decimal context. Keep the bounded duration adapter on math/big.
+Keep the domain checks and tested compatibility adapters. No further framework is needed.
+
+Participant behavior checks resolve explicit and role-based selectors through effective participant roles.
+Behavior modes and features use the concept authority. Evidence-contract membership comes from the existing published manifest schema enums.
+Observation view records stay within their boundary's declared information and evidence sets.
+Tool affordances narrow their parent selector, actions and boundaries. Each boundary must classify the affordance's canonical identity.
+Scenario-content identities supply optional tool references. These joins grant no runtime or participant execution authority.
+
+Autonomous execution preserves each version's explicit participant, action, observation and shared-time bindings.
+Require the declared runtime features. Each selected participant has one policy owner. Check clock/progression agreement and reachable cadence or activity timing.
+Non-evaluated policies require green participants without objective or interpretation authority. Declared evaluation binds assigned objectives and refuses unsupported authority namespaces.
+Use the existing exact-integer helper for cadence divisibility and timing comparisons. These checks grant no implementation or runtime authority.
+
+Resource-budget owner checks join selected participants, authorized action targets and deployment ownership.
+A tenant must own an action target or consume that exact shared-service target.
+A shared-service owner requires an exact action target and a declared tenant's matching service-consumption edge.
+
+Control-context joins compare immutable descriptor pins through the shared JCS and SHA-256 owners.
+Fill the asset and content descriptor defaults from the existing schema and layout records before hashing.
+Reject conflicting versions, stale selections, incompatible applicability and duplicate participant slots.
+Mixed-control joins bind controllers, authority, operating scopes, evidence and transition windows.
+Keep legacy transition revisions separate from reusable policy occurrences and finite script targets.
+
+Participant relationships use canonical agent endpoints and preserve directed action and observation authority.
+Resolve section-qualified refinement references once and reject repeated canonical identities.
+Behavior and objective refinements must select a relationship endpoint. Coordination refinements must agree with declared action interactions.
+Authority and operating-scope refinements cannot widen participant declarations. Control refinements follow active controller states and relation direction.
+
+Action shared-time bindings join declared clocks, constraints, domain kinds and subject identities.
+Dwell checks resolve the action's condition and its visible support and evidence. Check the participant and specification boundaries. The superdense interval must be nonempty.
+A bound action uses the autonomous policy's clock and selected observation boundary.
+
+Participant inject deliveries bind the exact inject/event/script/story occurrence and the selected participant's observation boundary.
+Result information must have a matching visible rule and delivery-policy basis. Temporal and evidence resources must name the delivery declaration.
+Directed deliveries join either legacy transition coordinates or a reusable permitted transition.
+Their controller, authority and evidence must agree with the selected state. Evidence requirements must cover the delivered control basis.
+
+Stateful resources resolve consumer nodes, dependency identities and generated-output bindings.
+Mount destinations must not collide with other resource consumers or runtime mounts. Windows consumers cannot use POSIX destinations.
+Generated outputs must exist and permit consumption. Secret outputs retain environment and content disclosure checks.
+Every generated artifact has a consumer. A proposition's generated expected value requires observed-state meaning.
+Check each descriptor profile selection throughout the binding tree. Its contract, address, concept family, phase, use and context belong to the field. Its provenance is author-supplied.
+
+The shared admission owner already implements stateful-resource and action shared-time rules.
+The formatter invokes them through CheckSDLLocalSemantics. Keep these rules in that owner and verify the formatter call path with independent reference cases.
+
+Detection-engine output streams and control channels reuse the observed-file owner.
+Control-channel services use the same-node service owner. Empty optional paths do not imply a file reference.
+Objective subjects include both propositions and assertions through the existing declaration categories.
+The CLI adapter maps parse refusals to exit code 2 and semantic refusals to exit code 1.
+Materialized root-local rule failures retain that semantic classification without changing the public fault category.
+RAM unit amounts require digits before a decimal point and after it when present.
+Check that grammar before using the standard-library float parser.

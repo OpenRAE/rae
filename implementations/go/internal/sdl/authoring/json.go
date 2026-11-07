@@ -3,10 +3,15 @@ package authoring
 import (
 	"bytes"
 	"encoding/json"
+	"maps"
+	"slices"
 )
 
 // Model checks see all supplied fields. Only presentation omits serializer fields.
 func encode(value any, limit int64, omit bool) ([]byte, error) {
+	if err := checkJSONSize(value, limit, omit); err != nil {
+		return nil, err
+	}
 	writer := jsonWriter{limit: limit, omit: omit}
 	if err := writer.value(value); err != nil {
 		return nil, err
@@ -31,6 +36,12 @@ func (w *jsonWriter) value(value any) error {
 	switch v := value.(type) {
 	case ordered:
 		return w.object(v)
+	case map[string]any:
+		entries := make(ordered, 0, len(v))
+		for _, name := range slices.Sorted(maps.Keys(v)) {
+			entries = append(entries, field{name: name, value: v[name]})
+		}
+		return w.object(entries)
 	case []any:
 		return w.sequence(v)
 	case float64:
@@ -109,4 +120,78 @@ func (w *jsonWriter) entry(entry field) error {
 		return err
 	}
 	return w.value(entry.value)
+}
+
+// The lower bound counts shared strings on every occurrence without copying
+// them. Escaping can only increase this size; the writer enforces actual bytes.
+func checkJSONSize(value any, limit int64, omit bool) error {
+	remaining := limit
+	return jsonMinimum(value, &remaining, omit)
+}
+func reserveJSON(remaining *int64, count int64) error {
+	if count < 0 || count > *remaining {
+		return invalid()
+	}
+	*remaining -= count
+	return nil
+}
+func jsonMinimum(value any, remaining *int64, omit bool) error {
+	switch v := value.(type) {
+	case string:
+		if err := reserveJSON(remaining, int64(len(v))); err != nil {
+			return err
+		}
+		return reserveJSON(remaining, 2)
+	case ordered:
+		return jsonObjectMinimum(v, remaining, omit)
+	case map[string]any:
+		return jsonMapMinimum(v, remaining, omit)
+	case []any:
+		if err := reserveJSON(remaining, 2); err != nil {
+			return err
+		}
+		for _, child := range v {
+			if err := jsonMinimum(child, remaining, omit); err != nil {
+				return err
+			}
+		}
+		return nil
+	default:
+		return reserveJSON(remaining, 1)
+	}
+}
+func jsonObjectMinimum(entries ordered, remaining *int64, omit bool) error {
+	if err := reserveJSON(remaining, 2); err != nil {
+		return err
+	}
+	for _, entry := range entries {
+		if omit && entry.omit {
+			continue
+		}
+		if err := jsonMemberMinimum(entry.name, entry.value, remaining, omit); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func jsonMemberMinimum(name string, value any, remaining *int64, omit bool) error {
+	if err := jsonMinimum(name, remaining, omit); err != nil {
+		return err
+	}
+	if err := reserveJSON(remaining, 1); err != nil {
+		return err
+	}
+	return jsonMinimum(value, remaining, omit)
+}
+
+func jsonMapMinimum(v map[string]any, remaining *int64, omit bool) error {
+	if err := reserveJSON(remaining, 2); err != nil {
+		return err
+	}
+	for name, child := range v {
+		if err := jsonMemberMinimum(name, child, remaining, omit); err != nil {
+			return err
+		}
+	}
+	return nil
 }

@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
 
 from pydantic.json_schema import GenerateJsonSchema  # noqa: E402
+from pydantic import BaseModel  # noqa: E402
 
 from raes.materialization import MaterializedScenario  # noqa: E402
 from raes.scenario import Scenario  # noqa: E402
@@ -39,6 +40,8 @@ PRIMITIVES = {
     "normalize_os_distribution": "distribution",
     "normalize_os_version": "os-version",
     "parse_limit_value": "limit",
+    "parse_account_vocabulary": "account-vocabulary",
+    "normalize_capability_name": "capability",
 }
 
 
@@ -179,11 +182,17 @@ def scalar_plan(schema: dict) -> dict:
         "nullable",
     }:
         result = scalar_plan(schema["schema"])
+        if kind == "function-after":
+            function = schema["function"].get("function")
+            if "capability" in function_policy(function):
+                result["convert"] = sorted(
+                    set(result.get("convert", [])) | {"capability"}
+                )
         if kind == "function-before":
             function = schema["function"].get("function")
             if conversions := function_policy(function):
-                result["convert"] = sorted(conversions)
-                if conversions & {"enum", "vocabulary"}:
+                result["convert"] = sorted(set(result.get("convert", [])) | conversions)
+                if conversions & {"enum", "vocabulary", "account-vocabulary"}:
                     enums = enum_arguments(function)
                     members = {
                         item.value
@@ -275,8 +284,25 @@ class Layout(GenerateJsonSchema):
             "fields": fields,
             "omit": omit,
             "scalar": conversion_fields(schema, cls),
+            "factory_defaults": factory_defaults(cls),
         }
         return document
+
+
+def factory_defaults(cls: type) -> dict:
+    result = {}
+    audited = {("ExecutionPolicy", "retry"), ("TimeDomainMapping", "scale"), ("TimeProgressionPolicy", "pacing_ratio")}
+    for name, field in cls.model_fields.items():
+        factory = field.default_factory
+        if factory is None or field.exclude:
+            continue
+        if factory not in (list, dict) and (cls.__name__, name) not in audited:
+            raise ValueError("SDL factory default requires an explicit audit")
+        value = field.get_default(call_default_factory=True)
+        if isinstance(value, BaseModel):
+            value = value.model_dump(mode="json", by_alias=True)
+        result[field.serialization_alias or field.alias or name] = value
+    return result
 
 
 def compact_plan(plan: dict) -> dict:
@@ -314,7 +340,7 @@ def record() -> bytes:
                 definition = definition.get(token, {})
             fields = definition.get("properties", {})
             row["fields"] = [field for field in row["fields"] if field in fields]
-            for key in ("omit", "scalar"):
+            for key in ("omit", "scalar", "factory_defaults"):
                 row[key] = {
                     field: value for field, value in row[key].items() if field in fields
                 }

@@ -7,7 +7,7 @@ import (
 
 func declarationSections() []string {
 	return []string{
-		nodesSection, "infrastructure", featuresSection, conditionsSection, "propositions", "assertions", "entities", injectsSection, "events", "scripts", "stories", "content", controlAssetsSection, "generated_artifacts", "persistent_volumes", "accounts", "identity_domains", "identity_forests", "identity_facades", "deployment_tenants", "deployment_cells", "relationships", agentsSection, "action_contracts", "observation_boundaries", "outcome_interpretation_rules", behaviorSection, "evidence_requirements", "time_domains", "clocks", "time_domain_mappings", "time_progression_policies", "temporal_constraints", "objectives", "workflows", "variables", "variation_points",
+		nodesSection, infrastructureField, featuresSection, conditionsSection, propositionsField, assertionsSection, entitiesField, injectsSection, eventsSection, scriptsField, storiesField, contentField, controlAssetsSection, generatedArtifactsField, persistentVolumesField, accountsSection, identityDomainsField, identityForestsField, identityFacadesField, deploymentTenantsField, deploymentCellsField, relationshipsField, agentsSection, actionsSection, boundariesSection, outcomeRulesSection, behaviorSection, "evidence_requirements", "time_domains", "clocks", "time_domain_mappings", "time_progression_policies", "temporal_constraints", objectivesSection, workflowsSection, variablesSection, variationPointsField,
 	}
 }
 func validateExports(value, descriptor map[string]any) error {
@@ -35,7 +35,7 @@ func exportNames(value map[string]any, section string) map[string]bool {
 	for name := range object(value[section]) {
 		names[name] = true
 	}
-	if section == "entities" {
+	if section == entitiesField {
 		collectEntityNames(object(value[section]), "", names)
 	}
 	return names
@@ -44,12 +44,22 @@ func collectEntityNames(entities map[string]any, prefix string, names map[string
 	for name, raw := range entities {
 		qualified := prefix + name
 		names[qualified] = true
-		collectEntityNames(object(object(raw)["entities"]), qualified+".", names)
+		collectEntityNames(object(object(raw)[entitiesField]), qualified+".", names)
 	}
 }
 func (c *composition) combine(parent, incoming map[string]any, namespace string, descriptor map[string]any) error {
+	if err := rejectImportAmbiguities(incoming); err != nil {
+		return err
+	}
 	exports := object(descriptor["exports"])
-	incoming = namespaceVariables(incoming, namespace, array(exports["variables"]))
+	var err error
+	incoming, err = c.namespaceVariables(incoming, namespace, array(exports[variablesSection]))
+	if err != nil {
+		return err
+	}
+	if err := c.composePolicies(parent, incoming, namespace, descriptor); err != nil {
+		return err
+	}
 	for _, section := range declarationSections() {
 		if err := c.combineSection(parent, object(incoming[section]), section, namespace, array(exports[section])); err != nil {
 			return err

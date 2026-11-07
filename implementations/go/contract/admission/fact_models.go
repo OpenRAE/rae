@@ -30,7 +30,7 @@ func factSinks(sinks map[string]any) error {
 	return nil
 }
 func factScope(v any) error {
-	expected := map[string]map[string]bool{kindRun: {}, termParticipant: {fieldParticipantAddress: true}, "episode": {fieldParticipantAddress: true, fieldEpisodeID: true}, termWorkflow: {fieldWorkflowAddress: true}}[stringAt(v, termKind)]
+	expected := map[string]map[string]bool{kindRun: {}, termParticipant: {fieldParticipantAddress: true}, termEpisode: {fieldParticipantAddress: true, fieldEpisodeID: true}, termWorkflow: {fieldWorkflowAddress: true}}[stringAt(v, termKind)]
 	if expected == nil {
 		return invalid()
 	}

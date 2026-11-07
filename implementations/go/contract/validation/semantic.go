@@ -101,7 +101,7 @@ func (v *Validator) semanticSource(id string, root, context any, complete bool, 
 	}
 	entry := v.contracts[id]
 	invoked := map[ruleIdentity]bool{}
-	return walkSchema(visit{entry.schema, root, ""}, func(current visit) error {
+	return walkSchemaBound(visit{entry.schema, root, ""}, entry.walkBound(len(source)), func(current visit) error {
 		return v.invoke(id, current, root, context, entry.annotations, invoked, semanticInvocationOptions{complete: complete, source: source})
 	})
 }

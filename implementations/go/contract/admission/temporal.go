@@ -18,12 +18,12 @@ func (e *Validator) temporalRules() map[string]definition {
 
 func temporalBinding(i validation.Invocation) error {
 	v := i.Instance
-	start, end := at(v, "start"), at(v, "end")
-	if stringAt(v, "temporal_kind") == "dwell" {
+	start, end := at(v, termStart), at(v, termEnd)
+	if stringAt(v, "temporal_kind") == termDwell {
 		if start == nil || at(v, "condition_precondition_id") == nil || at(v, "observation_boundary_address") == nil {
 			return invalid()
 		}
-		if stringAt(v, "evidence_mode") != "continuous" || stringAt(v, "event_point") != "start" {
+		if stringAt(v, "evidence_mode") != termContinuous || stringAt(v, "event_point") != termStart {
 			return invalid()
 		}
 		order, ok := coordinateCompare(start, end)

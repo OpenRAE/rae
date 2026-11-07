@@ -9,7 +9,7 @@ import (
 )
 
 func constraintSource(v any) error {
-	id := stringAt(v, "source_id")
+	id := stringAt(v, termSourceID)
 	if strings.HasPrefix(id, "/") || strings.HasPrefix(id, "\\") {
 		return invalid()
 	}

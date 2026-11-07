@@ -235,6 +235,9 @@ func ram(value any) (any, error) {
 	}
 	return ramString(s)
 }
+
+var ramUnitAmount = regexp.MustCompile(`^[0-9]+(?:\.[0-9]+)?\z`)
+
 func ramString(s string) (any, error) {
 	s = pythonTrim(s)
 	if parsed, err := decimalInteger(s, true); err == nil && !strings.HasPrefix(s, "-") && !strings.HasPrefix(s, "+") {
@@ -247,7 +250,11 @@ func ramString(s string) (any, error) {
 	if index < 1 {
 		return nil, invalid()
 	}
-	amount, err := strconv.ParseFloat(asciiDecimalDigits(s[:index]), 64)
+	amountText := asciiDecimalDigits(s[:index])
+	if !ramUnitAmount.MatchString(amountText) {
+		return nil, invalid()
+	}
+	amount, err := strconv.ParseFloat(amountText, 64)
 	if err != nil {
 		return nil, invalid()
 	}
