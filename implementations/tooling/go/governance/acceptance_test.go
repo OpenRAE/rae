@@ -2,33 +2,20 @@ package governance
 
 import (
 	"context"
-	"encoding/hex"
-	"encoding/json"
 	"os"
-	"strings"
 	"testing"
 
-	"github.com/OpenRAE/rae/implementations/tooling/go/arch"
 	"github.com/google/go-cmp/cmp"
+
+	"github.com/OpenRAE/rae/implementations/tooling/go/arch"
 )
 
 func TestReferenceParity(t *testing.T) {
-	encoded, err := os.ReadFile("testdata/reference-cases.hex")
-	if err != nil {
-		t.Fatal(err)
-	}
-	data, err := hex.DecodeString(strings.TrimSpace(string(encoded)))
-	if err != nil {
-		t.Fatal(err)
-	}
-	var cases []struct {
-		Name     string
-		Request  Request
-		Findings []Finding
-	}
-	if err := json.Unmarshal(data, &cases); err != nil {
-		t.Fatal(err)
-	}
+	cases := readReference[[]struct {
+		Name     string    `json:"Name"`
+		Request  Request   `json:"Request"`
+		Findings []Finding `json:"Findings"`
+	}](t, "reference-cases")
 	if len(cases) == 0 {
 		t.Fatal("reference fixture inventory is empty")
 	}

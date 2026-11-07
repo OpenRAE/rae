@@ -14,8 +14,8 @@ func TestReaderProfiles(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ordinary JSON error = %v, want the reference's last-member behavior", err)
 	}
-	object, ok := value.(map[string]any)
-	if !ok || object["value"] != json.Number("1") {
+	object, ok := value.(*mapping)
+	if !ok || object.get("value") != json.Number("1") {
 		t.Fatalf("ordinary JSON value = %v, want value=1", value)
 	}
 	if _, err := decodeJSON(data, 0, true); err == nil {

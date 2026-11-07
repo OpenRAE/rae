@@ -2,10 +2,10 @@ package governance
 
 import (
 	"context"
+	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -30,7 +30,7 @@ type workflowStep struct {
 
 func workflow(t *testing.T, name string) workflowFile {
 	t.Helper()
-	data, err := os.ReadFile("../../../../.github/workflows/" + name)
+	data, err := os.ReadFile("../../../../.github/workflows/" + name) // #nosec G304 -- Callers select fixed repository workflow fixtures.
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,26 +81,9 @@ func exerciseBaseGuard(t *testing.T, script string, baseGuard, baseJob bool, wan
 	root := t.TempDir()
 	runner := t.TempDir()
 	marker := filepath.Join(runner, "head-executed")
-	write := func(name, data string) {
-		t.Helper()
-		path := filepath.Join(root, name)
-		if err := os.MkdirAll(filepath.Dir(path), 0750); err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(path, []byte(data), 0600); err != nil {
-			t.Fatal(err)
-		}
-	}
-	git := func(args ...string) string {
-		t.Helper()
-		cmd := exec.Command("git", args...)
-		cmd.Dir = root
-		data, err := cmd.CombinedOutput()
-		if err != nil {
-			t.Fatalf("git %v: %v (%s)", args, err, data)
-		}
-		return strings.TrimSpace(string(data))
-	}
+	write := func(name, data string) { testWrite(t, root, name, []byte(data)) }
+	git := func(args ...string) string { return strings.TrimSpace(string(testGit(t, root, args...))) }
+
 	git("init", "-q")
 	git("config", "user.name", "Test")
 	git("config", "user.email", "test@example.invalid")
@@ -113,7 +96,7 @@ func exerciseBaseGuard(t *testing.T, script string, baseGuard, baseJob bool, wan
 	const module = "implementations/tooling/go/"
 	if baseGuard {
 		write(module+"go.mod", "module guardfixture\n\ngo 1.27.3\n")
-		write(module+"cmd/policycheck/main.go", "package main\nimport \"fmt\"\nfunc main(){fmt.Println(\"trusted-base\")}\n")
+		write(module+"cmd/policycheck/main.go", "package main\nimport (\"flag\"; \"fmt\"; \"os\")\nfunc main(){tool:=flag.String(\"tool\",\"\",\"\"); event:=flag.String(\"event-path\",\"\",\"\");flag.Parse();if *tool!=\"pr-body\"||*event==\"\"||flag.NArg()!=0{os.Exit(2)};fmt.Println(\"trusted-base\")}\n")
 	}
 	git("add", ".")
 	git("commit", "-qm", "base")
@@ -131,17 +114,18 @@ func exerciseBaseGuard(t *testing.T, script string, baseGuard, baseJob bool, wan
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, "bash", "-eu", "-o", "pipefail", "-c", script)
+	cmd := exec.CommandContext(ctx, "bash", "-eu", "-o", "pipefail", "-c", script) // #nosec G204 -- Execute the inspected production workflow step against isolated base/head fixture repositories.
 	cmd.Dir = root
 	cache, err := os.UserCacheDir()
 	if err != nil {
 		t.Fatal(err)
 	}
-	cmd.Env = []string{"PATH=" + filepath.Join(runtime.GOROOT(), "bin") + string(os.PathListSeparator) + os.Getenv("PATH"), "GOCACHE=" + filepath.Join(cache, "go-build"), "GOTOOLCHAIN=local", "GOPROXY=off", "RUNNER_TEMP=" + runner, "GITHUB_EVENT_PATH=" + event, "GITHUB_REPOSITORY=OpenRAE/rae", "HEAD_EXECUTION_MARKER=" + marker}
+	cmd.Env = []string{"PATH=" + filepath.Join(testGoRoot(t), "bin") + string(os.PathListSeparator) + os.Getenv("PATH"), "GOCACHE=" + filepath.Join(cache, "go-build"), "GOTOOLCHAIN=local", "GOPROXY=off", "RUNNER_TEMP=" + runner, "GITHUB_EVENT_PATH=" + event, "GITHUB_REPOSITORY=OpenRAE/rae", "HEAD_EXECUTION_MARKER=" + marker}
 	output, err := cmd.CombinedOutput()
 	status := 0
 	if err != nil {
-		if exited, ok := err.(*exec.ExitError); ok {
+		exited := &exec.ExitError{}
+		if errors.As(err, &exited) {
 			status = exited.ExitCode()
 		} else {
 			t.Fatal(err)
@@ -173,7 +157,7 @@ func TestHostedGates(t *testing.T) {
 	for _, step := range job.Steps {
 		if step.ID == "compare-governance" {
 			found = true
-			if !strings.Contains(step.Run, "go test") || !strings.Contains(step.Run, "TestReferenceParity") || step.Env["GOVERNANCE_REFERENCE_PYTHON"] == "" {
+			if !strings.Contains(step.Run, "go -C implementations/tooling/go test ./governance") || !strings.Contains(step.Run, "TestReferenceParity") || !strings.Contains(step.Run, "TestLiveReferenceParity") || step.Env["GOVERNANCE_REFERENCE_PYTHON"] == "" {
 				t.Errorf("parity invocation = %+v, want the reference comparison command and explicit interpreter", step)
 			}
 		}
@@ -181,4 +165,13 @@ func TestHostedGates(t *testing.T) {
 	if !found {
 		t.Error("governance parity job lacks its comparison step")
 	}
+}
+
+func testGoRoot(t *testing.T) string {
+	t.Helper()
+	data, err := exec.CommandContext(t.Context(), "go", "env", "GOROOT").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return strings.TrimSpace(string(data))
 }

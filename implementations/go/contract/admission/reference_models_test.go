@@ -88,16 +88,25 @@ func TestReferenceModelDuplicateBindingsAndKeyFields(t *testing.T) {
 func TestConceptFamilyKeysRequireNonblankIdentity(t *testing.T) {
 	e := boundTestOwner(t)
 	v := fixtureObject(t, "fixtures/concept-authority/concept-families-v1/valid/reference.json")
+	var definition any
 	for _, family := range object(at(v, "families")) {
-		v["families"] = map[string]any{" ": family}
+		definition = family
 		break
 	}
-	raw := controlJSON(t, v)
-	limits := ingress.Limits{MaxBytes: 8 * 1048576, MaxDepth: 64}
-	if err := e.low.CheckSchema("concept-families-v1", raw, limits); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := e.Validate("concept-families-v1", raw, limits, nil); err == nil {
-		t.Fatal("accepted blank family identity")
+	for _, key := range []string{" ", "\t", "\x1c", "\x1d", "\x1e", "\x1f", "\x1c \t\u2003\x1f", "\x1c assets \x1f"} {
+		t.Run(key, func(t *testing.T) {
+			v["families"] = map[string]any{key: definition}
+			raw := controlJSON(t, v)
+			limits := ingress.Limits{MaxBytes: 8 * 1048576, MaxDepth: 64}
+			if err := e.low.CheckSchema("concept-families-v1", raw, limits); err != nil {
+				t.Fatal(err)
+			}
+			_, err := e.Validate("concept-families-v1", raw, limits, nil)
+			// The legacy model's strip() treats U+001C–U+001F as whitespace.
+			want := key == "\x1c assets \x1f"
+			if (err == nil) != want {
+				t.Fatalf("family key %q admitted=%t want=%t: %v", key, err == nil, want, err)
+			}
+		})
 	}
 }

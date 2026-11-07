@@ -8,14 +8,17 @@ tool (
 )
 
 require (
-	github.com/OpenRAE/rae/implementations/go v0.0.0-20261106183350-2f0edc0a35ab
+	github.com/OpenRAE/rae/implementations/go v0.0.0-20261106214428-34a62990a44c
 	github.com/google/go-cmp v0.7.0
 	github.com/odvcencio/gotreesitter v0.56.0
 	github.com/open-policy-agent/opa v1.15.1
+	github.com/pelletier/go-toml/v2 v2.4.3
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3
 	github.com/yuin/goldmark v1.8.7
 	go.yaml.in/yaml/v3 v3.0.5
 	golang.org/x/mod v0.42.0
+	golang.org/x/net v0.61.0
+	golang.org/x/text v0.43.0
 	golang.org/x/tools v0.52.0
 )
 
@@ -172,7 +175,6 @@ require (
 	github.com/nishanths/exhaustive v0.15.0 // indirect
 	github.com/nishanths/predeclared v0.3.0 // indirect
 	github.com/nunnatsa/ginkgolinter v0.24.0 // indirect
-	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
 	github.com/prometheus/client_golang v1.23.2 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect
 	github.com/prometheus/common v0.66.1 // indirect
@@ -238,11 +240,10 @@ require (
 	go.uber.org/multierr v1.10.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
-	golang.org/x/crypto v0.55.0 // indirect
+	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20260811152304-ee035b5b010f // indirect
 	golang.org/x/sync v0.24.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	honnef.co/go/tools v0.8.2 // indirect

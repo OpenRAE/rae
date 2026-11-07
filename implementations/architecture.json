@@ -223,6 +223,26 @@
         {
           "path": "github.com/open-policy-agent/opa/v1",
           "reason": "The same Apache-2.0 Rego engine version as locked Conftest 0.68.0; evaluates unchanged policy locally without another binary installer or network policy service."
+        },
+        {
+          "path": "github.com/pelletier/go-toml/v2",
+          "reason": "Reuse the existing TOML parser dependency to inspect package positioning metadata."
+        },
+        {
+          "path": "golang.org/x/text/cases",
+          "reason": "Reuse Go supplementary Unicode case folding for positioning terms."
+        },
+        {
+          "path": "golang.org/x/text/unicode/norm",
+          "reason": "Use Go supplementary Unicode normalization for Python source identifier facts."
+        },
+        {
+          "path": "golang.org/x/net/idna",
+          "reason": "Go supplementary IDNA2008 validation for the frozen Python schema-format profile."
+        },
+        {
+          "path": "golang.org/x/text/unicode/rangetable",
+          "reason": "Maintained Unicode assignment tables to keep Python16 character classes and worker integers distinct from the newer Go toolchain."
         }
       ]
     }
@@ -5420,6 +5440,7 @@
       "imports": [
         "implementations/go/base/canonjson",
         "implementations/go/base/clock",
+        "implementations/go/base/fault",
         "implementations/go/base/ingress",
         "implementations/go/contract/admission",
         "implementations/go/contract/validation"
@@ -5431,6 +5452,7 @@
           "const github.com/OpenRAE/rae/implementations/tooling/go/governance.Evaluate github.com/OpenRAE/rae/implementations/tooling/go/governance.Mode = \"\"",
           "const github.com/OpenRAE/rae/implementations/tooling/go/governance.Inventory github.com/OpenRAE/rae/implementations/tooling/go/governance.Mode = \"report\"",
           "func github.com/OpenRAE/rae/implementations/tooling/go/governance.Check(ctx context.Context, request github.com/OpenRAE/rae/implementations/tooling/go/governance.Request) (github.com/OpenRAE/rae/implementations/tooling/go/governance.Report, error)",
+          "func github.com/OpenRAE/rae/implementations/tooling/go/governance.CheckDocumentationURL(value string) error",
           "method *time.Duration func (time.Duration).Abs() time.Duration selected=func() time.Duration",
           "method *time.Duration func (time.Duration).Hours() float64 selected=func() float64",
           "method *time.Duration func (time.Duration).Microseconds() int64 selected=func() int64",
@@ -5561,7 +5583,7 @@
           "type github.com/OpenRAE/rae/implementations/tooling/go/governance.Finding constraints[] struct{RuleID string \"json:\\\"rule_id\\\"\" embedded=false; Message string \"json:\\\"message\\\"\" embedded=false; Path *string \"json:\\\"path\\\"\" embedded=false; Status string \"json:\\\"status,omitempty\\\"\" embedded=false} unexported-fields=false comparable=true",
           "type github.com/OpenRAE/rae/implementations/tooling/go/governance.Mode constraints[] string comparable=true",
           "type github.com/OpenRAE/rae/implementations/tooling/go/governance.Report constraints[] struct{Findings []github.com/OpenRAE/rae/implementations/tooling/go/governance.Finding \"\" embedded=false; Status string \"\" embedded=false; Text string \"\" embedded=false; ExitCode int \"\" embedded=false} unexported-fields=false comparable=false",
-          "type github.com/OpenRAE/rae/implementations/tooling/go/governance.Request constraints[] struct{Tool string \"\" embedded=false; Root string \"\" embedded=false; Paths []string \"\" embedded=false; BaseRevision string \"\" embedded=false; RequirementUID string \"\" embedded=false; Today string \"\" embedded=false; Clock github.com/OpenRAE/rae/implementations/go/base/clock.Clock \"\" embedded=false; Mode github.com/OpenRAE/rae/implementations/tooling/go/governance.Mode \"\" embedded=false; CheckSet string \"\" embedded=false; OutputRoot string \"\" embedded=false; Documentation *github.com/OpenRAE/rae/implementations/tooling/go/governance.Documentation \"\" embedded=false; Body string \"\" embedded=false; Title string \"\" embedded=false; CommitMessages string \"\" embedded=false; CommitMessagesFile string \"\" embedded=false; Repository string \"\" embedded=false; EventPath string \"\" embedded=false; IssuesFile string \"\" embedded=false; SummaryFile string \"\" embedded=false; RequireGovernance bool \"\" embedded=false; Staged bool \"\" embedded=false} unexported-fields=false comparable=false",
+          "type github.com/OpenRAE/rae/implementations/tooling/go/governance.Request constraints[] struct{Tool string \"\" embedded=false; Root string \"\" embedded=false; Paths []string \"\" embedded=false; BaseRevision string \"\" embedded=false; BaseRevisionSet bool \"\" embedded=false; Branch *string \"\" embedded=false; RequirementUID string \"\" embedded=false; Today string \"\" embedded=false; Clock github.com/OpenRAE/rae/implementations/go/base/clock.Clock \"\" embedded=false; Mode github.com/OpenRAE/rae/implementations/tooling/go/governance.Mode \"\" embedded=false; CheckSet string \"\" embedded=false; OutputRoot string \"\" embedded=false; Documentation *github.com/OpenRAE/rae/implementations/tooling/go/governance.Documentation \"\" embedded=false; Body string \"\" embedded=false; Title string \"\" embedded=false; CommitMessages string \"\" embedded=false; CommitMessagesFile string \"\" embedded=false; Repository string \"\" embedded=false; EventPath string \"\" embedded=false; IssuesFile string \"\" embedded=false; SummaryFile string \"\" embedded=false; RequireGovernance bool \"\" embedded=false; Staged bool \"\" embedded=false; VerifyRemote bool \"\" embedded=false; LocalInput string \"\" embedded=false; ActivityStreamsLocalInput string \"\" embedded=false; FIPALocalInput string \"\" embedded=false} unexported-fields=false comparable=false",
           "type time.Duration constraints[] int64 comparable=true",
           "type time.Location constraints[] struct{} unexported-fields=true comparable=false",
           "type time.Month constraints[] int comparable=true",
@@ -5576,6 +5598,7 @@
       "public": false,
       "doc": "Native command composition for the repository governance checks.",
       "imports": [
+        "implementations/go/base/fault",
         "implementations/tooling/go/governance"
       ],
       "design": "docs/decisions/issue-1799-go-governance-design.md",
@@ -5615,7 +5638,7 @@
     "docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md": "8b23019d17144225d08d6a38301a62a3eb2490c122a3d2ed36a67ab0804d84fa",
     "docs/decisions/issue-1825-public-go-api.md": "6f264cb6dd7fef28567fcb804a56b8b94f63b883f59f4be35d0ffc41095ca721",
     "docs/decisions/issue-1892-public-go-packages-design.md": "e66f0bb12f0615a6b5614fe149a2a78b13289c42845c683537df80ec1907fc53",
-    "docs/decisions/issue-1799-go-governance-design.md": "337eb81ac2188e2d0709f1c18d74ed438f181a97f1c9f667172335f6616173c6"
+    "docs/decisions/issue-1799-go-governance-design.md": "a1a832b6b50fece43a73bf7a94384da8dbdce0da80c0ac3c353ca152a5bad3cb"
   },
   "consumer_api": {
     "design": "docs/decisions/issue-1825-public-go-api.md",

@@ -3,7 +3,6 @@ package governance
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"io"
 	"sync/atomic"
@@ -11,14 +10,13 @@ import (
 
 	ts "github.com/odvcencio/gotreesitter"
 	"github.com/odvcencio/gotreesitter/grammars"
-	"github.com/santhosh-tekuri/jsonschema/v6"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
+	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
+	"github.com/yuin/goldmark/util"
 	"go.yaml.in/yaml/v3"
-
-	"github.com/OpenRAE/rae/implementations/go/base/ingress"
 )
 
 // yamlDocument returns syntax, leaving the reference's scalar, alias and
@@ -73,57 +71,34 @@ func pythonSyntax(ctx context.Context, source []byte) (*ts.Tree, error) {
 	return tree, nil
 }
 
-// decodeJSON selects the owning surface's duplicate policy and byte limit.
-// A zero byte limit means the reference has no explicit ceiling. The strict
-// object profile reuses the existing published ingress owner.
-func decodeJSON(data []byte, limit int, unique bool) (any, error) {
-	if limit > 0 && len(data) > limit {
-		return nil, errors.New("JSON source exceeds its byte limit")
-	}
-	if unique {
-		return ingress.Parse(data, ingress.Limits{MaxBytes: max(1, len(data)), MaxDepth: 0}, ingress.Object)
-	}
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.UseNumber()
-	var value any
-	if err := decoder.Decode(&value); err != nil {
-		return nil, err
-	}
-	var extra any
-	if err := decoder.Decode(&extra); !errors.Is(err, io.EOF) {
-		return nil, errors.New("multiple JSON values")
-	}
-	return value, nil
-}
-
 // markdownSyntax retains reference definitions, including unused definitions.
 // It parses text only; directives are never rendered or executed here.
+//
+//nolint:ireturn // Goldmark owns the node and parser-context interfaces.
 func markdownSyntax(source []byte) (ast.Node, parser.Context) {
 	pc := parser.NewContext()
-	return goldmark.New().Parser().Parse(text.NewReader(source), parser.WithContext(pc)), pc
+	markdown := goldmark.New(goldmark.WithExtensions(extension.DefinitionList, extension.TaskList), goldmark.WithParserOptions(parser.WithBlockParsers(util.Prioritized(fieldListParser{}, 99), util.Prioritized(fieldBodyParser{}, 100), util.Prioritized(colonFenceParser{}, 650))))
+	// Keep source positions unchanged for consumers of AST text segments.
+	source = maskDocumentMetadata(source)
+	return markdown.Parser().Parse(text.NewReader(source), parser.WithContext(pc)), pc
+}
+
+func maskDocumentMetadata(source []byte) []byte {
+	body := withoutDocumentMetadata(source)
+	if len(body) == len(source) {
+		return source
+	}
+	masked := bytes.Clone(source)
+	for i := range len(source) - len(body) {
+		if masked[i] != '\n' && masked[i] != '\r' {
+			masked[i] = ' '
+		}
+	}
+	return masked
 }
 
 type offlineSchemas struct{}
 
 func (offlineSchemas) Load(string) (any, error) {
 	return nil, errors.New("external schema retrieval forbidden")
-}
-
-// candidateSchema compiles supplied repository bytes, not the embedded base
-// corpus. The semantic model checks separately reuse contract/admission.
-func candidateSchema(data []byte) (*jsonschema.Schema, error) {
-	var value any
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.UseNumber()
-	if err := decoder.Decode(&value); err != nil {
-		return nil, err
-	}
-	compiler := jsonschema.NewCompiler()
-	compiler.DefaultDraft(jsonschema.Draft2020)
-	compiler.UseLoader(offlineSchemas{})
-	const id = "https://governance.invalid/candidate"
-	if err := compiler.AddResource(id, value); err != nil {
-		return nil, err
-	}
-	return compiler.Compile(id)
 }
