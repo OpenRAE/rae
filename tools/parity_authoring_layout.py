@@ -9,19 +9,18 @@ from __future__ import annotations
 import argparse
 import ast
 import inspect
-from enum import Enum
-from functools import partial
 import json
 import sys
 import textwrap
+from enum import Enum
+from functools import partial
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
 
-from pydantic.json_schema import GenerateJsonSchema  # noqa: E402
 from pydantic import BaseModel  # noqa: E402
-
+from pydantic.json_schema import GenerateJsonSchema  # noqa: E402
 from raes.materialization import MaterializedScenario  # noqa: E402
 from raes.scenario import Scenario  # noqa: E402
 
@@ -47,9 +46,7 @@ PRIMITIVES = {
 
 def reference_function(value: object) -> bool:
     """Follow only reference functions, never library or process callbacks."""
-    return inspect.isfunction(value) and value.__module__.startswith(
-        ("raes.", "raes_contracts.")
-    )
+    return inspect.isfunction(value) and value.__module__.startswith(("raes.", "raes_contracts."))
 
 
 def function_policy(function: object, seen: set | None = None) -> set[str]:
@@ -76,7 +73,7 @@ def function_policy(function: object, seen: set | None = None) -> set[str]:
 def numeric_argument(node: ast.expr, namespace: dict) -> str | None:
     try:
         value = ast.literal_eval(node)
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         value = namespace.get(node.id) if isinstance(node, ast.Name) else None
     if isinstance(value, (int, float)) and not isinstance(value, bool):
         return str(value)
@@ -100,9 +97,7 @@ def numeric_bounds(function: object, seen: set | None = None) -> dict[str, str]:
             continue
         for keyword in call.keywords:
             if keyword.arg in {"minimum", "maximum"}:
-                if (
-                    value := numeric_argument(keyword.value, function.__globals__)
-                ) is not None:
+                if (value := numeric_argument(keyword.value, function.__globals__)) is not None:
                     result[keyword.arg] = value
         if reference_function(nested := function.__globals__.get(call.func.id)):
             result.update(numeric_bounds(nested, seen))
@@ -125,11 +120,7 @@ def enum_arguments(function: object, seen: set | None = None) -> set[type[Enum]]
     seen.add(function)
     values.extend(function.__globals__.get(name) for name in function.__code__.co_names)
     values.extend(cell.cell_contents for cell in (function.__closure__ or ()))
-    direct = {
-        value
-        for value in values
-        if inspect.isclass(value) and issubclass(value, Enum) and list(value)
-    }
+    direct = {value for value in values if inspect.isclass(value) and issubclass(value, Enum) and list(value)}
     if direct:
         return direct
     result = set()
@@ -148,16 +139,12 @@ def scalar_shapes(schema: dict) -> list[str]:
         "function-wrap",
         "nullable",
     }:
-        return scalar_shapes(schema["schema"]) + (
-            ["null"] if kind == "nullable" else []
-        )
+        return scalar_shapes(schema["schema"]) + (["null"] if kind == "nullable" else [])
     if kind == "union":
         return [
             shape
             for choice in schema["choices"]
-            for shape in scalar_shapes(
-                choice[0] if isinstance(choice, tuple) else choice
-            )
+            for shape in scalar_shapes(choice[0] if isinstance(choice, tuple) else choice)
         ]
     names = {
         "int": "integer",
@@ -166,9 +153,7 @@ def scalar_shapes(schema: dict) -> list[str]:
         "bool": "boolean",
         "none": "null",
     }
-    return (
-        [names[kind] + ("!" if schema.get("strict") else "")] if kind in names else []
-    )
+    return [names[kind] + ("!" if schema.get("strict") else "")] if kind in names else []
 
 
 def scalar_plan(schema: dict) -> dict:
@@ -185,27 +170,18 @@ def scalar_plan(schema: dict) -> dict:
         if kind == "function-after":
             function = schema["function"].get("function")
             if "capability" in function_policy(function):
-                result["convert"] = sorted(
-                    set(result.get("convert", [])) | {"capability"}
-                )
+                result["convert"] = sorted(set(result.get("convert", [])) | {"capability"})
         if kind == "function-before":
             function = schema["function"].get("function")
             if conversions := function_policy(function):
                 result["convert"] = sorted(set(result.get("convert", [])) | conversions)
                 if conversions & {"enum", "vocabulary", "account-vocabulary"}:
                     enums = enum_arguments(function)
-                    members = {
-                        item.value
-                        for cls in enums
-                        for item in cls
-                        if isinstance(item.value, str)
-                    }
+                    members = {item.value for cls in enums for item in cls if isinstance(item.value, str)}
                     if members:
                         result["members"] = sorted(members)
                     if "vocabulary" in conversions:
-                        result["scopes"] = sorted(
-                            "sdl.definitions." + cls.__name__ for cls in enums
-                        )
+                        result["scopes"] = sorted("sdl.definitions." + cls.__name__ for cls in enums)
             result.update(numeric_bounds(function))
     elif kind in {"list", "tuple", "set", "frozenset"}:
         item = schema.get("items_schema", {})
@@ -217,13 +193,7 @@ def scalar_plan(schema: dict) -> dict:
     elif kind == "union":
         for raw in schema["choices"]:
             child = raw[0] if isinstance(raw, tuple) else raw
-            result.update(
-                {
-                    key: value
-                    for key, value in scalar_plan(child).items()
-                    if key in {"items", "values"}
-                }
-            )
+            result.update({key: value for key, value in scalar_plan(child).items() if key in {"items", "values"}})
     if shapes := scalar_shapes(schema):
         result["shapes"] = sorted(set(shapes))
     return result
@@ -238,11 +208,7 @@ def conversion_fields(schema: dict, cls: type) -> dict:
     result = {}
     for name, field in core["fields"].items():
         if plan := scalar_plan(field["schema"]):
-            alias = (
-                cls.model_fields[name].serialization_alias
-                or cls.model_fields[name].alias
-                or name
-            )
+            alias = cls.model_fields[name].serialization_alias or cls.model_fields[name].alias or name
             result[alias] = plan
     return result
 
@@ -260,7 +226,7 @@ def omission_policy(field: object) -> list[str]:
             try:
                 if field.exclude_if(value):
                     result.append(name)
-            except (TypeError, ValueError, AttributeError):
+            except TypeError, ValueError, AttributeError:
                 continue
     return result
 
@@ -271,10 +237,7 @@ class Layout(GenerateJsonSchema):
     def model_schema(self, schema: dict) -> dict:
         document = super().model_schema(schema)
         cls = schema["cls"]
-        fields = [
-            field.serialization_alias or field.alias or name
-            for name, field in cls.model_fields.items()
-        ]
+        fields = [field.serialization_alias or field.alias or name for name, field in cls.model_fields.items()]
         omit = {
             field.serialization_alias or field.alias or name: policy
             for name, field in cls.model_fields.items()
@@ -331,9 +294,7 @@ def record() -> bytes:
                 if "x-layout" in value
             }
         )
-        published = json.loads(
-            (ROOT / "contracts/schemas/sdl" / (contract + ".json")).read_bytes()
-        )
+        published = json.loads((ROOT / "contracts/schemas/sdl" / (contract + ".json")).read_bytes())
         for pointer, row in records.items():
             definition = published
             for token in pointer.split("/")[1:]:
@@ -341,22 +302,12 @@ def record() -> bytes:
             fields = definition.get("properties", {})
             row["fields"] = [field for field in row["fields"] if field in fields]
             for key in ("omit", "scalar", "factory_defaults"):
-                row[key] = {
-                    field: value for field, value in row[key].items() if field in fields
-                }
-            row["scalar"] = {
-                field: compact
-                for field, plan in row["scalar"].items()
-                if (compact := compact_plan(plan))
-            }
+                row[key] = {field: value for field, value in row[key].items() if field in fields}
+            row["scalar"] = {field: compact for field, plan in row["scalar"].items() if (compact := compact_plan(plan))}
         result[contract] = records
     authored = result["sdl-authoring-input-v1"]
     materialized = result["materialized-scenario-v1"]
-    common = {
-        key: value
-        for key, value in authored.items()
-        if key != "#" and materialized.get(key) == value
-    }
+    common = {key: value for key, value in authored.items() if key != "#" and materialized.get(key) == value}
     for key in common:
         del authored[key]
         del materialized[key]

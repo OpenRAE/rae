@@ -10,15 +10,16 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path, PurePosixPath
 import sys
 import tempfile
+from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / "implementations/python/packages")]
 
+from raes._errors import SDLError, SDLParseError
 from raes.formatting import format_sdl_source
-from raes._errors import SDLParseError, SDLError
+
 from tools.parity_storage import read_blob, read_document
 
 CORPUS = ROOT / "implementations/go/internal/parity/testdata"
@@ -45,9 +46,7 @@ def record(case: dict) -> dict:
         try:
             original = source.read_text()
             result = format_sdl_source(original, path=source)
-            options = (
-                arguments[: arguments.index("--")] if "--" in arguments else arguments
-            )
+            options = arguments[: arguments.index("--")] if "--" in arguments else arguments
             if "--check" in options and result.content != original:
                 observed = 1
             row.update(accepted=True, content=result.content)

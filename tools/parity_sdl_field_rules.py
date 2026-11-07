@@ -7,9 +7,9 @@ import argparse
 import ast
 import inspect
 import json
-from pathlib import Path
 import sys
 import textwrap
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
@@ -20,8 +20,8 @@ from raes._identifiers import (  # noqa: E402
     require_qualified_identifier,
 )
 from raes.materialization import MaterializedScenario  # noqa: E402
-from raes.runtime_values import absolute_path_or_var, require_non_empty, require_symbol  # noqa: E402
 from raes.runtime_database import _require_object_name  # noqa: E402
+from raes.runtime_values import absolute_path_or_var, require_non_empty, require_symbol  # noqa: E402
 from raes.scenario import Scenario  # noqa: E402
 from raes.stateful_resources import _validate_relative_path, validate_mount_destination  # noqa: E402
 
@@ -65,12 +65,12 @@ def reference_list_guard(body, argument):
         guard = loop.body[0]
         test = ast.Call(
             func=ast.Name(id="any", ctx=ast.Load()),
-            args=[ast.GeneratorExp(
-                elt=guard.test,
-                generators=[ast.comprehension(
-                    target=loop.target, iter=loop.iter, ifs=[], is_async=0
-                )],
-            )],
+            args=[
+                ast.GeneratorExp(
+                    elt=guard.test,
+                    generators=[ast.comprehension(target=loop.target, iter=loop.iter, ifs=[], is_async=0)],
+                )
+            ],
             keywords=[],
         )
         body = [ast.If(test=test, body=guard.body, orelse=[]), *body[1:]]
@@ -82,23 +82,36 @@ def reference_list_guard(body, argument):
         and len(body[0].test.values) == 2
     ):
         combined = body[0]
-        body = [
-            ast.If(test=test, body=combined.body, orelse=[])
-            for test in combined.test.values
-        ] + [body[1]]
+        body = [ast.If(test=test, body=combined.body, orelse=[]) for test in combined.test.values] + [body[1]]
     if len(body) != 3 or not all(refusal_guard(guard) for guard in body[:2]):
         return None
     returned = body[-1]
-    if not isinstance(returned, ast.Return) or not isinstance(returned.value, ast.Name) or returned.value.id != argument:
+    if (
+        not isinstance(returned, ast.Return)
+        or not isinstance(returned.value, ast.Name)
+        or returned.value.id != argument
+    ):
         return None
     call = body[0].test
-    if not isinstance(call, ast.Call) or not isinstance(call.func, ast.Name) or call.func.id != "any" or call.keywords or len(call.args) != 1:
+    if (
+        not isinstance(call, ast.Call)
+        or not isinstance(call.func, ast.Name)
+        or call.func.id != "any"
+        or call.keywords
+        or len(call.args) != 1
+    ):
         return None
     expression = call.args[0]
     if not isinstance(expression, ast.GeneratorExp) or len(expression.generators) != 1:
         return None
     loop = expression.generators[0]
-    if not isinstance(loop.target, ast.Name) or not isinstance(loop.iter, ast.Name) or loop.iter.id != argument or loop.ifs or loop.is_async:
+    if (
+        not isinstance(loop.target, ast.Name)
+        or not isinstance(loop.iter, ast.Name)
+        or loop.iter.id != argument
+        or loop.ifs
+        or loop.is_async
+    ):
         return None
     item = loop.target.id
     predicates = [f"not {item}.strip()", f"not isinstance({item}, str) or not {item}.strip()"]
@@ -140,9 +153,7 @@ def nonblank_guard(body, argument):
     typed = ast.dump(ast.parse(f"not isinstance({argument}, str) or not {argument}.strip()", mode="eval").body)
     if test == typed and operation == "nonblank":
         return operation
-    nullable = ast.dump(
-        ast.parse(f"{argument} is not None and not {argument}.strip()", mode="eval").body
-    )
+    nullable = ast.dump(ast.parse(f"{argument} is not None and not {argument}.strip()", mode="eval").body)
     if test == nullable and operation == "nonblank":
         return "nullable-nonblank"
     return None
@@ -159,47 +170,33 @@ def direct_rule(function):
     declaration = tree.body[0]
     if function.__name__ == "<lambda>":
         candidates = [
-            node for node in ast.walk(tree)
-            if isinstance(node, ast.Lambda)
-            and first_line + node.lineno - 1 == function.__code__.co_firstlineno
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Lambda) and first_line + node.lineno - 1 == function.__code__.co_firstlineno
         ]
         if len(candidates) != 1:
             return None
         declaration = candidates[0]
     if not isinstance(declaration, (ast.FunctionDef, ast.Lambda)):
         return None
-    parameters = [
-        arg.arg for arg in declaration.args.args if arg.arg not in {"cls", "self"}
-    ]
+    parameters = [arg.arg for arg in declaration.args.args if arg.arg not in {"cls", "self"}]
     if not parameters:
         return None
     argument = parameters[0]
     body = [ast.Return(value=declaration.body)] if isinstance(declaration, ast.Lambda) else declaration.body
-    if (
-        body
-        and isinstance(body[0], ast.Expr)
-        and isinstance(body[0].value, ast.Constant)
-    ):
+    if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant):
         body = body[1:]
     if len(body) != 1 or not isinstance(body[0], ast.Return):
         return nonblank_guard(body, argument)
     value = body[0].value
     optional = isinstance(value, ast.IfExp) and isinstance(value.test, ast.Name)
     if optional:
-        if (
-            value.test.id != argument
-            or not isinstance(value.orelse, ast.Name)
-            or value.orelse.id != argument
-        ):
+        if value.test.id != argument or not isinstance(value.orelse, ast.Name) or value.orelse.id != argument:
             return None
         value = value.body
     if not isinstance(value, ast.Call) or not isinstance(value.func, ast.Name):
         return None
-    if (
-        not value.args
-        or not isinstance(value.args[0], ast.Name)
-        or value.args[0].id != argument
-    ):
+    if not value.args or not isinstance(value.args[0], ast.Name) or value.args[0].id != argument:
         return None
     helper = function.__globals__.get(value.func.id)
     operation = HELPERS.get(helper)
@@ -231,11 +228,7 @@ def annotated_fields(cls):
         core = core.get("schema", {})
         if not core:
             return {}
-    return {
-        name: operation
-        for name, field in core["fields"].items()
-        if (operation := annotated_rule(field["schema"]))
-    }
+    return {name: operation for name, field in core["fields"].items() if (operation := annotated_rule(field["schema"]))}
 
 
 def records():
@@ -246,15 +239,13 @@ def records():
     ):
         owners = []
 
-        def generator(*args, **kwargs):
+        def generator(*args, owners=owners, **kwargs):
             owner = Constructors(*args, **kwargs)
             owners.append(owner)
             return owner
 
         schema = model.model_json_schema(schema_generator=generator)
-        published = json.loads(
-            (ROOT / "contracts/schemas/sdl" / (contract + ".json")).read_bytes()
-        )
+        published = json.loads((ROOT / "contracts/schemas/sdl" / (contract + ".json")).read_bytes())
         for name, definition in schema.get("$defs", {}).items():
             if "x-constructor" not in definition:
                 continue
@@ -273,11 +264,11 @@ def records():
                     info = cls.model_fields[field]
                     alias = info.serialization_alias or info.alias or field
                     if alias in properties:
-                        previous = result.setdefault(name, {}).setdefault(
-                            alias, operation
-                        )
+                        previous = result.setdefault(name, {}).setdefault(alias, operation)
                         if previous != operation:
-                            raise ValueError(f"conflicting SDL field predicates: {name}.{alias}: {previous}, {operation}")
+                            raise ValueError(
+                                f"conflicting SDL field predicates: {name}.{alias}: {previous}, {operation}"
+                            )
     return result
 
 

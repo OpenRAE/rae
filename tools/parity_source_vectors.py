@@ -11,9 +11,9 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
@@ -256,26 +256,24 @@ def record():
             "😀" * 30,
             "a" * 100 + "é" + "b" * 50,
             "".join(
-                (
-                    chr(i)
-                    for i in [
-                        0,
-                        7,
-                        8,
-                        9,
-                        11,
-                        12,
-                        13,
-                        27,
-                        133,
-                        160,
-                        8232,
-                        8233,
-                        127,
-                        128,
-                        255,
-                    ]
-                )
+                chr(i)
+                for i in [
+                    0,
+                    7,
+                    8,
+                    9,
+                    11,
+                    12,
+                    13,
+                    27,
+                    133,
+                    160,
+                    8232,
+                    8233,
+                    127,
+                    128,
+                    255,
+                ]
             ),
         ]
     ):
@@ -298,16 +296,7 @@ def record():
         for identity in ["valid", "Invalid"]:
             add(
                 "identity-" + f.collection_name + "-" + identity,
-                json.dumps(
-                    {
-                        "nodes": {
-                            "n": {
-                                "runtime": {f.collection_name: [{f.id_field: identity}]}
-                            }
-                        }
-                    }
-                )
-                + "\n",
+                json.dumps({"nodes": {"n": {"runtime": {f.collection_name: [{f.id_field: identity}]}}}}) + "\n",
             )
     for value in [
         "😀" * 30,
@@ -364,7 +353,7 @@ def record():
     )
     add("merge-nested-invalid", "target: {<<: {<<: 3}}\n", migration_policy="accept")
     add("undefined-alias-after-valid", "a: &ok x\nb: *ok\nc: *missing\n")
-    add("simple-key-with-spaces", "\"" + "word " * 20 + "end\": value\n", mapping_keys="data")
+    add("simple-key-with-spaces", '"' + "word " * 20 + 'end": value\n', mapping_keys="data")
     for c in cases:
         if not c["error"]:
             c["rendered"] = yaml.safe_dump(
@@ -399,9 +388,7 @@ def record():
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--check", action="store_true", help="compare without writing vectors"
-    )
+    parser.add_argument("--check", action="store_true", help="compare without writing vectors")
     options = parser.parse_args()
     os.chdir(ROOT)
     document = record()
@@ -412,9 +399,7 @@ def main() -> int:
             return 1
     else:
         OUTPUT.write_text(encoded)
-    print(
-        f"source vectors: {len(document['cases'])} cases match {document['reference_commit']}"
-    )
+    print(f"source vectors: {len(document['cases'])} cases match {document['reference_commit']}")
     return 0
 
 

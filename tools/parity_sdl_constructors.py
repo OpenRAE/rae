@@ -5,9 +5,9 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
 from pydantic import ValidationError
 from pydantic.json_schema import GenerateJsonSchema
@@ -15,9 +15,9 @@ from pydantic.json_schema import GenerateJsonSchema
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
 
-from raes.scenario import Scenario  # noqa: E402
 from raes.materialization import MaterializedScenario  # noqa: E402
 from raes.phase_contracts import ResolvedImportProvenance  # noqa: E402
+from raes.scenario import Scenario  # noqa: E402
 
 
 class Constructors(GenerateJsonSchema):
@@ -76,14 +76,10 @@ def record(document):
                 if "x-constructor" in value
             }
         )
-    definitions["instantiated-scenario-v1"] = {
-        "#/$defs/ResolvedImportProvenance": ResolvedImportProvenance
-    }
+    definitions["instantiated-scenario-v1"] = {"#/$defs/ResolvedImportProvenance": ResolvedImportProvenance}
     for row in document["cases"]:
         try:
-            definitions[row.get("contract", "sdl-authoring-input-v1")][
-                row["pointer"]
-            ].model_validate(row["data"])
+            definitions[row.get("contract", "sdl-authoring-input-v1")][row["pointer"]].model_validate(row["data"])
             row["accepted"] = True
         except ValidationError:
             row["accepted"] = False

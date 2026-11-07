@@ -6,9 +6,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
@@ -43,9 +43,9 @@ def field_patterns(schema, path=()):
 
 
 def records():
-    reference = json.loads(
-        (ROOT / "implementations/go/contract/admission/testdata/sdl-constructors.json").read_text()
-    )["reference"]
+    reference = json.loads((ROOT / "implementations/go/contract/admission/testdata/sdl-constructors.json").read_text())[
+        "reference"
+    ]
     actual = subprocess.check_output(
         ["git", "log", "-1", "--format=%H", "--", "implementations/python/packages/raes"],
         cwd=ROOT,
@@ -60,7 +60,7 @@ def records():
     ):
         owners = []
 
-        def generator(*args, **kwargs):
+        def generator(*args, owners=owners, **kwargs):
             owner = Constructors(*args, **kwargs)
             owners.append(owner)
             return owner
@@ -88,7 +88,9 @@ def records():
                     if (name, alias) in COMBINED_URI_FIELDS:
                         if len(facts) != 1 or facts[0]["path"]:
                             raise ValueError("combined URI field pattern changed shape")
-                        encoded = json.dumps(properties[alias], sort_keys=True, ensure_ascii=True, separators=(",", ":")).encode()
+                        encoded = json.dumps(
+                            properties[alias], sort_keys=True, ensure_ascii=True, separators=(",", ":")
+                        ).encode()
                         facts[0]["schema_sha256"] = hashlib.sha256(encoded).hexdigest()
                     definitions.setdefault(name, {})[alias] = facts
         contracts[contract] = definitions
