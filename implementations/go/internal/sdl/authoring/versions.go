@@ -27,7 +27,7 @@ func versionSpec(requested string) (versionRequirement, error) {
 	if !strings.ContainsAny(value, "<>!=~") {
 		value = "==" + value
 	}
-	for _, part := range strings.Split(value, ",") {
+	for part := range strings.SplitSeq(value, ",") {
 		part = pythonTrim(part)
 		if part == "" {
 			continue
@@ -41,7 +41,7 @@ func versionSpec(requested string) (versionRequirement, error) {
 	return result, nil
 }
 func splitSpecifier(s string) (string, string) {
-	for _, operator := range []string{"===", "==", "!=", "<=", ">=", "~=", "<", ">"} {
+	for _, operator := range []string{arbitraryEquality, "==", "!=", "<=", ">=", "~=", "<", ">"} {
 		if rest, ok := strings.CutPrefix(s, operator); ok {
 			return operator, pythonTrim(rest)
 		}
@@ -54,7 +54,7 @@ func parseSpecifier(part string) (versionSpecifier, error) {
 	if operator == "" {
 		return spec, invalid()
 	}
-	if operator == "===" {
+	if operator == arbitraryEquality {
 		if strings.ContainsAny(raw, ";)") || strings.ContainsFunc(raw, unicode.IsSpace) {
 			return spec, invalid()
 		}
@@ -75,18 +75,22 @@ func parseSpecifier(part string) (versionSpecifier, error) {
 	if status == versionInvalid {
 		return spec, invalid()
 	}
-	if spec.wildcard && !version.plainRelease() {
+	if !specifierVersionValid(spec, version) {
 		return spec, invalid()
 	}
-	if operator != "==" && operator != "!=" && len(version.local) > 0 {
-		return spec, invalid()
-	}
-	if operator == "~=" && len(version.release) < 2 {
-		return spec, invalid()
-	}
+
 	spec.version = version
 	spec.digits = status == versionDigits
 	return spec, nil
+}
+func specifierVersionValid(spec versionSpecifier, version pepVersion) bool {
+	if spec.wildcard && !version.plainRelease() {
+		return false
+	}
+	if spec.operator != "==" && spec.operator != "!=" && len(version.local) > 0 {
+		return false
+	}
+	return spec.operator != "~=" || len(version.release) >= 2
 }
 func (r versionRequirement) accepts(actual string) bool {
 	if r.unrestricted {
@@ -111,7 +115,7 @@ func (s versionSpecifier) accepts(candidate pepVersion) bool {
 		return false
 	}
 	switch s.operator {
-	case "===":
+	case arbitraryEquality:
 		return strings.EqualFold(candidate.canonical(), s.raw)
 	case "==":
 		return s.equal(candidate)

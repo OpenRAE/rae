@@ -59,14 +59,9 @@ func durationString(value string) (any, error) {
 		}
 		found = true
 		position = end
-		for _, name := range names {
-			if strings.HasPrefix(normalized[position:], name) {
-				scale, _ := new(big.Rat).SetString(units[name])
-				amount.Mul(amount, scale)
-				position += len(name)
-				break
-			}
-		}
+		scale, consumed := durationScale(normalized[position:], names, units)
+		amount.Mul(amount, scale)
+		position += consumed
 		total.Add(total, amount)
 	}
 	if !found {
@@ -78,6 +73,15 @@ func durationString(value string) (any, error) {
 		result.Add(result, big.NewInt(1))
 	}
 	return json.Number(result.String()), nil
+}
+func durationScale(value string, names []string, units map[string]string) (*big.Rat, int) {
+	for _, name := range names {
+		if strings.HasPrefix(value, name) {
+			scale, _ := new(big.Rat).SetString(units[name])
+			return scale, len(name)
+		}
+	}
+	return big.NewRat(1, 1), 0
 }
 func durationNumberEnd(s string, start int) int {
 	i := start

@@ -98,6 +98,15 @@ func New() (*Validator, error) {
 	if err != nil {
 		return nil, err
 	}
+	return NewWithSchemas(base)
+}
+
+// NewWithSchemas reuses immutable published schemas and installs the complete
+// stock admission registry. Supplied rule callbacks are replaced by owner rules.
+func NewWithSchemas(base *validation.Validator) (*Validator, error) {
+	if base == nil || len(base.Keys()) == 0 {
+		return nil, fault.New(fault.InvalidInput, "contract-validator-required", nil)
+	}
 	e, err := newCatalogOwner(base)
 	if err != nil {
 		return nil, err

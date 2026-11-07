@@ -9,6 +9,8 @@ from __future__ import annotations
 import argparse
 import ast
 import inspect
+from enum import Enum
+from functools import partial
 import json
 import sys
 import textwrap
@@ -48,6 +50,8 @@ def reference_function(value: object) -> bool:
 
 
 def function_policy(function: object, seen: set | None = None) -> set[str]:
+    if isinstance(function, partial):
+        function = function.func
     function = getattr(function, "__func__", function)
     if not inspect.isfunction(function):
         return set()
@@ -77,6 +81,8 @@ def numeric_argument(node: ast.expr, namespace: dict) -> str | None:
 
 
 def numeric_bounds(function: object, seen: set | None = None) -> dict[str, str]:
+    if isinstance(function, partial):
+        function = function.func
     function = getattr(function, "__func__", function)
     if not inspect.isfunction(function):
         return {}
@@ -97,6 +103,36 @@ def numeric_bounds(function: object, seen: set | None = None) -> dict[str, str]:
                     result[keyword.arg] = value
         if reference_function(nested := function.__globals__.get(call.func.id)):
             result.update(numeric_bounds(nested, seen))
+    return result
+
+
+def enum_arguments(function: object, seen: set | None = None) -> set[type[Enum]]:
+    """Record primitive enum arguments as values and governed scope IDs."""
+    values = []
+    if isinstance(function, partial):
+        values.extend(function.args)
+        values.extend((function.keywords or {}).values())
+        function = function.func
+    function = getattr(function, "__func__", function)
+    if not inspect.isfunction(function):
+        return set()
+    seen = set() if seen is None else seen
+    if function in seen:
+        return set()
+    seen.add(function)
+    values.extend(function.__globals__.get(name) for name in function.__code__.co_names)
+    values.extend(cell.cell_contents for cell in (function.__closure__ or ()))
+    direct = {
+        value
+        for value in values
+        if inspect.isclass(value) and issubclass(value, Enum) and list(value)
+    }
+    if direct:
+        return direct
+    result = set()
+    for value in values:
+        if reference_function(value):
+            result.update(enum_arguments(value, seen))
     return result
 
 
@@ -147,6 +183,20 @@ def scalar_plan(schema: dict) -> dict:
             function = schema["function"].get("function")
             if conversions := function_policy(function):
                 result["convert"] = sorted(conversions)
+                if conversions & {"enum", "vocabulary"}:
+                    enums = enum_arguments(function)
+                    members = {
+                        item.value
+                        for cls in enums
+                        for item in cls
+                        if isinstance(item.value, str)
+                    }
+                    if members:
+                        result["members"] = sorted(members)
+                    if "vocabulary" in conversions:
+                        result["scopes"] = sorted(
+                            "sdl.definitions." + cls.__name__ for cls in enums
+                        )
             result.update(numeric_bounds(function))
     elif kind in {"list", "tuple", "set", "frozenset"}:
         item = schema.get("items_schema", {})
@@ -229,6 +279,17 @@ class Layout(GenerateJsonSchema):
         return document
 
 
+def compact_plan(plan: dict) -> dict:
+    result = {}
+    for key, value in plan.items():
+        if key in {"items", "values"}:
+            if child := compact_plan(value):
+                result[key] = child
+        elif key != "shapes" or not set(value) <= {"string", "string!", "null"}:
+            result[key] = value
+    return result
+
+
 def record() -> bytes:
     result = {}
     for contract, cls in (
@@ -257,7 +318,23 @@ def record() -> bytes:
                 row[key] = {
                     field: value for field, value in row[key].items() if field in fields
                 }
+            row["scalar"] = {
+                field: compact
+                for field, plan in row["scalar"].items()
+                if (compact := compact_plan(plan))
+            }
         result[contract] = records
+    authored = result["sdl-authoring-input-v1"]
+    materialized = result["materialized-scenario-v1"]
+    common = {
+        key: value
+        for key, value in authored.items()
+        if key != "#" and materialized.get(key) == value
+    }
+    for key in common:
+        del authored[key]
+        del materialized[key]
+    result["$shared"] = common
     return (json.dumps(result, indent=2, sort_keys=True) + "\n").encode()
 
 

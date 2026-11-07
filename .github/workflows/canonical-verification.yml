@@ -683,6 +683,16 @@ jobs:
             --output "${RUNNER_TEMP}/retained-model-inputs/parity-decoded"
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
             -m tools.parity_storage scan "${RUNNER_TEMP}/retained-model-inputs/parity-decoded"
+      - name: Record independent SDL formatter bytes
+        if: matrix.name == 'product'
+        run: |
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_authoring_layout.py --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_authoring_vectors.py --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_format_bytes.py --output "${RUNNER_TEMP}/sdl-format-bytes.json"
+          echo "RAES_FORMAT_BYTE_ORACLE=${RUNNER_TEMP}/sdl-format-bytes.json" >> "${GITHUB_ENV}"
       - name: Test with the race detector and the coverage floor
         working-directory: ${{ matrix.path }}
         run: |

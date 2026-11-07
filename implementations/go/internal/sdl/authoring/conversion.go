@@ -8,6 +8,8 @@ import (
 )
 
 type scalarPolicy struct {
+	Members []string      `json:"members"`
+	Scopes  []string      `json:"scopes"`
 	Minimum *string       `json:"minimum"`
 	Maximum *string       `json:"maximum"`
 	Shapes  []string      `json:"shapes"`
@@ -26,7 +28,7 @@ func (w *normalizer) convert(schema map[string]any, value any, policy scalarPoli
 	if len(policy.Convert) > 0 {
 		for _, operation := range policy.Convert {
 			var err error
-			value, err = w.operation(schema, value, operation)
+			value, err = w.operation(schema, value, operation, policy)
 			if err != nil {
 				return nil, err
 			}
@@ -41,7 +43,7 @@ func (w *normalizer) convert(schema map[string]any, value any, policy scalarPoli
 	}
 	return value, nil
 }
-func (w *normalizer) operation(schema map[string]any, value any, operation string) (any, error) {
+func (w *normalizer) operation(schema map[string]any, value any, operation string, policy scalarPolicy) (any, error) {
 	if operation == "strings" {
 		if value == nil {
 			return []any{}, nil
@@ -56,55 +58,61 @@ func (w *normalizer) operation(schema map[string]any, value any, operation strin
 	}
 	switch v := value.(type) {
 	case []any:
-		out := make([]any, len(v))
-		for i, raw := range v {
-			converted, err := w.operation(object(schema["items"]), raw, operation)
-			if err != nil {
-				return nil, err
-			}
-			out[i] = converted
-		}
-		return out, nil
+		return w.sequenceOperation(schema, v, operation, policy)
 	case map[string]any:
 		if operation != "duration" {
 			return value, nil
 		}
-		out := map[string]any{}
-		for name, raw := range v {
-			converted, err := duration(raw)
-			if err != nil {
-				return nil, err
-			}
-			out[name] = converted
-		}
-		return out, nil
+		return durationMap(v)
 	}
-	return w.scalarOperation(schema, value, operation)
+	return w.scalarOperation(schema, value, operation, policy)
 }
-func (w *normalizer) scalarOperation(schema map[string]any, value any, operation string) (any, error) {
+func (w *normalizer) sequenceOperation(schema map[string]any, values []any, operation string, policy scalarPolicy) (any, error) {
+	result := make([]any, len(values))
+	for i, raw := range values {
+		value, err := w.operation(object(schema["items"]), raw, operation, policy)
+		if err != nil {
+			return nil, err
+		}
+		result[i] = value
+	}
+	return result, nil
+}
+func durationMap(values map[string]any) (any, error) {
+	result := make(map[string]any, len(values))
+	for name, raw := range values {
+		value, err := duration(raw)
+		if err != nil {
+			return nil, err
+		}
+		result[name] = value
+	}
+	return result, nil
+}
+func (w *normalizer) scalarOperation(schema map[string]any, value any, operation string, policy scalarPolicy) (any, error) {
 	switch operation {
 	case "normalize":
 		if s, ok := value.(string); ok {
-			return strings.ReplaceAll(strings.ToLower(s), "-", "_"), nil
+			return strings.ReplaceAll(lower(s), "-", "_"), nil
 		}
 		return value, nil
 	case "enum", "vocabulary":
-		return w.enum(schema, value, operation == "vocabulary")
-	case "integer":
+		return w.enum(schema, value, operation == "vocabulary", policy)
+	case integerType:
 		return normalizeInteger(value, true)
-	case "number":
+	case numberType:
 		return normalizeFloat(value)
-	case "boolean":
+	case booleanType:
 		return normalizeBoolean(value, true)
 	case "ram":
 		return ram(value)
 	case "duration":
 		return duration(value)
-	case "architecture":
+	case architectureField:
 		return architecture(value), nil
 	case "distribution":
 		if s, ok := value.(string); ok {
-			return strings.ToLower(s), nil
+			return lower(s), nil
 		}
 		return nil, invalid()
 	case "os-version":
@@ -118,15 +126,29 @@ func (w *normalizer) scalarOperation(schema map[string]any, value any, operation
 		return nil, invalid()
 	}
 }
-func (w *normalizer) enum(schema map[string]any, value any, extension bool) (any, error) {
+func (w *normalizer) enum(schema map[string]any, value any, extension bool, policy scalarPolicy) (any, error) {
 	s, ok := value.(string)
 	if !ok {
 		return nil, invalid()
 	}
-	if extension && strings.HasPrefix(s, "x-") {
-		return s, nil
-	} // Exact identity is checked by the contract owner.
-	return normalizeEnum(value, w.enumMembers(schema, 0))
+	members := make([]any, 0, len(policy.Members))
+	for _, member := range policy.Members {
+		members = append(members, member)
+	}
+	if len(members) == 0 {
+		members = w.enumMembers(schema, 0)
+	}
+	if normalized, err := normalizeEnum(s, members); err == nil {
+		return normalized, nil
+	}
+	if extension {
+		for _, scope := range policy.Scopes {
+			if w.parser.authority.CheckScope(scope, s) == nil {
+				return s, nil
+			}
+		}
+	}
+	return nil, invalid()
 }
 func (w *normalizer) enumMembers(schema map[string]any, depth int) []any {
 	if depth > 16 {
@@ -150,13 +172,13 @@ func coerceScalar(value any, shapes []string) (any, error) {
 	case map[string]any, []any:
 		return value, nil
 	case json.Number:
-		if slices.Contains(shapes, "integer") || slices.Contains(shapes, "integer!") {
+		if slices.Contains(shapes, integerType) || slices.Contains(shapes, "integer!") {
 			if _, err := v.Int64(); err == nil || !strings.ContainsAny(v.String(), ".eE") {
 				return value, nil
 			}
 		}
 	case float64:
-		if slices.Contains(shapes, "number") || slices.Contains(shapes, "number!") {
+		if slices.Contains(shapes, numberType) || slices.Contains(shapes, "number!") {
 			return normalizeFloat(v)
 		}
 	}
@@ -164,17 +186,17 @@ func coerceScalar(value any, shapes []string) (any, error) {
 }
 func stringShape(value any, shapes []string) bool {
 	_, ok := value.(string)
-	return ok && (slices.Contains(shapes, "string") || slices.Contains(shapes, "string!"))
+	return ok && (slices.Contains(shapes, stringType) || slices.Contains(shapes, "string!"))
 }
 func booleanShape(value any, shapes []string) bool {
 	_, ok := value.(bool)
-	return ok && (slices.Contains(shapes, "boolean") || slices.Contains(shapes, "boolean!"))
+	return ok && (slices.Contains(shapes, booleanType) || slices.Contains(shapes, "boolean!"))
 }
 func fallbackScalar(value any, shapes []string) (any, error) {
-	if slices.Contains(shapes, "integer") {
+	if slices.Contains(shapes, integerType) {
 		return normalizeInteger(value, false)
 	}
-	if slices.Contains(shapes, "number") {
+	if slices.Contains(shapes, numberType) {
 		if boolean, ok := value.(bool); ok {
 			if boolean {
 				return json.Number("1.0"), nil
@@ -188,7 +210,7 @@ func fallbackScalar(value any, shapes []string) (any, error) {
 			return normalizeFloat(value)
 		}
 	}
-	if slices.Contains(shapes, "boolean") {
+	if slices.Contains(shapes, booleanType) {
 		return normalizeBoolean(value, false)
 	}
 	// Strict fields must reject before JSON numeric equivalence can erase their source type.
@@ -218,6 +240,9 @@ func scalarBounds(value any, policy scalarPolicy) error {
 		}
 		return nil
 	}
+	return scalarNumberBounds(value, policy)
+}
+func scalarNumberBounds(value any, policy scalarPolicy) error {
 	n, ok := value.(json.Number)
 	if !ok {
 		return nil

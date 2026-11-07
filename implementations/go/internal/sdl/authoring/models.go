@@ -8,8 +8,12 @@ import (
 )
 
 func (w *normalizer) modelCheck(pointer string, value map[string]any) error {
-	switch strings.TrimPrefix(pointer, "#/$defs/") {
-	case "Script":
+	model := strings.TrimPrefix(pointer, "#/$defs/")
+	if err := artifactModel(model, value); err != nil {
+		return err
+	}
+	switch model {
+	case scriptModelName:
 		return scriptModel(value)
 	case "Variable":
 		return variableModel(value)
@@ -29,7 +33,7 @@ func (w *normalizer) modelCheck(pointer string, value map[string]any) error {
 		if _, err := versionSpec(text(value["version"])); err != nil {
 			return err
 		}
-		if (text(value["source"]) == "") == (text(value["path"]) == "") || !localIdentifier(text(value["namespace"])) {
+		if (text(value[sourceField]) == "") == (text(value["path"]) == "") || !localIdentifier(text(value["namespace"])) {
 			return invalid()
 		}
 	case "Scenario", "MaterializedScenario":
@@ -39,15 +43,8 @@ func (w *normalizer) modelCheck(pointer string, value map[string]any) error {
 }
 func nodeModel(value map[string]any) error {
 	if strings.EqualFold(text(value["type"]), "switch") {
-		for _, key := range []string{"source", "resources", "os", "os_distribution", "architecture", "asset_value", "endpoint_persona", "runtime"} {
-			if value[key] != nil {
-				return invalid()
-			}
-		}
-		for _, key := range []string{"os_version", "features", "conditions", "injects", "roles", "services"} {
-			if populated(value[key]) {
-				return invalid()
-			}
+		if err := switchModel(value); err != nil {
+			return err
 		}
 	}
 	names := map[string]bool{}
@@ -59,22 +56,44 @@ func nodeModel(value map[string]any) error {
 			return invalid()
 		}
 		names[name] = true
-		if variable(row["port"]) || variable(row["protocol"]) {
-			continue
-		}
-		port, err := normalizeInteger(row["port"], true)
+		key, err := servicePortKey(row)
 		if err != nil {
 			return err
 		}
-		protocol := text(row["protocol"])
-		if protocol == "" {
-			protocol = "tcp"
+		if key == "" {
+			continue
 		}
-		key := strings.ToLower(protocol) + ":" + stringNumber(port)
 		if ports[key] {
 			return invalid()
 		}
 		ports[key] = true
+	}
+	return nil
+}
+func servicePortKey(row map[string]any) (string, error) {
+	if variable(row["port"]) || variable(row["protocol"]) {
+		return "", nil
+	}
+	port, err := normalizeInteger(row["port"], true)
+	if err != nil {
+		return "", err
+	}
+	protocol := text(row["protocol"])
+	if protocol == "" {
+		protocol = "tcp"
+	}
+	return lower(protocol) + ":" + stringNumber(port), nil
+}
+func switchModel(value map[string]any) error {
+	for _, key := range []string{sourceField, "resources", "os", "os_distribution", architectureField, "asset_value", "endpoint_persona", "runtime"} {
+		if value[key] != nil {
+			return invalid()
+		}
+	}
+	for _, key := range []string{"os_version", featuresSection, conditionsSection, injectsSection, "roles", "services"} {
+		if populated(value[key]) {
+			return invalid()
+		}
 	}
 	return nil
 }
@@ -102,7 +121,7 @@ func stringNumber(value any) string {
 }
 func infrastructureModel(value map[string]any) error {
 	for _, key := range []string{"links", "dependencies"} {
-		if !uniqueStrings(array(value[key]), false) {
+		if !uniqueStrings(array(value[key])) {
 			return invalid()
 		}
 	}
@@ -116,15 +135,12 @@ func infrastructureModel(value map[string]any) error {
 	}
 	return nil
 }
-func uniqueStrings(values []any, ignoreBlank bool) bool {
+func uniqueStrings(values []any) bool {
 	seen := map[string]bool{}
 	for _, value := range values {
 		s, ok := value.(string)
 		if !ok {
 			return false
-		}
-		if ignoreBlank && s == "" {
-			continue
 		}
 		if seen[s] {
 			return false
@@ -156,11 +172,11 @@ func moduleModel(value map[string]any) error {
 	if len(parts) != 2 || !localIdentifier(parts[0]) || !localIdentifier(parts[1]) {
 		return invalid()
 	}
-	if !uniqueStrings(array(value["parameters"]), false) {
+	if !uniqueStrings(array(value["parameters"])) {
 		return invalid()
 	}
 	for _, names := range object(value["exports"]) {
-		if !uniqueStrings(array(names), false) {
+		if !uniqueStrings(array(names)) {
 			return invalid()
 		}
 	}
@@ -168,52 +184,63 @@ func moduleModel(value map[string]any) error {
 }
 func (w *normalizer) fieldInput(pointer, name string, value any) (any, error) {
 	model := strings.TrimPrefix(pointer, "#/$defs/")
-	if model == "Script" {
-		if name == "start_time" || name == "end_time" {
-			return duration(value)
-		}
-		if name == "events" {
-			return eventDurations(value)
-		}
-	}
-	if (model == "Script" || model == "Story") && name == "speed" && !variable(value) {
-		return speed(value, model)
-	}
-	if model == "Resources" && name == "ram" {
-		return ram(value)
-	}
 	if bound, ok := integerBound(model, name); ok && !variable(value) {
-		parsed, err := normalizeInteger(value, true)
-		if err != nil {
-			return nil, err
-		}
-		n, ok := parsed.(json.Number)
-		if !ok {
-			return nil, invalid()
-		}
-		number, valid := new(big.Int).SetString(n.String(), 10)
-		if !valid {
-			return nil, invalid()
-		}
-		if number.Cmp(big.NewInt(bound.minimum)) < 0 || bound.maximum > 0 && number.Cmp(big.NewInt(bound.maximum)) > 0 {
-			return nil, invalid()
-		}
-		return parsed, nil
+		return boundedInteger(value, bound)
 	}
-	if model == "Node" {
-		if name == "architecture" {
-			return architecture(value), nil
+	switch model {
+	case scriptModelName:
+		return scriptInput(name, value)
+	case "Story":
+		if name == "speed" && !variable(value) {
+			return speed(value, model)
 		}
-		if name == "os_distribution" {
-			if s, ok := value.(string); ok && !variable(value) {
-				return strings.ToLower(s), nil
-			}
+	case "Resources":
+		if name == "ram" {
+			return ram(value)
 		}
-	}
-	if model == "ImportDecl" && name == "path" && text(value) != "" {
-		return value, nil
+	case "Node":
+		return nodeInput(name, value)
 	}
 	return value, nil
+}
+func scriptInput(name string, value any) (any, error) {
+	switch name {
+	case "start_time", "end_time":
+		return duration(value)
+	case "events":
+		return eventDurations(value)
+	case "speed":
+		if !variable(value) {
+			return speed(value, scriptModelName)
+		}
+	}
+	return value, nil
+}
+func nodeInput(name string, value any) (any, error) {
+	switch name {
+	case architectureField:
+		return architecture(value), nil
+	case "os_distribution":
+		if s, ok := value.(string); ok && !variable(value) {
+			return lower(s), nil
+		}
+	}
+	return value, nil
+}
+func boundedInteger(value any, bound integerRange) (any, error) {
+	parsed, err := normalizeInteger(value, true)
+	if err != nil {
+		return nil, err
+	}
+	n, ok := parsed.(json.Number)
+	if !ok {
+		return nil, invalid()
+	}
+	number, valid := new(big.Int).SetString(n.String(), 10)
+	if !valid || number.Cmp(big.NewInt(bound.minimum)) < 0 || bound.maximum > 0 && number.Cmp(big.NewInt(bound.maximum)) > 0 {
+		return nil, invalid()
+	}
+	return parsed, nil
 }
 
 type integerRange struct{ minimum, maximum int64 }
@@ -232,8 +259,8 @@ func architecture(value any) any {
 	if !ok || variable(value) {
 		return value
 	}
-	s = strings.ToLower(s)
-	aliases := map[string]string{"amd64": "x86_64", "x64": "x86_64", "x86-64": "x86_64", "arm64": "aarch64"}
+	s = lower(s)
+	aliases := map[string]string{"amd64": architectureX86, "x64": architectureX86, "x86-64": architectureX86, "arm64": "aarch64"}
 	if canonical, ok := aliases[s]; ok {
 		return canonical
 	}
@@ -265,13 +292,13 @@ func speed(value any, model string) (any, error) {
 		return nil, invalid()
 	}
 	f, err := n.Float64()
-	if err != nil || model == "Script" && f <= 0 || model == "Story" && f < 1 {
+	if err != nil || model == scriptModelName && f <= 0 || model == "Story" && f < 1 {
 		return nil, invalid()
 	}
 	return parsed, nil
 }
 func variableModel(value map[string]any) error {
-	kind := strings.ToLower(text(value["type"]))
+	kind := lower(text(value["type"]))
 	if v := value["default"]; v != nil && (!variableType(v, kind) || !allowedValue(v, array(value["allowed_values"]))) {
 		return invalid()
 	}

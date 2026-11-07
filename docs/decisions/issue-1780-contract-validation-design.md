@@ -375,7 +375,7 @@ Targeted tests cover changed declarations, path refusals and read budgets.
 
 <!-- go-api implementations/tooling/go/cmd/contractgen dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->
 
-<!-- go-api implementations/go/contract/admission 2eb5bda5b6f07451535456cf83a497144b7bbca6b1e8892fcfaf1abc670ddeca -->
+<!-- go-api implementations/go/contract/admission c68da9bd980f9899a7d80eb5e58d4fe6dbab8b57dd7011931c54785065cf6d3c -->
 
 ## Model parity repairs
 
@@ -429,3 +429,13 @@ The single-method artifact ports use provider names: `CleanupPlanProvider`,
 trust requirements stay the same. The original `Context` names remain as type
 aliases, so existing consumers continue to compile. No published schema or
 context payload changes.
+
+## SDL fragment reuse — issue 1782
+
+Expose `Validator.CheckModelFragment(contract, pointer, data, limits)` for the SDL model owner.
+It delegates to the existing published-fragment implementation introduced with issue 1781.
+The check includes the compiled shape, local invariants and nested model predicates.
+It grants no SDL phase or contextual admission.
+
+`NewWithSchemas` reuses the immutable published schemas and installs the complete stock admission registry.
+Caller rule callbacks are replaced by owner rules; this constructor cannot grant a missing predicate success.

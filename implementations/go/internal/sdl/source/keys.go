@@ -2,7 +2,6 @@ package source
 
 import (
 	"errors"
-	"fmt"
 	"slices"
 	"strconv"
 	"strings"
@@ -78,8 +77,8 @@ type effective struct {
 type keyAnalysis struct {
 	options      Options
 	document     *Document
-	items        []Diagnostic
-	seen         map[string]bool
+	items        []pendingDiagnostic
+	seen         map[diagnosticIdentity]bool
 	walked       map[walkKey]bool
 	cache        map[walkKey]effective
 	built        map[*node][]member
@@ -91,55 +90,56 @@ func analyze(d *Document, options Options) error {
 	if err != nil {
 		return err
 	}
-	a := keyAnalysis{options: options, document: d, seen: map[string]bool{}, walked: map[walkKey]bool{}, cache: map[walkKey]effective{}, built: map[*node][]member{}}
+	a := keyAnalysis{options: options, document: d, seen: map[diagnosticIdentity]bool{}, walked: map[walkKey]bool{}, cache: map[walkKey]effective{}, built: map[*node][]member{}}
 	a.materialized = options.BasePointer == "" && options.KeyScope == structuralScope && hasField(d.root, "materialization_provenance")
-	a.walk(d.root, options.KeyScope, tokens, map[*node]bool{})
-	slices.SortFunc(a.items, func(x, y Diagnostic) int {
-		if x.Range.Start.Line != y.Range.Start.Line {
-			return x.Range.Start.Line - y.Range.Start.Line
+	d.baseTokens = tokens
+	a.walk(d.root, options.KeyScope, tokens, map[*node]bool{}, rootPath(tokens))
+	slices.SortFunc(a.items, func(x, y pendingDiagnostic) int {
+		if x.diagnostic.Range.Start.Line != y.diagnostic.Range.Start.Line {
+			return x.diagnostic.Range.Start.Line - y.diagnostic.Range.Start.Line
 		}
-		if x.Range.Start.Column != y.Range.Start.Column {
-			return x.Range.Start.Column - y.Range.Start.Column
+		if x.diagnostic.Range.Start.Column != y.diagnostic.Range.Start.Column {
+			return x.diagnostic.Range.Start.Column - y.diagnostic.Range.Start.Column
 		}
-		if cmp := strings.Compare(x.Code, y.Code); cmp != 0 {
+		if cmp := strings.Compare(x.diagnostic.Code, y.diagnostic.Code); cmp != 0 {
 			return cmp
 		}
-		return strings.Compare(x.Pointer, y.Pointer)
+		return comparePaths(x.path, y.path)
 	})
-	var failures []Diagnostic
+	var failures []pendingDiagnostic
 	for _, d := range a.items {
-		if d.Severity == "warning" {
+		if d.diagnostic.Severity == "warning" {
 			a.document.warnings = append(a.document.warnings, d)
 		} else {
 			failures = append(failures, d)
 		}
 	}
 	if len(failures) > 0 {
-		return &parseError{failures}
+		return &parseError{pending: failures}
 	}
-	d.collectRanges(d.root, options.KeyScope, tokens)
 	return a.expandMerges(d.root, options.KeyScope, map[*node]bool{})
 }
-func (a *keyAnalysis) add(code string, n *node, tokens []string, related *node, keys []string) {
+func (a *keyAnalysis) add(code string, n *node, path *sourcePath, related *node, keys []string) {
 	severity := "error"
 	if a.options.MigrationPolicy == "accept" && (code == "sdl.noncanonical_field" || code == "sdl.noncanonical_merge") {
 		severity = "warning"
 	}
-	d := Diagnostic{Code: code, Pointer: jsonpointer.FromTokens(tokens), Range: n.span, AuthoredKeys: keys, Severity: severity, Source: a.options.Name}
+	row := pendingDiagnostic{diagnostic: Diagnostic{Code: code, Range: n.span, AuthoredKeys: keys, Severity: severity, Source: a.options.Name}, path: path}
+	identity := diagnosticIdentity{code: code, path: path, start: n.span.Start}
 	if related != nil {
-		r := related.span
-		d.Related = &r
+		span := related.span
+		row.diagnostic.Related = &span
+		identity.related = span
+		identity.hasRelated = true
 	}
-	identity := fmt.Sprintf("%s/%s/%d/%d/%v", code, d.Pointer, d.Range.Start.Line, d.Range.Start.Column, d.Related)
 	if !a.seen[identity] {
 		a.seen[identity] = true
-		a.items = append(a.items, d)
+		a.items = append(a.items, row)
 	}
 }
-func (a *keyAnalysis) walk(n *node, scope string, tokens []string, active map[*node]bool) {
-	a.document.ranges[jsonpointer.FromTokens(tokens)] = n.span
+func (a *keyAnalysis) walk(n *node, scope string, tokens []string, active map[*node]bool, path *sourcePath) {
 	if active[n] {
-		a.add("sdl.alias_cycle", n, tokens, nil, nil)
+		a.add("sdl.alias_cycle", n, path, nil, nil)
 		return
 	}
 	id := walkKey{n, scope}
@@ -151,7 +151,7 @@ func (a *keyAnalysis) walk(n *node, scope string, tokens []string, active map[*n
 	defer delete(active, n)
 	if n.kind == 's' {
 		for i, c := range n.children {
-			a.walk(c, scope, descend(tokens, strconv.Itoa(i)), active)
+			a.walk(c, scope, descend(tokens, strconv.Itoa(i)), active, path.child(strconv.Itoa(i)))
 		}
 		return
 	}
@@ -161,33 +161,32 @@ func (a *keyAnalysis) walk(n *node, scope string, tokens []string, active map[*n
 		first, last := pair[0], pair[1]
 		suppressed[first.key] = true
 		suppressed[last.key] = true
-		a.add("sdl.mapping_key_conflict", last.key, descend(tokens, last.canonical), first.key, []string{authored(first.key), authored(last.key)})
+		a.add("sdl.mapping_key_conflict", last.key, path.child(last.canonical), first.key, []string{authored(first.key), authored(last.key)})
 	}
 	for _, entry := range n.entries {
-		a.entry(entry, scope, tokens, active, suppressed[entry.key])
+		a.entry(entry, scope, tokens, active, suppressed[entry.key], path)
 	}
 }
-func (a *keyAnalysis) entry(e member, scope string, tokens []string, active map[*node]bool, suppress bool) {
+func (a *keyAnalysis) entry(e member, scope string, tokens []string, active map[*node]bool, suppress bool, path *sourcePath) {
 	if e.key.merge {
-		a.add("sdl.noncanonical_merge", e.key, tokens, nil, []string{"<<", "<<"})
+		a.add("sdl.noncanonical_merge", e.key, path, nil, []string{"<<", "<<"})
 		for _, m := range mergeSources(e.value) {
-			a.walk(m, scope, tokens, active)
+			a.walk(m, scope, tokens, active, path)
 		}
 		return
 	}
 	key, ok := e.key.value.(string)
 	if !ok || e.key.kind != 'v' {
-		a.add("sdl.mapping_key_type", e.key, descend(tokens, authored(e.key)), nil, nil)
+		a.add("sdl.mapping_key_type", e.key, path.child(authored(e.key)), nil, nil)
 		return
 	}
 	c := canonical(key, scope)
 	child := descend(tokens, c)
 	if scope == structuralScope && key != c && !suppress {
-		a.add("sdl.noncanonical_field", e.key, child, nil, []string{key, c})
+		a.add("sdl.noncanonical_field", e.key, path.child(c), nil, []string{key, c})
 	}
-	a.document.keyRanges[jsonpointer.FromTokens(child)] = e.key.span
-	a.identifiers(e.key, e.value, key, tokens, child, suppress)
-	a.walk(e.value, childScope(scope, c, e.value), child, active)
+	a.identifiers(e.key, e.value, key, tokens, child, suppress, path.child(c))
+	a.walk(e.value, childScope(scope, c, e.value), child, active, path.child(c))
 }
 func (a *keyAnalysis) effective(n *node, scope string, active map[*node]bool) effective {
 	id := walkKey{n, scope}
@@ -321,18 +320,18 @@ func declarationPath(t []string) bool {
 	}
 	return true
 }
-func (a *keyAnalysis) identifiers(key, value *node, name string, parent, child []string, suppress bool) {
+func (a *keyAnalysis) identifiers(key, value *node, name string, parent, child []string, suppress bool, path *sourcePath) {
 	if declarationPath(parent) && !suppress {
-		a.declaration(key, name, parent, child)
+		a.declaration(key, name, parent, path)
 	}
 	if len(child) == 1 && child[0] == "name" || scalarIdentifier(child) {
 		text, ok := value.value.(string)
 		if value.kind != 'v' || !ok || !portable(text) {
-			a.add("sdl.identifier.invalid", value, child, nil, nil)
+			a.add("sdl.identifier.invalid", value, path, nil, nil)
 		}
 	}
 }
-func (a *keyAnalysis) declaration(key *node, name string, parent, child []string) {
+func (a *keyAnalysis) declaration(key *node, name string, parent []string, path *sourcePath) {
 	local := name
 	valid := portable(name)
 	if a.materialized && len(parent) == 1 {
@@ -341,10 +340,10 @@ func (a *keyAnalysis) declaration(key *node, name string, parent, child []string
 		local = parts[len(parts)-1]
 	}
 	if !valid {
-		a.add("sdl.identifier.invalid", key, child, nil, nil)
+		a.add("sdl.identifier.invalid", key, path, nil, nil)
 	}
 	if len(parent) == 1 && parent[0] == nodesSection && len(local) > 35 {
-		a.add("sdl.identifier.invalid", key, child, nil, nil)
+		a.add("sdl.identifier.invalid", key, path, nil, nil)
 	}
 }
 func qualified(name string) bool {
@@ -382,7 +381,7 @@ func hasField(n *node, key string) bool {
 }
 
 func (d *Document) collectRanges(n *node, scope string, tokens []string) {
-	d.ranges[jsonpointer.FromTokens(tokens)] = n.span
+	d.ranges[jsonpointer.FromTokens(tokens)] = n.location()
 	if n.kind == 's' {
 		for i, c := range n.children {
 			d.collectRanges(c, scope, descend(tokens, strconv.Itoa(i)))
@@ -422,6 +421,7 @@ func (a *keyAnalysis) constructionEntries(n *node) ([]member, error) {
 	if entries, present := a.built[n]; present {
 		return entries, nil
 	}
+	n.locationSpan = n.span
 	var inherited, local []member
 	for _, entry := range n.entries {
 		if !entry.key.merge {
@@ -436,6 +436,9 @@ func (a *keyAnalysis) constructionEntries(n *node) ([]member, error) {
 		groups, err := a.constructionGroups(entry.value)
 		if err != nil {
 			return nil, err
+		}
+		for _, src := range mergeSources(entry.value) {
+			n.locationSpan = src.location()
 		}
 		for _, group := range groups {
 			inherited = append(inherited, group...)

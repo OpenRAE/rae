@@ -14,11 +14,12 @@ import (
 )
 
 type composition struct {
-	parser   *Parser
-	request  Request
-	supplied *source.Sources
-	budget   *source.Budget
-	seen     map[string]bool
+	parser      *Parser
+	request     Request
+	supplied    *source.Sources
+	budget      *source.Budget
+	seen        map[string]bool
+	localDenied map[string]bool
 }
 
 func (p *Parser) checkImports(document *Document, request Request, captured *source.Sources) error {
@@ -32,7 +33,7 @@ func (p *Parser) checkImports(document *Document, request Request, captured *sou
 	if request.Name == "" {
 		return invalid()
 	}
-	c := composition{parser: p, request: request, seen: map[string]bool{}}
+	c := composition{parser: p, request: request, seen: map[string]bool{}, localDenied: map[string]bool{}}
 	c.budget, err = source.NewBudget(p.limits)
 	if err != nil {
 		return err
@@ -49,16 +50,7 @@ func (p *Parser) modelValue(document *Document) (map[string]any, error) {
 	return object(value), nil
 }
 func (c *composition) charge(document *Document) error {
-	options := c.parser.options("", "reject")
-	options.KeyScope = "data"
-	options.Limits.MaxInputBytes = c.parser.limits.MaxComposedBytes
-	options.Limits.MaxNodes = c.parser.limits.MaxComposedNodes
-	options.Limits.MaxExpandedNodes = c.parser.limits.MaxComposedNodes
-	normalized, err := source.Decode(document.data, options)
-	if err != nil {
-		return err
-	}
-	return c.budget.AddDocument(normalized)
+	return c.budget.AddValue(document.compositionValue)
 }
 func (c *composition) expand(document *Document, value map[string]any, name string, depth int) (map[string]any, error) {
 	if err := c.budget.CheckDepth(depth); err != nil {
@@ -78,7 +70,7 @@ func (c *composition) expand(document *Document, value map[string]any, name stri
 		return nil, err
 	}
 	if c.supplied == nil {
-		if err = c.trust(name, len(imports) > 0); err != nil {
+		if err = c.trust(name); err != nil {
 			return nil, err
 		}
 	}
@@ -94,33 +86,21 @@ func (c *composition) expand(document *Document, value map[string]any, name stri
 	return value, nil
 }
 func (c *composition) edge(parent, decl map[string]any, importer string, depth int, lock *lockfile) error {
-	requested := text(decl["source"])
-	if requested == "" {
-		requested = "local:" + text(decl["path"])
-	}
-	if !strings.HasPrefix(requested, "local:") {
-		return importError("source-refused")
-	}
-	relative := strings.TrimPrefix(requested, "local:")
-	namespace := text(decl["namespace"])
-	if namespace == "" || namespace == "__private" || strings.Contains(namespace, ".") {
-		return importError("namespace-invalid")
-	}
-	pin := text(decl["digest"])
-	if c.supplied != nil {
-		if pin == "" {
-			return importError("digest-missing")
-		}
-		if !strictPin(pin) {
-			return importError("digest-invalid")
-		}
-	}
-	name, err := source.ResolvePath(path.Dir(importer), relative)
+	decl, err := c.resolveLocked(decl, lock)
 	if err != nil {
 		return err
 	}
-	if c.supplied == nil && !withinDirectory(path.Dir(importer), name) {
-		return importError("path-invalid")
+	requested := importSource(decl)
+	if err = c.budget.CheckDepth(depth + 1); err != nil {
+		return err
+	}
+	if err = c.checkImportDecl(decl, requested); err != nil {
+		return err
+	}
+	relative := strings.TrimPrefix(requested, "local:")
+	name, err := c.localName(importer, relative)
+	if err != nil {
+		return err
 	}
 	raw, err := c.read(name)
 	if err != nil {
@@ -134,22 +114,9 @@ func (c *composition) edge(parent, decl map[string]any, importer string, depth i
 	if err != nil {
 		return err
 	}
-	if child.contract != "sdl-authoring-input-v1" {
-		return importError("descriptor-missing")
-	}
-	descriptor := object(value["module"])
-	if descriptor == nil {
-		return importError("descriptor-missing")
-	}
-	requirement, err := versionSpec(text(decl["version"]))
+	descriptor, err := admittedModule(child, value, decl, raw, c.localDenied[importer])
 	if err != nil {
 		return err
-	}
-	if !requirement.accepts(text(descriptor["version"])) {
-		return importError("version-mismatch")
-	}
-	if !pinMatches(raw, pin) {
-		return importError("digest-mismatch")
 	}
 	if err = c.checkLock(lock, decl, descriptor, raw, requested, relative); err != nil {
 		return err
@@ -168,7 +135,62 @@ func (c *composition) edge(parent, decl map[string]any, importer string, depth i
 	if err != nil {
 		return err
 	}
-	return c.combine(parent, expanded, namespace, descriptor)
+	return c.combine(parent, expanded, text(decl["namespace"]), descriptor)
+}
+func importSource(decl map[string]any) string {
+	if requested := text(decl[sourceField]); requested != "" {
+		return requested
+	}
+	return "local:" + text(decl["path"])
+}
+func (c *composition) checkImportDecl(decl map[string]any, requested string) error {
+	if !strings.HasPrefix(requested, "local:") {
+		return importError("source-refused")
+	}
+	namespace := text(decl["namespace"])
+	if namespace == "" || namespace == privateSegment || strings.Contains(namespace, ".") {
+		return importError("namespace-invalid")
+	}
+	if c.supplied != nil {
+		pin := text(decl["digest"])
+		if pin == "" {
+			return importError("digest-missing")
+		}
+		if !strictPin(pin) {
+			return importError("digest-invalid")
+		}
+	}
+	return nil
+}
+func (c *composition) localName(importer, relative string) (string, error) {
+	name, err := source.ResolvePath(path.Dir(importer), relative)
+	if err != nil {
+		return "", err
+	}
+	if c.supplied == nil && !withinDirectory(path.Dir(importer), name) {
+		return "", importError("path-invalid")
+	}
+	return name, nil
+}
+func admittedModule(document *Document, value, decl map[string]any, raw []byte, localDenied bool) (map[string]any, error) {
+	descriptor := object(value["module"])
+	if document.contract != authoringContract || descriptor == nil {
+		return nil, importError("descriptor-missing")
+	}
+	requirement, err := versionSpec(text(decl["version"]))
+	if err != nil {
+		return nil, err
+	}
+	if !requirement.accepts(text(descriptor["version"])) {
+		return nil, importError("version-mismatch")
+	}
+	if localDenied {
+		return nil, importError("local-disabled")
+	}
+	if !pinMatches(raw, text(decl["digest"])) {
+		return nil, importError("digest-mismatch")
+	}
+	return descriptor, nil
 }
 func withinDirectory(directory, name string) bool {
 	return directory == "." || strings.HasPrefix(name, directory+"/")
@@ -180,12 +202,15 @@ func (c *composition) read(name string) ([]byte, error) {
 	if c.request.FS == nil {
 		return nil, importError("source-missing")
 	}
+	return c.readBounded(name, c.parser.limits.MaxInputBytes)
+}
+func (c *composition) readBounded(name string, limit int64) ([]byte, error) {
 	file, err := c.request.FS.Open(name)
 	if err != nil {
 		return nil, importReadError(err)
 	}
 	defer func() { _ = file.Close() }()
-	raw, err := io.ReadAll(io.LimitReader(file, c.parser.limits.MaxInputBytes))
+	raw, err := io.ReadAll(io.LimitReader(file, limit))
 	if err != nil {
 		return nil, importReadError(err)
 	}

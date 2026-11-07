@@ -120,6 +120,34 @@
       "error": "SDLParseError"
     },
     {
+      "name": "legacy-null-realization",
+      "source": "name: a\nnodes: {web: {type: vm}}\nrealization: null\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "legacy-null-constraints",
+      "source": "name: a\nnodes: {web: {type: vm}}\nrealization: {constraints: null}\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "literal-merge-order",
+      "source": "name: a\nnodes: {<<: [{web: {type: compute}}, {switch: {type: switch}}]}\n",
+      "accepted": true,
+      "content": "name: a\nnodes:\n  switch:\n    type: switch\n  web:\n    type: compute\n",
+      "diagnostics": [
+        "sdl.noncanonical_merge"
+      ]
+    },
+    {
+      "name": "list-shorthand-order",
+      "source": "name: a\nnodes: {web: {type: compute, features: [z, a, z]}}\n",
+      "accepted": true,
+      "content": "name: a\nnodes:\n  web:\n    type: compute\n    features:\n      z: ''\n      a: ''\n",
+      "diagnostics": []
+    },
+    {
       "name": "switch-empty-runtime",
       "source": "name: a\nnodes: {s: {type: switch, runtime: {}}}\n",
       "accepted": false,
@@ -226,6 +254,97 @@
       "source": "name: a\nnodes: {web: {type: compute, resources: {ram: 1, cpu: \"11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111\"}}}\n",
       "accepted": false,
       "error": "SDLParseError"
+    },
+    {
+      "name": "artifact-exact",
+      "source": "name: a\nnodes:\n  web:\n    type: compute\n    source:\n      name: pkg\n      version: '1'\n      artifact_requirement:\n        requirement_id: req\n        explicitness: exact\n        exact_artifact:\n          artifact_id: pkg\n          version: '1'\n          digest: sha256:1111111111111111111111111111111111111111111111111111111111111111\n          media_type: application/octet-stream\n        permitted_routes:\n        - mechanism:\n            mechanism: exact-artifact\n            profile: example/profile\n            version: '1'\n            digest: sha256:2222222222222222222222222222222222222222222222222222222222222222\n          acquisition: pull\n          timing: realization\n",
+      "accepted": true,
+      "content": "name: a\nnodes:\n  web:\n    type: compute\n    source:\n      name: pkg\n      version: '1'\n      artifact_requirement:\n        requirement_id: req\n        explicitness: exact\n        exact_artifact:\n          artifact_id: pkg\n          version: '1'\n          digest: sha256:1111111111111111111111111111111111111111111111111111111111111111\n          media_type: application/octet-stream\n        permitted_routes:\n        - mechanism:\n            mechanism: exact-artifact\n            profile: example/profile\n            version: '1'\n            digest: sha256:2222222222222222222222222222222222222222222222222222222222222222\n          acquisition: pull\n          timing: realization\n",
+      "diagnostics": []
+    },
+    {
+      "name": "artifact-selector",
+      "source": "name: a\nnodes:\n  web:\n    type: compute\n    source:\n      name: pkg\n      version: '2'\n      artifact_requirement:\n        requirement_id: req\n        explicitness: exact\n        exact_artifact:\n          artifact_id: pkg\n          version: '1'\n          digest: sha256:1111111111111111111111111111111111111111111111111111111111111111\n          media_type: application/octet-stream\n        permitted_routes:\n        - mechanism:\n            mechanism: exact-artifact\n            profile: example/profile\n            version: '1'\n            digest: sha256:2222222222222222222222222222222222222222222222222222222222222222\n          acquisition: pull\n          timing: realization\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "artifact-mechanism-newline",
+      "source": "name: a\nnodes:\n  web:\n    type: compute\n    source:\n      name: pkg\n      version: '1'\n      artifact_requirement:\n        requirement_id: req\n        explicitness: exact\n        exact_artifact:\n          artifact_id: pkg\n          version: '1'\n          digest: sha256:1111111111111111111111111111111111111111111111111111111111111111\n          media_type: application/octet-stream\n        permitted_routes:\n        - mechanism:\n            mechanism: 'x-example:custom\n\n              '\n            profile: example/profile\n            version: '1'\n            digest: sha256:2222222222222222222222222222222222222222222222222222222222222222\n          acquisition: pull\n          timing: realization\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "artifact-route-identity",
+      "source": "name: a\nnodes:\n  web:\n    type: compute\n    source:\n      name: pkg\n      version: '1'\n      artifact_requirement:\n        requirement_id: req\n        explicitness: exact\n        exact_artifact:\n          artifact_id: pkg\n          version: '1'\n          digest: sha256:1111111111111111111111111111111111111111111111111111111111111111\n          media_type: application/octet-stream\n        permitted_routes:\n        - mechanism:\n            mechanism: exact-artifact\n            profile: example/profile\n            version: '1'\n            digest: sha256:2222222222222222222222222222222222222222222222222222222222222222\n          acquisition: pull\n          timing: realization\n        - mechanism:\n            mechanism: exact-artifact\n            profile: example/profile\n            version: '1'\n            digest: sha256:3333333333333333333333333333333333333333333333333333333333333333\n          acquisition: pull\n          timing: realization\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "artifact-constrained",
+      "source": "name: a\nnodes:\n  web:\n    type: compute\n    source:\n      name: pkg\n      version: '1'\n      artifact_requirement:\n        requirement_id: req\n        explicitness: constrained\n        permitted_routes:\n        - mechanism:\n            mechanism: exact-artifact\n            profile: example/profile\n            version: '1'\n            digest: sha256:2222222222222222222222222222222222222222222222222222222222222222\n          acquisition: pull\n          timing: realization\n        constraints:\n        - constraint_id: c\n          kind: x\n          allowed_values:\n          - a\n",
+      "accepted": true,
+      "content": "name: a\nnodes:\n  web:\n    type: compute\n    source:\n      name: pkg\n      version: '1'\n      artifact_requirement:\n        requirement_id: req\n        explicitness: constrained\n        constraints:\n        - constraint_id: c\n          kind: x\n          allowed_values:\n          - a\n        permitted_routes:\n        - mechanism:\n            mechanism: exact-artifact\n            profile: example/profile\n            version: '1'\n            digest: sha256:2222222222222222222222222222222222222222222222222222222222222222\n          acquisition: pull\n          timing: realization\n",
+      "diagnostics": []
+    },
+    {
+      "name": "artifact-constraint-values",
+      "source": "name: a\nnodes:\n  web:\n    type: compute\n    source:\n      name: pkg\n      version: '1'\n      artifact_requirement:\n        requirement_id: req\n        explicitness: constrained\n        permitted_routes:\n        - mechanism:\n            mechanism: exact-artifact\n            profile: example/profile\n            version: '1'\n            digest: sha256:2222222222222222222222222222222222222222222222222222222222222222\n          acquisition: pull\n          timing: realization\n        constraints:\n        - constraint_id: c\n          kind: x\n          allowed_values:\n          - a\n          - a\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "artifact-constraint-identity",
+      "source": "name: a\nnodes:\n  web:\n    type: compute\n    source:\n      name: pkg\n      version: '1'\n      artifact_requirement:\n        requirement_id: req\n        explicitness: constrained\n        permitted_routes:\n        - mechanism:\n            mechanism: exact-artifact\n            profile: example/profile\n            version: '1'\n            digest: sha256:2222222222222222222222222222222222222222222222222222222222222222\n          acquisition: pull\n          timing: realization\n        constraints:\n        - constraint_id: c\n          kind: x\n          allowed_values:\n          - a\n        - constraint_id: c\n          kind: x\n          allowed_values:\n          - b\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "artifact-input-join",
+      "source": "name: a\nnodes:\n  web:\n    type: compute\n    source:\n      name: pkg\n      version: '1'\n      artifact_requirement:\n        requirement_id: req\n        explicitness: constrained\n        permitted_routes:\n        - mechanism:\n            mechanism: exact-artifact\n            profile: example/profile\n            version: '1'\n            digest: sha256:2222222222222222222222222222222222222222222222222222222222222222\n          acquisition: pull\n          timing: realization\n        constraints:\n        - constraint_id: c\n          kind: x\n          allowed_values:\n          - a\n        materialization_specifications:\n        - specification_id: s\n          profile:\n            mechanism: materialization-specification\n            profile: example/profile\n            version: '1'\n            digest: sha256:2222222222222222222222222222222222222222222222222222222222222222\n          digest: sha256:4444444444444444444444444444444444444444444444444444444444444444\n          locked_input_ids:\n          - missing\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "revision-alias-null",
+      "source": "name: a\nSemantic-Revision: null\n",
+      "accepted": true,
+      "content": "name: a\n",
+      "diagnostics": [
+        "sdl.noncanonical_field"
+      ]
+    },
+    {
+      "name": "unicode-enum",
+      "source": "name: a\nnodes: {s: {type: sw\u0130tch}}\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "private-agent-ref",
+      "source": "name: a\nagents: {a: {affiliations: [m.__private.team]}}\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "public-agent-ref",
+      "source": "name: a\nagents: {a: {affiliations: [m.team]}}\n",
+      "accepted": true,
+      "content": "name: a\nagents:\n  a:\n    affiliations:\n    - m.team\n",
+      "diagnostics": []
+    },
+    {
+      "name": "private-behavior-ref",
+      "source": "name: a\nbehavior_specifications: {b: {semantic_version: \"1\", participant_refs: [m.__private.a]}}\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "literal-private-description",
+      "source": "name: a\nagents: {a: {description: m.__private.team}}\n",
+      "accepted": true,
+      "content": "name: a\nagents:\n  a:\n    description: m.__private.team\n",
+      "diagnostics": []
     }
   ]
 }

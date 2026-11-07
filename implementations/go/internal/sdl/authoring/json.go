@@ -44,7 +44,7 @@ func (w *jsonWriter) value(value any) error {
 		}
 		return w.append([]byte(number))
 	default:
-		raw, err := json.Marshal(value)
+		raw, err := jsonScalar(value)
 		if err != nil {
 			return err
 		}
@@ -66,14 +66,7 @@ func (w *jsonWriter) object(entries ordered) error {
 			}
 		}
 		first = false
-		name, err := json.Marshal(entry.name)
-		if err != nil {
-			return err
-		}
-		if err = w.append(append(name, ':')); err != nil {
-			return err
-		}
-		if err = w.value(entry.value); err != nil {
+		if err := w.entry(entry); err != nil {
 			return err
 		}
 	}
@@ -94,4 +87,26 @@ func (w *jsonWriter) sequence(items []any) error {
 		}
 	}
 	return w.append([]byte{']'})
+}
+
+// Internal JSON preserves string bytes rather than applying HTML presentation escapes.
+func jsonScalar(value any) ([]byte, error) {
+	var out bytes.Buffer
+	encoder := json.NewEncoder(&out)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(value); err != nil {
+		return nil, err
+	}
+	return bytes.TrimSuffix(out.Bytes(), []byte{'\n'}), nil
+}
+
+func (w *jsonWriter) entry(entry field) error {
+	name, err := jsonScalar(entry.name)
+	if err != nil {
+		return err
+	}
+	if err = w.append(append(name, ':')); err != nil {
+		return err
+	}
+	return w.value(entry.value)
 }

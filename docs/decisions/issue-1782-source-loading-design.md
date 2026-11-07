@@ -120,28 +120,27 @@ A model check is not proof of runtime behavior or formatter-command parity.
 
 The pre-code package and dependency design check passed; the issue plan records that order.
 The final typed API snapshot was reviewed after implementation and added to the model.
-The current fixture has 315 source cases from Python commit `9ce61105e833d4edfe465bbc0bebce12cd8a9a6d`.
-Targeted source tests pass with 93.0% statement coverage.
+The current fixture has 318 source cases from Python commit `9ce61105e833d4edfe465bbc0bebce12cd8a9a6d`.
+Targeted source tests pass. CI runs the full coverage, race, fuzz and mutation lanes.
 Selected canonical-profile corpus cases and two example sources pass their source-boundary checks.
-A targeted 10,000-field decode benchmark took about 130 ms on the development host.
 Fuzz seeds are present; full fuzz and mutation runs belong to CI.
 Python implementation files and published schemas remain unchanged.
 
 The maintainer selected option 2: include the model and import-composition prerequisites needed for full formatter parity.
-Full formatter validation and normalization use the model and composition ports assigned to #1783 and #1785.
+The expanded formatter operation uses `internal/sdl/authoring` for normalization and import validation.
 `Document.Render` provides YAML presentation, without model defaults, shorthand expansion, legacy model migration or import admission.
 No full formatter-command or issue-completion claim is made by this source component.
 
 ## API commitments
 
-<!-- go-api implementations/go/internal/sdl/source 35366d84b9f3c94b83a7ef482f8add5f5e305acf6d0450095625ea5d53099d85 -->
+<!-- go-api implementations/go/internal/sdl/source b6cb98c2ee809d398638f62e62a31ec7e3dde7d89b053d9ab04cfe50013773a3 -->
 
 ## Expanded formatter prerequisite design
 
 The maintainer approved this scope on 2026-11-07, before the expanded implementation.
 `internal/sdl/authoring` owns the native structural model and formatter operation.
 `Parser`, `New`, `Decode`, `Format`, `Request`, `Result` and immutable `Document` are its package interface.
-A document exposes copied normalized JSON and typed authored/materialized contract bindings.
+A document exposes copied normalized JSON. Contract bindings remain with the existing binding owner.
 No caller flag can create an admitted document or mark it semantically valid.
 The existing public SDL consumer plan remains with its delivery owners; no placeholder public operations are added.
 
@@ -178,11 +177,7 @@ Targeted checks cover model normalization and rejection, exact formatter bytes, 
 The existing full formatter corpus runs in CI; local checks select explicit source cases.
 No Python implementation or published schema changes are permitted.
 
-<!-- go-api implementations/go/internal/sdl/authoring bbd60f28c8ed8129a8a320b9ad04b8e91c2dc671e541287f950e9ef696b5870c -->
-
-Module version admission uses the Apache-2.0 [Aqua PEP 440 library](https://github.com/aquasecurity/go-pep440-version).
-The adapter refuses its OR extension and retains Python packaging specifier and prerelease rules.
-Version and constraint inputs remain source-bounded before parsing.
+<!-- go-api implementations/go/internal/sdl/authoring 96682a091b240d12369e36dadf2e4b5b90f9eddc7c19dc85dfaef494606ca2d6 -->
 
 The compatibility metadata also names explicit scalar normalization operations at published model fields.
 These records distinguish enum normalization from strict literals, and ordinary scalar coercion from strict scalar fields.
@@ -191,13 +186,76 @@ The recorder extracts presentation and primitive-conversion facts from the uncha
 The Go implementation owns the conversion algorithms and model predicates; metadata contains no executable code or class paths.
 Keep unrestricted JSON values outside model scalar coercion.
 
-### Module-version boundary correction
+### Module versions
 
-Reference vectors found that the proposed Aqua adapter refuses integer version components above 64 bits.
-It also differs from the pinned packaging 26.0 membership policy and arbitrary equality grammar.
-Do not ship that adapter or dependency.
-The authoring owner will parse the [PEP 440 grammar](https://peps.python.org/pep-0440/) with bounded RE2 matches and compare normalized decimal strings without integer narrowing.
+The authoring owner parses the [PEP 440 grammar](https://peps.python.org/pep-0440/) with bounded RE2 matches and compare normalized decimal strings without integer narrowing.
 Native keys order epoch, zero-padded release components, prerelease, postrelease, development and local labels.
 Specifier checks retain prefix equality, compatible releases, arbitrary equality and the reference's invalid-version fallback.
 Digit limits distinguish a numeric conversion failure from an invalid version spelling.
 The input and scalar ceilings apply before parsing; reference vectors cover the library defects and each specifier operator.
+
+### Composition and ordering interfaces
+
+`source.Document.View` returns an immutable source cursor.
+`View.Keys`, `View.Child` and `View.Range` give copied key sequences, child cursors and original ranges.
+Construction order is distinct from physical key positions for aliases and disjoint merge sequences.
+The authoring owner uses these sequences and records keys created by list shorthands before model field ordering.
+This avoids reconstructing order from source ranges or reparsing rendered YAML.
+
+`contract/admission.Validator.CheckModelFragment` exposes the existing published-fragment model check.
+It checks a reachable compiled model, local invariants and nested owner predicates without granting phase admission.
+Bound imported declarations use this owner after substitution; qualified declaration keys use native composition checks.
+Do not duplicate contract predicates in the SDL owner.
+
+
+### Metadata allocation
+
+A cursor follows one graph edge at a time and avoids repeated full-path lookups.
+Cache canonical member indexes per mapping and key scope; the cache is synchronized and contains no mutable domain values.
+Bulk range accessors materialize requested metadata on demand.
+Store diagnostic paths as shared token prefixes until the caller requests their text.
+This preserves all source metadata while preventing eager pointer-string multiplication on deep inputs.
+The model owner uses cursors and materializes advisories after model validation.
+No new source-profile limit or parse refusal is introduced by this storage change.
+
+Share one immutable compiled schema set between admission and concept owners through `admission.NewWithSchemas`.
+The constructor installs the complete owner rule registry and checks the packaged catalogs.
+The authoring owner uses `concept.Authority` for governed extension identities.
+Use full Unicode lowercasing for authored enum aliases; extension identities retain the reference's exact spelling rules.
+
+
+### Authoring checks and binding
+
+Model predicates check artifact identity uniqueness, materialization input joins and exact Source selectors after child normalization.
+Governed mechanism tokens use full matches, including at trailing newlines.
+Authored behavior references cannot introduce the reserved private namespace segment.
+Binding may preserve an identical reference generated by expansion; substituted parameters cannot create new private references.
+Control-context descriptors reject variable tokens before binding and are pinned only at the scenario root.
+Inline substitution uses Python scalar spelling and numeric equality without narrowing integer values.
+The internal JSON writer disables HTML escaping so presentation does not consume a source limit merely because a string contains `<`, `>` or `&`.
+Common presentation records are stored once; the contract-specific records retain each root model's published field order.
+
+
+### Formatter byte oracle in CI
+
+CI runs the unchanged Python formatter on the stored CLI formatter inputs and records exact output bytes in a temporary local oracle file.
+The Go parity test compares both acceptance and bytes for every stored formatter case.
+The recorder verifies its results against the existing corpus verdicts, so it cannot silently replace an expected refusal.
+Local runs select named cases; the full corpus remains a CI check.
+The oracle contains no new published contract and uses only the existing repository inputs and CI runner storage.
+
+
+### Composition accounting before model coercion
+
+`Budget.AddValue` charges the normalized source JSON directly, without serializing it or applying scalar coercion and serializer omissions.
+It counts mapping keys, values, strings and repeated subtrees as the reference does.
+It reserves the remaining node capacity before queuing children and rejects unsupported native carriers.
+The authoring document retains this private source view for accounting; callers receive only checked, copied model values.
+`AddDocument` remains available for source graphs.
+Neither operation grants admission authority.
+
+
+Workspace trust and lock files retain the reference's default configuration-read limits.
+Only supplied lock bytes consume the supplied-source composition budget.
+Workspace policy files are validated for each expanded module, including a leaf.
+A leaf's local-import policy controls that leaf's import edges.

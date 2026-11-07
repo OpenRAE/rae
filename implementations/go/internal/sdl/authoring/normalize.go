@@ -6,7 +6,6 @@ import (
 	"maps"
 	"regexp"
 	"slices"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -24,7 +23,7 @@ type ordered []field
 type normalizer struct {
 	parser    *Parser
 	id        string
-	ranges    map[string]source.Range
+	hints     map[string][]string
 	remaining int
 	patterns  map[string]*regexp.Regexp
 }
@@ -40,7 +39,7 @@ func resolve(root map[string]any, pointer string) map[string]any {
 	return object(current)
 }
 func (w *normalizer) dereference(schema map[string]any, pointer string) (map[string]any, string) {
-	for i := 0; i < 16; i++ {
+	for range 16 {
 		ref := text(schema["$ref"])
 		if ref == "" {
 			return schema, pointer
@@ -50,10 +49,10 @@ func (w *normalizer) dereference(schema map[string]any, pointer string) (map[str
 	}
 	return nil, pointer
 }
-func (w *normalizer) walk(schema map[string]any, pointer string, value any, path string, policy scalarPolicy) (result any, failure error) {
+func (w *normalizer) walk(schema map[string]any, pointer string, value any, path []string, policy scalarPolicy, view source.View) (result any, failure error) {
 	defer func() { failure = locatedModelError(failure, path) }()
 	w.remaining--
-	if w.remaining < 0 || strings.Count(path, "/") > w.parser.limits.MaxDepth {
+	if w.remaining < 0 || len(path) > w.parser.limits.MaxDepth {
 		return nil, invalid()
 	}
 	schema, pointer = w.dereference(schema, pointer)
@@ -65,20 +64,25 @@ func (w *normalizer) walk(schema map[string]any, pointer string, value any, path
 	if err != nil {
 		return nil, err
 	}
+	if schema["type"] == stringType {
+		if _, ok := value.(string); !ok {
+			return nil, invalid()
+		}
+	}
 	if chosen, selected := w.choose(alternatives(schema), value); chosen != nil {
 		policy.Convert = nil
-		return w.walk(chosen, selected, value, path, policy)
+		return w.walk(chosen, selected, value, path, policy, view)
 	}
-	return w.walkValue(schema, pointer, value, path, policy)
+	return w.walkValue(schema, pointer, value, path, policy, view)
 }
-func locatedModelError(err error, path string) error {
+func locatedModelError(err error, path []string) error {
 	if err == nil {
 		return nil
 	}
 	if _, ok := errors.AsType[*modelError](err); ok {
 		return err
 	}
-	return &modelError{path: path, cause: err}
+	return &modelError{path: jsonpointer.FromTokens(path), cause: err}
 }
 func packageShorthand(pointer string, value any) any {
 	if pointer == "#/$defs/Source" {
@@ -88,24 +92,24 @@ func packageShorthand(pointer string, value any) any {
 	}
 	return value
 }
-func (w *normalizer) walkValue(schema map[string]any, pointer string, value any, path string, policy scalarPolicy) (any, error) {
+func (w *normalizer) walkValue(schema map[string]any, pointer string, value any, path []string, policy scalarPolicy, view source.View) (any, error) {
 	switch v := value.(type) {
 	case map[string]any:
-		return w.mapping(schema, pointer, v, path, policy)
+		return w.mapping(schema, pointer, v, path, policy, view)
 	case []any:
-		return w.sequence(schema, pointer, v, path, policy)
+		return w.sequence(schema, pointer, v, path, policy, view)
 	default:
 		return value, nil
 	}
 }
-func (w *normalizer) sequence(schema map[string]any, pointer string, items []any, path string, policy scalarPolicy) (any, error) {
+func (w *normalizer) sequence(schema map[string]any, pointer string, items []any, path []string, policy scalarPolicy, view source.View) (any, error) {
 	result := make([]any, len(items))
 	for i, item := range items {
 		child := object(schema["items"])
 		if positional := array(schema["prefixItems"]); i < len(positional) {
 			child = object(positional[i])
 		}
-		value, err := w.walk(child, pointer+"/items", item, path+"/"+strconv.Itoa(i), childPolicy(policy.Items))
+		value, err := w.walk(child, pointer+"/items", item, appendPath(path, strconv.Itoa(i)), childPolicy(policy.Items), view.Child(strconv.Itoa(i)))
 		if err != nil {
 			return nil, err
 		}
@@ -135,39 +139,42 @@ func schemaMatches(schema map[string]any, value any) bool {
 	}
 	switch v := value.(type) {
 	case map[string]any:
-		if text(schema["type"]) != "object" && schema["properties"] == nil {
-			return false
-		}
-		for _, required := range array(schema["required"]) {
-			if _, ok := v[text(required)]; !ok {
-				return false
-			}
-		}
-		for name, raw := range object(schema["properties"]) {
-			if expected, present := object(raw)["const"]; present && v[name] != expected {
-				return false
-			}
-		}
-		return true
+		return objectMatches(schema, v)
 	case []any:
 		return schema["type"] == "array"
 	case string:
-		return schema["type"] == "string" || schema["enum"] != nil
+		return schema["type"] == stringType || schema["enum"] != nil
 	case bool:
-		return schema["type"] == "boolean"
+		return schema["type"] == booleanType
 	case float64:
-		return schema["type"] == "number" || schema["type"] == "integer"
+		return schema["type"] == numberType || schema["type"] == integerType
 	case json.Number:
-		return schema["type"] == "number" || schema["type"] == "integer"
+		return schema["type"] == numberType || schema["type"] == integerType
 	case nil:
 		return schema["type"] == "null"
 	default:
 		return len(schema) == 0
 	}
 }
-func (w *normalizer) mapping(schema map[string]any, pointer string, value map[string]any, path string, policy scalarPolicy) (any, error) {
-	presentation := w.parser.layouts[w.id][pointer]
-	keys := fieldOrder(w.keys(value, path), presentation.Fields)
+func objectMatches(schema, value map[string]any) bool {
+	if text(schema["type"]) != "object" && schema["properties"] == nil {
+		return false
+	}
+	for _, required := range array(schema["required"]) {
+		if _, ok := value[text(required)]; !ok {
+			return false
+		}
+	}
+	for name, raw := range object(schema["properties"]) {
+		if expected, present := object(raw)["const"]; present && value[name] != expected {
+			return false
+		}
+	}
+	return true
+}
+func (w *normalizer) mapping(schema map[string]any, pointer string, value map[string]any, path []string, policy scalarPolicy, view source.View) (any, error) {
+	presentation := w.parser.layoutFor(w.id, pointer)
+	keys := fieldOrder(w.keys(value, path, view), presentation.Fields)
 	result := make(ordered, 0, len(value))
 	for _, name := range keys {
 		child, err := w.propertySchema(schema, name)
@@ -182,7 +189,11 @@ func (w *normalizer) mapping(schema map[string]any, pointer string, value map[st
 		if !present {
 			fieldPolicy = childPolicy(policy.Values)
 		}
-		normalized, err := w.walk(child, pointer+"/properties/"+name, raw, path+"/"+jsonpointer.EscapeToken(name), fieldPolicy)
+		childPointer := pointer + "/additionalProperties"
+		if _, known := object(schema["properties"])[name]; known {
+			childPointer = pointer + "/properties/" + jsonpointer.EscapeToken(name)
+		}
+		normalized, err := w.walk(child, childPointer, raw, appendPath(path, name), fieldPolicy, view.Child(name))
 		if err != nil {
 			return nil, err
 		}
@@ -207,6 +218,9 @@ func (w *normalizer) propertySchema(schema map[string]any, name string) (map[str
 			return object(patterns[pattern]), nil
 		}
 	}
+	if schema["additionalProperties"] == false {
+		return nil, invalid()
+	}
 	return object(schema["additionalProperties"]), nil
 }
 func (w *normalizer) propertyPattern(pattern string) (*regexp.Regexp, error) {
@@ -223,35 +237,57 @@ func (w *normalizer) propertyPattern(pattern string) (*regexp.Regexp, error) {
 	w.patterns[pattern] = compiled
 	return compiled, nil
 }
-func (w *normalizer) keys(value map[string]any, path string) []string {
-	keys := slices.Sorted(maps.Keys(value))
-	sort.SliceStable(keys, func(i, j int) bool {
-		left, l := w.ranges[path+"/"+jsonpointer.EscapeToken(keys[i])]
-		right, r := w.ranges[path+"/"+jsonpointer.EscapeToken(keys[j])]
-		if l != r {
-			return l
-		}
-		if left.Start.Line != right.Start.Line {
-			return left.Start.Line < right.Start.Line
-		}
-		return left.Start.Column < right.Start.Column
-	})
-	return keys
-}
-func fieldOrder(keys, fields []string) []string {
-	result := make([]string, 0, len(keys))
-	for _, f := range fields {
-		if slices.Contains(keys, f) {
-			result = append(result, f)
+func (w *normalizer) keys(value map[string]any, path []string, view source.View) []string {
+	known := view.Keys()
+	if known == nil && nodeListPath(path) {
+		known = w.hints[jsonpointer.FromTokens(path)]
+	}
+	keys := make([]string, 0, len(value))
+	for _, name := range known {
+		if _, present := value[name]; present {
+			keys = append(keys, name)
 		}
 	}
+	if len(keys) == len(value) {
+		return keys
+	}
+	seen := map[string]bool{}
 	for _, key := range keys {
-		if !slices.Contains(result, key) {
-			result = append(result, key)
+		seen[key] = true
+	}
+	for _, key := range slices.Sorted(maps.Keys(value)) {
+		if !seen[key] {
+			keys = append(keys, key)
+		}
+	}
+	return keys
+}
+func nodeListPath(path []string) bool {
+	return len(path) == 3 && path[0] == nodesSection && slices.Contains([]string{featuresSection, conditionsSection, injectsSection}, path[2])
+}
+func fieldOrder(keys, fields []string) []string {
+	if len(fields) == 0 {
+		return keys
+	}
+	remaining := make(map[string]bool, len(keys))
+	for _, key := range keys {
+		remaining[key] = true
+	}
+	result := make([]string, 0, len(keys))
+	for _, name := range fields {
+		if remaining[name] {
+			result = append(result, name)
+			delete(remaining, name)
+		}
+	}
+	for _, name := range keys {
+		if remaining[name] {
+			result = append(result, name)
 		}
 	}
 	return result
 }
+func appendPath(path []string, token string) []string { return append(slices.Clone(path), token) }
 func omitted(value any, policies []string) bool {
 	return slices.ContainsFunc(policies, func(policy string) bool { return omitValue(value, policy) })
 }

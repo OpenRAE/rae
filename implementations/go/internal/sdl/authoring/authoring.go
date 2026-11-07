@@ -6,12 +6,14 @@ import (
 	"embed"
 	"encoding/json"
 	"io/fs"
+	"maps"
 	"slices"
 
 	"github.com/OpenRAE/rae/implementations/go/base/fault"
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
 	"github.com/OpenRAE/rae/implementations/go/contract/admission"
-	"github.com/OpenRAE/rae/implementations/go/contract/binding"
+	"github.com/OpenRAE/rae/implementations/go/contract/concept"
+	"github.com/OpenRAE/rae/implementations/go/contract/validation"
 	"github.com/OpenRAE/rae/implementations/go/internal/contract/corpus"
 	"github.com/OpenRAE/rae/implementations/go/internal/sdl/source"
 )
@@ -39,10 +41,11 @@ type Result struct {
 // Parser holds immutable schemas, presentation metadata and input ceilings.
 // It is safe for concurrent requests; composition state is request-local.
 type Parser struct {
-	limits  source.Limits
-	models  *admission.Validator
-	schemas map[string]map[string]any
-	layouts map[string]map[string]layout
+	limits    source.Limits
+	models    *admission.Validator
+	authority *concept.Authority
+	schemas   map[string]map[string]any
+	layouts   map[string]map[string]layout
 }
 
 type layout struct {
@@ -56,7 +59,15 @@ func New(limits source.Limits) (*Parser, error) {
 	if err := limits.Validate(); err != nil {
 		return nil, err
 	}
-	models, err := admission.New()
+	compiled, err := validation.New(nil)
+	if err != nil {
+		return nil, err
+	}
+	models, err := admission.NewWithSchemas(compiled)
+	if err != nil {
+		return nil, err
+	}
+	authority, err := concept.Load(compiled)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +75,7 @@ func New(limits source.Limits) (*Parser, error) {
 	if err != nil {
 		return nil, err
 	}
-	p := &Parser{limits: limits, models: models, schemas: map[string]map[string]any{}}
+	p := &Parser{limits: limits, models: models, authority: authority, schemas: map[string]map[string]any{}}
 	raw, err := presentation.ReadFile("layout.json")
 	if err != nil {
 		return nil, err
@@ -72,7 +83,7 @@ func New(limits source.Limits) (*Parser, error) {
 	if err = json.Unmarshal(raw, &p.layouts); err != nil {
 		return nil, err
 	}
-	for _, id := range []string{"sdl-authoring-input-v1", "materialized-scenario-v1"} {
+	for _, id := range []string{authoringContract, materializedContract} {
 		raw, err = fs.ReadFile(packaged, "schemas/sdl/"+id+".json")
 		if err != nil {
 			return nil, err
@@ -89,7 +100,7 @@ func New(limits source.Limits) (*Parser, error) {
 	return p, nil
 }
 func (p *Parser) checkLayout(id string) error {
-	for pointer, l := range p.layouts[id] {
+	for pointer, l := range p.layoutRecords(id) {
 		schema := resolve(p.schemas[id], pointer)
 		props := object(schema["properties"])
 		for _, name := range l.Fields {
@@ -104,32 +115,15 @@ func (p *Parser) checkLayout(id string) error {
 // Document is an immutable structurally checked authored or materialized model.
 // Each accessor returns a fresh copy. Semantic admission is a later operation.
 type Document struct {
-	contract string
-	data     []byte
-	source   *source.Document
-	warnings []source.Diagnostic
+	contract         string
+	data             []byte
+	source           *source.Document
+	compositionValue map[string]any
+	warnings         []source.Diagnostic
 }
 
 // JSON copies the normalized, supplied-field representation.
 func (d *Document) JSON() []byte { return slices.Clone(d.data) }
-
-// Authored returns a fresh typed authored binding when the document is authored.
-func (d *Document) Authored() (binding.SdlAuthoringInputV1, bool) {
-	var result binding.SdlAuthoringInputV1
-	if d.contract != "sdl-authoring-input-v1" {
-		return result, false
-	}
-	return result, json.Unmarshal(d.data, &result) == nil
-}
-
-// Materialized returns a fresh typed materialized binding when appropriate.
-func (d *Document) Materialized() (binding.MaterializedScenarioV1, bool) {
-	var result binding.MaterializedScenarioV1
-	if d.contract != "materialized-scenario-v1" {
-		return result, false
-	}
-	return result, json.Unmarshal(d.data, &result) == nil
-}
 
 // Decode checks strict source and the structural model, including imports.
 func (p *Parser) Decode(request Request) (*Document, error) {
@@ -159,7 +153,7 @@ func (p *Parser) Format(request Request) (Result, error) {
 		return Result{}, err
 	}
 	options := p.options(request.Name, "reject")
-	options.KeyScope = "data"
+	options.KeyScope = dataScope
 	options.Limits.MaxInputBytes = p.limits.MaxComposedBytes
 	options.Limits.MaxScalarBytes = p.limits.MaxComposedBytes
 	options.Limits.MaxNodes = p.limits.MaxComposedNodes
@@ -195,25 +189,33 @@ func (p *Parser) decode(raw []byte, name, policy string) (*Document, error) {
 	if err != nil {
 		return nil, err
 	}
-	value := object(parsed.NormalizedValue())
-	if revision, present := value["semantic_revision"]; present && revision != "raes-progressive-semantics/v1" {
+	if revision, present := object(parsed.Value())["semantic_revision"]; present && revision != "raes-progressive-semantics/v1" {
 		return nil, invalid()
 	}
-	warnings := parsed.Diagnostics()
-	if err = shorthands(value); err != nil {
+	value := object(parsed.NormalizedValue())
+	hints := map[string][]string{}
+	if err = shorthands(value, hints); err != nil {
 		return nil, err
 	}
 	migrated, err := migrateVM(value, parsed, policy, name)
 	if err != nil {
 		return nil, err
 	}
-	warnings = append(warnings, migrated...)
-	id := "sdl-authoring-input-v1"
+
+	id := authoringContract
 	if _, present := value["materialization_provenance"]; present {
-		id = "materialized-scenario-v1"
+		id = materializedContract
 	}
-	walk := normalizer{parser: p, id: id, ranges: parsed.KeyRanges(), remaining: p.limits.MaxComposedNodes}
-	normalized, err := walk.walk(p.schemas[id], "#", value, "", scalarPolicy{})
+	if id == authoringContract {
+		if err = authoredReferences(value, nil); err != nil {
+			return nil, err
+		}
+	}
+	if containsVariable(value["control_context_assets"]) {
+		return nil, invalid()
+	}
+	walk := normalizer{parser: p, id: id, hints: hints, remaining: p.limits.MaxComposedNodes}
+	normalized, err := walk.walk(p.schemas[id], "#", value, nil, scalarPolicy{}, parsed.View())
 	if err != nil {
 		return nil, err
 	}
@@ -229,7 +231,8 @@ func (p *Parser) decode(raw []byte, name, policy string) (*Document, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Document{contract: id, data: encoded, source: parsed, warnings: warnings}, nil
+	warnings := append(parsed.Diagnostics(), migrated...)
+	return &Document{compositionValue: value, contract: id, data: encoded, source: parsed, warnings: warnings}, nil
 }
 func invalid() error { return fault.New(fault.InvalidInput, "sdl-model-invalid", nil) }
 func object(value any) map[string]any {
@@ -249,6 +252,9 @@ func object(value any) map[string]any {
 func array(v any) []any { s, _ := v.([]any); return s }
 func text(v any) string { s, _ := v.(string); return s }
 
+// captureRequest returns no captured authority when the caller selected FS.
+//
+//nolint:nilnil // A nil capture distinguishes filesystem authority from supplied sources.
 func captureRequest(request Request) (*source.Sources, error) {
 	if request.FS != nil || request.Sources != nil {
 		if !fs.ValidPath(request.Name) {
@@ -259,4 +265,17 @@ func captureRequest(request Request) (*source.Sources, error) {
 		return source.Capture(request.Sources)
 	}
 	return nil, nil
+}
+
+func (p *Parser) layoutRecords(id string) map[string]layout {
+	result := make(map[string]layout, len(p.layouts["$shared"])+len(p.layouts[id]))
+	maps.Copy(result, p.layouts["$shared"])
+	maps.Copy(result, p.layouts[id])
+	return result
+}
+func (p *Parser) layoutFor(id, pointer string) layout {
+	if row, present := p.layouts[id][pointer]; present {
+		return row
+	}
+	return p.layouts["$shared"][pointer]
 }

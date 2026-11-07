@@ -16,7 +16,7 @@ func variable(value any) bool {
 	}
 	parts := strings.Split(s[2:len(s)-1], ".")
 	for i, part := range parts {
-		if part == "__private" && i < len(parts)-1 {
+		if part == privateSegment && i < len(parts)-1 {
 			continue
 		}
 		if !localIdentifier(part) {
@@ -34,7 +34,7 @@ func normalizeEnum(value any, members []any) (any, error) {
 	if !ok {
 		return value, nil
 	}
-	normalized := strings.ReplaceAll(strings.ToLower(s), "-", "_")
+	normalized := strings.ReplaceAll(lower(s), "-", "_")
 	for _, member := range members {
 		if member == normalized {
 			return normalized, nil
@@ -84,18 +84,11 @@ func decimalInteger(s string, custom bool) (any, error) {
 			return nil, err
 		}
 	}
-	var digits strings.Builder
-	for _, r := range s {
-		digit, ok := decimalDigit(r, custom)
-		if !ok || digits.Len() >= 4300 {
-			return nil, invalid()
-		}
-		digits.WriteByte('0' + digit)
+	digits, err := integerDigits(s, custom)
+	if err != nil {
+		return nil, err
 	}
-	if digits.Len() == 0 {
-		return nil, invalid()
-	}
-	integer, ok := new(big.Int).SetString(digits.String(), 10)
+	integer, ok := new(big.Int).SetString(digits, 10)
 	if !ok {
 		return nil, invalid()
 	}
@@ -103,6 +96,20 @@ func decimalInteger(s string, custom bool) (any, error) {
 		integer.Neg(integer)
 	}
 	return json.Number(integer.String()), nil
+}
+func integerDigits(s string, allowUnicode bool) (string, error) {
+	var digits strings.Builder
+	for _, r := range s {
+		digit, ok := decimalDigit(r, allowUnicode)
+		if !ok || digits.Len() >= 4300 {
+			return "", invalid()
+		}
+		digits.WriteByte('0' + digit)
+	}
+	if digits.Len() == 0 {
+		return "", invalid()
+	}
+	return digits.String(), nil
 }
 func laxIntegerText(s string) (string, error) {
 	if strings.ContainsRune(s, '_') {
@@ -129,22 +136,29 @@ func decimalDigit(r rune, allowUnicode bool) (byte, bool) {
 		return 0, false
 	}
 	for _, block := range unicode.Digit.R16 {
-		if r >= rune(block.Lo) && r <= rune(block.Hi) && (r-rune(block.Lo))%rune(block.Stride) == 0 {
-			return byte((r - rune(block.Lo)) / rune(block.Stride) % 10), true
+		if digit, ok := digitRange(int64(r), int64(block.Lo), int64(block.Hi), int64(block.Stride)); ok {
+			return digit, true
 		}
 	}
 	for _, block := range unicode.Digit.R32 {
-		if r >= rune(block.Lo) && r <= rune(block.Hi) && (r-rune(block.Lo))%rune(block.Stride) == 0 {
-			return byte((r - rune(block.Lo)) / rune(block.Stride) % 10), true
+		if digit, ok := digitRange(int64(r), int64(block.Lo), int64(block.Hi), int64(block.Stride)); ok {
+			return digit, true
 		}
 	}
 	return 0, false
 }
+func digitRange(point, low, high, stride int64) (byte, bool) {
+	if point < low || point > high || (point-low)%stride != 0 {
+		return 0, false
+	}
+	return "0123456789"[(point-low)/stride%10] - '0', true
+}
+
 func pythonTrim(s string) string {
 	return strings.TrimFunc(s, func(r rune) bool { return unicode.IsSpace(r) || r >= 0x1c && r <= 0x1f })
 }
 func normalizeFloat(value any) (any, error) {
-	s := ""
+	var s string
 	switch v := value.(type) {
 	case json.Number:
 		s = v.String()
@@ -178,23 +192,21 @@ func normalizeBoolean(value any, custom bool) (any, error) {
 		}
 	}
 	if s, ok := value.(string); ok {
-		switch strings.ToLower(pythonTrim(s)) {
-		case "true", "yes", "on", "1":
-			return true, nil
-		case "false", "no", "off", "0":
-			return false, nil
-		case "y", "t":
-			if !custom {
-				return true, nil
-			}
-		case "n", "f":
-			if !custom {
-				return false, nil
-			}
+		normalized := lower(pythonTrim(s))
+		truth := map[string]bool{"true": true, "yes": true, "on": true, "1": true, "false": false, "no": false, "off": false, "0": false}
+		if !custom {
+			truth["y"] = true
+			truth["t"] = true
+			truth["n"] = false
+			truth["f"] = false
+		}
+		if result, known := truth[normalized]; known {
+			return result, nil
 		}
 	}
 	return nil, invalid()
 }
+
 func ram(value any) (any, error) {
 	if variable(value) {
 		return value, nil
@@ -213,6 +225,9 @@ func ram(value any) (any, error) {
 	if !ok {
 		return nil, invalid()
 	}
+	return ramString(s)
+}
+func ramString(s string) (any, error) {
 	s = strings.TrimSpace(s)
 	if parsed, err := decimalInteger(s, true); err == nil && !strings.HasPrefix(s, "-") && !strings.HasPrefix(s, "+") {
 		if n, ok := parsed.(json.Number); ok && n != "0" {
@@ -228,7 +243,7 @@ func ram(value any) (any, error) {
 	if err != nil {
 		return nil, invalid()
 	}
-	unit := strings.ToLower(strings.TrimSpace(s[index:]))
+	unit := lower(strings.TrimSpace(s[index:]))
 	scale := map[string]float64{"b": 1, "kb": 1000, "kib": 1024, "mb": 1e6, "mib": 1048576, "gb": 1e9, "gib": 1073741824, "tb": 1e12, "tib": 1099511627776}[unit]
 	amount *= scale
 	if amount < 1 || math.IsInf(amount, 0) || math.IsNaN(amount) {

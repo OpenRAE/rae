@@ -7,9 +7,9 @@ import (
 	"errors"
 	"io"
 	"io/fs"
-	"maps"
 	"slices"
 	"strings"
+	"sync"
 	"unicode/utf8"
 
 	"github.com/OpenRAE/rae/implementations/go/base/fault"
@@ -104,12 +104,18 @@ func (d Diagnostic) Machine() map[string]any {
 	return result
 }
 
-type parseError struct{ items []Diagnostic }
+type parseError struct {
+	items   []Diagnostic
+	pending []pendingDiagnostic
+}
 
 func (e *parseError) Error() string { return "sdl source rejected" }
 func (e *parseError) Code() string {
 	if len(e.items) > 0 {
 		return e.items[0].Code
+	}
+	if len(e.pending) > 0 {
+		return e.pending[0].diagnostic.Code
 	}
 	return "sdl.parse"
 }
@@ -119,6 +125,9 @@ func (e *parseError) Unwrap() error            { return nil }
 // Diagnostics returns copied source diagnostics from an error chain.
 func Diagnostics(err error) []Diagnostic {
 	if e, ok := errors.AsType[*parseError](err); ok {
+		if len(e.pending) > 0 {
+			return materializeDiagnostics(e.pending)
+		}
 		return copyDiagnostics(e.items)
 	}
 	return nil
@@ -135,7 +144,7 @@ func copyDiagnostics(items []Diagnostic) []Diagnostic {
 	return result
 }
 func failure(code string, r Range, options Options) error {
-	return &parseError{[]Diagnostic{{Code: code, Range: r, Source: options.Name, Severity: "error"}}}
+	return &parseError{items: []Diagnostic{{Code: code, Range: r, Source: options.Name, Severity: "error"}}}
 }
 func startRange() Range { return Range{Position{1, 1}, Position{1, 1}} }
 
@@ -144,22 +153,25 @@ type member struct {
 	canonical  string
 }
 type node struct {
-	kind     byte
-	spelling string
-	value    any
-	entries  []member
-	children []*node
-	span     Range
-	merge    bool
+	kind         byte
+	spelling     string
+	value        any
+	entries      []member
+	children     []*node
+	span         Range
+	locationSpan Range
+	merge        bool
 }
 
 // Document holds checked source data. It does not assert SDL model validity.
 // Accessors return copies, so caller changes cannot alter checked source state.
 type Document struct {
 	root              *node
-	warnings          []Diagnostic
+	warnings          []pendingDiagnostic
 	ranges, keyRanges map[string]Range
 	keyScope          string
+	baseTokens        []string
+	index             sync.Map
 }
 
 // Value copies the decoded value, retaining authored field spellings.
@@ -169,13 +181,13 @@ func (d *Document) Value() any { return copyValue(d.root, d.keyScope, false) }
 func (d *Document) NormalizedValue() any { return copyValue(d.root, d.keyScope, true) }
 
 // Diagnostics returns source migration advisories.
-func (d *Document) Diagnostics() []Diagnostic { return copyDiagnostics(d.warnings) }
+func (d *Document) Diagnostics() []Diagnostic { return materializeDiagnostics(d.warnings) }
 
 // Ranges returns source ranges indexed by RFC 6901 pointer.
-func (d *Document) Ranges() map[string]Range { return maps.Clone(d.ranges) }
+func (d *Document) Ranges() map[string]Range { return d.rangeMetadata().ranges }
 
 // KeyRanges returns declaration-key ranges indexed by RFC 6901 pointer.
-func (d *Document) KeyRanges() map[string]Range { return maps.Clone(d.keyRanges) }
+func (d *Document) KeyRanges() map[string]Range { return d.rangeMetadata().keyRanges }
 
 func copyValue(n *node, scope string, normalize bool) any {
 	switch n.kind {
@@ -252,7 +264,7 @@ func Decode(data []byte, options Options) (*Document, error) {
 	if err != nil {
 		return nil, err
 	}
-	document := &Document{root: root, keyScope: options.KeyScope, ranges: map[string]Range{}, keyRanges: map[string]Range{}}
+	document := &Document{root: root, keyScope: options.KeyScope}
 	if err := analyze(document, options); err != nil {
 		return nil, err
 	}

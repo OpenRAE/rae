@@ -16,7 +16,7 @@ import (
 type lockfile struct{ records []map[string]any }
 
 func strictPin(pin string) bool {
-	return len(pin) == 71 && strings.HasPrefix(pin, "sha256:") && strings.IndexFunc(pin[7:], func(r rune) bool { return !(r >= '0' && r <= '9' || r >= 'a' && r <= 'f') }) < 0
+	return len(pin) == 71 && strings.HasPrefix(pin, "sha256:") && strings.IndexFunc(pin[7:], func(r rune) bool { return (r < '0' || r > '9') && (r < 'a' || r > 'f') }) < 0
 }
 func pinMatches(raw []byte, pin string) bool {
 	return pin == "" || strings.TrimPrefix(pin, "sha256:") == strings.TrimPrefix(digest.SHA256(raw), "sha256:")
@@ -42,21 +42,30 @@ func (c *composition) optional(name string) ([]byte, bool, error) {
 	if err != nil {
 		return nil, false, importError("source-unreadable")
 	}
-	raw, err := c.read(name)
+	raw, err := c.readBounded(name, source.DefaultLimits().MaxInputBytes)
 	return raw, err == nil, err
 }
+
+//nolint:nilnil // A missing optional lock is distinct from an empty lock.
 func (c *composition) lock(importer string, needed bool) (*lockfile, error) {
-	if !needed {
+	if !needed && c.supplied != nil {
 		return nil, nil
 	}
 	raw, present, err := c.optional(path.Join(path.Dir(importer), "raes.lock.json"))
 	if err != nil || !present {
 		return nil, err
 	}
-	if err = c.budget.AddBytes(int64(len(raw))); err != nil {
-		return nil, err
+	limit := source.DefaultLimits().MaxInputBytes
+	if c.supplied != nil {
+		limit = c.parser.limits.MaxInputBytes
+		if err = c.budget.AddBytes(int64(len(raw))); err != nil {
+			return nil, err
+		}
 	}
-	decoded, err := ingress.Parse(raw, ingress.Limits{MaxBytes: int(c.parser.limits.MaxInputBytes), MaxDepth: 8}, ingress.Object)
+	return decodeLock(raw, limit)
+}
+func decodeLock(raw []byte, limit int64) (*lockfile, error) {
+	decoded, err := ingress.Parse(raw, ingress.Limits{MaxBytes: int(limit), MaxDepth: 8}, ingress.Object)
 	if err != nil {
 		return nil, importError("lock-invalid")
 	}
@@ -68,29 +77,35 @@ func (c *composition) lock(importer string, needed bool) (*lockfile, error) {
 		return nil, importError("lock-invalid")
 	}
 	rows, ok := value["imports"].([]any)
-	if _, present = value["imports"]; present && !ok {
+	if _, present := value["imports"]; present && !ok {
 		return nil, importError("lock-invalid")
 	}
 	lock := &lockfile{}
 	for _, raw := range rows {
-		record := object(raw)
-		if !closed(record, []string{"source", "namespace", "resolved_source", "module_id", "module_version", "manifest_digest", "content_digest", "export_hash"}, []string{"requested_version", "signer_id"}) {
-			return nil, importError("lock-invalid")
-		}
-		for _, v := range record {
-			if _, ok := v.(string); !ok {
-				return nil, importError("lock-invalid")
-			}
-		}
-		if _, ok := record["requested_version"]; !ok {
-			record["requested_version"] = "*"
-		}
-		if _, ok := record["signer_id"]; !ok {
-			record["signer_id"] = ""
+		record, err := decodeLockRecord(object(raw))
+		if err != nil {
+			return nil, err
 		}
 		lock.records = append(lock.records, record)
 	}
 	return lock, nil
+}
+func decodeLockRecord(record map[string]any) (map[string]any, error) {
+	if !closed(record, []string{sourceField, "namespace", "resolved_source", "module_id", "module_version", "manifest_digest", "content_digest", "export_hash"}, []string{"requested_version", "signer_id"}) {
+		return nil, importError("lock-invalid")
+	}
+	for _, value := range record {
+		if _, ok := value.(string); !ok {
+			return nil, importError("lock-invalid")
+		}
+	}
+	if _, present := record["requested_version"]; !present {
+		record["requested_version"] = "*"
+	}
+	if _, present := record["signer_id"]; !present {
+		record["signer_id"] = ""
+	}
+	return record, nil
 }
 func closed(value map[string]any, required, optional []string) bool {
 	if value == nil {
@@ -109,32 +124,10 @@ func closed(value map[string]any, required, optional []string) bool {
 	return true
 }
 func (c *composition) checkLock(lock *lockfile, decl, descriptor map[string]any, raw []byte, requested, relative string) error {
-	if lock == nil {
-		if c.supplied != nil {
-			return importError("lock-missing")
-		}
-		return nil
+	record, present, err := matchingLockRecord(lock, decl, requested, c.supplied != nil)
+	if err != nil || !present {
+		return err
 	}
-	version := text(decl["version"])
-	if version == "" {
-		version = "*"
-	}
-	matches := []map[string]any{}
-	for _, record := range lock.records {
-		if record["source"] == requested && record["namespace"] == decl["namespace"] && record["requested_version"] == version {
-			matches = append(matches, record)
-		}
-	}
-	if len(matches) == 0 {
-		if c.supplied != nil {
-			return importError("lock-record-missing")
-		}
-		return nil
-	}
-	if c.supplied != nil && len(matches) != 1 {
-		return importError("lock-ambiguous")
-	}
-	record := matches[0]
 	if c.supplied == nil {
 		if !pinMatches(raw, text(record["content_digest"])) {
 			return importError("digest-mismatch")
@@ -161,24 +154,51 @@ func (c *composition) checkLock(lock *lockfile, decl, descriptor map[string]any,
 	}
 	return nil
 }
-func (c *composition) trust(importer string, needed bool) error {
-	if !needed {
-		return nil
+func matchingLockRecord(lock *lockfile, decl map[string]any, requested string, required bool) (map[string]any, bool, error) {
+	if lock == nil {
+		if required {
+			return nil, false, importError("lock-missing")
+		}
+		return nil, false, nil
 	}
+	version := text(decl["version"])
+	if version == "" {
+		version = "*"
+	}
+	matches := []map[string]any{}
+	for _, record := range lock.records {
+		if record[sourceField] == requested && record["namespace"] == decl["namespace"] && record["requested_version"] == version {
+			matches = append(matches, record)
+		}
+	}
+	if len(matches) == 0 {
+		if required {
+			return nil, false, importError("lock-record-missing")
+		}
+		return nil, false, nil
+	}
+	if required && len(matches) != 1 {
+		return nil, false, importError("lock-ambiguous")
+	}
+	return matches[0], true, nil
+}
+func (c *composition) trust(importer string) error {
 	raw, present, err := c.optional(path.Join(path.Dir(importer), "raes-trust.yaml"))
 	if err != nil || !present {
 		return err
 	}
+	if emptyPolicy(raw) {
+		return nil
+	}
 	options := source.DefaultOptions()
-	options.KeyScope = "data"
-	options.Limits = c.parser.limits
+	options.KeyScope = dataScope
 	options.RequireMapping = true
 	document, err := source.Decode(raw, options)
 	if err != nil {
 		return importError("source-refused")
 	}
 	value := object(document.Value())
-	if !closed(value, nil, []string{"schema_version", "allow_unsigned_local_sources", "registries"}) {
+	if !validTrustPolicy(value) {
 		return importError("source-refused")
 	}
 	if allowed, ok := value["allow_unsigned_local_sources"]; ok {
@@ -186,8 +206,106 @@ func (c *composition) trust(importer string, needed bool) error {
 		if err != nil {
 			return importError("source-refused")
 		}
-		if normalized == false {
-			return importError("local-disabled")
+		c.localDenied[importer] = normalized == false
+	}
+	return nil
+}
+
+func emptyPolicy(raw []byte) bool {
+	for line := range strings.SplitSeq(string(raw), "\n") {
+		line = strings.TrimSpace(line)
+		if line != "" && !strings.HasPrefix(line, "#") {
+			return false
+		}
+	}
+	return true
+}
+func validTrustPolicy(value map[string]any) bool {
+	if !closed(value, nil, []string{"schema_version", "allow_unsigned_local_sources", "registries"}) {
+		return false
+	}
+	if version, present := value["schema_version"]; present {
+		if _, ok := version.(string); !ok {
+			return false
+		}
+	}
+	raw, present := value["registries"]
+	if !present {
+		return true
+	}
+	registries := object(raw)
+	if registries == nil {
+		return false
+	}
+	for _, raw := range registries {
+		if !validRegistryTrust(object(raw)) {
+			return false
+		}
+	}
+	return true
+}
+func validRegistryTrust(value map[string]any) bool {
+	if !closed(value, nil, []string{"require_signatures", "trusted_signers", "allow_insecure_http"}) {
+		return false
+	}
+	for _, key := range []string{"require_signatures", "allow_insecure_http"} {
+		if raw, present := value[key]; present {
+			if _, err := normalizeBoolean(raw, false); err != nil {
+				return false
+			}
+		}
+	}
+	raw, present := value["trusted_signers"]
+	if !present {
+		return true
+	}
+	signers := object(raw)
+	if signers == nil {
+		return false
+	}
+	for _, raw := range signers {
+		if _, ok := raw.(string); !ok {
+			return false
+		}
+	}
+	return true
+}
+func (c *composition) resolveLocked(decl map[string]any, lock *lockfile) (map[string]any, error) {
+	requested := text(decl[sourceField])
+	if c.supplied != nil && !strings.HasPrefix(requested, "local:") && requested != "" {
+		return nil, importError("source-refused")
+	}
+	seen := map[string]bool{}
+	for strings.HasPrefix(requested, "locked:") {
+		if lock == nil {
+			return nil, importError("lock-missing")
+		}
+		if seen[requested] {
+			return nil, importError("cycle")
+		}
+		if err := c.budget.CheckDepth(len(seen) + 1); err != nil {
+			return nil, err
+		}
+		seen[requested] = true
+		record := lockedRecord(lock.records, strings.TrimPrefix(requested, "locked:"))
+		if record == nil {
+			return nil, importError("lock-record-missing")
+		}
+		resolved := map[string]any{sourceField: record[sourceField], "namespace": decl["namespace"], "version": record["requested_version"], "parameters": decl["parameters"], "digest": decl["digest"]}
+		if text(resolved["digest"]) == "" {
+			resolved["digest"] = record["content_digest"]
+		}
+		if _, err := versionSpec(text(resolved["version"])); err != nil {
+			return nil, importError("lock-invalid")
+		}
+		decl, requested = resolved, text(resolved[sourceField])
+	}
+	return decl, nil
+}
+func lockedRecord(records []map[string]any, reference string) map[string]any {
+	for _, record := range records {
+		if record[sourceField] == reference || record["resolved_source"] == reference {
+			return record
 		}
 	}
 	return nil

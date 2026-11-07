@@ -67,7 +67,7 @@ func numericOverflow(groups map[string]string) bool {
 			return true
 		}
 	}
-	for _, part := range strings.Split(groups["release"], ".") {
+	for part := range strings.SplitSeq(groups["release"], ".") {
 		if len(part) > 4300 {
 			return true
 		}

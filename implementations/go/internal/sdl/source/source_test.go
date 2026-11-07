@@ -3,8 +3,11 @@ package source
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"os"
+	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -142,5 +145,65 @@ func checkRangeJSON(t *testing.T, want json.RawMessage, ranges map[string]Range)
 	}
 	if diff := jsonDiff(want, got); diff != "" {
 		t.Errorf("source ranges mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestSourceViewOrderAndCopies(t *testing.T) {
+	options := DefaultOptions()
+	options.MigrationPolicy = "accept"
+	options.BasePointer = "/fragment"
+	document, err := Decode([]byte("A-B: &one {z: first, a: second}\ncopy: *one\nmerged: {<<: [{b: two}, {c: three}], tail: last}\n"), options)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := map[string][]string{"/fragment": {"a_b", "copy", "merged"}, "/fragment/a_b": {"z", "a"}, "/fragment/copy": {"z", "a"}, "/fragment/merged": {"c", "b", "tail"}}
+	view := document.View()
+	got := map[string][]string{"/fragment": view.Keys(), "/fragment/a_b": view.Child("a_b").Keys(), "/fragment/copy": view.Child("copy").Keys(), "/fragment/merged": view.Child("merged").Keys()}
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Fatalf("mapping keys (-want +got):\n%s", diff)
+	}
+	got["/fragment"][0] = "changed"
+	delete(got, "/fragment/copy")
+	if diff := cmp.Diff(want["/fragment"], view.Keys()); diff != "" {
+		t.Errorf("caller mutated document (-want +got):\n%s", diff)
+	}
+}
+
+// A small deep source must not eagerly copy its long prefix into every
+// diagnostic and range entry before a consumer requests that metadata.
+func TestDecodeMetadataAllocation(t *testing.T) {
+	prefix := strings.Repeat("p", 2048)
+	var input strings.Builder
+	for depth := range 4 {
+		indent := strings.Repeat("  ", depth)
+		input.WriteString(indent + "? " + prefix + "\n" + indent + ":\n")
+	}
+	for i := range 1000 {
+		fmt.Fprintf(&input, "        Leaf%04d: value\n", i)
+	}
+	raw := []byte(input.String())
+	options := DefaultOptions()
+	options.MigrationPolicy = "accept"
+	runtime.GC()
+	var before, after runtime.MemStats
+	runtime.ReadMemStats(&before)
+	document, err := Decode(raw, options)
+	runtime.ReadMemStats(&after)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if allocated := after.TotalAlloc - before.TotalAlloc; allocated > 24*1024*1024 {
+		t.Fatalf("Decode allocated %d bytes for %d source bytes", allocated, len(raw))
+	}
+	diagnostics := document.Diagnostics()
+	if len(diagnostics) != 1000 {
+		t.Fatalf("got %d diagnostics, want 1000", len(diagnostics))
+	}
+	view := document.View()
+	for range 4 {
+		view = view.Child(prefix)
+	}
+	if got := len(view.Keys()); got != 1000 {
+		t.Errorf("got %d keys, want 1000", got)
 	}
 }

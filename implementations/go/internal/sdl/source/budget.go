@@ -1,6 +1,9 @@
 package source
 
-import "strings"
+import (
+	"encoding/json"
+	"strings"
+)
 
 // Budget shares aggregate accounting across one composition request.
 // A composition owner must charge each import before reading its source and
@@ -74,6 +77,49 @@ func (b *Budget) CheckNamespace(name string) error {
 	parts := strings.Split(name, ".")
 	if len(parts)-1 > b.limits.MaxNamespaceDepth {
 		return importFailure("budget-exceeded")
+	}
+	return nil
+}
+
+// AddValue charges normalized source JSON before model coercion and serializer
+// omissions. It does not copy or admit the value. Native carriers outside the
+// JSON domain are refused, and repeated references are charged on every visit.
+func (b *Budget) AddValue(value any) error {
+	pending := []any{value}
+	for len(pending) > 0 {
+		current := pending[len(pending)-1]
+		pending = pending[:len(pending)-1]
+		if b.nodes >= b.limits.MaxComposedNodes {
+			return importFailure("budget-exceeded")
+		}
+		b.nodes++
+		if err := b.queueValue(current, &pending); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func (b *Budget) queueValue(value any, pending *[]any) error {
+	remaining := b.limits.MaxComposedNodes - b.nodes - len(*pending)
+	switch v := value.(type) {
+	case string:
+		return b.AddBytes(int64(len(v)))
+	case map[string]any:
+		if len(v) > remaining/2 {
+			return importFailure("budget-exceeded")
+		}
+		for name, child := range v {
+			*pending = append(*pending, name, child)
+		}
+	case []any:
+		if len(v) > remaining {
+			return importFailure("budget-exceeded")
+		}
+		*pending = append(*pending, v...)
+	case nil, bool, json.Number, float64:
+		// Scalar validation belongs to the source/model owner, not accounting.
+	default:
+		return importFailure("source-refused")
 	}
 	return nil
 }

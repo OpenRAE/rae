@@ -2,6 +2,7 @@ package authoring
 
 import (
 	"encoding/json"
+	"errors"
 	"io/fs"
 	"os"
 	"testing"
@@ -17,6 +18,8 @@ type forbiddenFS struct{}
 func (forbiddenFS) Open(string) (fs.File, error) { panic("supplied imports consulted the filesystem") }
 
 type importVector struct {
+	Limits   json.RawMessage   `json:"limits"`
+	Code     string            `json:"code"`
 	Name     string            `json:"name"`
 	Content  string            `json:"content"`
 	Files    map[string]string `json:"files"`
@@ -43,9 +46,29 @@ func TestImportReference(t *testing.T) {
 }
 func checkImportVector(t *testing.T, parser *Parser, c importVector) {
 	t.Helper()
+	if len(c.Limits) > 0 {
+		limits := source.DefaultLimits()
+		if err := json.Unmarshal(c.Limits, &limits); err != nil {
+			t.Fatal(err)
+		}
+		configured, err := New(limits)
+		if err != nil {
+			t.Fatal(err)
+		}
+		parser = configured
+	}
 	result, err := parser.Format(importRequest(c))
 	if (err == nil) != c.Accepted {
 		t.Fatalf("accepted=%v, want %v: %v", err == nil, c.Accepted, err)
+	}
+	if c.Code != "" {
+		classified, ok := errors.AsType[interface {
+			error
+			Code() string
+		}](err)
+		if !ok || classified.Code() != c.Code {
+			t.Errorf("refusal code: %v, want %s", err, c.Code)
+		}
 	}
 	if err == nil {
 		if diff := cmp.Diff(c.Content, string(result.Content)); diff != "" {

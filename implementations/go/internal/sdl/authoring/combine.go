@@ -7,27 +7,15 @@ import (
 
 func declarationSections() []string {
 	return []string{
-		"nodes", "infrastructure", "features", "conditions", "propositions", "assertions", "entities", "injects", "events", "scripts", "stories", "content", "control_context_assets", "generated_artifacts", "persistent_volumes", "accounts", "identity_domains", "identity_forests", "identity_facades", "deployment_tenants", "deployment_cells", "relationships", "agents", "action_contracts", "observation_boundaries", "outcome_interpretation_rules", "behavior_specifications", "evidence_requirements", "time_domains", "clocks", "time_domain_mappings", "time_progression_policies", "temporal_constraints", "objectives", "workflows", "variables", "variation_points",
+		nodesSection, "infrastructure", featuresSection, conditionsSection, "propositions", "assertions", "entities", injectsSection, "events", "scripts", "stories", "content", "control_context_assets", "generated_artifacts", "persistent_volumes", "accounts", "identity_domains", "identity_forests", "identity_facades", "deployment_tenants", "deployment_cells", "relationships", agentsSection, "action_contracts", "observation_boundaries", "outcome_interpretation_rules", behaviorSection, "evidence_requirements", "time_domains", "clocks", "time_domain_mappings", "time_progression_policies", "temporal_constraints", "objectives", "workflows", "variables", "variation_points",
 	}
 }
 func validateExports(value, descriptor map[string]any) error {
 	for section, raw := range object(descriptor["exports"]) {
-		if !slices.Contains(declarationSections(), section) && section != "forwarding_agents" {
+		if !slices.Contains(declarationSections(), section) && section != forwardingSection {
 			return importError("export-invalid")
 		}
-		names := map[string]bool{}
-		if section == "forwarding_agents" {
-			for _, agent := range array(value[section]) {
-				names[text(object(agent)["forwarding_agent_id"])] = true
-			}
-		} else {
-			for name := range object(value[section]) {
-				names[name] = true
-			}
-		}
-		if section == "entities" {
-			collectEntityNames(object(value[section]), "", names)
-		}
+		names := exportNames(value, section)
 		for _, name := range array(raw) {
 			if !localQualified(text(name)) || !names[text(name)] {
 				return importError("export-invalid")
@@ -35,6 +23,22 @@ func validateExports(value, descriptor map[string]any) error {
 		}
 	}
 	return nil
+}
+func exportNames(value map[string]any, section string) map[string]bool {
+	names := map[string]bool{}
+	if section == forwardingSection {
+		for _, agent := range array(value[section]) {
+			names[text(object(agent)["forwarding_agent_id"])] = true
+		}
+		return names
+	}
+	for name := range object(value[section]) {
+		names[name] = true
+	}
+	if section == "entities" {
+		collectEntityNames(object(value[section]), "", names)
+	}
+	return names
 }
 func collectEntityNames(entities map[string]any, prefix string, names map[string]bool) {
 	for name, raw := range entities {
@@ -46,39 +50,47 @@ func collectEntityNames(entities map[string]any, prefix string, names map[string
 func (c *composition) combine(parent, incoming map[string]any, namespace string, descriptor map[string]any) error {
 	exports := object(descriptor["exports"])
 	for _, section := range declarationSections() {
-		current := object(parent[section])
-		if current == nil {
-			current = map[string]any{}
-		}
-		for name, value := range object(incoming[section]) {
-			qualified := namespace + ".__private." + name
-			if slices.ContainsFunc(array(exports[section]), func(raw any) bool { return raw == name }) {
-				qualified = namespace + "." + name
-			}
-			if err := c.budget.CheckNamespace(qualified); err != nil {
-				return err
-			}
-			if _, exists := current[qualified]; exists {
-				return importError("collision")
-			}
-			current[qualified] = value
-		}
-		if len(current) > 0 {
-			parent[section] = current
+		if err := c.combineSection(parent, object(incoming[section]), section, namespace, array(exports[section])); err != nil {
+			return err
 		}
 	}
-	current := array(parent["forwarding_agents"])
+	return c.combineAgents(parent, array(incoming[forwardingSection]), namespace, array(exports[forwardingSection]))
+}
+func (c *composition) combineSection(parent, incoming map[string]any, section, namespace string, exports []any) error {
+	current := object(parent[section])
+	if current == nil {
+		current = map[string]any{}
+	}
+	for name, value := range incoming {
+		qualified := qualifiedImport(namespace, name, exports)
+		if err := c.budget.CheckNamespace(qualified); err != nil {
+			return err
+		}
+		if _, exists := current[qualified]; exists {
+			return importError("collision")
+		}
+		current[qualified] = value
+	}
+	if len(current) > 0 {
+		parent[section] = current
+	}
+	return nil
+}
+func qualifiedImport(namespace, name string, exports []any) string {
+	if slices.ContainsFunc(exports, func(raw any) bool { return raw == name }) {
+		return namespace + "." + name
+	}
+	return namespace + ".__private." + name
+}
+func (c *composition) combineAgents(parent map[string]any, incoming []any, namespace string, exports []any) error {
+	current := array(parent[forwardingSection])
 	identities := map[string]bool{}
 	for _, agent := range current {
 		identities[text(object(agent)["forwarding_agent_id"])] = true
 	}
-	for _, raw := range array(incoming["forwarding_agents"]) {
+	for _, raw := range incoming {
 		agent := object(raw)
-		name := text(agent["forwarding_agent_id"])
-		qualified := namespace + ".__private." + name
-		if slices.ContainsFunc(array(exports["forwarding_agents"]), func(raw any) bool { return raw == name }) {
-			qualified = namespace + "." + name
-		}
+		qualified := qualifiedImport(namespace, text(agent["forwarding_agent_id"]), exports)
 		if err := c.budget.CheckNamespace(qualified); err != nil {
 			return err
 		}
@@ -90,7 +102,7 @@ func (c *composition) combine(parent, incoming map[string]any, namespace string,
 		current = append(current, agent)
 	}
 	if len(current) > 0 {
-		parent["forwarding_agents"] = current
+		parent[forwardingSection] = current
 	}
 	return nil
 }
@@ -101,7 +113,7 @@ func localQualified(name string) bool {
 	}
 	parts := strings.Split(name, ".")
 	for i, part := range parts {
-		if part == "__private" && i < len(parts)-1 {
+		if part == privateSegment && i < len(parts)-1 {
 			continue
 		}
 		if !variable("${" + part + "}") {
