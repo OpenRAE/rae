@@ -6,13 +6,12 @@ source_refs:
   - docs/public/quickstart.md
   - docs/explain/reference/canonical-reference-map.md
 description: >
-  Domain-neutral RAES agentic-environment authoring library for non-normative
-  examples, templates, and reusable patterns. Current examples are
-  strongest in cyber; additional domains extend through their own profiles,
-  assets, backends, and evidence requirements. SDL template bodies are parsed
-  and semantically validated by the Python reference implementation, and
-  experiment templates hold experiment-authoring-input-v1 documents that its
-  experiment authoring-input loader validates.
+  This library supplies non-normative examples, templates, and patterns for
+  domain-neutral agentic environment authoring with RAES.
+  The current examples mainly cover cyber.
+  Other domains need their own profiles, assets, backends, and evidence requirements.
+  The Python reference implementation parses and semantically validates SDL bodies.
+  Its experiment loader validates experiment-authoring-input-v1 bodies.
 surfaces:
   scenario:
     summary: Complete scenario authoring from topology through objective flow.

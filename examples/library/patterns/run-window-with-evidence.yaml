@@ -8,8 +8,8 @@ source_refs:
   - docs/explain/sdl/sections.md
 summary: Represent current run templates with stories, scripts, events, objectives, and workflow windows.
 intent: >
-  Give authors a reusable run shape that connects timed exercise material to
-  objective validation without adding backend-specific run storage.
+  Connect timed exercise material to objective validation.
+  This pattern adds no backend-specific run storage.
 use_when:
   - A run needs a timed story or script window.
   - Objective success should be scoped to a specific event or story interval.
