@@ -1,6 +1,6 @@
 # Contract validation regression crosswalk
 
-This crosswalk covers issue #1780.
+This crosswalk covers issues #1780 and #1781.
 The published schemas remain the authority.
 The [rule inventory](contract-invariant-rules.json) specifies all annotated rules.
 The [source crosswalk](contract-predicate-sources.json) names their Go predicates and reference owners.
@@ -18,6 +18,8 @@ The [source crosswalk](contract-predicate-sources.json) names their Go predicate
 | Clock coordinate defaults | `admission.TestRuntimeClockPythonDefaults` | 98 Python model verdicts through standalone time state and runtime snapshot admission; exact evidence preservation |
 | Profile and satisfiability model constraints | `admission.TestSupplementalProfileAndEvidenceModelsMatchPython` | 50 independent Python verdicts for governed scopes, known contracts, graph ordering, scalar domains and outcome joins |
 | Satisfiable witness admission | `admission.TestSatisfiabilityWitnessUsesTheNativeOwner` | Independent Python witness verdicts and native compiler phase; missing, changed and failing owners refuse admission |
+| Definition-level model rules | `admission.TestModelRulesMatchTheReferenceModels` | 554 Python model and published-definition verdicts for 30 definitions; fixture, crafted and changed instances, including nested union members without their tag |
+| Native fragment profiles | `admission.TestFragmentsMatchTheReferenceModels` | 1550 Python verdicts for the 43 fragment profiles; each ported owner also meets its closed JSON schema |
 
 The portable command checks local rules and selected context gates.
 Its positive result cannot grant a stronger contextual claim.

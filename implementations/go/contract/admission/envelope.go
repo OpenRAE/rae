@@ -72,21 +72,7 @@ func envelopeExpressionDigestView(v any) any {
 	}
 	return expression
 }
-func (e *Validator) vocabularyTerm(id, term string) bool {
-	definition := object(e.vocabularies[id])
-	if _, ok := object(at(definition, "terms"))[term]; ok {
-		return true
-	}
-	if stringAt(definition, "extension_policy") == termClosed {
-		return false
-	}
-	pattern := stringAt(definition, "extension_pattern")
-	if pattern == "" {
-		return false
-	}
-	compiled, err := regexp.Compile(`\A(?:` + pattern + `)\z`)
-	return err == nil && compiled.MatchString(term)
-}
+func (e *Validator) vocabularyTerm(id, term string) bool { return e.authority.Permits(id, term) }
 func (e *Validator) envelopeConfiguration(v any) error {
 	if !fieldsUnique(v, "supported_node_types", "supported_os_families", "supported_content_types", "supported_account_features", "supported_domain_profiles") || len(rowSet(at(v, "process_resource_limits"), "resource")) != len(array(at(v, "process_resource_limits"))) || len(rowTupleSet(at(v, "operating_systems"), "family", "distribution")) != len(array(at(v, "operating_systems"))) {
 		return invalid()

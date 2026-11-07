@@ -35,12 +35,16 @@ func planModel(v any, domain string) error {
 }
 
 func (e *Validator) plannedSubstrate(v any) error {
-	domain := at(v, "value_domain")
-	posture := stringAt(v, "posture")
-	if posture == "open" {
+	return e.substrateDomain(stringAt(v, "posture"), at(v, "value_domain"))
+}
+
+// substrateDomain requires the governed compute-substrate domain of a
+// constraint posture.
+func (e *Validator) substrateDomain(posture string, domain any) error {
+	if posture == termOpen {
 		return require(domain == nil)
 	}
-	if domain == nil {
+	if posture != postureExact && posture != termConstrained || domain == nil {
 		return invalid()
 	}
 	var values []any

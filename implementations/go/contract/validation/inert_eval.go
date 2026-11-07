@@ -20,10 +20,18 @@ func (e *inertEvaluator) consume(cost int) bool {
 	}
 	e.remaining -= cost
 	if e.remaining < 0 {
-		e.err = inertFailure()
+		e.err = inertOutcome(InertLimitExceeded)
 		return false
 	}
 	return true
+}
+
+// failure returns the recorded evaluator error, or the outcome of the check.
+func (e *inertEvaluator) failure(code string) error {
+	if e.err != nil {
+		return e.err
+	}
+	return inertOutcome(code)
 }
 func (e *inertEvaluator) check(schema, value *inertNode, first bool) bool {
 	if e.err != nil || schema == nil {
@@ -125,13 +133,13 @@ func (e *inertEvaluator) atomic(schema *inertNode, key string, value any) bool {
 		doc := map[string]any{keywordSchema: inertDialect, key: schema.members[key].value}
 		location := "urn:raes:private-profile-assertion"
 		if err := c.AddResource(location, doc); err != nil {
-			e.err = inertFailure()
+			e.err = inertOutcome(InertSchemaInvalid)
 			return false
 		}
 		var err error
 		compiled, err = c.Compile(location)
 		if err != nil {
-			e.err = inertFailure()
+			e.err = inertOutcome(InertSchemaInvalid)
 			return false
 		}
 		cached[key] = compiled

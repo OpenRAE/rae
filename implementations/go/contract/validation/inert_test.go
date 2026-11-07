@@ -2,8 +2,11 @@ package validation
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"testing"
+
+	"github.com/OpenRAE/rae/implementations/go/base/fault"
 )
 
 func TestInertProfileReferenceVerdicts(t *testing.T) {
@@ -20,8 +23,8 @@ func TestInertProfileReferenceVerdicts(t *testing.T) {
 	if err := json.Unmarshal(data, &recording); err != nil {
 		t.Fatal(err)
 	}
-	if len(recording.Cases) != 33 {
-		t.Fatal("reference inventory changed")
+	if len(recording.Cases) != 54 {
+		t.Fatalf("len(cases) = %d, want the 54 recorded reference cases", len(recording.Cases))
 	}
 	for _, c := range recording.Cases {
 		t.Run(c.Name, func(t *testing.T) { checkInertCase(t, c) })
@@ -29,29 +32,55 @@ func TestInertProfileReferenceVerdicts(t *testing.T) {
 }
 
 type inertCase struct {
-	Name    string          `json:"name"`
-	Schema  json.RawMessage `json:"schema"`
-	Value   json.RawMessage `json:"value"`
-	Valid   bool            `json:"valid"`
-	Minimum int             `json:"minimum_evaluations"`
+	Name      string          `json:"name"`
+	Schema    json.RawMessage `json:"schema"`
+	Value     json.RawMessage `json:"value"`
+	Valid     bool            `json:"valid"`
+	Outcome   string          `json:"outcome"`
+	Minimum   int             `json:"minimum_evaluations"`
+	Supported []string        `json:"supported"`
+	Limits    map[string]int  `json:"limits"`
+}
+
+func inertOutcomeCode(outcome string) string {
+	return map[string]string{"valid": "", "limit-exceeded": InertLimitExceeded, "unsupported-keyword": InertUnsupportedKeyword, "schema-invalid": InertSchemaInvalid, "value-invalid": InertValueInvalid}[outcome]
 }
 
 func checkInertCase(t *testing.T, c inertCase) {
 	t.Helper()
 	limits := InertLimits{MaxBytes: 1048576, MaxDepth: 16, MaxNodes: 4096, MaxScalarBytes: 1048576, MaxReferences: 128, MaxEvaluations: 65536}
-	err := CheckInertSchema(c.Schema, c.Value, inertSafeKeywords(), limits)
-	if (err == nil) != c.Valid {
-		t.Fatalf("got %v; reference accepted=%v", err, c.Valid)
+	for name, target := range map[string]*int{"max_depth": &limits.MaxDepth, "max_nodes": &limits.MaxNodes, "max_scalar_bytes": &limits.MaxScalarBytes, "max_references": &limits.MaxReferences, "max_evaluations": &limits.MaxEvaluations} {
+		if value, ok := c.Limits[name]; ok {
+			*target = value
+		}
 	}
-	if !c.Valid {
+	supported := inertSafeKeywords()
+	if c.Supported != nil {
+		supported = c.Supported
+	}
+	err := CheckInertSchema(c.Schema, c.Value, supported, limits)
+	if got := inertCode(err); got != inertOutcomeCode(c.Outcome) {
+		t.Fatalf("CheckInertSchema() code = %q (%v), want reference outcome %s", got, err, c.Outcome)
+	}
+	if !c.Valid || c.Minimum == 0 {
 		return
 	}
 	limits.MaxEvaluations = c.Minimum
-	if err := CheckInertSchema(c.Schema, c.Value, inertSafeKeywords(), limits); err != nil {
+	if err := CheckInertSchema(c.Schema, c.Value, supported, limits); err != nil {
 		t.Fatalf("reference budget %d: %v", c.Minimum, err)
 	}
 	limits.MaxEvaluations--
-	if err := CheckInertSchema(c.Schema, c.Value, inertSafeKeywords(), limits); err == nil {
-		t.Fatal("accepted below reference budget")
+	if got := inertCode(CheckInertSchema(c.Schema, c.Value, supported, limits)); got != InertLimitExceeded {
+		t.Fatalf("CheckInertSchema() below reference budget code = %q, want %s", got, InertLimitExceeded)
 	}
+}
+
+func inertCode(err error) string {
+	if refused, ok := errors.AsType[*fault.Error](err); ok {
+		return refused.Code()
+	}
+	if err != nil {
+		return err.Error()
+	}
+	return ""
 }

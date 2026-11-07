@@ -14,7 +14,7 @@ func (e *Validator) manifestBindings(v any, allowed func(string) bool) error {
 	}
 	for _, binding := range bindings {
 		scope := stringAt(binding, "scope")
-		if e.conceptFamilies[stringAt(binding, "family")] == nil || !allowed(scope) || !manifestScopePresent(v, scope) {
+		if !e.knownFamily(stringAt(binding, "family")) || !allowed(scope) || !manifestScopePresent(v, scope) {
 			return invalid()
 		}
 	}

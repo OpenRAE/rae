@@ -3,6 +3,7 @@ package validation
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"math/big"
 	"net/url"
@@ -27,11 +28,21 @@ type inertReader struct {
 }
 
 func readInert(data []byte, limits InertLimits) (*inertNode, error) {
-	if len(data) > limits.MaxBytes || !utf8.Valid(data) {
+	if len(data) > limits.MaxBytes {
+		return nil, inertOutcome(InertLimitExceeded)
+	}
+	if !utf8.Valid(data) {
 		return nil, inertFailure()
 	}
 	wrapped := append(append([]byte{'['}, data...), ']')
 	if _, err := ingress.Parse(wrapped, ingress.Limits{MaxBytes: limits.MaxBytes + 2, MaxDepth: limits.MaxDepth + 2}, ingress.Array); err != nil {
+		var refused *ingress.Error
+		if errors.As(err, &refused) && refused.Code == ingress.TooDeep {
+			return nil, inertOutcome(InertLimitExceeded)
+		}
+		if errors.As(err, &refused) && refused.Code == ingress.NonFinite {
+			return nil, inertOutcome(InertValueInvalid)
+		}
 		return nil, inertFailure()
 	}
 	d := json.NewDecoder(bytes.NewReader(data))
@@ -47,34 +58,40 @@ func readInert(data []byte, limits InertLimits) (*inertNode, error) {
 	n.nodes = r.nodes
 	return n, nil
 }
-func (r *inertReader) scalar(v any) bool {
+
+// scalar charges the scalar budget. A number that the reference reads as a
+// non-finite float is a value outcome; an exhausted budget is a limit.
+func (r *inertReader) scalar(v any) error {
 	size := 1
 	switch v := v.(type) {
 	case string:
 		size = len(v)
 	case json.Number:
 		if !boundedNumber(v) {
-			return false
+			return inertFailure()
 		}
 		if strings.ContainsAny(v.String(), ".eE") {
 			if _, err := strconv.ParseFloat(v.String(), 64); err != nil {
-				return false
+				return inertOutcome(InertValueInvalid)
 			}
 		} else {
 			n, ok := new(big.Int).SetString(v.String(), 10)
 			if !ok {
-				return false
+				return inertFailure()
 			}
 			size = max(1, (n.BitLen()+7)/8)
 		}
 	}
 	r.scalarBytes += size
-	return r.scalarBytes <= r.limits.MaxScalarBytes
+	if r.scalarBytes > r.limits.MaxScalarBytes {
+		return inertOutcome(InertLimitExceeded)
+	}
+	return nil
 }
 func (r *inertReader) node(depth int) (*inertNode, error) {
 	r.nodes++
 	if r.nodes > r.limits.MaxNodes || depth > r.limits.MaxDepth {
-		return nil, inertFailure()
+		return nil, inertOutcome(InertLimitExceeded)
 	}
 	token, err := r.decoder.Token()
 	if err != nil {
@@ -87,8 +104,8 @@ func (r *inertReader) node(depth int) (*inertNode, error) {
 	case json.Delim('['):
 		return r.array(depth)
 	default:
-		if !r.scalar(token) {
-			return nil, inertFailure()
+		if err := r.scalar(token); err != nil {
+			return nil, err
 		}
 	}
 	return n, nil
@@ -103,8 +120,11 @@ func (r *inertReader) object(depth int) (*inertNode, error) {
 			return nil, inertFailure()
 		}
 		key, ok := keyToken.(string)
-		if !ok || n.members[key] != nil || !r.scalar(key) {
+		if !ok || n.members[key] != nil {
 			return nil, inertFailure()
+		}
+		if scalarErr := r.scalar(key); scalarErr != nil {
+			return nil, scalarErr
 		}
 		child, err := r.node(depth + 1)
 		if err != nil {

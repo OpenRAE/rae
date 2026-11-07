@@ -9,7 +9,11 @@ import (
 )
 
 func TestScalarFamilyRules(t *testing.T) {
-	e, err := newCatalogOwner()
+	schemas, err := validation.New(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	e, err := newCatalogOwner(schemas)
 	if err != nil {
 		t.Fatal(err)
 	}
