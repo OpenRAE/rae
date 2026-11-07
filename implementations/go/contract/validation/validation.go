@@ -55,16 +55,18 @@ type annotation struct {
 }
 
 type contract struct {
-	schema      *jsonschema.Schema
-	annotations map[string][]annotation
-	raw         map[string]any
+	schema           *jsonschema.Schema
+	annotations      map[string][]annotation
+	raw              map[string]any
+	constructionWork int
 }
 
 // Validator has immutable compiled schemas and a copied rule registry. Methods
 // are safe for concurrent use if the owner-supplied rules are safe too.
 type Validator struct {
-	contracts map[string]contract
-	rules     map[Key]Rule
+	contracts    map[string]contract
+	construction map[string]contract
+	rules        map[Key]Rule
 }
 
 // New compiles the packaged published bundle offline. Missing semantic rules
@@ -105,6 +107,9 @@ func load(source fs.FS, rules []Rule) (*Validator, error) {
 	if err := validator.checkReferences(); err != nil {
 		return nil, err
 	}
+	if err := validator.loadSDLConstruction(); err != nil {
+		return nil, err
+	}
 	return validator.WithRules(rules)
 }
 
@@ -143,7 +148,7 @@ func (v *Validator) WithRules(rules []Rule) (*Validator, error) {
 	for _, key := range v.Keys() {
 		known[key] = true
 	}
-	bound := &Validator{contracts: v.contracts, rules: map[Key]Rule{}}
+	bound := &Validator{contracts: v.contracts, construction: v.construction, rules: map[Key]Rule{}}
 	for _, rule := range rules {
 		if !known[rule.Key] || rule.Check == nil || bound.rules[rule.Key].Check != nil {
 			return nil, failure(fault.Operational, "contract-rule-registration")
@@ -256,18 +261,6 @@ func compileContract(source fs.FS, publication publication) (contract, error) {
 	if err != nil {
 		return contract{}, failure(fault.Operational, codeContractSchemaInvalid)
 	}
-	compiler := jsonschema.NewCompiler()
-	compiler.DefaultDraft(jsonschema.Draft2020)
-	compiler.UseLoader(offline{})
-	compiler.UseRegexpEngine(compilePattern)
-	location := "urn:raes:contract:" + publication.ID
-	if err = compiler.AddResource(location, doc); err != nil {
-		return contract{}, failure(fault.Operational, codeContractSchemaInvalid)
-	}
-	compiled, err := compiler.Compile(location)
-	if err != nil {
-		return contract{}, failure(fault.Operational, codeContractSchemaInvalid)
-	}
 	root, ok := doc.(map[string]any)
 	if !ok {
 		return contract{}, failure(fault.Operational, codeContractSchemaInvalid)
@@ -276,7 +269,23 @@ func compileContract(source fs.FS, publication publication) (contract, error) {
 	if err := collect(root, "#", annotations); err != nil {
 		return contract{}, err
 	}
-	return contract{compiled, annotations, root}, nil
+	return compileDocument(publication.ID, root, annotations)
+}
+
+func compileDocument(id string, root map[string]any, annotations map[string][]annotation) (contract, error) {
+	compiler := jsonschema.NewCompiler()
+	compiler.DefaultDraft(jsonschema.Draft2020)
+	compiler.UseLoader(offline{})
+	compiler.UseRegexpEngine(compilePattern)
+	location := "urn:raes:contract:" + id
+	if err := compiler.AddResource(location, root); err != nil {
+		return contract{}, failure(fault.Operational, codeContractSchemaInvalid)
+	}
+	compiled, err := compiler.Compile(location)
+	if err != nil {
+		return contract{}, failure(fault.Operational, codeContractSchemaInvalid)
+	}
+	return contract{schema: compiled, annotations: annotations, raw: root}, nil
 }
 
 // CheckSchema validates bounded JSON bytes against the published schema only.

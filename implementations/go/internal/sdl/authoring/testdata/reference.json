@@ -550,6 +550,33 @@
       "accepted": true,
       "content": "name: a\nnodes:\n  web:\n    type: compute\n    runtime:\n      datastore_services:\n      - datastore_service_id: db\n        templates:\n        - template_id: foo\n          name: foo\n        mappings:\n        - mapping_id: bar\n          name: bar\n",
       "diagnostics": []
+    },
+    {
+      "name": "constructor-os-version-only",
+      "source": "name: a\nnodes: {n: {type: compute, os_version: '22'}}\n",
+      "accepted": true,
+      "content": "name: a\nnodes:\n  n:\n    type: compute\n    os_version: '22'\n",
+      "diagnostics": []
+    },
+    {
+      "name": "constructor-os-version-variable",
+      "source": "name: a\nnodes: {n: {type: compute, os_version: '${v}'}}\n",
+      "accepted": true,
+      "content": "name: a\nnodes:\n  n:\n    type: compute\n    os_version: ${v}\n",
+      "diagnostics": []
+    },
+    {
+      "name": "alternative-legacy-reference-target",
+      "source": "name: a\nvariation_points: {p: {kind: alternative, target: {owner: c, slot: content.target}, alternatives: {a: {reference: n}}}}\n",
+      "accepted": true,
+      "content": "name: a\nvariation_points:\n  p:\n    kind: alternative\n    target:\n      owner: c\n      slot: content.target\n    alternatives:\n      a:\n        reference: n\n",
+      "diagnostics": []
+    },
+    {
+      "name": "variation-missing-discriminator",
+      "source": "name: a\nvariation_points: {p: {target: {variable: v}, domain: {kind: enum, values: [1]}}}\n",
+      "accepted": false,
+      "error": "SDLParseError"
     }
   ]
 }

@@ -369,13 +369,13 @@ Targeted tests cover changed declarations, path refusals and read budgets.
 
 <!-- go-api implementations/go/contract/binding 5b19be099a1427702f3603820cada98e8a2bd4171f71ccabdb411d4a78fd5f53 -->
 
-<!-- go-api implementations/go/contract/validation 483041a7c377db0cad2d709bce88bae65034c417acec24d4e8f54211a4f8c102 -->
+<!-- go-api implementations/go/contract/validation 887f3adff0e539a3c0c2fc93aa1fef8eac94bdd39b01d7ba7dd10976971a09f8 -->
 
 <!-- go-api implementations/tooling/go/contractgen 87666ceb97f022789f40a56348e27f85ee3d5d861f37920162f2ad7e027ebabe -->
 
 <!-- go-api implementations/tooling/go/cmd/contractgen dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->
 
-<!-- go-api implementations/go/contract/admission c68da9bd980f9899a7d80eb5e58d4fe6dbab8b57dd7011931c54785065cf6d3c -->
+<!-- go-api implementations/go/contract/admission 92768c44dc77a3008bc6fd796ff64799647ee6ee974911482610a5aa9d7c5be3 -->
 
 ## Model parity repairs
 
@@ -445,3 +445,15 @@ The definition rule for `ResolvedImportProvenance` also applies through `CheckMo
 It checks local binding arity and uniqueness, module identity, digest spelling, absolute host paths and registry userinfo.
 The schema retains the published field and namespace limits.
 The SDL formatter uses this boundary for resolution-header validation without claiming phase admission.
+
+
+### SDL construction stage
+
+`CheckSDLConstruction` is distinct from published-contract validation.
+It checks only the packaged authored and materialized SDL model views.
+The views omit the two Node OS dependency clauses, which Python runs in semantic validation.
+A fixed digest pins the exact omitted clauses.
+Changed clauses fail construction of the validator until their stage assignment is reviewed.
+The published schemas, their compiled maps, and their entry points remain unchanged.
+The admission owner supplies stock local rules and nested model predicates.
+No caller flag or callback grants SDL semantic authority.

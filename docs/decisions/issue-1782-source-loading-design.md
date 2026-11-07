@@ -351,5 +351,46 @@ Keep the published schema and its conditional checks unchanged.
 Exact formatter parity needs the shared model owner planned in #1783.
 It also needs parts of the import and registry work planned in #1785.
 The current source package and formatter helpers do not provide that broader behavior.
-A maintainer scope decision is pending.
-That decision must precede more work on those owners or a split of the source delivery.
+The maintainer already authorized these formatter prerequisites with option 2.
+Continue that work in this branch.
+
+
+### Shared construction check
+
+Add `CheckSDLConstruction` to the contract validation and admission owners.
+The lower owner compiles a separate, fixed view of the two packaged SDL schemas.
+That view excludes only the two Node OS dependency clauses.
+The Python Node schema hook assigns those clauses to semantic validation.
+Pin their exact canonical digest before removing them from the construction view.
+Refuse a changed clause set until its stage assignment is reviewed.
+Clone the root, definitions map and Node definition; never change the published map.
+The offline compiler, scalar checks, local rules and model predicates remain shared.
+The admission owner runs its stock model rules on each constructed instance.
+Control and flow defaults are applied to their own model fragments.
+No caller can replace these checks or select arbitrary schema edits.
+
+Published-schema checks still enforce the OS dependency chain.
+Construction checks grant no semantic or execution authority.
+The source formatter uses the construction boundary before its later-stage checks.
+[Pydantic's schema guide](https://pydantic.dev/docs/validation/2.12/concepts/json_schema/) documents model-level schema hooks.
+The stage assignment here comes from the repository's Node hook and formatter calls.
+
+```mermaid
+flowchart LR
+    Input[Normalized source JSON] --> Construction[Shared construction view]
+    Construction --> Models[Stock local model rules]
+    Published[Published contract input] --> Schema[Unchanged published schema]
+    Schema --> Rules[Stock local model rules]
+    Models --> Later[Later semantic owner]
+```
+
+The legacy alternative target may omit `kind` and still construct a ReferenceTarget.
+Infer that kind for model checks only; preserve its unset status in emitted source.
+Other discriminated unions still require their tag.
+
+The SDL source budget can admit more work than the generic contract walk's 100,000-visit cap.
+A targeted reference case with 20,000 minimal nodes proves this boundary.
+For construction, bound visits by JSON byte length times the fixed compiled schema graph size.
+Count graph edges as well as nodes, because two paths can queue the same schema instance.
+Saturate integer multiplication and check the bound before each walk step.
+Other contract entry points keep their existing work cap.

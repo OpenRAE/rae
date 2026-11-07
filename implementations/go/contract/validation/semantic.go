@@ -107,10 +107,14 @@ func (v *Validator) semanticSource(id string, root, context any, complete bool, 
 }
 
 func walkSchema(root visit, check func(visit) error) error {
+	return walkSchemaBound(root, 100000, check)
+}
+
+func walkSchemaBound(root visit, bound int, check func(visit) error) error {
 	stack := []visit{root}
 	seen := map[visitIdentity]bool{}
 	for work := 0; len(stack) > 0; work++ {
-		if work >= 100000 {
+		if work >= bound {
 			return failure(fault.InvalidInput, "contract-evaluation-limit")
 		}
 		current := stack[len(stack)-1]

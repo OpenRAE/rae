@@ -69,5 +69,5 @@ func (c *composition) checkBoundFragment(pointer string, value any) error {
 		return err
 	}
 	limits := modelLimits(data)
-	return c.parser.models.CheckModelFragment(authoringContract, pointer, data, limits)
+	return c.parser.models.CheckSDLConstruction(authoringContract, pointer, data, limits)
 }

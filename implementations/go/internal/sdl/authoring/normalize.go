@@ -192,6 +192,7 @@ func (w *normalizer) mapping(schema map[string]any, pointer string, value map[st
 		if err != nil {
 			return nil, err
 		}
+		normalized = omitInferredTarget(pointer, name, value[name], normalized)
 		result = append(result, field{name: name, value: normalized, omit: omitted(normalized, presentation.Omit[name])})
 	}
 	if err := w.modelCheck(pointer, object(result)); err != nil {

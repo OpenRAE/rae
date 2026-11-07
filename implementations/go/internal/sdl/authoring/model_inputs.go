@@ -2,6 +2,7 @@ package authoring
 
 import (
 	"encoding/json"
+	"maps"
 	"regexp"
 	"strconv"
 )
@@ -33,8 +34,33 @@ func structuredInput(model, name string, value any) (any, error) {
 		if s, ok := value.(string); ok {
 			return lower(pythonTrim(s)), nil
 		}
+	case "AlternativeVariationPoint/target":
+		if target := object(value); target != nil {
+			if _, present := target["kind"]; !present {
+				inferred := maps.Clone(target)
+				inferred["kind"] = "reference"
+				return inferred, nil
+			}
+		}
 	}
 	return value, nil
+}
+
+func omitInferredTarget(pointer, name string, original, normalized any) any {
+	if pointer != "#/$defs/AlternativeVariationPoint" || name != "target" || object(original) == nil {
+		return normalized
+	}
+	if _, present := object(original)["kind"]; present {
+		return normalized
+	}
+	if fields, ok := normalized.(ordered); ok {
+		for i := range fields {
+			if fields[i].name == "kind" {
+				fields[i].omit = true
+			}
+		}
+	}
+	return normalized
 }
 
 func filesystemMode(value any) (any, error) {

@@ -232,7 +232,7 @@ func (p *Parser) decode(raw []byte, name, policy string) (*Document, error) {
 		return nil, err
 	}
 	limits := modelLimits(encoded)
-	if err = p.models.CheckPortable(id, encoded, limits); err != nil {
+	if err = p.models.CheckSDLConstruction(id, "#", encoded, limits); err != nil {
 		return nil, &modelError{path: "", cause: err}
 	}
 	encoded, err = encode(normalized, math.MaxInt64, true)
