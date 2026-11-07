@@ -5,6 +5,7 @@ import (
 	"sort"
 )
 
+const fieldTypeRule = "field-type"
 const policyField = "policy"
 const adrRefsField = "adr_refs"
 const authorityField = "authority"

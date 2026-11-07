@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+const ledgerEntryPrefix = "entries["
+
 var assuranceLedgerADR = regexp.MustCompile(`^ADR-[` + pythonSchemaDigits() + `]{3}\z`)
 
 func ledgerFinding(rule, message string) Finding {
@@ -37,7 +39,7 @@ func assuranceLedgerFindings(r *repository, levels []any) ([]Finding, error) {
 	for i, value := range entries {
 		entry := object(value)
 		if entry == nil {
-			findings = append(findings, ledgerFinding("entry", "entries["+strconv.Itoa(i)+"] must be a mapping"))
+			findings = append(findings, ledgerFinding("entry", ledgerEntryPrefix+strconv.Itoa(i)+"] must be a mapping"))
 			continue
 		}
 		entryID, added, identityFindings := assuranceLedgerIdentity(entry, i, seen, paths)
@@ -64,7 +66,7 @@ func assuranceLedgerIdentity(entry *mapping, i int, seen, paths []string) (strin
 	id, ok := entry.get("adr").(string)
 	switch {
 	case !ok || !assuranceLedgerADR.MatchString(id):
-		findings = append(findings, ledgerFinding("entry", "entries["+strconv.Itoa(i)+"].adr must be an ADR-NNN id"))
+		findings = append(findings, ledgerFinding("entry", ledgerEntryPrefix+strconv.Itoa(i)+"].adr must be an ADR-NNN id"))
 	case slices.Contains(seen, id):
 		findings = append(findings, ledgerFinding("duplicate", "ledger contains duplicate entry for "+id))
 	default:
@@ -76,7 +78,7 @@ func assuranceLedgerIdentity(entry *mapping, i int, seen, paths []string) (strin
 	}
 	entryID := id
 	if !ok {
-		entryID = "entries[" + strconv.Itoa(i) + "]"
+		entryID = ledgerEntryPrefix + strconv.Itoa(i) + "]"
 	}
 	return entryID, added, findings
 }

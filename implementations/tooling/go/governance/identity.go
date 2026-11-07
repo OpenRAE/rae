@@ -12,6 +12,8 @@ import (
 	"unicode/utf8"
 )
 
+const identityTrackedTree = "tracked-tree"
+
 func identityCutover(ctx context.Context, r *repository) (Report, error) {
 	records, findings := identityRecords(r)
 	data, err := r.git(ctx, "", "ls-files", "-z")
@@ -19,7 +21,7 @@ func identityCutover(ctx context.Context, r *repository) (Report, error) {
 		return Report{}, cancelled
 	}
 	if err != nil || !utf8.Valid(data) {
-		findings = append(findings, identityFailure("tracked-tree", "cannot enumerate tracked files", ""))
+		findings = append(findings, identityFailure(identityTrackedTree, "cannot enumerate tracked files", ""))
 		return finish(findings), nil //nolint:nilerr // Git discovery failures are explicit reference findings, not unavailable successful checks.
 	}
 	if len(findings) > 0 {
@@ -58,11 +60,11 @@ func identityUntracked(records map[string]identityRecord, tracked []string) []Fi
 
 func identityFile(r *repository, name string, records map[string]identityRecord) []Finding {
 	if !r.file(name) {
-		return []Finding{identityFailure("tracked-tree", "tracked path is missing, unsafe, or not a regular file", name)}
+		return []Finding{identityFailure(identityTrackedTree, "tracked path is missing, unsafe, or not a regular file", name)}
 	}
 	content, err := r.read(name)
 	if err != nil {
-		return []Finding{identityFailure("tracked-tree", "tracked file cannot be read: "+err.Error(), name)}
+		return []Finding{identityFailure(identityTrackedTree, "tracked file cannot be read: "+err.Error(), name)}
 	}
 	if record, ok := records[name]; ok {
 		return identityBoundContent(record, content)

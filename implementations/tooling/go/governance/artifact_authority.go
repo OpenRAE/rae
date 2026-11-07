@@ -63,7 +63,7 @@ func toolingRecord(r *repository, value *mapping, authority, definition string) 
 	}
 	transport["$schema"] = defaultMetaschema
 	const location = "urn:raes:private:tooling-record"
-	if addErr := compiler.AddResource(location, transport); addErr != nil {
+	if compiler.AddResource(location, transport) != nil {
 		return errArtifactSelection
 	}
 	compiled, err := compiler.Compile(location)

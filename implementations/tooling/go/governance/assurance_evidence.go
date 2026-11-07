@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+const waiverFor = " waiver for "
+
 func assuranceFulfillmentDelivered(r *repository, id string, value any, kinds []string) ([]string, []Finding) {
 	satisfied := []string{}
 	findings := []Finding{}
@@ -90,16 +92,16 @@ func assuranceFulfillmentWaiver(id, prefix string, item *mapping, kinds []string
 	}
 	validDate := assuranceWaiverDate(item.get("date"))
 	if !validDate {
-		findings = append(findings, fulfillmentFinding("waiver", id+" waiver for "+pythonRepr(item.get("kind"))+" must carry an ISO date (YYYY-MM-DD); got "+pythonRepr(item.get("date"))))
+		findings = append(findings, fulfillmentFinding("waiver", id+waiverFor+pythonRepr(item.get("kind"))+" must carry an ISO date (YYYY-MM-DD); got "+pythonRepr(item.get("date"))))
 	}
 	tracking, _ := item.get("tracking").([]any)
 	validTracking := slices.ContainsFunc(tracking, assuranceNonblank)
 	if !validTracking {
-		findings = append(findings, fulfillmentFinding("waiver", id+" waiver for "+pythonRepr(item.get("kind"))+" must name at least one tracking reference"))
+		findings = append(findings, fulfillmentFinding("waiver", id+waiverFor+pythonRepr(item.get("kind"))+" must name at least one tracking reference"))
 	}
 	validRationale := assuranceNonblank(item.get("rationale"))
 	if !validRationale {
-		findings = append(findings, fulfillmentFinding("waiver", id+" waiver for "+pythonRepr(item.get("kind"))+" must carry a non-empty rationale"))
+		findings = append(findings, fulfillmentFinding("waiver", id+waiverFor+pythonRepr(item.get("kind"))+" must carry a non-empty rationale"))
 	}
 	if validKind && validDate && validTracking && validRationale {
 		return &kind, findings

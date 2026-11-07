@@ -26,7 +26,7 @@ func boundarySchemaBlock(block *mapping) []Finding {
 		value := block.get(field)
 		text, ok := value.(string)
 		if !ok || text == "" {
-			findings = append(findings, boundaryFailure("field-type", "schema_authority."+field+" must be a non-empty string; got "+pythonRepr(value)))
+			findings = append(findings, boundaryFailure(fieldTypeRule, "schema_authority."+field+" must be a non-empty string; got "+pythonRepr(value)))
 		} else if text != expected {
 			findings = append(findings, boundaryFailure("schema-authority-mismatch", "schema_authority."+field+" must equal "+pythonRepr(expected)+"; got "+pythonRepr(text)))
 		}
@@ -39,7 +39,7 @@ func boundaryForbiddenRoots(block *mapping) []Finding {
 	values, ok := stringList(block.get("forbidden_authority_roots"), false)
 	if !ok {
 		if block.has("forbidden_authority_roots") {
-			return []Finding{boundaryFailure("field-type", "schema_authority.forbidden_authority_roots must be a list of strings")}
+			return []Finding{boundaryFailure(fieldTypeRule, "schema_authority.forbidden_authority_roots must be a list of strings")}
 		}
 		return []Finding{}
 	}
@@ -59,17 +59,17 @@ func boundarySchemaSuffixes(block *mapping) []Finding {
 	suffixes, ok := stringList(block.get("forbidden_schema_filename_suffixes"), false)
 	if !ok {
 		if block.has("forbidden_schema_filename_suffixes") {
-			return []Finding{boundaryFailure("field-type", "schema_authority.forbidden_schema_filename_suffixes must be a list of strings")}
+			return []Finding{boundaryFailure(fieldTypeRule, "schema_authority.forbidden_schema_filename_suffixes must be a list of strings")}
 		}
 		return []Finding{}
 	}
 	findings := []Finding{}
 	if len(suffixes) == 0 {
-		findings = append(findings, boundaryFailure("field-type", "schema_authority.forbidden_schema_filename_suffixes must be a non-empty list"))
+		findings = append(findings, boundaryFailure(fieldTypeRule, "schema_authority.forbidden_schema_filename_suffixes must be a non-empty list"))
 	}
 	for i, suffix := range suffixes {
 		if !strings.HasPrefix(suffix, ".") || len([]rune(suffix)) < 2 {
-			findings = append(findings, boundaryFailure("field-type", "schema_authority.forbidden_schema_filename_suffixes["+strconv.Itoa(i)+"] must be a non-empty extension starting with '.'; got "+pythonRepr(suffix)))
+			findings = append(findings, boundaryFailure(fieldTypeRule, "schema_authority.forbidden_schema_filename_suffixes["+strconv.Itoa(i)+"] must be a non-empty extension starting with '.'; got "+pythonRepr(suffix)))
 		}
 	}
 	return findings

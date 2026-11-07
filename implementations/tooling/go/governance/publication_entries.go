@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+const manifestEntryPrefix = "schema manifest entry "
+
 func (s *publicationInspection) record(value any, index int) error {
 	raw := object(value)
 	if raw == nil {
@@ -49,7 +51,7 @@ func (s *publicationInspection) recordHeader(raw *mapping, index int) (publicati
 	}
 	entry.path, _ = raw.get("schema_path").(string)
 	if entry.path == "" {
-		s.messages = append(s.messages, "schema manifest entry "+entry.id+" schema_path must be a non-empty string")
+		s.messages = append(s.messages, manifestEntryPrefix+entry.id+" schema_path must be a non-empty string")
 		return entry, false, nil
 	}
 	if !yamlHashable(raw.get("stability")) {
@@ -58,11 +60,11 @@ func (s *publicationInspection) recordHeader(raw *mapping, index int) (publicati
 	entry.stability, _ = raw.get("stability").(string)
 	stable := entry.stability == "draft" || entry.stability == publicationStable
 	if !stable {
-		s.messages = append(s.messages, "schema manifest entry "+entry.id+" stability must be one of: draft, stable")
+		s.messages = append(s.messages, manifestEntryPrefix+entry.id+" stability must be one of: draft, stable")
 	}
 	entry.digest, _ = raw.get("content_hash").(string)
 	if !publicationDigestShape(entry.digest) {
-		s.messages = append(s.messages, "schema manifest entry "+entry.id+" content_hash must be a 64-character sha256 hex digest")
+		s.messages = append(s.messages, manifestEntryPrefix+entry.id+" content_hash must be a 64-character sha256 hex digest")
 	}
 	entry.valid = stable && publicationDigestShape(entry.digest)
 	s.recordIdentity(entry)
@@ -109,7 +111,7 @@ func (s *publicationInspection) recordContent(raw *mapping, entry publicationEnt
 			return err
 		}
 		if digest != entry.digest {
-			s.messages = append(s.messages, "schema manifest entry "+entry.id+" content_hash "+entry.digest+" does not match canonical schema hash "+digest)
+			s.messages = append(s.messages, manifestEntryPrefix+entry.id+" content_hash "+entry.digest+" does not match canonical schema hash "+digest)
 		}
 		if raw.has("last_change") {
 			entry.lastChange = s.lastChange(entry, raw.get("last_change"))
@@ -123,7 +125,7 @@ func (s *publicationInspection) recordContent(raw *mapping, entry publicationEnt
 
 func (s *publicationInspection) lastChange(entry publicationEntry, value any) *mapping {
 	raw := object(value)
-	prefix := "schema manifest entry " + entry.id + " last_change"
+	prefix := manifestEntryPrefix + entry.id + " last_change"
 	if raw == nil {
 		s.messages = append(s.messages, prefix+" must be a JSON object")
 		return nil

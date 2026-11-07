@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+const assuranceLevelPrefix = "level '"
+
 func assuranceTop(raw *mapping) []Finding {
 	findings := []Finding{}
 	for _, field := range []string{policyField, requirementRefs, adrRefsField, "levels"} {
@@ -135,7 +137,7 @@ func assuranceLevelShape(index int, value any) []Finding {
 	}
 	for _, field := range []string{"id", nameField, "scope", "change_categories", "required_artifacts"} {
 		if !level.has(field) {
-			findings = append(findings, assuranceFinding("level-field", "level '"+id+"' missing required field: "+field))
+			findings = append(findings, assuranceFinding("level-field", assuranceLevelPrefix+id+"' missing required field: "+field))
 		}
 	}
 	return append(findings, assuranceLevelSequences(level, id)...)
@@ -148,12 +150,12 @@ func assuranceLevelSequences(level *mapping, id string) []Finding {
 		}
 		values, ok := level.get(field).([]any)
 		if !ok {
-			findings = append(findings, assuranceFinding("level-field-type", "level '"+id+"' field '"+field+"' must be a YAML list; got "+pythonType(level.get(field))))
+			findings = append(findings, assuranceFinding("level-field-type", assuranceLevelPrefix+id+"' field '"+field+"' must be a YAML list; got "+pythonType(level.get(field))))
 			continue
 		}
 		for _, item := range values {
 			if _, ok := item.(string); !ok {
-				findings = append(findings, assuranceFinding("level-field-type", "level '"+id+"' field '"+field+"' must contain only strings; got non-string element "+pythonRepr(item)))
+				findings = append(findings, assuranceFinding("level-field-type", assuranceLevelPrefix+id+"' field '"+field+"' must contain only strings; got non-string element "+pythonRepr(item)))
 			}
 		}
 	}
@@ -207,7 +209,7 @@ func assuranceArtifactOverlap(levels []any) []Finding {
 			id = pythonStr(level.get("id"))
 		}
 		if len(overlap) > 0 {
-			findings = append(findings, assuranceFinding("required-prohibited-overlap", "level '"+id+"' has artifacts in both required_artifacts and prohibited_artifacts: "+pythonRepr(overlap)))
+			findings = append(findings, assuranceFinding("required-prohibited-overlap", assuranceLevelPrefix+id+"' has artifacts in both required_artifacts and prohibited_artifacts: "+pythonRepr(overlap)))
 		}
 	}
 	return findings

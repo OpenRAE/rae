@@ -14,10 +14,12 @@ import (
 type colonFenceParser struct{}
 type colonFence struct{ length, indent int }
 
-func (colonFenceParser) Trigger() []byte                             { return []byte{':'} }
-func (colonFenceParser) CanInterruptParagraph() bool                 { return true }
-func (colonFenceParser) CanAcceptIndentedLine() bool                 { return false }
-func (colonFenceParser) Close(ast.Node, text.Reader, parser.Context) {}
+func (colonFenceParser) Trigger() []byte             { return []byte{':'} }
+func (colonFenceParser) CanInterruptParagraph() bool { return true }
+func (colonFenceParser) CanAcceptIndentedLine() bool { return false }
+func (colonFenceParser) Close(ast.Node, text.Reader, parser.Context) {
+	// Goldmark owns the completed node; this parser has no state to release.
+}
 
 //nolint:ireturn // Implements Goldmark's block parser interface.
 func (colonFenceParser) Open(_ ast.Node, reader text.Reader, pc parser.Context) (ast.Node, parser.State) {

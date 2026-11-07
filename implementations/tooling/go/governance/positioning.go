@@ -7,14 +7,18 @@ import (
 	"golang.org/x/text/cases"
 )
 
+const positioningReadme = "README.md"
+const positioningConcepts = "docs/public/concepts.md"
+const agenticEnvironment = "agentic environment"
+
 const positioningLimit = 512_000
 const positioningSurfaceRule = "project-positioning-surface"
 const positioningFramingRule = "project-positioning-framing"
 const positioningMetadataRule = "project-positioning-metadata"
 
-func positioningPrimary() []string { return []string{"README.md", "docs/public/index.md"} }
+func positioningPrimary() []string { return []string{positioningReadme, "docs/public/index.md"} }
 func positioningSupporting() []string {
-	return []string{"docs/public/quickstart.md", "docs/public/concepts.md", "docs/public/sdl/index.md", "docs/public/backends.md", "docs/public/research.md", "examples/README.md"}
+	return []string{"docs/public/quickstart.md", positioningConcepts, "docs/public/sdl/index.md", "docs/public/backends.md", "docs/public/research.md", "examples/README.md"}
 }
 
 func (c *checker) projectPositioning(ctx context.Context, r *repository) (Report, error) {
@@ -80,7 +84,7 @@ func positioningTerms(text string, terms ...string) bool {
 
 func positioningFraming(surfaces map[string]string, findings *[]Finding) {
 	for _, name := range positioningPrimary() {
-		if !positioningTerms(surfaces[name], "reproducible agentic environments system", "agentic environment") {
+		if !positioningTerms(surfaces[name], "reproducible agentic environments system", agenticEnvironment) {
 			*findings = append(*findings, finding(positioningFramingRule, "primary entrypoint must introduce RAES and agentic environments", name))
 		}
 	}
@@ -89,12 +93,12 @@ func positioningFraming(surfaces map[string]string, findings *[]Finding) {
 			*findings = append(*findings, finding(positioningFramingRule, "supporting entrypoint must connect its subject to RAES", name))
 		}
 	}
-	readme := surfaces["README.md"]
+	readme := surfaces[positioningReadme]
 	if !positioningTerms(readme, "cyber", "ai security", "ai safety", "testing", "research", "evaluation") || !positioningTerms(readme, "additional domains") && !positioningTerms(readme, "other domains") {
-		*findings = append(*findings, finding("project-positioning-domains", "README must present the named application areas as non-exhaustive", "README.md"))
+		*findings = append(*findings, finding("project-positioning-domains", "README must present the named application areas as non-exhaustive", positioningReadme))
 	}
-	if !positioningTerms(surfaces["docs/public/concepts.md"], "authored scenario", "realized environment", "bounded reproduction", "does not", "exact replay") {
-		*findings = append(*findings, finding("project-positioning-claim-boundary", "concept guidance must retain the bounded reproduction and nonclaim boundary", "docs/public/concepts.md"))
+	if !positioningTerms(surfaces[positioningConcepts], "authored scenario", "realized environment", "bounded reproduction", "does not", "exact replay") {
+		*findings = append(*findings, finding("project-positioning-claim-boundary", "concept guidance must retain the bounded reproduction and nonclaim boundary", positioningConcepts))
 	}
 }
 
@@ -117,13 +121,13 @@ func positioningMetadata(ctx context.Context, r *repository, findings *[]Finding
 	value, err := yamlValue([]byte(source), false)
 	catalog, _ := value.(*mapping)
 	description, _ := catalog.get("description").(string)
-	if err != nil || !positioningTerms(description, "domain-neutral", "agentic environment") {
+	if err != nil || !positioningTerms(description, "domain-neutral", agenticEnvironment) {
 		*findings = append(*findings, finding(positioningMetadataRule, "example catalog description must identify its domain-neutral agentic-environment role", catalogPath))
 	}
 	for _, assignment := range [][2]string{{"implementations/python/packages/raes_mcp/server.py", "_INSTRUCTIONS"}, {"implementations/python/packages/raes_mcp/tools/reference.py", "_OVERVIEW_TEXT"}} {
 		source = positioningText(r, assignment[0], findings)
 		value := pythonLiteralAssignments(ctx, source, assignment[1])[assignment[1]]
-		if !positioningTerms(value, "agentic environment", "RAES SDL", "authored scenario") {
+		if !positioningTerms(value, agenticEnvironment, "RAES SDL", "authored scenario") {
 			*findings = append(*findings, finding(positioningMetadataRule, "MCP positioning must distinguish RAES agentic environments from authored RAES SDL scenarios", assignment[0]))
 		}
 	}

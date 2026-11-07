@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+const deprecationEntryFieldRule = "entry-field"
+
 const deprecationPath = "specs/evolution/deprecation-records.yaml"
 const requirementRefs = "requirement_refs"
 
@@ -53,7 +55,7 @@ func deprecationTop(raw *mapping) []Finding {
 	}
 	if value := raw.get(policyField); raw.has(policyField) {
 		if _, ok := value.(string); !ok {
-			findings = append(findings, deprecationFailure("field-type", "policy must be a string; got "+pythonType(value)))
+			findings = append(findings, deprecationFailure(fieldTypeRule, "policy must be a string; got "+pythonType(value)))
 		} else if value != "ecosystem-deprecation-records" {
 			findings = append(findings, deprecationFailure("policy-value", "policy must equal 'ecosystem-deprecation-records'; got "+pythonRepr(value)))
 		}
@@ -61,10 +63,10 @@ func deprecationTop(raw *mapping) []Finding {
 	findings = append(findings, deprecationRefs(raw, requirementRefs, "GOV-902", "requirement-ref")...)
 	findings = append(findings, deprecationRefs(raw, adrRefsField, "ADR-075", "adr-ref")...)
 	if raw.has("spec") && !nonemptyText(raw.get("spec")) {
-		findings = append(findings, deprecationFailure("field-type", "spec must be a non-empty string path"))
+		findings = append(findings, deprecationFailure(fieldTypeRule, "spec must be a non-empty string path"))
 	}
 	if _, ok := raw.get("records").([]any); raw.has("records") && !ok {
-		findings = append(findings, deprecationFailure("field-type", "records must be a list; got "+pythonType(raw.get("records"))))
+		findings = append(findings, deprecationFailure(fieldTypeRule, "records must be a list; got "+pythonType(raw.get("records"))))
 	}
 	return findings
 }
@@ -72,7 +74,7 @@ func deprecationTop(raw *mapping) []Finding {
 func deprecationRefs(raw *mapping, field, required, rule string) []Finding {
 	refs, valid := stringList(raw.get(field), false)
 	if raw.has(field) && !valid {
-		return []Finding{deprecationFailure("field-type", field+" must be a list of strings")}
+		return []Finding{deprecationFailure(fieldTypeRule, field+" must be a list of strings")}
 	}
 	if valid && !slices.Contains(refs, required) {
 		return []Finding{deprecationFailure(rule, field+" must include "+required+"; got "+pythonRepr(refs))}
@@ -101,14 +103,14 @@ func deprecationRecord(value any, index int, seen map[string]bool, removed []str
 	location := fmt.Sprintf("records[%d]", index)
 	entry, ok := value.(*mapping)
 	if !ok {
-		return []Finding{deprecationFailure("entry-field", location+" must be a mapping; got "+pythonType(value))}
+		return []Finding{deprecationFailure(deprecationEntryFieldRule, location+" must be a mapping; got "+pythonType(value))}
 	}
 	findings := []Finding{}
 	for _, field := range []string{"id", "surface_class", "identifier", "status", "first_notice", "migration_reference", "notice_window", "verification_evidence"} {
 		if !entry.has(field) {
-			findings = append(findings, deprecationFailure("entry-field", location+" is missing required field: "+field))
+			findings = append(findings, deprecationFailure(deprecationEntryFieldRule, location+" is missing required field: "+field))
 		} else if !nonemptyText(entry.get(field)) {
-			findings = append(findings, deprecationFailure("entry-field", location+"."+field+" must be a non-empty string"))
+			findings = append(findings, deprecationFailure(deprecationEntryFieldRule, location+"."+field+" must be a non-empty string"))
 		}
 	}
 	if nonemptyText(entry.get("replacement")) == nonemptyText(entry.get("no_replacement_rationale")) {

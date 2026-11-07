@@ -105,6 +105,8 @@ func candidateDialect(value any, python bool) string {
 	}
 	dialect, _ := object(value).get("$schema").(string)
 	plain := strings.TrimSuffix(dialect, "#")
+	// These are dialect identifiers, never transport URLs. offlineSchemas refuses
+	// external retrieval; the compiler supplies its embedded historical metaschemas.
 	for _, scheme := range []string{"http://", "https://"} {
 		for _, draft := range []string{"draft-04", "draft-06", "draft-07", "draft/2019-09", "draft/2020-12"} {
 			if plain == scheme+"json-schema.org/"+draft+"/schema" {

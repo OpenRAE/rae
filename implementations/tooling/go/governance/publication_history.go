@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+const stableSchemaPrefix = "stable schema "
+
 func (s *publicationInspection) history(ctx context.Context, base string) error {
 	if err := s.stableChanges(ctx, base); err != nil {
 		return err
@@ -59,7 +61,7 @@ func (s *publicationInspection) stableEntry(ctx context.Context, base string, pr
 		return nil
 	}
 	if name != entry.path {
-		s.messages = append(s.messages, "stable schema "+entry.id+" changed schema_path without a version bump: "+name+" -> "+entry.path)
+		s.messages = append(s.messages, stableSchemaPrefix+entry.id+" changed schema_path without a version bump: "+name+" -> "+entry.path)
 		return nil
 	}
 	text, err := publicationGitText(ctx, s.repository, "show", "--end-of-options", base+":"+name)
@@ -82,13 +84,13 @@ func (s *publicationInspection) stableEntry(ctx context.Context, base string, pr
 	changes, err := publicationBreakingChanges(value, entry.schema)
 	if err != nil {
 		if _, depth := errors.AsType[publicationComparisonError](err); depth {
-			s.messages = append(s.messages, "stable schema "+entry.id+" nests beyond the depth that the compatibility check can compare")
+			s.messages = append(s.messages, stableSchemaPrefix+entry.id+" nests beyond the depth that the compatibility check can compare")
 			return nil
 		}
 		return err
 	}
 	if len(changes) > 0 {
-		s.messages = append(s.messages, "stable schema "+entry.id+" changed incompatibly without a version bump: "+strings.Join(changes, "; "))
+		s.messages = append(s.messages, stableSchemaPrefix+entry.id+" changed incompatibly without a version bump: "+strings.Join(changes, "; "))
 	}
 	return nil
 }

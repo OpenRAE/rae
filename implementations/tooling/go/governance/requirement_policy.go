@@ -6,6 +6,8 @@ import (
 	"slices"
 )
 
+const invalidRequirementPhases = "phases must be a list of mappings with a text id"
+
 const requirementPolicyPath = "tools/policy/requirement_order.yaml"
 
 type requirementPhase struct {
@@ -76,14 +78,14 @@ func orderPhases(root *mapping) ([]requirementPhase, error) {
 	}
 	items, ok := value.([]any)
 	if !ok {
-		return nil, orderPolicyError("phases must be a list of mappings with a text id")
+		return nil, orderPolicyError(invalidRequirementPhases)
 	}
 	ids := []string{}
 	for _, item := range items {
 		m, _ := item.(*mapping)
 		id, valid := m.get("id").(string)
 		if m == nil || !valid {
-			return nil, orderPolicyError("phases must be a list of mappings with a text id")
+			return nil, orderPolicyError(invalidRequirementPhases)
 		}
 		ids = append(ids, id)
 	}
@@ -91,7 +93,7 @@ func orderPhases(root *mapping) ([]requirementPhase, error) {
 	for i, item := range items {
 		m, ok := item.(*mapping)
 		if !ok {
-			return nil, orderPolicyError("phases must be a list of mappings with a text id")
+			return nil, orderPolicyError(invalidRequirementPhases)
 		}
 		phase, err := orderPhase(m, ids, i)
 		if err != nil {
@@ -130,7 +132,7 @@ func orderPhase(m *mapping, ids []string, index int) (requirementPhase, error) {
 	}
 	id, ok := m.get("id").(string)
 	if !ok {
-		return requirementPhase{}, orderPolicyError("phases must be a list of mappings with a text id")
+		return requirementPhase{}, orderPolicyError(invalidRequirementPhases)
 	}
 	return requirementPhase{id: id, uids: lists["requirements"], patterns: patterns, blockers: lists["blocked_until"], manual: truth(m.get("manual_release"))}, nil
 }

@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+const repoChangelogPath = "CHANGELOG.md"
+
 const repoADRTemplate = adrDirectory + "/TEMPLATE.md"
 
 func repoExists(r *repository, name string) (bool, error) {
@@ -25,11 +27,11 @@ func repoExists(r *repository, name string) (bool, error) {
 }
 
 func repoChangelog(r *repository) ([]Finding, error) {
-	exists, err := repoExists(r, "CHANGELOG.md")
+	exists, err := repoExists(r, repoChangelogPath)
 	if err != nil || !exists {
 		return []Finding{}, err
 	}
-	text, err := repoReadText(r, "CHANGELOG.md")
+	text, err := repoReadText(r, repoChangelogPath)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +45,7 @@ func repoChangelog(r *repository) ([]Finding, error) {
 			end = headings[i+1][0]
 		}
 		if regexp.MustCompile(`(?m)^###` + pythonSpace()).MatchString(text[heading[1]:end]) {
-			return []Finding{finding("changelog-unreleased-content", "CHANGELOG.md has content under [Unreleased]; assign a version number and date", "CHANGELOG.md")}, nil
+			return []Finding{finding("changelog-unreleased-content", "CHANGELOG.md has content under [Unreleased]; assign a version number and date", repoChangelogPath)}, nil
 		}
 	}
 	return []Finding{}, nil

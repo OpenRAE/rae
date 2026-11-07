@@ -10,6 +10,8 @@ import (
 	"unicode/utf8"
 )
 
+const schemaDialectField = "$schema"
+
 func boundedJSONObject(r *repository, name string, limit int) (*mapping, error) {
 	if !r.file(name) {
 		return nil, policyInputError("missing or unsafe repository artifact")
@@ -120,11 +122,11 @@ func coverageValidated(r *repository, payload any, schemaPath string, pointer an
 			return "schema pointer names no published definition: " + definition, nil
 		}
 		wrapper := newMapping()
-		dialect := schema.get("$schema")
-		if !schema.has("$schema") {
+		dialect := schema.get(schemaDialectField)
+		if !schema.has(schemaDialectField) {
 			dialect = defaultMetaschema
 		}
-		wrapper.set("$schema", dialect)
+		wrapper.set(schemaDialectField, dialect)
 		wrapper.set("$defs", defs)
 		wrapper.set("$ref", definition)
 		schema = wrapper

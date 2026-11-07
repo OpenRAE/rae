@@ -12,6 +12,8 @@ import (
 	"github.com/yuin/goldmark/util"
 )
 
+const fieldMarkerAttribute = "field-marker"
+
 type fieldListParser struct{}
 type fieldBodyParser struct{}
 type fieldMarker struct {
@@ -19,14 +21,16 @@ type fieldMarker struct {
 	content int
 }
 
-func (fieldListParser) Trigger() []byte                             { return []byte{':'} }
-func (fieldListParser) CanInterruptParagraph() bool                 { return true }
-func (fieldListParser) CanAcceptIndentedLine() bool                 { return false }
-func (fieldListParser) Close(ast.Node, text.Reader, parser.Context) {}
+func (fieldListParser) Trigger() []byte             { return []byte{':'} }
+func (fieldListParser) CanInterruptParagraph() bool { return true }
+func (fieldListParser) CanAcceptIndentedLine() bool { return false }
+func (fieldListParser) Close(ast.Node, text.Reader, parser.Context) {
+	// Goldmark owns the completed node; this parser has no state to release.
+}
 
 //nolint:ireturn // Implements Goldmark's block parser interface.
 func (fieldListParser) Open(parent ast.Node, reader text.Reader, pc parser.Context) (ast.Node, parser.State) {
-	if _, field := parent.AttributeString("field-marker"); field {
+	if _, field := parent.AttributeString(fieldMarkerAttribute); field {
 		return nil, parser.NoChildren
 	}
 	line, segment := reader.PeekLine()
@@ -38,7 +42,7 @@ func (fieldListParser) Open(parent ast.Node, reader text.Reader, pc parser.Conte
 	firstIndent := utf8.RuneCount(line[:marker.content])
 	indent := fieldBodyIndent(reader.Source()[segment.Stop:], reader.LineOffset(), firstIndent)
 	node := definition.NewDefinitionList(indent, nil)
-	node.SetAttributeString("field-marker", marker)
+	node.SetAttributeString(fieldMarkerAttribute, marker)
 	return node, parser.HasChildren
 }
 
@@ -82,11 +86,13 @@ func (fieldBodyParser) CanAcceptIndentedLine() bool { return false }
 func (fieldBodyParser) Continue(ast.Node, text.Reader, parser.Context) parser.State {
 	return parser.Continue | parser.HasChildren
 }
-func (fieldBodyParser) Close(ast.Node, text.Reader, parser.Context) {}
+func (fieldBodyParser) Close(ast.Node, text.Reader, parser.Context) {
+	// Goldmark owns the completed node; this parser has no state to release.
+}
 
 //nolint:ireturn // Implements Goldmark's block parser interface.
 func (fieldBodyParser) Open(parent ast.Node, reader text.Reader, _ parser.Context) (ast.Node, parser.State) {
-	raw, found := parent.AttributeString("field-marker")
+	raw, found := parent.AttributeString(fieldMarkerAttribute)
 	marker, ok := raw.(fieldMarker)
 	if !found || !ok || parent.FirstChild() != nil {
 		return nil, parser.NoChildren

@@ -7,12 +7,16 @@ import (
 	"strings"
 )
 
+const authorityOverlapRule = "categorisation-overlap"
+const authorityEntryID = "' (id="
+const authorityRootPrefix = "authority root '"
+
 func boundaryOverlap(normative, consumers []boundaryRoot, legacy []string) []Finding {
 	findings := []Finding{}
 	for _, a := range normative {
 		for _, b := range consumers {
 			if a.root == b.root {
-				findings = append(findings, boundaryFailure("categorisation-overlap", "root '"+a.root+"' is classified as both authority (id="+pythonRepr(a.id)+") and non-normative (id="+pythonRepr(b.id)+"); each root must have exactly one classification"))
+				findings = append(findings, boundaryFailure(authorityOverlapRule, "root '"+a.root+"' is classified as both authority (id="+pythonRepr(a.id)+") and non-normative (id="+pythonRepr(b.id)+"); each root must have exactly one classification"))
 			}
 		}
 	}
@@ -28,7 +32,7 @@ func boundaryLegacyOverlap(normative, consumers []boundaryRoot, legacy []string)
 		for _, entry := range group.roots {
 			first := boundaryFirstPart(entry.root)
 			if first != "" && slices.Contains(legacy, first) {
-				findings = append(findings, boundaryFailure("categorisation-overlap", group.label+" root '"+entry.root+"' (id="+pythonRepr(entry.id)+") shares its top-level segment '"+first+"' with legacy_top_level_dirs; legacy dirs must remain absent and may not host a classified root"))
+				findings = append(findings, boundaryFailure(authorityOverlapRule, group.label+" root '"+entry.root+authorityEntryID+pythonRepr(entry.id)+") shares its top-level segment '"+first+"' with legacy_top_level_dirs; legacy dirs must remain absent and may not host a classified root"))
 			}
 		}
 	}
@@ -42,9 +46,9 @@ func boundaryAncestorOverlap(normative, consumers []boundaryRoot) []Finding {
 				continue
 			}
 			if strings.HasPrefix(b.root, a.root) {
-				findings = append(findings, boundaryFailure("categorisation-overlap", "authority root '"+a.root+"' (id="+pythonRepr(a.id)+") is an ancestor of non-normative root '"+b.root+"' (id="+pythonRepr(b.id)+"); a child of a normative root cannot be non-normative"))
+				findings = append(findings, boundaryFailure(authorityOverlapRule, authorityRootPrefix+a.root+authorityEntryID+pythonRepr(a.id)+") is an ancestor of non-normative root '"+b.root+authorityEntryID+pythonRepr(b.id)+"); a child of a normative root cannot be non-normative"))
 			} else if strings.HasPrefix(a.root, b.root) {
-				findings = append(findings, boundaryFailure("categorisation-overlap", "non-normative root '"+b.root+"' (id="+pythonRepr(b.id)+") is an ancestor of authority root '"+a.root+"' (id="+pythonRepr(a.id)+"); a child of a non-normative root cannot be authority"))
+				findings = append(findings, boundaryFailure(authorityOverlapRule, "non-normative root '"+b.root+authorityEntryID+pythonRepr(b.id)+") is an ancestor of authority root '"+a.root+authorityEntryID+pythonRepr(a.id)+"); a child of a non-normative root cannot be authority"))
 			}
 		}
 	}
@@ -64,7 +68,7 @@ func boundaryDisk(r *repository, normative, consumers []boundaryRoot, legacy []s
 	findings := []Finding{}
 	for _, entry := range normative {
 		if !boundaryDirectory(r, entry.root) {
-			findings = append(findings, finding("authority-boundary-root-missing", "authority root '"+entry.root+"' (id="+pythonRepr(entry.id)+") does not exist on disk", entry.root))
+			findings = append(findings, finding("authority-boundary-root-missing", authorityRootPrefix+entry.root+authorityEntryID+pythonRepr(entry.id)+") does not exist on disk", entry.root))
 			continue
 		}
 		entries, err := boundaryDirectoryEntries(r, entry.root)
@@ -72,7 +76,7 @@ func boundaryDisk(r *repository, normative, consumers []boundaryRoot, legacy []s
 			return nil, err
 		}
 		if !slices.ContainsFunc(entries, func(child fs.DirEntry) bool { return child.Name() != ".keep" }) {
-			findings = append(findings, finding("authority-boundary-root-empty", "authority root '"+entry.root+"' (id="+pythonRepr(entry.id)+") exists but contains no artifacts", entry.root))
+			findings = append(findings, finding("authority-boundary-root-empty", authorityRootPrefix+entry.root+authorityEntryID+pythonRepr(entry.id)+") exists but contains no artifacts", entry.root))
 		}
 	}
 	remaining, err := boundaryOtherDirectories(r, normative, consumers, legacy)

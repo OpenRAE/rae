@@ -11,6 +11,9 @@ import (
 	"github.com/OpenRAE/rae/implementations/go/base/fault"
 )
 
+const gitEndOfOptions = "--end-of-options"
+const baseManifestPrefix = "base schema publication manifest at "
+
 // Publication uses subprocess text semantics and distinguishes an empty blob
 // from a failed lookup. The ADR adapter has a separate binary-blob profile.
 func publicationGitText(ctx context.Context, r *repository, args ...string) (*string, error) {
@@ -32,7 +35,7 @@ func publicationGitText(ctx context.Context, r *repository, args ...string) (*st
 }
 
 func publicationBaseCatalog(ctx context.Context, r *repository, base string) (map[string]*mapping, string, error) {
-	text, err := publicationGitText(ctx, r, "show", "--end-of-options", base+":"+publicationManifest)
+	text, err := publicationGitText(ctx, r, "show", gitEndOfOptions, base+":"+publicationManifest)
 	if err != nil {
 		return nil, "", err
 	}
@@ -41,11 +44,11 @@ func publicationBaseCatalog(ctx context.Context, r *repository, base string) (ma
 	}
 	value, err := decodeJSON([]byte(*text), 0, false)
 	if err != nil {
-		return nil, "base schema publication manifest at " + base + " is not valid JSON", nil //nolint:nilerr // The reference carries malformed-base detail as a policy finding.
+		return nil, baseManifestPrefix + base + " is not valid JSON", nil //nolint:nilerr // The reference carries malformed-base detail as a policy finding.
 	}
 	raw := object(value)
 	if raw == nil {
-		return nil, "base schema publication manifest at " + base + " must be a JSON object", nil
+		return nil, baseManifestPrefix + base + " must be a JSON object", nil
 	}
 	if raw.get("schema_version") == "schema-publication-manifest/v2" {
 		return publicationBaseRecords(ctx, r, base, raw.get("entries_directory"))
@@ -57,9 +60,9 @@ func publicationBaseCatalog(ctx context.Context, r *repository, base string) (ma
 func publicationBaseRecords(ctx context.Context, r *repository, base string, value any) (map[string]*mapping, string, error) {
 	directory, ok := value.(string)
 	if !ok {
-		return nil, "base schema publication manifest at " + base + " has no entries directory", nil
+		return nil, baseManifestPrefix + base + " has no entries directory", nil
 	}
-	text, err := publicationGitText(ctx, r, "ls-tree", "-r", "--name-only", "--end-of-options", base, "--", directory)
+	text, err := publicationGitText(ctx, r, "ls-tree", "-r", "--name-only", gitEndOfOptions, base, "--", directory)
 	if err != nil {
 		return nil, "", err
 	}
@@ -75,7 +78,7 @@ func publicationBaseRecords(ctx context.Context, r *repository, base string, val
 	slices.Sort(paths)
 	rows := []any{}
 	for _, name := range paths {
-		recordText, readErr := publicationGitText(ctx, r, "show", "--end-of-options", base+":"+name)
+		recordText, readErr := publicationGitText(ctx, r, "show", gitEndOfOptions, base+":"+name)
 		if readErr != nil {
 			return nil, "", readErr
 		}

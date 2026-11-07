@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+const contractFixturesPrefix = "contracts/fixtures/"
+
 const schemasPrefix = "contracts/schemas/"
 const jsonMetaschemaMode = "metaschema"
 const jsonSchemaMode = "schema"
@@ -75,7 +77,7 @@ func fullJSONTargets(r *repository, targets []jsonTarget) []jsonTarget {
 	for _, name := range discoverJSON(r, "contracts/concept-authority/", false) {
 		targets = append(targets, changedJSONTarget(name))
 	}
-	fixtures := discoverJSON(r, "contracts/fixtures/", true)
+	fixtures := discoverJSON(r, contractFixturesPrefix, true)
 	for _, directory := range []string{"valid", "migration", "context-invalid"} {
 		for _, name := range fixtures {
 			if path.Base(path.Dir(name)) == directory {
@@ -188,7 +190,7 @@ func changedJSONTarget(name string) jsonTarget {
 		return jsonTarget{name, "", jsonMetaschemaMode}
 	case strings.HasPrefix(name, "contracts/concept-authority/"):
 		return jsonTarget{name, schemasPrefix + "concept-authority/" + path.Base(name), jsonSchemaMode}
-	case strings.HasPrefix(name, "contracts/fixtures/"):
+	case strings.HasPrefix(name, contractFixturesPrefix):
 		for _, directory := range []string{"/valid/", "/migration/", "/context-invalid/"} {
 			if strings.Contains(name, directory) {
 				return jsonTarget{name, fixtureJSONSchema(name), jsonSchemaMode}
@@ -199,7 +201,7 @@ func changedJSONTarget(name string) jsonTarget {
 }
 
 func fixtureJSONSchema(name string) string {
-	parts := strings.Split(prefixPath(strings.TrimPrefix(name, "contracts/fixtures/")), "/")
+	parts := strings.Split(prefixPath(strings.TrimPrefix(name, contractFixturesPrefix)), "/")
 	category := parts[0]
 	if category == "semantic-profile" {
 		category = profileSchemas

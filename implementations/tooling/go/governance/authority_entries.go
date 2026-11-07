@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+const duplicateAuthoritySuffix = "' is duplicated"
+const actualValueSeparator = "; got "
+
 func boundaryEntry(value any, prefix string, fields []string, artifact bool) (*mapping, []Finding) {
 	rule := "entry-field"
 	if artifact {
@@ -66,11 +69,11 @@ func boundaryRoots(raw *mapping, section string, normative bool) ([]boundaryRoot
 			continue
 		}
 		if ids[row.id] {
-			findings = append(findings, boundaryFailure("entry-duplicate", prefix+".id '"+row.id+"' is duplicated"))
+			findings = append(findings, boundaryFailure("entry-duplicate", prefix+".id '"+row.id+duplicateAuthoritySuffix))
 			continue
 		}
 		if paths[row.root] {
-			findings = append(findings, boundaryFailure("entry-duplicate", prefix+".root '"+row.root+"' is duplicated"))
+			findings = append(findings, boundaryFailure("entry-duplicate", prefix+".root '"+row.root+duplicateAuthoritySuffix))
 			continue
 		}
 		ids[row.id], paths[row.root] = true, true
@@ -89,10 +92,10 @@ func boundaryRootBindings(section string, roots []boundaryRoot, normative bool) 
 		}
 		actual := roots[i]
 		if actual.root != expected.root {
-			findings = append(findings, boundaryFailure("canonical-root-binding", section+" entry '"+expected.id+"' must declare root="+pythonRepr(expected.root)+"; got "+pythonRepr(actual.root)))
+			findings = append(findings, boundaryFailure("canonical-root-binding", section+" entry '"+expected.id+"' must declare root="+pythonRepr(expected.root)+actualValueSeparator+pythonRepr(actual.root)))
 		}
 		if normative && actual.family != expected.family {
-			findings = append(findings, boundaryFailure("canonical-root-binding", section+" entry '"+expected.id+"' must declare family="+pythonRepr(expected.family)+"; got "+pythonRepr(actual.family)))
+			findings = append(findings, boundaryFailure("canonical-root-binding", section+" entry '"+expected.id+"' must declare family="+pythonRepr(expected.family)+actualValueSeparator+pythonRepr(actual.family)))
 		}
 	}
 	return findings
@@ -115,7 +118,7 @@ func boundaryArtifactFamilies(r *repository, raw *mapping, normative, consumers 
 		}
 		id := pythonStr(entry.get("id"))
 		if seen[id] {
-			findings = append(findings, boundaryFailure("artifact-family-duplicate", prefix+".id '"+id+"' is duplicated"))
+			findings = append(findings, boundaryFailure("artifact-family-duplicate", prefix+".id '"+id+duplicateAuthoritySuffix))
 		}
 		seen[id] = true
 		artifact := pythonStr(entry.get("artifact"))
@@ -130,7 +133,7 @@ func boundaryArtifactFamilies(r *repository, raw *mapping, normative, consumers 
 		if !found {
 			findings = append(findings, boundaryFailure("artifact-family-canonical-missing", "normative_artifact_families is missing the canonical classification for "+expected[0]+" (expected family "+pythonRepr(expected[1])+")"))
 		} else if actual != expected[1] {
-			findings = append(findings, boundaryFailure("artifact-family-canonical-binding", "normative_artifact_families entry for "+expected[0]+" must declare family="+pythonRepr(expected[1])+"; got "+pythonRepr(actual)))
+			findings = append(findings, boundaryFailure("artifact-family-canonical-binding", "normative_artifact_families entry for "+expected[0]+" must declare family="+pythonRepr(expected[1])+actualValueSeparator+pythonRepr(actual)))
 		}
 	}
 	return findings

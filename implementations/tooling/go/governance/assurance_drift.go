@@ -5,6 +5,8 @@ import (
 	"unicode/utf8"
 )
 
+const assurancePolicyRulePrefix = "assurance-policy-"
+
 type assuranceTarget struct{ id, name string }
 
 func assuranceDrift(r *repository, levels []any) ([]Finding, error) {
@@ -52,7 +54,7 @@ func assuranceDrift(r *repository, levels []any) ([]Finding, error) {
 
 func assuranceDocumentDrift(r *repository, name, kind string, targets []assuranceTarget) ([]Finding, error) {
 	if !r.file(name) {
-		return []Finding{finding("assurance-policy-"+kind+"-missing", name+" is missing — the policy references it", name)}, nil
+		return []Finding{finding(assurancePolicyRulePrefix+kind+"-missing", name+" is missing — the policy references it", name)}, nil
 	}
 	text, err := r.text(name)
 	if err != nil {
@@ -74,7 +76,7 @@ func assuranceDocumentDrift(r *repository, name, kind string, targets []assuranc
 			unpaired = append(unpaired, target.id+"↔"+pythonRepr(target.name))
 		}
 	}
-	rule := "assurance-policy-" + kind + "-drift"
+	rule := assurancePolicyRulePrefix + kind + "-drift"
 	findings := []Finding{}
 	if len(missingIDs) > 0 {
 		findings = append(findings, finding(rule, name+" no longer mentions every canonical level id; missing: "+pythonRepr(missingIDs), name))
@@ -145,5 +147,5 @@ func assuranceKeywordDrift(r *repository, name, kind string, required []string) 
 	if len(missing) == 0 {
 		return []Finding{}, nil
 	}
-	return []Finding{finding("assurance-policy-"+kind+"-drift", name+" no longer mentions every required artifact; missing keywords for: "+pythonRepr(missing), name)}, nil
+	return []Finding{finding(assurancePolicyRulePrefix+kind+"-drift", name+" no longer mentions every required artifact; missing keywords for: "+pythonRepr(missing), name)}, nil
 }

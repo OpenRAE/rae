@@ -10,6 +10,8 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
+const invalidPythonSource = " is not valid Python source"
+
 type repoPythonImport struct {
 	module         string
 	names          []string
@@ -39,17 +41,17 @@ func repoPython(ctx context.Context, r *repository, name string) (repoPythonFact
 	data := []byte(source)
 	tree, err := pythonSyntax(ctx, data)
 	if err != nil {
-		return repoPythonFacts{}, policyInputError(name + " is not valid Python source")
+		return repoPythonFacts{}, policyInputError(name + invalidPythonSource)
 	}
 	defer tree.Release()
 	lang := grammars.PythonLanguage()
 	root := tree.RootNode()
 	if _, valid := pythonLiteralNames(root, data, lang); !valid {
-		return repoPythonFacts{}, policyInputError(name + " is not valid Python source")
+		return repoPythonFacts{}, policyInputError(name + invalidPythonSource)
 	}
 	reader := repoPythonReader{data, lang}
 	if !reader.validSource(root) {
-		return repoPythonFacts{}, policyInputError(name + " is not valid Python source")
+		return repoPythonFacts{}, policyInputError(name + invalidPythonSource)
 	}
 	facts := repoPythonFacts{imports: []repoPythonImport{}, untyped: []string{}}
 	// Transparent syntax containers do not add an AST level. The queue thus

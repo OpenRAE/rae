@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+const machineX8664 = "x86-64"
+
 type lockedRawObject struct {
 	path, digest string
 	size         json.Number
@@ -173,14 +175,14 @@ func normalizeArtifactPlatform(value string) string {
 	if len(parts) > 1 {
 		arch := strings.Join(parts[1:], "-")
 		switch arch {
-		case "64-bit", "amd64", "x64", "x86-64":
-			arch = "x86-64"
+		case "64-bit", "amd64", "x64", machineX8664:
+			arch = machineX8664
 		case "aarch64":
 			arch = "arm64"
 		}
 		parts = []string{parts[0], arch}
 	}
-	return strings.ReplaceAll(strings.Join(parts, "-"), "x86-64", "x86_64")
+	return strings.ReplaceAll(strings.Join(parts, "-"), machineX8664, "x86_64")
 }
 
 func boundSourceSelection(row sourceArtifact) (sourceSelection, error) {

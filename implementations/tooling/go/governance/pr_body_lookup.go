@@ -13,6 +13,9 @@ import (
 	"time"
 )
 
+const malformedIssueResponse = "GitHub returned a malformed issue response"
+const unsafeIssuePath = " path is unsafe"
+
 func prFixtureLookup(name string) (prIssueLookup, error) {
 	payload, err := prJSONFile(name, "issues fixture", false)
 	if err != nil {
@@ -84,15 +87,15 @@ func prDecodeGitHubIssue(ctx context.Context, reader io.Reader) (prIssueFacts, e
 	}
 	value, err := decodeJSON(data, 0, false)
 	if err != nil {
-		return prIssueFacts{}, prLookupError("GitHub returned a malformed issue response")
+		return prIssueFacts{}, prLookupError(malformedIssueResponse)
 	}
 	payload := object(value)
 	if payload == nil || !payload.has("body") {
-		return prIssueFacts{}, prLookupError("GitHub returned a malformed issue response")
+		return prIssueFacts{}, prLookupError(malformedIssueResponse)
 	}
 	body, valid := payload.get("body").(string)
 	if payload.get("body") != nil && !valid {
-		return prIssueFacts{}, prLookupError("GitHub returned a malformed issue response")
+		return prIssueFacts{}, prLookupError(malformedIssueResponse)
 	}
 	exists := !payload.has("pull_request")
 	return prIssueFacts{exists, exists && payload.get("state") == "open", prRequirementUIDs(body)}, nil
@@ -145,7 +148,7 @@ func prExplicitFile(name, description string, followFinal bool) ([]byte, error) 
 
 func prExplicitPath(name, description string) (*repository, string, error) {
 	if secretPath(name) {
-		return nil, "", prConfigurationError(description + " path is unsafe")
+		return nil, "", prConfigurationError(description + unsafeIssuePath)
 	}
 	name, err := prExpandUser(name)
 	if err != nil {
@@ -163,7 +166,7 @@ func explicitFilePath(name, description string) (*repository, string, error) {
 		return nil, "", err
 	}
 	if secretPath(absolute) {
-		return nil, "", prConfigurationError(description + " path is unsafe")
+		return nil, "", prConfigurationError(description + unsafeIssuePath)
 	}
 	r, err := openRepository(filepath.VolumeName(absolute) + string(filepath.Separator))
 	if err != nil {
@@ -187,7 +190,7 @@ func explicitFilePath(name, description string) (*repository, string, error) {
 	}
 	resolved := filepath.Join(parent, filepath.FromSlash(leaf))
 	if secretPath(resolved) {
-		return nil, "", prConfigurationError(description + " path is unsafe")
+		return nil, "", prConfigurationError(description + unsafeIssuePath)
 	}
 	info, err := r.root.Stat(parent)
 	if err != nil {

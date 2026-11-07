@@ -16,6 +16,8 @@ import (
 	"github.com/OpenRAE/rae/implementations/tooling/go/governance"
 )
 
+const baseRevisionFlag = "base-rev"
+
 const prBodyTool = "pr-body"
 
 func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr)) }
@@ -58,7 +60,7 @@ func parseRequest(args []string, stderr io.Writer) (governance.Request, bool, er
 	}
 	explicit := map[string]bool{}
 	flags.Visit(func(option *flag.Flag) { explicit[option.Name] = true })
-	request.BaseRevisionSet = explicit["base-rev"]
+	request.BaseRevisionSet = explicit[baseRevisionFlag]
 	normalizeExplicitPaths(&request, explicit)
 	if explicit["branch"] {
 		request.Branch = branch
@@ -84,7 +86,7 @@ func parseRequest(args []string, stderr io.Writer) (governance.Request, bool, er
 func requestFlags(flags *flag.FlagSet, request *governance.Request) {
 	flags.StringVar(&request.Tool, "tool", "", "reference check name")
 	flags.StringVar(&request.Root, "repo-root", ".", "repository root")
-	flags.StringVar(&request.BaseRevision, "base-rev", "", "comparison revision")
+	flags.StringVar(&request.BaseRevision, baseRevisionFlag, "", "comparison revision")
 	flags.StringVar(&request.RequirementUID, "requirement-uid", "", "requirement context")
 	flags.StringVar(&request.CheckSet, "check-set", "full", "full or file-local repository checks")
 	flags.StringVar(&request.OutputRoot, "output", "", "built documentation output")
@@ -110,7 +112,7 @@ func prepareRequest(request *governance.Request, explicit map[string]bool) error
 		if request.CheckSet != "full" && request.CheckSet != "file-local" {
 			return errors.New("--check-set must be full or file-local")
 		}
-		if explicit["base-rev"] && !regexp.MustCompile(`^[A-Za-z0-9_][A-Za-z0-9_./@^~{}-]*$`).MatchString(request.BaseRevision) {
+		if explicit[baseRevisionFlag] && !regexp.MustCompile(`^[A-Za-z0-9_][A-Za-z0-9_./@^~{}-]*$`).MatchString(request.BaseRevision) {
 			return errors.New("invalid base revision")
 		}
 	}

@@ -206,6 +206,8 @@ func (r *repository) file(name string) bool {
 }
 
 func (r *repository) git(ctx context.Context, input string, args ...string) ([]byte, error) {
+	// The trusted caller selects Git through PATH; candidate files cannot change
+	// this process environment. Resolution occurs before entering the repository.
 	cmd := exec.CommandContext(ctx, "git", args...) // #nosec G204 -- The executable is fixed; private callers validate revisions and construct Git argument arrays.
 	cmd.Dir = r.dir
 	if input != "" {

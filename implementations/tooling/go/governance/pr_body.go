@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+const issueTrackingRule = "issue-tracking"
+
 const prTrackingSection = "related issues"
 const prSummarySection = "summary"
 const prVerificationSection = "test plan"
@@ -163,13 +165,13 @@ func prTrackingFindings(ctx context.Context, sections map[string][]string, looku
 	}
 	reasons := prNoIssueReasons(content)
 	if len(declarations) > 0 && len(reasons) > 0 {
-		return []Finding{finding("issue-tracking", "Related Issues must use either issue references or one 'No issue: ...' declaration, not both.", "")}, nil
+		return []Finding{finding(issueTrackingRule, "Related Issues must use either issue references or one 'No issue: ...' declaration, not both.", "")}, nil
 	}
 	if len(declarations) > 0 {
 		return prVerifyDeclarations(ctx, declarations, lookup)
 	}
 	if len(reasons) != 1 || !prMeaningful(reasons[0], 2) {
-		return []Finding{finding("issue-tracking", "Related Issues needs open same-repository 'Closes #N' or 'Refs #N' lines or one substantive 'No issue: ...' declaration.", "")}, nil
+		return []Finding{finding(issueTrackingRule, "Related Issues needs open same-repository 'Closes #N' or 'Refs #N' lines or one substantive 'No issue: ...' declaration.", "")}, nil
 	}
 	return []Finding{}, nil
 }
@@ -200,7 +202,7 @@ func prClosingRoutes(body, repository string) []Finding {
 			continue
 		}
 		for _, reference := range prClosingReferences(line, repository, pattern) {
-			findings = append(findings, finding("issue-tracking", "'"+reference+"' is a GitHub closing reference; declare closure only as a standalone 'Closes #N' line in Related Issues, or reword the mention.", ""))
+			findings = append(findings, finding(issueTrackingRule, "'"+reference+"' is a GitHub closing reference; declare closure only as a standalone 'Closes #N' line in Related Issues, or reword the mention.", ""))
 		}
 	}
 	return findings

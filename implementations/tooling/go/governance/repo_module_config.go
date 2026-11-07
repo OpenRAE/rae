@@ -2,6 +2,8 @@ package governance
 
 import "strconv"
 
+const moduleRootPrefix = ".root '"
+
 func repoModuleConfig(r *repository, value any) ([]repoModule, []Finding) {
 	fail := func(message string) ([]repoModule, []Finding) { return nil, []Finding{repoConfigFinding(message)} }
 	if value == nil {
@@ -63,11 +65,11 @@ func repoModuleFields(r *repository, row *mapping, prefix string, ids, roots map
 	case result.root == "":
 		fail(".root must be a non-empty string")
 	case roots[result.root]:
-		fail(".root '" + result.root + "' is duplicated")
+		fail(moduleRootPrefix + result.root + "' is duplicated")
 	case !r.safe(result.root):
-		fail(".root '" + result.root + "' must be a safe repo-relative path")
+		fail(moduleRootPrefix + result.root + "' must be a safe repo-relative path")
 	case !repoDirectory(r, result.root):
-		fail(".root '" + result.root + "' must resolve to an existing directory")
+		fail(moduleRootPrefix + result.root + "' must resolve to an existing directory")
 	}
 	for _, field := range []struct {
 		name   string
