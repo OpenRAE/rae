@@ -73,6 +73,9 @@ Nonblank identifiers and the ordered policy view retain their original bytes.
 It then checks sorted family identifiers against inert ADR text, with word and hyphen boundaries.
 Relation rules resolve only explicit inline-code identifier tokens, in source order, once per family.
 An invalid family catalog stops the check; invalid vocabularies retain earlier ADR findings.
+Catalog validation messages use the existing Go validator's diagnostic codes.
+They preserve the rejection, rule identifier, file path and finding order.
+The user approved this message change on 2026-11-07; Python-specific error counts are not reconstructed.
 The existing `contract/admission` owner also corrects its blank-family-key test to include U+001C through U+001F.
 This internal repair adds no public interface or dependency.
 
@@ -223,6 +226,8 @@ Other acceptance tests fail on missing policy behavior or missing workflow jobs.
 `TestReferenceParity` compares full ordered findings and exit status against Python-recorded fixtures.
 `TestLiveReferenceParity` runs the retained Python checks and Go checks on the same temporary repositories in CI.
 The hosted comparison uses the frozen Python environment and the pinned Conftest binary.
+Repository policy uses the frozen tooling interpreter, which supplies Conftest's file-lock dependency.
+The other reference checks use the frozen product interpreter.
 The larger recorded case sets also run in the native test lane without Python.
 The JSON artifact CLI has no machine-readable report. Its live comparison checks failing batches and affected paths.
 Each schema engine supplies its own human-readable validation details.
@@ -235,6 +240,8 @@ Implementation adds cases for each input limit and error. It covers each applica
 Positive cases prevent refusal-only implementations from satisfying parity.
 Local checks select explicit cases. CI runs complete differential, race, coverage, mutation and fuzz checks.
 No Python gate is removed, weakened or replaced before #1804.
+The user approved updating the reviewed OSV Scanner pin from 2.4.0 to 2.7.0 on 2026-11-07.
+This restores Go 1.27 call analysis; artifact hashes and sizes remain enforced for every supported platform.
 
 ## References
 

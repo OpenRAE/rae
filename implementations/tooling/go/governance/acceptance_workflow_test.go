@@ -157,7 +157,7 @@ func TestHostedGates(t *testing.T) {
 	for _, step := range job.Steps {
 		if step.ID == "compare-governance" {
 			found = true
-			if !strings.Contains(step.Run, "go -C implementations/tooling/go test ./governance") || !strings.Contains(step.Run, "TestReferenceParity") || !strings.Contains(step.Run, "TestLiveReferenceParity") || step.Env["GOVERNANCE_REFERENCE_PYTHON"] == "" {
+			if !strings.Contains(step.Run, "go -C implementations/tooling/go test ./governance") || !strings.Contains(step.Run, "TestReferenceParity") || !strings.Contains(step.Run, "TestLiveReferenceParity") || step.Env["GOVERNANCE_REFERENCE_PYTHON"] == "" || step.Env["GOVERNANCE_REFERENCE_TOOLING_PYTHON"] == "" {
 				t.Errorf("parity invocation = %+v, want the reference comparison command and explicit interpreter", step)
 			}
 		}

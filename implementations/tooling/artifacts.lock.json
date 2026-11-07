@@ -140,7 +140,7 @@
     {
       "artifact_id": "osv-scanner",
       "artifact_class": "generic-cli",
-      "version": "2.4.0",
+      "version": "2.7.0",
       "owner": "Security",
       "consumers": ["supply-chain-policy"],
       "trust_root_refs": ["adr-106-reviewed-upstream-release"],
@@ -151,32 +151,32 @@
       "policy_refs": ["artifact-integrity-v1"],
       "source": {
         "repository": "https://github.com/google/osv-scanner",
-        "release": "v2.4.0",
+        "release": "v2.7.0",
         "asset": "osv-scanner_{system}_{architecture}",
         "locator_refs": ["official-github-release"]
       },
       "platforms": [
         {
           "platform_id": "linux-x86_64",
-          "source_urls": ["https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_linux_amd64"],
-          "raw_manifest": [{"path": "osv-scanner_linux_amd64", "sha256": "15314940c10d26af9c6649f150b8a47c1262e8fc7e17b1d1029b0e479e8ed8a0", "size": 56676514}],
-          "installed_manifest": [{"path": "osv-scanner", "sha256": "15314940c10d26af9c6649f150b8a47c1262e8fc7e17b1d1029b0e479e8ed8a0", "size": 56676514, "executable": true}],
+          "source_urls": ["https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_linux_amd64"],
+          "raw_manifest": [{"path": "osv-scanner_linux_amd64", "sha256": "160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b", "size": 57725088}],
+          "installed_manifest": [{"path": "osv-scanner", "sha256": "160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b", "size": 57725088, "executable": true}],
           "dependencies": [],
           "profile_ids": ["public-linux-x86_64"]
         },
         {
           "platform_id": "linux-arm64",
-          "source_urls": ["https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_linux_arm64"],
-          "raw_manifest": [{"path": "osv-scanner_linux_arm64", "sha256": "44e580752910f0ff36ec99aff59af20f65df1e859aa31e5605a8f0d055b496e9", "size": 52756642}],
-          "installed_manifest": [{"path": "osv-scanner", "sha256": "44e580752910f0ff36ec99aff59af20f65df1e859aa31e5605a8f0d055b496e9", "size": 52756642, "executable": true}],
+          "source_urls": ["https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_linux_arm64"],
+          "raw_manifest": [{"path": "osv-scanner_linux_arm64", "sha256": "4061ef4c021ed3c47f203b818f337e351336cc5cd67c0274fc36bd1dfc728dd7", "size": 53870752}],
+          "installed_manifest": [{"path": "osv-scanner", "sha256": "4061ef4c021ed3c47f203b818f337e351336cc5cd67c0274fc36bd1dfc728dd7", "size": 53870752, "executable": true}],
           "dependencies": [],
           "profile_ids": ["public-linux-arm64"]
         },
         {
           "platform_id": "macos-arm64",
-          "source_urls": ["https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_darwin_arm64"],
-          "raw_manifest": [{"path": "osv-scanner_darwin_arm64", "sha256": "9ca3185ad63e9ab54f7cb90f46a7362be02d80e37f0123d095a54355ea202f5d", "size": 54304354}],
-          "installed_manifest": [{"path": "osv-scanner", "sha256": "9ca3185ad63e9ab54f7cb90f46a7362be02d80e37f0123d095a54355ea202f5d", "size": 54304354, "executable": true}],
+          "source_urls": ["https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_darwin_arm64"],
+          "raw_manifest": [{"path": "osv-scanner_darwin_arm64", "sha256": "d4926ef8da134332543be276dff157e4c170f99ad91fc48e89448a8816bdf70b", "size": 55336530}],
+          "installed_manifest": [{"path": "osv-scanner", "sha256": "d4926ef8da134332543be276dff157e4c170f99ad91fc48e89448a8816bdf70b", "size": 55336530, "executable": true}],
           "dependencies": [],
           "profile_ids": ["public-macos-arm64"]
         }

@@ -42,6 +42,7 @@ func TestLiveReferenceParity(t *testing.T) {
 	if os.Getenv("GOVERNANCE_REFERENCE_PYTHON") == "" {
 		t.Skip("hosted comparison requires the explicit frozen reference interpreter")
 	}
+	t.Setenv("GITHUB_EVENT_PATH", "")
 	for _, family := range []struct{ tool, fixture string }{
 		{"adr-immutability", "adr-reference"}, {"agent-guidance", "guidance-reference"},
 		{"assurance-policy", "assurance-reference"}, {"authority-boundary", "authority-reference"},
@@ -167,6 +168,9 @@ func compareLiveReference(t *testing.T, request Request, environment map[string]
 		t.Fatal(err)
 	}
 	interpreter := os.Getenv("GOVERNANCE_REFERENCE_PYTHON")
+	if request.Tool == "repo-policy" {
+		interpreter = os.Getenv("GOVERNANCE_REFERENCE_TOOLING_PYTHON")
+	}
 	if !filepath.IsAbs(interpreter) {
 		t.Fatal("reference interpreter must be an absolute frozen environment path")
 	}
@@ -189,6 +193,12 @@ func compareLiveReference(t *testing.T, request Request, environment map[string]
 	}
 	if nativeErr != nil {
 		t.Fatal(nativeErr)
+	}
+	if request.Tool == "concept-authority-governance" {
+		// Approved compatibility: retain verdict, rule, path and order while
+		// each model validator supplies its own diagnostic text.
+		conceptDiagnosticProse(reference.Findings)
+		conceptDiagnosticProse(report.Findings)
 	}
 	if diff := cmp.Diff(reference.Findings, report.Findings); diff != "" {
 		t.Fatalf("live findings (-Python +Go):\n%s", diff)
