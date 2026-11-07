@@ -7,7 +7,7 @@ import (
 
 func declarationSections() []string {
 	return []string{
-		nodesSection, "infrastructure", featuresSection, conditionsSection, "propositions", "assertions", "entities", injectsSection, "events", "scripts", "stories", "content", "control_context_assets", "generated_artifacts", "persistent_volumes", "accounts", "identity_domains", "identity_forests", "identity_facades", "deployment_tenants", "deployment_cells", "relationships", agentsSection, "action_contracts", "observation_boundaries", "outcome_interpretation_rules", behaviorSection, "evidence_requirements", "time_domains", "clocks", "time_domain_mappings", "time_progression_policies", "temporal_constraints", "objectives", "workflows", "variables", "variation_points",
+		nodesSection, "infrastructure", featuresSection, conditionsSection, "propositions", "assertions", "entities", injectsSection, "events", "scripts", "stories", "content", controlAssetsSection, "generated_artifacts", "persistent_volumes", "accounts", "identity_domains", "identity_forests", "identity_facades", "deployment_tenants", "deployment_cells", "relationships", agentsSection, "action_contracts", "observation_boundaries", "outcome_interpretation_rules", behaviorSection, "evidence_requirements", "time_domains", "clocks", "time_domain_mappings", "time_progression_policies", "temporal_constraints", "objectives", "workflows", "variables", "variation_points",
 	}
 }
 func validateExports(value, descriptor map[string]any) error {
@@ -49,6 +49,7 @@ func collectEntityNames(entities map[string]any, prefix string, names map[string
 }
 func (c *composition) combine(parent, incoming map[string]any, namespace string, descriptor map[string]any) error {
 	exports := object(descriptor["exports"])
+	incoming = namespaceVariables(incoming, namespace, array(exports["variables"]))
 	for _, section := range declarationSections() {
 		if err := c.combineSection(parent, object(incoming[section]), section, namespace, array(exports[section])); err != nil {
 			return err

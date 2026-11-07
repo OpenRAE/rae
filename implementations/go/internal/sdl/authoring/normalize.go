@@ -21,11 +21,10 @@ type field struct {
 type ordered []field
 
 type normalizer struct {
-	parser    *Parser
-	id        string
-	hints     map[string][]string
-	remaining int
-	patterns  map[string]*regexp.Regexp
+	parser   *Parser
+	id       string
+	hints    map[string][]string
+	patterns map[string]*regexp.Regexp
 }
 
 func resolve(root map[string]any, pointer string) map[string]any {
@@ -51,10 +50,6 @@ func (w *normalizer) dereference(schema map[string]any, pointer string) (map[str
 }
 func (w *normalizer) walk(schema map[string]any, pointer string, value any, path []string, policy scalarPolicy, view source.View) (result any, failure error) {
 	defer func() { failure = locatedModelError(failure, path) }()
-	w.remaining--
-	if w.remaining < 0 || len(path) > w.parser.limits.MaxDepth {
-		return nil, invalid()
-	}
 	schema, pointer = w.dereference(schema, pointer)
 	if schema == nil {
 		schema = map[string]any{}
@@ -87,7 +82,7 @@ func locatedModelError(err error, path []string) error {
 func packageShorthand(pointer string, value any) any {
 	if pointer == "#/$defs/Source" {
 		if s, ok := value.(string); ok {
-			return map[string]any{"name": s, "version": "*"}
+			return map[string]any{nameField: s, "version": "*"}
 		}
 	}
 	return value

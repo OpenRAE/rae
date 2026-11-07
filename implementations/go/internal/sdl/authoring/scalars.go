@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"math"
 	"math/big"
+	"regexp"
 	"strconv"
 	"strings"
 	"unicode"
@@ -157,6 +158,9 @@ func digitRange(point, low, high, stride int64) (byte, bool) {
 func pythonTrim(s string) string {
 	return strings.TrimFunc(s, func(r rune) bool { return unicode.IsSpace(r) || r >= 0x1c && r <= 0x1f })
 }
+
+var decimalFloat = regexp.MustCompile(`^[+-]?(?:[0-9](?:_?[0-9])*(?:\.(?:[0-9](?:_?[0-9])*)?)?|\.[0-9](?:_?[0-9])*)(?:[eE][+-]?[0-9](?:_?[0-9])*)?$`)
+
 func normalizeFloat(value any) (any, error) {
 	var s string
 	switch v := value.(type) {
@@ -165,7 +169,10 @@ func normalizeFloat(value any) (any, error) {
 	case float64:
 		s = strconv.FormatFloat(v, 'g', -1, 64)
 	case string:
-		s = pythonTrim(v)
+		s = asciiDecimalDigits(pythonTrim(v))
+		if !decimalFloat.MatchString(s) {
+			return nil, invalid()
+		}
 	default:
 		return nil, invalid()
 	}
@@ -228,7 +235,7 @@ func ram(value any) (any, error) {
 	return ramString(s)
 }
 func ramString(s string) (any, error) {
-	s = strings.TrimSpace(s)
+	s = pythonTrim(s)
 	if parsed, err := decimalInteger(s, true); err == nil && !strings.HasPrefix(s, "-") && !strings.HasPrefix(s, "+") {
 		if n, ok := parsed.(json.Number); ok && n != "0" {
 			return n, nil
@@ -239,11 +246,11 @@ func ramString(s string) (any, error) {
 	if index < 1 {
 		return nil, invalid()
 	}
-	amount, err := strconv.ParseFloat(s[:index], 64)
+	amount, err := strconv.ParseFloat(asciiDecimalDigits(s[:index]), 64)
 	if err != nil {
 		return nil, invalid()
 	}
-	unit := lower(strings.TrimSpace(s[index:]))
+	unit := lower(pythonTrim(s[index:]))
 	scale := map[string]float64{"b": 1, "kb": 1000, "kib": 1024, "mb": 1e6, "mib": 1048576, "gb": 1e9, "gib": 1073741824, "tb": 1e12, "tib": 1099511627776}[unit]
 	amount *= scale
 	if amount < 1 || math.IsInf(amount, 0) || math.IsNaN(amount) {

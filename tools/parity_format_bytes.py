@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / "implementations/python/packages")]
 
 from raes.formatting import format_sdl_source
+from raes._errors import SDLParseError, SDLError
 from tools.parity_storage import read_blob, read_document
 
 CORPUS = ROOT / "implementations/go/internal/parity/testdata"
@@ -35,13 +36,31 @@ def record(case: dict) -> dict:
             path = base / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(content)
-        source = base / case["args"][2]
+        arguments = case["args"][2:]
+        names = [arg for arg in arguments if arg in case["files"]]
+        if len(names) != 1:
+            raise ValueError("unsupported formatter corpus arguments")
+        source = base / names[0]
+        observed = 0
         try:
-            result = format_sdl_source(source.read_text(), path=source)
+            original = source.read_text()
+            result = format_sdl_source(original, path=source)
+            options = (
+                arguments[: arguments.index("--")] if "--" in arguments else arguments
+            )
+            if "--check" in options and result.content != original:
+                observed = 1
             row.update(accepted=True, content=result.content)
-        except Exception as exc:
+        except UnicodeDecodeError as exc:
+            observed = 2
             row.update(accepted=False, error=type(exc).__name__)
-    if row["accepted"] != (case["result"]["exit_code"] == 0):
+        except SDLParseError as exc:
+            observed = 2
+            row.update(accepted=False, error=type(exc).__name__)
+        except SDLError as exc:
+            observed = 1
+            row.update(accepted=False, error=type(exc).__name__)
+    if observed != case["result"]["exit_code"]:
         raise ValueError(f"reference formatter verdict changed: {case['name']}")
     return row
 

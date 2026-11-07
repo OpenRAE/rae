@@ -11,11 +11,12 @@ import (
 )
 
 type formatterVector struct {
-	Name        string   `json:"name"`
-	Source      string   `json:"source"`
-	Content     string   `json:"content"`
-	Accepted    bool     `json:"accepted"`
-	Diagnostics []string `json:"diagnostics"`
+	Limits      json.RawMessage `json:"limits"`
+	Name        string          `json:"name"`
+	Source      string          `json:"source"`
+	Content     string          `json:"content"`
+	Accepted    bool            `json:"accepted"`
+	Diagnostics []string        `json:"diagnostics"`
 }
 
 func TestFormatterReference(t *testing.T) {
@@ -39,6 +40,17 @@ func TestFormatterReference(t *testing.T) {
 }
 func checkFormatterVector(t *testing.T, parser *Parser, v formatterVector) {
 	t.Helper()
+	if len(v.Limits) > 0 {
+		limits := source.DefaultLimits()
+		if err := json.Unmarshal(v.Limits, &limits); err != nil {
+			t.Fatal(err)
+		}
+		configured, err := New(limits)
+		if err != nil {
+			t.Fatal(err)
+		}
+		parser = configured
+	}
 	result, err := parser.Format(Request{Source: []byte(v.Source)})
 	if (err == nil) != v.Accepted {
 		t.Fatalf("accepted=%v, want %v: %v", err == nil, v.Accepted, err)

@@ -32,10 +32,20 @@ func duration(value any) (any, error) {
 	}
 }
 func durationString(value string) (any, error) {
-	normalized := strings.NewReplacer("_", "", " ", "", "µ", "u").Replace(strings.ToLower(strings.TrimSpace(value)))
+	normalized := durationText(value)
 	if normalized == "" {
 		return nil, invalid()
 	}
+	if durationNumberEnd(normalized, 0) == len(normalized) {
+		value, err := parseDurationDecimal(normalized)
+		if err != nil {
+			return nil, err
+		}
+		return ceilDuration(value), nil
+	}
+	return compoundDuration(normalized)
+}
+func compoundDuration(normalized string) (any, error) {
 	units := durationUnits()
 	names := make([]string, 0, len(units))
 	for name := range units {
@@ -53,27 +63,29 @@ func durationString(value string) (any, error) {
 		if end == position {
 			return nil, invalid()
 		}
-		amount, ok := new(big.Rat).SetString(normalized[position:end])
-		if !ok {
-			return nil, invalid()
+		amount, err := parseDurationDecimal(normalized[position:end])
+		if err != nil {
+			return nil, err
 		}
 		found = true
 		position = end
 		scale, consumed := durationScale(normalized[position:], names, units)
 		amount.Mul(amount, scale)
+		if err := roundDurationDecimal(amount); err != nil {
+			return nil, err
+		}
 		position += consumed
 		total.Add(total, amount)
+		if err := roundDurationDecimal(total); err != nil {
+			return nil, err
+		}
 	}
 	if !found {
 		return nil, invalid()
 	}
-	result, remainder := new(big.Int), new(big.Int)
-	result.QuoRem(total.Num(), total.Denom(), remainder)
-	if remainder.Sign() != 0 {
-		result.Add(result, big.NewInt(1))
-	}
-	return json.Number(result.String()), nil
+	return ceilDuration(total), nil
 }
+
 func durationScale(value string, names []string, units map[string]string) (*big.Rat, int) {
 	for _, name := range names {
 		if strings.HasPrefix(value, name) {
@@ -110,4 +122,9 @@ func durationUnits() map[string]string {
 		}
 	}
 	return result
+}
+
+func durationText(value string) string {
+	normalized := strings.NewReplacer("_", "", " ", "", "µ", "u").Replace(lower(pythonTrim(value)))
+	return asciiDecimalDigits(normalized)
 }

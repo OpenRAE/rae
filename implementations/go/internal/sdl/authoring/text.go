@@ -14,3 +14,19 @@ func lower(value string) string {
 	}
 	return cases.Lower(language.Und).String(value)
 }
+
+func asciiDecimalDigits(value string) string {
+	if strings.IndexFunc(value, func(r rune) bool { return r > unicode.MaxASCII }) < 0 {
+		return value
+	}
+	var result strings.Builder
+	result.Grow(len(value))
+	for _, r := range value {
+		if digit, ok := decimalDigit(r, true); ok {
+			result.WriteByte('0' + digit)
+		} else {
+			result.WriteRune(r)
+		}
+	}
+	return result.String()
+}

@@ -416,5 +416,329 @@
     "supplied": false,
     "accepted": true,
     "content": "name: root\nimports:\n- source: local:module/module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "supplied-materialized-root",
+    "files": {
+      "main.yaml": "{\n  \"name\": \"materialized-example\",\n  \"materialization_provenance\": {\n    \"profile\": \"raes-materialization-attestation/v1\",\n    \"attestation_id\": \"materialization-1\",\n    \"authored_digest\": {\n      \"profile\": \"raes-sdl-semantic/v2\",\n      \"algorithm\": \"sha256\",\n      \"value\": \"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n    },\n    \"instantiated_digest\": {\n      \"profile\": \"raes-sdl-instantiated-snapshot/v2\",\n      \"algorithm\": \"sha256\",\n      \"value\": \"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"\n    },\n    \"plan_digest\": \"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\n    \"predecessor_digest\": \"sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\n    \"operation_id\": \"operation-1\",\n    \"run_id\": \"run-1\",\n    \"recorded_at\": \"2026-09-14T12:00:00Z\",\n    \"boundary\": \"post-materialization\",\n    \"producer\": {\n      \"name\": \"test-backend\",\n      \"version\": \"1.0.0\",\n      \"configuration_digest\": \"sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\n      \"manifest_digest\": \"sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\"\n    },\n    \"coverage_profile\": \"raes-materialization-effects/v1\",\n    \"origins\": [],\n    \"resource_bindings\": []\n  }\n}\n"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.phase-refused"
+  },
+  {
+    "name": "file-backslash",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:nested\\module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "nested\\module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:nested\\module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "supplied-colon-missing",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:C:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.source-missing"
+  },
+  {
+    "name": "file-absolute",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:$ROOT/module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "rooted": true,
+    "accepted": false,
+    "error": "ValidationError"
+  },
+  {
+    "name": "file-symlink",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:alias.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "links": {
+      "alias.yaml": "module.yaml"
+    },
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:alias.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "file-symlink-escape",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:units/module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "units/module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\nimports: [{source: \"local:escape.yaml\", namespace: nested}]\n"
+    },
+    "supplied": false,
+    "links": {
+      "units/escape.yaml": "../module.yaml"
+    },
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.path-invalid"
+  },
+  {
+    "name": "file-symlink-parent",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:units/alias/../module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "units/nested/module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "links": {
+      "units/alias": "nested/inner"
+    },
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:units/alias/../module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "file-locked-absolute",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: locked:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:$ROOT/module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": false,
+    "rooted": true,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: locked:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "module-version-empty",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \"*\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "ValidationError"
+  },
+  {
+    "name": "module-version-long",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \"*\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "ValidationError"
+  },
+  {
+    "name": "duplicate-empty-namespace",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\"}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "ValidationError"
+  },
+  {
+    "name": "header-namespace-31",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module0.yaml\", namespace: n}]\n",
+      "module0.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module1.yaml\", namespace: n}]\n",
+      "module1.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module2.yaml\", namespace: n}]\n",
+      "module2.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module3.yaml\", namespace: n}]\n",
+      "module3.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module4.yaml\", namespace: n}]\n",
+      "module4.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module5.yaml\", namespace: n}]\n",
+      "module5.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module6.yaml\", namespace: n}]\n",
+      "module6.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module7.yaml\", namespace: n}]\n",
+      "module7.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module8.yaml\", namespace: n}]\n",
+      "module8.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module9.yaml\", namespace: n}]\n",
+      "module9.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module10.yaml\", namespace: n}]\n",
+      "module10.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module11.yaml\", namespace: n}]\n",
+      "module11.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module12.yaml\", namespace: n}]\n",
+      "module12.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module13.yaml\", namespace: n}]\n",
+      "module13.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module14.yaml\", namespace: n}]\n",
+      "module14.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module15.yaml\", namespace: n}]\n",
+      "module15.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module16.yaml\", namespace: n}]\n",
+      "module16.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module17.yaml\", namespace: n}]\n",
+      "module17.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module18.yaml\", namespace: n}]\n",
+      "module18.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module19.yaml\", namespace: n}]\n",
+      "module19.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module20.yaml\", namespace: n}]\n",
+      "module20.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module21.yaml\", namespace: n}]\n",
+      "module21.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module22.yaml\", namespace: n}]\n",
+      "module22.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module23.yaml\", namespace: n}]\n",
+      "module23.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module24.yaml\", namespace: n}]\n",
+      "module24.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module25.yaml\", namespace: n}]\n",
+      "module25.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module26.yaml\", namespace: n}]\n",
+      "module26.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module27.yaml\", namespace: n}]\n",
+      "module27.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module28.yaml\", namespace: n}]\n",
+      "module28.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module29.yaml\", namespace: n}]\n",
+      "module29.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module30.yaml\", namespace: n}]\n",
+      "module30.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module0.yaml\n  namespace: n\n"
+  },
+  {
+    "name": "header-namespace-32",
+    "files": {
+      "main.yaml": "name: root\nimports: [{source: \"local:module0.yaml\", namespace: n}]\n",
+      "module0.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module1.yaml\", namespace: n}]\n",
+      "module1.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module2.yaml\", namespace: n}]\n",
+      "module2.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module3.yaml\", namespace: n}]\n",
+      "module3.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module4.yaml\", namespace: n}]\n",
+      "module4.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module5.yaml\", namespace: n}]\n",
+      "module5.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module6.yaml\", namespace: n}]\n",
+      "module6.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module7.yaml\", namespace: n}]\n",
+      "module7.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module8.yaml\", namespace: n}]\n",
+      "module8.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module9.yaml\", namespace: n}]\n",
+      "module9.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module10.yaml\", namespace: n}]\n",
+      "module10.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module11.yaml\", namespace: n}]\n",
+      "module11.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module12.yaml\", namespace: n}]\n",
+      "module12.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module13.yaml\", namespace: n}]\n",
+      "module13.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module14.yaml\", namespace: n}]\n",
+      "module14.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module15.yaml\", namespace: n}]\n",
+      "module15.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module16.yaml\", namespace: n}]\n",
+      "module16.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module17.yaml\", namespace: n}]\n",
+      "module17.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module18.yaml\", namespace: n}]\n",
+      "module18.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module19.yaml\", namespace: n}]\n",
+      "module19.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module20.yaml\", namespace: n}]\n",
+      "module20.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module21.yaml\", namespace: n}]\n",
+      "module21.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module22.yaml\", namespace: n}]\n",
+      "module22.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module23.yaml\", namespace: n}]\n",
+      "module23.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module24.yaml\", namespace: n}]\n",
+      "module24.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module25.yaml\", namespace: n}]\n",
+      "module25.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module26.yaml\", namespace: n}]\n",
+      "module26.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module27.yaml\", namespace: n}]\n",
+      "module27.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module28.yaml\", namespace: n}]\n",
+      "module28.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module29.yaml\", namespace: n}]\n",
+      "module29.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module30.yaml\", namespace: n}]\n",
+      "module30.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\nimports: [{source: \"local:module31.yaml\", namespace: n}]\n",
+      "module31.yaml": "name: module\nmodule: {id: example/demo, version: \"1\"}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "ValidationError"
+  },
+  {
+    "name": "file-absolute-symlink",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:alias.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "rooted": true,
+    "links": {
+      "alias.yaml": "$ROOT/module.yaml"
+    },
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:alias.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "file-long-symlink-chain",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:alias0.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "links": {
+      "alias0.yaml": "alias1.yaml",
+      "alias1.yaml": "alias2.yaml",
+      "alias2.yaml": "alias3.yaml",
+      "alias3.yaml": "alias4.yaml",
+      "alias4.yaml": "alias5.yaml",
+      "alias5.yaml": "alias6.yaml",
+      "alias6.yaml": "alias7.yaml",
+      "alias7.yaml": "alias8.yaml",
+      "alias8.yaml": "alias9.yaml",
+      "alias9.yaml": "alias10.yaml",
+      "alias10.yaml": "alias11.yaml",
+      "alias11.yaml": "alias12.yaml",
+      "alias12.yaml": "alias13.yaml",
+      "alias13.yaml": "alias14.yaml",
+      "alias14.yaml": "alias15.yaml",
+      "alias15.yaml": "alias16.yaml",
+      "alias16.yaml": "alias17.yaml",
+      "alias17.yaml": "alias18.yaml",
+      "alias18.yaml": "alias19.yaml",
+      "alias19.yaml": "alias20.yaml",
+      "alias20.yaml": "alias21.yaml",
+      "alias21.yaml": "alias22.yaml",
+      "alias22.yaml": "alias23.yaml",
+      "alias23.yaml": "alias24.yaml",
+      "alias24.yaml": "alias25.yaml",
+      "alias25.yaml": "alias26.yaml",
+      "alias26.yaml": "alias27.yaml",
+      "alias27.yaml": "alias28.yaml",
+      "alias28.yaml": "alias29.yaml",
+      "alias29.yaml": "alias30.yaml",
+      "alias30.yaml": "alias31.yaml",
+      "alias31.yaml": "alias32.yaml",
+      "alias32.yaml": "alias33.yaml",
+      "alias33.yaml": "alias34.yaml",
+      "alias34.yaml": "alias35.yaml",
+      "alias35.yaml": "alias36.yaml",
+      "alias36.yaml": "alias37.yaml",
+      "alias37.yaml": "alias38.yaml",
+      "alias38.yaml": "alias39.yaml",
+      "alias39.yaml": "alias40.yaml",
+      "alias40.yaml": "alias41.yaml",
+      "alias41.yaml": "alias42.yaml",
+      "alias42.yaml": "alias43.yaml",
+      "alias43.yaml": "alias44.yaml",
+      "alias44.yaml": "alias45.yaml",
+      "alias45.yaml": "alias46.yaml",
+      "alias46.yaml": "alias47.yaml",
+      "alias47.yaml": "alias48.yaml",
+      "alias48.yaml": "alias49.yaml",
+      "alias49.yaml": "alias50.yaml",
+      "alias50.yaml": "alias51.yaml",
+      "alias51.yaml": "alias52.yaml",
+      "alias52.yaml": "alias53.yaml",
+      "alias53.yaml": "alias54.yaml",
+      "alias54.yaml": "alias55.yaml",
+      "alias55.yaml": "alias56.yaml",
+      "alias56.yaml": "alias57.yaml",
+      "alias57.yaml": "alias58.yaml",
+      "alias58.yaml": "alias59.yaml",
+      "alias59.yaml": "alias60.yaml",
+      "alias60.yaml": "alias61.yaml",
+      "alias61.yaml": "alias62.yaml",
+      "alias62.yaml": "alias63.yaml",
+      "alias63.yaml": "alias64.yaml",
+      "alias64.yaml": "module.yaml"
+    },
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:alias0.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "file-symlink-cycle",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:alias0.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "links": {
+      "alias0.yaml": "alias1.yaml",
+      "alias1.yaml": "alias0.yaml"
+    },
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.source-missing"
+  },
+  {
+    "name": "nested-variation-variable",
+    "files": {
+      "main.yaml": "name: a\nimports:\n- source: local:outer.yaml\n  namespace: m\n",
+      "outer.yaml": "name: outer\nmodule:\n  id: p/outer\n  version: '1'\nimports:\n- source: local:leaf.yaml\n  namespace: child\n",
+      "leaf.yaml": "name: leaf\nmodule:\n  id: p/leaf\n  version: '1'\n  exports:\n    variables:\n    - v\nvariables:\n  v:\n    type: string\n    required: true\nvariation_points:\n  p:\n    kind: parameter\n    target:\n      variable: v\n    domain:\n      kind: enum\n      values:\n      - x\n      - y\nnodes:\n  n:\n    type: compute\n    description: ${v}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: a\nimports:\n- source: local:outer.yaml\n  namespace: m\n"
   }
 ]

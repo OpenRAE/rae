@@ -7,7 +7,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/OpenRAE/rae/implementations/go/base/canonjson"
 	"github.com/OpenRAE/rae/implementations/go/base/digest"
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
 	"github.com/OpenRAE/rae/implementations/go/internal/sdl/source"
@@ -91,7 +90,7 @@ func decodeLock(raw []byte, limit int64) (*lockfile, error) {
 	return lock, nil
 }
 func decodeLockRecord(record map[string]any) (map[string]any, error) {
-	if !closed(record, []string{sourceField, "namespace", "resolved_source", "module_id", "module_version", "manifest_digest", "content_digest", "export_hash"}, []string{"requested_version", "signer_id"}) {
+	if !closed(record, []string{sourceField, namespaceField, resolvedSourceField, moduleIDField, moduleVersionField, manifestDigestField, contentDigestField, exportHashField}, []string{requestedVersionField, signerIDField}) {
 		return nil, importError("lock-invalid")
 	}
 	for _, value := range record {
@@ -99,11 +98,11 @@ func decodeLockRecord(record map[string]any) (map[string]any, error) {
 			return nil, importError("lock-invalid")
 		}
 	}
-	if _, present := record["requested_version"]; !present {
-		record["requested_version"] = "*"
+	if _, present := record[requestedVersionField]; !present {
+		record[requestedVersionField] = "*"
 	}
-	if _, present := record["signer_id"]; !present {
-		record["signer_id"] = ""
+	if _, present := record[signerIDField]; !present {
+		record[signerIDField] = ""
 	}
 	return record, nil
 }
@@ -129,24 +128,16 @@ func (c *composition) checkLock(lock *lockfile, decl, descriptor map[string]any,
 		return err
 	}
 	if c.supplied == nil {
-		if !pinMatches(raw, text(record["content_digest"])) {
+		if !pinMatches(raw, text(record[contentDigestField])) {
 			return importError("digest-mismatch")
 		}
 		return nil
 	}
-	exports := descriptor["exports"]
-	if exports == nil {
-		exports = map[string]any{}
-	}
-	encoded, err := toJSON(exports)
+	exports, err := exportDigest(descriptor)
 	if err != nil {
 		return err
 	}
-	canonical, err := canonjson.Sorted(encoded, true)
-	if err != nil {
-		return err
-	}
-	expected := map[string]any{"resolved_source": path.Clean(strings.ReplaceAll(relative, "\\", "/")), "module_id": descriptor["id"], "module_version": descriptor["version"], "content_digest": digest.SHA256(raw), "export_hash": strings.TrimPrefix(digest.SHA256(canonical), "sha256:"), "manifest_digest": "", "signer_id": ""}
+	expected := map[string]any{resolvedSourceField: relative, moduleIDField: descriptor["id"], moduleVersionField: descriptor["version"], contentDigestField: digest.SHA256(raw), exportHashField: strings.TrimPrefix(exports, "sha256:"), manifestDigestField: "", signerIDField: ""}
 	for key, want := range expected {
 		if record[key] != want {
 			return importError("lock-mismatch")
@@ -167,7 +158,7 @@ func matchingLockRecord(lock *lockfile, decl map[string]any, requested string, r
 	}
 	matches := []map[string]any{}
 	for _, record := range lock.records {
-		if record[sourceField] == requested && record["namespace"] == decl["namespace"] && record["requested_version"] == version {
+		if record[sourceField] == requested && record[namespaceField] == decl[namespaceField] && record[requestedVersionField] == version {
 			matches = append(matches, record)
 		}
 	}
@@ -291,9 +282,9 @@ func (c *composition) resolveLocked(decl map[string]any, lock *lockfile) (map[st
 		if record == nil {
 			return nil, importError("lock-record-missing")
 		}
-		resolved := map[string]any{sourceField: record[sourceField], "namespace": decl["namespace"], "version": record["requested_version"], "parameters": decl["parameters"], "digest": decl["digest"]}
+		resolved := map[string]any{sourceField: record[sourceField], namespaceField: decl[namespaceField], "version": record[requestedVersionField], "parameters": decl["parameters"], "digest": decl["digest"]}
 		if text(resolved["digest"]) == "" {
-			resolved["digest"] = record["content_digest"]
+			resolved["digest"] = record[contentDigestField]
 		}
 		if _, err := versionSpec(text(resolved["version"])); err != nil {
 			return nil, importError("lock-invalid")
@@ -304,7 +295,7 @@ func (c *composition) resolveLocked(decl map[string]any, lock *lockfile) (map[st
 }
 func lockedRecord(records []map[string]any, reference string) map[string]any {
 	for _, record := range records {
-		if record[sourceField] == reference || record["resolved_source"] == reference {
+		if record[sourceField] == reference || record[resolvedSourceField] == reference {
 			return record
 		}
 	}

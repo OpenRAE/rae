@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/fs"
 	"os"
+	"strings"
 	"testing"
 	"testing/fstest"
 
@@ -18,6 +19,8 @@ type forbiddenFS struct{}
 func (forbiddenFS) Open(string) (fs.File, error) { panic("supplied imports consulted the filesystem") }
 
 type importVector struct {
+	Rooted   bool              `json:"rooted"`
+	Links    map[string]string `json:"links"`
 	Limits   json.RawMessage   `json:"limits"`
 	Code     string            `json:"code"`
 	Name     string            `json:"name"`
@@ -71,7 +74,11 @@ func checkImportVector(t *testing.T, parser *Parser, c importVector) {
 		}
 	}
 	if err == nil {
-		if diff := cmp.Diff(c.Content, string(result.Content)); diff != "" {
+		content := string(result.Content)
+		if c.Rooted {
+			content = strings.ReplaceAll(content, "/workspace", "$ROOT")
+		}
+		if diff := cmp.Diff(c.Content, content); diff != "" {
 			t.Errorf("content (-want +got):\n%s", diff)
 		}
 	}
@@ -88,8 +95,49 @@ func importRequest(c importVector) Request {
 	}
 	files := fstest.MapFS{}
 	for name, content := range c.Files {
+		if c.Rooted {
+			content = strings.ReplaceAll(content, "$ROOT", "/workspace")
+		}
 		files[name] = &fstest.MapFile{Data: []byte(content)}
 	}
+	for name, target := range c.Links {
+		if c.Rooted {
+			target = strings.ReplaceAll(target, "$ROOT", "/workspace")
+		}
+		files[name] = &fstest.MapFile{Mode: fs.ModeSymlink, Data: []byte(target)}
+	}
 	request.FS = files
+	if c.Rooted {
+		request.RootDir = "/workspace"
+		request.Source = []byte(strings.ReplaceAll(string(request.Source), "$ROOT", "/workspace"))
+	}
 	return request
+}
+
+func TestSuppliedRootIdentity(t *testing.T) {
+	parser, err := New(source.DefaultLimits())
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw := []byte("name: a\n")
+	cases := []struct {
+		name    string
+		sources map[string][]byte
+		code    string
+	}{
+		{"missing", map[string][]byte{}, "sdl.import.source-missing"},
+		{"different", map[string][]byte{"main.yaml": []byte("name: other\n")}, "sdl.import.source-refused"},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			_, err := parser.Format(Request{Source: raw, Name: "main.yaml", FS: forbiddenFS{}, Sources: c.sources})
+			classified, ok := errors.AsType[interface {
+				error
+				Code() string
+			}](err)
+			if !ok || classified.Code() != c.code {
+				t.Fatalf("refusal=%v, want %s", err, c.code)
+			}
+		})
+	}
 }

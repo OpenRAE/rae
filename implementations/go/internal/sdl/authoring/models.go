@@ -3,7 +3,6 @@ package authoring
 import (
 	"encoding/json"
 	"math/big"
-	"net/netip"
 	"strings"
 )
 
@@ -33,7 +32,7 @@ func (w *normalizer) modelCheck(pointer string, value map[string]any) error {
 		if _, err := versionSpec(text(value["version"])); err != nil {
 			return err
 		}
-		if (text(value[sourceField]) == "") == (text(value["path"]) == "") || !localIdentifier(text(value["namespace"])) {
+		if (text(value[sourceField]) == "") == (text(value["path"]) == "") || !localIdentifier(text(value[namespaceField])) {
 			return invalid()
 		}
 	case "Scenario", "MaterializedScenario":
@@ -51,7 +50,7 @@ func nodeModel(value map[string]any) error {
 	ports := map[string]bool{}
 	for _, raw := range array(value["services"]) {
 		row := object(raw)
-		name := text(row["name"])
+		name := text(row[nameField])
 		if name != "" && names[name] {
 			return invalid()
 		}
@@ -127,7 +126,7 @@ func infrastructureModel(value map[string]any) error {
 	}
 	names := map[string]bool{}
 	for _, raw := range array(value["acls"]) {
-		name := text(object(raw)["name"])
+		name := text(object(raw)[nameField])
 		if name != "" && names[name] {
 			return invalid()
 		}
@@ -148,24 +147,6 @@ func uniqueStrings(values []any) bool {
 		seen[s] = true
 	}
 	return true
-}
-func networkModel(value map[string]any) error {
-	if variable(value["cidr"]) || variable(value["gateway"]) {
-		return nil
-	}
-	network, err := netip.ParsePrefix(text(value["cidr"]))
-	if err != nil {
-		address, parseErr := netip.ParseAddr(text(value["cidr"]))
-		if parseErr != nil {
-			return invalid()
-		}
-		network = netip.PrefixFrom(address, address.BitLen())
-	}
-	gateway, err := netip.ParseAddr(text(value["gateway"]))
-	if err != nil || !network.Contains(gateway) {
-		return invalid()
-	}
-	return nil
 }
 func moduleModel(value map[string]any) error {
 	parts := strings.Split(text(value["id"]), "/")
@@ -201,7 +182,7 @@ func (w *normalizer) fieldInput(pointer, name string, value any) (any, error) {
 	case "Node":
 		return nodeInput(name, value)
 	}
-	return value, nil
+	return structuredInput(model, name, value)
 }
 func scriptInput(name string, value any) (any, error) {
 	switch name {

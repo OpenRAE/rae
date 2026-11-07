@@ -439,3 +439,9 @@ It grants no SDL phase or contextual admission.
 
 `NewWithSchemas` reuses the immutable published schemas and installs the complete stock admission registry.
 Caller rule callbacks are replaced by owner rules; this constructor cannot grant a missing predicate success.
+
+
+The definition rule for `ResolvedImportProvenance` also applies through `CheckModelFragment`.
+It checks local binding arity and uniqueness, module identity, digest spelling, absolute host paths and registry userinfo.
+The schema retains the published field and namespace limits.
+The SDL formatter uses this boundary for resolution-header validation without claiming phase admission.

@@ -1,6 +1,7 @@
 package parity
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"testing"
@@ -58,8 +59,16 @@ func checkFormatBytes(t *testing.T, parser *authoring.Parser, c Case, want forma
 	for name, content := range c.Files {
 		files[name] = &fstest.MapFile{Data: content}
 	}
-	name := c.Args[2]
-	result, err := parser.Format(authoring.Request{Source: c.Files[name], Name: name, FS: files})
+	command, valid := formatArguments(c.Args)
+	if !valid {
+		if want.Accepted {
+			t.Fatal("oracle accepted invalid command arguments")
+		}
+		return
+	}
+	name := command.name
+	original := bytes.ReplaceAll(bytes.ReplaceAll(c.Files[name], []byte("\r\n"), []byte("\n")), []byte("\r"), []byte("\n"))
+	result, err := parser.Format(authoring.Request{Source: original, Name: name, FS: files})
 	if (err == nil) != want.Accepted {
 		t.Fatalf("accepted=%v, want %v: %v", err == nil, want.Accepted, err)
 	}

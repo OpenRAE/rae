@@ -1,9 +1,9 @@
 package authoring
 
 import (
+	"math"
 	"slices"
 
-	"github.com/OpenRAE/rae/implementations/go/base/ingress"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/jsonpointer"
 	"github.com/OpenRAE/rae/implementations/go/internal/sdl/source"
 )
@@ -12,7 +12,7 @@ import (
 // Each declaration still uses its unchanged published model and local rules.
 func (c *composition) validateBound(value map[string]any) (map[string]any, error) {
 	id := authoringContract
-	walk := normalizer{parser: c.parser, id: id, remaining: c.parser.limits.MaxComposedNodes}
+	walk := normalizer{parser: c.parser, id: id}
 	normalized, err := walk.walk(c.parser.schemas[id], "#", value, nil, scalarPolicy{}, source.View{})
 	if err != nil {
 		return nil, err
@@ -64,10 +64,10 @@ func (c *composition) declarationPointer(section string) string {
 	return ""
 }
 func (c *composition) checkBoundFragment(pointer string, value any) error {
-	data, err := encode(value, c.parser.limits.MaxComposedBytes, false)
+	data, err := encode(value, math.MaxInt64, false)
 	if err != nil {
 		return err
 	}
-	limits := ingress.Limits{MaxBytes: int(c.parser.limits.MaxComposedBytes), MaxDepth: c.parser.limits.MaxDepth}
+	limits := modelLimits(data)
 	return c.parser.models.CheckModelFragment(authoringContract, pointer, data, limits)
 }

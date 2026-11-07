@@ -63,6 +63,7 @@ func definitionRules() map[string]func(any) error {
 		"RealizationCollection":                            collectionMembers,
 		"RealizationSequenceConstraint":                    func(v any) error { return require(itemBounds(v)) },
 		"RealizationSupportDeclarationModel":               realizationSupportDeclaration,
+		"ResolvedImportProvenance":                         resolvedImportProvenance,
 		"ResolvedRealizationAuthorityModel":                func(v any) error { return require(uniqueRows(at(v, "bounds"), "identity_digest", "value_pointer")) },
 		"TrialProcessorPlanReferenceModel":                 processorPlanReference,
 		"VersionDomain":                                    versionDomainModel,

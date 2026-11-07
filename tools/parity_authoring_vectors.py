@@ -34,8 +34,12 @@ def formatter(rows: list[dict]) -> list[dict]:
     result = []
     for row in rows:
         recorded = {key: row[key] for key in ("name", "source")}
+        if "limits" in row:
+            recorded["limits"] = row["limits"]
         try:
-            value = format_sdl_source(row["source"])
+            value = format_sdl_source(
+                row["source"], limits=SDLParserLimits(**row.get("limits", {}))
+            )
             recorded.update(
                 accepted=True,
                 content=value.content,
@@ -67,18 +71,39 @@ def import_result(row: dict):
                 raise ValueError("unsafe reference file name")
             path = Path(directory) / name
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(content)
-        return format_sdl_source(
-            files["main.yaml"], path=Path(directory) / "main.yaml", limits=limits
+            path.write_text(
+                content.replace("$ROOT", directory) if row.get("rooted") else content
+            )
+        for name, target in row.get("links", {}).items():
+            path = Path(directory) / name
+            if Path(name).is_absolute() or ".." in Path(name).parts:
+                raise ValueError("unsafe reference link name")
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.symlink_to(
+                target.replace("$ROOT", directory) if row.get("rooted") else target
+            )
+        result = format_sdl_source(
+            files["main.yaml"].replace("$ROOT", directory)
+            if row.get("rooted")
+            else files["main.yaml"],
+            path=Path(directory) / "main.yaml",
+            limits=limits,
         )
+        if row.get("rooted"):
+            return type(result)(
+                content=result.content.replace(directory, "$ROOT"),
+                diagnostics=result.diagnostics,
+            )
+        return result
 
 
 def imports(rows: list[dict]) -> list[dict]:
     result = []
     for row in rows:
         recorded = {key: row[key] for key in ("name", "files", "supplied")}
-        if "limits" in row:
-            recorded["limits"] = row["limits"]
+        for key in ("limits", "rooted", "links"):
+            if key in row:
+                recorded[key] = row[key]
         try:
             value = import_result(row)
             recorded.update(accepted=True, content=value.content)

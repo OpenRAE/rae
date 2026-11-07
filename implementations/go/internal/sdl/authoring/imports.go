@@ -20,9 +20,13 @@ type composition struct {
 	budget      *source.Budget
 	seen        map[string]bool
 	localDenied map[string]bool
+	records     map[string][]map[string]any
 }
 
 func (p *Parser) checkImports(document *Document, request Request, captured *source.Sources) error {
+	if captured != nil && document.contract != authoringContract {
+		return importError("phase-refused")
+	}
 	value, err := p.modelValue(document)
 	if err != nil {
 		return err
@@ -33,17 +37,24 @@ func (p *Parser) checkImports(document *Document, request Request, captured *sou
 	if request.Name == "" {
 		return invalid()
 	}
-	c := composition{parser: p, request: request, seen: map[string]bool{}, localDenied: map[string]bool{}}
+	c := composition{parser: p, request: request, seen: map[string]bool{}, localDenied: map[string]bool{}, records: map[string][]map[string]any{}}
 	c.budget, err = source.NewBudget(p.limits)
 	if err != nil {
 		return err
 	}
 	c.supplied = captured
-	_, err = c.expand(document, value, request.Name, 0)
+	name := request.Name
+	if captured == nil {
+		name, err = c.fileName(name)
+		if err != nil {
+			return err
+		}
+	}
+	_, err = c.expand(document, value, name, 0)
 	return err
 }
 func (p *Parser) modelValue(document *Document) (map[string]any, error) {
-	value, err := ingress.Parse(document.data, ingress.Limits{MaxBytes: int(p.limits.MaxComposedBytes), MaxDepth: p.limits.MaxDepth}, ingress.Object)
+	value, err := ingress.Parse(document.data, modelLimits(document.data), ingress.Object)
 	if err != nil {
 		return nil, err
 	}
@@ -64,6 +75,7 @@ func (c *composition) expand(document *Document, value map[string]any, name stri
 	}
 	c.seen[name] = true
 	defer delete(c.seen, name)
+	c.records[name] = nil
 	imports := array(value["imports"])
 	lock, err := c.lock(name, len(imports) > 0)
 	if err != nil {
@@ -86,6 +98,7 @@ func (c *composition) expand(document *Document, value map[string]any, name stri
 	return value, nil
 }
 func (c *composition) edge(parent, decl map[string]any, importer string, depth int, lock *lockfile) error {
+	requestedDecl := decl
 	decl, err := c.resolveLocked(decl, lock)
 	if err != nil {
 		return err
@@ -118,7 +131,7 @@ func (c *composition) edge(parent, decl map[string]any, importer string, depth i
 	if err != nil {
 		return err
 	}
-	if err = c.checkLock(lock, decl, descriptor, raw, requested, relative); err != nil {
+	if err = c.checkLock(lock, decl, descriptor, raw, requested, relativeSource(path.Dir(importer), name)); err != nil {
 		return err
 	}
 	if value["semantic_revision"] != parent["semantic_revision"] {
@@ -135,7 +148,10 @@ func (c *composition) edge(parent, decl map[string]any, importer string, depth i
 	if err != nil {
 		return err
 	}
-	return c.combine(parent, expanded, text(decl["namespace"]), descriptor)
+	if err = c.combine(parent, expanded, text(decl[namespaceField]), descriptor); err != nil {
+		return err
+	}
+	return c.addImportRecords(importer, name, requestedDecl, descriptor, raw)
 }
 func importSource(decl map[string]any) string {
 	if requested := text(decl[sourceField]); requested != "" {
@@ -147,7 +163,7 @@ func (c *composition) checkImportDecl(decl map[string]any, requested string) err
 	if !strings.HasPrefix(requested, "local:") {
 		return importError("source-refused")
 	}
-	namespace := text(decl["namespace"])
+	namespace := text(decl[namespaceField])
 	if namespace == "" || namespace == privateSegment || strings.Contains(namespace, ".") {
 		return importError("namespace-invalid")
 	}
@@ -163,14 +179,22 @@ func (c *composition) checkImportDecl(decl map[string]any, requested string) err
 	return nil
 }
 func (c *composition) localName(importer, relative string) (string, error) {
-	name, err := source.ResolvePath(path.Dir(importer), relative)
+	directory := path.Dir(importer)
+	if c.supplied != nil {
+		return c.supplied.Resolve(directory, relative)
+	}
+	name := relative
+	if !path.IsAbs(relative) {
+		name = directory + "/" + relative
+	}
+	resolved, err := c.fileName(name)
 	if err != nil {
 		return "", err
 	}
-	if c.supplied == nil && !withinDirectory(path.Dir(importer), name) {
+	if !withinDirectory(directory, resolved) {
 		return "", importError("path-invalid")
 	}
-	return name, nil
+	return resolved, nil
 }
 func admittedModule(document *Document, value, decl map[string]any, raw []byte, localDenied bool) (map[string]any, error) {
 	descriptor := object(value["module"])

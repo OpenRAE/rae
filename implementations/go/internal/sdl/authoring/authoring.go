@@ -3,11 +3,15 @@
 package authoring
 
 import (
+	"bytes"
 	"embed"
 	"encoding/json"
 	"io/fs"
 	"maps"
+	"math"
+	"path"
 	"slices"
+	"strings"
 
 	"github.com/OpenRAE/rae/implementations/go/base/fault"
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
@@ -26,8 +30,11 @@ var presentation embed.FS
 // Request supplies source bytes and an explicit import authority. A source map
 // selects isolated supplied-source admission; it never falls back to FS.
 type Request struct {
-	Source  []byte
-	Name    string
+	Source []byte
+	Name   string
+	// RootDir identifies the canonical absolute directory represented by FS.
+	// It grants no read authority and is ignored when Sources is supplied.
+	RootDir string
 	FS      fs.FS
 	Sources map[string][]byte
 }
@@ -154,10 +161,11 @@ func (p *Parser) Format(request Request) (Result, error) {
 	}
 	options := p.options(request.Name, "reject")
 	options.KeyScope = dataScope
-	options.Limits.MaxInputBytes = p.limits.MaxComposedBytes
-	options.Limits.MaxScalarBytes = p.limits.MaxComposedBytes
-	options.Limits.MaxNodes = p.limits.MaxComposedNodes
-	options.Limits.MaxExpandedNodes = p.limits.MaxComposedNodes
+	options.Limits.MaxInputBytes = int64(len(d.data))
+	options.Limits.MaxScalarBytes = int64(len(d.data))
+	options.Limits.MaxNodes = len(d.data)
+	options.Limits.MaxExpandedNodes = len(d.data)
+	options.Limits.MaxDepth = len(d.data)
 	ordered, err := source.Decode(d.data, options)
 	if err != nil {
 		return Result{}, err
@@ -211,23 +219,23 @@ func (p *Parser) decode(raw []byte, name, policy string) (*Document, error) {
 			return nil, err
 		}
 	}
-	if containsVariable(value["control_context_assets"]) {
+	if containsVariable(value[controlAssetsSection]) {
 		return nil, invalid()
 	}
-	walk := normalizer{parser: p, id: id, hints: hints, remaining: p.limits.MaxComposedNodes}
+	walk := normalizer{parser: p, id: id, hints: hints}
 	normalized, err := walk.walk(p.schemas[id], "#", value, nil, scalarPolicy{}, parsed.View())
 	if err != nil {
 		return nil, err
 	}
-	encoded, err := encode(normalized, p.limits.MaxComposedBytes, false)
+	encoded, err := encode(normalized, math.MaxInt64, false)
 	if err != nil {
 		return nil, err
 	}
-	limits := ingress.Limits{MaxBytes: int(p.limits.MaxComposedBytes), MaxDepth: p.limits.MaxDepth}
+	limits := modelLimits(encoded)
 	if err = p.models.CheckPortable(id, encoded, limits); err != nil {
 		return nil, &modelError{path: "", cause: err}
 	}
-	encoded, err = encode(normalized, p.limits.MaxComposedBytes, true)
+	encoded, err = encode(normalized, math.MaxInt64, true)
 	if err != nil {
 		return nil, err
 	}
@@ -256,15 +264,38 @@ func text(v any) string { s, _ := v.(string); return s }
 //
 //nolint:nilnil // A nil capture distinguishes filesystem authority from supplied sources.
 func captureRequest(request Request) (*source.Sources, error) {
-	if request.FS != nil || request.Sources != nil {
-		if !fs.ValidPath(request.Name) {
-			return nil, importError("path-invalid")
-		}
+	if err := requestPaths(request); err != nil {
+		return nil, err
 	}
 	if request.Sources != nil {
-		return source.Capture(request.Sources)
+		captured, err := source.Capture(request.Sources)
+		if err != nil {
+			return nil, err
+		}
+		root, err := captured.Bytes(request.Name)
+		if err != nil {
+			return nil, err
+		}
+		if !bytes.Equal(root, request.Source) {
+			return nil, importError("source-refused")
+		}
+		return captured, nil
 	}
 	return nil, nil
+}
+
+func requestPaths(request Request) error {
+	if request.FS != nil || request.Sources != nil {
+		if request.Name == "." || !fs.ValidPath(request.Name) {
+			return importError("path-invalid")
+		}
+	}
+	if request.Sources == nil && request.RootDir != "" {
+		if !path.IsAbs(request.RootDir) || path.Clean(request.RootDir) != request.RootDir || strings.ContainsRune(request.RootDir, 0) {
+			return importError("path-invalid")
+		}
+	}
+	return nil
 }
 
 func (p *Parser) layoutRecords(id string) map[string]layout {
@@ -278,4 +309,10 @@ func (p *Parser) layoutFor(id, pointer string) layout {
 		return row
 	}
 	return p.layouts["$shared"][pointer]
+}
+
+// Internal model bytes have already passed source or composition accounting.
+// They are not a new untrusted source and do not consume those budgets again.
+func modelLimits(data []byte) ingress.Limits {
+	return ingress.Limits{MaxBytes: len(data)}
 }

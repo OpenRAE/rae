@@ -13,7 +13,7 @@ It returns an immutable document, not an admitted scenario.
 The public `sdl` owner will admit this document through the model and semantic checks of #1783.
 The composition owner of #1785 will use the same source reader and aggregate budget.
 The source package owns parse-specific metadata, including authored-key pairs and related ranges.
-The public `contract/diagnostic` envelope remains a downstream adapter contract; source loading does not grant scenario admission.
+The public `contract/diagnostic` envelope remains a downstream adapter contract. Source loading does not grant scenario admission.
 The decoder has no runtime dependency.
 
 The exported source boundary comprises `Limits`, `Options`, `Document`, `Decode`, `Read`, `DefaultLimits` and `DefaultOptions`.
@@ -24,7 +24,7 @@ Document access returns copies of values, ranges and advisories.
 Source options select structural, literal or data key treatment, a base pointer, source identity, migration and required semantic revision.
 Limits carry the six per-source bounds and five composition bounds from the reference.
 Source-set helpers copy supplied bytes and resolve paths lexically within the supplied root.
-Composition-budget helpers share accounting across imports; they do not perform admission or fetch a registry.
+Composition-budget helpers share accounting across imports. They do not perform admission or fetch a registry.
 
 ## Processing and controls
 
@@ -47,12 +47,12 @@ Graph work is checked before alias expansion, mapping analysis or value copying.
 Memoized subtree cost and height bound repeated aliases without expanding an exponential graph.
 Cycles are diagnosed before construction.
 Mapping entries remain ordered and distinct until all conflicts are collected.
-Merge sources must be disjoint; migration never authorizes overwrite precedence.
-Structural keys normalize only under explicit migration; literal and embedded JSON keys retain their text.
+Merge sources must be disjoint. Migration never authorizes overwrite precedence.
+Structural keys normalize only under explicit migration. Literal and embedded JSON keys retain their text.
 Every node retains half-open, one-based ranges.
 Alias occurrences refer to the declaration range, as in the reference.
 The decoder never resolves tags, invokes host constructors or reads a network resource.
-Error text and logs contain no source payload; diagnostics carry only their declared source metadata.
+Error text and logs contain no source payload. Diagnostics carry only their declared source metadata.
 Each filesystem read is limited before UTF-8 decoding.
 A supplied source set copies caller buffers and admits only canonical relative paths.
 The source loader cannot grant semantic admission, import trust, digest or lock authority.
@@ -62,11 +62,11 @@ The source loader cannot grant semantic admission, import trust, digest or lock 
 Use the standard library for UTF-8, numbers, copies, bounded reads and path handling.
 Reuse `internal/base/jsonpointer` for RFC 6901 token conversion.
 Use the existing pinned `x/text/cases` with the `Und` locale for full Unicode structural-key lowercasing.
-ASCII keys use the standard library; simple Unicode rune lowercasing cannot preserve the reference collision rules.
+ASCII keys use the standard library. Simple Unicode rune lowercasing cannot preserve the reference collision rules.
 Use the MIT-licensed `github.com/goccy/go-yaml` scanner for pre-composition bounds and token end marks.
 Use the maintained `go.yaml.in/yaml/v3` grammar composer for its ordered node and alias graph.
-The public scanner exposes tokens before composition; the grammar composer preserves duplicate and complex keys.
-Expanded reference cases found that the scanner library's AST parser rejects complex keys before SDL can diagnose them.
+The public scanner exposes tokens before composition. The grammar composer preserves duplicate and complex keys.
+Reference cases exposed a scanner defect. Its AST parser rejects complex keys before SDL can diagnose them.
 Do not use that parser. Keep the grammar and scalar-policy responsibilities separate.
 The standard library has no YAML parser.
 Do not use library scalar conversion or object decoding: SDL's resolver differs from general-purpose YAML libraries.
@@ -81,12 +81,12 @@ The behavior reference is `raes/_source_profile.py`, `_source_validation.py`, `_
 `_mapping_scopes.py`, `_source_identifier_paths.py`, `_supplied_sources.py`, `parser.py` and `formatting.py`.
 The reference stays unchanged.
 Published schemas stay unchanged.
-Artifact-reference models in `_source.py` remain contract/model work; they are not YAML constructors.
-`value_parsing.py` re-exports model helpers; this source loader does not create a second model-validation owner.
+Artifact-reference models in `_source.py` remain contract/model work. They are not YAML constructors.
+`value_parsing.py` re-exports model helpers. This source loader does not create a second model-validation owner.
 
 ## Invariants
 
-- A key conflict prevents value construction; migration cannot hide it.
+- A key conflict prevents value construction. Migration cannot hide it.
 - A cyclic alias prevents value construction.
 - Domain values contain only JSON scalars, sequences and string-keyed maps.
 - A returned document exposes copies and remains unchanged after caller edits.
@@ -100,12 +100,12 @@ Before implementation, run `archcheck -design` against this model and record the
 Run focused Go cases for scalar resolution, all per-source limit boundaries, graph reuse, cycles, conflict collection and ranges.
 Cover structural, literal, embedded JSON, merge, identifier, UTF-8, revision and malformed-source cases.
 Record source-layer Python verdicts and exact emitter bytes as portable local fixtures with reference commit identity.
-Run targeted parity cases locally; the full corpus, mutation, fuzz, coverage and race lanes run in existing CI.
+Run targeted parity cases locally. The full corpus, mutation, fuzz, coverage and race lanes run in existing CI.
 `tools/parity_source_vectors.py --check` reproduces the source vectors from the unchanged Python reference.
 The reference fixture includes exact values, key and value ranges, diagnostics and emitted bytes.
 The source-corpus boundary test checks source outcomes in the unchanged command corpus.
 It leaves model verdicts and command envelopes with their port owners.
-Full formatter-command validation depends on model admission and import composition; keep that dependency explicit.
+Full formatter-command validation depends on model admission and import composition. Keep that dependency explicit.
 Do not claim a formatted source is an admitted scenario.
 
 ## Configuration compatibility
@@ -118,12 +118,12 @@ A model check is not proof of runtime behavior or formatter-command parity.
 
 ## Current evidence and remaining gate
 
-The pre-code package and dependency design check passed; the issue plan records that order.
+The pre-code package and dependency design check passed. The issue plan records that order.
 The final typed API snapshot was reviewed after implementation and added to the model.
 The current fixture has 318 source cases from Python commit `9ce61105e833d4edfe465bbc0bebce12cd8a9a6d`.
 Targeted source tests pass. CI runs the full coverage, race, fuzz and mutation lanes.
 Selected canonical-profile corpus cases and two example sources pass their source-boundary checks.
-Fuzz seeds are present; full fuzz and mutation runs belong to CI.
+Fuzz seeds are present. Full fuzz and mutation runs belong to CI.
 Python implementation files and published schemas remain unchanged.
 
 The maintainer selected option 2: include the model and import-composition prerequisites needed for full formatter parity.
@@ -142,11 +142,11 @@ The maintainer approved this scope on 2026-11-07, before the expanded implementa
 `Parser`, `New`, `Decode`, `Format`, `Request`, `Result` and immutable `Document` are its package interface.
 A document exposes copied normalized JSON. Contract bindings remain with the existing binding owner.
 No caller flag can create an admitted document or mark it semantically valid.
-The existing public SDL consumer plan remains with its delivery owners; no placeholder public operations are added.
+The existing public SDL consumer plan remains with its delivery owners. No placeholder public operations are added.
 
 The owner reads the packaged, unchanged published schemas and reuses contract model predicates through `CheckPortable`.
 A non-authoritative compatibility layout preserves the reference's field order and serializer omissions.
-Its records name published definition IDs and serialized fields, not Python executable paths or a copied class hierarchy.
+Its records name published definition IDs and fields. They contain no Python code paths or copied class tree.
 A schema-directed normalization walk preserves enum aliases, whole-field variables, scalar conversions and supplied-field omission.
 Go-specific shorthands and legacy VM migration run before structural validation.
 Decoded input and every retry, copy and serialization remain bounded.
@@ -158,9 +158,9 @@ Each supplied-source edge requires a local source, digest pin and unique matchin
 The authoring filesystem path retains its existing optional local pins and locks.
 Descriptor, version, revision, exports, parameter, namespace and collision checks apply before combining declarations.
 The formatter emits the normalized authored source, not the expanded import graph.
-Only validation uses the expanded graph; import omission must not hide a malformed imported model.
+Only validation uses the expanded graph. Import omission must not hide a malformed imported model.
 Registry authority is explicit and cannot come from an untrusted supplied source set.
-All refusal paths retain typed source diagnostics and value-free error text.
+Source refusals retain typed parse diagnostics. Model and import refusals retain value-free error text. Complete later-stage diagnostics remain with their admission owners.
 
 ```mermaid
 flowchart LR
@@ -174,25 +174,25 @@ flowchart LR
 ```
 
 Targeted checks cover model normalization and rejection, exact formatter bytes, imported model failures and each import refusal boundary.
-The existing full formatter corpus runs in CI; local checks select explicit source cases.
+The existing full formatter corpus runs in CI. Local checks select explicit source cases.
 No Python implementation or published schema changes are permitted.
 
-<!-- go-api implementations/go/internal/sdl/authoring 96682a091b240d12369e36dadf2e4b5b90f9eddc7c19dc85dfaef494606ca2d6 -->
+<!-- go-api implementations/go/internal/sdl/authoring 0ccbc254d08a8904a07032230fc9442ef6f59c5e90efd4a31f53f05927fdbe9c -->
 
 The compatibility metadata also names explicit scalar normalization operations at published model fields.
 These records distinguish enum normalization from strict literals, and ordinary scalar coercion from strict scalar fields.
 Do not infer enum normalization from an `enum` annotation: some reference fields require exact spelling.
-The recorder extracts presentation and primitive-conversion facts from the unchanged reference, filters them through published schema fields, and checks regeneration.
-The Go implementation owns the conversion algorithms and model predicates; metadata contains no executable code or class paths.
+The recorder reads field order and scalar rules from the unchanged reference. It selects published schema fields and checks each new output against the stored records.
+Go owns the conversion code and model checks. The records contain no code or class paths.
 Keep unrestricted JSON values outside model scalar coercion.
 
 ### Module versions
 
-The authoring owner parses the [PEP 440 grammar](https://peps.python.org/pep-0440/) with bounded RE2 matches and compare normalized decimal strings without integer narrowing.
+Parse the [PEP 440 grammar](https://peps.python.org/pep-0440/) with bounded RE2 matches. Compare normalized decimal strings without integer narrowing.
 Native keys order epoch, zero-padded release components, prerelease, postrelease, development and local labels.
 Specifier checks retain prefix equality, compatible releases, arbitrary equality and the reference's invalid-version fallback.
 Digit limits distinguish a numeric conversion failure from an invalid version spelling.
-The input and scalar ceilings apply before parsing; reference vectors cover the library defects and each specifier operator.
+Input and scalar limits apply before parsing. Reference vectors cover the known defects and each specifier operator.
 
 ### Composition and ordering interfaces
 
@@ -204,14 +204,14 @@ This avoids reconstructing order from source ranges or reparsing rendered YAML.
 
 `contract/admission.Validator.CheckModelFragment` exposes the existing published-fragment model check.
 It checks a reachable compiled model, local invariants and nested owner predicates without granting phase admission.
-Bound imported declarations use this owner after substitution; qualified declaration keys use native composition checks.
+Bound imported declarations use this owner after substitution. Qualified declaration keys use native composition checks.
 Do not duplicate contract predicates in the SDL owner.
 
 
 ### Metadata allocation
 
 A cursor follows one graph edge at a time and avoids repeated full-path lookups.
-Cache canonical member indexes per mapping and key scope; the cache is synchronized and contains no mutable domain values.
+Cache canonical member indexes per mapping and key scope. The cache is synchronized and contains no mutable domain values.
 Bulk range accessors materialize requested metadata on demand.
 Store diagnostic paths as shared token prefixes until the caller requests their text.
 This preserves all source metadata while preventing eager pointer-string multiplication on deep inputs.
@@ -221,7 +221,7 @@ No new source-profile limit or parse refusal is introduced by this storage chang
 Share one immutable compiled schema set between admission and concept owners through `admission.NewWithSchemas`.
 The constructor installs the complete owner rule registry and checks the packaged catalogs.
 The authoring owner uses `concept.Authority` for governed extension identities.
-Use full Unicode lowercasing for authored enum aliases; extension identities retain the reference's exact spelling rules.
+Use full Unicode lowercasing for authored enum aliases. Extension identities retain the reference's exact spelling rules.
 
 
 ### Authoring checks and binding
@@ -229,20 +229,20 @@ Use full Unicode lowercasing for authored enum aliases; extension identities ret
 Model predicates check artifact identity uniqueness, materialization input joins and exact Source selectors after child normalization.
 Governed mechanism tokens use full matches, including at trailing newlines.
 Authored behavior references cannot introduce the reserved private namespace segment.
-Binding may preserve an identical reference generated by expansion; substituted parameters cannot create new private references.
+Binding may preserve an identical reference generated by expansion. Substituted parameters cannot create new private references.
 Control-context descriptors reject variable tokens before binding and are pinned only at the scenario root.
 Inline substitution uses Python scalar spelling and numeric equality without narrowing integer values.
-The internal JSON writer disables HTML escaping so presentation does not consume a source limit merely because a string contains `<`, `>` or `&`.
-Common presentation records are stored once; the contract-specific records retain each root model's published field order.
+The JSON writer disables HTML escaping. A string with `<`, `>` or `&` does not use extra bytes to escape those characters.
+Common presentation records are stored once. The contract-specific records retain each root model's published field order.
 
 
 ### Formatter byte oracle in CI
 
-CI runs the unchanged Python formatter on the stored CLI formatter inputs and records exact output bytes in a temporary local oracle file.
+CI runs the unchanged Python formatter on stored CLI inputs. It saves exact output bytes in a temporary local oracle file.
 The Go parity test compares both acceptance and bytes for every stored formatter case.
-The recorder verifies its results against the existing corpus verdicts, so it cannot silently replace an expected refusal.
-Local runs select named cases; the full corpus remains a CI check.
-The oracle contains no new published contract and uses only the existing repository inputs and CI runner storage.
+The recorder checks its results against the corpus verdicts. It cannot replace an expected refusal.
+Local runs select named cases. The full corpus remains a CI check.
+The oracle defines no new published contract. It uses only existing repo inputs and CI runner storage.
 
 
 ### Composition accounting before model coercion
@@ -250,7 +250,7 @@ The oracle contains no new published contract and uses only the existing reposit
 `Budget.AddValue` charges the normalized source JSON directly, without serializing it or applying scalar coercion and serializer omissions.
 It counts mapping keys, values, strings and repeated subtrees as the reference does.
 It reserves the remaining node capacity before queuing children and rejects unsupported native carriers.
-The authoring document retains this private source view for accounting; callers receive only checked, copied model values.
+The authoring document retains this private source view for accounting. Callers receive only checked, copied model values.
 `AddDocument` remains available for source graphs.
 Neither operation grants admission authority.
 
@@ -259,3 +259,97 @@ Workspace trust and lock files retain the reference's default configuration-read
 Only supplied lock bytes consume the supplied-source composition budget.
 Workspace policy files are validated for each expanded module, including a leaf.
 A leaf's local-import policy controls that leaf's import edges.
+
+
+### Command behavior
+
+The corpus adapter accepts formatter flags before or after its one source path.
+It preserves the command's parse-refusal exit code, silent `--check` verdict and `--write` stdout shape.
+The check compares formatter bytes with the text that the reference CLI reads, including universal newline handling.
+The byte oracle checks the formatter result apart from the CLI verdict. It also checks exact output bytes for a valid source whose format changes.
+
+
+A supplied request must identify its captured root and supply those exact root bytes.
+Its filesystem field grants no authority.
+A supplied root must be authored. Materialization provenance cannot select a stronger phase.
+
+
+### Duration arithmetic
+
+The duration adapter preserves Unicode decimal digits and the reference's two arithmetic paths.
+Bare decimal strings take an exact ceiling. Compound durations use 28 significant decimal digits with half-even ties. Round each product and sum, then take the ceiling.
+The context retains the reference's exponent and subnormal bounds.
+Use `math/big` for this arithmetic adapter. The [apd documented exponent range](https://pkg.go.dev/github.com/cockroachdb/apd/v3#pkg-constants) cannot hold the full reference context.
+The source scalar limit applies before arithmetic, and this adapter adds no source-profile limit.
+
+Float strings follow Python's decimal grammar and preserve Unicode decimal digits.
+
+
+Network field checks validate each concrete address before cross-field checks.
+A variable in one field does not exempt the other field from its address grammar.
+The adapter preserves the reference's IPv4 netmask and hostmask forms and IPv6 zone handling.
+Use standard `net` and `netip` address and mask operations. These checks perform no lookup or network access.
+
+
+### Filesystem import confinement
+
+Supplied paths use the source owner's lexical bundle resolver.
+Filesystem paths use POSIX filename rules and resolve symlinks before applying the importing-directory boundary.
+Resolve path components in order, including `..` after a link, and detect active link cycles.
+Use `fs.ReadLinkFS` when the caller filesystem exposes links. A virtual filesystem without links keeps its existing read authority.
+`Request.RootDir` is optional trusted metadata for the canonical absolute directory represented by `FS`.
+It maps absolute local references back into that filesystem's names and grants no additional read authority.
+Supplied mode ignores this metadata and never reads the filesystem.
+Canonical resolved names identify module cycles and select each module's workspace policy files.
+
+
+### Resolution headers
+
+The formatter validates resolution headers even though it emits only authored source.
+`contract/admission` owns `ResolvedImportProvenance` predicates at the published instantiated-scenario definition.
+These checks preserve digest spelling, local parameter identities, portable module identities and locator privacy.
+Check actual descriptor values through that fragment boundary. Keep namespace identities to check nested-header bounds and duplicates.
+An absolute link target can resolve inside the caller filesystem. An authored absolute locator still fails the existing provenance privacy rule.
+No resolution record is exposed as admitted phase evidence.
+
+### Budget boundaries and model values
+
+Source limits apply to authored input and rendered strict source.
+Import budgets count raw normalized input across the import tree.
+They do not count JSON working buffers or charge shared parameter values again.
+A source without imports does not use an import budget.
+Model trees come from bounded source graphs and fixed conversion rules.
+JSON checks use the actual encoded length.
+The format parser also uses that length as its work bound.
+It then checks the emitted bytes with the original source limits.
+Unchanged strings and whole-token replacements share their bytes.
+Each binding caches repeated inline replacements.
+
+### Structured inputs and nested variables
+
+Convert these inputs before the published-model check:
+
+- Filesystem permission modes.
+- Workflow timeout shorthands and compensation order.
+- Legacy datastore manifests.
+- Participant-scope spelling.
+
+The reference vectors retain accepted spellings and invalid types.
+Imported variation variables keep their authoring status.
+Rewrite their target names and value tokens through the same namespace map as their declarations.
+Pin root control-context assets throughout this step.
+A parent module can then bind its own variables and preserve its child's variables.
+
+### Constructor compatibility decision
+
+The reference accepts `name: a` with `nodes: {n: {type: compute, os_version: '22'}}`.
+The published `sdl-authoring-input-v1` schema requires `os_distribution` for a nonempty version.
+The same mismatch applies when the version is a variable token.
+Published-schema checks and model construction are distinct operations.
+Keep the published schema and its conditional checks unchanged.
+
+Exact formatter parity needs the shared model owner planned in #1783.
+It also needs parts of the import and registry work planned in #1785.
+The current source package and formatter helpers do not provide that broader behavior.
+A maintainer scope decision is pending.
+That decision must precede more work on those owners or a split of the source delivery.

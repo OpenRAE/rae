@@ -345,6 +345,211 @@
       "accepted": true,
       "content": "name: a\nagents:\n  a:\n    description: m.__private.team\n",
       "diagnostics": []
+    },
+    {
+      "name": "duration-compound-rounding",
+      "source": "name: a\nscripts: {s: {start_time: 0, end_time: \"1.0000000000000000000000000001s\", speed: 1, events: {e: 0}}}\n",
+      "accepted": true,
+      "content": "name: a\nscripts:\n  s:\n    start_time: 0\n    end_time: 1\n    speed: 1.0\n    events:\n      e: 0\n",
+      "diagnostics": []
+    },
+    {
+      "name": "duration-add-rounding",
+      "source": "name: a\nscripts: {s: {start_time: 0, end_time: \"1s+0.0000000000000000000000000001s\", speed: 1, events: {e: 0}}}\n",
+      "accepted": true,
+      "content": "name: a\nscripts:\n  s:\n    start_time: 0\n    end_time: 1\n    speed: 1.0\n    events:\n      e: 0\n",
+      "diagnostics": []
+    },
+    {
+      "name": "duration-bare-precision",
+      "source": "name: a\nscripts: {s: {start_time: 0, end_time: \"1.0000000000000000000000000001\", speed: 1, events: {e: 0}}}\n",
+      "accepted": true,
+      "content": "name: a\nscripts:\n  s:\n    start_time: 0\n    end_time: 2\n    speed: 1.0\n    events:\n      e: 0\n",
+      "diagnostics": []
+    },
+    {
+      "name": "duration-unicode-digits",
+      "source": "name: a\nscripts: {s: {start_time: 0, end_time: \"\\u0662h\", speed: 1, events: {e: 0}}}\n",
+      "accepted": true,
+      "content": "name: a\nscripts:\n  s:\n    start_time: 0\n    end_time: 7200\n    speed: 1.0\n    events:\n      e: 0\n",
+      "diagnostics": []
+    },
+    {
+      "name": "duration-leading-zero",
+      "source": "name: a\nscripts: {s: {start_time: 0, end_time: \"012s\", speed: 1, events: {e: 0}}}\n",
+      "accepted": true,
+      "content": "name: a\nscripts:\n  s:\n    start_time: 0\n    end_time: 12\n    speed: 1.0\n    events:\n      e: 0\n",
+      "diagnostics": []
+    },
+    {
+      "name": "duration-half-even-low",
+      "source": "name: a\nscripts: {s: {start_time: 0, end_time: \"1000000000000000000000000000.5s\", speed: 1, events: {e: 0}}}\n",
+      "accepted": true,
+      "content": "name: a\nscripts:\n  s:\n    start_time: 0\n    end_time: 1000000000000000000000000000\n    speed: 1.0\n    events:\n      e: 0\n",
+      "diagnostics": []
+    },
+    {
+      "name": "duration-half-even-high",
+      "source": "name: a\nscripts: {s: {start_time: 0, end_time: \"1000000000000000000000000001.5s\", speed: 1, events: {e: 0}}}\n",
+      "accepted": true,
+      "content": "name: a\nscripts:\n  s:\n    start_time: 0\n    end_time: 1000000000000000000000000002\n    speed: 1.0\n    events:\n      e: 0\n",
+      "diagnostics": []
+    },
+    {
+      "name": "duration-multiply-round",
+      "source": "name: a\nscripts: {s: {start_time: 0, end_time: \"0.0000000000000000000000000001h+1s\", speed: 1, events: {e: 0}}}\n",
+      "accepted": true,
+      "content": "name: a\nscripts:\n  s:\n    start_time: 0\n    end_time: 2\n    speed: 1.0\n    events:\n      e: 0\n",
+      "diagnostics": []
+    },
+    {
+      "name": "float-unicode-digits",
+      "source": "name: a\nscripts: {s: {start_time: 0, end_time: 1, speed: \"\\u0661.\\u0662\", events: {e: 0}}}\n",
+      "accepted": true,
+      "content": "name: a\nscripts:\n  s:\n    start_time: 0\n    end_time: 1\n    speed: 1.2\n    events:\n      e: 0\n",
+      "diagnostics": []
+    },
+    {
+      "name": "float-hex-refused",
+      "source": "name: a\nscripts: {s: {start_time: 0, end_time: 1, speed: \"0x1p2\", events: {e: 0}}}\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "ram-unicode-amount",
+      "source": "name: a\nnodes: {web: {type: compute, resources: {ram: \"\u0661.\u0665 GiB\", cpu: 1}}}\n",
+      "accepted": true,
+      "content": "name: a\nnodes:\n  web:\n    type: compute\n    resources:\n      ram: 1610612736\n      cpu: 1\n",
+      "diagnostics": []
+    },
+    {
+      "name": "network-netmask",
+      "source": "name: a\ninfrastructure: {net: {properties: {cidr: \"10.0.0.0/255.255.255.0\", gateway: \"10.0.0.1\"}}}\n",
+      "accepted": true,
+      "content": "name: a\ninfrastructure:\n  net:\n    properties:\n      cidr: 10.0.0.0/255.255.255.0\n      gateway: 10.0.0.1\n",
+      "diagnostics": []
+    },
+    {
+      "name": "network-hostmask",
+      "source": "name: a\ninfrastructure: {net: {properties: {cidr: \"10.0.0.0/0.0.0.255\", gateway: \"10.0.0.1\"}}}\n",
+      "accepted": true,
+      "content": "name: a\ninfrastructure:\n  net:\n    properties:\n      cidr: 10.0.0.0/0.0.0.255\n      gateway: 10.0.0.1\n",
+      "diagnostics": []
+    },
+    {
+      "name": "network-zone",
+      "source": "name: a\ninfrastructure: {net: {properties: {cidr: \"fe80::%eth0/64\", gateway: \"fe80::1%eth0\"}}}\n",
+      "accepted": true,
+      "content": "name: a\ninfrastructure:\n  net:\n    properties:\n      cidr: fe80::%eth0/64\n      gateway: fe80::1%eth0\n",
+      "diagnostics": []
+    },
+    {
+      "name": "network-invalid-gateway",
+      "source": "name: a\ninfrastructure: {net: {properties: {cidr: \"${cidr}\", gateway: \"not-an-address\"}}}\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "network-invalid-prefix",
+      "source": "name: a\ninfrastructure: {net: {properties: {cidr: \"not-a-network\", gateway: \"${gateway}\"}}}\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "unused-composition-ceilings",
+      "source": "name: a\n",
+      "limits": {
+        "max_composed_bytes": 1,
+        "max_composed_nodes": 1
+      },
+      "accepted": true,
+      "content": "name: a\n",
+      "diagnostics": []
+    },
+    {
+      "name": "filesystem-mode-integer",
+      "source": "name: a\nnodes:\n  web:\n    type: compute\n    runtime:\n      filesystem_inventory:\n      - path: /x\n        mode: 420\n",
+      "accepted": true,
+      "content": "name: a\nnodes:\n  web:\n    type: compute\n    runtime:\n      filesystem_inventory:\n      - path: /x\n        mode: '0644'\n",
+      "diagnostics": []
+    },
+    {
+      "name": "filesystem-mode-octal",
+      "source": "name: a\nnodes:\n  web:\n    type: compute\n    runtime:\n      filesystem_inventory:\n      - path: /x\n        mode: ' 0o755 '\n",
+      "accepted": true,
+      "content": "name: a\nnodes:\n  web:\n    type: compute\n    runtime:\n      filesystem_inventory:\n      - path: /x\n        mode: 0o755\n",
+      "diagnostics": []
+    },
+    {
+      "name": "filesystem-mode-max",
+      "source": "name: a\nnodes:\n  web:\n    type: compute\n    runtime:\n      filesystem_inventory:\n      - path: /x\n        mode: 4095\n",
+      "accepted": true,
+      "content": "name: a\nnodes:\n  web:\n    type: compute\n    runtime:\n      filesystem_inventory:\n      - path: /x\n        mode: '7777'\n",
+      "diagnostics": []
+    },
+    {
+      "name": "filesystem-mode-bool",
+      "source": "name: a\nnodes:\n  web:\n    type: compute\n    runtime:\n      filesystem_inventory:\n      - path: /x\n        mode: true\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "filesystem-mode-range",
+      "source": "name: a\nnodes:\n  web:\n    type: compute\n    runtime:\n      filesystem_inventory:\n      - path: /x\n        mode: 4096\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "filesystem-mode-null",
+      "source": "name: a\nnodes:\n  web:\n    type: compute\n    runtime:\n      filesystem_inventory:\n      - path: /x\n        mode: null\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "filesystem-mode-float",
+      "source": "name: a\nnodes:\n  web:\n    type: compute\n    runtime:\n      filesystem_inventory:\n      - path: /x\n        mode: 644.0\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "workflow-timeout-scalar",
+      "source": "name: a\nworkflows:\n  w:\n    start: s\n    timeout: 1.1s\n    steps:\n      s:\n        type: end\n",
+      "accepted": true,
+      "content": "name: a\nworkflows:\n  w:\n    start: s\n    timeout:\n      seconds: 2\n    steps:\n      s:\n        type: end\n",
+      "diagnostics": []
+    },
+    {
+      "name": "workflow-timeout-zero",
+      "source": "name: a\nworkflows:\n  w:\n    start: s\n    timeout: 0\n    steps:\n      s:\n        type: end\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "workflow-timeout-variable",
+      "source": "name: a\nworkflows:\n  w:\n    start: s\n    timeout: ${timeout}\n    steps:\n      s:\n        type: end\n",
+      "accepted": true,
+      "content": "name: a\nworkflows:\n  w:\n    start: s\n    timeout:\n      seconds: ${timeout}\n    steps:\n      s:\n        type: end\n",
+      "diagnostics": []
+    },
+    {
+      "name": "workflow-timeout-bool",
+      "source": "name: a\nworkflows:\n  w:\n    start: s\n    timeout: true\n    steps:\n      s:\n        type: end\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "workflow-compensation-null",
+      "source": "name: a\nworkflows:\n  w:\n    start: s\n    compensation:\n      order: null\n    steps:\n      s:\n        type: end\n",
+      "accepted": true,
+      "content": "name: a\nworkflows:\n  w:\n    start: s\n    compensation:\n      order: reverse_completion\n    steps:\n      s:\n        type: end\n",
+      "diagnostics": []
+    },
+    {
+      "name": "datastore-legacy-manifests",
+      "source": "name: a\nnodes:\n  web:\n    type: compute\n    runtime:\n      datastore_services:\n      - datastore_service_id: db\n        templates: foo\n        mappings:\n        - bar\n",
+      "accepted": true,
+      "content": "name: a\nnodes:\n  web:\n    type: compute\n    runtime:\n      datastore_services:\n      - datastore_service_id: db\n        templates:\n        - template_id: foo\n          name: foo\n        mappings:\n        - mapping_id: bar\n          name: bar\n",
+      "diagnostics": []
     }
   ]
 }

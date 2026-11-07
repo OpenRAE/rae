@@ -21,7 +21,7 @@ func TestBindingScalarSpellings(t *testing.T) {
 			t.Errorf("%v: %q, want %q", c.value, got, c.want)
 		}
 	}
-	if !scalarEqual(json.Number("2"), float64(2)) || scalarEqual(json.Number("9007199254740993"), float64(9007199254740992)) {
+	if !scalarEqual(json.Number("2"), float64(2)) || scalarEqual(json.Number("9007199254740993"), float64(9007199254740992)) || !scalarEqual(json.Number("0.1"), float64(0.1)) || scalarEqual(json.Number("9007199254740993"), json.Number("9007199254740993.0")) {
 		t.Fatal("numeric equality narrowed an integer or lost a float match")
 	}
 }

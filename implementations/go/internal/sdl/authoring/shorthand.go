@@ -107,7 +107,7 @@ func vmRealization(value map[string]any) (map[string]any, error) {
 func addVMConstraint(realization map[string]any, pointer string) error {
 	for _, raw := range array(realization["constraints"]) {
 		constraint := object(raw)
-		if constraint["field_pointer"] == pointer && constraint["concern"] == "compute-substrate" && len(array(constraint["namespace"])) == 0 {
+		if constraint["field_pointer"] == pointer && constraint["concern"] == "compute-substrate" && len(array(constraint[namespaceField])) == 0 {
 			return invalid()
 		}
 	}

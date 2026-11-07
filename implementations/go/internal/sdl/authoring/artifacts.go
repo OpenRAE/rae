@@ -22,7 +22,7 @@ func artifactModel(model string, value map[string]any) error {
 			if !present {
 				version = "*"
 			}
-			if value["name"] != identity["artifact_id"] || version != identity["version"] {
+			if value[nameField] != identity["artifact_id"] || version != identity["version"] {
 				return invalid()
 			}
 		}

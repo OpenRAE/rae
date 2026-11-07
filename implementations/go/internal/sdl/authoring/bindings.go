@@ -14,19 +14,18 @@ type substitution struct {
 	values    map[string]any
 	preserved map[string]bool
 	tokens    *regexp.Regexp
-	nodes     int
-	bytes     int64
+	inline    map[string]string
 }
 
 func (c *composition) bind(value, decl, descriptor map[string]any) (map[string]any, error) {
 	variables := object(value["variables"])
-	s := substitution{values: map[string]any{}, preserved: preservedVariables(value), tokens: variableTokens, nodes: c.parser.limits.MaxComposedNodes, bytes: c.parser.limits.MaxComposedBytes}
+	s := substitution{values: map[string]any{}, preserved: preservedVariables(value), tokens: variableTokens, inline: map[string]string{}}
 	if err := s.resolveValues(variables, object(decl["parameters"]), descriptor); err != nil {
 		return nil, err
 	}
 	content := make(map[string]any, len(value))
 	for key, child := range value {
-		if key != "control_context_assets" {
+		if key != controlAssetsSection {
 			content[key] = child
 		}
 	}
@@ -35,8 +34,8 @@ func (c *composition) bind(value, decl, descriptor map[string]any) (map[string]a
 		return nil, err
 	}
 	result := object(substituted)
-	if pinned, present := value["control_context_assets"]; present {
-		result["control_context_assets"] = pinned
+	if pinned, present := value[controlAssetsSection]; present {
+		result[controlAssetsSection] = pinned
 	}
 	if err = authoredReferences(result, value); err != nil {
 		return nil, err
@@ -143,10 +142,6 @@ func allowedValue(value any, allowed []any) bool {
 	return false
 }
 func (s *substitution) walk(value any) (any, error) {
-	s.nodes--
-	if s.nodes < 0 {
-		return nil, importError("budget-exceeded")
-	}
 	switch v := value.(type) {
 	case ordered:
 		return s.walk(object(v))
@@ -180,12 +175,16 @@ func (s *substitution) string(value string) (any, error) {
 	if variable(value) {
 		return s.wholeToken(value)
 	}
+	if cached, present := s.inline[value]; present {
+		return cached, nil
+	}
+	matches := s.tokens.FindAllStringSubmatchIndex(value, -1)
+	if len(matches) == 0 {
+		return value, nil
+	}
 	var result strings.Builder
 	previous := 0
-	for _, match := range s.tokens.FindAllStringSubmatchIndex(value, -1) {
-		if err := s.reserve(match[0] - previous); err != nil {
-			return nil, err
-		}
+	for _, match := range matches {
 		result.WriteString(value[previous:match[0]])
 		token, err := s.inlineToken(value[match[0]:match[1]], value[match[2]:match[3]])
 		if err != nil {
@@ -194,11 +193,10 @@ func (s *substitution) string(value string) (any, error) {
 		result.WriteString(token)
 		previous = match[1]
 	}
-	if err := s.reserve(len(value) - previous); err != nil {
-		return nil, err
-	}
 	result.WriteString(value[previous:])
-	return result.String(), nil
+	replaced := result.String()
+	s.inline[value] = replaced
+	return replaced, nil
 }
 func (s *substitution) wholeToken(token string) (any, error) {
 	name := token[2 : len(token)-1]
@@ -208,11 +206,6 @@ func (s *substitution) wholeToken(token string) (any, error) {
 	replacement, ok := s.values[name]
 	if !ok {
 		return nil, importError("parameter-refused")
-	}
-	if value, ok := replacement.(string); ok {
-		if err := s.reserve(len(value)); err != nil {
-			return nil, err
-		}
 	}
 	return replacement, nil
 }
@@ -224,17 +217,7 @@ func (s *substitution) inlineToken(token, name string) (string, error) {
 		}
 		token = pythonScalar(replacement)
 	}
-	if err := s.reserve(len(token)); err != nil {
-		return "", err
-	}
 	return token, nil
-}
-func (s *substitution) reserve(count int) error {
-	if int64(count) > s.bytes {
-		return importError("budget-exceeded")
-	}
-	s.bytes -= int64(count)
-	return nil
 }
 func pythonScalar(value any) string {
 	switch v := value.(type) {
@@ -273,6 +256,13 @@ func inlineFloat(value float64) string {
 func scalarNumber(value any) (*big.Rat, bool) {
 	switch v := value.(type) {
 	case json.Number:
+		if strings.ContainsAny(v.String(), ".eE") {
+			number, err := v.Float64()
+			if err != nil {
+				return nil, false
+			}
+			return scalarNumber(number)
+		}
 		return new(big.Rat).SetString(v.String())
 	case float64:
 		if n := new(big.Rat).SetFloat64(v); n != nil {

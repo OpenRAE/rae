@@ -27,3 +27,24 @@ const (
 )
 
 const injectsSection = "injects"
+
+const (
+	namespaceField     = "namespace"
+	contentDigestField = "content_digest"
+)
+
+const (
+	controlAssetsSection = "control_context_assets"
+	exportHashField      = "export_hash"
+	nameField            = "name"
+)
+
+const moduleIDField = "module_id"
+
+const (
+	moduleVersionField    = "module_version"
+	resolvedSourceField   = "resolved_source"
+	requestedVersionField = "requested_version"
+	signerIDField         = "signer_id"
+	manifestDigestField   = "manifest_digest"
+)
