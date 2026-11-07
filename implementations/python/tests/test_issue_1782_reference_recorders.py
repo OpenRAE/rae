@@ -39,7 +39,10 @@ def recorders(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
         ("source_vectors", "internal/sdl/source/testdata/reference.json"),
     ],
 )
-def test_recorder_matches_frozen_reference(recorders: dict[str, Any], module: str, relative: str) -> None:
+def test_recorder_matches_frozen_reference(
+    recorders: dict[str, Any], module: str, relative: str, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.chdir(tmp_path)
     expected = (ROOT / "implementations/go" / relative).read_bytes()
     recorder = recorders[module]
     if module == "sdl_constructors":

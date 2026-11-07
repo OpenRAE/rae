@@ -448,6 +448,7 @@ def record() -> dict[str, Any]:
             "--",
             "implementations/python/packages/raes",
         ],
+        cwd=ROOT,
         text=True,
     ).strip()
 
