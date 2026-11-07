@@ -19,7 +19,7 @@ Existing page addresses and useful heading anchors remain available.
 The public interfaces are `parse_sdl_file`, `raes semantic validate`, `raes semantic inspect`, and `raes sdl format`.
 RAES 11.0.2 supplies these interfaces through the PyPI `raes` distribution.
 Its source is tag `v11.0.2`, commit `036c832d5693c5f6f9351d3a8e1264e5fcfc43e3`.
-The first exercise needs standard CPython 3.14, pip, venv, and a POSIX shell.
+The first exercise needs standard CPython 3.14, pip, venv, and Bash.
 Internet access is needed for installation. The exercise then operates on local files.
 
 The existing parser, typed models, validator, CLI, and error handlers keep their roles.

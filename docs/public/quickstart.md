@@ -7,7 +7,7 @@ It needs no account, paid service, deployment backend, or contributor tools.
 
 ## Install RAES
 
-Use a POSIX shell, such as Bash, on Linux or macOS.
+Use Bash on Linux or macOS.
 The commands use shell heredocs; they do not run unchanged in PowerShell.
 You need standard CPython 3.14 with `venv` and `pip`.
 The installation needs internet access to PyPI.
