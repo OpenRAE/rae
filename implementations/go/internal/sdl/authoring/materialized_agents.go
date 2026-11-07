@@ -105,12 +105,12 @@ func operatingScopeIndex(value map[string]any) *declarationIndex {
 	for name, raw := range object(value[nodesSection]) {
 		node := object(raw)
 		if node["type"] == computeType {
-			index.add("nodes."+name, name, category)
+			index.add(nodesPrefix+name, name, category)
 		}
 		if node["type"] == switchType && object(value[infrastructureField])[name] != nil {
 			index.add("infrastructure."+name, name, category)
 		}
-		index.namedItems(array(node[servicesField]), "nodes."+name+".services.", true, servicesField)
+		index.namedItems(array(node[servicesField]), nodesPrefix+name+".services.", true, servicesField)
 	}
 	for name, raw := range object(value[contentField]) {
 		index.add("content."+name, name, category)

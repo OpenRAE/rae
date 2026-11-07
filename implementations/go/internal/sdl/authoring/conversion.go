@@ -181,7 +181,7 @@ func coerceScalar(value any, shapes []string) (any, error) {
 	case json.Number:
 		return coerceJSONNumber(v, shapes)
 	case float64:
-		if slices.Contains(shapes, numberType) || slices.Contains(shapes, "number!") {
+		if slices.Contains(shapes, numberType) || slices.Contains(shapes, strictNumberShape) {
 			return normalizeFloat(v)
 		}
 	}
@@ -195,7 +195,7 @@ func coerceJSONNumber(value json.Number, shapes []string) (any, error) {
 		}
 	}
 	// Preserve a float's lexical kind in scalar unions before trying an integer.
-	if slices.Contains(shapes, numberType) || slices.Contains(shapes, "number!") {
+	if slices.Contains(shapes, numberType) || slices.Contains(shapes, strictNumberShape) {
 		return normalizeFloat(value)
 	}
 	return fallbackScalar(value, shapes)
@@ -221,7 +221,7 @@ func fallbackScalar(value any, shapes []string) (any, error) {
 		}
 		return normalizeFloat(value)
 	}
-	if slices.Contains(shapes, "number!") {
+	if slices.Contains(shapes, strictNumberShape) {
 		if _, ok := value.(json.Number); ok {
 			return normalizeFloat(value)
 		}
@@ -230,7 +230,7 @@ func fallbackScalar(value any, shapes []string) (any, error) {
 		return normalizeBoolean(value, false)
 	}
 	// Strict fields must reject before JSON numeric equivalence can erase their source type.
-	if slices.Contains(shapes, "integer!") || slices.Contains(shapes, "number!") {
+	if slices.Contains(shapes, "integer!") || slices.Contains(shapes, strictNumberShape) {
 		return nil, invalid()
 	}
 	return value, nil

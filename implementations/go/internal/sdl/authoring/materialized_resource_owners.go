@@ -28,7 +28,7 @@ func (a autonomousChecks) resourceOwners() error {
 	for _, raw := range object(budget["owners"]) {
 		owner := object(raw)
 		if owner["kind"] == "deployment_tenant" {
-			scope.declaredTenants[strings.TrimPrefix(text(owner["ref"]), "deployment_tenants.")] = true
+			scope.declaredTenants[strings.TrimPrefix(text(owner["ref"]), deploymentTenantPrefix)] = true
 		}
 	}
 	for _, raw := range object(budget["owners"]) {
@@ -51,7 +51,7 @@ func (s *resourceOwnerScope) actionTargets(refs []any) {
 func (s *resourceOwnerScope) tenantTargets() {
 	nodes := map[string]bool{}
 	for target := range s.targets {
-		if node, present := strings.CutPrefix(target, "nodes."); present {
+		if node, present := strings.CutPrefix(target, nodesPrefix); present {
 			node, _, _ = strings.Cut(node, ".services.")
 			nodes[node] = true
 		}
@@ -59,8 +59,8 @@ func (s *resourceOwnerScope) tenantTargets() {
 	for _, raw := range object(s.root.value[deploymentCellsField]) {
 		cell := object(raw)
 		for _, ref := range array(cell["node_refs"]) {
-			if nodes[strings.TrimPrefix(text(ref), "nodes.")] {
-				s.targetTenants[strings.TrimPrefix(text(cell["tenant_ref"]), "deployment_tenants.")] = true
+			if nodes[strings.TrimPrefix(text(ref), nodesPrefix)] {
+				s.targetTenants[strings.TrimPrefix(text(cell["tenant_ref"]), deploymentTenantPrefix)] = true
 			}
 		}
 	}
@@ -69,7 +69,7 @@ func (s *resourceOwnerScope) tenantTargets() {
 		if relation["type"] != usesSharedServiceType {
 			continue
 		}
-		tenant, target := strings.TrimPrefix(text(relation[sourceField]), "deployment_tenants."), text(relation[targetField])
+		tenant, target := strings.TrimPrefix(text(relation[sourceField]), deploymentTenantPrefix), text(relation[targetField])
 		s.permissions[[2]string{tenant, target}] = true
 		if s.targets[target] {
 			s.targetTenants[tenant] = true
@@ -84,7 +84,7 @@ func (s *resourceOwnerScope) owner(owner map[string]any) error {
 			return semanticInvalid()
 		}
 	case "deployment_tenant":
-		tenant := strings.TrimPrefix(ref, "deployment_tenants.")
+		tenant := strings.TrimPrefix(ref, deploymentTenantPrefix)
 		if object(s.root.value[deploymentTenantsField])[tenant] == nil || !s.targetTenants[tenant] {
 			return semanticInvalid()
 		}

@@ -15,10 +15,10 @@ import (
 type lockfile struct{ records []map[string]any }
 
 func strictPin(pin string) bool {
-	return len(pin) == 71 && strings.HasPrefix(pin, "sha256:") && strings.IndexFunc(pin[7:], func(r rune) bool { return (r < '0' || r > '9') && (r < 'a' || r > 'f') }) < 0
+	return len(pin) == 71 && strings.HasPrefix(pin, sha256Prefix) && strings.IndexFunc(pin[7:], func(r rune) bool { return (r < '0' || r > '9') && (r < 'a' || r > 'f') }) < 0
 }
 func pinMatches(raw []byte, pin string) bool {
-	return pin == "" || strings.TrimPrefix(pin, "sha256:") == strings.TrimPrefix(digest.SHA256(raw), "sha256:")
+	return pin == "" || strings.TrimPrefix(pin, sha256Prefix) == strings.TrimPrefix(digest.SHA256(raw), sha256Prefix)
 }
 func (c *composition) optional(name string) ([]byte, bool, error) {
 	if c.supplied != nil {
@@ -73,18 +73,18 @@ func (c *composition) lock(importer string, needed bool) (*lockfile, error) {
 func decodeLock(raw []byte, limit int64) (*lockfile, error) {
 	decoded, err := ingress.Parse(raw, ingress.Limits{MaxBytes: int(limit), MaxDepth: 8}, ingress.Object)
 	if err != nil {
-		return nil, importError("lock-invalid")
+		return nil, importError(lockInvalidCode)
 	}
 	value := object(decoded)
 	if !closed(value, nil, []string{"schema_version", "imports"}) {
-		return nil, importError("lock-invalid")
+		return nil, importError(lockInvalidCode)
 	}
 	if version, ok := value["schema_version"]; ok && version != "raes-lock/v1" {
-		return nil, importError("lock-invalid")
+		return nil, importError(lockInvalidCode)
 	}
 	rows, ok := value["imports"].([]any)
 	if _, present := value["imports"]; present && !ok {
-		return nil, importError("lock-invalid")
+		return nil, importError(lockInvalidCode)
 	}
 	lock := &lockfile{}
 	for _, raw := range rows {
@@ -98,11 +98,11 @@ func decodeLock(raw []byte, limit int64) (*lockfile, error) {
 }
 func decodeLockRecord(record map[string]any) (map[string]any, error) {
 	if !closed(record, []string{sourceField, namespaceField, resolvedSourceField, moduleIDField, moduleVersionField, manifestDigestField, contentDigestField, exportHashField}, []string{requestedVersionField, signerIDField}) {
-		return nil, importError("lock-invalid")
+		return nil, importError(lockInvalidCode)
 	}
 	for _, value := range record {
 		if _, ok := value.(string); !ok {
-			return nil, importError("lock-invalid")
+			return nil, importError(lockInvalidCode)
 		}
 	}
 	if _, present := record[requestedVersionField]; !present {
@@ -144,7 +144,7 @@ func (c *composition) checkLock(lock *lockfile, decl, descriptor map[string]any,
 	if err != nil {
 		return err
 	}
-	expected := map[string]any{resolvedSourceField: relative, moduleIDField: descriptor["id"], moduleVersionField: descriptor["version"], contentDigestField: digest.SHA256(raw), exportHashField: strings.TrimPrefix(exports, "sha256:"), manifestDigestField: "", signerIDField: ""}
+	expected := map[string]any{resolvedSourceField: relative, moduleIDField: descriptor["id"], moduleVersionField: descriptor["version"], contentDigestField: digest.SHA256(raw), exportHashField: strings.TrimPrefix(exports, sha256Prefix), manifestDigestField: "", signerIDField: ""}
 	for key, want := range expected {
 		if record[key] != want {
 			return importError("lock-mismatch")
@@ -267,7 +267,7 @@ func validRegistryTrust(value map[string]any) bool {
 }
 func (c *composition) resolveLocked(decl map[string]any, lock *lockfile) (map[string]any, error) {
 	requested := text(decl[sourceField])
-	if c.supplied != nil && !strings.HasPrefix(requested, "local:") && requested != "" {
+	if c.supplied != nil && !strings.HasPrefix(requested, localImportPrefix) && requested != "" {
 		return nil, importError("source-refused")
 	}
 	seen := map[string]bool{}
@@ -291,7 +291,7 @@ func (c *composition) resolveLocked(decl map[string]any, lock *lockfile) (map[st
 			resolved["digest"] = record[contentDigestField]
 		}
 		if _, err := versionSpec(text(resolved["version"])); err != nil {
-			return nil, importError("lock-invalid")
+			return nil, importError(lockInvalidCode)
 		}
 		decl, requested = resolved, text(resolved[sourceField])
 	}

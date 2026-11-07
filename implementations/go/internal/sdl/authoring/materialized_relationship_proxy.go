@@ -72,7 +72,7 @@ func (c materializedChecks) proxyService(reference, upstream, target string) (st
 		}
 		return node, reference, true
 	}
-	qualified := "nodes." + expected + ".services." + reference
+	qualified := nodesPrefix + expected + ".services." + reference
 	return expected, qualified, expected != "" && c.serviceOwners[qualified][expected]
 }
 

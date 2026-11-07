@@ -17,7 +17,7 @@ func (c materializedChecks) sharedNetworkNamespace(name string, node map[string]
 	if variable(reference) {
 		return nil
 	}
-	targetName := strings.TrimPrefix(reference, "nodes.")
+	targetName := strings.TrimPrefix(reference, nodesPrefix)
 	target := object(object(c.value[nodesSection])[targetName])
 	if targetName == name || target["type"] != computeType || networkNamespace(target) != nil || !c.singletonNode(name) || !c.singletonNode(targetName) {
 		return semanticInvalid()

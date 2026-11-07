@@ -13,6 +13,7 @@ import json
 import sys
 import tempfile
 from pathlib import Path, PurePosixPath
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / "implementations/python/packages")]
@@ -25,23 +26,28 @@ from tools.parity_storage import read_blob, read_document
 CORPUS = ROOT / "implementations/go/internal/parity/testdata"
 
 
-def record(case: dict) -> dict:
+def write_case_files(case: dict[str, Any], base: Path) -> Path:
+    for name, identity in case["files"].items():
+        relative = PurePosixPath(name)
+        if relative.is_absolute() or ".." in relative.parts or "\\" in name:
+            raise ValueError("unsafe corpus file name")
+        content = read_blob(CORPUS, identity.removeprefix("sha256:"))
+        path = base / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(content)
+    arguments = case["args"][2:]
+    names = [arg for arg in arguments if arg in case["files"]]
+    if len(names) != 1:
+        raise ValueError("unsupported formatter corpus arguments")
+    return base / names[0]
+
+
+def record(case: dict[str, Any]) -> dict[str, Any]:
     row = {"name": case["name"]}
     with tempfile.TemporaryDirectory(prefix="sdl-byte-oracle-") as directory:
         base = Path(directory)
-        for name, identity in case["files"].items():
-            relative = PurePosixPath(name)
-            if relative.is_absolute() or ".." in relative.parts or "\\" in name:
-                raise ValueError("unsafe corpus file name")
-            content = read_blob(CORPUS, identity.removeprefix("sha256:"))
-            path = base / name
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes(content)
+        source = write_case_files(case, base)
         arguments = case["args"][2:]
-        names = [arg for arg in arguments if arg in case["files"]]
-        if len(names) != 1:
-            raise ValueError("unsupported formatter corpus arguments")
-        source = base / names[0]
         observed = 0
         try:
             original = source.read_text()

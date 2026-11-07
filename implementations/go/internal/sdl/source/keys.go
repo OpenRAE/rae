@@ -14,6 +14,14 @@ import (
 )
 
 const (
+	budgetExceededCode    = "budget-exceeded"
+	identifierInvalidCode = "sdl.identifier.invalid"
+	parseCode             = "sdl.parse"
+	pathInvalidCode       = "path-invalid"
+	sourceLimitCode       = "sdl.source_limit"
+)
+
+const (
 	structuralScope   = "structural"
 	literalScope      = "literal"
 	dataScope         = "data"
@@ -327,7 +335,7 @@ func (a *keyAnalysis) identifiers(key, value *node, name string, parent, child [
 	if len(child) == 1 && child[0] == "name" || scalarIdentifier(child) {
 		text, ok := value.value.(string)
 		if value.kind != 'v' || !ok || !portable(text) {
-			a.add("sdl.identifier.invalid", value, path, nil, nil)
+			a.add(identifierInvalidCode, value, path, nil, nil)
 		}
 	}
 }
@@ -340,10 +348,10 @@ func (a *keyAnalysis) declaration(key *node, name string, parent []string, path 
 		local = parts[len(parts)-1]
 	}
 	if !valid {
-		a.add("sdl.identifier.invalid", key, path, nil, nil)
+		a.add(identifierInvalidCode, key, path, nil, nil)
 	}
 	if len(parent) == 1 && parent[0] == nodesSection && len(local) > 35 {
-		a.add("sdl.identifier.invalid", key, path, nil, nil)
+		a.add(identifierInvalidCode, key, path, nil, nil)
 	}
 }
 func qualified(name string) bool {
@@ -431,7 +439,7 @@ func (a *keyAnalysis) constructionEntries(n *node) ([]member, error) {
 		if !validMerge(entry.value) {
 			span := entry.value.span
 			span.End = span.Start
-			return nil, failure("sdl.parse", span, a.options)
+			return nil, failure(parseCode, span, a.options)
 		}
 		groups, err := a.constructionGroups(entry.value)
 		if err != nil {

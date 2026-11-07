@@ -113,7 +113,7 @@ func (c *composition) edge(parent, decl map[string]any, importer string, depth i
 	if err = c.checkImportDecl(decl, requested); err != nil {
 		return err
 	}
-	relative := strings.TrimPrefix(requested, "local:")
+	relative := strings.TrimPrefix(requested, localImportPrefix)
 	name, err := c.localName(importer, relative)
 	if err != nil {
 		return err
@@ -163,10 +163,10 @@ func importSource(decl map[string]any) string {
 	if requested := text(decl[sourceField]); requested != "" {
 		return requested
 	}
-	return "local:" + text(decl["path"])
+	return localImportPrefix + text(decl["path"])
 }
 func (c *composition) checkImportDecl(decl map[string]any, requested string) error {
-	if !strings.HasPrefix(requested, "local:") {
+	if !strings.HasPrefix(requested, localImportPrefix) {
 		return importError("source-refused")
 	}
 	namespace := text(decl[namespaceField])
@@ -198,7 +198,7 @@ func (c *composition) localName(importer, relative string) (string, error) {
 		return "", err
 	}
 	if !withinDirectory(directory, resolved) {
-		return "", importError("path-invalid")
+		return "", importError(pathInvalidCode)
 	}
 	return resolved, nil
 }
@@ -250,7 +250,7 @@ func (c *composition) readBounded(name string, limit int64) ([]byte, error) {
 		return nil, importReadError(err)
 	}
 	if n > 0 {
-		return nil, importError("budget-exceeded")
+		return nil, importError(budgetExceededCode)
 	}
 	return raw, nil
 }

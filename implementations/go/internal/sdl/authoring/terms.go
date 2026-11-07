@@ -1,6 +1,19 @@
 package authoring
 
 const (
+	strictNumberShape      = "number!"
+	sharedLayoutKey        = "$shared"
+	parameterRefusedCode   = "parameter-refused"
+	budgetExceededCode     = "budget-exceeded"
+	pathInvalidCode        = "path-invalid"
+	localImportPrefix      = "local:"
+	sha256Prefix           = "sha256:"
+	lockInvalidCode        = "lock-invalid"
+	deploymentTenantPrefix = "deployment_tenants."
+	nodesPrefix            = "nodes."
+)
+
+const (
 	authoringContract    = "sdl-authoring-input-v1"
 	materializedContract = "materialized-scenario-v1"
 	dataScope            = "data"

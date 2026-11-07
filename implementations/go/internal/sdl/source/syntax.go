@@ -67,12 +67,12 @@ func scan(data []byte, options Options) (token.Tokens, error) {
 			result.Add(t)
 		}
 		if err != nil {
-			return nil, failure("sdl.parse", startRange(), options)
+			return nil, failure(parseCode, startRange(), options)
 		}
 	}
 	if state.flow > 0 {
 		end := endPosition(data)
-		return nil, failure("sdl.parse", Range{end, end}, options)
+		return nil, failure(parseCode, Range{end, end}, options)
 	}
 	return result, nil
 }
@@ -92,7 +92,7 @@ func (p *preflight) token(t *token.Token, data []byte) error {
 		p.flow--
 	}
 	if p.flow+t.Position.IndentLevel > p.options.Limits.MaxDepth {
-		return failure("sdl.source_limit", tokenRange(t), p.options)
+		return failure(sourceLimitCode, tokenRange(t), p.options)
 	}
 	if t.Type == token.DoubleQuoteType {
 		if span, ok := quotedSurrogate(t); ok {
@@ -110,7 +110,7 @@ func (p *preflight) presentation(t *token.Token, data []byte) error {
 		if strings.Contains(t.Error, "could not find end") {
 			r.Start = endPosition(data)
 		}
-		return failure("sdl.parse", Range{r.Start, r.Start}, p.options)
+		return failure(parseCode, Range{r.Start, r.Start}, p.options)
 	}
 	if t.Type == token.TagType {
 		return failure("sdl.explicit_tag", r, p.options)
@@ -143,13 +143,13 @@ func (p *preflight) scalar(t *token.Token) error {
 	if p.skipName {
 		if p.limitAlias != nil {
 			r.Start = tokenRange(p.limitAlias).Start
-			return failure("sdl.source_limit", r, p.options)
+			return failure(sourceLimitCode, r, p.options)
 		}
 		return nil
 	}
 	p.scalars++
 	if int64(len(t.Value)) > p.options.Limits.MaxScalarBytes || p.scalars > p.options.Limits.MaxNodes {
-		return failure("sdl.source_limit", r, p.options)
+		return failure(sourceLimitCode, r, p.options)
 	}
 	return nil
 }
@@ -192,7 +192,7 @@ func composeSyntax(tokens token.Tokens, data []byte, options Options, rawScalars
 			return nil, grammarError(err, tokens, data, options)
 		}
 		pos := Position{next.Line, next.Column}
-		return nil, failure("sdl.parse", Range{pos, pos}, options)
+		return nil, failure(parseCode, Range{pos, pos}, options)
 	}
 	if len(document.Content) == 0 {
 		return nil, &parseError{}
@@ -222,7 +222,7 @@ func grammarError(err error, tokens token.Tokens, data []byte, options Options) 
 	if strings.Contains(text, "end of stream") || strings.Contains(text, "expected node content") {
 		pos = endPosition(data)
 	}
-	return failure("sdl.parse", Range{pos, pos}, options)
+	return failure(parseCode, Range{pos, pos}, options)
 }
 
 func unknownAnchorPosition(message string, tokens token.Tokens, fallback Position) Position {
@@ -247,7 +247,7 @@ func (s *syntax) build(n *yaml.Node) (*node, error) {
 	}
 	if n.Anchor != "" {
 		if s.anchors[n.Anchor] {
-			return nil, failure("sdl.parse", span, s.options)
+			return nil, failure(parseCode, span, s.options)
 		}
 		s.anchors[n.Anchor] = true
 	}
@@ -256,7 +256,7 @@ func (s *syntax) build(n *yaml.Node) (*node, error) {
 		if n.Kind == yaml.ScalarNode {
 			span.End = s.scalarEnd(n)
 		}
-		return nil, failure("sdl.source_limit", span, s.options)
+		return nil, failure(sourceLimitCode, span, s.options)
 	}
 	result := &node{span: span}
 	s.cache[n] = result
@@ -289,9 +289,9 @@ func (s *syntax) fill(n *yaml.Node, result *node) error {
 		result.value = value
 		return nil
 	case yaml.DocumentNode, yaml.AliasNode:
-		return failure("sdl.parse", result.span, s.options)
+		return failure(parseCode, result.span, s.options)
 	default:
-		return failure("sdl.parse", result.span, s.options)
+		return failure(parseCode, result.span, s.options)
 	}
 }
 func (s *syntax) mapping(n *yaml.Node, result *node) error {
@@ -404,7 +404,7 @@ func measure(root *node, options Options) error {
 	return err
 }
 func (g *graphMetrics) visit(n *node, depth int) (metric, error) {
-	limit := func() error { return failure("sdl.source_limit", n.span, g.options) }
+	limit := func() error { return failure(sourceLimitCode, n.span, g.options) }
 	if depth > g.options.Limits.MaxDepth {
 		return metric{}, limit()
 	}

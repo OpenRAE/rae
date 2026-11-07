@@ -117,7 +117,7 @@ func (e *parseError) Code() string {
 	if len(e.pending) > 0 {
 		return e.pending[0].diagnostic.Code
 	}
-	return "sdl.parse"
+	return parseCode
 }
 func (e *parseError) Category() fault.Category { return fault.InvalidInput }
 func (e *parseError) Unwrap() error            { return nil }
@@ -246,7 +246,7 @@ func Read(fsys fs.FS, name string, options Options) (*Document, error) {
 	}
 	options.Name = name
 	if count != 0 {
-		return nil, failure("sdl.source_limit", startRange(), options)
+		return nil, failure(sourceLimitCode, startRange(), options)
 	}
 	return Decode(data, options)
 }
@@ -307,7 +307,7 @@ func prepare(data []byte, options Options) error {
 		return err
 	}
 	if int64(len(data)) > options.Limits.MaxInputBytes {
-		return failure("sdl.source_limit", startRange(), options)
+		return failure(sourceLimitCode, startRange(), options)
 	}
 	if !utf8.Valid(data) {
 		return failure("sdl.utf8", startRange(), options)

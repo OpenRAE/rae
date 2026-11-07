@@ -16,7 +16,7 @@ func Capture(documents map[string][]byte) (*Sources, error) {
 	captured := make(map[string][]byte, len(documents))
 	for name, data := range documents {
 		if !canonicalPath(name) {
-			return nil, importFailure("path-invalid")
+			return nil, importFailure(pathInvalidCode)
 		}
 		captured[name] = slices.Clone(data)
 	}
@@ -38,7 +38,7 @@ func canonicalPath(name string) bool {
 // Bytes returns a copied document at a canonical path, without reading a host resource.
 func (s *Sources) Bytes(name string) ([]byte, error) {
 	if !canonicalPath(name) {
-		return nil, importFailure("path-invalid")
+		return nil, importFailure(pathInvalidCode)
 	}
 	data, ok := s.documents[name]
 	if !ok {
@@ -76,18 +76,18 @@ func (s *Sources) Resolve(directory, relative string) (string, error) {
 func ResolvePath(directory, relative string) (string, error) {
 	relative = strings.ReplaceAll(relative, "\\", "/")
 	if relative == "" || strings.ContainsRune(relative, 0) || strings.HasPrefix(relative, "/") {
-		return "", importFailure("path-invalid")
+		return "", importFailure(pathInvalidCode)
 	}
 	first, _, _ := strings.Cut(relative, "/")
 	if len(first) == 2 && first[1] == ':' {
-		return "", importFailure("path-invalid")
+		return "", importFailure(pathInvalidCode)
 	}
 	if directory != "." && !canonicalPath(directory) {
-		return "", importFailure("path-invalid")
+		return "", importFailure(pathInvalidCode)
 	}
 	joined := path.Clean(path.Join(directory, relative))
 	if joined == "." || joined == ".." || strings.HasPrefix(joined, "../") {
-		return "", importFailure("path-invalid")
+		return "", importFailure(pathInvalidCode)
 	}
 	return joined, nil
 }

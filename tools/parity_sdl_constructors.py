@@ -8,8 +8,9 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 from pydantic.json_schema import GenerateJsonSchema
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -23,11 +24,11 @@ from raes.scenario import Scenario  # noqa: E402
 class Constructors(GenerateJsonSchema):
     """Resolve each published definition pointer to its reference constructor."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self.classes = {}
 
-    def model_schema(self, schema):
+    def model_schema(self, schema: dict[str, Any]) -> dict[str, Any]:
         result = super().model_schema(schema)
         cls = schema["cls"]
         key = cls.__module__ + "." + cls.__name__
@@ -36,7 +37,35 @@ class Constructors(GenerateJsonSchema):
         return result
 
 
-def record(document):
+def reference_definitions(model: type[BaseModel]) -> dict[str, type[BaseModel]]:
+    owners: list[Constructors] = []
+
+    def generator(*args: Any, **kwargs: Any) -> Constructors:
+        owner = Constructors(*args, **kwargs)
+        owners.append(owner)
+        return owner
+
+    schema = model.model_json_schema(schema_generator=generator)
+    classes = owners[0].classes
+    definitions = {"#": classes[schema["x-constructor"]]}
+    definitions.update(
+        {
+            "#/$defs/" + name: classes[value["x-constructor"]]
+            for name, value in schema.get("$defs", {}).items()
+            if "x-constructor" in value
+        }
+    )
+    return definitions
+
+
+def model_fields_schema(cls: type[BaseModel]) -> dict[str, Any]:
+    core = cls.__pydantic_core_schema__
+    while core.get("type") != "model-fields" and core:
+        core = core.get("schema", {})
+    return core.get("fields", {})
+
+
+def record(document: dict[str, Any]) -> str:
     reference = subprocess.check_output(
         [
             "git",
@@ -54,28 +83,12 @@ def record(document):
     names = [row["name"] for row in document["cases"]]
     if len(names) != len(set(names)):
         raise ValueError("SDL constructor case names must be unique")
-    owners = []
-
-    def generator(*args, **kwargs):
-        owner = Constructors(*args, **kwargs)
-        owners.append(owner)
-        return owner
-
     definitions = {}
     for model, contract in (
         (Scenario, "sdl-authoring-input-v1"),
         (MaterializedScenario, "materialized-scenario-v1"),
     ):
-        schema = model.model_json_schema(schema_generator=generator)
-        classes = owners[-1].classes
-        definitions[contract] = {"#": classes[schema["x-constructor"]]}
-        definitions[contract].update(
-            {
-                "#/$defs/" + name: classes[value["x-constructor"]]
-                for name, value in schema.get("$defs", {}).items()
-                if "x-constructor" in value
-            }
-        )
+        definitions[contract] = reference_definitions(model)
     definitions["instantiated-scenario-v1"] = {"#/$defs/ResolvedImportProvenance": ResolvedImportProvenance}
     for row in document["cases"]:
         try:
@@ -86,7 +99,7 @@ def record(document):
     return json.dumps(document, indent=2, ensure_ascii=True) + "\n"
 
 
-def main():
+def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()

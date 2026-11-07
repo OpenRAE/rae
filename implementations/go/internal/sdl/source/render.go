@@ -15,7 +15,7 @@ import (
 // The model owner must supply its normalized field order before command formatting.
 func (d *Document) Render(maxBytes int64) ([]byte, error) {
 	if maxBytes < 1 {
-		return nil, importFailure("budget-exceeded")
+		return nil, importFailure(budgetExceededCode)
 	}
 	e := emitter{limit: maxBytes,
 		integer:   regexp.MustCompile(`^(?:[-+]?0b[0-1_]+|[-+]?0[0-7_]+|[-+]?(?:0|[1-9][0-9_]*)|[-+]?0x[0-9a-fA-F_]+|[-+]?[1-9][0-9_]*(?::[0-5]?[0-9])+)$`),
@@ -44,7 +44,7 @@ func (e *emitter) write(text string) {
 		return
 	}
 	if int64(len(text)) > e.limit-int64(e.out.Len()) {
-		e.err = importFailure("budget-exceeded")
+		e.err = importFailure(budgetExceededCode)
 		return
 	}
 	e.out.WriteString(text)

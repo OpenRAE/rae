@@ -15,6 +15,10 @@ import (
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
 )
 
+const (
+	constructionStageInvalidCode = "sdl-construction-stage-invalid"
+)
+
 // Node's reference schema hook publishes these two semantic OS dependency
 // clauses. The reference formatter performs construction without that stage.
 const nodeSemanticClauses = "3778bdc61d14bbcb0626bf210050815770870a81d2c19a742c05f3709f33d18f"
@@ -44,11 +48,11 @@ func compileSDLConstruction(id string, published contract) (contract, error) {
 	if id == sdlMaterializedContract {
 		expected = "0561d2939f767c14777c625fdf74ca9bc374203062b1d7f5e335799d560fa518"
 		if !stageDigestMatches(defs["_r221"], "1c6a3f6fa1a26b7c577915a3a7e4bb7af706c46260ad4e40ed2a37ac16dc8c34") {
-			return contract{}, failure(fault.Operational, "sdl-construction-stage-invalid")
+			return contract{}, failure(fault.Operational, constructionStageInvalidCode)
 		}
 	}
 	if !stageDigestMatches(node["allOf"], expected) {
-		return contract{}, failure(fault.Operational, "sdl-construction-stage-invalid")
+		return contract{}, failure(fault.Operational, constructionStageInvalidCode)
 	}
 	root := maps.Clone(published.raw)
 	defs = maps.Clone(defs)
@@ -172,7 +176,7 @@ func constructionAnnotations(published map[string][]annotation) (map[string][]an
 		switch rule.ID {
 		case "required-evidence-media-type-provable", "stateful-generated-artifact-semantics", "stateful-persistent-volume-semantics", "stateful-cross-resource-semantics", "initial-service-state-semantics", "participant-shared-time-source-bindings", "materialized-sdl-source-and-inventory-binding":
 		default:
-			return nil, failure(fault.Operational, "sdl-construction-stage-invalid")
+			return nil, failure(fault.Operational, constructionStageInvalidCode)
 		}
 	}
 	result := maps.Clone(published)

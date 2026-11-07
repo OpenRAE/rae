@@ -58,8 +58,8 @@ func (c runtimeChecks) listenerService(listener map[string]any) error {
 	if reference == "" || variable(reference) {
 		return nil
 	}
-	if strings.HasPrefix(reference, "nodes.") {
-		reference = strings.TrimPrefix(reference, "nodes."+c.name+".services.")
+	if strings.HasPrefix(reference, nodesPrefix) {
+		reference = strings.TrimPrefix(reference, nodesPrefix+c.name+".services.")
 	}
 	service := object(c.services[reference])
 	serviceProtocol, present := service[protocolField]

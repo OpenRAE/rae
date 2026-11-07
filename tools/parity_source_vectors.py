@@ -14,6 +14,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
@@ -26,48 +27,46 @@ from raes._source_profile import SDLSourceParseOptions
 from raes._yaml_loader import SDLSourceLocations, load_sdl_yaml
 from raes.parser import _normalize_keys
 
+VALUE_PREFIX = "value: "
+SIMPLE_SOURCE = "x: y\n"
+DUPLICATE_SOURCE = "a: x\na: y\n"
+
 OUTPUT = ROOT / "implementations/go/internal/sdl/source/testdata/reference.json"
 
 
-def record():
-    cases = []
+def machine(diagnostic: Any) -> dict[str, Any]:
+    result = diagnostic.as_dict()
+    result.pop("message", None)
+    for related in result.get("related", []):
+        related.pop("message", None)
+    return result
 
-    def add(name, text, **kw):
-        options = {k: v for k, v in kw.items() if k not in ("limits",)}
-        limits = kw.get("limits", {})
-        diagnostics = []
-        try:
-            value = load_sdl_fragment(
-                text,
-                limits=SDLParserLimits(**limits),
-                source_diagnostics=diagnostics,
-                **options,
-            )
-            error = False
-        except SDLParseError as e:
-            value = None
-            error = True
-            diagnostics = list(e.diagnostics)
 
-        def machine(d):
-            x = d.as_dict()
-            x.pop("message", None)
-            for r in x.get("related", []):
-                r.pop("message", None)
-            return x
+def add_case(cases: list[dict[str, Any]], name: str, text: str, **kw: Any) -> None:
+    options = {k: v for k, v in kw.items() if k != "limits"}
+    limits = kw.get("limits", {})
+    diagnostics = []
+    try:
+        value = load_sdl_fragment(text, limits=SDLParserLimits(**limits), source_diagnostics=diagnostics, **options)
+        error = False
+    except SDLParseError as exc:
+        value = None
+        error = True
+        diagnostics = list(exc.diagnostics)
+    cases.append(
+        {
+            "name": name,
+            "source": text,
+            "options": options,
+            "limits": limits,
+            "error": error,
+            "value": value,
+            "diagnostics": [machine(d) for d in diagnostics],
+        }
+    )
 
-        cases.append(
-            dict(
-                name=name,
-                source=text,
-                options=options,
-                limits=limits,
-                error=error,
-                value=value,
-                diagnostics=[machine(d) for d in diagnostics],
-            )
-        )
 
+def scalar_cases(cases: list[dict[str, Any]]) -> None:
     for scalar in [
         "yes",
         "NO",
@@ -114,7 +113,10 @@ def record():
         "|\n  one\n  two\n",
         ">\n  one\n  two\n",
     ]:
-        add("scalar-" + str(len(cases)), "value: " + scalar + "\n")
+        add_case(cases, "scalar-" + str(len(cases)), VALUE_PREFIX + scalar + "\n")
+
+
+def profile_cases(cases: list[dict[str, Any]]) -> None:
     for text in [
         "Name: example\n",
         "name: example\nName: second\n",
@@ -141,17 +143,23 @@ def record():
         "name: x\nmaterialization_provenance: {}\nnodes: {a.b: {type: switch}}\n",
     ]:
         for migration in ["reject", "accept"]:
-            add("profile-" + str(len(cases)), text, migration_policy=migration)
+            add_case(cases, "profile-" + str(len(cases)), text, migration_policy=migration)
+
+
+def limit_cases(cases: list[dict[str, Any]]) -> None:
     for field, text, lower, exact in [
-        ("max_input_bytes", "x: y\n", 4, 5),
+        ("max_input_bytes", SIMPLE_SOURCE, 4, 5),
         ("max_scalar_bytes", "x: four\n", 3, 4),
         ("max_depth", "x: {y: z}\n", 2, 3),
-        ("max_nodes", "x: y\n", 2, 3),
+        ("max_nodes", SIMPLE_SOURCE, 2, 3),
         ("max_aliases", "a: &a z\nb: [*a, *a]\n", 1, 2),
         ("max_expanded_nodes", "a: &a [x, y]\nb: [*a, *a]\n", 12, 13),
     ]:
         for n in [lower, exact, exact + 1]:
-            add("limit-" + field + "-" + str(n), text, limits={field: n})
+            add_case(cases, "limit-" + field + "-" + str(n), text, limits={field: n})
+
+
+def edge_cases(cases: list[dict[str, Any]]) -> None:
     for text in [
         "name: café\n",
         'name: "\\uD800"\n',
@@ -159,23 +167,19 @@ def record():
         "a: [yes, 012, -0x0a, null]\n",
         'a: {"a/b": {"~x": 1, "~x": 2}}\n',
     ]:
-        add("edge-" + str(len(cases)), text)
+        add_case(cases, "edge-" + str(len(cases)), text)
+
     for path in ["structural", "literal"]:
-        add("scope-" + path, "A-B: {C-D: yes}\n", mapping_keys=path)
-    add("base-pointer", "a: x\na: y\n", base_pointer="/items/0")
-    add("format-choice", "x: y\n", source_format="no")
-    add("migration-choice", "x: y\n", migration_policy="no")
-    commit = subprocess.check_output(
-        [
-            "git",
-            "log",
-            "-1",
-            "--format=%H",
-            "--",
-            "implementations/python/packages/raes",
-        ],
-        text=True,
-    ).strip()
+        add_case(cases, "scope-" + path, "A-B: {C-D: yes}\n", mapping_keys=path)
+
+    add_case(cases, "base-pointer", DUPLICATE_SOURCE, base_pointer="/items/0")
+
+    add_case(cases, "format-choice", SIMPLE_SOURCE, source_format="no")
+
+    add_case(cases, "migration-choice", SIMPLE_SOURCE, migration_policy="no")
+
+
+def dialect_cases(cases: list[dict[str, Any]]) -> None:
     for text in [
         "a: !!str test\n",
         "a: !custom test\n",
@@ -219,7 +223,10 @@ def record():
         "a: &a {x: y}\nb: {<<: *a, <<: *a}\n",
     ]:
         for migration in ["reject", "accept"]:
-            add("dialect-" + str(len(cases)), text, migration_policy=migration)
+            add_case(cases, "dialect-" + str(len(cases)), text, migration_policy=migration)
+
+
+def presentation_cases(cases: list[dict[str, Any]]) -> None:
     for i, value in enumerate(
         [
             "",
@@ -277,27 +284,37 @@ def record():
             ),
         ]
     ):
-        add(
+        add_case(
+            cases,
             "presentation-" + str(i),
             json.dumps({"value": value}, ensure_ascii=True) + "\n",
         )
+
+
+def retained_cases(cases: list[dict[str, Any]]) -> None:
     for length in [127, 128, 129, 130]:
-        add("long-key-" + str(length), json.dumps({"x" * length: "value"}) + "\n")
+        add_case(cases, "long-key-" + str(length), json.dumps({"x" * length: "value"}) + "\n")
+
     for text in [
         "[1, 2, [3, 4]]\n",
         "{a: [{b: c, d: {e: f}}, {g: [h, i]}]}\n",
         "a: &a\n  {x: y}\nb: *a\n",
         "materialization_provenance: {}\nnodes: {a.__private.b: {type: switch}}\n",
         "a: &a {B-C: x}\nx: {<<: *a}\n",
-        "a: x\na: y\n",
+        DUPLICATE_SOURCE,
     ]:
-        add("retained-" + str(len(cases)), text, migration_policy="accept")
+        add_case(cases, "retained-" + str(len(cases)), text, migration_policy="accept")
+
     for f in RUNTIME_SERVICE_FAMILIES:
         for identity in ["valid", "Invalid"]:
-            add(
+            add_case(
+                cases,
                 "identity-" + f.collection_name + "-" + identity,
                 json.dumps({"nodes": {"n": {"runtime": {f.collection_name: [{f.id_field: identity}]}}}}) + "\n",
             )
+
+
+def boundary_cases(cases: list[dict[str, Any]]) -> None:
     for value in [
         "😀" * 30,
         "+-1",
@@ -308,29 +325,37 @@ def record():
         "---hello",
         "...hello",
     ]:
-        add(
+        add_case(
+            cases,
             "additional-" + str(len(cases)),
             json.dumps({"value": value}, ensure_ascii=False) + "\n",
         )
+
     for text in [
         "value: +-1\n",
         "value: 1e+-1\n",
         "value: 0o" + "7" * 4600 + "\n",
-        "value: " + "9" * 4300 + "\n",
-        "value: " + "9" * 4301 + "\n",
+        VALUE_PREFIX + "9" * 4300 + "\n",
+        VALUE_PREFIX + "9" * 4301 + "\n",
         "x: \x00\n",
         "x: \x7f\n",
         "x: \uffff\n",
-        "a: x\na: y\n",
+        DUPLICATE_SOURCE,
     ]:
-        add("scalar-boundary-" + str(len(cases)), text)
+        add_case(cases, "scalar-boundary-" + str(len(cases)), text)
+
     for text in ["TRUE: x\n012: x\n~: x\n.nan: x\n", "a: x\n", "value: +-1\n"]:
-        add("authored-key-" + str(len(cases)), text)
+        add_case(cases, "authored-key-" + str(len(cases)), text)
+
+
+def resolution_cases(cases: list[dict[str, Any]]) -> None:
     for text in ["İ: x\n", "ΟΣ: x\n", "İ: x\ni̇: y\n", "labels: {İ: {ΟΣ: x}}\n"]:
         for migration in ["accept", "reject"]:
-            add("unicode-key-" + str(len(cases)), text, migration_policy=migration)
+            add_case(cases, "unicode-key-" + str(len(cases)), text, migration_policy=migration)
+
     for text in ["a:\nb: x\n", "-\n- x\n", "a: &a\nb: *a\n", "a: &a\n  text\nb: *a\n"]:
-        add("implicit-value-" + str(len(cases)), text)
+        add_case(cases, "implicit-value-" + str(len(cases)), text)
+
     for text in [
         "2026-1-2",
         "2026-01-02",
@@ -340,20 +365,32 @@ def record():
         "+.5",
         "._",
     ]:
-        add("emitter-resolution-" + str(len(cases)), json.dumps({"value": text}) + "\n")
-    add(
+        add_case(cases, "emitter-resolution-" + str(len(cases)), json.dumps({"value": text}) + "\n")
+
+
+def merge_cases(cases: list[dict[str, Any]]) -> None:
+    add_case(
+        cases,
         "merge-sequence-order",
         "first: &one {a: x}\nsecond: &two {b: y}\ntarget: {<<: [*one, *two], c: z}\n",
         migration_policy="accept",
     )
-    add(
+
+    add_case(
+        cases,
         "merge-nested-sequence-order",
         "first: &one {a: x}\nsecond: &two {<<: *one, b: y}\nthird: &three {c: z}\ntarget: {<<: [*two, *three], d: q}\n",
         migration_policy="accept",
     )
-    add("merge-nested-invalid", "target: {<<: {<<: 3}}\n", migration_policy="accept")
-    add("undefined-alias-after-valid", "a: &ok x\nb: *ok\nc: *missing\n")
-    add("simple-key-with-spaces", '"' + "word " * 20 + 'end": value\n', mapping_keys="data")
+
+    add_case(cases, "merge-nested-invalid", "target: {<<: {<<: 3}}\n", migration_policy="accept")
+
+    add_case(cases, "undefined-alias-after-valid", "a: &ok x\nb: *ok\nc: *missing\n")
+
+    add_case(cases, "simple-key-with-spaces", '"' + "word " * 20 + 'end": value\n', mapping_keys="data")
+
+
+def render_cases(cases: list[dict[str, Any]]) -> None:
     for c in cases:
         if not c["error"]:
             c["rendered"] = yaml.safe_dump(
@@ -365,6 +402,9 @@ def record():
                 default_flow_style=False,
                 sort_keys=False,
             )
+
+
+def source_ranges(cases: list[dict[str, Any]]) -> None:
     for c in cases:
         if c["error"]:
             continue
@@ -383,6 +423,34 @@ def record():
         )
         c["ranges"] = {k: v.as_dict() for k, v in ranges.items()}
         c["key_ranges"] = {k: v.as_dict() for k, v in keys.items()}
+
+
+def record() -> dict[str, Any]:
+    cases: list[dict[str, Any]] = []
+    scalar_cases(cases)
+    profile_cases(cases)
+    limit_cases(cases)
+    edge_cases(cases)
+    dialect_cases(cases)
+    presentation_cases(cases)
+    retained_cases(cases)
+    boundary_cases(cases)
+    resolution_cases(cases)
+    merge_cases(cases)
+    render_cases(cases)
+    source_ranges(cases)
+    commit = subprocess.check_output(
+        [
+            "git",
+            "log",
+            "-1",
+            "--format=%H",
+            "--",
+            "implementations/python/packages/raes",
+        ],
+        text=True,
+    ).strip()
+
     return {"reference_commit": commit, "cases": cases}
 
 

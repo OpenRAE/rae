@@ -17,6 +17,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
@@ -27,13 +28,16 @@ from raes._composition_budget import CompositionTraversal
 from raes._errors import SDLError
 from raes._source_profile import SDLParserLimits
 from raes._supplied_sources import SuppliedSources
-from raes.formatting import format_sdl_source
+from raes.formatting import SDLFormatResult, format_sdl_source
 from raes.module_registry._digests import _normalize_exact_or_range, _satisfies_version
+
+MAIN_SOURCE = "main.yaml"
+ROOT_MARKER = "$ROOT"
 
 VECTORS = ROOT / "implementations/go/internal/sdl/authoring/testdata"
 
 
-def formatter(rows: list[dict]) -> list[dict]:
+def formatter(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     result = []
     for row in rows:
         recorded = {key: row[key] for key in ("name", "source")}
@@ -52,45 +56,51 @@ def formatter(rows: list[dict]) -> list[dict]:
     return result
 
 
-def import_result(row: dict):
+def import_result(row: dict[str, Any]) -> SDLFormatResult:
     files = row["files"]
     limits = SDLParserLimits(**row.get("limits", {}))
     if row["supplied"]:
         sources = SuppliedSources.capture({key: value.encode() for key, value in files.items()})
-        path, _ = sources.root("main.yaml")
+        path, _ = sources.root(MAIN_SOURCE)
         return format_sdl_source(
-            files["main.yaml"],
+            files[MAIN_SOURCE],
             path=path,
             limits=limits,
             _traversal=CompositionTraversal.supplied_root(limits, sources),
         )
     with tempfile.TemporaryDirectory(prefix="sdl-import-reference-") as directory:
-        for name, content in files.items():
-            if Path(name).is_absolute() or ".." in Path(name).parts:
-                raise ValueError("unsafe reference file name")
-            path = Path(directory) / name
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(content.replace("$ROOT", directory) if row.get("rooted") else content)
-        for name, target in row.get("links", {}).items():
-            path = Path(directory) / name
-            if Path(name).is_absolute() or ".." in Path(name).parts:
-                raise ValueError("unsafe reference link name")
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.symlink_to(target.replace("$ROOT", directory) if row.get("rooted") else target)
+        write_import_files(row, directory)
         result = format_sdl_source(
-            files["main.yaml"].replace("$ROOT", directory) if row.get("rooted") else files["main.yaml"],
-            path=Path(directory) / "main.yaml",
+            files[MAIN_SOURCE].replace(ROOT_MARKER, directory) if row.get("rooted") else files[MAIN_SOURCE],
+            path=Path(directory) / MAIN_SOURCE,
             limits=limits,
         )
         if row.get("rooted"):
             return type(result)(
-                content=result.content.replace(directory, "$ROOT"),
+                content=result.content.replace(directory, ROOT_MARKER),
                 diagnostics=result.diagnostics,
             )
         return result
 
 
-def imports(rows: list[dict]) -> list[dict]:
+def reference_path(directory: str, name: str) -> Path:
+    if Path(name).is_absolute() or ".." in Path(name).parts:
+        raise ValueError("unsafe reference file name")
+    path = Path(directory) / name
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def write_import_files(row: dict[str, Any], directory: str) -> None:
+    for name, content in row["files"].items():
+        path = reference_path(directory, name)
+        path.write_text(content.replace(ROOT_MARKER, directory) if row.get("rooted") else content)
+    for name, target in row.get("links", {}).items():
+        path = reference_path(directory, name)
+        path.symlink_to(target.replace(ROOT_MARKER, directory) if row.get("rooted") else target)
+
+
+def imports(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     result = []
     for row in rows:
         recorded = {key: row[key] for key in ("name", "files", "supplied")}
@@ -108,7 +118,7 @@ def imports(rows: list[dict]) -> list[dict]:
     return result
 
 
-def versions(rows: list[dict]) -> list[dict]:
+def versions(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     result = []
     for row in rows:
         request = row["requested"]
@@ -128,7 +138,7 @@ def versions(rows: list[dict]) -> list[dict]:
     return result
 
 
-def provenance() -> dict:
+def provenance() -> dict[str, Any]:
     package = ROOT / "implementations/python/packages/raes"
     digest = hashlib.sha256()
     for path in sorted(package.rglob("*.py")):

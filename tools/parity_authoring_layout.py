@@ -15,6 +15,7 @@ import textwrap
 from enum import Enum
 from functools import partial
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
@@ -49,7 +50,7 @@ def reference_function(value: object) -> bool:
     return inspect.isfunction(value) and value.__module__.startswith(("raes.", "raes_contracts."))
 
 
-def function_policy(function: object, seen: set | None = None) -> set[str]:
+def function_policy(function: object, seen: set[object] | None = None) -> set[str]:
     if isinstance(function, partial):
         function = function.func
     function = getattr(function, "__func__", function)
@@ -58,6 +59,10 @@ def function_policy(function: object, seen: set | None = None) -> set[str]:
     if function.__name__.lstrip("_") in PRIMITIVES:
         return {PRIMITIVES[function.__name__.lstrip("_")]}
     seen = set() if seen is None else seen
+    return nested_policies(function, seen)
+
+
+def nested_policies(function: Any, seen: set[object]) -> set[str]:
     if function in seen:
         return set()
     seen.add(function)
@@ -70,7 +75,7 @@ def function_policy(function: object, seen: set | None = None) -> set[str]:
     return result
 
 
-def numeric_argument(node: ast.expr, namespace: dict) -> str | None:
+def numeric_argument(node: ast.expr, namespace: dict[str, Any]) -> str | None:
     try:
         value = ast.literal_eval(node)
     except ValueError, TypeError:
@@ -80,7 +85,7 @@ def numeric_argument(node: ast.expr, namespace: dict) -> str | None:
     return None
 
 
-def numeric_bounds(function: object, seen: set | None = None) -> dict[str, str]:
+def numeric_bounds(function: object, seen: set[object] | None = None) -> dict[str, str]:
     if isinstance(function, partial):
         function = function.func
     function = getattr(function, "__func__", function)
@@ -93,18 +98,31 @@ def numeric_bounds(function: object, seen: set | None = None) -> dict[str, str]:
     tree = ast.parse(textwrap.dedent(inspect.getsource(function)))
     result: dict[str, str] = {}
     for call in ast.walk(tree):
-        if not isinstance(call, ast.Call) or not isinstance(call.func, ast.Name):
-            continue
-        for keyword in call.keywords:
-            if keyword.arg in {"minimum", "maximum"}:
-                if (value := numeric_argument(keyword.value, function.__globals__)) is not None:
-                    result[keyword.arg] = value
-        if reference_function(nested := function.__globals__.get(call.func.id)):
-            result.update(numeric_bounds(nested, seen))
+        if isinstance(call, ast.Call) and isinstance(call.func, ast.Name):
+            result.update(call_bounds(call, function.__globals__, seen))
     return result
 
 
-def enum_arguments(function: object, seen: set | None = None) -> set[type[Enum]]:
+def call_bounds(call: ast.Call, namespace: dict[str, Any], seen: set[object]) -> dict[str, str]:
+    result = {}
+    for keyword in call.keywords:
+        if keyword.arg in {"minimum", "maximum"}:
+            if (value := numeric_argument(keyword.value, namespace)) is not None:
+                result[keyword.arg] = value
+    if reference_function(nested := namespace.get(call.func.id)):
+        result.update(numeric_bounds(nested, seen))
+    return result
+
+
+def direct_enums(values: list[Any]) -> set[type[Enum]]:
+    result = set()
+    for value in values:
+        if inspect.isclass(value) and issubclass(value, Enum) and list(value):
+            result.add(value)
+    return result
+
+
+def enum_arguments(function: object, seen: set[object] | None = None) -> set[type[Enum]]:
     """Record primitive enum arguments as values and governed scope IDs."""
     values = []
     if isinstance(function, partial):
@@ -120,17 +138,15 @@ def enum_arguments(function: object, seen: set | None = None) -> set[type[Enum]]
     seen.add(function)
     values.extend(function.__globals__.get(name) for name in function.__code__.co_names)
     values.extend(cell.cell_contents for cell in (function.__closure__ or ()))
-    direct = {value for value in values if inspect.isclass(value) and issubclass(value, Enum) and list(value)}
-    if direct:
-        return direct
-    result = set()
-    for value in values:
-        if reference_function(value):
-            result.update(enum_arguments(value, seen))
-    return result
+    direct = direct_enums(values)
+    if not direct:
+        for value in values:
+            if reference_function(value):
+                direct.update(enum_arguments(value, seen))
+    return direct
 
 
-def scalar_shapes(schema: dict) -> list[str]:
+def scalar_shapes(schema: dict[str, Any]) -> list[str]:
     kind = schema.get("type")
     if kind in {
         "default",
@@ -153,37 +169,46 @@ def scalar_shapes(schema: dict) -> list[str]:
         "bool": "boolean",
         "none": "null",
     }
-    return [names[kind] + ("!" if schema.get("strict") else "")] if kind in names else []
+    result = []
+    if kind in names:
+        result = [names[kind] + ("!" if schema.get("strict") else "")]
+    return result
 
 
-def scalar_plan(schema: dict) -> dict:
-    kind = schema.get("type")
-    result: dict = {}
-    if kind in {
-        "default",
-        "function-before",
-        "function-after",
-        "function-wrap",
-        "nullable",
-    }:
-        result = scalar_plan(schema["schema"])
-        if kind == "function-after":
-            function = schema["function"].get("function")
-            if "capability" in function_policy(function):
-                result["convert"] = sorted(set(result.get("convert", [])) | {"capability"})
-        if kind == "function-before":
-            function = schema["function"].get("function")
-            if conversions := function_policy(function):
-                result["convert"] = sorted(set(result.get("convert", [])) | conversions)
-                if conversions & {"enum", "vocabulary", "account-vocabulary"}:
-                    enums = enum_arguments(function)
-                    members = {item.value for cls in enums for item in cls if isinstance(item.value, str)}
-                    if members:
-                        result["members"] = sorted(members)
-                    if "vocabulary" in conversions:
-                        result["scopes"] = sorted("sdl.definitions." + cls.__name__ for cls in enums)
-            result.update(numeric_bounds(function))
-    elif kind in {"list", "tuple", "set", "frozenset"}:
+def conversion_plan(function: object, result: dict[str, Any]) -> None:
+    conversions = function_policy(function)
+    if conversions:
+        result["convert"] = sorted(set(result.get("convert", [])) | conversions)
+        if conversions & {"enum", "vocabulary", "account-vocabulary"}:
+            enum_plan(function, conversions, result)
+    result.update(numeric_bounds(function))
+
+
+def enum_plan(function: object, conversions: set[str], result: dict[str, Any]) -> None:
+    enums = enum_arguments(function)
+    members = {item.value for cls in enums for item in cls if isinstance(item.value, str)}
+    if members:
+        result["members"] = sorted(members)
+    if "vocabulary" in conversions:
+        result["scopes"] = sorted("sdl.definitions." + cls.__name__ for cls in enums)
+
+
+def wrapper_plan(schema: dict[str, Any]) -> dict[str, Any]:
+    result = scalar_plan(schema["schema"])
+    kind = schema["type"]
+    if kind == "function-after":
+        function = schema["function"].get("function")
+        if "capability" in function_policy(function):
+            result["convert"] = sorted(set(result.get("convert", [])) | {"capability"})
+    if kind == "function-before":
+        conversion_plan(schema["function"].get("function"), result)
+    return result
+
+
+def container_plan(schema: dict[str, Any]) -> dict[str, Any]:
+    result = {}
+    kind = schema["type"]
+    if kind in {"list", "tuple", "set", "frozenset"}:
         item = schema.get("items_schema", {})
         if isinstance(item, dict) and (nested := scalar_plan(item)):
             result["items"] = nested
@@ -194,12 +219,28 @@ def scalar_plan(schema: dict) -> dict:
         for raw in schema["choices"]:
             child = raw[0] if isinstance(raw, tuple) else raw
             result.update({key: value for key, value in scalar_plan(child).items() if key in {"items", "values"}})
+    return result
+
+
+def scalar_plan(schema: dict[str, Any]) -> dict[str, Any]:
+    kind = schema.get("type")
+    result: dict[str, Any] = {}
+    if kind in {
+        "default",
+        "function-before",
+        "function-after",
+        "function-wrap",
+        "nullable",
+    }:
+        result = wrapper_plan(schema)
+    else:
+        result = container_plan(schema)
     if shapes := scalar_shapes(schema):
         result["shapes"] = sorted(set(shapes))
     return result
 
 
-def conversion_fields(schema: dict, cls: type) -> dict:
+def conversion_fields(schema: dict[str, Any], cls: type[BaseModel]) -> dict[str, Any]:
     core = schema["schema"]
     while core.get("type") != "model-fields":
         core = core.get("schema", {})
@@ -234,7 +275,7 @@ def omission_policy(field: object) -> list[str]:
 class Layout(GenerateJsonSchema):
     """Attach non-schema metadata while the reference resolves definition IDs."""
 
-    def model_schema(self, schema: dict) -> dict:
+    def model_schema(self, schema: dict[str, Any]) -> dict[str, Any]:
         document = super().model_schema(schema)
         cls = schema["cls"]
         fields = [field.serialization_alias or field.alias or name for name, field in cls.model_fields.items()]
@@ -252,7 +293,7 @@ class Layout(GenerateJsonSchema):
         return document
 
 
-def factory_defaults(cls: type) -> dict:
+def factory_defaults(cls: type[BaseModel]) -> dict[str, Any]:
     result = {}
     audited = {("ExecutionPolicy", "retry"), ("TimeDomainMapping", "scale"), ("TimeProgressionPolicy", "pacing_ratio")}
     for name, field in cls.model_fields.items():
@@ -268,7 +309,7 @@ def factory_defaults(cls: type) -> dict:
     return result
 
 
-def compact_plan(plan: dict) -> dict:
+def compact_plan(plan: dict[str, Any]) -> dict[str, Any]:
     result = {}
     for key, value in plan.items():
         if key in {"items", "values"}:
@@ -295,15 +336,7 @@ def record() -> bytes:
             }
         )
         published = json.loads((ROOT / "contracts/schemas/sdl" / (contract + ".json")).read_bytes())
-        for pointer, row in records.items():
-            definition = published
-            for token in pointer.split("/")[1:]:
-                definition = definition.get(token, {})
-            fields = definition.get("properties", {})
-            row["fields"] = [field for field in row["fields"] if field in fields]
-            for key in ("omit", "scalar", "factory_defaults"):
-                row[key] = {field: value for field, value in row[key].items() if field in fields}
-            row["scalar"] = {field: compact for field, plan in row["scalar"].items() if (compact := compact_plan(plan))}
+        filter_records(records, published)
         result[contract] = records
     authored = result["sdl-authoring-input-v1"]
     materialized = result["materialized-scenario-v1"]
@@ -313,6 +346,18 @@ def record() -> bytes:
         del materialized[key]
     result["$shared"] = common
     return (json.dumps(result, indent=2, sort_keys=True) + "\n").encode()
+
+
+def filter_records(records: dict[str, Any], published: dict[str, Any]) -> None:
+    for pointer, row in records.items():
+        definition = published
+        for token in pointer.split("/")[1:]:
+            definition = definition.get(token, {})
+        fields = definition.get("properties", {})
+        row["fields"] = [field for field in row["fields"] if field in fields]
+        for key in ("omit", "scalar", "factory_defaults"):
+            row[key] = {field: value for field, value in row[key].items() if field in fields}
+        row["scalar"] = {field: compact for field, plan in row["scalar"].items() if (compact := compact_plan(plan))}
 
 
 def main() -> int:

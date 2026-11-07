@@ -70,7 +70,7 @@ func namespaceKey(record map[string]any) string {
 }
 func normalizedDigest(value string) string {
 	if len(value) == 64 {
-		return "sha256:" + value
+		return sha256Prefix + value
 	}
 	return value
 }

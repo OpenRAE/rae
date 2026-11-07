@@ -19,7 +19,7 @@ type copyBudget struct{ remaining int64 }
 
 func (b *copyBudget) reserve(count int64) error {
 	if count < 0 || count > b.remaining {
-		return importError("budget-exceeded")
+		return importError(budgetExceededCode)
 	}
 	b.remaining -= count
 	return nil
@@ -48,7 +48,7 @@ func (b *copyBudget) replace(value string, resolve func(string, string) (string,
 		}
 		size -= int64(len(token))
 		if int64(len(replacement)) > math.MaxInt64-size {
-			return "", importError("budget-exceeded")
+			return "", importError(budgetExceededCode)
 		}
 		size += int64(len(replacement))
 	}
@@ -56,7 +56,7 @@ func (b *copyBudget) replace(value string, resolve func(string, string) (string,
 		return value, nil
 	}
 	if size > int64(math.MaxInt) {
-		return "", importError("budget-exceeded")
+		return "", importError(budgetExceededCode)
 	}
 	if err := b.reserve(size); err != nil {
 		return "", err

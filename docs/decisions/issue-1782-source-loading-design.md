@@ -707,3 +707,14 @@ The CLI adapter maps parse refusals to exit code 2 and semantic refusals to exit
 Materialized root-local rule failures retain that semantic classification without changing the public fault category.
 RAM unit amounts require digits before a decimal point and after it when present.
 Check that grammar before using the standard-library float parser.
+
+### Recorder quality and coverage
+
+Keep recorder output fixed while splitting schema walks and source case groups
+into small typed helpers. The existing tooling owners keep these helpers.
+Use named Go constants for shared diagnostic codes and protocol literals.
+These changes add no dependency or public API. The architecture model stays
+unchanged. Tests reproduce the stored records and check unsafe file names,
+reference identity, schema predicates and changed reference verdicts. Include
+the recorder paths in the existing Python test lane so hosted coverage checks
+the code that supplies the Go reference data.

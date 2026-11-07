@@ -41,7 +41,7 @@ func (c *composition) fileName(name string) (string, error) {
 		}
 	}
 	if len(walk.prefix) == 0 {
-		return "", importError("path-invalid")
+		return "", importError(pathInvalidCode)
 	}
 	return strings.Join(walk.prefix, "/"), nil
 }
@@ -59,7 +59,7 @@ func (w *filesystemPath) step(token string) error {
 			if w.composition.request.RootDir == "/" {
 				return nil
 			}
-			return importError("path-invalid")
+			return importError(pathInvalidCode)
 		}
 		w.prefix = w.prefix[:len(w.prefix)-1]
 		if len(w.prefix) < w.missing {
@@ -73,7 +73,7 @@ func (w *filesystemPath) step(token string) error {
 	}
 	candidate := strings.Join(append(slices.Clone(w.prefix), token), "/")
 	if !fs.ValidPath(candidate) {
-		return importError("path-invalid")
+		return importError(pathInvalidCode)
 	}
 	info, err := fs.Lstat(w.composition.request.FS, candidate)
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
@@ -117,17 +117,17 @@ func (w *filesystemPath) link(name string) error {
 }
 func (c *composition) fileParts(name string) ([]string, bool, error) {
 	if name == "" || strings.ContainsRune(name, 0) {
-		return nil, false, importError("path-invalid")
+		return nil, false, importError(pathInvalidCode)
 	}
 	absolute := path.IsAbs(name)
 	if absolute {
 		root := c.request.RootDir
 		if root == "" {
-			return nil, false, importError("path-invalid")
+			return nil, false, importError(pathInvalidCode)
 		}
 		prefix := strings.TrimSuffix(root, "/") + "/"
 		if !strings.HasPrefix(name, prefix) {
-			return nil, false, importError("path-invalid")
+			return nil, false, importError(pathInvalidCode)
 		}
 		name = strings.TrimPrefix(name, prefix)
 	}

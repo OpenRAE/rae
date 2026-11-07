@@ -18,7 +18,7 @@ func indexServiceOwners(value map[string]any) map[string]map[string]bool {
 	for name, raw := range object(value[nodesSection]) {
 		for _, service := range array(object(raw)[servicesField]) {
 			if key := text(object(service)[nameField]); key != "" {
-				address := "nodes." + name + ".services." + key
+				address := nodesPrefix + name + ".services." + key
 				if owners[address] == nil {
 					owners[address] = map[string]bool{}
 				}
@@ -69,7 +69,7 @@ func (c runtimeChecks) ownedService(reference string) error {
 	if reference == "" || variable(reference) {
 		return nil
 	}
-	if strings.HasPrefix(reference, "nodes.") {
+	if strings.HasPrefix(reference, nodesPrefix) {
 		if c.root.serviceOwners[reference][c.name] {
 			return nil
 		}
@@ -130,7 +130,7 @@ func (c runtimeChecks) upstream(target map[string]any) error {
 	return c.serviceOnNode(node, service)
 }
 func (c runtimeChecks) serviceOnNode(name, reference string) error {
-	if reference != "" && c.root.serviceOwners["nodes."+name+".services."+reference][name] {
+	if reference != "" && c.root.serviceOwners[nodesPrefix+name+".services."+reference][name] {
 		return nil
 	}
 	return semanticInvalid()

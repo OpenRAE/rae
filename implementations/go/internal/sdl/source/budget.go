@@ -25,7 +25,7 @@ func NewBudget(limits Limits) (*Budget, error) {
 // AddImport reserves one import edge before its read or resolution work.
 func (b *Budget) AddImport() error {
 	if b.imports >= b.limits.MaxImports {
-		return importFailure("budget-exceeded")
+		return importFailure(budgetExceededCode)
 	}
 	b.imports++
 	return nil
@@ -34,7 +34,7 @@ func (b *Budget) AddImport() error {
 // AddBytes reserves raw lock bytes or other composition-owned decoded bytes.
 func (b *Budget) AddBytes(count int64) error {
 	if count < 0 || count > b.limits.MaxComposedBytes-b.bytes {
-		return importFailure("budget-exceeded")
+		return importFailure(budgetExceededCode)
 	}
 	b.bytes += count
 	return nil
@@ -43,7 +43,7 @@ func (b *Budget) AddBytes(count int64) error {
 // CheckDepth refuses an import before descending beyond the request depth.
 func (b *Budget) CheckDepth(depth int) error {
 	if depth < 0 || depth > b.limits.MaxCompositionDepth {
-		return importFailure("budget-exceeded")
+		return importFailure(budgetExceededCode)
 	}
 	return nil
 }
@@ -56,7 +56,7 @@ func (b *Budget) AddDocument(d *Document) error {
 		n := pending[len(pending)-1]
 		pending = pending[:len(pending)-1]
 		if b.nodes >= b.limits.MaxComposedNodes {
-			return importFailure("budget-exceeded")
+			return importFailure(budgetExceededCode)
 		}
 		b.nodes++
 		if text, ok := n.value.(string); ok {
@@ -76,7 +76,7 @@ func (b *Budget) CheckNamespace(name string) error {
 	}
 	parts := strings.Split(name, ".")
 	if len(parts)-1 > b.limits.MaxNamespaceDepth {
-		return importFailure("budget-exceeded")
+		return importFailure(budgetExceededCode)
 	}
 	return nil
 }
@@ -90,7 +90,7 @@ func (b *Budget) AddValue(value any) error {
 		current := pending[len(pending)-1]
 		pending = pending[:len(pending)-1]
 		if b.nodes >= b.limits.MaxComposedNodes {
-			return importFailure("budget-exceeded")
+			return importFailure(budgetExceededCode)
 		}
 		b.nodes++
 		if err := b.queueValue(current, &pending); err != nil {
@@ -106,14 +106,14 @@ func (b *Budget) queueValue(value any, pending *[]any) error {
 		return b.AddBytes(int64(len(v)))
 	case map[string]any:
 		if len(v) > remaining/2 {
-			return importFailure("budget-exceeded")
+			return importFailure(budgetExceededCode)
 		}
 		for name, child := range v {
 			*pending = append(*pending, name, child)
 		}
 	case []any:
 		if len(v) > remaining {
-			return importFailure("budget-exceeded")
+			return importFailure(budgetExceededCode)
 		}
 		*pending = append(*pending, v...)
 	case nil, bool, json.Number, float64:

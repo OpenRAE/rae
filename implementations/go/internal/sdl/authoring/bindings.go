@@ -68,7 +68,7 @@ func (s *substitution) resolveValues(variables, parameters, descriptor map[strin
 	}
 	for name := range parameters {
 		if !allowed[name] || variables[name] == nil || s.preserved[name] {
-			return importError("parameter-refused")
+			return importError(parameterRefusedCode)
 		}
 	}
 	for name, raw := range variables {
@@ -95,12 +95,12 @@ func bindingCandidate(name string, definition, parameters map[string]any) (any, 
 	}
 	if !present {
 		if definition["required"] == true {
-			return nil, false, importError("parameter-refused")
+			return nil, false, importError(parameterRefusedCode)
 		}
 		return nil, false, nil
 	}
 	if !variableType(candidate, text(definition["type"])) || !allowedValue(candidate, array(definition["allowed_values"])) {
-		return nil, false, importError("parameter-refused")
+		return nil, false, importError(parameterRefusedCode)
 	}
 	return candidate, true, nil
 }
@@ -192,7 +192,7 @@ func (s *substitution) wholeToken(token string) (any, error) {
 	}
 	replacement, ok := s.values[name]
 	if !ok {
-		return nil, importError("parameter-refused")
+		return nil, importError(parameterRefusedCode)
 	}
 	return replacement, nil
 }
@@ -200,7 +200,7 @@ func (s *substitution) inlineToken(token, name string) (string, error) {
 	if !s.preserved[name] && (!s.keepUnknown || s.values[name] != nil) {
 		replacement, ok := s.values[name]
 		if !ok {
-			return "", importError("parameter-refused")
+			return "", importError(parameterRefusedCode)
 		}
 		token = pythonScalar(replacement)
 	}

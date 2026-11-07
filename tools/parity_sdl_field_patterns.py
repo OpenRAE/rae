@@ -9,11 +9,14 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
+
+from pydantic import BaseModel
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
 
-from parity_sdl_constructors import Constructors  # noqa: E402
+from parity_sdl_constructors import model_fields_schema, reference_definitions  # noqa: E402
 from raes.materialization import MaterializedScenario  # noqa: E402
 from raes.scenario import Scenario  # noqa: E402
 
@@ -21,28 +24,51 @@ NATIVE_FIELDS = {("ExperimentArtifactRefModel", "created_at")}
 COMBINED_URI_FIELDS = {("RuntimeAptPackageRepository", "uri"), ("RuntimePackageRepositorySigningKey", "uri")}
 
 
-def field_patterns(schema, path=()):
+def field_patterns(schema: dict[str, Any], path: tuple[str, ...] = ()) -> list[dict[str, Any]]:
     kind = schema.get("type")
+    result = []
     if kind == "str" and isinstance(schema.get("pattern"), str):
         fact = {"path": list(path), "pattern": schema["pattern"]}
         for name in ("min_length", "max_length"):
             if name in schema:
                 fact[name] = schema[name]
-        return [fact]
-    if kind in {"default", "function-before", "function-after", "nullable"}:
-        return field_patterns(schema["schema"], path)
-    if kind == "list":
-        return field_patterns(schema.get("items_schema", {}), (*path, "items"))
-    if kind == "union":
-        return [
+        result = [fact]
+    elif kind in {"default", "function-before", "function-after", "nullable"}:
+        result = field_patterns(schema["schema"], path)
+    elif kind == "list":
+        result = field_patterns(schema.get("items_schema", {}), (*path, "items"))
+    elif kind == "union":
+        result = [
             fact
             for choice in schema["choices"]
             for fact in field_patterns(choice[0] if isinstance(choice, tuple) else choice, path)
         ]
-    return []
+    return result
 
 
-def records():
+def combined_pattern(facts: list[dict[str, Any]], schema: dict[str, Any]) -> None:
+    if len(facts) != 1 or facts[0]["path"]:
+        raise ValueError("combined URI field pattern changed shape")
+    encoded = json.dumps(schema, sort_keys=True, ensure_ascii=True, separators=(",", ":")).encode()
+    facts[0]["schema_sha256"] = hashlib.sha256(encoded).hexdigest()
+
+
+def definition_patterns(cls: type[BaseModel], properties: dict[str, Any], name: str) -> dict[str, Any]:
+    if cls.model_config.get("regex_engine", "rust-regex") != "rust-regex":
+        raise ValueError("an SDL field pattern selects an unreviewed engine")
+    result = {}
+    for field, value in model_fields_schema(cls).items():
+        info = cls.model_fields[field]
+        alias = info.serialization_alias or info.alias or field
+        facts = field_patterns(value["schema"])
+        if alias in properties and facts and (name, alias) not in NATIVE_FIELDS:
+            if (name, alias) in COMBINED_URI_FIELDS:
+                combined_pattern(facts, properties[alias])
+            result[alias] = facts
+    return result
+
+
+def records() -> dict[str, Any]:
     reference = json.loads((ROOT / "implementations/go/contract/admission/testdata/sdl-constructors.json").read_text())[
         "reference"
     ]
@@ -54,50 +80,21 @@ def records():
     if actual != reference:
         raise ValueError("SDL pattern reference commit differs from the constructor fixture")
     contracts = {}
-    for model, contract in (
-        (Scenario, "sdl-authoring-input-v1"),
-        (MaterializedScenario, "materialized-scenario-v1"),
-    ):
-        owners = []
-
-        def generator(*args, owners=owners, **kwargs):
-            owner = Constructors(*args, **kwargs)
-            owners.append(owner)
-            return owner
-
-        schema = model.model_json_schema(schema_generator=generator)
+    for model, contract in ((Scenario, "sdl-authoring-input-v1"), (MaterializedScenario, "materialized-scenario-v1")):
         published = json.loads((ROOT / "contracts/schemas/sdl" / (contract + ".json")).read_bytes())
         definitions = {}
-        for name, definition in schema.get("$defs", {}).items():
-            if "x-constructor" not in definition:
+        for pointer, cls in reference_definitions(model).items():
+            if pointer == "#":
                 continue
-            cls = owners[0].classes[definition["x-constructor"]]
-            if cls.model_config.get("regex_engine", "rust-regex") != "rust-regex":
-                raise ValueError("an SDL field pattern selects an unreviewed engine")
-            core = cls.__pydantic_core_schema__
-            while core.get("type") != "model-fields":
-                core = core.get("schema", {})
-                if not core:
-                    break
+            name = pointer.removeprefix("#/$defs/")
             properties = published.get("$defs", {}).get(name, {}).get("properties", {})
-            for field, value in core.get("fields", {}).items():
-                info = cls.model_fields[field]
-                alias = info.serialization_alias or info.alias or field
-                facts = field_patterns(value["schema"])
-                if alias in properties and facts and (name, alias) not in NATIVE_FIELDS:
-                    if (name, alias) in COMBINED_URI_FIELDS:
-                        if len(facts) != 1 or facts[0]["path"]:
-                            raise ValueError("combined URI field pattern changed shape")
-                        encoded = json.dumps(
-                            properties[alias], sort_keys=True, ensure_ascii=True, separators=(",", ":")
-                        ).encode()
-                        facts[0]["schema_sha256"] = hashlib.sha256(encoded).hexdigest()
-                    definitions.setdefault(name, {})[alias] = facts
+            if facts := definition_patterns(cls, properties, name):
+                definitions[name] = facts
         contracts[contract] = definitions
     return {"reference": reference, "contracts": contracts}
 
 
-def main():
+def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()

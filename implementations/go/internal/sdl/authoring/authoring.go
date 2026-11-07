@@ -320,20 +320,20 @@ func captureRequest(request Request) (*source.Sources, error) {
 func requestPaths(request Request) error {
 	if request.FS != nil || request.Sources != nil {
 		if request.Name == "." || !fs.ValidPath(request.Name) {
-			return importError("path-invalid")
+			return importError(pathInvalidCode)
 		}
 	}
 	if request.Sources == nil && request.RootDir != "" {
 		if !path.IsAbs(request.RootDir) || path.Clean(request.RootDir) != request.RootDir || strings.ContainsRune(request.RootDir, 0) {
-			return importError("path-invalid")
+			return importError(pathInvalidCode)
 		}
 	}
 	return nil
 }
 
 func (p *Parser) layoutRecords(id string) map[string]layout {
-	result := make(map[string]layout, len(p.layouts["$shared"])+len(p.layouts[id]))
-	maps.Copy(result, p.layouts["$shared"])
+	result := make(map[string]layout, len(p.layouts[sharedLayoutKey])+len(p.layouts[id]))
+	maps.Copy(result, p.layouts[sharedLayoutKey])
 	maps.Copy(result, p.layouts[id])
 	return result
 }
@@ -341,7 +341,7 @@ func (p *Parser) layoutFor(id, pointer string) layout {
 	if row, present := p.layouts[id][pointer]; present {
 		return row
 	}
-	return p.layouts["$shared"][pointer]
+	return p.layouts[sharedLayoutKey][pointer]
 }
 
 // Internal model bytes have already passed source or composition accounting.

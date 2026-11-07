@@ -82,7 +82,7 @@ func resolve(text string, quoted bool, span Range, options Options) (any, error)
 	if coreFloat(text) {
 		f, err := strconv.ParseFloat(text, 64)
 		if err != nil && !math.IsInf(f, 0) {
-			return nil, failure("sdl.parse", Range{span.Start, span.Start}, options)
+			return nil, failure(parseCode, Range{span.Start, span.Start}, options)
 		}
 		return f, nil
 	}
@@ -113,18 +113,18 @@ func integer(text string, span Range, options Options) (any, error) {
 		ceiling = 3572
 	}
 	if len(magnitude) > ceiling {
-		return nil, failure("sdl.parse", Range{span.Start, span.Start}, options)
+		return nil, failure(parseCode, Range{span.Start, span.Start}, options)
 	}
 	i, ok := new(big.Int).SetString(unsigned, radix)
 	if !ok {
-		return nil, failure("sdl.parse", Range{span.Start, span.Start}, options)
+		return nil, failure(parseCode, Range{span.Start, span.Start}, options)
 	}
 	if strings.HasPrefix(text, "-") {
 		i.Neg(i)
 	}
 	rendered := i.String()
 	if len(strings.TrimPrefix(rendered, "-")) > 4300 {
-		return nil, failure("sdl.parse", Range{span.Start, span.Start}, options)
+		return nil, failure(parseCode, Range{span.Start, span.Start}, options)
 	}
 	return number(rendered), nil
 }
