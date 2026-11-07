@@ -17934,6 +17934,680 @@
         ]
       },
       "accepted": true
+    },
+    {
+      "name": "RuntimeSoftwareComponent.ci-software-unbounded",
+      "pointer": "#/$defs/RuntimeSoftwareComponent",
+      "data": {
+        "component_id": "c",
+        "name": "application",
+        "version": "1.5.0"
+      },
+      "accepted": true
+    },
+    {
+      "name": "RuntimeSoftwareComponent.ci-software-bounded",
+      "pointer": "#/$defs/RuntimeSoftwareComponent",
+      "data": {
+        "component_id": "c",
+        "name": "application",
+        "version": "1.5.0",
+        "version_constraint": {
+          "relation": {
+            "authority": "https://openrae.org/semantics/versions",
+            "contract_id": "numeric-triplet",
+            "revision": "1",
+            "digest": "sha256:74c35a62ea30e219f29b84c8ff14f7fd187921b1f1550f81040205bca4169356"
+          },
+          "lower": "1.0.0",
+          "upper": "2.0.0"
+        }
+      },
+      "accepted": true
+    },
+    {
+      "name": "RuntimeSoftwareComponent.ci-software-outside",
+      "pointer": "#/$defs/RuntimeSoftwareComponent",
+      "data": {
+        "component_id": "c",
+        "name": "application",
+        "version": "3.0.0",
+        "version_constraint": {
+          "relation": {
+            "authority": "https://openrae.org/semantics/versions",
+            "contract_id": "numeric-triplet",
+            "revision": "1",
+            "digest": "sha256:74c35a62ea30e219f29b84c8ff14f7fd187921b1f1550f81040205bca4169356"
+          },
+          "lower": "1.0.0",
+          "upper": "2.0.0"
+        }
+      },
+      "accepted": false
+    },
+    {
+      "name": "RuntimeSoftwareComponent.ci-software-unresolved",
+      "pointer": "#/$defs/RuntimeSoftwareComponent",
+      "data": {
+        "component_id": "c",
+        "name": "application",
+        "version": "rolling",
+        "version_constraint": {
+          "relation": {
+            "authority": "https://openrae.org/semantics/versions",
+            "contract_id": "numeric-triplet",
+            "revision": "1",
+            "digest": "sha256:74c35a62ea30e219f29b84c8ff14f7fd187921b1f1550f81040205bca4169356"
+          },
+          "lower": "1.0.0",
+          "upper": "2.0.0"
+        }
+      },
+      "accepted": false
+    },
+    {
+      "name": "RuntimeSoftwareComponent.ci-software-inline",
+      "pointer": "#/$defs/RuntimeSoftwareComponent",
+      "data": {
+        "component_id": "c",
+        "name": "application",
+        "package": {
+          "manager": "apt",
+          "name": "pkg",
+          "version": "1.5.0"
+        }
+      },
+      "accepted": true
+    },
+    {
+      "name": "RuntimeSoftwareComponent.ci-software-inline-matching",
+      "pointer": "#/$defs/RuntimeSoftwareComponent",
+      "data": {
+        "component_id": "c",
+        "name": "application",
+        "package": {
+          "manager": "apt",
+          "name": "pkg",
+          "version": "1.5.0"
+        },
+        "package_manager": "apt",
+        "package_name": "pkg",
+        "package_version": "1.5.0"
+      },
+      "accepted": true
+    },
+    {
+      "name": "RuntimeSoftwareComponent.ci-software-manager-mismatch",
+      "pointer": "#/$defs/RuntimeSoftwareComponent",
+      "data": {
+        "component_id": "c",
+        "name": "application",
+        "package": {
+          "manager": "apt",
+          "name": "pkg",
+          "version": "1.5.0"
+        },
+        "package_manager": "rpm"
+      },
+      "accepted": false
+    },
+    {
+      "name": "RuntimeSoftwareComponent.ci-software-name-mismatch",
+      "pointer": "#/$defs/RuntimeSoftwareComponent",
+      "data": {
+        "component_id": "c",
+        "name": "application",
+        "package": {
+          "manager": "apt",
+          "name": "pkg",
+          "version": "1.5.0"
+        },
+        "package_name": "other"
+      },
+      "accepted": false
+    },
+    {
+      "name": "RuntimeSoftwareComponent.ci-software-version-mismatch",
+      "pointer": "#/$defs/RuntimeSoftwareComponent",
+      "data": {
+        "component_id": "c",
+        "name": "application",
+        "package": {
+          "manager": "apt",
+          "name": "pkg",
+          "version": "1.5.0"
+        },
+        "package_version": "2.0.0"
+      },
+      "accepted": false
+    },
+    {
+      "name": "RuntimeSoftwareComponent.ci-software-package-bound-match",
+      "pointer": "#/$defs/RuntimeSoftwareComponent",
+      "data": {
+        "component_id": "c",
+        "name": "application",
+        "package": {
+          "manager": "apt",
+          "name": "pkg",
+          "version": "1.5.0"
+        },
+        "package_version_constraint": {
+          "relation": {
+            "authority": "https://openrae.org/semantics/versions",
+            "contract_id": "numeric-triplet",
+            "revision": "1",
+            "digest": "sha256:74c35a62ea30e219f29b84c8ff14f7fd187921b1f1550f81040205bca4169356"
+          },
+          "lower": "1.0.0",
+          "upper": "2.0.0"
+        }
+      },
+      "accepted": true
+    },
+    {
+      "name": "RuntimeSoftwareComponent.ci-software-package-bound-mismatch",
+      "pointer": "#/$defs/RuntimeSoftwareComponent",
+      "data": {
+        "component_id": "c",
+        "name": "application",
+        "package": {
+          "manager": "apt",
+          "name": "pkg",
+          "version": "3.0.0"
+        },
+        "package_version_constraint": {
+          "relation": {
+            "authority": "https://openrae.org/semantics/versions",
+            "contract_id": "numeric-triplet",
+            "revision": "1",
+            "digest": "sha256:74c35a62ea30e219f29b84c8ff14f7fd187921b1f1550f81040205bca4169356"
+          },
+          "lower": "1.0.0",
+          "upper": "2.0.0"
+        }
+      },
+      "accepted": false
+    },
+    {
+      "name": "RuntimeSoftwareComponent.ci-software-package-version-bounded",
+      "pointer": "#/$defs/RuntimeSoftwareComponent",
+      "data": {
+        "component_id": "c",
+        "name": "application",
+        "package_version": "1.5.0",
+        "package_version_constraint": {
+          "relation": {
+            "authority": "https://openrae.org/semantics/versions",
+            "contract_id": "numeric-triplet",
+            "revision": "1",
+            "digest": "sha256:74c35a62ea30e219f29b84c8ff14f7fd187921b1f1550f81040205bca4169356"
+          },
+          "lower": "1.0.0",
+          "upper": "2.0.0"
+        }
+      },
+      "accepted": true
+    },
+    {
+      "name": "RuntimeConfiguration.ci-software-ref-match",
+      "pointer": "#/$defs/RuntimeConfiguration",
+      "data": {
+        "packages": [
+          {
+            "manager": "apt",
+            "name": "pkg",
+            "version": "1.5.0"
+          }
+        ],
+        "software_components": [
+          {
+            "component_id": "c",
+            "name": "application",
+            "package_ref": {
+              "manager": "apt",
+              "name": "pkg"
+            }
+          }
+        ]
+      },
+      "accepted": true
+    },
+    {
+      "name": "RuntimeConfiguration.ci-software-ref-missing",
+      "pointer": "#/$defs/RuntimeConfiguration",
+      "data": {
+        "packages": [
+          {
+            "manager": "apt",
+            "name": "pkg",
+            "version": "1.5.0"
+          }
+        ],
+        "software_components": [
+          {
+            "component_id": "c",
+            "name": "application",
+            "package_ref": {
+              "manager": "apt",
+              "name": "missing"
+            }
+          }
+        ]
+      },
+      "accepted": false
+    },
+    {
+      "name": "RuntimeConfiguration.ci-software-ref-manager",
+      "pointer": "#/$defs/RuntimeConfiguration",
+      "data": {
+        "packages": [
+          {
+            "manager": "apt",
+            "name": "pkg",
+            "version": "1.5.0"
+          }
+        ],
+        "software_components": [
+          {
+            "component_id": "c",
+            "name": "application",
+            "package_ref": {
+              "manager": "rpm",
+              "name": "pkg"
+            }
+          }
+        ]
+      },
+      "accepted": false
+    },
+    {
+      "name": "RuntimeConfiguration.ci-software-ref-architecture",
+      "pointer": "#/$defs/RuntimeConfiguration",
+      "data": {
+        "packages": [
+          {
+            "manager": "apt",
+            "name": "pkg",
+            "version": "1.5.0",
+            "architecture": "x86_64"
+          },
+          {
+            "manager": "apt",
+            "name": "pkg",
+            "version": "1.5.0",
+            "architecture": "aarch64"
+          }
+        ],
+        "software_components": [
+          {
+            "component_id": "c",
+            "name": "application",
+            "package_ref": {
+              "manager": "apt",
+              "name": "pkg",
+              "architecture": "aarch64"
+            }
+          }
+        ]
+      },
+      "accepted": true
+    },
+    {
+      "name": "RuntimeConfiguration.ci-software-ref-architecture-missing",
+      "pointer": "#/$defs/RuntimeConfiguration",
+      "data": {
+        "packages": [
+          {
+            "manager": "apt",
+            "name": "pkg",
+            "version": "1.5.0",
+            "architecture": "x86_64"
+          }
+        ],
+        "software_components": [
+          {
+            "component_id": "c",
+            "name": "application",
+            "package_ref": {
+              "manager": "apt",
+              "name": "pkg",
+              "architecture": "aarch64"
+            }
+          }
+        ]
+      },
+      "accepted": false
+    },
+    {
+      "name": "RuntimeConfiguration.ci-software-ref-ambiguous",
+      "pointer": "#/$defs/RuntimeConfiguration",
+      "data": {
+        "packages": [
+          {
+            "manager": "apt",
+            "name": "pkg",
+            "version": "1.5.0",
+            "architecture": "x86_64"
+          },
+          {
+            "manager": "apt",
+            "name": "pkg",
+            "version": "1.5.0",
+            "architecture": "aarch64"
+          }
+        ],
+        "software_components": [
+          {
+            "component_id": "c",
+            "name": "application",
+            "package_ref": {
+              "manager": "apt",
+              "name": "pkg"
+            }
+          }
+        ]
+      },
+      "accepted": false
+    },
+    {
+      "name": "RuntimeConfiguration.ci-software-inline-same",
+      "pointer": "#/$defs/RuntimeConfiguration",
+      "data": {
+        "packages": [
+          {
+            "manager": "apt",
+            "name": "pkg",
+            "version": "1.5.0"
+          }
+        ],
+        "software_components": [
+          {
+            "component_id": "c",
+            "name": "application",
+            "package_ref": {
+              "manager": "apt",
+              "name": "pkg"
+            },
+            "package": {
+              "manager": "apt",
+              "name": "pkg",
+              "version": "1.5.0",
+              "architecture": "",
+              "source": "",
+              "purl": ""
+            }
+          }
+        ]
+      },
+      "accepted": true
+    },
+    {
+      "name": "RuntimeConfiguration.ci-software-inline-different",
+      "pointer": "#/$defs/RuntimeConfiguration",
+      "data": {
+        "packages": [
+          {
+            "manager": "apt",
+            "name": "pkg",
+            "version": "1.5.0"
+          }
+        ],
+        "software_components": [
+          {
+            "component_id": "c",
+            "name": "application",
+            "package_ref": {
+              "manager": "apt",
+              "name": "pkg"
+            },
+            "package": {
+              "manager": "apt",
+              "name": "pkg",
+              "version": "2.0.0"
+            }
+          }
+        ]
+      },
+      "accepted": false
+    },
+    {
+      "name": "RuntimeConfiguration.ci-software-repository-known",
+      "pointer": "#/$defs/RuntimeConfiguration",
+      "data": {
+        "software_components": [
+          {
+            "component_id": "c",
+            "name": "application",
+            "presence": "required",
+            "repository_refs": [
+              "r"
+            ]
+          }
+        ],
+        "repository_state": {
+          "repositories": [
+            {
+              "repository_id": "r"
+            }
+          ]
+        }
+      },
+      "accepted": true
+    },
+    {
+      "name": "RuntimeConfiguration.ci-software-repository-missing",
+      "pointer": "#/$defs/RuntimeConfiguration",
+      "data": {
+        "software_components": [
+          {
+            "component_id": "c",
+            "name": "application",
+            "presence": "required",
+            "repository_refs": [
+              "r"
+            ]
+          }
+        ],
+        "repository_state": {
+          "repositories": []
+        }
+      },
+      "accepted": false
+    },
+    {
+      "name": "RuntimeConfiguration.ci-software-repository-forbidden",
+      "pointer": "#/$defs/RuntimeConfiguration",
+      "data": {
+        "software_components": [
+          {
+            "component_id": "c",
+            "name": "application",
+            "presence": "required",
+            "repository_refs": [
+              "r"
+            ]
+          }
+        ],
+        "repository_state": {
+          "repositories": [
+            {
+              "repository_id": "r",
+              "presence": "forbidden"
+            }
+          ]
+        }
+      },
+      "accepted": false
+    },
+    {
+      "name": "RuntimeConfiguration.ci-software-repository-optional",
+      "pointer": "#/$defs/RuntimeConfiguration",
+      "data": {
+        "software_components": [
+          {
+            "component_id": "c",
+            "name": "application",
+            "presence": "required",
+            "repository_refs": [
+              "r"
+            ]
+          }
+        ],
+        "repository_state": {
+          "repositories": [
+            {
+              "repository_id": "r",
+              "presence": "optional"
+            }
+          ]
+        }
+      },
+      "accepted": false
+    },
+    {
+      "name": "RuntimeConfiguration.ci-software-optional-repository",
+      "pointer": "#/$defs/RuntimeConfiguration",
+      "data": {
+        "software_components": [
+          {
+            "component_id": "c",
+            "name": "application",
+            "presence": "optional",
+            "repository_refs": [
+              "r"
+            ]
+          }
+        ],
+        "repository_state": {
+          "repositories": [
+            {
+              "repository_id": "r",
+              "presence": "optional"
+            }
+          ]
+        }
+      },
+      "accepted": true
+    },
+    {
+      "name": "RuntimeConfiguration.ci-software-forbidden-component",
+      "pointer": "#/$defs/RuntimeConfiguration",
+      "data": {
+        "software_components": [
+          {
+            "component_id": "c",
+            "name": "application",
+            "presence": "forbidden",
+            "repository_refs": [
+              "r"
+            ]
+          }
+        ],
+        "repository_state": {
+          "repositories": [
+            {
+              "repository_id": "r",
+              "presence": "forbidden"
+            }
+          ]
+        }
+      },
+      "accepted": true
+    },
+    {
+      "name": "RuntimeSoftwareRepositoryState.ci-software-trust-known",
+      "pointer": "#/$defs/RuntimeSoftwareRepositoryState",
+      "data": {
+        "repositories": [
+          {
+            "repository_id": "r",
+            "trust_ref": "t",
+            "presence": "required"
+          }
+        ],
+        "trust_bindings": [
+          {
+            "trust_id": "t"
+          }
+        ]
+      },
+      "accepted": true
+    },
+    {
+      "name": "RuntimeSoftwareRepositoryState.ci-software-trust-missing",
+      "pointer": "#/$defs/RuntimeSoftwareRepositoryState",
+      "data": {
+        "repositories": [
+          {
+            "repository_id": "r",
+            "trust_ref": "t",
+            "presence": "required"
+          }
+        ],
+        "trust_bindings": []
+      },
+      "accepted": false
+    },
+    {
+      "name": "RuntimeSoftwareRepositoryState.ci-software-trust-optional",
+      "pointer": "#/$defs/RuntimeSoftwareRepositoryState",
+      "data": {
+        "repositories": [
+          {
+            "repository_id": "r",
+            "trust_ref": "t",
+            "presence": "required"
+          }
+        ],
+        "trust_bindings": [
+          {
+            "trust_id": "t",
+            "presence": "optional"
+          }
+        ]
+      },
+      "accepted": false
+    },
+    {
+      "name": "RuntimeSoftwareRepositoryState.ci-software-trust-forbidden",
+      "pointer": "#/$defs/RuntimeSoftwareRepositoryState",
+      "data": {
+        "repositories": [
+          {
+            "repository_id": "r",
+            "trust_ref": "t",
+            "presence": "optional"
+          }
+        ],
+        "trust_bindings": [
+          {
+            "trust_id": "t",
+            "presence": "forbidden"
+          }
+        ]
+      },
+      "accepted": false
+    },
+    {
+      "name": "RuntimeSoftwareRepositoryState.ci-software-repository-forbidden",
+      "pointer": "#/$defs/RuntimeSoftwareRepositoryState",
+      "data": {
+        "repositories": [
+          {
+            "repository_id": "r",
+            "trust_ref": "t",
+            "presence": "forbidden"
+          }
+        ],
+        "trust_bindings": [
+          {
+            "trust_id": "t",
+            "presence": "forbidden"
+          }
+        ]
+      },
+      "accepted": true
     }
   ]
 }

@@ -44,22 +44,32 @@ func TestJSONBoundedNestedMap(t *testing.T) {
 }
 
 func TestBindingCopyBudgetBeforeAllocation(t *testing.T) {
+	// The fixed regexp scratch space can be cold under race instrumentation.
+	// Compare equal token inventories so only expanded result growth differs.
+	small := refusedBindingAllocation(t, strings.Repeat("x", 128))
+	large := refusedBindingAllocation(t, strings.Repeat("x", 16*1024))
+	if large > small+256*1024 {
+		t.Fatalf("expansion added %d bytes before refusal", large-small)
+	}
+}
+
+func refusedBindingAllocation(t *testing.T, replacement string) uint64 {
+	t.Helper()
 	budget := copyBudget{remaining: 4096}
-	s := substitution{values: map[string]any{"v": strings.Repeat("x", 16*1024)}, preserved: map[string]bool{}, inline: map[string]string{}, copies: &budget}
+	s := substitution{values: map[string]any{"v": replacement}, preserved: map[string]bool{}, inline: map[string]string{}, copies: &budget}
+	input := "prefix" + strings.Repeat("${v}", 64)
 	runtime.GC()
 	var before, after runtime.MemStats
 	runtime.ReadMemStats(&before)
-	_, err := s.string("prefix" + strings.Repeat("${v}", 64))
+	_, err := s.string(input)
 	runtime.ReadMemStats(&after)
 	if err == nil {
 		t.Fatal("substitution exceeded its copy allowance")
 	}
-	if allocated := after.TotalAlloc - before.TotalAlloc; allocated > 256*1024 {
-		t.Fatalf("allocated %d before refusing expansion", allocated)
-	}
 	if budget.remaining != 4096 {
 		t.Fatal("failed reservation changed allowance")
 	}
+	return after.TotalAlloc - before.TotalAlloc
 }
 
 func TestBindingCopyBudgetSharedAndMemoized(t *testing.T) {

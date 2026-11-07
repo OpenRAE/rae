@@ -94,7 +94,7 @@ func loadFormatOracle(t *testing.T, path string) []formatOracle {
 }
 func formatterCases(t *testing.T) map[string]Case {
 	t.Helper()
-	cases, err := Load(os.DirFS("testdata"))
+	cases, err := loadTestCases()
 	if err != nil {
 		t.Fatal(err)
 	}

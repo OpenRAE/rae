@@ -2,13 +2,15 @@ package parity
 
 import (
 	"encoding/json"
-	"os"
+	"errors"
 	"slices"
 	"strings"
 	"testing"
+	"testing/fstest"
 
 	"github.com/google/go-cmp/cmp"
 
+	"github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring"
 	"github.com/OpenRAE/rae/implementations/go/internal/sdl/source"
 )
 
@@ -16,7 +18,11 @@ import (
 // command goldens. Model admission and command envelopes retain their port owners.
 // The source package's reference vectors also check exact values and ranges.
 func TestSourceCorpusBoundary(t *testing.T) {
-	cases, err := Load(os.DirFS("testdata"))
+	cases, err := loadTestCases()
+	if err != nil {
+		t.Fatal(err)
+	}
+	parser, err := authoring.New(source.DefaultLimits())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,10 +30,10 @@ func TestSourceCorpusBoundary(t *testing.T) {
 		if c.Key() != "cli semantic parse" {
 			continue
 		}
-		t.Run(c.Name, func(t *testing.T) { checkSourceBoundary(t, c) })
+		t.Run(c.Name, func(t *testing.T) { checkSourceBoundary(t, parser, c) })
 	}
 }
-func checkSourceBoundary(t *testing.T, c Case) {
+func checkSourceBoundary(t *testing.T, parser *authoring.Parser, c Case) {
 	t.Helper()
 	var expected struct {
 		Exit   int `json:"exit_code"`
@@ -60,10 +66,7 @@ func checkSourceBoundary(t *testing.T, c Case) {
 	if expected.Output.Migration != "" {
 		options.MigrationPolicy = expected.Output.Migration
 	}
-	data, ok := c.Files["input.yaml"]
-	if !ok {
-		t.Fatal("source case has no input.yaml")
-	}
+	name, data := sourceBoundaryInput(t, c)
 	document, err := source.Decode(data, options)
 	diagnostics := source.Diagnostics(err)
 	if err == nil {
@@ -72,7 +75,40 @@ func checkSourceBoundary(t *testing.T, c Case) {
 	if len(want) == 0 && err != nil {
 		t.Fatalf("Decode() refused a recorded positive source: %v, diagnostics %+v", err, diagnostics)
 	}
+	if err == nil && slices.Equal(want, []string{"sdl.parse:error"}) && missingSourceImport(parser, c, name) {
+		return
+	}
 	checkSourceDiagnostics(t, want, diagnostics)
+}
+
+func sourceBoundaryInput(t *testing.T, c Case) (string, []byte) {
+	t.Helper()
+	var name string
+	for _, arg := range c.Args {
+		if _, present := c.Files[arg]; present {
+			if name != "" {
+				t.Fatal("source case has ambiguous input arguments")
+			}
+			name = arg
+		}
+	}
+	if name == "" {
+		t.Fatal("source case has no input file argument")
+	}
+	return name, c.Files[name]
+}
+
+func missingSourceImport(parser *authoring.Parser, c Case, name string) bool {
+	files := fstest.MapFS{}
+	for path, content := range c.Files {
+		files[path] = &fstest.MapFile{Data: content}
+	}
+	_, err := parser.Decode(authoring.Request{Source: c.Files[name], Name: name, FS: files})
+	classified, ok := errors.AsType[interface {
+		error
+		Code() string
+	}](err)
+	return ok && classified.Code() == "sdl.import.source-missing"
 }
 func checkSourceDiagnostics(t *testing.T, want []string, diagnostics []source.Diagnostic) {
 	t.Helper()

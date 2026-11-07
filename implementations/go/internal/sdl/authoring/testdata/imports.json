@@ -1322,5 +1322,407 @@
     "supplied": false,
     "accepted": false,
     "error": "SDLParseError"
+  },
+  {
+    "name": "ci-entity-export",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"entities\": [\"parent.child\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "ci-entity-missing",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"entities\": [\"parent.missing\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.export-invalid"
+  },
+  {
+    "name": "ci-binding-string-x-0",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": \"x\"}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"string\", \"default\": \"x\", \"allowed_values\": [\"x\", \"y\"]}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  parameters:\n    v: x\n"
+  },
+  {
+    "name": "ci-binding-string-x-1",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": \"z\"}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"string\", \"default\": \"x\", \"allowed_values\": [\"x\", \"y\"]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-string-x-2",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": true}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"string\", \"default\": \"x\", \"allowed_values\": [\"x\", \"y\"]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-integer-1-0",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": 1}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"integer\", \"default\": 1, \"allowed_values\": [1, 2]}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  parameters:\n    v: 1\n"
+  },
+  {
+    "name": "ci-binding-integer-1-1",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": 3}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"integer\", \"default\": 1, \"allowed_values\": [1, 2]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-integer-1-2",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": true}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"integer\", \"default\": 1, \"allowed_values\": [1, 2]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-number-0.25-0",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": 0.25}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"number\", \"default\": 0.25, \"allowed_values\": [0.25]}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  parameters:\n    v: 0.25\n"
+  },
+  {
+    "name": "ci-binding-number-0.25-1",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": 0.5}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"number\", \"default\": 0.25, \"allowed_values\": [0.25]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-number-0.25-2",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": true}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"number\", \"default\": 0.25, \"allowed_values\": [0.25]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-number-1.0-0",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": 1.0}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"number\", \"default\": 1.0, \"allowed_values\": [1]}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  parameters:\n    v: 1.0\n"
+  },
+  {
+    "name": "ci-binding-number-1.0-1",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": 2.0}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"number\", \"default\": 1.0, \"allowed_values\": [1]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-boolean-True-0",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": true}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"boolean\", \"default\": true, \"allowed_values\": [true]}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  parameters:\n    v: true\n"
+  },
+  {
+    "name": "ci-binding-boolean-True-1",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": false}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"boolean\", \"default\": true, \"allowed_values\": [true]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-boolean-True-2",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"parameters\": {\"v\": \"true\"}}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\", \"description\": \"value ${v}\"}}, \"variables\": {\"v\": {\"type\": \"boolean\", \"default\": true, \"allowed_values\": [true]}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-missing-True",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"variables\": {\"v\": {\"type\": \"string\", \"required\": true}}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-binding-missing-False",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}, \"parameters\": [\"v\"]}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"variables\": {\"v\": {\"type\": \"string\", \"required\": false}}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "ci-workspace-merge-map",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}}\n",
+      "raes-trust.yaml": "base: &b {enabled: true, count: 1}\ncombined: {<<: *b, count: 2}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-merge-sequence",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}}\n",
+      "raes-trust.yaml": "a: &a {one: 1, both: a}\nb: &b {two: 2, both: b}\ncombined: {<<: [*a, *b], both: c}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-merge-nonmap",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}}\n",
+      "raes-trust.yaml": "combined: {<<: 1}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-timestamp-offset",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}}\n",
+      "raes-trust.yaml": "value: 2026-01-02T03:04:05.123456+02:30\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-timestamp-negative",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}}\n",
+      "raes-trust.yaml": "value: 2026-01-02T03:04:05.123456-02:30\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-timestamp-invalid",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}}\n",
+      "raes-trust.yaml": "value: 2026-01-02T99:04:05Z\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-integer-signs",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}}\n",
+      "raes-trust.yaml": "a: -0x10\nb: +0o17\nc: 1:02:03\nd: 00_7\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-floating-flags",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}}\n",
+      "raes-trust.yaml": "a: .inf\nb: -.inf\nc: .nan\nd: -0.0\ne: 1:02.5\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-root-merge",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "<<: {allow_unsigned_local_sources: true}\nschema_version: custom\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "ci-workspace-root-merge-sequence",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "<<: [{allow_unsigned_local_sources: true}, {schema_version: custom}]\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "ci-workspace-registry-merge",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "registries:\n  first: &a {require_signatures: true}\n  second: &b {allow_insecure_http: false}\n  combined: {<<: [*a, *b], require_signatures: false}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "ci-workspace-unsigned-float-one",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "allow_unsigned_local_sources: 1.0\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n"
+  },
+  {
+    "name": "ci-workspace-unsigned-float-zero",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "allow_unsigned_local_sources: 0.0\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError",
+    "code": "sdl.import.local-disabled"
+  },
+  {
+    "name": "ci-workspace-unsigned-float-two",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "allow_unsigned_local_sources: 2.0\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-unsigned-inf",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "allow_unsigned_local_sources: .inf\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-version-timestamp-offset",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "schema_version: 2026-01-02T03:04:05.123456+02:30\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-version-timestamp-negative",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "schema_version: 2026-01-02T03:04:05.123456-02:30\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-version-timestamp-utc",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "schema_version: 2026-01-02T03:04:05.123456Z\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-version-date",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "schema_version: 2026-01-02\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "ci-workspace-version-sexagesimal",
+    "files": {
+      "main.yaml": "{\"name\": \"root\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\"}]}\n",
+      "module.yaml": "{\"name\": \"module\", \"module\": {\"id\": \"example/demo\", \"version\": \"1.2\", \"exports\": {\"nodes\": [\"web\"]}}, \"nodes\": {\"web\": {\"type\": \"compute\"}}, \"entities\": {\"parent\": {\"entities\": {\"child\": {}}}}}\n",
+      "raes-trust.yaml": "schema_version: 1:02:03\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
   }
 ]

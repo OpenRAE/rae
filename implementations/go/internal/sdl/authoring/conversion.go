@@ -179,15 +179,24 @@ func coerceScalar(value any, shapes []string) (any, error) {
 	case map[string]any, []any:
 		return value, nil
 	case json.Number:
-		if slices.Contains(shapes, integerType) || slices.Contains(shapes, "integer!") {
-			if _, err := v.Int64(); err == nil || !strings.ContainsAny(v.String(), ".eE") {
-				return value, nil
-			}
-		}
+		return coerceJSONNumber(v, shapes)
 	case float64:
 		if slices.Contains(shapes, numberType) || slices.Contains(shapes, "number!") {
 			return normalizeFloat(v)
 		}
+	}
+	return fallbackScalar(value, shapes)
+}
+
+func coerceJSONNumber(value json.Number, shapes []string) (any, error) {
+	if slices.Contains(shapes, integerType) || slices.Contains(shapes, "integer!") {
+		if _, err := value.Int64(); err == nil || !strings.ContainsAny(value.String(), ".eE") {
+			return value, nil
+		}
+	}
+	// Preserve a float's lexical kind in scalar unions before trying an integer.
+	if slices.Contains(shapes, numberType) || slices.Contains(shapes, "number!") {
+		return normalizeFloat(value)
 	}
 	return fallbackScalar(value, shapes)
 }

@@ -608,6 +608,25 @@ separate comparison owner. The constructor oracle adds 19 positive and negative
 cases for bounded scalar domains, inclusive defaults and unordered transition
 inputs. The original recorded authoring model remains accepted.
 
+### Hosted corpus checks
+
+Scalar unions keep float types in internal JSON. Variable defaults such as `0.25`,
+`1.0` and `-0.0` keep their kind in the YAML output. Source checks read the input
+file named by the command. A CLI parse error for a missing import must come
+from the composition owner. The YAML reader can still accept that source.
+
+Allocation checks compare two refused copies. Both have the same tokens but
+bind strings of different sizes. This keeps fixed regex work apart from growth
+in result buffers. Each refusal must leave the copy budget intact. Tests read
+the fixed corpus once. Each test gets its own copy of the arguments, file bytes
+and result bytes.
+
+New reference cases check packages, repositories and trust. They also check
+proxy routes, mixed scripts, mail, sensors and input bindings. Policy tests
+cover nested scopes and workspace files. API tests check that caller writes
+do not change saved document bytes. They check error categories, redacted error
+text, and the split between construction and semantic checks.
+
 ### Compiled schema lifetime
 
 Hosted verification found repeated compilation of the same packaged schemas.
