@@ -205,7 +205,10 @@
       "name": "tooling",
       "dir": "implementations/tooling/go",
       "doc": "Development tools: the repository analyzers, the architecture check, and CI checks. Existing tooling remains OpenRAE/rae-owned; runtime adapts applicable existing CI/release controls for its own source.",
-      "uses": [],
+      "uses": [
+        "base",
+        "contract"
+      ],
       "external": [
         {
           "path": "github.com/google/go-cmp/cmp",
@@ -234,6 +237,46 @@
         {
           "path": "golang.org/x/mod/module",
           "reason": "Validate planned public module paths with the admitted Go module parser."
+        },
+        {
+          "path": "go.yaml.in/yaml/v3",
+          "reason": "Maintained YAML parser for existing policy and workflow syntax; surface adapters retain reference scalar and alias rules."
+        },
+        {
+          "path": "github.com/santhosh-tekuri/jsonschema/v6",
+          "reason": "Existing offline Draft 2020-12 engine for candidate repository schema bytes, distinct from packaged semantic admission."
+        },
+        {
+          "path": "github.com/yuin/goldmark",
+          "reason": "Maintained CommonMark syntax-tree parser for documentation links, references and nested directive bodies without execution."
+        },
+        {
+          "path": "github.com/odvcencio/gotreesitter",
+          "reason": "Maintained pure-Go Tree-sitter runtime and Python grammar preserve inert Python source trees within the existing CGO-disabled architecture checks."
+        },
+        {
+          "path": "github.com/open-policy-agent/opa/v1",
+          "reason": "The same Apache-2.0 Rego engine version as locked Conftest 0.68.0; evaluates unchanged policy locally without another binary installer or network policy service."
+        },
+        {
+          "path": "github.com/pelletier/go-toml/v2",
+          "reason": "Reuse the existing TOML parser dependency to inspect package positioning metadata."
+        },
+        {
+          "path": "golang.org/x/text/cases",
+          "reason": "Reuse Go supplementary Unicode case folding for positioning terms."
+        },
+        {
+          "path": "golang.org/x/text/unicode/norm",
+          "reason": "Use Go supplementary Unicode normalization for Python source identifier facts."
+        },
+        {
+          "path": "golang.org/x/net/idna",
+          "reason": "Go supplementary IDNA2008 validation for the frozen Python schema-format profile."
+        },
+        {
+          "path": "golang.org/x/text/unicode/rangetable",
+          "reason": "Maintained Unicode assignment tables to keep Python16 character classes and worker integers distinct from the newer Go toolchain."
         }
       ]
     }
@@ -7065,6 +7108,182 @@
           "type time.Weekday constraints[] int comparable=true"
         ]
       }
+    },
+    {
+      "dir": "implementations/tooling/go/governance",
+      "layer": "tooling",
+      "public": false,
+      "doc": "Repository governance checks with shared contained readers and reference findings.",
+      "imports": [
+        "implementations/go/base/canonjson",
+        "implementations/go/base/clock",
+        "implementations/go/base/fault",
+        "implementations/go/base/ingress",
+        "implementations/go/contract/admission",
+        "implementations/go/contract/validation"
+      ],
+      "design": "docs/decisions/issue-1799-go-governance-design.md",
+      "api": {
+        "linux-amd64": [
+          "const github.com/OpenRAE/rae/implementations/tooling/go/governance.ClosingAudit github.com/OpenRAE/rae/implementations/tooling/go/governance.Mode = \"closing-audit\"",
+          "const github.com/OpenRAE/rae/implementations/tooling/go/governance.Evaluate github.com/OpenRAE/rae/implementations/tooling/go/governance.Mode = \"\"",
+          "const github.com/OpenRAE/rae/implementations/tooling/go/governance.Inventory github.com/OpenRAE/rae/implementations/tooling/go/governance.Mode = \"report\"",
+          "func github.com/OpenRAE/rae/implementations/tooling/go/governance.Check(ctx context.Context, request github.com/OpenRAE/rae/implementations/tooling/go/governance.Request) (github.com/OpenRAE/rae/implementations/tooling/go/governance.Report, error)",
+          "func github.com/OpenRAE/rae/implementations/tooling/go/governance.CheckDocumentationURL(value string) error",
+          "method *time.Duration func (time.Duration).Abs() time.Duration selected=func() time.Duration",
+          "method *time.Duration func (time.Duration).Hours() float64 selected=func() float64",
+          "method *time.Duration func (time.Duration).Microseconds() int64 selected=func() int64",
+          "method *time.Duration func (time.Duration).Milliseconds() int64 selected=func() int64",
+          "method *time.Duration func (time.Duration).Minutes() float64 selected=func() float64",
+          "method *time.Duration func (time.Duration).Nanoseconds() int64 selected=func() int64",
+          "method *time.Duration func (time.Duration).Round(m time.Duration) time.Duration selected=func(m time.Duration) time.Duration",
+          "method *time.Duration func (time.Duration).Seconds() float64 selected=func() float64",
+          "method *time.Duration func (time.Duration).String() string selected=func() string",
+          "method *time.Duration func (time.Duration).Truncate(m time.Duration) time.Duration selected=func(m time.Duration) time.Duration",
+          "method *time.Location func (*time.Location).String() string selected=func() string",
+          "method *time.Month func (time.Month).String() string selected=func() string",
+          "method *time.Time func (*time.Time).GobDecode(data []byte) error selected=func(data []byte) error",
+          "method *time.Time func (*time.Time).UnmarshalBinary(data []byte) error selected=func(data []byte) error",
+          "method *time.Time func (*time.Time).UnmarshalJSON(data []byte) error selected=func(data []byte) error",
+          "method *time.Time func (*time.Time).UnmarshalText(data []byte) error selected=func(data []byte) error",
+          "method *time.Time func (time.Time).Add(d time.Duration) time.Time selected=func(d time.Duration) time.Time",
+          "method *time.Time func (time.Time).AddDate(years int, months int, days int) time.Time selected=func(years int, months int, days int) time.Time",
+          "method *time.Time func (time.Time).After(u time.Time) bool selected=func(u time.Time) bool",
+          "method *time.Time func (time.Time).AppendBinary(b []byte) ([]byte, error) selected=func(b []byte) ([]byte, error)",
+          "method *time.Time func (time.Time).AppendFormat(b []byte, layout string) []byte selected=func(b []byte, layout string) []byte",
+          "method *time.Time func (time.Time).AppendText(b []byte) ([]byte, error) selected=func(b []byte) ([]byte, error)",
+          "method *time.Time func (time.Time).Before(u time.Time) bool selected=func(u time.Time) bool",
+          "method *time.Time func (time.Time).Clock() (hour int, min int, sec int) selected=func() (hour int, min int, sec int)",
+          "method *time.Time func (time.Time).Compare(u time.Time) int selected=func(u time.Time) int",
+          "method *time.Time func (time.Time).Date() (year int, month time.Month, day int) selected=func() (year int, month time.Month, day int)",
+          "method *time.Time func (time.Time).Day() int selected=func() int",
+          "method *time.Time func (time.Time).Equal(u time.Time) bool selected=func(u time.Time) bool",
+          "method *time.Time func (time.Time).Format(layout string) string selected=func(layout string) string",
+          "method *time.Time func (time.Time).GoString() string selected=func() string",
+          "method *time.Time func (time.Time).GobEncode() ([]byte, error) selected=func() ([]byte, error)",
+          "method *time.Time func (time.Time).Hour() int selected=func() int",
+          "method *time.Time func (time.Time).ISOWeek() (year int, week int) selected=func() (year int, week int)",
+          "method *time.Time func (time.Time).In(loc *time.Location) time.Time selected=func(loc *time.Location) time.Time",
+          "method *time.Time func (time.Time).IsDST() bool selected=func() bool",
+          "method *time.Time func (time.Time).IsZero() bool selected=func() bool",
+          "method *time.Time func (time.Time).Local() time.Time selected=func() time.Time",
+          "method *time.Time func (time.Time).Location() *time.Location selected=func() *time.Location",
+          "method *time.Time func (time.Time).MarshalBinary() ([]byte, error) selected=func() ([]byte, error)",
+          "method *time.Time func (time.Time).MarshalJSON() ([]byte, error) selected=func() ([]byte, error)",
+          "method *time.Time func (time.Time).MarshalText() ([]byte, error) selected=func() ([]byte, error)",
+          "method *time.Time func (time.Time).Minute() int selected=func() int",
+          "method *time.Time func (time.Time).Month() time.Month selected=func() time.Month",
+          "method *time.Time func (time.Time).Nanosecond() int selected=func() int",
+          "method *time.Time func (time.Time).Round(d time.Duration) time.Time selected=func(d time.Duration) time.Time",
+          "method *time.Time func (time.Time).Second() int selected=func() int",
+          "method *time.Time func (time.Time).String() string selected=func() string",
+          "method *time.Time func (time.Time).Sub(u time.Time) time.Duration selected=func(u time.Time) time.Duration",
+          "method *time.Time func (time.Time).Truncate(d time.Duration) time.Time selected=func(d time.Duration) time.Time",
+          "method *time.Time func (time.Time).UTC() time.Time selected=func() time.Time",
+          "method *time.Time func (time.Time).Unix() int64 selected=func() int64",
+          "method *time.Time func (time.Time).UnixMicro() int64 selected=func() int64",
+          "method *time.Time func (time.Time).UnixMilli() int64 selected=func() int64",
+          "method *time.Time func (time.Time).UnixNano() int64 selected=func() int64",
+          "method *time.Time func (time.Time).Weekday() time.Weekday selected=func() time.Weekday",
+          "method *time.Time func (time.Time).Year() int selected=func() int",
+          "method *time.Time func (time.Time).YearDay() int selected=func() int",
+          "method *time.Time func (time.Time).Zone() (name string, offset int) selected=func() (name string, offset int)",
+          "method *time.Time func (time.Time).ZoneBounds() (start time.Time, end time.Time) selected=func() (start time.Time, end time.Time)",
+          "method *time.Weekday func (time.Weekday).String() string selected=func() string",
+          "method context.Context func (context.Context).Deadline() (deadline time.Time, ok bool) selected=func() (deadline time.Time, ok bool)",
+          "method context.Context func (context.Context).Done() <-chan struct{} selected=func() <-chan struct{}",
+          "method context.Context func (context.Context).Err() error selected=func() error",
+          "method context.Context func (context.Context).Value(key any) any selected=func(key any) any",
+          "method error func (error).Error() string selected=func() string",
+          "method time.Duration func (time.Duration).Abs() time.Duration selected=func() time.Duration",
+          "method time.Duration func (time.Duration).Hours() float64 selected=func() float64",
+          "method time.Duration func (time.Duration).Microseconds() int64 selected=func() int64",
+          "method time.Duration func (time.Duration).Milliseconds() int64 selected=func() int64",
+          "method time.Duration func (time.Duration).Minutes() float64 selected=func() float64",
+          "method time.Duration func (time.Duration).Nanoseconds() int64 selected=func() int64",
+          "method time.Duration func (time.Duration).Round(m time.Duration) time.Duration selected=func(m time.Duration) time.Duration",
+          "method time.Duration func (time.Duration).Seconds() float64 selected=func() float64",
+          "method time.Duration func (time.Duration).String() string selected=func() string",
+          "method time.Duration func (time.Duration).Truncate(m time.Duration) time.Duration selected=func(m time.Duration) time.Duration",
+          "method time.Month func (time.Month).String() string selected=func() string",
+          "method time.Time func (time.Time).Add(d time.Duration) time.Time selected=func(d time.Duration) time.Time",
+          "method time.Time func (time.Time).AddDate(years int, months int, days int) time.Time selected=func(years int, months int, days int) time.Time",
+          "method time.Time func (time.Time).After(u time.Time) bool selected=func(u time.Time) bool",
+          "method time.Time func (time.Time).AppendBinary(b []byte) ([]byte, error) selected=func(b []byte) ([]byte, error)",
+          "method time.Time func (time.Time).AppendFormat(b []byte, layout string) []byte selected=func(b []byte, layout string) []byte",
+          "method time.Time func (time.Time).AppendText(b []byte) ([]byte, error) selected=func(b []byte) ([]byte, error)",
+          "method time.Time func (time.Time).Before(u time.Time) bool selected=func(u time.Time) bool",
+          "method time.Time func (time.Time).Clock() (hour int, min int, sec int) selected=func() (hour int, min int, sec int)",
+          "method time.Time func (time.Time).Compare(u time.Time) int selected=func(u time.Time) int",
+          "method time.Time func (time.Time).Date() (year int, month time.Month, day int) selected=func() (year int, month time.Month, day int)",
+          "method time.Time func (time.Time).Day() int selected=func() int",
+          "method time.Time func (time.Time).Equal(u time.Time) bool selected=func(u time.Time) bool",
+          "method time.Time func (time.Time).Format(layout string) string selected=func(layout string) string",
+          "method time.Time func (time.Time).GoString() string selected=func() string",
+          "method time.Time func (time.Time).GobEncode() ([]byte, error) selected=func() ([]byte, error)",
+          "method time.Time func (time.Time).Hour() int selected=func() int",
+          "method time.Time func (time.Time).ISOWeek() (year int, week int) selected=func() (year int, week int)",
+          "method time.Time func (time.Time).In(loc *time.Location) time.Time selected=func(loc *time.Location) time.Time",
+          "method time.Time func (time.Time).IsDST() bool selected=func() bool",
+          "method time.Time func (time.Time).IsZero() bool selected=func() bool",
+          "method time.Time func (time.Time).Local() time.Time selected=func() time.Time",
+          "method time.Time func (time.Time).Location() *time.Location selected=func() *time.Location",
+          "method time.Time func (time.Time).MarshalBinary() ([]byte, error) selected=func() ([]byte, error)",
+          "method time.Time func (time.Time).MarshalJSON() ([]byte, error) selected=func() ([]byte, error)",
+          "method time.Time func (time.Time).MarshalText() ([]byte, error) selected=func() ([]byte, error)",
+          "method time.Time func (time.Time).Minute() int selected=func() int",
+          "method time.Time func (time.Time).Month() time.Month selected=func() time.Month",
+          "method time.Time func (time.Time).Nanosecond() int selected=func() int",
+          "method time.Time func (time.Time).Round(d time.Duration) time.Time selected=func(d time.Duration) time.Time",
+          "method time.Time func (time.Time).Second() int selected=func() int",
+          "method time.Time func (time.Time).String() string selected=func() string",
+          "method time.Time func (time.Time).Sub(u time.Time) time.Duration selected=func(u time.Time) time.Duration",
+          "method time.Time func (time.Time).Truncate(d time.Duration) time.Time selected=func(d time.Duration) time.Time",
+          "method time.Time func (time.Time).UTC() time.Time selected=func() time.Time",
+          "method time.Time func (time.Time).Unix() int64 selected=func() int64",
+          "method time.Time func (time.Time).UnixMicro() int64 selected=func() int64",
+          "method time.Time func (time.Time).UnixMilli() int64 selected=func() int64",
+          "method time.Time func (time.Time).UnixNano() int64 selected=func() int64",
+          "method time.Time func (time.Time).Weekday() time.Weekday selected=func() time.Weekday",
+          "method time.Time func (time.Time).Year() int selected=func() int",
+          "method time.Time func (time.Time).YearDay() int selected=func() int",
+          "method time.Time func (time.Time).Zone() (name string, offset int) selected=func() (name string, offset int)",
+          "method time.Time func (time.Time).ZoneBounds() (start time.Time, end time.Time) selected=func() (start time.Time, end time.Time)",
+          "method time.Weekday func (time.Weekday).String() string selected=func() string",
+          "package governance",
+          "type any = interface{}",
+          "type context.Context constraints[] interface{Deadline() (deadline time.Time, ok bool); Done() <-chan struct{}; Err() error; Value(key any) any} comparable=true",
+          "type error constraints[] interface{Error() string} comparable=true",
+          "type github.com/OpenRAE/rae/implementations/go/base/clock.Clock constraints[] func() time.Time comparable=false",
+          "type github.com/OpenRAE/rae/implementations/tooling/go/governance.DocumentRead constraints[] struct{Page string \"\" embedded=false; File string \"\" embedded=false} unexported-fields=false comparable=true",
+          "type github.com/OpenRAE/rae/implementations/tooling/go/governance.Documentation constraints[] struct{SourceRoot string \"\" embedded=false; Reads []github.com/OpenRAE/rae/implementations/tooling/go/governance.DocumentRead \"\" embedded=false; ImportedModules []string \"\" embedded=false; ModuleRoots []string \"\" embedded=false} unexported-fields=false comparable=false",
+          "type github.com/OpenRAE/rae/implementations/tooling/go/governance.Finding constraints[] struct{RuleID string \"json:\\\"rule_id\\\"\" embedded=false; Message string \"json:\\\"message\\\"\" embedded=false; Path *string \"json:\\\"path\\\"\" embedded=false; Status string \"json:\\\"status,omitempty\\\"\" embedded=false} unexported-fields=false comparable=true",
+          "type github.com/OpenRAE/rae/implementations/tooling/go/governance.Mode constraints[] string comparable=true",
+          "type github.com/OpenRAE/rae/implementations/tooling/go/governance.Report constraints[] struct{Findings []github.com/OpenRAE/rae/implementations/tooling/go/governance.Finding \"\" embedded=false; Status string \"\" embedded=false; Text string \"\" embedded=false; ExitCode int \"\" embedded=false} unexported-fields=false comparable=false",
+          "type github.com/OpenRAE/rae/implementations/tooling/go/governance.Request constraints[] struct{Tool string \"\" embedded=false; Root string \"\" embedded=false; Paths []string \"\" embedded=false; BaseRevision string \"\" embedded=false; BaseRevisionSet bool \"\" embedded=false; Branch *string \"\" embedded=false; RequirementUID string \"\" embedded=false; Today string \"\" embedded=false; Clock github.com/OpenRAE/rae/implementations/go/base/clock.Clock \"\" embedded=false; Mode github.com/OpenRAE/rae/implementations/tooling/go/governance.Mode \"\" embedded=false; CheckSet string \"\" embedded=false; OutputRoot string \"\" embedded=false; Documentation *github.com/OpenRAE/rae/implementations/tooling/go/governance.Documentation \"\" embedded=false; Body string \"\" embedded=false; Title string \"\" embedded=false; CommitMessages string \"\" embedded=false; CommitMessagesFile string \"\" embedded=false; Repository string \"\" embedded=false; EventPath string \"\" embedded=false; IssuesFile string \"\" embedded=false; SummaryFile string \"\" embedded=false; RequireGovernance bool \"\" embedded=false; Staged bool \"\" embedded=false; VerifyRemote bool \"\" embedded=false; LocalInput string \"\" embedded=false; ActivityStreamsLocalInput string \"\" embedded=false; FIPALocalInput string \"\" embedded=false} unexported-fields=false comparable=false",
+          "type time.Duration constraints[] int64 comparable=true",
+          "type time.Location constraints[] struct{} unexported-fields=true comparable=false",
+          "type time.Month constraints[] int comparable=true",
+          "type time.Time constraints[] struct{} unexported-fields=true comparable=true",
+          "type time.Weekday constraints[] int comparable=true"
+        ]
+      }
+    },
+    {
+      "dir": "implementations/tooling/go/cmd/policycheck",
+      "layer": "tooling",
+      "public": false,
+      "doc": "Native command composition for the repository governance checks.",
+      "imports": [
+        "implementations/go/base/fault",
+        "implementations/tooling/go/governance"
+      ],
+      "design": "docs/decisions/issue-1799-go-governance-design.md",
+      "api": {
+        "linux-amd64": [
+          "package main"
+        ]
+      }
     }
   ],
   "configurations": [
@@ -7098,7 +7317,8 @@
     "docs/decisions/issue-1892-public-go-packages-design.md": "e66f0bb12f0615a6b5614fe149a2a78b13289c42845c683537df80ec1907fc53",
     "specs/sdl/document-model.md": "496290792659c189242ab93923f6f50e305e383d50588a4d75269d9ade2e2970",
     "specs/sdl/diagnostics.md": "422c46a1080f4dced095729967658f300520fa59b16c1923d113a758422a231e",
-    "docs/decisions/adrs/adr-119-consumer-parse-of-supplied-sdl-sources.md": "b29df4c1c6dcb690d540532011f498a0a1afbe794877ec38e5b80d8cb66b5442"
+    "docs/decisions/adrs/adr-119-consumer-parse-of-supplied-sdl-sources.md": "b29df4c1c6dcb690d540532011f498a0a1afbe794877ec38e5b80d8cb66b5442",
+    "docs/decisions/issue-1799-go-governance-design.md": "1ab7caf68082ae72c58f71ed29b96f1eeb8872aac8ce894d6ef4047abec7925e"
   },
   "consumer_api": {
     "design": "docs/decisions/issue-1825-public-go-api.md",

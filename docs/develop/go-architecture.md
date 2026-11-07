@@ -214,7 +214,7 @@ Product CI decodes and scans this retained store before running its Go tests.
 | `adapter` | planned | app, runtime, contract, base |
 | `command` | planned | adapter, base |
 | `parity` | implemented packages | base, contract, sdl |
-| `tooling` | implemented packages |  |
+| `tooling` | implemented packages | base, contract |
 
 ```mermaid
 flowchart BT
@@ -265,6 +265,8 @@ flowchart BT
     L10 --> L1
     L10 --> L2
     L11["tooling"]
+    L11 --> L0
+    L11 --> L1
 ```
 
 | Package owner | Layer | Cross-layer visibility | Consumer importable | Actual dependencies |
@@ -306,6 +308,8 @@ flowchart BT
 | `implementations/go/contract/admission` | contract | true | true | implementations/go/contract/validation, implementations/go/contract/binding, implementations/go/base/canonjson, implementations/go/base/digest, implementations/go/internal/base/timestamp, implementations/go/internal/base/graph, implementations/go/internal/base/urisafety, implementations/go/base/address, implementations/go/internal/base/jsonpointer, implementations/go/internal/base/value, implementations/go/internal/base/domain, implementations/go/internal/base/randstream, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/concept, implementations/go/contract/profile, implementations/go/internal/contract/domainprofile, implementations/go/internal/base/softwareversion |
 | `implementations/go/internal/sdl/source` | sdl | true | false | implementations/go/base/fault, implementations/go/internal/base/jsonpointer |
 | `implementations/go/internal/sdl/authoring` | sdl | true | false | implementations/go/base/canonjson, implementations/go/base/digest, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/admission, implementations/go/contract/concept, implementations/go/contract/validation, implementations/go/internal/base/graph, implementations/go/internal/base/jsonpointer, implementations/go/internal/contract/corpus, implementations/go/internal/sdl/source |
+| `implementations/tooling/go/governance` | tooling | false | true | implementations/go/base/canonjson, implementations/go/base/clock, implementations/go/base/fault, implementations/go/base/ingress, implementations/go/contract/admission, implementations/go/contract/validation |
+| `implementations/tooling/go/cmd/policycheck` | tooling | false | false | implementations/go/base/fault, implementations/tooling/go/governance |
 
 | Consumer repository owner | Module |
 | --- | --- |
@@ -371,23 +375,24 @@ flowchart BT
 | `docs/decisions/issue-1779-random-streams-design.md` | `dae79083acb2909a63a43849e9aeb0ddf4594d3e7d54d118b2a1dd54f68cdb8b` |
 | `docs/decisions/issue-1779-shared-primitives-completion.md` | `53b8dcd5ef5e1ad44ca2948eca10fff0d180028b807a496ddbe82e61e9e573ed` |
 | `docs/decisions/issue-1780-contract-validation-design.md` | `af16cabe834eb350d8074c0856a1ac783c2f56f775a0eddd79326a99b3f84269` |
+| `docs/decisions/issue-1799-go-governance-design.md` | `1ab7caf68082ae72c58f71ed29b96f1eeb8872aac8ce894d6ef4047abec7925e` |
 | `docs/decisions/issue-1825-public-go-api.md` | `6f264cb6dd7fef28567fcb804a56b8b94f63b883f59f4be35d0ffc41095ca721` |
 | `docs/decisions/issue-1859-go-architecture-contract-design.md` | `0057d0da3d7466e02c34cf5545aa14245bc398486519d3dd15457e515f6230ce` |
 | `docs/decisions/issue-1891-runtime-repository-boundary.md` | `e8233ecdf836dbbad4dda9ef373572dd466f1cf59ad0eeb4ab01cc9fd476e406` |
 | `docs/decisions/issue-1892-public-go-packages-design.md` | `e66f0bb12f0615a6b5614fe149a2a78b13289c42845c683537df80ec1907fc53` |
 | `specs/sdl/diagnostics.md` | `422c46a1080f4dced095729967658f300520fa59b16c1923d113a758422a231e` |
 | `specs/sdl/document-model.md` | `496290792659c189242ab93923f6f50e305e383d50588a4d75269d9ade2e2970` |
-<!-- go-component base e2bf04550ed6ad3aeffb34b1ab07f1bce7ea36169dab80b36cb8f3428d31df70 -->
-<!-- go-component contract c83fdb9c674d48bff418add00811ab83c7e7506df398a994534032be377f4393 -->
-<!-- go-component sdl 4ddbff6bfbc2944ac0b7001f5059c8008df17e065aa9e8c7a3d849384214c043 -->
-<!-- go-component processor d9d40cf6265f6fc82ec30207e5778bb772e27178490bb84156bd5e56959b64eb -->
-<!-- go-component backend e4d4a3d5fa825015eec17ac8bb38d4e4fc3072122f895484266ff8344e60fdd5 -->
-<!-- go-component runtime 9c520ec3bc21c27668864101a120ff8a659c6d051fc3d4d8ee32cdc0ca98491c -->
-<!-- go-component conformance c32ceb9a04be917dd078736ad6e349878b77199c36a88d711b39a79483931cee -->
-<!-- go-component app f2c7cb54020a65018a2ef785136dc6855dd8108bd8a4e7d9a4b3359a000fd383 -->
-<!-- go-component adapter c8140e44bfd5636d8fc225308e895d01736f0481824b0fde55518f9c6494e024 -->
-<!-- go-component command f2519fe70e60d36235dc5de82059c69e0835141f34965313bcf7b63af86b1b1c -->
-<!-- go-component parity 2dce27cfb2a4707ca45ce646bb98ba3f2758ebcd62b37e149fb956bde38a5902 -->
-<!-- go-component tooling 8867859facdda3b76bab5e3d2a87ad6bcefadf1c7d5e37d3f5b4e9aca21e6584 -->
+<!-- go-component base ef44e5c5e8175139de93515a96cd7f18e577e58bdb9eb44ad2b05a7dadff54c5 -->
+<!-- go-component contract 6a349266c2f9a3495e9cb646e0e7154cb22523cd2bdfde286faa6fd692b92ec9 -->
+<!-- go-component sdl dc77ffa6631d05b5b8e423e429d918e69927984ac3cfa978750e29b942bd4d43 -->
+<!-- go-component processor 569b74e4fa3f12ec7d796047268b4e695a17241787a276da4b081cb00a3b633a -->
+<!-- go-component backend 48ee39b8691d675b501a3efcc620a2ae6b5122e8d50f3b86cb8bdc1bd7194953 -->
+<!-- go-component runtime a5ebfd26604bf0a3b0cfbd35b4be1d072600f1cfd8a133c9514edbcee999b2b4 -->
+<!-- go-component conformance 7f2051d623dddedd8dd5168e0d04b97acdcceae36d5ac30ac16d4c2151af80cc -->
+<!-- go-component app 15524083f0a006c9eca58d2f39732520f28df728fda2a9359e579336b54b246c -->
+<!-- go-component adapter aa264fc8c5a2bfb4752fbe396325a85665f6e23e2254316b49c6f773aec8d259 -->
+<!-- go-component command 738f872be6bf16b62a38e848ecc5700c9e2572fe7bffbef28f73fb97b9696821 -->
+<!-- go-component parity 1ed17a3ae700dd90f08efcfcb34bb6c588b5cf4b56e5ded2a406b668d3d4f31b -->
+<!-- go-component tooling d4d28904a7b94563dc3d73e76b4fb329d62819a555b946430e2425f5cf31bfe6 -->
 
 <!-- /go-view -->

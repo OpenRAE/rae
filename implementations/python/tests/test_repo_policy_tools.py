@@ -3185,17 +3185,19 @@ def _pin_fake_osv_download(monkeypatch: pytest.MonkeyPatch, payload: bytes) -> N
     digest = hashlib.sha256(payload).hexdigest()
 
     def selection(**kwargs: object) -> object:
-        if kwargs.get("version") != "2.4.0":
+        if kwargs.get("version") != osv_scanner_tool.OSV_SCANNER_VERSION:
             raise ArtifactPolicyError("no reviewed lock selection")
         return types.SimpleNamespace(
             artifact_id="osv-scanner",
             artifact_class="generic-cli",
-            version="2.4.0",
+            version=osv_scanner_tool.OSV_SCANNER_VERSION,
             platform_id="macos-arm64",
             profile_id="public-macos-arm64",
             repository="https://github.com/google/osv-scanner",
-            release="v2.4.0",
-            source_urls=("https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_darwin_arm64",),
+            release=f"v{osv_scanner_tool.OSV_SCANNER_VERSION}",
+            source_urls=(
+                f"https://github.com/google/osv-scanner/releases/download/v{osv_scanner_tool.OSV_SCANNER_VERSION}/osv-scanner_darwin_arm64",
+            ),
             policy_refs=("artifact-integrity-v1",),
             raw_manifest=(
                 types.SimpleNamespace(
@@ -3302,7 +3304,7 @@ def test_osv_scanner_uses_the_selected_raw_object_at_the_shared_acquisition_boun
     assert osv_scanner_tool.ensure_osv_scanner(tmp_path).read_bytes() == payload
     assert observed["artifact_id"] == "osv-scanner"
     assert observed["source_url"] == (
-        "https://github.com/google/osv-scanner/releases/download/v2.4.0/osv-scanner_darwin_arm64"
+        f"https://github.com/google/osv-scanner/releases/download/v{osv_scanner_tool.OSV_SCANNER_VERSION}/osv-scanner_darwin_arm64"
     )
     assert observed["expected"].path == "osv-scanner_darwin_arm64"
     assert observed["local_input"] is None
