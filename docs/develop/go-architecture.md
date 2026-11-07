@@ -379,7 +379,7 @@ flowchart BT
 | `specs/sdl/document-model.md` | `496290792659c189242ab93923f6f50e305e383d50588a4d75269d9ade2e2970` |
 <!-- go-component base 7a998f97a1a182a0e07205bdb8457323aea063d519da089b25aba74c0e1ae9ae -->
 <!-- go-component contract e5b2df957be5d017f1c04ee2125a6f8473f8f77c6e2484d8e78fda09af28510d -->
-<!-- go-component sdl 94b486dad6b53d1378cfaa78a7869744e78bf96c2dc5992e38a4d29c1e1ad249 -->
+<!-- go-component sdl c835dafb8ce056ba9ee2e264324c3173ea2239a141076f49c655d967524b57ab -->
 <!-- go-component processor 4df48406939bbd804d2eb21a2fd1b2c46307f76313d5bcd987694f8e9b5b086e -->
 <!-- go-component backend 83357376ef4b752d63b7734502b82f7e5b6d170065d60b9446dd30548ad64095 -->
 <!-- go-component runtime 11bf2d8e5203149c625058c497ab1717ffca92cc4f3395f739b0ac116c8605fe -->

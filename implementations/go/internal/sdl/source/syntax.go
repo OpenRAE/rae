@@ -162,17 +162,22 @@ func directiveRange(data []byte, r Range) Range {
 }
 
 type syntax struct {
-	data     []byte
-	options  Options
-	anchors  map[string]bool
-	cache    map[*yaml.Node]*node
-	tokens   token.Tokens
-	created  int
-	lines    []string
-	flowEnds map[*token.Token]Position
+	data       []byte
+	options    Options
+	anchors    map[string]bool
+	cache      map[*yaml.Node]*node
+	tokens     token.Tokens
+	created    int
+	lines      []string
+	flowEnds   map[*token.Token]Position
+	rawScalars bool
 }
 
 func compose(tokens token.Tokens, data []byte, options Options) (*node, error) {
+	return composeSyntax(tokens, data, options, false)
+}
+
+func composeSyntax(tokens token.Tokens, data []byte, options Options, rawScalars bool) (*node, error) {
 	decoder := yaml.NewDecoder(bytes.NewReader(data))
 	var document yaml.Node
 	if err := decoder.Decode(&document); err != nil {
@@ -192,7 +197,7 @@ func compose(tokens token.Tokens, data []byte, options Options) (*node, error) {
 	if len(document.Content) == 0 {
 		return nil, &parseError{}
 	}
-	state := syntax{data: data, options: options, anchors: map[string]bool{}, cache: map[*yaml.Node]*node{}, tokens: tokens, lines: strings.Split(string(data), "\n"), flowEnds: flowEndMarks(tokens)}
+	state := syntax{data: data, options: options, anchors: map[string]bool{}, cache: map[*yaml.Node]*node{}, tokens: tokens, lines: strings.Split(string(data), "\n"), flowEnds: flowEndMarks(tokens), rawScalars: rawScalars}
 	return state.build(document.Content[0])
 }
 
@@ -266,8 +271,13 @@ func (s *syntax) fill(n *yaml.Node, result *node) error {
 		result.kind = 'v'
 		result.spelling = n.Value
 		quoted := n.Style&(yaml.SingleQuotedStyle|yaml.DoubleQuotedStyle|yaml.LiteralStyle|yaml.FoldedStyle) != 0
+		result.quoted = quoted
 		result.merge = n.Value == "<<" && !quoted
 		result.span.End = s.scalarEnd(n)
+		if s.rawScalars {
+			result.value = n.Value
+			return nil
+		}
 		value, err := resolve(n.Value, quoted, result.span, s.options)
 		if err != nil {
 			return err

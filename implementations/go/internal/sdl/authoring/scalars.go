@@ -2,6 +2,7 @@ package authoring
 
 import (
 	"encoding/json"
+	"errors"
 	"math"
 	"math/big"
 	"regexp"
@@ -190,16 +191,16 @@ func normalizeBoolean(value any, custom bool) (any, error) {
 	if _, ok := value.(bool); ok {
 		return value, nil
 	}
-	if number, ok := value.(json.Number); ok && !custom {
-		if number == "1" {
-			return true, nil
-		}
-		if number == "0" {
-			return false, nil
+	if !custom {
+		if boolean, ok := booleanNumeric(value); ok {
+			return boolean, nil
 		}
 	}
 	if s, ok := value.(string); ok {
-		normalized := lower(pythonTrim(s))
+		normalized := lower(s)
+		if custom {
+			normalized = lower(pythonTrim(s))
+		}
 		truth := map[string]bool{"true": true, "yes": true, "on": true, "1": true, "false": false, "no": false, "off": false, "0": false}
 		if !custom {
 			truth["y"] = true
@@ -258,4 +259,16 @@ func ramString(s string) (any, error) {
 	}
 	integer, _ := new(big.Float).SetFloat64(amount).Int(nil)
 	return json.Number(integer.String()), nil
+}
+
+func booleanNumeric(value any) (bool, bool) {
+	switch number := value.(type) {
+	case float64:
+		return number == 1, number == 0 || number == 1
+	case json.Number:
+		parsed, err := number.Float64()
+		return parsed == 1, (err == nil || errors.Is(err, strconv.ErrRange)) && (parsed == 0 || parsed == 1)
+	default:
+		return false, false
+	}
 }

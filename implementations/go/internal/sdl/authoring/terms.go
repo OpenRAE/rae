@@ -48,3 +48,10 @@ const (
 	signerIDField         = "signer_id"
 	manifestDigestField   = "manifest_digest"
 )
+
+const (
+	nullType       = "null"
+	mappingSyntax  = "mapping"
+	scalarSyntax   = "scalar"
+	sequenceSyntax = "sequence"
+)

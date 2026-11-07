@@ -124,6 +124,12 @@ func (e *parseError) Unwrap() error            { return nil }
 
 // Diagnostics returns copied source diagnostics from an error chain.
 func Diagnostics(err error) []Diagnostic {
+	if carrier, ok := errors.AsType[interface {
+		error
+		SourceDiagnostics() []Diagnostic
+	}](err); ok {
+		return copyDiagnostics(carrier.SourceDiagnostics())
+	}
 	if e, ok := errors.AsType[*parseError](err); ok {
 		if len(e.pending) > 0 {
 			return materializeDiagnostics(e.pending)
@@ -161,6 +167,7 @@ type node struct {
 	span         Range
 	locationSpan Range
 	merge        bool
+	quoted       bool
 }
 
 // Document holds checked source data. It does not assert SDL model validity.

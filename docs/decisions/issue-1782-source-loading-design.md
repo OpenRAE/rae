@@ -133,7 +133,7 @@ No full formatter-command or issue-completion claim is made by this source compo
 
 ## API commitments
 
-<!-- go-api implementations/go/internal/sdl/source b6cb98c2ee809d398638f62e62a31ec7e3dde7d89b053d9ab04cfe50013773a3 -->
+<!-- go-api implementations/go/internal/sdl/source a2a5ad5613ae85f6def674c8cba57a9cf95af77ab4cac72145dceb290d80b340 -->
 
 ## Expanded formatter prerequisite design
 
@@ -394,3 +394,35 @@ For construction, bound visits by JSON byte length times the fixed compiled sche
 Count graph edges as well as nodes, because two paths can queue the same schema instance.
 Saturate integer multiplication and check the bound before each walk step.
 Other contract entry points keep their existing work cap.
+
+### Workspace policy files
+
+Workspace trust files use the reference SafeLoader's YAML 1.1 scalar rules.
+SDL documents continue to use YAML 1.2 Core.
+Both paths share the token and graph limits from the source profile.
+Add `ParseSyntax(data, limits, name)` to return an immutable `View` before scalar and mapping policy.
+Add `View.Kind`, `View.Scalar`, `View.Members` and `View.Elements` for that syntax view.
+`ViewMember` contains copied Key and Value cursors.
+Scalar access retains decoded text and whether it was quoted.
+Members retain every authored pair, including duplicates and merge keys.
+A syntax view grants no domain or model validity.
+Only the policy owner resolves its values; strict `Decode` keeps all existing checks.
+
+The policy owner applies YAML 1.1 scalars and SafeLoader merge precedence.
+It caches shared graph nodes and removes each merge edge before following its target.
+SafeLoader can flatten a self merge to an empty mapping.
+Unsupported scalar types cannot satisfy a trust field.
+Check scalar construction failures before duplicate keys can discard their values.
+Validate the resulting policy shape with its existing closed-key and type checks.
+Flags use the reference's boolean coercion, including numeric zero and one.
+A quoted boolean flag with surrounding whitespace remains invalid.
+The [YAML 1.1 boolean](https://yaml.org/type/bool.html) and
+[timestamp](https://yaml.org/type/timestamp.html) definitions explain the scalar forms.
+The unchanged PyYAML resolver defines the exact forms used by this reference.
+
+Workspace read and parse failures retain `sdl.workspace-config.invalid` diagnostics.
+Preserve a source parser's original range when it supplies one.
+The outer diagnostic takes precedence over the wrapped cause.
+Diagnostic accessors return copies and grant no model authority.
+Resolve optional policy and lock symlinks within the caller filesystem before reading.
+A policy link can cross its importing directory, but cannot escape the caller's filesystem authority.

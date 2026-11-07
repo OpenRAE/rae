@@ -34,14 +34,21 @@ func (c *composition) optional(name string) ([]byte, bool, error) {
 	if c.request.FS == nil {
 		return nil, false, nil
 	}
-	_, err := fs.Stat(c.request.FS, name)
+	resolved, err := c.fileName(name)
+	if err != nil {
+		return nil, false, workspaceFailure(name, err)
+	}
+	_, err = fs.Stat(c.request.FS, resolved)
 	if errors.Is(err, fs.ErrNotExist) {
 		return nil, false, nil
 	}
 	if err != nil {
-		return nil, false, importError("source-unreadable")
+		return nil, false, workspaceFailure(name, err)
 	}
-	raw, err := c.readBounded(name, source.DefaultLimits().MaxInputBytes)
+	raw, err := c.readBounded(resolved, source.DefaultLimits().MaxInputBytes)
+	if err != nil {
+		return nil, false, workspaceFailure(name, err)
+	}
 	return raw, err == nil, err
 }
 
@@ -174,28 +181,25 @@ func matchingLockRecord(lock *lockfile, decl map[string]any, requested string, r
 	return matches[0], true, nil
 }
 func (c *composition) trust(importer string) error {
-	raw, present, err := c.optional(path.Join(path.Dir(importer), "raes-trust.yaml"))
+	name := path.Join(path.Dir(importer), "raes-trust.yaml")
+	raw, present, err := c.optional(name)
 	if err != nil || !present {
 		return err
 	}
 	if emptyPolicy(raw) {
 		return nil
 	}
-	options := source.DefaultOptions()
-	options.KeyScope = dataScope
-	options.RequireMapping = true
-	document, err := source.Decode(raw, options)
+	value, err := workspacePolicy(raw, name)
 	if err != nil {
-		return importError("source-refused")
+		return workspaceFailure(name, err)
 	}
-	value := object(document.Value())
 	if !validTrustPolicy(value) {
-		return importError("source-refused")
+		return workspaceFailure(name, invalid())
 	}
 	if allowed, ok := value["allow_unsigned_local_sources"]; ok {
 		normalized, err := normalizeBoolean(allowed, false)
 		if err != nil {
-			return importError("source-refused")
+			return workspaceFailure(name, err)
 		}
 		c.localDenied[importer] = normalized == false
 	}

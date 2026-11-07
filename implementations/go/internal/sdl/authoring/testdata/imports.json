@@ -740,5 +740,277 @@
     "supplied": false,
     "accepted": true,
     "content": "name: a\nimports:\n- source: local:outer.yaml\n  namespace: m\n"
+  },
+  {
+    "name": "workspace-exponent-string",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: 1e3\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-octal-prefix-string",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: 0o77\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-boolean-key",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: {yes: {}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "workspace-mixed-boolean-key",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: {yeS: {}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-quoted-boolean-key",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: {'yes': {}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-timestamp",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: 2026-11-07\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "workspace-quoted-timestamp",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: '2026-11-07'\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-float-flag",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "allow_unsigned_local_sources: 1.0\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-spaced-flag",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "allow_unsigned_local_sources: ' true '\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "workspace-duplicates",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "allow_unsigned_local_sources: false\nallow_unsigned_local_sources: true\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-date-overwritten",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: 2026-11-07\nschema_version: custom\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-invalid-date-overwritten",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: 2026-99-99\nschema_version: custom\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "workspace-zero-year-overwritten",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: 0000-11-07\nschema_version: custom\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "workspace-merge",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: {base: &p {require_signatures: false}, other: {<<: *p, require_signatures: true}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-merge-cycle",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: {base: &p {<<: *p}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-cycle-overwritten",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: &x {base: {trusted_signers: *x}}\nregistries: {}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-value-tag",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: =\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "workspace-nan-overwritten",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: .nan\nschema_version: custom\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-sexagesimal",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "schema_version: 1:01\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "workspace-sexagesimal-flag",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "allow_unsigned_local_sources: 0:01.0\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-self-merge-fields",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: {a: &a {<<: *a, require_signatures: false}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-mutual-merge",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "registries: {a: &a {<<: &b {<<: *a, require_signatures: false}, allow_insecure_http: false}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-absolute-policy-link",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "config/trust.yaml": "schema_version: custom\n"
+    },
+    "supplied": false,
+    "rooted": true,
+    "links": {
+      "raes-trust.yaml": "$ROOT/config/trust.yaml"
+    },
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "workspace-policy-link-cycle",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "config/trust.yaml": "schema_version: custom\n"
+    },
+    "supplied": false,
+    "rooted": true,
+    "links": {
+      "raes-trust.yaml": "raes-trust.yaml"
+    },
+    "accepted": false,
+    "error": "SDLParseError"
   }
 ]

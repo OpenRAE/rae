@@ -146,7 +146,7 @@ func schemaMatches(schema map[string]any, value any) bool {
 	case json.Number:
 		return schema["type"] == numberType || schema["type"] == integerType
 	case nil:
-		return schema["type"] == "null"
+		return schema["type"] == nullType
 	default:
 		return len(schema) == 0
 	}
@@ -291,7 +291,7 @@ func omitValue(value any, policy string) bool {
 	switch policy {
 	case "always":
 		return true
-	case "null":
+	case nullType:
 		return value == nil
 	case "empty":
 		v, ok := value.(ordered)
