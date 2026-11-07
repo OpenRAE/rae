@@ -82,6 +82,7 @@ type keyAnalysis struct {
 	seen         map[string]bool
 	walked       map[walkKey]bool
 	cache        map[walkKey]effective
+	built        map[*node][]member
 	materialized bool
 }
 
@@ -90,7 +91,7 @@ func analyze(d *Document, options Options) error {
 	if err != nil {
 		return err
 	}
-	a := keyAnalysis{options: options, document: d, seen: map[string]bool{}, walked: map[walkKey]bool{}, cache: map[walkKey]effective{}}
+	a := keyAnalysis{options: options, document: d, seen: map[string]bool{}, walked: map[walkKey]bool{}, cache: map[walkKey]effective{}, built: map[*node][]member{}}
 	a.materialized = options.BasePointer == "" && options.KeyScope == structuralScope && hasField(d.root, "materialization_provenance")
 	a.walk(d.root, options.KeyScope, tokens, map[*node]bool{})
 	slices.SortFunc(a.items, func(x, y Diagnostic) int {
@@ -262,15 +263,12 @@ func (a *keyAnalysis) expandMerges(n *node, scope string, seen map[*node]bool) e
 		return nil
 	}
 	seen[n] = true
-	for _, e := range n.entries {
-		if e.key.merge && !validMerge(e.value) {
-			r := e.value.span
-			r.End = r.Start
-			return failure("sdl.parse", r, a.options)
-		}
-	}
 	if n.kind == 'm' {
-		n.entries = a.effective(n, scope, map[*node]bool{}).entries
+		entries, err := a.constructionEntries(n)
+		if err != nil {
+			return err
+		}
+		n.entries = entries
 	}
 	for _, e := range n.entries {
 		key, _ := e.key.value.(string)
@@ -416,4 +414,49 @@ func asciiText(text string) bool {
 		}
 	}
 	return true
+}
+
+// The key preflight keeps authored traversal order for diagnostic pairs.
+// PyYAML construction reverses groups in merge sequences, even when disjoint.
+func (a *keyAnalysis) constructionEntries(n *node) ([]member, error) {
+	if entries, present := a.built[n]; present {
+		return entries, nil
+	}
+	var inherited, local []member
+	for _, entry := range n.entries {
+		if !entry.key.merge {
+			local = append(local, entry)
+			continue
+		}
+		if !validMerge(entry.value) {
+			span := entry.value.span
+			span.End = span.Start
+			return nil, failure("sdl.parse", span, a.options)
+		}
+		groups, err := a.constructionGroups(entry.value)
+		if err != nil {
+			return nil, err
+		}
+		for _, group := range groups {
+			inherited = append(inherited, group...)
+		}
+	}
+	inherited = append(inherited, local...)
+	a.built[n] = inherited
+	return inherited, nil
+}
+func (a *keyAnalysis) constructionGroups(value *node) ([][]member, error) {
+	sources := mergeSources(value)
+	groups := make([][]member, 0, len(sources))
+	for _, src := range sources {
+		entries, err := a.constructionEntries(src)
+		if err != nil {
+			return nil, err
+		}
+		groups = append(groups, entries)
+	}
+	if value.kind == 's' {
+		slices.Reverse(groups)
+	}
+	return groups, nil
 }

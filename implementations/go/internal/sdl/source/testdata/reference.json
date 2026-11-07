@@ -17604,6 +17604,577 @@
           }
         }
       }
+    },
+    {
+      "name": "merge-sequence-order",
+      "source": "first: &one {a: x}\nsecond: &two {b: y}\ntarget: {<<: [*one, *two], c: z}\n",
+      "options": {
+        "migration_policy": "accept"
+      },
+      "limits": {},
+      "error": false,
+      "value": {
+        "first": {
+          "a": "x"
+        },
+        "second": {
+          "b": "y"
+        },
+        "target": {
+          "b": "y",
+          "a": "x",
+          "c": "z"
+        }
+      },
+      "diagnostics": [
+        {
+          "stage": "parse",
+          "severity": "warning",
+          "code": "sdl.noncanonical_merge",
+          "path": "/target",
+          "range": {
+            "start": {
+              "line": 3,
+              "column": 10
+            },
+            "end": {
+              "line": 3,
+              "column": 12
+            }
+          },
+          "authored_keys": [
+            "<<",
+            "<<"
+          ]
+        }
+      ],
+      "rendered": "first:\n  a: x\nsecond:\n  b: y\ntarget:\n  b: y\n  a: x\n  c: z\n",
+      "ranges": {
+        "": {
+          "start": {
+            "line": 1,
+            "column": 1
+          },
+          "end": {
+            "line": 4,
+            "column": 1
+          }
+        },
+        "/first": {
+          "start": {
+            "line": 1,
+            "column": 8
+          },
+          "end": {
+            "line": 1,
+            "column": 19
+          }
+        },
+        "/first/a": {
+          "start": {
+            "line": 1,
+            "column": 17
+          },
+          "end": {
+            "line": 1,
+            "column": 18
+          }
+        },
+        "/second": {
+          "start": {
+            "line": 2,
+            "column": 9
+          },
+          "end": {
+            "line": 2,
+            "column": 20
+          }
+        },
+        "/second/b": {
+          "start": {
+            "line": 2,
+            "column": 18
+          },
+          "end": {
+            "line": 2,
+            "column": 19
+          }
+        },
+        "/target": {
+          "start": {
+            "line": 2,
+            "column": 9
+          },
+          "end": {
+            "line": 2,
+            "column": 20
+          }
+        },
+        "/target/a": {
+          "start": {
+            "line": 1,
+            "column": 17
+          },
+          "end": {
+            "line": 1,
+            "column": 18
+          }
+        },
+        "/target/b": {
+          "start": {
+            "line": 2,
+            "column": 18
+          },
+          "end": {
+            "line": 2,
+            "column": 19
+          }
+        },
+        "/target/c": {
+          "start": {
+            "line": 3,
+            "column": 31
+          },
+          "end": {
+            "line": 3,
+            "column": 32
+          }
+        }
+      },
+      "key_ranges": {
+        "/first": {
+          "start": {
+            "line": 1,
+            "column": 1
+          },
+          "end": {
+            "line": 1,
+            "column": 6
+          }
+        },
+        "/first/a": {
+          "start": {
+            "line": 1,
+            "column": 14
+          },
+          "end": {
+            "line": 1,
+            "column": 15
+          }
+        },
+        "/second": {
+          "start": {
+            "line": 2,
+            "column": 1
+          },
+          "end": {
+            "line": 2,
+            "column": 7
+          }
+        },
+        "/second/b": {
+          "start": {
+            "line": 2,
+            "column": 15
+          },
+          "end": {
+            "line": 2,
+            "column": 16
+          }
+        },
+        "/target": {
+          "start": {
+            "line": 3,
+            "column": 1
+          },
+          "end": {
+            "line": 3,
+            "column": 7
+          }
+        },
+        "/target/a": {
+          "start": {
+            "line": 1,
+            "column": 14
+          },
+          "end": {
+            "line": 1,
+            "column": 15
+          }
+        },
+        "/target/b": {
+          "start": {
+            "line": 2,
+            "column": 15
+          },
+          "end": {
+            "line": 2,
+            "column": 16
+          }
+        },
+        "/target/c": {
+          "start": {
+            "line": 3,
+            "column": 28
+          },
+          "end": {
+            "line": 3,
+            "column": 29
+          }
+        }
+      }
+    },
+    {
+      "name": "merge-nested-sequence-order",
+      "source": "first: &one {a: x}\nsecond: &two {<<: *one, b: y}\nthird: &three {c: z}\ntarget: {<<: [*two, *three], d: q}\n",
+      "options": {
+        "migration_policy": "accept"
+      },
+      "limits": {},
+      "error": false,
+      "value": {
+        "first": {
+          "a": "x"
+        },
+        "second": {
+          "a": "x",
+          "b": "y"
+        },
+        "third": {
+          "c": "z"
+        },
+        "target": {
+          "c": "z",
+          "a": "x",
+          "b": "y",
+          "d": "q"
+        }
+      },
+      "diagnostics": [
+        {
+          "stage": "parse",
+          "severity": "warning",
+          "code": "sdl.noncanonical_merge",
+          "path": "/second",
+          "range": {
+            "start": {
+              "line": 2,
+              "column": 15
+            },
+            "end": {
+              "line": 2,
+              "column": 17
+            }
+          },
+          "authored_keys": [
+            "<<",
+            "<<"
+          ]
+        },
+        {
+          "stage": "parse",
+          "severity": "warning",
+          "code": "sdl.noncanonical_merge",
+          "path": "/target",
+          "range": {
+            "start": {
+              "line": 4,
+              "column": 10
+            },
+            "end": {
+              "line": 4,
+              "column": 12
+            }
+          },
+          "authored_keys": [
+            "<<",
+            "<<"
+          ]
+        }
+      ],
+      "rendered": "first:\n  a: x\nsecond:\n  a: x\n  b: y\nthird:\n  c: z\ntarget:\n  c: z\n  a: x\n  b: y\n  d: q\n",
+      "ranges": {
+        "": {
+          "start": {
+            "line": 1,
+            "column": 1
+          },
+          "end": {
+            "line": 5,
+            "column": 1
+          }
+        },
+        "/first": {
+          "start": {
+            "line": 1,
+            "column": 8
+          },
+          "end": {
+            "line": 1,
+            "column": 19
+          }
+        },
+        "/first/a": {
+          "start": {
+            "line": 1,
+            "column": 17
+          },
+          "end": {
+            "line": 1,
+            "column": 18
+          }
+        },
+        "/second": {
+          "start": {
+            "line": 1,
+            "column": 8
+          },
+          "end": {
+            "line": 1,
+            "column": 19
+          }
+        },
+        "/second/a": {
+          "start": {
+            "line": 1,
+            "column": 17
+          },
+          "end": {
+            "line": 1,
+            "column": 18
+          }
+        },
+        "/second/b": {
+          "start": {
+            "line": 2,
+            "column": 28
+          },
+          "end": {
+            "line": 2,
+            "column": 29
+          }
+        },
+        "/third": {
+          "start": {
+            "line": 3,
+            "column": 8
+          },
+          "end": {
+            "line": 3,
+            "column": 21
+          }
+        },
+        "/third/c": {
+          "start": {
+            "line": 3,
+            "column": 19
+          },
+          "end": {
+            "line": 3,
+            "column": 20
+          }
+        },
+        "/target": {
+          "start": {
+            "line": 3,
+            "column": 8
+          },
+          "end": {
+            "line": 3,
+            "column": 21
+          }
+        },
+        "/target/a": {
+          "start": {
+            "line": 1,
+            "column": 17
+          },
+          "end": {
+            "line": 1,
+            "column": 18
+          }
+        },
+        "/target/b": {
+          "start": {
+            "line": 2,
+            "column": 28
+          },
+          "end": {
+            "line": 2,
+            "column": 29
+          }
+        },
+        "/target/c": {
+          "start": {
+            "line": 3,
+            "column": 19
+          },
+          "end": {
+            "line": 3,
+            "column": 20
+          }
+        },
+        "/target/d": {
+          "start": {
+            "line": 4,
+            "column": 33
+          },
+          "end": {
+            "line": 4,
+            "column": 34
+          }
+        }
+      },
+      "key_ranges": {
+        "/first": {
+          "start": {
+            "line": 1,
+            "column": 1
+          },
+          "end": {
+            "line": 1,
+            "column": 6
+          }
+        },
+        "/first/a": {
+          "start": {
+            "line": 1,
+            "column": 14
+          },
+          "end": {
+            "line": 1,
+            "column": 15
+          }
+        },
+        "/second": {
+          "start": {
+            "line": 2,
+            "column": 1
+          },
+          "end": {
+            "line": 2,
+            "column": 7
+          }
+        },
+        "/second/a": {
+          "start": {
+            "line": 1,
+            "column": 14
+          },
+          "end": {
+            "line": 1,
+            "column": 15
+          }
+        },
+        "/second/b": {
+          "start": {
+            "line": 2,
+            "column": 25
+          },
+          "end": {
+            "line": 2,
+            "column": 26
+          }
+        },
+        "/third": {
+          "start": {
+            "line": 3,
+            "column": 1
+          },
+          "end": {
+            "line": 3,
+            "column": 6
+          }
+        },
+        "/third/c": {
+          "start": {
+            "line": 3,
+            "column": 16
+          },
+          "end": {
+            "line": 3,
+            "column": 17
+          }
+        },
+        "/target": {
+          "start": {
+            "line": 4,
+            "column": 1
+          },
+          "end": {
+            "line": 4,
+            "column": 7
+          }
+        },
+        "/target/a": {
+          "start": {
+            "line": 1,
+            "column": 14
+          },
+          "end": {
+            "line": 1,
+            "column": 15
+          }
+        },
+        "/target/b": {
+          "start": {
+            "line": 2,
+            "column": 25
+          },
+          "end": {
+            "line": 2,
+            "column": 26
+          }
+        },
+        "/target/c": {
+          "start": {
+            "line": 3,
+            "column": 16
+          },
+          "end": {
+            "line": 3,
+            "column": 17
+          }
+        },
+        "/target/d": {
+          "start": {
+            "line": 4,
+            "column": 30
+          },
+          "end": {
+            "line": 4,
+            "column": 31
+          }
+        }
+      }
+    },
+    {
+      "name": "merge-nested-invalid",
+      "source": "target: {<<: {<<: 3}}\n",
+      "options": {
+        "migration_policy": "accept"
+      },
+      "limits": {},
+      "error": true,
+      "value": null,
+      "diagnostics": [
+        {
+          "stage": "parse",
+          "severity": "error",
+          "code": "sdl.parse",
+          "path": "",
+          "range": {
+            "start": {
+              "line": 1,
+              "column": 19
+            },
+            "end": {
+              "line": 1,
+              "column": 19
+            }
+          }
+        }
+      ]
     }
   ]
 }

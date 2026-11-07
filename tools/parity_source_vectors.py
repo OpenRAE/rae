@@ -352,6 +352,17 @@ def record():
         "._",
     ]:
         add("emitter-resolution-" + str(len(cases)), json.dumps({"value": text}) + "\n")
+    add(
+        "merge-sequence-order",
+        "first: &one {a: x}\nsecond: &two {b: y}\ntarget: {<<: [*one, *two], c: z}\n",
+        migration_policy="accept",
+    )
+    add(
+        "merge-nested-sequence-order",
+        "first: &one {a: x}\nsecond: &two {<<: *one, b: y}\nthird: &three {c: z}\ntarget: {<<: [*two, *three], d: q}\n",
+        migration_policy="accept",
+    )
+    add("merge-nested-invalid", "target: {<<: {<<: 3}}\n", migration_policy="accept")
     for c in cases:
         if not c["error"]:
             c["rendered"] = yaml.safe_dump(
