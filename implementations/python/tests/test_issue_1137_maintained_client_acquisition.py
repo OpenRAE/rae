@@ -281,7 +281,7 @@ def test_generic_tool_local_input_root_routes_each_locked_raw_object(
                 for artifact_id, version in {
                     "conftest": "0.68.0",
                     "gitleaks": "8.30.1",
-                    "osv-scanner": "2.4.0",
+                    "osv-scanner": osv_scanner_tool.OSV_SCANNER_VERSION,
                     "vale": "3.15.2",
                 }.items()
             },
@@ -370,7 +370,13 @@ def test_bootstrap_qualification_maps_size_enforcement_without_changing_producti
         (conftest_tool, conftest_tool.ensure_conftest, "conftest", "0.68.0", "conftest"),
         (gitleaks_tool, gitleaks_tool.ensure_gitleaks, "gitleaks", "8.30.1", "gitleaks"),
         (vale_tool, vale_tool.ensure_vale, "vale", "3.15.2", "vale"),
-        (osv_scanner_tool, osv_scanner_tool.ensure_osv_scanner, "osv-scanner", "2.4.0", "osv-scanner"),
+        (
+            osv_scanner_tool,
+            osv_scanner_tool.ensure_osv_scanner,
+            "osv-scanner",
+            osv_scanner_tool.OSV_SCANNER_VERSION,
+            "osv-scanner",
+        ),
     ],
 )
 def test_each_installer_passes_the_locked_raw_object_and_explicit_local_input_to_the_shared_boundary(

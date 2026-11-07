@@ -9,22 +9,6 @@ workflow:
   format_command: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s hygiene
   policy_command: RAES_REQUIREMENT_UID="${RAES_REQUIREMENT_UID:-$(printenv A""CES_REQUIREMENT_UID)}" make policy
   precommit_command: RAES_REQUIREMENT_UID="${RAES_REQUIREMENT_UID:-$(printenv A""CES_REQUIREMENT_UID)}" pre-commit run
-  design:
-    compile_command: go -C implementations/go build ./... && go -C implementations/tooling/go build ./...
-    structural_command: d="$(mktemp -d)" && trap 'rm -rf "$d"' EXIT && go -C implementations/tooling/go build -o "$d/archcheck" ./cmd/archcheck && task_toolchain="$(go -C implementations/tooling/go env GOROOT)" && PATH="$task_toolchain/bin:$PATH" "$d/archcheck"
-    wiring_command: d="$(mktemp -d)" && trap 'rm -rf "$d"' EXIT && go -C implementations/tooling/go build -o "$d/archcheck" ./cmd/archcheck && task_toolchain="$(go -C implementations/tooling/go env GOROOT)" && PATH="$task_toolchain/bin:$PATH" "$d/archcheck" -view
-    acceptance_command: |
-      request=$(cat)
-      printf '%s' "$request" | jq -e '.test_file == "implementations/go/contract/admission/python_pattern_public_test.go"' >/dev/null || exit 1
-      test=$(printf '%s' "$request" | jq -er '.test_name | select(test("^Test[A-Za-z0-9_]+$"))') || exit 1
-      output=$(mktemp)
-      trap 'rm -f "$output"' EXIT
-      go -C implementations/go test -json ./contract/admission -run "^${test}$" -count=1 >"$output" || :
-      jq -s --arg name "$test" '{test_name: $name,
-        matches: ([.[] | select(.Action == "run" and .Test == $name)] | length),
-        status: (if any(.[]; .Action == "fail" and .Test == $name) then "failed"
-          elif any(.[]; .Action == "pass" and .Test == $name) then "passed" else "broken" end),
-        message: ([.[] | select(.Action == "output" and (.Test == $name or ((.Test // "") | startswith($name + "/")))) | .Output] | join("") | .[:4000])}' "$output"
   codex_review:
     pre_push_cap: 1
   review_disposition:
@@ -52,31 +36,3 @@ sonarcloud:
   organization: brad-edwards
 rules:
   plan_rules: .gc/plan-rules.md
-architecture:
-  modules:
-    - path: .
-      implementations:
-        - noxfile.py
-        - tools/nox_support/test_lanes.py
-        - tools/nox_support/runner.py
-        - tools/nox_support/graph.py
-        - tools/verification_plan.py
-        - tools/check_adr_immutability.py
-        - tools/check_identity_cutover.py
-        - tools/vale_tool.py
-        - tools/check_public_docs.py
-      adrs:
-        - docs/decisions/adrs/adr-009-normative-artifact-authority-and-repository-structure.md
-        - docs/decisions/adrs/adr-014-nox-as-canonical-verification-graph.md
-        - docs/decisions/adrs/adr-059-adr-amendment-policy-and-pin-gate.md
-        - docs/decisions/adrs/adr-096-identity-cutover-and-historical-record-boundary.md
-    - path: implementations/go
-      implementations:
-        - implementations/go/contract/admission/python_pattern.go
-        - implementations/go/contract/admission/python_pattern_unicode.go
-        - implementations/go/contract/admission/admission.go
-        - implementations/tooling/go/arch/model.go
-      adrs:
-        - docs/decisions/adrs/adr-061-published-schema-evolution-policy.md
-        - docs/decisions/adrs/adr-121-go-engineering-standards.md
-        - docs/decisions/adrs/adr-122-go-architecture-model.md

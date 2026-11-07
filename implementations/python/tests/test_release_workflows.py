@@ -371,6 +371,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
         "coverage-reduce",
         "go",
         "go-architecture",
+        "governance-parity",
         "parity-corpus",
         "parity-inputs",
         "sonar",
@@ -470,6 +471,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
         "coverage-reduce",
         "go",
         "go-architecture",
+        "governance-parity",
         "parity-corpus",
     }
 
@@ -1738,6 +1740,7 @@ def test_go_architecture_check_runs_once_from_the_repository_root() -> None:
     assert "strategy" not in job
     prepare = _named_step(job, "Prepare pinned dependencies for offline API inspection")
     assert "go -C implementations/go mod download" in prepare["run"]
+    assert "go -C implementations/tooling/go mod download" in prepare["run"]
     assert job["steps"].index(prepare) < job["steps"].index(
         _named_step(job, "Check the Go code against the architecture model")
     )
