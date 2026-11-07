@@ -1,4 +1,18 @@
-# Participant tool profiles migration
+<a id="participant-tool-profiles-migration"></a>
+
+# Combine participant tool profiles
+
+## Versions and purpose
+
+Source: `Per-role behavior specifications without binding selectors`.
+Target: `Shared behavior specification with participant_refs or participant_role_refs selectors`.
+
+## Before you start
+
+Use RAES 11.0.2 and retain the original specifications, import pins, and reference inventory.
+Only combine profiles whose nonbinding fields match.
+You need author approval for any change to participant scope.
+The edit changes authored declarations, not installed tools or runtime grants.
 
 Issue #301 (ACT-619) adds shared tool profiles.
 Each behavior specification can serve as one profile.
@@ -53,7 +67,8 @@ The instantiated-snapshot digest pins profile content in evidence.
 ## Projection and private-reference corrections
 
 New compilation resolves authored visibility references to canonical runtime addresses.
-Use declared action names and qualified binding references in observation boundaries.
+Use declared action names in observation boundaries.
+Use qualified binding references there too.
 Remove duplicate runtime-address classifications for those same declarations.
 Equal classifications combine into one item.
 Conflicting classifications and ambiguous references are rejected.
@@ -66,7 +81,7 @@ Ambiguous aliases are rejected.
 Stored historical evidence remains unchanged.
 
 Each projected action and boundary must belong to the projected participant.
-A shared specification cannot expand that participant's declarations.
+A shared specification cannot expand the declarations of that participant.
 A binding applies only at its declared observation boundaries.
 A hidden binding at a matching boundary still prevents projection.
 
@@ -74,3 +89,13 @@ Authored participant and nested binding references cannot contain `__private` se
 Reference exported declarations through their public module names.
 Composition-generated private references remain valid inside the imported module.
 Parameter values cannot create new private references.
+
+## Check the result and recover
+
+Success is a validated shared profile whose bindings preserve the intended participant scope.
+Conflicting classifications, ambiguous references, or selectors outside the specification refuse validation.
+Correct the selector or reference before updating imported content pins.
+Retain old artifacts and readers for historical evidence; do not rewrite archived bindings.
+No native cleanup follows this source-only edit.
+Read the [tool-support compatibility reference](participant-tool-support.md)
+and [tool-action procedure](../public/guides/invocation-tool-actions.md).

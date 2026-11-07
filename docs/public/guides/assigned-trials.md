@@ -1,5 +1,17 @@
 # Execute assigned trials
 
+Execute one original plan entry on another trusted host and return checked observations to its coordinator.
+
+## Before you start
+
+Use RAES 11.0.2 on both hosts.
+Keep the original `TrialRealizationInputs`, processor commitments, and a separate store for each run.
+Install the selected target, settings, capture, execution, and cleanup owners on each host.
+Authorize the coordinator and worker identities through the host application.
+These steps change runtime state and can invoke native effects.
+Use an approved target with a verified cleanup procedure.
+The fragments require application-owned objects; they do not create a deployment.
+
 A coordinator can admit an experiment once.
 It can send the plan entries to separate workers.
 RAE keeps the original scenario, settings, and run IDs.
@@ -194,3 +206,15 @@ The maximum JSON input is 16 MiB, with stricter aggregate scalar and collection 
 
 The normal feature release publishes the API and these artifacts.
 Package versions and release notes remain owned by the release workflow.
+
+## Finish
+
+Success means the coordinator retained verified facts for the original run and attempt.
+Read `experiment_results()` and [experiment records](experiment-records.md) before dependent work.
+Failed cleanup keeps capacity occupied. Unknown effects require the original owner's reconciliation path.
+Do not allocate a new attempt to recover a lost reply.
+
+External transport and native execution remain unverified by these portable examples.
+Qualification needs the exact backend release, RAES pairing, installed services, authorized delivery, readback, and cleanup evidence.
+Read the {py:class}`AssignedTrial <raes_runtime.runtime_assigned_trial.AssignedTrial>`
+and [runtime lifetime explanation](https://github.com/OpenRAE/rae/blob/main/docs/decisions/issue-1629-shared-runtime-design.md).

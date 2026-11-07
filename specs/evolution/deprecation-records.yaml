@@ -55,7 +55,7 @@ records:
     migration_reference: "docs/migration/participant-identity.md; specs/sdl/participant-identity.md"
     notice_window: "Removal eligibility is explicit deterministic migration with source-digest-bound organizational decisions, atomic refusal tests, and canonical schema/compiler exclusion. The explicit pre-1338 source reader remains supported indefinitely until a separately reviewed notice establishes its removal window."
     verification_evidence: "test_issue_1338_identity_migration.py and test_issue_1338_participant_identity.py cover explicit decisions, stale-context refusal, preservation, closed canonical shape, and separate compiler projections."
-    removal_record: "Issue #1338 satisfies the named contract-and-migrator eligibility rule. SDL fields are removed, not schema artifacts; affected draft schema lineages retain updated last_change records."
+    removal_record: "Issue #1338 satisfies the named contract-and-migrator eligibility rule. This removes SDL fields, not schema artifacts. The affected draft schema lineages remain published; Git retains their schema history."
 
   - id: sdl-domain-classification-fields
     surface_class: sdl-scenario-module
@@ -66,7 +66,7 @@ records:
     migration_reference: "docs/migration/external-classifications.md; specs/concept-authority/classification-migration.md"
     notice_window: "Removal eligibility is the availability of the #986 generic contract, explicit deterministic migration with atomic refusals and loss reports, and canonical schema/compiler exclusion tests. The source migration reader remains supported for the pre-989 authoring lineage."
     verification_evidence: "test_classification_migration.py exercises source recognition, context-required refusal, deterministic conversion, native projection equality, binding admission and absence of canonical fields. Legacy source bytes remain available to the explicit migrator; canonical parsing fails with migration guidance."
-    removal_record: "Issue #989 meets the named contract-and-migrator eligibility rule. This removes SDL fields, not a published schema artifact; the affected draft schema lineages remain published with updated last_change records."
+    removal_record: "Issue #989 meets the named contract-and-migrator eligibility rule. This removes SDL fields, not a published schema artifact. The affected draft schema lineages remain published; Git retains their schema history."
 
   # The old PyPI project needs one final pointer release before archival. This
   # is distribution lifecycle, not an import compatibility promise: the final

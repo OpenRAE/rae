@@ -1,5 +1,16 @@
 # Admit participant tool actions
 
+Admit one child tool action, execute it once, and retain its checked outcome.
+
+## Before you start
+
+Use RAES 11.0.2 with a host-owned runtime and the exact selected participant implementation.
+Keep the admitted episode, manifest, selection, scope, and trusted identity.
+Install the live-cut resolver, action implementation, and evidence owners.
+Choose the v1 or v2 composition below before constructing the request.
+Dispatch grants permission for a native effect. Use only an authorized target and verified cleanup procedure.
+This guide supplies an integration procedure; it does not install a tool runtime.
+
 RAES checks each tool call before it can have effects. Each child has its own
 ID, a grant to act once, a typed result, and a saved history.
 
@@ -101,3 +112,15 @@ resolve unknown effects.
 V1 retains its original restrictions: no shared-time tool binding, no V3
 resource policy, and no installed participant-crossing policy. Its child
 history remains ordered before the enclosing autonomous action's history.
+
+## Finish
+
+Read the child's operation and retained participant history after completion.
+Success needs the typed child outcome; an outer invocation result cannot supply it.
+For an unknown dispatched effect, retain the fence and use the original recovery owner.
+Closing an invocation withholds pending children but does not undo native effects.
+The tool implementation owns native cleanup after verified cessation.
+
+External tool behavior is unverified without the exact implementation release, admitted binding, dispatch receipt, native readback, and cleanup evidence.
+Read the [runtime API reference](../api/runtime.rst)
+and [delivery-tool semantics](https://github.com/OpenRAE/rae/blob/main/specs/formal/participant-semantics/delivery-tool-actions.md).
