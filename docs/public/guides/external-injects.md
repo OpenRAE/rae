@@ -1,5 +1,16 @@
 # Execute an externally triggered inject
 
+Retain a checked world-effect result for one authored inject occurrence.
+
+## Before you start
+
+Use RAES 11.0.2 and an explicitly installed backend-owned provider.
+Keep the original compiled plan, live snapshot, target/run scope, and private operation store.
+Obtain the host's operator/backend authority and an exact execution permit.
+You need permission to change the selected native nodes.
+These steps can execute source code and change infrastructure state.
+Verify the provider's readback, cessation, and cleanup procedures before submitting an occurrence.
+
 An operator with the right role can trigger one authored inject against chosen
 live nodes. Use `RuntimeControlPlane.submit_inject(request, identity=...)` or
 P2 `POST /injects/trigger`. The runtime uses its existing operation ledger,
@@ -77,7 +88,8 @@ reservation. They never restore consumed dispatch authority.
 
 P0 holds process-lifetime state. P1 and served P2 retain claims, ordering,
 evidence and startup state in the existing store. Local records migrate to
-schema 10. PostgreSQL records use schema 3 with one owner. Older records gain no
+schema 12. PostgreSQL records use schema 5 with one owner.
+The earlier inject migration introduced schemas 10 and 3. Older records gain no
 invented occurrence or readback. Reopening never reruns an effect on its own.
 Reconciliation can append checked, linked facts. It cannot rewrite an immutable
 indeterminate outcome or grant another dispatch. An accepted control request or
@@ -189,5 +201,17 @@ anchors. An independent world occurrence remains valid without participants, but
 its participant join is explicitly refused. A future schedule-free authored join
 needs its own discriminated contract and reader admission; no anchors are
 fabricated. Legacy flat-control bindings retain their original interpretation
-and are not silently converted to reusable occurrences. Local stores migrate to
-schema 10 and PostgreSQL ledgers to schema 3; older readers refuse the new records.
+and are not silently converted to reusable occurrences. Local stores use
+schema 12 and PostgreSQL ledgers use schema 5; older readers refuse the new records.
+
+## Finish
+
+Read the retained occurrence, outcome, result, and correlation independently.
+A successful world operation does not prove participant delivery or observation.
+Use the original key for a transport retry. A new effect needs separately admitted authority.
+Preserve failed and unknown outcomes. Reconcile uncertain effects before native cleanup.
+The backend distribution owns cleanup of its resources.
+
+Native execution remains unverified without the exact provider release, RAES pairing, installed capabilities, authorized invocation, readback, and cleanup evidence.
+Read the {py:class}`RuntimeControlPlane <raes_runtime.RuntimeControlPlane>`
+and [inject contract explanation](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/inject-occurrence-contracts.md).
