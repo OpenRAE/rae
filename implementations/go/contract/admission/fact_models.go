@@ -106,3 +106,12 @@ func referenceNumber(v any) (*big.Rat, bool) {
 		return nil, false
 	}
 }
+
+func referenceNumberCompare(a, b any) (int, bool) {
+	left, lok := referenceNumber(a)
+	right, rok := referenceNumber(b)
+	if !lok || !rok {
+		return 0, false
+	}
+	return left.Cmp(right), true
+}

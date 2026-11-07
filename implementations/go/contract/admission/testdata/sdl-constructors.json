@@ -17461,6 +17461,479 @@
           ]
         }
       }
+    },
+    {
+      "name": "ParticipantActionArgumentDefinition.ci-integer-bounds",
+      "pointer": "#/$defs/ParticipantActionArgumentDefinition",
+      "data": {
+        "value_type": "integer",
+        "normalization": "identity",
+        "normalization_disclosure_ref": "n",
+        "omission": "reject",
+        "omission_disclosure_ref": "o",
+        "loss_disclosure_ref": "l",
+        "minimum": 1,
+        "maximum": 100
+      },
+      "accepted": true
+    },
+    {
+      "name": "ParticipantActionArgumentDefinition.ci-equal-bounds",
+      "pointer": "#/$defs/ParticipantActionArgumentDefinition",
+      "data": {
+        "value_type": "integer",
+        "normalization": "identity",
+        "normalization_disclosure_ref": "n",
+        "omission": "reject",
+        "omission_disclosure_ref": "o",
+        "loss_disclosure_ref": "l",
+        "minimum": 1,
+        "maximum": 1
+      },
+      "accepted": true
+    },
+    {
+      "name": "ParticipantActionArgumentDefinition.ci-inverted-bounds",
+      "pointer": "#/$defs/ParticipantActionArgumentDefinition",
+      "data": {
+        "value_type": "integer",
+        "normalization": "identity",
+        "normalization_disclosure_ref": "n",
+        "omission": "reject",
+        "omission_disclosure_ref": "o",
+        "loss_disclosure_ref": "l",
+        "minimum": 100,
+        "maximum": 1
+      },
+      "accepted": false
+    },
+    {
+      "name": "ParticipantActionArgumentDefinition.ci-number-bounds",
+      "pointer": "#/$defs/ParticipantActionArgumentDefinition",
+      "data": {
+        "value_type": "number",
+        "normalization": "identity",
+        "normalization_disclosure_ref": "n",
+        "omission": "reject",
+        "omission_disclosure_ref": "o",
+        "loss_disclosure_ref": "l",
+        "minimum": -0.5,
+        "maximum": 0.5
+      },
+      "accepted": true
+    },
+    {
+      "name": "ParticipantActionArgumentDefinition.ci-text-length",
+      "pointer": "#/$defs/ParticipantActionArgumentDefinition",
+      "data": {
+        "value_type": "string",
+        "normalization": "identity",
+        "normalization_disclosure_ref": "n",
+        "omission": "reject",
+        "omission_disclosure_ref": "o",
+        "loss_disclosure_ref": "l",
+        "min_length": 1,
+        "max_length": 3
+      },
+      "accepted": true
+    },
+    {
+      "name": "ParticipantActionArgumentDefinition.ci-equal-length",
+      "pointer": "#/$defs/ParticipantActionArgumentDefinition",
+      "data": {
+        "value_type": "string",
+        "normalization": "identity",
+        "normalization_disclosure_ref": "n",
+        "omission": "reject",
+        "omission_disclosure_ref": "o",
+        "loss_disclosure_ref": "l",
+        "min_length": 2,
+        "max_length": 2
+      },
+      "accepted": true
+    },
+    {
+      "name": "ParticipantActionArgumentDefinition.ci-many-items",
+      "pointer": "#/$defs/ParticipantActionArgumentDefinition",
+      "data": {
+        "value_type": "string",
+        "normalization": "identity",
+        "normalization_disclosure_ref": "n",
+        "omission": "reject",
+        "omission_disclosure_ref": "o",
+        "loss_disclosure_ref": "l",
+        "cardinality": "many",
+        "min_items": 1,
+        "max_items": 3
+      },
+      "accepted": true
+    },
+    {
+      "name": "ParticipantActionArgumentDefinition.ci-inverted-items",
+      "pointer": "#/$defs/ParticipantActionArgumentDefinition",
+      "data": {
+        "value_type": "string",
+        "normalization": "identity",
+        "normalization_disclosure_ref": "n",
+        "omission": "reject",
+        "omission_disclosure_ref": "o",
+        "loss_disclosure_ref": "l",
+        "cardinality": "many",
+        "min_items": 3,
+        "max_items": 1
+      },
+      "accepted": false
+    },
+    {
+      "name": "ParticipantActionArgumentDefinition.ci-values-inclusive",
+      "pointer": "#/$defs/ParticipantActionArgumentDefinition",
+      "data": {
+        "value_type": "integer",
+        "normalization": "identity",
+        "normalization_disclosure_ref": "n",
+        "omission": "reject",
+        "omission_disclosure_ref": "o",
+        "loss_disclosure_ref": "l",
+        "minimum": 1,
+        "maximum": 100,
+        "allowed_values": [
+          1,
+          100
+        ]
+      },
+      "accepted": true
+    },
+    {
+      "name": "ParticipantActionArgumentDefinition.ci-values-below",
+      "pointer": "#/$defs/ParticipantActionArgumentDefinition",
+      "data": {
+        "value_type": "integer",
+        "normalization": "identity",
+        "normalization_disclosure_ref": "n",
+        "omission": "reject",
+        "omission_disclosure_ref": "o",
+        "loss_disclosure_ref": "l",
+        "minimum": 1,
+        "maximum": 100,
+        "allowed_values": [
+          0
+        ]
+      },
+      "accepted": false
+    },
+    {
+      "name": "ParticipantActionArgumentDefinition.ci-values-above",
+      "pointer": "#/$defs/ParticipantActionArgumentDefinition",
+      "data": {
+        "value_type": "integer",
+        "normalization": "identity",
+        "normalization_disclosure_ref": "n",
+        "omission": "reject",
+        "omission_disclosure_ref": "o",
+        "loss_disclosure_ref": "l",
+        "minimum": 1,
+        "maximum": 100,
+        "allowed_values": [
+          101
+        ]
+      },
+      "accepted": false
+    },
+    {
+      "name": "ParticipantActionArgumentDefinition.ci-default-lower",
+      "pointer": "#/$defs/ParticipantActionArgumentDefinition",
+      "data": {
+        "value_type": "integer",
+        "normalization": "identity",
+        "normalization_disclosure_ref": "n",
+        "omission": "use_default",
+        "omission_disclosure_ref": "o",
+        "loss_disclosure_ref": "l",
+        "minimum": 1,
+        "maximum": 100,
+        "default_disclosure_ref": "d",
+        "default": 1
+      },
+      "accepted": true
+    },
+    {
+      "name": "ParticipantActionArgumentDefinition.ci-default-upper",
+      "pointer": "#/$defs/ParticipantActionArgumentDefinition",
+      "data": {
+        "value_type": "integer",
+        "normalization": "identity",
+        "normalization_disclosure_ref": "n",
+        "omission": "use_default",
+        "omission_disclosure_ref": "o",
+        "loss_disclosure_ref": "l",
+        "minimum": 1,
+        "maximum": 100,
+        "default_disclosure_ref": "d",
+        "default": 100
+      },
+      "accepted": true
+    },
+    {
+      "name": "ParticipantActionArgumentDefinition.ci-default-below",
+      "pointer": "#/$defs/ParticipantActionArgumentDefinition",
+      "data": {
+        "value_type": "integer",
+        "normalization": "identity",
+        "normalization_disclosure_ref": "n",
+        "omission": "use_default",
+        "omission_disclosure_ref": "o",
+        "loss_disclosure_ref": "l",
+        "minimum": 1,
+        "maximum": 100,
+        "default_disclosure_ref": "d",
+        "default": 0
+      },
+      "accepted": false
+    },
+    {
+      "name": "ParticipantActionArgumentDefinition.ci-default-above",
+      "pointer": "#/$defs/ParticipantActionArgumentDefinition",
+      "data": {
+        "value_type": "integer",
+        "normalization": "identity",
+        "normalization_disclosure_ref": "n",
+        "omission": "use_default",
+        "omission_disclosure_ref": "o",
+        "loss_disclosure_ref": "l",
+        "minimum": 1,
+        "maximum": 100,
+        "default_disclosure_ref": "d",
+        "default": 101
+      },
+      "accepted": false
+    },
+    {
+      "name": "ParticipantObservationBoundary.ci-ordered",
+      "pointer": "#/$defs/ParticipantObservationBoundary",
+      "data": {
+        "projection_basis": "p",
+        "redaction_policy": "r",
+        "latency_profile": "l",
+        "observable_refs": [
+          "r"
+        ],
+        "view_rules": [
+          {
+            "information_ref": "r",
+            "boundary_class": "observable_resource",
+            "disposition": "observable",
+            "visibility_basis": "b"
+          }
+        ],
+        "view_transitions": [
+          {
+            "transition_id": "t",
+            "transition_kind": "disclosure",
+            "information_ref": "r",
+            "trigger": "go",
+            "effective_from": "now",
+            "effective_order": 1,
+            "history_event_type": "episode_close",
+            "from_disposition": "observable",
+            "to_disposition": "disclosed",
+            "disclosure_rule": "d",
+            "evidence_refs": [
+              "e"
+            ],
+            "certainty": "exact",
+            "latency_profile": "none"
+          },
+          {
+            "transition_id": "t2",
+            "transition_kind": "revocation",
+            "information_ref": "r",
+            "trigger": "go",
+            "effective_from": "now",
+            "effective_order": 2,
+            "history_event_type": "episode_close",
+            "from_disposition": "disclosed",
+            "to_disposition": "hidden",
+            "disclosure_rule": "d",
+            "evidence_refs": [
+              "e"
+            ],
+            "certainty": "exact",
+            "latency_profile": "none"
+          }
+        ]
+      },
+      "accepted": true
+    },
+    {
+      "name": "ParticipantObservationBoundary.ci-reversed",
+      "pointer": "#/$defs/ParticipantObservationBoundary",
+      "data": {
+        "projection_basis": "p",
+        "redaction_policy": "r",
+        "latency_profile": "l",
+        "observable_refs": [
+          "r"
+        ],
+        "view_rules": [
+          {
+            "information_ref": "r",
+            "boundary_class": "observable_resource",
+            "disposition": "observable",
+            "visibility_basis": "b"
+          }
+        ],
+        "view_transitions": [
+          {
+            "transition_id": "t2",
+            "transition_kind": "revocation",
+            "information_ref": "r",
+            "trigger": "go",
+            "effective_from": "now",
+            "effective_order": 2,
+            "history_event_type": "episode_close",
+            "from_disposition": "disclosed",
+            "to_disposition": "hidden",
+            "disclosure_rule": "d",
+            "evidence_refs": [
+              "e"
+            ],
+            "certainty": "exact",
+            "latency_profile": "none"
+          },
+          {
+            "transition_id": "t",
+            "transition_kind": "disclosure",
+            "information_ref": "r",
+            "trigger": "go",
+            "effective_from": "now",
+            "effective_order": 1,
+            "history_event_type": "episode_close",
+            "from_disposition": "observable",
+            "to_disposition": "disclosed",
+            "disclosure_rule": "d",
+            "evidence_refs": [
+              "e"
+            ],
+            "certainty": "exact",
+            "latency_profile": "none"
+          }
+        ]
+      },
+      "accepted": true
+    },
+    {
+      "name": "ParticipantObservationBoundary.ci-invalid-reversed",
+      "pointer": "#/$defs/ParticipantObservationBoundary",
+      "data": {
+        "projection_basis": "p",
+        "redaction_policy": "r",
+        "latency_profile": "l",
+        "observable_refs": [
+          "r"
+        ],
+        "view_rules": [
+          {
+            "information_ref": "r",
+            "boundary_class": "observable_resource",
+            "disposition": "observable",
+            "visibility_basis": "b"
+          }
+        ],
+        "view_transitions": [
+          {
+            "transition_id": "t2",
+            "transition_kind": "revocation",
+            "information_ref": "r",
+            "trigger": "go",
+            "effective_from": "now",
+            "effective_order": 0,
+            "history_event_type": "episode_close",
+            "from_disposition": "disclosed",
+            "to_disposition": "hidden",
+            "disclosure_rule": "d",
+            "evidence_refs": [
+              "e"
+            ],
+            "certainty": "exact",
+            "latency_profile": "none"
+          },
+          {
+            "transition_id": "t",
+            "transition_kind": "disclosure",
+            "information_ref": "r",
+            "trigger": "go",
+            "effective_from": "now",
+            "effective_order": 1,
+            "history_event_type": "episode_close",
+            "from_disposition": "observable",
+            "to_disposition": "disclosed",
+            "disclosure_rule": "d",
+            "evidence_refs": [
+              "e"
+            ],
+            "certainty": "exact",
+            "latency_profile": "none"
+          }
+        ]
+      },
+      "accepted": false
+    },
+    {
+      "name": "ParticipantObservationBoundary.ci-large-reversed",
+      "pointer": "#/$defs/ParticipantObservationBoundary",
+      "data": {
+        "projection_basis": "p",
+        "redaction_policy": "r",
+        "latency_profile": "l",
+        "observable_refs": [
+          "r"
+        ],
+        "view_rules": [
+          {
+            "information_ref": "r",
+            "boundary_class": "observable_resource",
+            "disposition": "observable",
+            "visibility_basis": "b"
+          }
+        ],
+        "view_transitions": [
+          {
+            "transition_id": "t2",
+            "transition_kind": "revocation",
+            "information_ref": "r",
+            "trigger": "go",
+            "effective_from": "now",
+            "effective_order": 10000000000000000000000000000000000000000,
+            "history_event_type": "episode_close",
+            "from_disposition": "disclosed",
+            "to_disposition": "hidden",
+            "disclosure_rule": "d",
+            "evidence_refs": [
+              "e"
+            ],
+            "certainty": "exact",
+            "latency_profile": "none"
+          },
+          {
+            "transition_id": "t",
+            "transition_kind": "disclosure",
+            "information_ref": "r",
+            "trigger": "go",
+            "effective_from": "now",
+            "effective_order": 1,
+            "history_event_type": "episode_close",
+            "from_disposition": "observable",
+            "to_disposition": "disclosed",
+            "disclosure_rule": "d",
+            "evidence_refs": [
+              "e"
+            ],
+            "certainty": "exact",
+            "latency_profile": "none"
+          }
+        ]
+      },
+      "accepted": true
     }
   ]
 }

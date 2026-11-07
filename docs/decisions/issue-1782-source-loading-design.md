@@ -600,6 +600,28 @@ Each parallel join has one owning parallel. Only its branches can enter the join
 Check each referenced state in graph order. Do not build a quadratic table of state sets.
 Join state includes the owning parallel and the states guaranteed by its branches. Vocabulary references reuse the existing concept authority.
 
+### Scalar order comparisons
+
+Action argument bounds and values use the shared Python numeric view. View
+transitions sort by their integer order. Logical time coordinates retain their
+separate comparison owner. The constructor oracle adds 19 positive and negative
+cases for bounded scalar domains, inclusive defaults and unordered transition
+inputs. The original recorded authoring model remains accepted.
+
+### Compiled schema lifetime
+
+Hosted verification found repeated compilation of the same packaged schemas.
+A targeted CPU profile confirmed that schema compilation dominated constructor
+work. The validation owner uses `sync.OnceValues` to compile its immutable
+packaged bundle once per process. `New` binds a fresh rule map through the
+existing `WithRules` owner. Caller callbacks and request values remain
+separate. Custom-source loading still compiles and checks each supplied
+bundle, including corruption fixtures. No request data enters this cache.
+
+Targeted checks cover independent rule registrations, copied defaults,
+construction-stage pins and malformed custom bundles. Hosted race tests and
+coverage will verify the full package workload without changing its limits.
+
 ### Library reuse check
 
 Use the existing standard-library JSON, exact arithmetic, address, URI and hashing operations.

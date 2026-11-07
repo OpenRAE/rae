@@ -10,6 +10,7 @@ import (
 	"io/fs"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/santhosh-tekuri/jsonschema/v6"
 
@@ -69,16 +70,27 @@ type Validator struct {
 	rules        map[Key]Rule
 }
 
-// New compiles the packaged published bundle offline. Missing semantic rules
+// New shares the packaged published bundle compiled offline once per process.
+// Each validator receives its own copied rule registry. Missing semantic rules
 // are allowed at construction so later family ports can use CheckSchema;
 // Validate refuses each missing applicable rule.
 func New(rules []Rule) (*Validator, error) {
+	compiled, err := packagedValidator()
+	if err != nil {
+		return nil, err
+	}
+	return compiled.WithRules(rules)
+}
+
+// Only immutable packaged schemas are shared. Custom-source load calls and
+// caller rule registries remain independent; no request data enters this cache.
+var packagedValidator = sync.OnceValues(func() (*Validator, error) { //nolint:gochecknoglobals // The packaged bundle is immutable for the process lifetime; New copies every caller's rule registry.
 	source, err := corpus.Open()
 	if err != nil {
 		return nil, failure(fault.Operational, codeContractCorpusInvalid)
 	}
-	return load(source, rules)
-}
+	return load(source, nil)
+})
 
 func failure(category fault.Category, code string) error { return fault.New(category, code, nil) }
 

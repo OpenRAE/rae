@@ -62,7 +62,7 @@ func sdlArgumentBounds(v any) error {
 			return invalid()
 		}
 		if minimum != nil && maximum != nil {
-			if order, ok := fullCoordinateCompare(minimum, maximum); !ok || order > 0 {
+			if order, ok := referenceNumberCompare(minimum, maximum); !ok || order > 0 {
 				return invalid()
 			}
 		}
@@ -143,7 +143,7 @@ func sdlArgumentNumber(v any, value json.Number) (string, error) {
 		if at(v, bound) == nil {
 			continue
 		}
-		order, valid := fullCoordinateCompare(value, at(v, bound))
+		order, valid := referenceNumberCompare(value, at(v, bound))
 		if !valid || bound == sdlArgumentMinimum && order < 0 || bound == sdlArgumentMaximum && order > 0 {
 			return "", invalid()
 		}

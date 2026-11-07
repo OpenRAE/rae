@@ -66,7 +66,7 @@ func sdlViewSequence(transitions []any, rules map[string]any) error {
 	ids, orders := map[string]bool{}, map[string]bool{}
 	sequence := slices.Clone(transitions)
 	slices.SortFunc(sequence, func(a, b any) int {
-		order, _ := fullCoordinateCompare(at(a, "effective_order"), at(b, "effective_order"))
+		order, _ := referenceNumberCompare(at(a, "effective_order"), at(b, "effective_order"))
 		return order
 	})
 	for _, transition := range sequence {
