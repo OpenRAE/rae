@@ -12,9 +12,8 @@ import nox
 from raes_contracts.errors import InvalidInputError, OperationalError
 from yaml import YAMLError
 
-from tools.check_adr_immutability import ADR_DIR
+from tools.check_adr_immutability import ADR_DIR, _coerce_manifest
 from tools.check_adr_immutability import MANIFEST_PATH as ADR_PIN_PATH
-from tools.check_adr_immutability import _coerce_manifest
 from tools.check_identity_cutover import _load_historical_records
 from tools.nox_support.config import (
     DEFAULT_SUITE_EXPRESSION,
