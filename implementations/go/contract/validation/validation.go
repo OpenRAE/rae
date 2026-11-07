@@ -332,7 +332,7 @@ func (v *Validator) parse(id string, data []byte, limits ingress.Limits) (any, e
 		return nil, failure(fault.InvalidInput, "contract-number-limit")
 	}
 	if err := v.contracts[id].schema.Validate(value); err != nil {
-		return nil, failure(fault.InvalidInput, "contract-schema-mismatch")
+		return nil, failure(fault.InvalidInput, codeContractSchemaMismatch)
 	}
 	return value, nil
 }

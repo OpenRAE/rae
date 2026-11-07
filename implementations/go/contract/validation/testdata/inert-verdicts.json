@@ -1,5 +1,5 @@
 {
-  "reference": "Python _validate_structural_value; declared keyword budget including Draft 2020-12 meta-schema",
+  "reference": "Python _validate_structural_value outcomes; declared keyword budget including Draft 2020-12 meta-schema; optional supported keywords and limit overrides",
   "cases": [
     {
       "name": "string",
@@ -10,7 +10,8 @@
       },
       "value": "ok",
       "valid": true,
-      "minimum_evaluations": 11
+      "minimum_evaluations": 11,
+      "outcome": "valid"
     },
     {
       "name": "bad-string",
@@ -21,7 +22,8 @@
       },
       "value": 4,
       "valid": false,
-      "minimum_evaluations": 0
+      "minimum_evaluations": 0,
+      "outcome": "value-invalid"
     },
     {
       "name": "object",
@@ -47,7 +49,8 @@
         "b": 3
       },
       "valid": true,
-      "minimum_evaluations": 16
+      "minimum_evaluations": 16,
+      "outcome": "valid"
     },
     {
       "name": "bad-member",
@@ -64,7 +67,8 @@
         "a": 3
       },
       "valid": false,
-      "minimum_evaluations": 0
+      "minimum_evaluations": 0,
+      "outcome": "value-invalid"
     },
     {
       "name": "array",
@@ -87,7 +91,8 @@
         3
       ],
       "valid": true,
-      "minimum_evaluations": 16
+      "minimum_evaluations": 16,
+      "outcome": "valid"
     },
     {
       "name": "contains",
@@ -105,7 +110,8 @@
         2
       ],
       "valid": true,
-      "minimum_evaluations": 13
+      "minimum_evaluations": 13,
+      "outcome": "valid"
     },
     {
       "name": "contains-many",
@@ -122,7 +128,8 @@
         3
       ],
       "valid": false,
-      "minimum_evaluations": 0
+      "minimum_evaluations": 0,
+      "outcome": "value-invalid"
     },
     {
       "name": "any",
@@ -143,7 +150,8 @@
       },
       "value": "y",
       "valid": true,
-      "minimum_evaluations": 16
+      "minimum_evaluations": 16,
+      "outcome": "valid"
     },
     {
       "name": "one",
@@ -164,7 +172,8 @@
       },
       "value": "x",
       "valid": true,
-      "minimum_evaluations": 15
+      "minimum_evaluations": 15,
+      "outcome": "valid"
     },
     {
       "name": "one-ambiguous",
@@ -182,7 +191,8 @@
       },
       "value": 2,
       "valid": false,
-      "minimum_evaluations": 0
+      "minimum_evaluations": 0,
+      "outcome": "value-invalid"
     },
     {
       "name": "all",
@@ -200,7 +210,8 @@
       },
       "value": 2,
       "valid": true,
-      "minimum_evaluations": 13
+      "minimum_evaluations": 13,
+      "outcome": "valid"
     },
     {
       "name": "if",
@@ -219,7 +230,8 @@
       },
       "value": 4,
       "valid": true,
-      "minimum_evaluations": 13
+      "minimum_evaluations": 13,
+      "outcome": "valid"
     },
     {
       "name": "not",
@@ -232,7 +244,8 @@
       },
       "value": 2,
       "valid": true,
-      "minimum_evaluations": 12
+      "minimum_evaluations": 12,
+      "outcome": "valid"
     },
     {
       "name": "names",
@@ -248,7 +261,8 @@
         "bc": 2
       },
       "valid": true,
-      "minimum_evaluations": 13
+      "minimum_evaluations": 13,
+      "outcome": "valid"
     },
     {
       "name": "dependent",
@@ -273,7 +287,8 @@
         "b": 2
       },
       "valid": true,
-      "minimum_evaluations": 13
+      "minimum_evaluations": 13,
+      "outcome": "valid"
     },
     {
       "name": "local-ref",
@@ -290,7 +305,8 @@
       },
       "value": 2,
       "valid": true,
-      "minimum_evaluations": 13
+      "minimum_evaluations": 13,
+      "outcome": "valid"
     },
     {
       "name": "cycle",
@@ -306,7 +322,8 @@
       },
       "value": 2,
       "valid": false,
-      "minimum_evaluations": 0
+      "minimum_evaluations": 0,
+      "outcome": "schema-invalid"
     },
     {
       "name": "external",
@@ -317,7 +334,8 @@
       },
       "value": 2,
       "valid": false,
-      "minimum_evaluations": 0
+      "minimum_evaluations": 0,
+      "outcome": "schema-invalid"
     },
     {
       "name": "unsafe-pattern",
@@ -328,7 +346,8 @@
       },
       "value": "a",
       "valid": false,
-      "minimum_evaluations": 0
+      "minimum_evaluations": 0,
+      "outcome": "unsupported-keyword"
     },
     {
       "name": "bad-required",
@@ -342,7 +361,8 @@
       },
       "value": {},
       "valid": false,
-      "minimum_evaluations": 0
+      "minimum_evaluations": 0,
+      "outcome": "schema-invalid"
     },
     {
       "name": "bad-bound",
@@ -353,7 +373,8 @@
       },
       "value": "a",
       "valid": false,
-      "minimum_evaluations": 0
+      "minimum_evaluations": 0,
+      "outcome": "schema-invalid"
     },
     {
       "name": "bad-type",
@@ -367,7 +388,8 @@
       },
       "value": "a",
       "valid": false,
-      "minimum_evaluations": 0
+      "minimum_evaluations": 0,
+      "outcome": "schema-invalid"
     },
     {
       "name": "enum-complex",
@@ -380,7 +402,8 @@
       },
       "value": {},
       "valid": false,
-      "minimum_evaluations": 0
+      "minimum_evaluations": 0,
+      "outcome": "unsupported-keyword"
     },
     {
       "name": "nonroot-id",
@@ -398,7 +421,8 @@
         "a": "x"
       },
       "valid": false,
-      "minimum_evaluations": 0
+      "minimum_evaluations": 0,
+      "outcome": "schema-invalid"
     },
     {
       "name": "boolean-child",
@@ -413,7 +437,8 @@
         "a": 1
       },
       "valid": true,
-      "minimum_evaluations": 11
+      "minimum_evaluations": 11,
+      "outcome": "valid"
     },
     {
       "name": "false-child",
@@ -428,7 +453,8 @@
         "a": 1
       },
       "valid": false,
-      "minimum_evaluations": 0
+      "minimum_evaluations": 0,
+      "outcome": "value-invalid"
     },
     {
       "name": "number",
@@ -440,7 +466,8 @@
       },
       "value": 2.5,
       "valid": true,
-      "minimum_evaluations": 12
+      "minimum_evaluations": 12,
+      "outcome": "valid"
     },
     {
       "name": "unicode",
@@ -450,9 +477,10 @@
         "type": "string",
         "minLength": 2
       },
-      "value": "\u00e9\ud800\udc00",
+      "value": "é𐀀",
       "valid": true,
-      "minimum_evaluations": 12
+      "minimum_evaluations": 12,
+      "outcome": "valid"
     },
     {
       "name": "defaults-inert",
@@ -470,7 +498,8 @@
       },
       "value": null,
       "valid": true,
-      "minimum_evaluations": 10
+      "minimum_evaluations": 10,
+      "outcome": "valid"
     },
     {
       "name": "escaped-reference",
@@ -486,7 +515,8 @@
       },
       "value": 2,
       "valid": true,
-      "minimum_evaluations": 12
+      "minimum_evaluations": 12,
+      "outcome": "valid"
     },
     {
       "name": "pointer-escape",
@@ -502,7 +532,8 @@
       },
       "value": 2,
       "valid": true,
-      "minimum_evaluations": 12
+      "minimum_evaluations": 12,
+      "outcome": "valid"
     },
     {
       "name": "one-extra",
@@ -524,7 +555,8 @@
       },
       "value": 2,
       "valid": false,
-      "minimum_evaluations": 0
+      "minimum_evaluations": 0,
+      "outcome": "value-invalid"
     },
     {
       "name": "contains-zero",
@@ -540,7 +572,350 @@
         "a"
       ],
       "valid": true,
-      "minimum_evaluations": 12
+      "minimum_evaluations": 12,
+      "outcome": "valid"
+    },
+    {
+      "name": "unsafe-keyword",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x",
+        "pattern": "a"
+      },
+      "value": "a",
+      "outcome": "unsupported-keyword",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "dynamic-ref",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x",
+        "$dynamicRef": "#a"
+      },
+      "value": "a",
+      "outcome": "unsupported-keyword",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "const-object",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x",
+        "const": {
+          "a": 1
+        }
+      },
+      "value": {
+        "a": 1
+      },
+      "outcome": "unsupported-keyword",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "unique-items",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x",
+        "uniqueItems": true
+      },
+      "value": [
+        1
+      ],
+      "outcome": "unsupported-keyword",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "supported-subset",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x",
+        "type": "string",
+        "title": "t"
+      },
+      "value": "a",
+      "supported": [
+        "$id",
+        "$schema",
+        "type"
+      ],
+      "outcome": "unsupported-keyword",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "subset-then-bad-ref",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x",
+        "title": "t",
+        "$ref": "https://example.test/x"
+      },
+      "value": "a",
+      "supported": [
+        "$id",
+        "$schema",
+        "$ref"
+      ],
+      "outcome": "schema-invalid",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "unsafe-after-bad-map",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x",
+        "properties": [],
+        "pattern": "a"
+      },
+      "value": "a",
+      "outcome": "schema-invalid",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "root-ref",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x",
+        "$ref": "#"
+      },
+      "value": "a",
+      "outcome": "schema-invalid",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "ref-number",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x",
+        "$ref": 1
+      },
+      "value": "a",
+      "outcome": "schema-invalid",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "node-limit",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x",
+        "type": "array"
+      },
+      "value": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "limits": {
+        "max_nodes": 5
+      },
+      "outcome": "limit-exceeded",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "schema-node-limit",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x",
+        "allOf": [
+          true,
+          true,
+          true,
+          true
+        ]
+      },
+      "value": 1,
+      "limits": {
+        "max_nodes": 5
+      },
+      "outcome": "limit-exceeded",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "depth-limit",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x"
+      },
+      "value": [
+        [
+          [
+            1
+          ]
+        ]
+      ],
+      "limits": {
+        "max_depth": 2
+      },
+      "outcome": "limit-exceeded",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "deep-value",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x"
+      },
+      "value": [
+        [
+          [
+            [
+              [
+                [
+                  1
+                ]
+              ]
+            ]
+          ]
+        ]
+      ],
+      "limits": {
+        "max_depth": 2
+      },
+      "outcome": "limit-exceeded",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "scalar-limit",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x"
+      },
+      "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "limits": {
+        "max_scalar_bytes": 60
+      },
+      "outcome": "limit-exceeded",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "reference-limit",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x",
+        "$defs": {
+          "a": true
+        },
+        "allOf": [
+          {
+            "$ref": "#/$defs/a"
+          },
+          {
+            "$ref": "#/$defs/a"
+          }
+        ]
+      },
+      "value": 1,
+      "limits": {
+        "max_references": 1
+      },
+      "outcome": "limit-exceeded",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "recursion-at-reference-limit",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x",
+        "$defs": {
+          "a": {
+            "$ref": "#/$defs/a"
+          }
+        },
+        "$ref": "#/$defs/a"
+      },
+      "value": 1,
+      "limits": {
+        "max_references": 1
+      },
+      "outcome": "limit-exceeded",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "product-limit",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x",
+        "type": "array"
+      },
+      "value": [
+        1,
+        2,
+        3
+      ],
+      "limits": {
+        "max_evaluations": 3
+      },
+      "outcome": "limit-exceeded",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "meta-budget",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x",
+        "type": "string"
+      },
+      "value": "a",
+      "limits": {
+        "max_evaluations": 4
+      },
+      "outcome": "limit-exceeded",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "huge-number-value",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x"
+      },
+      "value": 1e400,
+      "outcome": "value-invalid",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "bad-meta",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x",
+        "minLength": -1
+      },
+      "value": "a",
+      "outcome": "schema-invalid",
+      "valid": false,
+      "minimum_evaluations": 0
+    },
+    {
+      "name": "bad-value",
+      "schema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "urn:x",
+        "type": "integer"
+      },
+      "value": "a",
+      "outcome": "value-invalid",
+      "valid": false,
+      "minimum_evaluations": 0
     }
   ]
 }

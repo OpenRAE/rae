@@ -75,14 +75,20 @@ func (e *Validator) temporalBindings(i validation.Invocation) error {
 		if instance.SchemaPointer != "#/$defs/ParticipantTemporalBindingModel" {
 			return nil
 		}
-		encoded, encodeErr := json.Marshal(instance.Value)
-		if encodeErr != nil {
-			return invalid()
-		}
-		normalized, normalizeErr := e.low.DefaultedObjectFragment(i.Key.ContractID, instance.SchemaPointer, encoded, limits)
-		if normalizeErr != nil {
-			return normalizeErr
-		}
-		return temporalBinding(validation.Invocation{Instance: normalized})
+		return e.defaultedTemporalBinding(instance)
 	})
+}
+
+// defaultedTemporalBinding checks one binding instance with its published
+// defaults applied.
+func (e *Validator) defaultedTemporalBinding(instance validation.SchemaInstance) error {
+	encoded, err := json.Marshal(instance.Value)
+	if err != nil {
+		return invalid()
+	}
+	normalized, err := e.low.DefaultedObjectFragment(instance.ContractID, instance.SchemaPointer, encoded, ingress.Limits{MaxBytes: 8 * 1048576, MaxDepth: 64})
+	if err != nil {
+		return err
+	}
+	return temporalBinding(validation.Invocation{Instance: normalized})
 }

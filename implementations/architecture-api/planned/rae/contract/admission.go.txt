@@ -63,7 +63,7 @@ const (
 	TrialExecutionControls             FragmentProfile = "trial-execution-controls"
 )
 
-func AdmitFragment(profile FragmentProfile, document any, limits ingress.Limits) (Fragment, error)
+func AdmitFragment(v *Validator, profile FragmentProfile, document any, limits ingress.Limits) (Fragment, error)
 
 type AssociatedArtifactLimits struct{ MaxArtifacts, MaxTotalBytes, MaxArtifactBytes int }
 
@@ -143,6 +143,6 @@ type ScenarioBindingTargetResolver interface {
 	Resolve(scenarioFamilyID, variationPointID, suppliedTargetID string) (ScenarioBindingResolution, error)
 }
 
-func ValidateExperimentBindingTargets(descriptors binding.ExperimentBindingDescriptorsV1, resolver ScenarioBindingTargetResolver, participants map[ParticipantManifestKey]binding.ParticipantImplementationManifestV1, apparatus map[ApparatusManifestKey]ApparatusManifest) (binding.ExperimentBindingDescriptorsV1, error)
+func ValidateExperimentBindingTargets(v *Validator, descriptors binding.ExperimentBindingDescriptorsV1, resolver ScenarioBindingTargetResolver, participants map[ParticipantManifestKey]binding.ParticipantImplementationManifestV1, apparatus map[ApparatusManifestKey]ApparatusManifest) (binding.ExperimentBindingDescriptorsV1, error)
 func MaterializationArchive(v *Validator, record binding.MaterializationArchiveRecordV1, inventory *binding.BackendRuntimeDescendantsV1, limits ingress.Limits, context MaterializationInventoryContext) (validation.Value, error)
 func RestoreMaterializationArchive(v *Validator, data []byte, limits ingress.Limits, context MaterializationInventoryContext) (binding.MaterializationArchiveRecordV1, *binding.BackendRuntimeDescendantsV1, validation.Value, error)
