@@ -13,4 +13,9 @@ require (
 	golang.org/x/text v0.43.0
 )
 
-require github.com/klauspost/cpuid/v2 v2.0.12 // indirect
+require (
+	github.com/aquasecurity/go-pep440-version v0.0.2-0.20260224065243-f9bba28c51a4 // indirect
+	github.com/aquasecurity/go-version v0.0.1 // indirect
+	github.com/klauspost/cpuid/v2 v2.0.12 // indirect
+	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
+)

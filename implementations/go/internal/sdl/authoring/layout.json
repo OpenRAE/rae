@@ -1,0 +1,8474 @@
+{
+  "materialized-scenario-v1": {
+    "#": {
+      "fields": [
+        "name",
+        "version",
+        "description",
+        "semantic_revision",
+        "nodes",
+        "infrastructure",
+        "features",
+        "conditions",
+        "propositions",
+        "assertions",
+        "entities",
+        "injects",
+        "events",
+        "scripts",
+        "stories",
+        "content",
+        "generated_artifacts",
+        "persistent_volumes",
+        "accounts",
+        "identity_domains",
+        "identity_forests",
+        "identity_facades",
+        "deployment_tenants",
+        "deployment_cells",
+        "relationships",
+        "forwarding_agents",
+        "control_context_assets",
+        "agents",
+        "action_contracts",
+        "observation_boundaries",
+        "outcome_interpretation_rules",
+        "behavior_specifications",
+        "evidence_requirements",
+        "execution_policy",
+        "augmentation_scope",
+        "time_domains",
+        "clocks",
+        "time_domain_mappings",
+        "time_progression_policies",
+        "temporal_constraints",
+        "objectives",
+        "workflows",
+        "materialization_provenance"
+      ],
+      "omit": {
+        "augmentation_scope": [
+          "null"
+        ],
+        "control_context_assets": [
+          "null",
+          "empty",
+          "blank",
+          "false"
+        ],
+        "execution_policy": [
+          "null"
+        ],
+        "semantic_revision": [
+          "null"
+        ]
+      }
+    },
+    "#/$defs/ACLRule": {
+      "fields": [
+        "name",
+        "direction",
+        "from_net",
+        "to_net",
+        "protocol",
+        "ports",
+        "action",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Account": {
+      "fields": [
+        "username",
+        "node",
+        "groups",
+        "password_strength",
+        "auth_method",
+        "credential_bindings",
+        "materialization_profile",
+        "description",
+        "mail",
+        "spn",
+        "domain_ref",
+        "shell",
+        "home",
+        "disabled"
+      ],
+      "omit": {
+        "materialization_profile": [
+          "null"
+        ]
+      }
+    },
+    "#/$defs/AccountCredentialBinding": {
+      "fields": [
+        "credential_id",
+        "purpose",
+        "auth_method",
+        "material"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Agent": {
+      "fields": [
+        "control_context",
+        "affiliations",
+        "role",
+        "description",
+        "actions",
+        "starting_accounts",
+        "initial_knowledge",
+        "allowed_subnets",
+        "starting_assertions",
+        "authority_anchors",
+        "operating_scope",
+        "observation_boundaries",
+        "interactive_access"
+      ],
+      "omit": {
+        "control_context": [
+          "null",
+          "empty",
+          "blank",
+          "false"
+        ]
+      }
+    },
+    "#/$defs/ArtifactCandidate": {
+      "fields": [
+        "candidate_id",
+        "artifact"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ArtifactConstraint": {
+      "fields": [
+        "constraint_id",
+        "kind",
+        "allowed_values"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ArtifactIdentity": {
+      "fields": [
+        "artifact_id",
+        "version",
+        "digest",
+        "media_type"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ArtifactLockedInput": {
+      "fields": [
+        "input_id",
+        "artifact",
+        "associated_artifact_manifest_ref",
+        "trust_policy_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ArtifactMaterializationSpecification": {
+      "fields": [
+        "specification_id",
+        "profile",
+        "digest",
+        "locked_input_ids"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ArtifactMechanismProfile": {
+      "fields": [
+        "mechanism",
+        "profile",
+        "version",
+        "digest"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ArtifactRequirement": {
+      "fields": [
+        "requirement_id",
+        "explicitness",
+        "exact_artifact",
+        "constraints",
+        "candidates",
+        "locked_inputs",
+        "materialization_specifications",
+        "permitted_routes",
+        "trust_policy_refs",
+        "associated_artifact_manifest_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ArtifactSatisfactionRoute": {
+      "fields": [
+        "mechanism",
+        "acquisition",
+        "timing"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Assertion": {
+      "fields": [
+        "description",
+        "proposition",
+        "role",
+        "polarity"
+      ],
+      "omit": {}
+    },
+    "#/$defs/AssetValue": {
+      "fields": [
+        "confidentiality",
+        "integrity",
+        "availability"
+      ],
+      "omit": {}
+    },
+    "#/$defs/AugmentationScopePolicy": {
+      "fields": [
+        "default",
+        "scopes"
+      ],
+      "omit": {}
+    },
+    "#/$defs/AugmentationScopeRule": {
+      "fields": [
+        "scope",
+        "permission",
+        "namespace"
+      ],
+      "omit": {}
+    },
+    "#/$defs/BooleanPredicate": {
+      "fields": [
+        "kind",
+        "property",
+        "semantic_ref",
+        "operator",
+        "expected"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Clock": {
+      "fields": [
+        "time_domain_ref",
+        "authority_kind",
+        "authority_ref",
+        "monotonicity",
+        "supports_pause",
+        "supports_reset",
+        "supports_jump",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Condition": {
+      "fields": [
+        "name",
+        "proposition",
+        "command",
+        "interval",
+        "timeout",
+        "retries",
+        "start_period",
+        "source",
+        "description",
+        "environment"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ContainerImageBuildProvenance": {
+      "fields": [
+        "base_image",
+        "base_image_digest",
+        "dockerfile_path",
+        "instructions",
+        "layers",
+        "build_args",
+        "copied_sources",
+        "config",
+        "source_inputs",
+        "attestation",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Content": {
+      "fields": [
+        "type",
+        "description",
+        "target",
+        "path",
+        "destination",
+        "text",
+        "text_from",
+        "source",
+        "format",
+        "items",
+        "sensitive",
+        "tags",
+        "service_materialization"
+      ],
+      "omit": {
+        "text_from": [
+          "null"
+        ]
+      }
+    },
+    "#/$defs/ContentItem": {
+      "fields": [
+        "name",
+        "display_name",
+        "tags",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Database": {
+      "fields": [
+        "database_id",
+        "name",
+        "origin",
+        "schemas",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DatabaseGrant": {
+      "fields": [
+        "grantee_role_ref",
+        "object_type",
+        "object_ref",
+        "privileges",
+        "with_grant_option",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DatabaseListener": {
+      "fields": [
+        "address",
+        "port",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DatabaseRole": {
+      "fields": [
+        "role_id",
+        "name",
+        "role_type",
+        "origin",
+        "can_login",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DatabaseSchema": {
+      "fields": [
+        "schema_id",
+        "name",
+        "origin",
+        "tables",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DatabaseSetting": {
+      "fields": [
+        "name",
+        "value",
+        "value_classification",
+        "provenance",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DatabaseTable": {
+      "fields": [
+        "table_id",
+        "name",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DeploymentCell": {
+      "fields": [
+        "tenant_ref",
+        "node_refs",
+        "cross_tenant_isolation"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DeploymentTenant": {
+      "fields": [
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsDynamicUpdatePolicy": {
+      "fields": [
+        "enabled",
+        "allowed_clients",
+        "key_names",
+        "policy",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsForwarder": {
+      "fields": [
+        "address",
+        "port",
+        "transport",
+        "tls_server_name",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsMxRdata": {
+      "fields": [
+        "preference",
+        "exchange"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsResolverPolicy": {
+      "fields": [
+        "recursion_enabled",
+        "allow_recursion",
+        "forwarders",
+        "forwarding_policy",
+        "dnssec_validation",
+        "query_logging",
+        "default_logging",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsResourceRecord": {
+      "fields": [
+        "rdata",
+        "address",
+        "target",
+        "text",
+        "soa",
+        "mx",
+        "srv",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsResourceRecordSet": {
+      "fields": [
+        "rrset_id",
+        "owner",
+        "record_type",
+        "zone_class",
+        "ttl",
+        "type_code",
+        "records",
+        "provenance",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsRuntimeSetting": {
+      "fields": [
+        "name",
+        "value",
+        "value_classification",
+        "provenance",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsSoaRdata": {
+      "fields": [
+        "mname",
+        "rname",
+        "serial",
+        "refresh",
+        "retry",
+        "expire",
+        "minimum"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsSrvRdata": {
+      "fields": [
+        "priority",
+        "weight",
+        "port",
+        "target"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsZone": {
+      "fields": [
+        "zone_id",
+        "name",
+        "kind",
+        "purpose",
+        "zone_class",
+        "provenance",
+        "zone_file_refs",
+        "transfer",
+        "rrsets",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsZoneTransferPolicy": {
+      "fields": [
+        "axfr_enabled",
+        "ixfr_enabled",
+        "allowed_clients",
+        "primary_servers",
+        "secondary_servers",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DockerfileInstruction": {
+      "fields": [
+        "instruction",
+        "arguments",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DomainProfileBindingModel": {
+      "fields": [
+        "schema_version",
+        "binding_id",
+        "coordinate",
+        "owner",
+        "value",
+        "provenance",
+        "children"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DomainProfileBindingOwnerModel": {
+      "fields": [
+        "owning_contract_id",
+        "canonical_address",
+        "concept_family",
+        "lifecycle_phase",
+        "context",
+        "use"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DomainProfileBindingProvenanceModel": {
+      "fields": [
+        "basis",
+        "source_ref",
+        "evidence_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DomainProfileCoordinateModel": {
+      "fields": [
+        "namespace",
+        "authority",
+        "profile_id",
+        "revision",
+        "definition_digest"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DomainProfileDefinitionModel": {
+      "fields": [
+        "schema_version",
+        "coordinate",
+        "profile_schema",
+        "semantic_contract",
+        "allowed_contexts"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DomainProfileSchemaModel": {
+      "fields": [
+        "dialect",
+        "schema_id",
+        "revision",
+        "schema_digest",
+        "required_vocabularies",
+        "schema_document"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DomainProfileSemanticContractModel": {
+      "fields": [
+        "authority",
+        "contract_id",
+        "revision",
+        "digest"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Entity": {
+      "fields": [
+        "name",
+        "description",
+        "role",
+        "mission",
+        "facts",
+        "events",
+        "entities"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Event": {
+      "fields": [
+        "name",
+        "source",
+        "assertions",
+        "injects",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/EvidenceRequirement": {
+      "fields": [
+        "description",
+        "source_refs",
+        "source_class",
+        "scope_refs",
+        "scope",
+        "window",
+        "trigger_ref",
+        "boundary_ref",
+        "boundary_kind",
+        "channel",
+        "channel_refs",
+        "artifact_role",
+        "media_types",
+        "sensitivity",
+        "redaction",
+        "integrity",
+        "retention",
+        "loss_disclosure",
+        "capture_spec_ref",
+        "capture_requirement_ref",
+        "output_contract",
+        "field_selectors",
+        "notes",
+        "observation_demand"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ExactRatio": {
+      "fields": [
+        "numerator",
+        "denominator"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ExecutionPolicy": {
+      "fields": [
+        "schema_version",
+        "policy_id",
+        "revision",
+        "response",
+        "failure_classes",
+        "validity",
+        "retry",
+        "effect_classes",
+        "budget_ms",
+        "delay_ms",
+        "clock_basis",
+        "clock_ref",
+        "evidence_refs",
+        "on_exhausted",
+        "fresh_trial_limit"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ExecutionPolicyDocument": {
+      "fields": [
+        "default",
+        "scopes"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ExecutionPolicyScope": {
+      "fields": [
+        "namespace",
+        "scope",
+        "policy"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ExecutionRetryPolicyModel": {
+      "fields": [
+        "max_attempts",
+        "after_effect_policy",
+        "reset_obligation_refs",
+        "compensation_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ExperimentArtifactRefModel": {
+      "fields": [
+        "artifact_id",
+        "role",
+        "media_type",
+        "uri",
+        "checksum",
+        "size_bytes",
+        "created_at",
+        "source",
+        "satisfies_refs",
+        "sensitivity",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ExperimentChecksumModel": {
+      "fields": [
+        "algorithm",
+        "value"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ExperimentEvidenceSatisfactionReferenceModel": {
+      "fields": [
+        "ref_kind",
+        "ref_id",
+        "ref_version"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Feature": {
+      "fields": [
+        "name",
+        "type",
+        "source",
+        "dependencies",
+        "destination",
+        "description",
+        "environment"
+      ],
+      "omit": {}
+    },
+    "#/$defs/GeneratedArtifact": {
+      "fields": [
+        "generator",
+        "lifecycle",
+        "regeneration_scope",
+        "random_value",
+        "provenance",
+        "outputs",
+        "consumers",
+        "ordering_dependencies",
+        "refresh_dependencies"
+      ],
+      "omit": {
+        "random_value": [
+          "null"
+        ],
+        "regeneration_scope": [
+          "null"
+        ]
+      }
+    },
+    "#/$defs/GeneratedArtifactConsumer": {
+      "fields": [
+        "node",
+        "mount_destination",
+        "access_mode",
+        "selected_outputs"
+      ],
+      "omit": {
+        "selected_outputs": [
+          "null",
+          "empty",
+          "blank",
+          "false"
+        ]
+      }
+    },
+    "#/$defs/GeneratedArtifactOutput": {
+      "fields": [
+        "name",
+        "path",
+        "sensitivity",
+        "disposition"
+      ],
+      "omit": {}
+    },
+    "#/$defs/GeneratedArtifactValueSource": {
+      "fields": [
+        "generated_artifact",
+        "output"
+      ],
+      "omit": {}
+    },
+    "#/$defs/IdentityDomain": {
+      "fields": [
+        "profile",
+        "dns_name",
+        "netbios_name",
+        "authority_account_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/IdentityFacade": {
+      "fields": [
+        "service_ref",
+        "protocol"
+      ],
+      "omit": {}
+    },
+    "#/$defs/IdentityForest": {
+      "fields": [
+        "root_domain_ref",
+        "domain_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ImageAttestation": {
+      "fields": [
+        "status",
+        "verification",
+        "attestation_type",
+        "predicate_type",
+        "evidence_reference",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ImageBuildArg": {
+      "fields": [
+        "name",
+        "value",
+        "value_classification",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ImageConfig": {
+      "fields": [
+        "entrypoint",
+        "command",
+        "working_directory",
+        "exposed_ports",
+        "labels",
+        "default_environment",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ImageCopiedSource": {
+      "fields": [
+        "source_path",
+        "destination_path",
+        "from_stage",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ImageEnvironmentDefault": {
+      "fields": [
+        "name",
+        "value",
+        "value_classification",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ImageLayer": {
+      "fields": [
+        "digest",
+        "created_by",
+        "size",
+        "empty",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ImageSourceInput": {
+      "fields": [
+        "identifier",
+        "source_path",
+        "destination_path",
+        "checksum",
+        "checksum_algorithm",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/InfraNode": {
+      "fields": [
+        "count",
+        "links",
+        "dependencies",
+        "properties",
+        "acls",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/InitialKnowledge": {
+      "fields": [
+        "hosts",
+        "subnets",
+        "services",
+        "accounts"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Inject": {
+      "fields": [
+        "name",
+        "source",
+        "from_entity",
+        "to_entities",
+        "description",
+        "environment"
+      ],
+      "omit": {}
+    },
+    "#/$defs/InstantiatedMaterializationDigest": {
+      "fields": [
+        "profile",
+        "algorithm",
+        "value"
+      ],
+      "omit": {}
+    },
+    "#/$defs/LocalOutcomeCriterion": {
+      "fields": [
+        "criterion_id",
+        "source_id",
+        "effect_id"
+      ],
+      "omit": {}
+    },
+    "#/$defs/LocalOutcomeDefinition": {
+      "fields": [
+        "model_version",
+        "category",
+        "criterion_basis",
+        "criteria",
+        "conflict_policy",
+        "freshness_policy",
+        "episode_policy"
+      ],
+      "omit": {}
+    },
+    "#/$defs/MaterializationOrigin": {
+      "fields": [
+        "field_pointer",
+        "source_pointer",
+        "change",
+        "origin"
+      ],
+      "omit": {}
+    },
+    "#/$defs/MaterializationProducer": {
+      "fields": [
+        "name",
+        "version",
+        "configuration_digest",
+        "manifest_digest"
+      ],
+      "omit": {}
+    },
+    "#/$defs/MaterializationProvenance": {
+      "fields": [
+        "profile",
+        "attestation_id",
+        "authored_digest",
+        "instantiated_digest",
+        "plan_digest",
+        "predecessor_digest",
+        "operation_id",
+        "run_id",
+        "recorded_at",
+        "boundary",
+        "producer",
+        "coverage_profile",
+        "origins",
+        "resource_bindings",
+        "inventory"
+      ],
+      "omit": {
+        "inventory": [
+          "null"
+        ]
+      }
+    },
+    "#/$defs/MaterializedResourceBinding": {
+      "fields": [
+        "address",
+        "node_name",
+        "source_node",
+        "instance_index"
+      ],
+      "omit": {}
+    },
+    "#/$defs/MixedControlControllerState": {
+      "fields": [
+        "controller_ref",
+        "authority_basis_refs",
+        "scope_refs",
+        "policy_revision",
+        "valid_from_order",
+        "valid_until_order",
+        "authority_status",
+        "evidence_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/MixedControlDispositionRules": {
+      "fields": [
+        "duplicate",
+        "stale",
+        "revoked",
+        "late",
+        "concurrent",
+        "conflict"
+      ],
+      "omit": {}
+    },
+    "#/$defs/MixedControlParticipantOperation": {
+      "fields": [
+        "participant_ref",
+        "policy_revision",
+        "order_strategy",
+        "initial_state_ref",
+        "dispositions",
+        "controller_states",
+        "transitions"
+      ],
+      "omit": {}
+    },
+    "#/$defs/MixedControlPermittedTransition": {
+      "fields": [
+        "transition_kind",
+        "from_state_ref",
+        "to_state_ref",
+        "valid_from_order",
+        "valid_until_order",
+        "evidence_refs",
+        "target_kinds",
+        "completion_evidence_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/MixedControlPolicy": {
+      "fields": [
+        "semantics",
+        "form",
+        "participant_ref",
+        "policy_revision",
+        "order_strategy",
+        "initial_state_ref",
+        "dispositions",
+        "controller_states",
+        "permitted_transitions",
+        "script_steps"
+      ],
+      "omit": {}
+    },
+    "#/$defs/MixedControlScriptStep": {
+      "fields": [
+        "step_id",
+        "permitted_transition_ref",
+        "expected_state_revision",
+        "valid_from_order",
+        "valid_until_order",
+        "target_kind",
+        "target_step_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/MixedControlTransition": {
+      "fields": [
+        "transition_kind",
+        "from_state_ref",
+        "to_state_ref",
+        "policy_revision",
+        "expected_state_revision",
+        "resulting_state_revision",
+        "effective_order",
+        "valid_from_order",
+        "valid_until_order",
+        "proposal_ref",
+        "proposal_revision",
+        "evidence_refs",
+        "completion_evidence_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Node": {
+      "fields": [
+        "type",
+        "description",
+        "source",
+        "resources",
+        "os",
+        "os_distribution",
+        "os_version",
+        "architecture",
+        "features",
+        "conditions",
+        "injects",
+        "roles",
+        "services",
+        "asset_value",
+        "endpoint_persona",
+        "runtime"
+      ],
+      "omit": {}
+    },
+    "#/$defs/NumericPredicate": {
+      "fields": [
+        "kind",
+        "property",
+        "semantic_ref",
+        "operator",
+        "expected",
+        "unit",
+        "unit_semantic_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Objective": {
+      "fields": [
+        "name",
+        "description",
+        "owner",
+        "assigned_participant",
+        "actions",
+        "targets",
+        "success",
+        "window",
+        "depends_on"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ObjectiveSuccess": {
+      "fields": [
+        "mode",
+        "assertions",
+        "threshold"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ObjectiveWindow": {
+      "fields": [
+        "stories",
+        "scripts",
+        "events",
+        "workflows",
+        "steps"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ObservationDemandRule": {
+      "fields": [
+        "rule_id",
+        "scope",
+        "purpose",
+        "mode",
+        "selector",
+        "collection",
+        "retention",
+        "export",
+        "basis",
+        "prohibited_stages",
+        "redaction",
+        "integrity",
+        "required",
+        "authority_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ObservationSelector": {
+      "fields": [
+        "semantic_scope",
+        "excluded_scopes",
+        "component_refs",
+        "data_kind",
+        "names",
+        "window_refs",
+        "coverage_profile",
+        "max_items"
+      ],
+      "omit": {}
+    },
+    "#/$defs/OperatorSecretCredentialMaterial": {
+      "fields": [
+        "classification",
+        "reference_id"
+      ],
+      "omit": {}
+    },
+    "#/$defs/OutcomeInterpretationRule": {
+      "fields": [
+        "semantic_version",
+        "participant_scope",
+        "observation_point_basis",
+        "interpretation_basis",
+        "source_bindings",
+        "target_bindings",
+        "local_outcome",
+        "evidence_refs",
+        "limitations",
+        "diagnostics"
+      ],
+      "omit": {}
+    },
+    "#/$defs/OutcomeInterpretationSourceBinding": {
+      "fields": [
+        "source_id",
+        "source_layer",
+        "ref",
+        "interpretation_role",
+        "evidence_refs",
+        "provenance_refs",
+        "diagnostics"
+      ],
+      "omit": {}
+    },
+    "#/$defs/OutcomeInterpretationTargetBinding": {
+      "fields": [
+        "target_id",
+        "target_layer",
+        "ref",
+        "relation",
+        "governance_ref",
+        "evidence_refs",
+        "limitations",
+        "diagnostics"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantActionArgumentDefinition": {
+      "fields": [
+        "value_type",
+        "cardinality",
+        "default",
+        "allowed_values",
+        "minimum",
+        "maximum",
+        "min_length",
+        "max_length",
+        "min_items",
+        "max_items",
+        "unique_items",
+        "normalization",
+        "normalization_disclosure_ref",
+        "omission",
+        "omission_disclosure_ref",
+        "default_disclosure_ref",
+        "loss_disclosure_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantActionContract": {
+      "fields": [
+        "semantic_version",
+        "lifecycle_state",
+        "behavioral_granularity",
+        "procedure_basis",
+        "realization_profile",
+        "fidelity_claim",
+        "arguments",
+        "preconditions",
+        "effects",
+        "state_transition_effects",
+        "observation_expectations",
+        "evidence_expectations",
+        "failure_classes",
+        "backend_failure_mappings",
+        "interactions",
+        "temporal_contracts",
+        "backend_timing_disclosures"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantActionEffect": {
+      "fields": [
+        "effect_id",
+        "effect_class",
+        "description",
+        "target_refs",
+        "evidence_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantActionPrecondition": {
+      "fields": [
+        "precondition_id",
+        "precondition_class",
+        "description",
+        "support_refs",
+        "evidence_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantActivityActionCandidate": {
+      "fields": [
+        "action_ref",
+        "weight",
+        "depends_on",
+        "retryable_failure_classes",
+        "max_retries",
+        "cooldown_ticks"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantActivityTiming": {
+      "fields": [
+        "minimum_ticks",
+        "maximum_ticks"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantAutonomousExecutionPolicyV1": {
+      "fields": [
+        "profile",
+        "participant_implementation_ref",
+        "clock_ref",
+        "progression_policy_ref",
+        "temporal_constraint_refs",
+        "action_order",
+        "observation_boundary_ref",
+        "selection_strategy",
+        "max_action_attempts",
+        "max_in_flight",
+        "failure_policy",
+        "evaluation_authority"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantAutonomousExecutionPolicyV2": {
+      "fields": [
+        "profile",
+        "participant_implementation_ref",
+        "clock_ref",
+        "progression_policy_ref",
+        "work_window_refs",
+        "pause_window_refs",
+        "observation_boundary_ref",
+        "stochastic_control_ref",
+        "selection_strategy",
+        "timing",
+        "outside_window_disposition",
+        "empty_eligible_disposition",
+        "action_candidates",
+        "max_occurrences",
+        "max_action_attempts",
+        "max_burst_size",
+        "max_in_flight",
+        "failure_policy",
+        "evaluation_authority"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantAutonomousExecutionPolicyV3": {
+      "fields": [
+        "profile",
+        "participant_implementation_ref",
+        "clock_ref",
+        "progression_policy_ref",
+        "work_window_refs",
+        "pause_window_refs",
+        "observation_boundary_ref",
+        "stochastic_control_ref",
+        "selection_strategy",
+        "timing",
+        "outside_window_disposition",
+        "empty_eligible_disposition",
+        "action_candidates",
+        "max_occurrences",
+        "max_action_attempts",
+        "max_burst_size",
+        "max_in_flight",
+        "failure_policy",
+        "evaluation_authority",
+        "resource_budget"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantBackendFailureMapping": {
+      "fields": [
+        "backend_error_code",
+        "failure_class",
+        "diagnostic"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantBackendTimingDisclosure": {
+      "fields": [
+        "disclosure_id",
+        "disclosure_kind",
+        "support_mode",
+        "description",
+        "affected_temporal_ids",
+        "limitations"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantBehaviorSpecification": {
+      "fields": [
+        "semantic_version",
+        "lifecycle_state",
+        "control_context",
+        "participant_refs",
+        "participant_role_refs",
+        "action_contract_refs",
+        "observation_boundary_refs",
+        "outcome_interpretation_rule_refs",
+        "authority_scope_refs",
+        "behavior_mode",
+        "autonomous_execution",
+        "mixed_control",
+        "realization_profile_ref",
+        "backend_feature_support_refs",
+        "evidence_contract_refs",
+        "tool_affordances",
+        "participant_inject_deliveries",
+        "extension_policy",
+        "extensions"
+      ],
+      "omit": {
+        "control_context": [
+          "null",
+          "empty",
+          "blank",
+          "false"
+        ]
+      }
+    },
+    "#/$defs/ParticipantControlContextAssetModel": {
+      "fields": [
+        "schema_version",
+        "asset_id",
+        "asset_version",
+        "kind",
+        "content",
+        "participant_addresses",
+        "role_refs",
+        "publication_authority_ref",
+        "retention_policy_ref",
+        "provenance_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantControlContextAssetReferenceModel": {
+      "fields": [
+        "asset_id",
+        "asset_version",
+        "asset_digest"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantControlContextReference": {
+      "fields": [
+        "declaration_ref",
+        "asset_ref",
+        "disposition"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantEvaluationAuthority": {
+      "fields": [
+        "mode",
+        "objective_refs",
+        "proof_producer_refs",
+        "score_authority_refs",
+        "receipt_authority_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantInjectDelivery": {
+      "fields": [
+        "participant_ref",
+        "inject_ref",
+        "occurrence",
+        "source_item_ref",
+        "result_item_ref",
+        "observation_boundary_ref",
+        "delivery_kind",
+        "delivery_policy",
+        "order_basis",
+        "temporal_constraint_refs",
+        "evidence_requirement_refs",
+        "failure_disposition",
+        "control_transition_ref",
+        "controller_ref",
+        "control_authority_scope_refs",
+        "control_effective_order",
+        "control_valid_from_order",
+        "control_valid_until_order",
+        "control_evidence_refs",
+        "control"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantInjectDeliveryControl": {
+      "fields": [
+        "semantics",
+        "policy_revision",
+        "permitted_transition_ref",
+        "controller_ref",
+        "authority_scope_refs",
+        "evidence_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantInjectDeliveryPolicy": {
+      "fields": [
+        "policy_ref",
+        "policy_revision",
+        "exposure_policy_ref",
+        "audience_scope_ref",
+        "visibility_basis_ref",
+        "disclosure_basis_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantInjectOccurrenceAnchor": {
+      "fields": [
+        "event_ref",
+        "script_ref",
+        "story_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantInteractionDeclaration": {
+      "fields": [
+        "interaction_class",
+        "target",
+        "rationale",
+        "related_actions",
+        "shared_state_refs",
+        "commutative",
+        "merge_rule_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantInteractiveAccess": {
+      "fields": [
+        "target_ref",
+        "channel",
+        "account_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantObservationBoundary": {
+      "fields": [
+        "projection_basis",
+        "observable_refs",
+        "hidden_refs",
+        "evidence_refs",
+        "redaction_policy",
+        "latency_profile",
+        "observer_effects",
+        "view_rules",
+        "view_transitions",
+        "realized_view_disclosure"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantRelationship": {
+      "fields": [
+        "kind",
+        "source_action_refs",
+        "target_action_refs",
+        "objective_refs",
+        "behavior_specification_refs",
+        "authority_basis_refs",
+        "scope_refs",
+        "observation_boundary_refs",
+        "control_specification_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantResourceBudgetDimension": {
+      "fields": [
+        "owner_ref",
+        "pool_ref",
+        "resource_kind",
+        "unit",
+        "accounting_mode",
+        "meter_profile_ref",
+        "limit",
+        "reservation",
+        "reset",
+        "window_ticks",
+        "parent_budget_ref",
+        "evidence_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantResourceBudgetPolicy": {
+      "fields": [
+        "policy_id",
+        "owners",
+        "fairness",
+        "dimensions"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantResourceFairness": {
+      "fields": [
+        "policy",
+        "priority_class",
+        "weight",
+        "protected",
+        "borrowing",
+        "reclaim",
+        "max_queue_ticks",
+        "starvation_bound_ticks"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantResourceOwner": {
+      "fields": [
+        "kind",
+        "ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantSharedTimeBinding": {
+      "fields": [
+        "profile",
+        "clock_ref",
+        "constraint_ref",
+        "event_point",
+        "evidence_mode",
+        "condition_precondition_id",
+        "observation_boundary_ref"
+      ],
+      "omit": {
+        "condition_precondition_id": [
+          "null"
+        ],
+        "observation_boundary_ref": [
+          "null"
+        ]
+      }
+    },
+    "#/$defs/ParticipantTemporalContract": {
+      "fields": [
+        "temporal_id",
+        "temporal_kind",
+        "time_domain",
+        "clock_authority",
+        "event_points",
+        "description",
+        "window_ref",
+        "duration_ref",
+        "reset_boundary",
+        "replay_boundary",
+        "randomization_basis",
+        "ordering_basis",
+        "backend_disclosure_refs",
+        "shared_time_binding"
+      ],
+      "omit": {
+        "shared_time_binding": [
+          "null"
+        ]
+      }
+    },
+    "#/$defs/ParticipantToolAffordance": {
+      "fields": [
+        "tool_ref",
+        "action_contract_refs",
+        "observation_boundary_refs",
+        "participant_refs",
+        "participant_role_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantViewRule": {
+      "fields": [
+        "information_ref",
+        "boundary_class",
+        "disposition",
+        "visibility_basis",
+        "disclosure_rule",
+        "effective_from",
+        "evidence_refs",
+        "realized_backend_disclosure",
+        "certainty",
+        "latency_profile"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantViewTransition": {
+      "fields": [
+        "transition_id",
+        "transition_kind",
+        "information_ref",
+        "trigger",
+        "effective_from",
+        "effective_order",
+        "history_event_type",
+        "action_instance_id",
+        "from_disposition",
+        "to_disposition",
+        "disclosure_rule",
+        "evidence_refs",
+        "certainty",
+        "latency_profile",
+        "realized_backend_disclosure"
+      ],
+      "omit": {}
+    },
+    "#/$defs/PersistentVolume": {
+      "fields": [
+        "lifecycle",
+        "access_mode",
+        "consumers",
+        "ordering_dependencies",
+        "refresh_dependencies"
+      ],
+      "omit": {}
+    },
+    "#/$defs/PresencePredicate": {
+      "fields": [
+        "kind",
+        "property",
+        "semantic_ref",
+        "operator"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Proposition": {
+      "fields": [
+        "description",
+        "subjects",
+        "basis",
+        "predicate",
+        "quantifier",
+        "threshold",
+        "evidence_requirements"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RandomValueFormat": {
+      "fields": [
+        "prefix",
+        "suffix"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RandomValueRecipe": {
+      "fields": [
+        "alphabet",
+        "custom_alphabet",
+        "length",
+        "entropy_bits",
+        "format",
+        "min_entropy_bits"
+      ],
+      "omit": {
+        "alphabet": [
+          "null"
+        ],
+        "custom_alphabet": [
+          "null"
+        ],
+        "entropy_bits": [
+          "null"
+        ],
+        "format": [
+          "null"
+        ],
+        "length": [
+          "null"
+        ],
+        "min_entropy_bits": [
+          "null"
+        ]
+      }
+    },
+    "#/$defs/Relationship": {
+      "fields": [
+        "type",
+        "source",
+        "target",
+        "description",
+        "properties",
+        "database_access",
+        "mail_access",
+        "forwarding_edge",
+        "service_integration",
+        "proxy_upstream",
+        "domain_controller",
+        "domain_join",
+        "forest_trust",
+        "identity_federation",
+        "carrier_placement",
+        "shared_service",
+        "participant"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipCarrierPlacement": {
+      "fields": [
+        "kernel_boundary"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipDatabaseAccess": {
+      "fields": [
+        "role_ref",
+        "auth_method",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipDomainController": {
+      "fields": [],
+      "omit": {}
+    },
+    "#/$defs/RelationshipDomainJoin": {
+      "fields": [
+        "controller_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipForestTrust": {
+      "fields": [
+        "trust_type",
+        "direction"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipForwardingEdge": {
+      "fields": [
+        "forwarder_ref",
+        "target_listener_role",
+        "enrollment_identity_ref",
+        "enrollment_identity_classification",
+        "protocol",
+        "crypto_method",
+        "parse_format",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipIdentityFederation": {
+      "fields": [
+        "direction",
+        "protocol",
+        "mapping_intent",
+        "tenant_claim_name",
+        "tenant_claim_owner"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipMailAccess": {
+      "fields": [
+        "protocol",
+        "auth_mechanism",
+        "tls_mode",
+        "listener_ref",
+        "mailbox_ref",
+        "domain_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipProxyUpstream": {
+      "fields": [
+        "route_ref",
+        "upstream_node_ref",
+        "upstream_service_ref",
+        "client_tls_terminated",
+        "origin_plaintext",
+        "body_limit",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipServiceIntegration": {
+      "fields": [
+        "consumer_ref",
+        "engine_ref",
+        "integration_kind",
+        "auth_principal_ref",
+        "enabled",
+        "direction",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipSharedService": {
+      "fields": [
+        "tenant_isolation",
+        "workload_authentication",
+        "mutable_state_refs",
+        "mutable_state_owner",
+        "reset_generation_owner"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Resources": {
+      "fields": [
+        "ram",
+        "cpu"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Role": {
+      "fields": [
+        "username",
+        "entities"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeAppAuthorization": {
+      "fields": [
+        "app_authorization_id",
+        "resource_vocabulary",
+        "auth_enabled",
+        "name",
+        "principals",
+        "roles",
+        "permission_grants",
+        "role_mappings",
+        "tenants",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeAppAuthorizationGrant": {
+      "fields": [
+        "grant_id",
+        "role_ref",
+        "resource_kind",
+        "actions",
+        "resource_patterns",
+        "effect",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeAppAuthorizationPrincipal": {
+      "fields": [
+        "principal_id",
+        "kind",
+        "name",
+        "reserved",
+        "hidden",
+        "credential_classification",
+        "backend_roles",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeAppAuthorizationRole": {
+      "fields": [
+        "role_id",
+        "name",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeAppAuthorizationRoleMapping": {
+      "fields": [
+        "mapping_id",
+        "role_ref",
+        "backend_roles",
+        "users",
+        "hosts",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeAppAuthorizationTenant": {
+      "fields": [
+        "tenant_id",
+        "name",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeApplicationDisclosure": {
+      "fields": [
+        "trigger",
+        "status_code",
+        "disclosure",
+        "sensitivity",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeApplicationExposedField": {
+      "fields": [
+        "name",
+        "sensitivity",
+        "value",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeApplicationParameter": {
+      "fields": [
+        "name",
+        "location",
+        "required",
+        "data_type",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeApplicationRedirect": {
+      "fields": [
+        "target",
+        "status_code",
+        "condition",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeApplicationResponse": {
+      "fields": [
+        "status_code",
+        "content_type",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeApplicationRoute": {
+      "fields": [
+        "route_id",
+        "path",
+        "methods",
+        "name",
+        "description",
+        "auth_required",
+        "auth_scheme",
+        "session_required",
+        "parameters",
+        "responses",
+        "templates",
+        "static_assets",
+        "redirects",
+        "disclosures",
+        "exposed_fields",
+        "upstream_target"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeApplicationRouteUpstreamTarget": {
+      "fields": [
+        "target_node_ref",
+        "target_service",
+        "scheme",
+        "tls_terminated_here"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeApplicationSurface": {
+      "fields": [
+        "application_id",
+        "service",
+        "protocol",
+        "name",
+        "base_path",
+        "framework",
+        "description",
+        "routes"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeAptPackageRepository": {
+      "fields": [
+        "repository_profile",
+        "profile_version",
+        "uri",
+        "suite",
+        "components",
+        "signing_key"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeCapabilityPolicy": {
+      "fields": [
+        "required",
+        "effective",
+        "add",
+        "drop",
+        "process_overrides",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeCloudServiceLimit": {
+      "fields": [
+        "limit_id",
+        "name",
+        "maximum",
+        "unit",
+        "resource_scope_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeConcernSelection": {
+      "fields": [
+        "address",
+        "field_path",
+        "requirement_kind"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeConfiguration": {
+      "fields": [
+        "mounts",
+        "filesystem_inventory",
+        "local_control_interfaces",
+        "processes",
+        "environment",
+        "environment_files",
+        "linux_capabilities",
+        "operational_policy",
+        "container",
+        "local_identity",
+        "identity_authorities",
+        "file_services",
+        "mail_services",
+        "network",
+        "service_listeners",
+        "applications",
+        "database_services",
+        "dns_services",
+        "network_sensors",
+        "network_detection_engines",
+        "security_monitoring_managers",
+        "ssh_servers",
+        "datastore_services",
+        "platform_applications",
+        "forwarding_agents",
+        "orchestration_authorities",
+        "app_authorizations",
+        "scheduled_jobs",
+        "service_manager_units",
+        "packages",
+        "software_components",
+        "repository_state",
+        "dependency_manifests"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeContainerConfiguration": {
+      "fields": [
+        "entrypoint",
+        "command",
+        "log_driver",
+        "log_options",
+        "namespaces",
+        "privileged",
+        "read_only_rootfs",
+        "publish_all_ports",
+        "autoremove",
+        "shm_size",
+        "masked_paths",
+        "read_only_paths",
+        "cgroup_parent",
+        "runtime_name",
+        "init_process",
+        "devices",
+        "device_cgroup_rules",
+        "seccomp_profile",
+        "security_opt",
+        "extra_hosts",
+        "dns",
+        "dns_options",
+        "dns_search",
+        "group_add",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeControlInterface": {
+      "fields": [
+        "control_interface_id",
+        "path",
+        "kind",
+        "protocol",
+        "bind_source",
+        "bind_source_sensitivity",
+        "access",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatabaseService": {
+      "fields": [
+        "database_service_id",
+        "service",
+        "engine",
+        "protocol",
+        "version",
+        "name",
+        "description",
+        "listeners",
+        "databases",
+        "roles",
+        "grants",
+        "settings"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastoreCluster": {
+      "fields": [
+        "cluster_id",
+        "uuid",
+        "name",
+        "health",
+        "discovery_mode",
+        "partitioner",
+        "native_protocol_version",
+        "node_count",
+        "shard_total",
+        "shard_primaries",
+        "doc_count",
+        "store_size_bytes",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastoreEnginePlugin": {
+      "fields": [
+        "plugin_id",
+        "name",
+        "version",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastoreMapping": {
+      "fields": [
+        "mapping_id",
+        "name",
+        "partition_ref",
+        "top_level_field_count",
+        "leaf_field_count",
+        "field_type_census",
+        "dynamic_policy",
+        "dynamic_template_count",
+        "date_detection",
+        "schema_digest",
+        "evidence_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastoreNode": {
+      "fields": [
+        "node_id",
+        "name",
+        "roles",
+        "is_coordinator",
+        "engine_version",
+        "build_hash",
+        "build_type",
+        "heap_init_bytes",
+        "heap_max_bytes",
+        "memory_locked",
+        "endpoints",
+        "plugins",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastoreNodeEndpoint": {
+      "fields": [
+        "endpoint_id",
+        "role",
+        "protocol",
+        "address",
+        "port",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastorePartition": {
+      "fields": [
+        "partition_id",
+        "kind",
+        "name",
+        "uuid",
+        "shard_count",
+        "replica_count",
+        "doc_count",
+        "doc_count_deleted",
+        "store_size_bytes",
+        "creation_timestamp",
+        "open_closed_status",
+        "replication_strategy",
+        "replication_factor",
+        "per_dc_factor_map",
+        "durable_writes",
+        "datatype_census",
+        "health",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastorePersistence": {
+      "fields": [
+        "persistence_id",
+        "rdb_save_points",
+        "aof",
+        "eviction",
+        "maxmemory",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastoreService": {
+      "fields": [
+        "datastore_service_id",
+        "service",
+        "engine",
+        "data_model",
+        "protocol",
+        "version",
+        "name",
+        "cluster",
+        "nodes",
+        "partitions",
+        "templates",
+        "aliases",
+        "mappings",
+        "lifecycle_policies",
+        "ingest_pipelines",
+        "persistence",
+        "pubsub_channels",
+        "queues_streams",
+        "transport_security",
+        "backup_targets",
+        "settings",
+        "authorization_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastoreSetting": {
+      "fields": [
+        "setting_id",
+        "scope",
+        "provenance",
+        "classification",
+        "name",
+        "value",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastoreTemplate": {
+      "fields": [
+        "template_id",
+        "name",
+        "index_patterns",
+        "settings_summary",
+        "mapping_ref",
+        "template_digest",
+        "evidence_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastoreTransportSecurity": {
+      "fields": [
+        "transport_security_id",
+        "mode",
+        "client_verification",
+        "node_verification",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDependencyManifest": {
+      "fields": [
+        "ecosystem",
+        "path",
+        "format",
+        "name",
+        "version"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDescendantBinding": {
+      "fields": [
+        "address",
+        "parent_address",
+        "source_address",
+        "parent_instance_index",
+        "native_identity_digest",
+        "creation",
+        "state",
+        "lifecycle"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDeviceMapping": {
+      "fields": [
+        "host_path",
+        "container_path",
+        "permissions",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDnsService": {
+      "fields": [
+        "dns_service_id",
+        "service",
+        "implementation",
+        "version",
+        "name",
+        "roles",
+        "configuration_file_refs",
+        "log_file_refs",
+        "resolver_policy",
+        "dynamic_update",
+        "zones",
+        "settings",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeEnvironmentFile": {
+      "fields": [
+        "name",
+        "value_from",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeEnvironmentVariable": {
+      "fields": [
+        "name",
+        "value",
+        "value_from",
+        "value_classification",
+        "provenance",
+        "source",
+        "description"
+      ],
+      "omit": {
+        "value_from": [
+          "null"
+        ]
+      }
+    },
+    "#/$defs/RuntimeExtraHost": {
+      "fields": [
+        "hostname",
+        "address",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeFileService": {
+      "fields": [
+        "file_service_id",
+        "service",
+        "protocol",
+        "backend",
+        "description",
+        "shares",
+        "principals",
+        "access_rules",
+        "access_observations"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeFileServiceAccessObservation": {
+      "fields": [
+        "observation_id",
+        "subject_ref",
+        "resource_ref",
+        "action",
+        "outcome",
+        "basis",
+        "sensitivity",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeFileServiceAccessRule": {
+      "fields": [
+        "rule_id",
+        "subject_ref",
+        "resource_ref",
+        "action",
+        "effect",
+        "basis",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeFileServicePrincipal": {
+      "fields": [
+        "principal_id",
+        "kind",
+        "name",
+        "external_id",
+        "status",
+        "credential_classification",
+        "origin",
+        "local_user_ref",
+        "directory_subject_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeFileServiceShare": {
+      "fields": [
+        "share_id",
+        "name",
+        "kind",
+        "backing_path",
+        "comment",
+        "read_only",
+        "browseable",
+        "guest_ok",
+        "valid_users",
+        "valid_groups",
+        "invalid_users",
+        "write_users",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeFilesystemEntry": {
+      "fields": [
+        "path",
+        "entry_type",
+        "presence",
+        "owner_user",
+        "owner_group",
+        "uid",
+        "gid",
+        "mode",
+        "size",
+        "content_digest",
+        "digest_algorithm",
+        "source_path",
+        "provenance",
+        "stability",
+        "sensitivity",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeForwardingAgent": {
+      "fields": [
+        "forwarding_agent_id",
+        "implementation",
+        "agent_kind",
+        "ownership_role",
+        "version",
+        "name",
+        "sources",
+        "transforms",
+        "ship_targets",
+        "buffer_policy",
+        "reload_channels",
+        "settings",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeForwardingBufferPolicy": {
+      "fields": [
+        "buffer_policy_id",
+        "queue_capacity",
+        "eps",
+        "crypto",
+        "reconnect_seconds",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeForwardingReloadChannel": {
+      "fields": [
+        "reload_channel_id",
+        "target_ref",
+        "kind",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeForwardingSetting": {
+      "fields": [
+        "setting_id",
+        "name",
+        "value",
+        "provenance",
+        "classification",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeForwardingShipTarget": {
+      "fields": [
+        "target_id",
+        "target_node_ref",
+        "target_service_ref",
+        "ingestion_port",
+        "enrollment_port",
+        "protocol",
+        "enrollment_identity_classification",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeForwardingSource": {
+      "fields": [
+        "source_id",
+        "kind",
+        "location",
+        "parse_format",
+        "selector",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeForwardingTransform": {
+      "fields": [
+        "transform_id",
+        "kind",
+        "sid_namespace",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityAccessObservation": {
+      "fields": [
+        "observation_id",
+        "principal_ref",
+        "action",
+        "resource_ref",
+        "outcome",
+        "evidence_refs",
+        "context_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityAttribute": {
+      "fields": [
+        "name",
+        "values",
+        "value_classification",
+        "origin",
+        "provenance",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityAuthority": {
+      "fields": [
+        "identity_authority_id",
+        "kind",
+        "name",
+        "namespace",
+        "domain_name",
+        "realm",
+        "issuer",
+        "tenant_id",
+        "base_dn",
+        "description",
+        "services",
+        "subjects",
+        "policies",
+        "relationships",
+        "resource_scopes",
+        "identity_uses",
+        "access_observations"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityAuthorityService": {
+      "fields": [
+        "service_id",
+        "service",
+        "protocol",
+        "address",
+        "port",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityPermissionBinding": {
+      "fields": [
+        "binding_id",
+        "principal_refs",
+        "resource_refs",
+        "actions",
+        "role_ref",
+        "effect",
+        "condition",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityPolicy": {
+      "fields": [
+        "policy_id",
+        "policy_kind",
+        "name",
+        "applies_to_refs",
+        "settings",
+        "resource_access",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityPolicyCondition": {
+      "fields": [
+        "language",
+        "expression"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityRelationship": {
+      "fields": [
+        "relationship_id",
+        "relationship_type",
+        "source_ref",
+        "target_ref",
+        "external_target",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityResourceAccess": {
+      "fields": [
+        "attachment_ref",
+        "bindings",
+        "inherited_from_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityResourceScope": {
+      "fields": [
+        "scope_id",
+        "provider",
+        "scope_kind",
+        "name",
+        "native_id",
+        "incarnation_id",
+        "parent_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentitySubject": {
+      "fields": [
+        "subject_id",
+        "kind",
+        "name",
+        "display_name",
+        "principal_name",
+        "distinguished_name",
+        "domain",
+        "enabled",
+        "origin",
+        "service_principal_names",
+        "resource_scope_ref",
+        "attributes",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityUse": {
+      "fields": [
+        "use_id",
+        "workload_ref",
+        "principal_ref",
+        "mode",
+        "source_principal_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeInitProcess": {
+      "fields": [
+        "enabled",
+        "implementation",
+        "executable_path",
+        "reaps_children",
+        "argv",
+        "argv_redacted",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeInventoryEvidence": {
+      "fields": [
+        "run_id",
+        "operation_id",
+        "attempt_id",
+        "evidence_digest"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeInventoryReport": {
+      "fields": [
+        "contract_id",
+        "attempt_id",
+        "sequence",
+        "complete",
+        "scope",
+        "source_digest",
+        "run_id",
+        "unavailable_evidence",
+        "target_scope",
+        "descendants",
+        "backend_selections"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeListenerReadiness": {
+      "fields": [
+        "probe",
+        "criteria",
+        "evidence_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeLocalGroup": {
+      "fields": [
+        "name",
+        "gid",
+        "members",
+        "provenance",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeLocalIdentityInventory": {
+      "fields": [
+        "users",
+        "groups",
+        "sudo_rules",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeLocalUser": {
+      "fields": [
+        "username",
+        "uid",
+        "primary_gid",
+        "primary_group",
+        "gecos",
+        "home",
+        "shell",
+        "supplemental_groups",
+        "disabled",
+        "locked",
+        "no_login",
+        "provenance",
+        "stability",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailAlias": {
+      "fields": [
+        "alias_id",
+        "address",
+        "domain_ref",
+        "target_refs",
+        "external_targets",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailComponent": {
+      "fields": [
+        "component_id",
+        "kind",
+        "name",
+        "version",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailDomain": {
+      "fields": [
+        "domain_id",
+        "name",
+        "role",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailListener": {
+      "fields": [
+        "listener_id",
+        "service",
+        "protocol",
+        "role",
+        "component_ref",
+        "banner",
+        "advertised_identity",
+        "capabilities",
+        "auth_mechanisms",
+        "tls_mode",
+        "tls_versions",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailMailbox": {
+      "fields": [
+        "mailbox_id",
+        "address",
+        "local_part",
+        "domain_ref",
+        "role",
+        "status",
+        "auth_mechanisms",
+        "credential_classification",
+        "store_ref",
+        "account_ref",
+        "local_user_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailMailboxStore": {
+      "fields": [
+        "store_id",
+        "kind",
+        "path",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailQueue": {
+      "fields": [
+        "queue_id",
+        "kind",
+        "name",
+        "message_count",
+        "stability",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailRoutingRule": {
+      "fields": [
+        "rule_id",
+        "kind",
+        "source_ref",
+        "target_ref",
+        "relay_host",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailService": {
+      "fields": [
+        "mail_service_id",
+        "service",
+        "engine",
+        "version",
+        "name",
+        "description",
+        "components",
+        "listeners",
+        "domains",
+        "mailbox_stores",
+        "mailboxes",
+        "aliases",
+        "routing_rules",
+        "queues",
+        "settings"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailSetting": {
+      "fields": [
+        "setting_id",
+        "component_ref",
+        "name",
+        "value",
+        "value_classification",
+        "provenance",
+        "source_path",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMount": {
+      "fields": [
+        "target",
+        "source",
+        "source_sensitivity",
+        "source_kind",
+        "filesystem_type",
+        "read_only",
+        "options",
+        "options_sensitivity",
+        "propagation",
+        "stability",
+        "backend_generated",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNamespaceConfiguration": {
+      "fields": [
+        "cgroup",
+        "ipc",
+        "network",
+        "pid",
+        "userns",
+        "uts"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkBackendDetail": {
+      "fields": [
+        "driver",
+        "ipam_driver",
+        "driver_options",
+        "ipam_options",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkDetectionControlChannel": {
+      "fields": [
+        "channel_id",
+        "kind",
+        "path",
+        "service",
+        "capabilities",
+        "auth_required",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkDetectionEngine": {
+      "fields": [
+        "network_detection_engine_id",
+        "implementation",
+        "engine_kind",
+        "version",
+        "revision",
+        "name",
+        "process_ref",
+        "sensor_ref",
+        "configuration_file_refs",
+        "log_file_refs",
+        "evidence_refs",
+        "app_layer_protocols",
+        "rule_sources",
+        "network_sets",
+        "output_streams",
+        "control_channels",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkDetectionNetworkSet": {
+      "fields": [
+        "set_id",
+        "kind",
+        "name",
+        "selector_values",
+        "network_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkDetectionOutputStream": {
+      "fields": [
+        "stream_id",
+        "format",
+        "path",
+        "event_types",
+        "enabled",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkDetectionRuleSource": {
+      "fields": [
+        "source_id",
+        "kind",
+        "format",
+        "name",
+        "rule_count",
+        "file_refs",
+        "generated_by",
+        "loaded",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkEndpoint": {
+      "fields": [
+        "network",
+        "ip_address",
+        "ip_prefix_length",
+        "gateway",
+        "mac_address",
+        "aliases",
+        "dns_names",
+        "backend",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkNamespace": {
+      "fields": [
+        "target_node_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkRealization": {
+      "fields": [
+        "hostname",
+        "domainname",
+        "endpoints",
+        "published_ports",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkSensor": {
+      "fields": [
+        "network_sensor_id",
+        "implementation",
+        "sensor_kind",
+        "monitoring_posture",
+        "capture_mode",
+        "capture_interfaces",
+        "monitored_network_refs",
+        "process_ref",
+        "version",
+        "revision",
+        "name",
+        "configuration_file_refs",
+        "log_file_refs",
+        "evidence_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeOperationalPolicy": {
+      "fields": [
+        "restart",
+        "resource_limits",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeOrchestrationAuthority": {
+      "fields": [
+        "orchestration_authority_id",
+        "control_interface_ref",
+        "engine",
+        "engine_api_version",
+        "name",
+        "scope",
+        "spawn_templates",
+        "lifecycle_policy",
+        "realized_children",
+        "privilege_class",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeOrchestrationLifecyclePolicy": {
+      "fields": [
+        "timeout",
+        "cleanup",
+        "execution_timeout",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeOrchestrationRealizedChild": {
+      "fields": [
+        "workload_id",
+        "image_ref",
+        "count",
+        "evidence_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeOrchestrationScope": {
+      "fields": [
+        "organization_ref",
+        "environment_name",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeOrchestrationSpawnTemplate": {
+      "fields": [
+        "template_id",
+        "image_ref",
+        "purpose",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePackage": {
+      "fields": [
+        "manager",
+        "name",
+        "version",
+        "architecture",
+        "source",
+        "purl",
+        "repository"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePackageRepositorySigningKey": {
+      "fields": [
+        "uri",
+        "format",
+        "digest"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplication": {
+      "fields": [
+        "platform_application_id",
+        "service",
+        "platform_kind",
+        "product",
+        "version",
+        "name",
+        "capabilities",
+        "organizations",
+        "tenants",
+        "content_objects",
+        "markings",
+        "upstream_bindings",
+        "connectors",
+        "execution_policy",
+        "settings",
+        "authorization_ref",
+        "resource_scope_ref",
+        "secrets",
+        "cloud_limits",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplicationCapability": {
+      "fields": [
+        "capability_id",
+        "kind",
+        "evidence_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplicationConnector": {
+      "fields": [
+        "connector_id",
+        "kind",
+        "name",
+        "enabled",
+        "credential_classification",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplicationContentObject": {
+      "fields": [
+        "content_object_id",
+        "kind",
+        "name",
+        "attributes",
+        "references",
+        "marking_refs",
+        "evidence_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplicationExecutionPolicy": {
+      "fields": [
+        "policy_id",
+        "runner",
+        "max_concurrent_jobs",
+        "job_timeout",
+        "rate_limit",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplicationMarking": {
+      "fields": [
+        "marking_id",
+        "scheme",
+        "level",
+        "value",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplicationOrganization": {
+      "fields": [
+        "organization_id",
+        "name",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplicationSetting": {
+      "fields": [
+        "setting_id",
+        "name",
+        "value",
+        "provenance",
+        "classification",
+        "redaction",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplicationTenant": {
+      "fields": [
+        "tenant_id",
+        "name",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplicationUpstreamBinding": {
+      "fields": [
+        "binding_id",
+        "role",
+        "target_node_ref",
+        "target_service_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeProcessCapabilityOverride": {
+      "fields": [
+        "subject",
+        "scope",
+        "effective",
+        "add",
+        "drop",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeProcessIdentity": {
+      "fields": [
+        "name",
+        "pid",
+        "parent_pid",
+        "command",
+        "command_redacted",
+        "role",
+        "user",
+        "group",
+        "working_directory",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeProcessResourceLimit": {
+      "fields": [
+        "resource",
+        "soft",
+        "hard",
+        "subject",
+        "scope",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePublishedPort": {
+      "fields": [
+        "container_port",
+        "protocol",
+        "host_ip",
+        "host_port",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePublishedPortRef": {
+      "fields": [
+        "container_port",
+        "protocol",
+        "host_ip",
+        "host_port"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeResourceLimits": {
+      "fields": [
+        "memory",
+        "memory_swap",
+        "cpu",
+        "pids",
+        "process_limits",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeScheduledJob": {
+      "fields": [
+        "scheduled_job_id",
+        "name",
+        "command_ref",
+        "enabled",
+        "schedule",
+        "run_state",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeScheduledJobRunState": {
+      "fields": [
+        "last_run",
+        "next_run",
+        "last_result"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeScheduledJobSchedule": {
+      "fields": [
+        "kind",
+        "spec",
+        "enabled"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecretConsumer": {
+      "fields": [
+        "selection_id",
+        "consumer_ref",
+        "version_ref",
+        "selector",
+        "resolved_version_ref",
+        "resolution_basis",
+        "resolution_evidence_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecretSelector": {
+      "fields": [
+        "kind",
+        "value"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecretVersion": {
+      "fields": [
+        "version_id",
+        "native_id",
+        "state",
+        "native_state",
+        "payload_content_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecurityMonitoringAgent": {
+      "fields": [
+        "agent_id",
+        "name",
+        "status",
+        "address",
+        "version",
+        "os",
+        "node_ref",
+        "group_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecurityMonitoringAgentGroup": {
+      "fields": [
+        "group_id",
+        "name",
+        "member_refs",
+        "configuration_file_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecurityMonitoringComponent": {
+      "fields": [
+        "component_id",
+        "kind",
+        "name",
+        "status",
+        "enabled",
+        "process_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecurityMonitoringContentSet": {
+      "fields": [
+        "content_id",
+        "kind",
+        "format",
+        "name",
+        "file_count",
+        "file_refs",
+        "loaded",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecurityMonitoringDetectionDefinition": {
+      "fields": [
+        "definition_id",
+        "engine",
+        "definition_kind",
+        "native_id",
+        "name",
+        "content_set_ref",
+        "source_artifact_ref",
+        "source_file_ref",
+        "source_start_line",
+        "source_end_line",
+        "digest_algorithm",
+        "canonical_digest",
+        "enabled",
+        "loaded",
+        "parser_accepted",
+        "level",
+        "severity",
+        "description",
+        "match_strings",
+        "regex_patterns",
+        "field_predicates",
+        "decoded_as",
+        "decoder_names",
+        "decoder_fields",
+        "if_sid_refs",
+        "if_matched_sid_refs",
+        "parent_definition_refs",
+        "frequency",
+        "timeframe_seconds",
+        "same_source_constraints",
+        "groups",
+        "mitre_attack_ids",
+        "compliance_tags",
+        "tactic_labels",
+        "technique_labels",
+        "tags",
+        "target_refs",
+        "evidence_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecurityMonitoringFieldPredicate": {
+      "fields": [
+        "field",
+        "operator",
+        "value",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecurityMonitoringListener": {
+      "fields": [
+        "listener_id",
+        "service",
+        "role",
+        "protocol",
+        "auth_required",
+        "tls_enabled",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecurityMonitoringManager": {
+      "fields": [
+        "security_monitoring_manager_id",
+        "service",
+        "implementation",
+        "manager_kind",
+        "version",
+        "revision",
+        "name",
+        "configuration_file_refs",
+        "log_file_refs",
+        "evidence_refs",
+        "listeners",
+        "components",
+        "agents",
+        "agent_groups",
+        "content_sets",
+        "detection_definitions",
+        "settings",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecurityMonitoringSetting": {
+      "fields": [
+        "setting_id",
+        "component_ref",
+        "name",
+        "value",
+        "value_classification",
+        "provenance",
+        "source_path",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeServiceListener": {
+      "fields": [
+        "service_listener_id",
+        "service",
+        "address",
+        "port",
+        "protocol",
+        "address_family",
+        "scope",
+        "bind_interface",
+        "socket_path",
+        "process_ref",
+        "process_name",
+        "published_port_refs",
+        "readiness",
+        "provenance",
+        "evidence_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeServiceSecret": {
+      "fields": [
+        "secret_id",
+        "resource_scope_ref",
+        "native_id",
+        "versions",
+        "consumers",
+        "location",
+        "replica_locations",
+        "encryption_key_ref",
+        "reset_owner_ref",
+        "deletion_owner_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSoftwareComponent": {
+      "fields": [
+        "component_id",
+        "name",
+        "presence",
+        "version",
+        "version_constraint",
+        "component_type",
+        "provenance",
+        "ecosystem",
+        "purl",
+        "cpe",
+        "package_manager",
+        "package_name",
+        "package_version",
+        "package_version_constraint",
+        "package_ref",
+        "package",
+        "repository_refs",
+        "refinements",
+        "manifest_path",
+        "installed_paths",
+        "hashes",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSoftwareComponentHash": {
+      "fields": [
+        "algorithm",
+        "value"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSoftwareComponentRefinement": {
+      "fields": [
+        "refinement_id",
+        "purpose",
+        "definition",
+        "profile_value"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSoftwarePackageReference": {
+      "fields": [
+        "manager",
+        "name",
+        "architecture"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSoftwareRepository": {
+      "fields": [
+        "repository_id",
+        "presence",
+        "trust_ref",
+        "refinements"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSoftwareRepositoryRefinement": {
+      "fields": [
+        "refinement_id",
+        "purpose",
+        "definition",
+        "profile_value"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSoftwareRepositoryState": {
+      "fields": [
+        "repositories",
+        "trust_bindings"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSoftwareTrustBinding": {
+      "fields": [
+        "trust_id",
+        "presence",
+        "refinements"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSoftwareTrustRefinement": {
+      "fields": [
+        "refinement_id",
+        "purpose",
+        "definition",
+        "profile_value"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSshServer": {
+      "fields": [
+        "forced_command",
+        "accept_env",
+        "allow_users",
+        "deny_users",
+        "allow_groups",
+        "deny_groups",
+        "authentication_methods",
+        "password_authentication",
+        "pubkey_authentication",
+        "permit_tty",
+        "chroot_directory",
+        "authorized_keys_file",
+        "description",
+        "ssh_server_id",
+        "service",
+        "match_rules"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSudoRule": {
+      "fields": [
+        "principal",
+        "principal_kind",
+        "run_as_users",
+        "run_as_groups",
+        "commands",
+        "host_scope",
+        "nopasswd",
+        "command_redacted",
+        "raw_entry",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Script": {
+      "fields": [
+        "name",
+        "start_time",
+        "end_time",
+        "speed",
+        "events",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/SecretFixtureCredentialMaterial": {
+      "fields": [
+        "classification",
+        "value"
+      ],
+      "omit": {}
+    },
+    "#/$defs/SemanticDigest": {
+      "fields": [
+        "profile",
+        "algorithm",
+        "value"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ServiceManagerUnit": {
+      "fields": [
+        "unit_id",
+        "manager_kind",
+        "unit_name",
+        "unit_type",
+        "load_state",
+        "active_state",
+        "sub_state",
+        "enabled_state",
+        "result",
+        "exit_code",
+        "status_text",
+        "main_pid",
+        "unit_file_path",
+        "exec_start",
+        "service",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ServiceMaterialization": {
+      "fields": [
+        "target_service_ref",
+        "shared_service_relationship_ref",
+        "ordering_content_refs",
+        "readback_assertion_refs",
+        "evidence_requirement_refs",
+        "observation_boundary_refs",
+        "interface_profile",
+        "profile_version",
+        "requirements"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ServiceMaterializationRequirements": {
+      "fields": [
+        "operation",
+        "conflict_policy",
+        "readback"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ServicePort": {
+      "fields": [
+        "port",
+        "protocol",
+        "name",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ServiceSearchIndexSchemaMaterialization": {
+      "fields": [
+        "target_service_ref",
+        "shared_service_relationship_ref",
+        "ordering_content_refs",
+        "readback_assertion_refs",
+        "evidence_requirement_refs",
+        "observation_boundary_refs",
+        "interface_profile",
+        "profile_version",
+        "requirements"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ServiceSearchIndexSchemaRequirements": {
+      "fields": [
+        "operation",
+        "conflict_policy",
+        "readback",
+        "field_semantics"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ServiceUnitExecStart": {
+      "fields": [
+        "command_kind",
+        "command",
+        "command_redacted",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/SimpleProperties": {
+      "fields": [
+        "cidr",
+        "gateway",
+        "internal"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Source": {
+      "fields": [
+        "name",
+        "version",
+        "build",
+        "artifact_requirement"
+      ],
+      "omit": {}
+    },
+    "#/$defs/SshForcedCommand": {
+      "fields": [
+        "command_kind",
+        "command",
+        "command_redacted",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/SshMatchCriterion": {
+      "fields": [
+        "kind",
+        "pattern"
+      ],
+      "omit": {}
+    },
+    "#/$defs/SshMatchRule": {
+      "fields": [
+        "forced_command",
+        "accept_env",
+        "allow_users",
+        "deny_users",
+        "allow_groups",
+        "deny_groups",
+        "authentication_methods",
+        "password_authentication",
+        "pubkey_authentication",
+        "permit_tty",
+        "chroot_directory",
+        "authorized_keys_file",
+        "description",
+        "match_id",
+        "criteria"
+      ],
+      "omit": {}
+    },
+    "#/$defs/StatefulResourceConsumer": {
+      "fields": [
+        "node",
+        "mount_destination",
+        "access_mode"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Story": {
+      "fields": [
+        "name",
+        "speed",
+        "scripts",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/StringPredicate": {
+      "fields": [
+        "kind",
+        "property",
+        "semantic_ref",
+        "operator",
+        "expected",
+        "expected_from"
+      ],
+      "omit": {
+        "expected_from": [
+          "null"
+        ]
+      }
+    },
+    "#/$defs/TemporalConstraint": {
+      "fields": [
+        "constraint_kind",
+        "clock_ref",
+        "subject_refs",
+        "start",
+        "end",
+        "duration_ticks",
+        "cadence_ticks",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/TimeCoordinate": {
+      "fields": [
+        "tick",
+        "microstep"
+      ],
+      "omit": {}
+    },
+    "#/$defs/TimeDomain": {
+      "fields": [
+        "kind",
+        "tick_period_seconds",
+        "epoch",
+        "visibility",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/TimeDomainMapping": {
+      "fields": [
+        "source_domain_ref",
+        "target_domain_ref",
+        "mapping_kind",
+        "scale",
+        "offset_ticks",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/TimeProgressionPolicy": {
+      "fields": [
+        "clock_ref",
+        "advancement_mode",
+        "pacing_ratio",
+        "synchronization_mode",
+        "step_ticks",
+        "drift_bound_ticks",
+        "reset_behavior",
+        "replay_behavior",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/VersionDomain": {
+      "fields": [
+        "kind",
+        "relation",
+        "lower",
+        "upper",
+        "lower_closed",
+        "upper_closed"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Workflow": {
+      "fields": [
+        "description",
+        "start",
+        "timeout",
+        "compensation",
+        "steps"
+      ],
+      "omit": {}
+    },
+    "#/$defs/WorkflowCompensationPolicy": {
+      "fields": [
+        "mode",
+        "on",
+        "failure_policy",
+        "order"
+      ],
+      "omit": {}
+    },
+    "#/$defs/WorkflowPredicate": {
+      "fields": [
+        "assertions",
+        "objectives",
+        "steps"
+      ],
+      "omit": {}
+    },
+    "#/$defs/WorkflowStep": {
+      "fields": [
+        "type",
+        "execution_mode",
+        "objective",
+        "procedure_ref",
+        "scaffold_refs",
+        "allowed_action_families",
+        "tool_affordance_refs",
+        "capability_refs",
+        "fact_binding_refs",
+        "next",
+        "on_success",
+        "on_failure",
+        "on_exhausted",
+        "when",
+        "then",
+        "else",
+        "cases",
+        "default",
+        "branches",
+        "join",
+        "workflow",
+        "compensate_with",
+        "max_attempts",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/WorkflowStepStateRef": {
+      "fields": [
+        "step",
+        "outcomes",
+        "min_attempts"
+      ],
+      "omit": {}
+    },
+    "#/$defs/WorkflowSwitchCase": {
+      "fields": [
+        "when",
+        "next",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/WorkflowTimeoutPolicy": {
+      "fields": [
+        "seconds"
+      ],
+      "omit": {}
+    }
+  },
+  "sdl-authoring-input-v1": {
+    "#": {
+      "fields": [
+        "name",
+        "version",
+        "description",
+        "semantic_revision",
+        "nodes",
+        "infrastructure",
+        "features",
+        "conditions",
+        "propositions",
+        "assertions",
+        "entities",
+        "injects",
+        "events",
+        "scripts",
+        "stories",
+        "content",
+        "generated_artifacts",
+        "persistent_volumes",
+        "accounts",
+        "identity_domains",
+        "identity_forests",
+        "identity_facades",
+        "deployment_tenants",
+        "deployment_cells",
+        "relationships",
+        "forwarding_agents",
+        "control_context_assets",
+        "agents",
+        "action_contracts",
+        "observation_boundaries",
+        "outcome_interpretation_rules",
+        "behavior_specifications",
+        "evidence_requirements",
+        "execution_policy",
+        "augmentation_scope",
+        "time_domains",
+        "clocks",
+        "time_domain_mappings",
+        "time_progression_policies",
+        "temporal_constraints",
+        "objectives",
+        "workflows",
+        "module",
+        "imports",
+        "realization",
+        "variables",
+        "variation_points"
+      ],
+      "omit": {
+        "augmentation_scope": [
+          "null"
+        ],
+        "control_context_assets": [
+          "null",
+          "empty",
+          "blank",
+          "false"
+        ],
+        "execution_policy": [
+          "null"
+        ],
+        "semantic_revision": [
+          "null"
+        ]
+      }
+    },
+    "#/$defs/ACLRule": {
+      "fields": [
+        "name",
+        "direction",
+        "from_net",
+        "to_net",
+        "protocol",
+        "ports",
+        "action",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Account": {
+      "fields": [
+        "username",
+        "node",
+        "groups",
+        "password_strength",
+        "auth_method",
+        "credential_bindings",
+        "materialization_profile",
+        "description",
+        "mail",
+        "spn",
+        "domain_ref",
+        "shell",
+        "home",
+        "disabled"
+      ],
+      "omit": {
+        "materialization_profile": [
+          "null"
+        ]
+      }
+    },
+    "#/$defs/AccountCredentialBinding": {
+      "fields": [
+        "credential_id",
+        "purpose",
+        "auth_method",
+        "material"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Agent": {
+      "fields": [
+        "control_context",
+        "affiliations",
+        "role",
+        "description",
+        "actions",
+        "starting_accounts",
+        "initial_knowledge",
+        "allowed_subnets",
+        "starting_assertions",
+        "authority_anchors",
+        "operating_scope",
+        "observation_boundaries",
+        "interactive_access"
+      ],
+      "omit": {
+        "control_context": [
+          "null",
+          "empty",
+          "blank",
+          "false"
+        ]
+      }
+    },
+    "#/$defs/AlternativeVariationPoint": {
+      "fields": [
+        "kind",
+        "target",
+        "alternatives",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ArtifactCandidate": {
+      "fields": [
+        "candidate_id",
+        "artifact"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ArtifactConstraint": {
+      "fields": [
+        "constraint_id",
+        "kind",
+        "allowed_values"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ArtifactIdentity": {
+      "fields": [
+        "artifact_id",
+        "version",
+        "digest",
+        "media_type"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ArtifactLockedInput": {
+      "fields": [
+        "input_id",
+        "artifact",
+        "associated_artifact_manifest_ref",
+        "trust_policy_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ArtifactMaterializationSpecification": {
+      "fields": [
+        "specification_id",
+        "profile",
+        "digest",
+        "locked_input_ids"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ArtifactMechanismProfile": {
+      "fields": [
+        "mechanism",
+        "profile",
+        "version",
+        "digest"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ArtifactRequirement": {
+      "fields": [
+        "requirement_id",
+        "explicitness",
+        "exact_artifact",
+        "constraints",
+        "candidates",
+        "locked_inputs",
+        "materialization_specifications",
+        "permitted_routes",
+        "trust_policy_refs",
+        "associated_artifact_manifest_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ArtifactSatisfactionRoute": {
+      "fields": [
+        "mechanism",
+        "acquisition",
+        "timing"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Assertion": {
+      "fields": [
+        "description",
+        "proposition",
+        "role",
+        "polarity"
+      ],
+      "omit": {}
+    },
+    "#/$defs/AssetValue": {
+      "fields": [
+        "confidentiality",
+        "integrity",
+        "availability"
+      ],
+      "omit": {}
+    },
+    "#/$defs/AugmentationScopePolicy": {
+      "fields": [
+        "default",
+        "scopes"
+      ],
+      "omit": {}
+    },
+    "#/$defs/AugmentationScopeRule": {
+      "fields": [
+        "scope",
+        "permission",
+        "namespace"
+      ],
+      "omit": {}
+    },
+    "#/$defs/BooleanDomain": {
+      "fields": [
+        "kind",
+        "value"
+      ],
+      "omit": {}
+    },
+    "#/$defs/BooleanPredicate": {
+      "fields": [
+        "kind",
+        "property",
+        "semantic_ref",
+        "operator",
+        "expected"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Clock": {
+      "fields": [
+        "time_domain_ref",
+        "authority_kind",
+        "authority_ref",
+        "monotonicity",
+        "supports_pause",
+        "supports_reset",
+        "supports_jump",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/CollectionTarget": {
+      "fields": [
+        "kind",
+        "owner",
+        "slot"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Condition": {
+      "fields": [
+        "name",
+        "proposition",
+        "command",
+        "interval",
+        "timeout",
+        "retries",
+        "start_period",
+        "source",
+        "description",
+        "environment"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ConsumerSelector": {
+      "fields": [
+        "node",
+        "mount_destination"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ContainerImageBuildProvenance": {
+      "fields": [
+        "base_image",
+        "base_image_digest",
+        "dockerfile_path",
+        "instructions",
+        "layers",
+        "build_args",
+        "copied_sources",
+        "config",
+        "source_inputs",
+        "attestation",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Content": {
+      "fields": [
+        "type",
+        "description",
+        "target",
+        "path",
+        "destination",
+        "text",
+        "text_from",
+        "source",
+        "format",
+        "items",
+        "sensitive",
+        "tags",
+        "service_materialization"
+      ],
+      "omit": {
+        "text_from": [
+          "null"
+        ]
+      }
+    },
+    "#/$defs/ContentItem": {
+      "fields": [
+        "name",
+        "display_name",
+        "tags",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Database": {
+      "fields": [
+        "database_id",
+        "name",
+        "origin",
+        "schemas",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DatabaseGrant": {
+      "fields": [
+        "grantee_role_ref",
+        "object_type",
+        "object_ref",
+        "privileges",
+        "with_grant_option",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DatabaseListener": {
+      "fields": [
+        "address",
+        "port",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DatabaseRole": {
+      "fields": [
+        "role_id",
+        "name",
+        "role_type",
+        "origin",
+        "can_login",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DatabaseSchema": {
+      "fields": [
+        "schema_id",
+        "name",
+        "origin",
+        "tables",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DatabaseSetting": {
+      "fields": [
+        "name",
+        "value",
+        "value_classification",
+        "provenance",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DatabaseTable": {
+      "fields": [
+        "table_id",
+        "name",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DeclarationPresenceAlternative": {
+      "fields": [
+        "description",
+        "requires",
+        "excludes",
+        "kind",
+        "present"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DeploymentCell": {
+      "fields": [
+        "tenant_ref",
+        "node_refs",
+        "cross_tenant_isolation"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DeploymentTenant": {
+      "fields": [
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsDynamicUpdatePolicy": {
+      "fields": [
+        "enabled",
+        "allowed_clients",
+        "key_names",
+        "policy",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsForwarder": {
+      "fields": [
+        "address",
+        "port",
+        "transport",
+        "tls_server_name",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsMxRdata": {
+      "fields": [
+        "preference",
+        "exchange"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsResolverPolicy": {
+      "fields": [
+        "recursion_enabled",
+        "allow_recursion",
+        "forwarders",
+        "forwarding_policy",
+        "dnssec_validation",
+        "query_logging",
+        "default_logging",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsResourceRecord": {
+      "fields": [
+        "rdata",
+        "address",
+        "target",
+        "text",
+        "soa",
+        "mx",
+        "srv",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsResourceRecordSet": {
+      "fields": [
+        "rrset_id",
+        "owner",
+        "record_type",
+        "zone_class",
+        "ttl",
+        "type_code",
+        "records",
+        "provenance",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsRuntimeSetting": {
+      "fields": [
+        "name",
+        "value",
+        "value_classification",
+        "provenance",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsSoaRdata": {
+      "fields": [
+        "mname",
+        "rname",
+        "serial",
+        "refresh",
+        "retry",
+        "expire",
+        "minimum"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsSrvRdata": {
+      "fields": [
+        "priority",
+        "weight",
+        "port",
+        "target"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsZone": {
+      "fields": [
+        "zone_id",
+        "name",
+        "kind",
+        "purpose",
+        "zone_class",
+        "provenance",
+        "zone_file_refs",
+        "transfer",
+        "rrsets",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DnsZoneTransferPolicy": {
+      "fields": [
+        "axfr_enabled",
+        "ixfr_enabled",
+        "allowed_clients",
+        "primary_servers",
+        "secondary_servers",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DockerfileInstruction": {
+      "fields": [
+        "instruction",
+        "arguments",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DomainProfileBindingModel": {
+      "fields": [
+        "schema_version",
+        "binding_id",
+        "coordinate",
+        "owner",
+        "value",
+        "provenance",
+        "children"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DomainProfileBindingOwnerModel": {
+      "fields": [
+        "owning_contract_id",
+        "canonical_address",
+        "concept_family",
+        "lifecycle_phase",
+        "context",
+        "use"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DomainProfileBindingProvenanceModel": {
+      "fields": [
+        "basis",
+        "source_ref",
+        "evidence_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DomainProfileCoordinateModel": {
+      "fields": [
+        "namespace",
+        "authority",
+        "profile_id",
+        "revision",
+        "definition_digest"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DomainProfileDefinitionModel": {
+      "fields": [
+        "schema_version",
+        "coordinate",
+        "profile_schema",
+        "semantic_contract",
+        "allowed_contexts"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DomainProfileSchemaModel": {
+      "fields": [
+        "dialect",
+        "schema_id",
+        "revision",
+        "schema_digest",
+        "required_vocabularies",
+        "schema_document"
+      ],
+      "omit": {}
+    },
+    "#/$defs/DomainProfileSemanticContractModel": {
+      "fields": [
+        "authority",
+        "contract_id",
+        "revision",
+        "digest"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Entity": {
+      "fields": [
+        "name",
+        "description",
+        "role",
+        "mission",
+        "facts",
+        "events",
+        "entities"
+      ],
+      "omit": {}
+    },
+    "#/$defs/EnumDomain": {
+      "fields": [
+        "kind",
+        "values"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Event": {
+      "fields": [
+        "name",
+        "source",
+        "assertions",
+        "injects",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/EvidenceRequirement": {
+      "fields": [
+        "description",
+        "source_refs",
+        "source_class",
+        "scope_refs",
+        "scope",
+        "window",
+        "trigger_ref",
+        "boundary_ref",
+        "boundary_kind",
+        "channel",
+        "channel_refs",
+        "artifact_role",
+        "media_types",
+        "sensitivity",
+        "redaction",
+        "integrity",
+        "retention",
+        "loss_disclosure",
+        "capture_spec_ref",
+        "capture_requirement_ref",
+        "output_contract",
+        "field_selectors",
+        "notes",
+        "observation_demand"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ExactDomain": {
+      "fields": [
+        "kind",
+        "value"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ExactRatio": {
+      "fields": [
+        "numerator",
+        "denominator"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ExecutionPolicy": {
+      "fields": [
+        "schema_version",
+        "policy_id",
+        "revision",
+        "response",
+        "failure_classes",
+        "validity",
+        "retry",
+        "effect_classes",
+        "budget_ms",
+        "delay_ms",
+        "clock_basis",
+        "clock_ref",
+        "evidence_refs",
+        "on_exhausted",
+        "fresh_trial_limit"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ExecutionPolicyDocument": {
+      "fields": [
+        "default",
+        "scopes"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ExecutionPolicyScope": {
+      "fields": [
+        "namespace",
+        "scope",
+        "policy"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ExecutionRetryPolicyModel": {
+      "fields": [
+        "max_attempts",
+        "after_effect_policy",
+        "reset_obligation_refs",
+        "compensation_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ExperimentArtifactRefModel": {
+      "fields": [
+        "artifact_id",
+        "role",
+        "media_type",
+        "uri",
+        "checksum",
+        "size_bytes",
+        "created_at",
+        "source",
+        "satisfies_refs",
+        "sensitivity",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ExperimentChecksumModel": {
+      "fields": [
+        "algorithm",
+        "value"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ExperimentEvidenceSatisfactionReferenceModel": {
+      "fields": [
+        "ref_kind",
+        "ref_id",
+        "ref_version"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Feature": {
+      "fields": [
+        "name",
+        "type",
+        "source",
+        "dependencies",
+        "destination",
+        "description",
+        "environment"
+      ],
+      "omit": {}
+    },
+    "#/$defs/GeneratedArtifact": {
+      "fields": [
+        "generator",
+        "lifecycle",
+        "regeneration_scope",
+        "random_value",
+        "provenance",
+        "outputs",
+        "consumers",
+        "ordering_dependencies",
+        "refresh_dependencies"
+      ],
+      "omit": {
+        "random_value": [
+          "null"
+        ],
+        "regeneration_scope": [
+          "null"
+        ]
+      }
+    },
+    "#/$defs/GeneratedArtifactConsumer": {
+      "fields": [
+        "node",
+        "mount_destination",
+        "access_mode",
+        "selected_outputs"
+      ],
+      "omit": {
+        "selected_outputs": [
+          "null",
+          "empty",
+          "blank",
+          "false"
+        ]
+      }
+    },
+    "#/$defs/GeneratedArtifactOutput": {
+      "fields": [
+        "name",
+        "path",
+        "sensitivity",
+        "disposition"
+      ],
+      "omit": {}
+    },
+    "#/$defs/GeneratedArtifactValueSource": {
+      "fields": [
+        "generated_artifact",
+        "output"
+      ],
+      "omit": {}
+    },
+    "#/$defs/GovernedReferenceDomain": {
+      "fields": [
+        "kind",
+        "authority",
+        "allowed_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/GovernedReferenceVariationPoint": {
+      "fields": [
+        "kind",
+        "target",
+        "domain",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/IdentityDomain": {
+      "fields": [
+        "profile",
+        "dns_name",
+        "netbios_name",
+        "authority_account_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/IdentityFacade": {
+      "fields": [
+        "service_ref",
+        "protocol"
+      ],
+      "omit": {}
+    },
+    "#/$defs/IdentityForest": {
+      "fields": [
+        "root_domain_ref",
+        "domain_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ImageAttestation": {
+      "fields": [
+        "status",
+        "verification",
+        "attestation_type",
+        "predicate_type",
+        "evidence_reference",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ImageBuildArg": {
+      "fields": [
+        "name",
+        "value",
+        "value_classification",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ImageConfig": {
+      "fields": [
+        "entrypoint",
+        "command",
+        "working_directory",
+        "exposed_ports",
+        "labels",
+        "default_environment",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ImageCopiedSource": {
+      "fields": [
+        "source_path",
+        "destination_path",
+        "from_stage",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ImageEnvironmentDefault": {
+      "fields": [
+        "name",
+        "value",
+        "value_classification",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ImageLayer": {
+      "fields": [
+        "digest",
+        "created_by",
+        "size",
+        "empty",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ImageSourceInput": {
+      "fields": [
+        "identifier",
+        "source_path",
+        "destination_path",
+        "checksum",
+        "checksum_algorithm",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ImportDecl": {
+      "fields": [
+        "source",
+        "path",
+        "namespace",
+        "version",
+        "parameters",
+        "digest"
+      ],
+      "omit": {}
+    },
+    "#/$defs/InfraNode": {
+      "fields": [
+        "count",
+        "links",
+        "dependencies",
+        "properties",
+        "acls",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/InitialKnowledge": {
+      "fields": [
+        "hosts",
+        "subnets",
+        "services",
+        "accounts"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Inject": {
+      "fields": [
+        "name",
+        "source",
+        "from_entity",
+        "to_entities",
+        "description",
+        "environment"
+      ],
+      "omit": {}
+    },
+    "#/$defs/LocalOutcomeCriterion": {
+      "fields": [
+        "criterion_id",
+        "source_id",
+        "effect_id"
+      ],
+      "omit": {}
+    },
+    "#/$defs/LocalOutcomeDefinition": {
+      "fields": [
+        "model_version",
+        "category",
+        "criterion_basis",
+        "criteria",
+        "conflict_policy",
+        "freshness_policy",
+        "episode_policy"
+      ],
+      "omit": {}
+    },
+    "#/$defs/LogicalTimingTarget": {
+      "fields": [
+        "kind",
+        "owner",
+        "slot"
+      ],
+      "omit": {}
+    },
+    "#/$defs/LogicalTimingVariationPoint": {
+      "fields": [
+        "kind",
+        "target",
+        "domain",
+        "unit",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/MixedControlControllerState": {
+      "fields": [
+        "controller_ref",
+        "authority_basis_refs",
+        "scope_refs",
+        "policy_revision",
+        "valid_from_order",
+        "valid_until_order",
+        "authority_status",
+        "evidence_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/MixedControlDispositionRules": {
+      "fields": [
+        "duplicate",
+        "stale",
+        "revoked",
+        "late",
+        "concurrent",
+        "conflict"
+      ],
+      "omit": {}
+    },
+    "#/$defs/MixedControlParticipantOperation": {
+      "fields": [
+        "participant_ref",
+        "policy_revision",
+        "order_strategy",
+        "initial_state_ref",
+        "dispositions",
+        "controller_states",
+        "transitions"
+      ],
+      "omit": {}
+    },
+    "#/$defs/MixedControlPermittedTransition": {
+      "fields": [
+        "transition_kind",
+        "from_state_ref",
+        "to_state_ref",
+        "valid_from_order",
+        "valid_until_order",
+        "evidence_refs",
+        "target_kinds",
+        "completion_evidence_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/MixedControlPolicy": {
+      "fields": [
+        "semantics",
+        "form",
+        "participant_ref",
+        "policy_revision",
+        "order_strategy",
+        "initial_state_ref",
+        "dispositions",
+        "controller_states",
+        "permitted_transitions",
+        "script_steps"
+      ],
+      "omit": {}
+    },
+    "#/$defs/MixedControlScriptStep": {
+      "fields": [
+        "step_id",
+        "permitted_transition_ref",
+        "expected_state_revision",
+        "valid_from_order",
+        "valid_until_order",
+        "target_kind",
+        "target_step_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/MixedControlTransition": {
+      "fields": [
+        "transition_kind",
+        "from_state_ref",
+        "to_state_ref",
+        "policy_revision",
+        "expected_state_revision",
+        "resulting_state_revision",
+        "effective_order",
+        "valid_from_order",
+        "valid_until_order",
+        "proposal_ref",
+        "proposal_revision",
+        "evidence_refs",
+        "completion_evidence_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ModuleDescriptor": {
+      "fields": [
+        "id",
+        "version",
+        "parameters",
+        "exports",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Node": {
+      "fields": [
+        "type",
+        "description",
+        "source",
+        "resources",
+        "os",
+        "os_distribution",
+        "os_version",
+        "architecture",
+        "features",
+        "conditions",
+        "injects",
+        "roles",
+        "services",
+        "asset_value",
+        "endpoint_persona",
+        "runtime"
+      ],
+      "omit": {}
+    },
+    "#/$defs/NodePresenceAlternative": {
+      "fields": [
+        "description",
+        "requires",
+        "excludes",
+        "kind",
+        "present",
+        "inventory"
+      ],
+      "omit": {}
+    },
+    "#/$defs/NumericIntervalDomain": {
+      "fields": [
+        "kind",
+        "numeric_type",
+        "lower",
+        "upper",
+        "lower_closed",
+        "upper_closed"
+      ],
+      "omit": {}
+    },
+    "#/$defs/NumericPredicate": {
+      "fields": [
+        "kind",
+        "property",
+        "semantic_ref",
+        "operator",
+        "expected",
+        "unit",
+        "unit_semantic_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Objective": {
+      "fields": [
+        "name",
+        "description",
+        "owner",
+        "assigned_participant",
+        "actions",
+        "targets",
+        "success",
+        "window",
+        "depends_on"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ObjectiveSuccess": {
+      "fields": [
+        "mode",
+        "assertions",
+        "threshold"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ObjectiveWindow": {
+      "fields": [
+        "stories",
+        "scripts",
+        "events",
+        "workflows",
+        "steps"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ObservationDemandRule": {
+      "fields": [
+        "rule_id",
+        "scope",
+        "purpose",
+        "mode",
+        "selector",
+        "collection",
+        "retention",
+        "export",
+        "basis",
+        "prohibited_stages",
+        "redaction",
+        "integrity",
+        "required",
+        "authority_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ObservationSelector": {
+      "fields": [
+        "semantic_scope",
+        "excluded_scopes",
+        "component_refs",
+        "data_kind",
+        "names",
+        "window_refs",
+        "coverage_profile",
+        "max_items"
+      ],
+      "omit": {}
+    },
+    "#/$defs/OperatorSecretCredentialMaterial": {
+      "fields": [
+        "classification",
+        "reference_id"
+      ],
+      "omit": {}
+    },
+    "#/$defs/OrderPrecedence": {
+      "fields": [
+        "before",
+        "after"
+      ],
+      "omit": {}
+    },
+    "#/$defs/OrderVariationPoint": {
+      "fields": [
+        "kind",
+        "target",
+        "members",
+        "precedence",
+        "fixed_positions",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/OutcomeInterpretationRule": {
+      "fields": [
+        "semantic_version",
+        "participant_scope",
+        "observation_point_basis",
+        "interpretation_basis",
+        "source_bindings",
+        "target_bindings",
+        "local_outcome",
+        "evidence_refs",
+        "limitations",
+        "diagnostics"
+      ],
+      "omit": {}
+    },
+    "#/$defs/OutcomeInterpretationSourceBinding": {
+      "fields": [
+        "source_id",
+        "source_layer",
+        "ref",
+        "interpretation_role",
+        "evidence_refs",
+        "provenance_refs",
+        "diagnostics"
+      ],
+      "omit": {}
+    },
+    "#/$defs/OutcomeInterpretationTargetBinding": {
+      "fields": [
+        "target_id",
+        "target_layer",
+        "ref",
+        "relation",
+        "governance_ref",
+        "evidence_refs",
+        "limitations",
+        "diagnostics"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParameterVariationPoint": {
+      "fields": [
+        "kind",
+        "target",
+        "domain",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantActionArgumentDefinition": {
+      "fields": [
+        "value_type",
+        "cardinality",
+        "default",
+        "allowed_values",
+        "minimum",
+        "maximum",
+        "min_length",
+        "max_length",
+        "min_items",
+        "max_items",
+        "unique_items",
+        "normalization",
+        "normalization_disclosure_ref",
+        "omission",
+        "omission_disclosure_ref",
+        "default_disclosure_ref",
+        "loss_disclosure_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantActionContract": {
+      "fields": [
+        "semantic_version",
+        "lifecycle_state",
+        "behavioral_granularity",
+        "procedure_basis",
+        "realization_profile",
+        "fidelity_claim",
+        "arguments",
+        "preconditions",
+        "effects",
+        "state_transition_effects",
+        "observation_expectations",
+        "evidence_expectations",
+        "failure_classes",
+        "backend_failure_mappings",
+        "interactions",
+        "temporal_contracts",
+        "backend_timing_disclosures"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantActionEffect": {
+      "fields": [
+        "effect_id",
+        "effect_class",
+        "description",
+        "target_refs",
+        "evidence_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantActionPrecondition": {
+      "fields": [
+        "precondition_id",
+        "precondition_class",
+        "description",
+        "support_refs",
+        "evidence_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantActivityActionCandidate": {
+      "fields": [
+        "action_ref",
+        "weight",
+        "depends_on",
+        "retryable_failure_classes",
+        "max_retries",
+        "cooldown_ticks"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantActivityTiming": {
+      "fields": [
+        "minimum_ticks",
+        "maximum_ticks"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantAutonomousExecutionPolicyV1": {
+      "fields": [
+        "profile",
+        "participant_implementation_ref",
+        "clock_ref",
+        "progression_policy_ref",
+        "temporal_constraint_refs",
+        "action_order",
+        "observation_boundary_ref",
+        "selection_strategy",
+        "max_action_attempts",
+        "max_in_flight",
+        "failure_policy",
+        "evaluation_authority"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantAutonomousExecutionPolicyV2": {
+      "fields": [
+        "profile",
+        "participant_implementation_ref",
+        "clock_ref",
+        "progression_policy_ref",
+        "work_window_refs",
+        "pause_window_refs",
+        "observation_boundary_ref",
+        "stochastic_control_ref",
+        "selection_strategy",
+        "timing",
+        "outside_window_disposition",
+        "empty_eligible_disposition",
+        "action_candidates",
+        "max_occurrences",
+        "max_action_attempts",
+        "max_burst_size",
+        "max_in_flight",
+        "failure_policy",
+        "evaluation_authority"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantAutonomousExecutionPolicyV3": {
+      "fields": [
+        "profile",
+        "participant_implementation_ref",
+        "clock_ref",
+        "progression_policy_ref",
+        "work_window_refs",
+        "pause_window_refs",
+        "observation_boundary_ref",
+        "stochastic_control_ref",
+        "selection_strategy",
+        "timing",
+        "outside_window_disposition",
+        "empty_eligible_disposition",
+        "action_candidates",
+        "max_occurrences",
+        "max_action_attempts",
+        "max_burst_size",
+        "max_in_flight",
+        "failure_policy",
+        "evaluation_authority",
+        "resource_budget"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantBackendFailureMapping": {
+      "fields": [
+        "backend_error_code",
+        "failure_class",
+        "diagnostic"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantBackendTimingDisclosure": {
+      "fields": [
+        "disclosure_id",
+        "disclosure_kind",
+        "support_mode",
+        "description",
+        "affected_temporal_ids",
+        "limitations"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantBehaviorSpecification": {
+      "fields": [
+        "semantic_version",
+        "lifecycle_state",
+        "control_context",
+        "participant_refs",
+        "participant_role_refs",
+        "action_contract_refs",
+        "observation_boundary_refs",
+        "outcome_interpretation_rule_refs",
+        "authority_scope_refs",
+        "behavior_mode",
+        "autonomous_execution",
+        "mixed_control",
+        "realization_profile_ref",
+        "backend_feature_support_refs",
+        "evidence_contract_refs",
+        "tool_affordances",
+        "participant_inject_deliveries",
+        "extension_policy",
+        "extensions"
+      ],
+      "omit": {
+        "control_context": [
+          "null",
+          "empty",
+          "blank",
+          "false"
+        ]
+      }
+    },
+    "#/$defs/ParticipantControlContextAssetModel": {
+      "fields": [
+        "schema_version",
+        "asset_id",
+        "asset_version",
+        "kind",
+        "content",
+        "participant_addresses",
+        "role_refs",
+        "publication_authority_ref",
+        "retention_policy_ref",
+        "provenance_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantControlContextAssetReferenceModel": {
+      "fields": [
+        "asset_id",
+        "asset_version",
+        "asset_digest"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantControlContextReference": {
+      "fields": [
+        "declaration_ref",
+        "asset_ref",
+        "disposition"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantEvaluationAuthority": {
+      "fields": [
+        "mode",
+        "objective_refs",
+        "proof_producer_refs",
+        "score_authority_refs",
+        "receipt_authority_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantInjectDelivery": {
+      "fields": [
+        "participant_ref",
+        "inject_ref",
+        "occurrence",
+        "source_item_ref",
+        "result_item_ref",
+        "observation_boundary_ref",
+        "delivery_kind",
+        "delivery_policy",
+        "order_basis",
+        "temporal_constraint_refs",
+        "evidence_requirement_refs",
+        "failure_disposition",
+        "control_transition_ref",
+        "controller_ref",
+        "control_authority_scope_refs",
+        "control_effective_order",
+        "control_valid_from_order",
+        "control_valid_until_order",
+        "control_evidence_refs",
+        "control"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantInjectDeliveryControl": {
+      "fields": [
+        "semantics",
+        "policy_revision",
+        "permitted_transition_ref",
+        "controller_ref",
+        "authority_scope_refs",
+        "evidence_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantInjectDeliveryPolicy": {
+      "fields": [
+        "policy_ref",
+        "policy_revision",
+        "exposure_policy_ref",
+        "audience_scope_ref",
+        "visibility_basis_ref",
+        "disclosure_basis_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantInjectOccurrenceAnchor": {
+      "fields": [
+        "event_ref",
+        "script_ref",
+        "story_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantInteractionDeclaration": {
+      "fields": [
+        "interaction_class",
+        "target",
+        "rationale",
+        "related_actions",
+        "shared_state_refs",
+        "commutative",
+        "merge_rule_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantInteractiveAccess": {
+      "fields": [
+        "target_ref",
+        "channel",
+        "account_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantObservationBoundary": {
+      "fields": [
+        "projection_basis",
+        "observable_refs",
+        "hidden_refs",
+        "evidence_refs",
+        "redaction_policy",
+        "latency_profile",
+        "observer_effects",
+        "view_rules",
+        "view_transitions",
+        "realized_view_disclosure"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantRelationship": {
+      "fields": [
+        "kind",
+        "source_action_refs",
+        "target_action_refs",
+        "objective_refs",
+        "behavior_specification_refs",
+        "authority_basis_refs",
+        "scope_refs",
+        "observation_boundary_refs",
+        "control_specification_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantResourceBudgetDimension": {
+      "fields": [
+        "owner_ref",
+        "pool_ref",
+        "resource_kind",
+        "unit",
+        "accounting_mode",
+        "meter_profile_ref",
+        "limit",
+        "reservation",
+        "reset",
+        "window_ticks",
+        "parent_budget_ref",
+        "evidence_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantResourceBudgetPolicy": {
+      "fields": [
+        "policy_id",
+        "owners",
+        "fairness",
+        "dimensions"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantResourceFairness": {
+      "fields": [
+        "policy",
+        "priority_class",
+        "weight",
+        "protected",
+        "borrowing",
+        "reclaim",
+        "max_queue_ticks",
+        "starvation_bound_ticks"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantResourceOwner": {
+      "fields": [
+        "kind",
+        "ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantSharedTimeBinding": {
+      "fields": [
+        "profile",
+        "clock_ref",
+        "constraint_ref",
+        "event_point",
+        "evidence_mode",
+        "condition_precondition_id",
+        "observation_boundary_ref"
+      ],
+      "omit": {
+        "condition_precondition_id": [
+          "null"
+        ],
+        "observation_boundary_ref": [
+          "null"
+        ]
+      }
+    },
+    "#/$defs/ParticipantTemporalContract": {
+      "fields": [
+        "temporal_id",
+        "temporal_kind",
+        "time_domain",
+        "clock_authority",
+        "event_points",
+        "description",
+        "window_ref",
+        "duration_ref",
+        "reset_boundary",
+        "replay_boundary",
+        "randomization_basis",
+        "ordering_basis",
+        "backend_disclosure_refs",
+        "shared_time_binding"
+      ],
+      "omit": {
+        "shared_time_binding": [
+          "null"
+        ]
+      }
+    },
+    "#/$defs/ParticipantToolAffordance": {
+      "fields": [
+        "tool_ref",
+        "action_contract_refs",
+        "observation_boundary_refs",
+        "participant_refs",
+        "participant_role_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantViewRule": {
+      "fields": [
+        "information_ref",
+        "boundary_class",
+        "disposition",
+        "visibility_basis",
+        "disclosure_rule",
+        "effective_from",
+        "evidence_refs",
+        "realized_backend_disclosure",
+        "certainty",
+        "latency_profile"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ParticipantViewTransition": {
+      "fields": [
+        "transition_id",
+        "transition_kind",
+        "information_ref",
+        "trigger",
+        "effective_from",
+        "effective_order",
+        "history_event_type",
+        "action_instance_id",
+        "from_disposition",
+        "to_disposition",
+        "disclosure_rule",
+        "evidence_refs",
+        "certainty",
+        "latency_profile",
+        "realized_backend_disclosure"
+      ],
+      "omit": {}
+    },
+    "#/$defs/PersistentVolume": {
+      "fields": [
+        "lifecycle",
+        "access_mode",
+        "consumers",
+        "ordering_dependencies",
+        "refresh_dependencies"
+      ],
+      "omit": {}
+    },
+    "#/$defs/PresencePredicate": {
+      "fields": [
+        "kind",
+        "property",
+        "semantic_ref",
+        "operator"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Proposition": {
+      "fields": [
+        "description",
+        "subjects",
+        "basis",
+        "predicate",
+        "quantifier",
+        "threshold",
+        "evidence_requirements"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RandomValueFormat": {
+      "fields": [
+        "prefix",
+        "suffix"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RandomValueRecipe": {
+      "fields": [
+        "alphabet",
+        "custom_alphabet",
+        "length",
+        "entropy_bits",
+        "format",
+        "min_entropy_bits"
+      ],
+      "omit": {
+        "alphabet": [
+          "null"
+        ],
+        "custom_alphabet": [
+          "null"
+        ],
+        "entropy_bits": [
+          "null"
+        ],
+        "format": [
+          "null"
+        ],
+        "length": [
+          "null"
+        ],
+        "min_entropy_bits": [
+          "null"
+        ]
+      }
+    },
+    "#/$defs/RealizationConstraintDesignation": {
+      "fields": [
+        "namespace",
+        "field_pointer",
+        "concern",
+        "posture",
+        "domain",
+        "provenance"
+      ],
+      "omit": {
+        "provenance": [
+          "always"
+        ]
+      }
+    },
+    "#/$defs/RealizationDesignation": {
+      "fields": [
+        "default",
+        "scopes",
+        "constraints"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RealizationScopeDesignation": {
+      "fields": [
+        "namespace",
+        "field_pointer",
+        "posture"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RecordDomain": {
+      "fields": [
+        "kind",
+        "fields",
+        "extra"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ReferenceTarget": {
+      "fields": [
+        "kind",
+        "owner",
+        "slot"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Relationship": {
+      "fields": [
+        "type",
+        "source",
+        "target",
+        "description",
+        "properties",
+        "database_access",
+        "mail_access",
+        "forwarding_edge",
+        "service_integration",
+        "proxy_upstream",
+        "domain_controller",
+        "domain_join",
+        "forest_trust",
+        "identity_federation",
+        "carrier_placement",
+        "shared_service",
+        "participant"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipCarrierPlacement": {
+      "fields": [
+        "kernel_boundary"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipDatabaseAccess": {
+      "fields": [
+        "role_ref",
+        "auth_method",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipDomainController": {
+      "fields": [],
+      "omit": {}
+    },
+    "#/$defs/RelationshipDomainJoin": {
+      "fields": [
+        "controller_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipForestTrust": {
+      "fields": [
+        "trust_type",
+        "direction"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipForwardingEdge": {
+      "fields": [
+        "forwarder_ref",
+        "target_listener_role",
+        "enrollment_identity_ref",
+        "enrollment_identity_classification",
+        "protocol",
+        "crypto_method",
+        "parse_format",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipIdentityFederation": {
+      "fields": [
+        "direction",
+        "protocol",
+        "mapping_intent",
+        "tenant_claim_name",
+        "tenant_claim_owner"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipMailAccess": {
+      "fields": [
+        "protocol",
+        "auth_mechanism",
+        "tls_mode",
+        "listener_ref",
+        "mailbox_ref",
+        "domain_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipProxyUpstream": {
+      "fields": [
+        "route_ref",
+        "upstream_node_ref",
+        "upstream_service_ref",
+        "client_tls_terminated",
+        "origin_plaintext",
+        "body_limit",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipServiceIntegration": {
+      "fields": [
+        "consumer_ref",
+        "engine_ref",
+        "integration_kind",
+        "auth_principal_ref",
+        "enabled",
+        "direction",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RelationshipSharedService": {
+      "fields": [
+        "tenant_isolation",
+        "workload_authentication",
+        "mutable_state_refs",
+        "mutable_state_owner",
+        "reset_generation_owner"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ResourceConsumersAlternative": {
+      "fields": [
+        "description",
+        "requires",
+        "excludes",
+        "kind",
+        "consumers"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Resources": {
+      "fields": [
+        "ram",
+        "cpu"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Role": {
+      "fields": [
+        "username",
+        "entities"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeAppAuthorization": {
+      "fields": [
+        "app_authorization_id",
+        "resource_vocabulary",
+        "auth_enabled",
+        "name",
+        "principals",
+        "roles",
+        "permission_grants",
+        "role_mappings",
+        "tenants",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeAppAuthorizationGrant": {
+      "fields": [
+        "grant_id",
+        "role_ref",
+        "resource_kind",
+        "actions",
+        "resource_patterns",
+        "effect",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeAppAuthorizationPrincipal": {
+      "fields": [
+        "principal_id",
+        "kind",
+        "name",
+        "reserved",
+        "hidden",
+        "credential_classification",
+        "backend_roles",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeAppAuthorizationRole": {
+      "fields": [
+        "role_id",
+        "name",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeAppAuthorizationRoleMapping": {
+      "fields": [
+        "mapping_id",
+        "role_ref",
+        "backend_roles",
+        "users",
+        "hosts",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeAppAuthorizationTenant": {
+      "fields": [
+        "tenant_id",
+        "name",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeApplicationDisclosure": {
+      "fields": [
+        "trigger",
+        "status_code",
+        "disclosure",
+        "sensitivity",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeApplicationExposedField": {
+      "fields": [
+        "name",
+        "sensitivity",
+        "value",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeApplicationParameter": {
+      "fields": [
+        "name",
+        "location",
+        "required",
+        "data_type",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeApplicationRedirect": {
+      "fields": [
+        "target",
+        "status_code",
+        "condition",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeApplicationResponse": {
+      "fields": [
+        "status_code",
+        "content_type",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeApplicationRoute": {
+      "fields": [
+        "route_id",
+        "path",
+        "methods",
+        "name",
+        "description",
+        "auth_required",
+        "auth_scheme",
+        "session_required",
+        "parameters",
+        "responses",
+        "templates",
+        "static_assets",
+        "redirects",
+        "disclosures",
+        "exposed_fields",
+        "upstream_target"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeApplicationRouteUpstreamTarget": {
+      "fields": [
+        "target_node_ref",
+        "target_service",
+        "scheme",
+        "tls_terminated_here"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeApplicationSurface": {
+      "fields": [
+        "application_id",
+        "service",
+        "protocol",
+        "name",
+        "base_path",
+        "framework",
+        "description",
+        "routes"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeAptPackageRepository": {
+      "fields": [
+        "repository_profile",
+        "profile_version",
+        "uri",
+        "suite",
+        "components",
+        "signing_key"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeCapabilityPolicy": {
+      "fields": [
+        "required",
+        "effective",
+        "add",
+        "drop",
+        "process_overrides",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeCloudServiceLimit": {
+      "fields": [
+        "limit_id",
+        "name",
+        "maximum",
+        "unit",
+        "resource_scope_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeConfiguration": {
+      "fields": [
+        "mounts",
+        "filesystem_inventory",
+        "local_control_interfaces",
+        "processes",
+        "environment",
+        "environment_files",
+        "linux_capabilities",
+        "operational_policy",
+        "container",
+        "local_identity",
+        "identity_authorities",
+        "file_services",
+        "mail_services",
+        "network",
+        "service_listeners",
+        "applications",
+        "database_services",
+        "dns_services",
+        "network_sensors",
+        "network_detection_engines",
+        "security_monitoring_managers",
+        "ssh_servers",
+        "datastore_services",
+        "platform_applications",
+        "forwarding_agents",
+        "orchestration_authorities",
+        "app_authorizations",
+        "scheduled_jobs",
+        "service_manager_units",
+        "packages",
+        "software_components",
+        "repository_state",
+        "dependency_manifests"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeContainerConfiguration": {
+      "fields": [
+        "entrypoint",
+        "command",
+        "log_driver",
+        "log_options",
+        "namespaces",
+        "privileged",
+        "read_only_rootfs",
+        "publish_all_ports",
+        "autoremove",
+        "shm_size",
+        "masked_paths",
+        "read_only_paths",
+        "cgroup_parent",
+        "runtime_name",
+        "init_process",
+        "devices",
+        "device_cgroup_rules",
+        "seccomp_profile",
+        "security_opt",
+        "extra_hosts",
+        "dns",
+        "dns_options",
+        "dns_search",
+        "group_add",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeControlInterface": {
+      "fields": [
+        "control_interface_id",
+        "path",
+        "kind",
+        "protocol",
+        "bind_source",
+        "bind_source_sensitivity",
+        "access",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatabaseService": {
+      "fields": [
+        "database_service_id",
+        "service",
+        "engine",
+        "protocol",
+        "version",
+        "name",
+        "description",
+        "listeners",
+        "databases",
+        "roles",
+        "grants",
+        "settings"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastoreCluster": {
+      "fields": [
+        "cluster_id",
+        "uuid",
+        "name",
+        "health",
+        "discovery_mode",
+        "partitioner",
+        "native_protocol_version",
+        "node_count",
+        "shard_total",
+        "shard_primaries",
+        "doc_count",
+        "store_size_bytes",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastoreEnginePlugin": {
+      "fields": [
+        "plugin_id",
+        "name",
+        "version",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastoreMapping": {
+      "fields": [
+        "mapping_id",
+        "name",
+        "partition_ref",
+        "top_level_field_count",
+        "leaf_field_count",
+        "field_type_census",
+        "dynamic_policy",
+        "dynamic_template_count",
+        "date_detection",
+        "schema_digest",
+        "evidence_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastoreNode": {
+      "fields": [
+        "node_id",
+        "name",
+        "roles",
+        "is_coordinator",
+        "engine_version",
+        "build_hash",
+        "build_type",
+        "heap_init_bytes",
+        "heap_max_bytes",
+        "memory_locked",
+        "endpoints",
+        "plugins",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastoreNodeEndpoint": {
+      "fields": [
+        "endpoint_id",
+        "role",
+        "protocol",
+        "address",
+        "port",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastorePartition": {
+      "fields": [
+        "partition_id",
+        "kind",
+        "name",
+        "uuid",
+        "shard_count",
+        "replica_count",
+        "doc_count",
+        "doc_count_deleted",
+        "store_size_bytes",
+        "creation_timestamp",
+        "open_closed_status",
+        "replication_strategy",
+        "replication_factor",
+        "per_dc_factor_map",
+        "durable_writes",
+        "datatype_census",
+        "health",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastorePersistence": {
+      "fields": [
+        "persistence_id",
+        "rdb_save_points",
+        "aof",
+        "eviction",
+        "maxmemory",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastoreService": {
+      "fields": [
+        "datastore_service_id",
+        "service",
+        "engine",
+        "data_model",
+        "protocol",
+        "version",
+        "name",
+        "cluster",
+        "nodes",
+        "partitions",
+        "templates",
+        "aliases",
+        "mappings",
+        "lifecycle_policies",
+        "ingest_pipelines",
+        "persistence",
+        "pubsub_channels",
+        "queues_streams",
+        "transport_security",
+        "backup_targets",
+        "settings",
+        "authorization_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastoreSetting": {
+      "fields": [
+        "setting_id",
+        "scope",
+        "provenance",
+        "classification",
+        "name",
+        "value",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastoreTemplate": {
+      "fields": [
+        "template_id",
+        "name",
+        "index_patterns",
+        "settings_summary",
+        "mapping_ref",
+        "template_digest",
+        "evidence_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDatastoreTransportSecurity": {
+      "fields": [
+        "transport_security_id",
+        "mode",
+        "client_verification",
+        "node_verification",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDependencyManifest": {
+      "fields": [
+        "ecosystem",
+        "path",
+        "format",
+        "name",
+        "version"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDeviceMapping": {
+      "fields": [
+        "host_path",
+        "container_path",
+        "permissions",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeDnsService": {
+      "fields": [
+        "dns_service_id",
+        "service",
+        "implementation",
+        "version",
+        "name",
+        "roles",
+        "configuration_file_refs",
+        "log_file_refs",
+        "resolver_policy",
+        "dynamic_update",
+        "zones",
+        "settings",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeEnvironmentFile": {
+      "fields": [
+        "name",
+        "value_from",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeEnvironmentVariable": {
+      "fields": [
+        "name",
+        "value",
+        "value_from",
+        "value_classification",
+        "provenance",
+        "source",
+        "description"
+      ],
+      "omit": {
+        "value_from": [
+          "null"
+        ]
+      }
+    },
+    "#/$defs/RuntimeExtraHost": {
+      "fields": [
+        "hostname",
+        "address",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeFileService": {
+      "fields": [
+        "file_service_id",
+        "service",
+        "protocol",
+        "backend",
+        "description",
+        "shares",
+        "principals",
+        "access_rules",
+        "access_observations"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeFileServiceAccessObservation": {
+      "fields": [
+        "observation_id",
+        "subject_ref",
+        "resource_ref",
+        "action",
+        "outcome",
+        "basis",
+        "sensitivity",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeFileServiceAccessRule": {
+      "fields": [
+        "rule_id",
+        "subject_ref",
+        "resource_ref",
+        "action",
+        "effect",
+        "basis",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeFileServicePrincipal": {
+      "fields": [
+        "principal_id",
+        "kind",
+        "name",
+        "external_id",
+        "status",
+        "credential_classification",
+        "origin",
+        "local_user_ref",
+        "directory_subject_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeFileServiceShare": {
+      "fields": [
+        "share_id",
+        "name",
+        "kind",
+        "backing_path",
+        "comment",
+        "read_only",
+        "browseable",
+        "guest_ok",
+        "valid_users",
+        "valid_groups",
+        "invalid_users",
+        "write_users",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeFilesystemEntry": {
+      "fields": [
+        "path",
+        "entry_type",
+        "presence",
+        "owner_user",
+        "owner_group",
+        "uid",
+        "gid",
+        "mode",
+        "size",
+        "content_digest",
+        "digest_algorithm",
+        "source_path",
+        "provenance",
+        "stability",
+        "sensitivity",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeForwardingAgent": {
+      "fields": [
+        "forwarding_agent_id",
+        "implementation",
+        "agent_kind",
+        "ownership_role",
+        "version",
+        "name",
+        "sources",
+        "transforms",
+        "ship_targets",
+        "buffer_policy",
+        "reload_channels",
+        "settings",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeForwardingBufferPolicy": {
+      "fields": [
+        "buffer_policy_id",
+        "queue_capacity",
+        "eps",
+        "crypto",
+        "reconnect_seconds",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeForwardingReloadChannel": {
+      "fields": [
+        "reload_channel_id",
+        "target_ref",
+        "kind",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeForwardingSetting": {
+      "fields": [
+        "setting_id",
+        "name",
+        "value",
+        "provenance",
+        "classification",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeForwardingShipTarget": {
+      "fields": [
+        "target_id",
+        "target_node_ref",
+        "target_service_ref",
+        "ingestion_port",
+        "enrollment_port",
+        "protocol",
+        "enrollment_identity_classification",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeForwardingSource": {
+      "fields": [
+        "source_id",
+        "kind",
+        "location",
+        "parse_format",
+        "selector",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeForwardingTransform": {
+      "fields": [
+        "transform_id",
+        "kind",
+        "sid_namespace",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityAccessObservation": {
+      "fields": [
+        "observation_id",
+        "principal_ref",
+        "action",
+        "resource_ref",
+        "outcome",
+        "evidence_refs",
+        "context_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityAttribute": {
+      "fields": [
+        "name",
+        "values",
+        "value_classification",
+        "origin",
+        "provenance",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityAuthority": {
+      "fields": [
+        "identity_authority_id",
+        "kind",
+        "name",
+        "namespace",
+        "domain_name",
+        "realm",
+        "issuer",
+        "tenant_id",
+        "base_dn",
+        "description",
+        "services",
+        "subjects",
+        "policies",
+        "relationships",
+        "resource_scopes",
+        "identity_uses",
+        "access_observations"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityAuthorityService": {
+      "fields": [
+        "service_id",
+        "service",
+        "protocol",
+        "address",
+        "port",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityPermissionBinding": {
+      "fields": [
+        "binding_id",
+        "principal_refs",
+        "resource_refs",
+        "actions",
+        "role_ref",
+        "effect",
+        "condition",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityPolicy": {
+      "fields": [
+        "policy_id",
+        "policy_kind",
+        "name",
+        "applies_to_refs",
+        "settings",
+        "resource_access",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityPolicyCondition": {
+      "fields": [
+        "language",
+        "expression"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityRelationship": {
+      "fields": [
+        "relationship_id",
+        "relationship_type",
+        "source_ref",
+        "target_ref",
+        "external_target",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityResourceAccess": {
+      "fields": [
+        "attachment_ref",
+        "bindings",
+        "inherited_from_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityResourceScope": {
+      "fields": [
+        "scope_id",
+        "provider",
+        "scope_kind",
+        "name",
+        "native_id",
+        "incarnation_id",
+        "parent_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentitySubject": {
+      "fields": [
+        "subject_id",
+        "kind",
+        "name",
+        "display_name",
+        "principal_name",
+        "distinguished_name",
+        "domain",
+        "enabled",
+        "origin",
+        "service_principal_names",
+        "resource_scope_ref",
+        "attributes",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeIdentityUse": {
+      "fields": [
+        "use_id",
+        "workload_ref",
+        "principal_ref",
+        "mode",
+        "source_principal_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeInitProcess": {
+      "fields": [
+        "enabled",
+        "implementation",
+        "executable_path",
+        "reaps_children",
+        "argv",
+        "argv_redacted",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeInventoryAlternative": {
+      "fields": [
+        "description",
+        "requires",
+        "excludes",
+        "kind",
+        "references"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeListenerReadiness": {
+      "fields": [
+        "probe",
+        "criteria",
+        "evidence_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeLocalGroup": {
+      "fields": [
+        "name",
+        "gid",
+        "members",
+        "provenance",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeLocalIdentityInventory": {
+      "fields": [
+        "users",
+        "groups",
+        "sudo_rules",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeLocalUser": {
+      "fields": [
+        "username",
+        "uid",
+        "primary_gid",
+        "primary_group",
+        "gecos",
+        "home",
+        "shell",
+        "supplemental_groups",
+        "disabled",
+        "locked",
+        "no_login",
+        "provenance",
+        "stability",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailAlias": {
+      "fields": [
+        "alias_id",
+        "address",
+        "domain_ref",
+        "target_refs",
+        "external_targets",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailComponent": {
+      "fields": [
+        "component_id",
+        "kind",
+        "name",
+        "version",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailDomain": {
+      "fields": [
+        "domain_id",
+        "name",
+        "role",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailListener": {
+      "fields": [
+        "listener_id",
+        "service",
+        "protocol",
+        "role",
+        "component_ref",
+        "banner",
+        "advertised_identity",
+        "capabilities",
+        "auth_mechanisms",
+        "tls_mode",
+        "tls_versions",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailMailbox": {
+      "fields": [
+        "mailbox_id",
+        "address",
+        "local_part",
+        "domain_ref",
+        "role",
+        "status",
+        "auth_mechanisms",
+        "credential_classification",
+        "store_ref",
+        "account_ref",
+        "local_user_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailMailboxStore": {
+      "fields": [
+        "store_id",
+        "kind",
+        "path",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailQueue": {
+      "fields": [
+        "queue_id",
+        "kind",
+        "name",
+        "message_count",
+        "stability",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailRoutingRule": {
+      "fields": [
+        "rule_id",
+        "kind",
+        "source_ref",
+        "target_ref",
+        "relay_host",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailService": {
+      "fields": [
+        "mail_service_id",
+        "service",
+        "engine",
+        "version",
+        "name",
+        "description",
+        "components",
+        "listeners",
+        "domains",
+        "mailbox_stores",
+        "mailboxes",
+        "aliases",
+        "routing_rules",
+        "queues",
+        "settings"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMailSetting": {
+      "fields": [
+        "setting_id",
+        "component_ref",
+        "name",
+        "value",
+        "value_classification",
+        "provenance",
+        "source_path",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeMount": {
+      "fields": [
+        "target",
+        "source",
+        "source_sensitivity",
+        "source_kind",
+        "filesystem_type",
+        "read_only",
+        "options",
+        "options_sensitivity",
+        "propagation",
+        "stability",
+        "backend_generated",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNamespaceConfiguration": {
+      "fields": [
+        "cgroup",
+        "ipc",
+        "network",
+        "pid",
+        "userns",
+        "uts"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkBackendDetail": {
+      "fields": [
+        "driver",
+        "ipam_driver",
+        "driver_options",
+        "ipam_options",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkDetectionControlChannel": {
+      "fields": [
+        "channel_id",
+        "kind",
+        "path",
+        "service",
+        "capabilities",
+        "auth_required",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkDetectionEngine": {
+      "fields": [
+        "network_detection_engine_id",
+        "implementation",
+        "engine_kind",
+        "version",
+        "revision",
+        "name",
+        "process_ref",
+        "sensor_ref",
+        "configuration_file_refs",
+        "log_file_refs",
+        "evidence_refs",
+        "app_layer_protocols",
+        "rule_sources",
+        "network_sets",
+        "output_streams",
+        "control_channels",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkDetectionNetworkSet": {
+      "fields": [
+        "set_id",
+        "kind",
+        "name",
+        "selector_values",
+        "network_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkDetectionOutputStream": {
+      "fields": [
+        "stream_id",
+        "format",
+        "path",
+        "event_types",
+        "enabled",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkDetectionRuleSource": {
+      "fields": [
+        "source_id",
+        "kind",
+        "format",
+        "name",
+        "rule_count",
+        "file_refs",
+        "generated_by",
+        "loaded",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkEndpoint": {
+      "fields": [
+        "network",
+        "ip_address",
+        "ip_prefix_length",
+        "gateway",
+        "mac_address",
+        "aliases",
+        "dns_names",
+        "backend",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkNamespace": {
+      "fields": [
+        "target_node_ref"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkRealization": {
+      "fields": [
+        "hostname",
+        "domainname",
+        "endpoints",
+        "published_ports",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeNetworkSensor": {
+      "fields": [
+        "network_sensor_id",
+        "implementation",
+        "sensor_kind",
+        "monitoring_posture",
+        "capture_mode",
+        "capture_interfaces",
+        "monitored_network_refs",
+        "process_ref",
+        "version",
+        "revision",
+        "name",
+        "configuration_file_refs",
+        "log_file_refs",
+        "evidence_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeOperationalPolicy": {
+      "fields": [
+        "restart",
+        "resource_limits",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeOrchestrationAuthority": {
+      "fields": [
+        "orchestration_authority_id",
+        "control_interface_ref",
+        "engine",
+        "engine_api_version",
+        "name",
+        "scope",
+        "spawn_templates",
+        "lifecycle_policy",
+        "realized_children",
+        "privilege_class",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeOrchestrationLifecyclePolicy": {
+      "fields": [
+        "timeout",
+        "cleanup",
+        "execution_timeout",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeOrchestrationRealizedChild": {
+      "fields": [
+        "workload_id",
+        "image_ref",
+        "count",
+        "evidence_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeOrchestrationScope": {
+      "fields": [
+        "organization_ref",
+        "environment_name",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeOrchestrationSpawnTemplate": {
+      "fields": [
+        "template_id",
+        "image_ref",
+        "purpose",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePackage": {
+      "fields": [
+        "manager",
+        "name",
+        "version",
+        "architecture",
+        "source",
+        "purl",
+        "repository"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePackageRepositorySigningKey": {
+      "fields": [
+        "uri",
+        "format",
+        "digest"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplication": {
+      "fields": [
+        "platform_application_id",
+        "service",
+        "platform_kind",
+        "product",
+        "version",
+        "name",
+        "capabilities",
+        "organizations",
+        "tenants",
+        "content_objects",
+        "markings",
+        "upstream_bindings",
+        "connectors",
+        "execution_policy",
+        "settings",
+        "authorization_ref",
+        "resource_scope_ref",
+        "secrets",
+        "cloud_limits",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplicationCapability": {
+      "fields": [
+        "capability_id",
+        "kind",
+        "evidence_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplicationConnector": {
+      "fields": [
+        "connector_id",
+        "kind",
+        "name",
+        "enabled",
+        "credential_classification",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplicationContentObject": {
+      "fields": [
+        "content_object_id",
+        "kind",
+        "name",
+        "attributes",
+        "references",
+        "marking_refs",
+        "evidence_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplicationExecutionPolicy": {
+      "fields": [
+        "policy_id",
+        "runner",
+        "max_concurrent_jobs",
+        "job_timeout",
+        "rate_limit",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplicationMarking": {
+      "fields": [
+        "marking_id",
+        "scheme",
+        "level",
+        "value",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplicationOrganization": {
+      "fields": [
+        "organization_id",
+        "name",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplicationSetting": {
+      "fields": [
+        "setting_id",
+        "name",
+        "value",
+        "provenance",
+        "classification",
+        "redaction",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplicationTenant": {
+      "fields": [
+        "tenant_id",
+        "name",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePlatformApplicationUpstreamBinding": {
+      "fields": [
+        "binding_id",
+        "role",
+        "target_node_ref",
+        "target_service_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeProcessCapabilityOverride": {
+      "fields": [
+        "subject",
+        "scope",
+        "effective",
+        "add",
+        "drop",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeProcessIdentity": {
+      "fields": [
+        "name",
+        "pid",
+        "parent_pid",
+        "command",
+        "command_redacted",
+        "role",
+        "user",
+        "group",
+        "working_directory",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeProcessResourceLimit": {
+      "fields": [
+        "resource",
+        "soft",
+        "hard",
+        "subject",
+        "scope",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePublishedPort": {
+      "fields": [
+        "container_port",
+        "protocol",
+        "host_ip",
+        "host_port",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimePublishedPortRef": {
+      "fields": [
+        "container_port",
+        "protocol",
+        "host_ip",
+        "host_port"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeResourceLimits": {
+      "fields": [
+        "memory",
+        "memory_swap",
+        "cpu",
+        "pids",
+        "process_limits",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeScheduledJob": {
+      "fields": [
+        "scheduled_job_id",
+        "name",
+        "command_ref",
+        "enabled",
+        "schedule",
+        "run_state",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeScheduledJobRunState": {
+      "fields": [
+        "last_run",
+        "next_run",
+        "last_result"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeScheduledJobSchedule": {
+      "fields": [
+        "kind",
+        "spec",
+        "enabled"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecretConsumer": {
+      "fields": [
+        "selection_id",
+        "consumer_ref",
+        "version_ref",
+        "selector",
+        "resolved_version_ref",
+        "resolution_basis",
+        "resolution_evidence_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecretSelector": {
+      "fields": [
+        "kind",
+        "value"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecretVersion": {
+      "fields": [
+        "version_id",
+        "native_id",
+        "state",
+        "native_state",
+        "payload_content_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecurityMonitoringAgent": {
+      "fields": [
+        "agent_id",
+        "name",
+        "status",
+        "address",
+        "version",
+        "os",
+        "node_ref",
+        "group_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecurityMonitoringAgentGroup": {
+      "fields": [
+        "group_id",
+        "name",
+        "member_refs",
+        "configuration_file_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecurityMonitoringComponent": {
+      "fields": [
+        "component_id",
+        "kind",
+        "name",
+        "status",
+        "enabled",
+        "process_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecurityMonitoringContentSet": {
+      "fields": [
+        "content_id",
+        "kind",
+        "format",
+        "name",
+        "file_count",
+        "file_refs",
+        "loaded",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecurityMonitoringDetectionDefinition": {
+      "fields": [
+        "definition_id",
+        "engine",
+        "definition_kind",
+        "native_id",
+        "name",
+        "content_set_ref",
+        "source_artifact_ref",
+        "source_file_ref",
+        "source_start_line",
+        "source_end_line",
+        "digest_algorithm",
+        "canonical_digest",
+        "enabled",
+        "loaded",
+        "parser_accepted",
+        "level",
+        "severity",
+        "description",
+        "match_strings",
+        "regex_patterns",
+        "field_predicates",
+        "decoded_as",
+        "decoder_names",
+        "decoder_fields",
+        "if_sid_refs",
+        "if_matched_sid_refs",
+        "parent_definition_refs",
+        "frequency",
+        "timeframe_seconds",
+        "same_source_constraints",
+        "groups",
+        "mitre_attack_ids",
+        "compliance_tags",
+        "tactic_labels",
+        "technique_labels",
+        "tags",
+        "target_refs",
+        "evidence_refs"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecurityMonitoringFieldPredicate": {
+      "fields": [
+        "field",
+        "operator",
+        "value",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecurityMonitoringListener": {
+      "fields": [
+        "listener_id",
+        "service",
+        "role",
+        "protocol",
+        "auth_required",
+        "tls_enabled",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecurityMonitoringManager": {
+      "fields": [
+        "security_monitoring_manager_id",
+        "service",
+        "implementation",
+        "manager_kind",
+        "version",
+        "revision",
+        "name",
+        "configuration_file_refs",
+        "log_file_refs",
+        "evidence_refs",
+        "listeners",
+        "components",
+        "agents",
+        "agent_groups",
+        "content_sets",
+        "detection_definitions",
+        "settings",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSecurityMonitoringSetting": {
+      "fields": [
+        "setting_id",
+        "component_ref",
+        "name",
+        "value",
+        "value_classification",
+        "provenance",
+        "source_path",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeServiceListener": {
+      "fields": [
+        "service_listener_id",
+        "service",
+        "address",
+        "port",
+        "protocol",
+        "address_family",
+        "scope",
+        "bind_interface",
+        "socket_path",
+        "process_ref",
+        "process_name",
+        "published_port_refs",
+        "readiness",
+        "provenance",
+        "evidence_refs",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeServiceSecret": {
+      "fields": [
+        "secret_id",
+        "resource_scope_ref",
+        "native_id",
+        "versions",
+        "consumers",
+        "location",
+        "replica_locations",
+        "encryption_key_ref",
+        "reset_owner_ref",
+        "deletion_owner_ref",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSoftwareComponent": {
+      "fields": [
+        "component_id",
+        "name",
+        "presence",
+        "version",
+        "version_constraint",
+        "component_type",
+        "provenance",
+        "ecosystem",
+        "purl",
+        "cpe",
+        "package_manager",
+        "package_name",
+        "package_version",
+        "package_version_constraint",
+        "package_ref",
+        "package",
+        "repository_refs",
+        "refinements",
+        "manifest_path",
+        "installed_paths",
+        "hashes",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSoftwareComponentHash": {
+      "fields": [
+        "algorithm",
+        "value"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSoftwareComponentRefinement": {
+      "fields": [
+        "refinement_id",
+        "purpose",
+        "definition",
+        "profile_value"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSoftwarePackageReference": {
+      "fields": [
+        "manager",
+        "name",
+        "architecture"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSoftwareRepository": {
+      "fields": [
+        "repository_id",
+        "presence",
+        "trust_ref",
+        "refinements"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSoftwareRepositoryRefinement": {
+      "fields": [
+        "refinement_id",
+        "purpose",
+        "definition",
+        "profile_value"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSoftwareRepositoryState": {
+      "fields": [
+        "repositories",
+        "trust_bindings"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSoftwareTrustBinding": {
+      "fields": [
+        "trust_id",
+        "presence",
+        "refinements"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSoftwareTrustRefinement": {
+      "fields": [
+        "refinement_id",
+        "purpose",
+        "definition",
+        "profile_value"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSshServer": {
+      "fields": [
+        "forced_command",
+        "accept_env",
+        "allow_users",
+        "deny_users",
+        "allow_groups",
+        "deny_groups",
+        "authentication_methods",
+        "password_authentication",
+        "pubkey_authentication",
+        "permit_tty",
+        "chroot_directory",
+        "authorized_keys_file",
+        "description",
+        "ssh_server_id",
+        "service",
+        "match_rules"
+      ],
+      "omit": {}
+    },
+    "#/$defs/RuntimeSudoRule": {
+      "fields": [
+        "principal",
+        "principal_kind",
+        "run_as_users",
+        "run_as_groups",
+        "commands",
+        "host_scope",
+        "nopasswd",
+        "command_redacted",
+        "raw_entry",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Script": {
+      "fields": [
+        "name",
+        "start_time",
+        "end_time",
+        "speed",
+        "events",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/SecretFixtureCredentialMaterial": {
+      "fields": [
+        "classification",
+        "value"
+      ],
+      "omit": {}
+    },
+    "#/$defs/SelectionRelation": {
+      "fields": [
+        "point",
+        "members"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ServiceManagerUnit": {
+      "fields": [
+        "unit_id",
+        "manager_kind",
+        "unit_name",
+        "unit_type",
+        "load_state",
+        "active_state",
+        "sub_state",
+        "enabled_state",
+        "result",
+        "exit_code",
+        "status_text",
+        "main_pid",
+        "unit_file_path",
+        "exec_start",
+        "service",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ServiceMaterialization": {
+      "fields": [
+        "target_service_ref",
+        "shared_service_relationship_ref",
+        "ordering_content_refs",
+        "readback_assertion_refs",
+        "evidence_requirement_refs",
+        "observation_boundary_refs",
+        "interface_profile",
+        "profile_version",
+        "requirements"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ServiceMaterializationRequirements": {
+      "fields": [
+        "operation",
+        "conflict_policy",
+        "readback"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ServicePort": {
+      "fields": [
+        "port",
+        "protocol",
+        "name",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ServiceSearchIndexSchemaMaterialization": {
+      "fields": [
+        "target_service_ref",
+        "shared_service_relationship_ref",
+        "ordering_content_refs",
+        "readback_assertion_refs",
+        "evidence_requirement_refs",
+        "observation_boundary_refs",
+        "interface_profile",
+        "profile_version",
+        "requirements"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ServiceSearchIndexSchemaRequirements": {
+      "fields": [
+        "operation",
+        "conflict_policy",
+        "readback",
+        "field_semantics"
+      ],
+      "omit": {}
+    },
+    "#/$defs/ServiceUnitExecStart": {
+      "fields": [
+        "command_kind",
+        "command",
+        "command_redacted",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/SimpleProperties": {
+      "fields": [
+        "cidr",
+        "gateway",
+        "internal"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Source": {
+      "fields": [
+        "name",
+        "version",
+        "build",
+        "artifact_requirement"
+      ],
+      "omit": {}
+    },
+    "#/$defs/SshForcedCommand": {
+      "fields": [
+        "command_kind",
+        "command",
+        "command_redacted",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/SshMatchCriterion": {
+      "fields": [
+        "kind",
+        "pattern"
+      ],
+      "omit": {}
+    },
+    "#/$defs/SshMatchRule": {
+      "fields": [
+        "forced_command",
+        "accept_env",
+        "allow_users",
+        "deny_users",
+        "allow_groups",
+        "deny_groups",
+        "authentication_methods",
+        "password_authentication",
+        "pubkey_authentication",
+        "permit_tty",
+        "chroot_directory",
+        "authorized_keys_file",
+        "description",
+        "match_id",
+        "criteria"
+      ],
+      "omit": {}
+    },
+    "#/$defs/StatefulResourceConsumer": {
+      "fields": [
+        "node",
+        "mount_destination",
+        "access_mode"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Story": {
+      "fields": [
+        "name",
+        "speed",
+        "scripts",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/StringPredicate": {
+      "fields": [
+        "kind",
+        "property",
+        "semantic_ref",
+        "operator",
+        "expected",
+        "expected_from"
+      ],
+      "omit": {
+        "expected_from": [
+          "null"
+        ]
+      }
+    },
+    "#/$defs/StructuralTarget": {
+      "fields": [
+        "kind",
+        "owner",
+        "slot"
+      ],
+      "omit": {}
+    },
+    "#/$defs/SubsetVariationPoint": {
+      "fields": [
+        "kind",
+        "target",
+        "members",
+        "minimum",
+        "maximum",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/TemporalConstraint": {
+      "fields": [
+        "constraint_kind",
+        "clock_ref",
+        "subject_refs",
+        "start",
+        "end",
+        "duration_ticks",
+        "cadence_ticks",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/TimeCoordinate": {
+      "fields": [
+        "tick",
+        "microstep"
+      ],
+      "omit": {}
+    },
+    "#/$defs/TimeDomain": {
+      "fields": [
+        "kind",
+        "tick_period_seconds",
+        "epoch",
+        "visibility",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/TimeDomainMapping": {
+      "fields": [
+        "source_domain_ref",
+        "target_domain_ref",
+        "mapping_kind",
+        "scale",
+        "offset_ticks",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/TimeProgressionPolicy": {
+      "fields": [
+        "clock_ref",
+        "advancement_mode",
+        "pacing_ratio",
+        "synchronization_mode",
+        "step_ticks",
+        "drift_bound_ticks",
+        "reset_behavior",
+        "replay_behavior",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Variable": {
+      "fields": [
+        "type",
+        "default",
+        "description",
+        "allowed_values",
+        "required"
+      ],
+      "omit": {}
+    },
+    "#/$defs/VariableTarget": {
+      "fields": [
+        "kind",
+        "variable"
+      ],
+      "omit": {}
+    },
+    "#/$defs/VariationMember": {
+      "fields": [
+        "description",
+        "requires",
+        "excludes",
+        "reference"
+      ],
+      "omit": {}
+    },
+    "#/$defs/VersionDomain": {
+      "fields": [
+        "kind",
+        "relation",
+        "lower",
+        "upper",
+        "lower_closed",
+        "upper_closed"
+      ],
+      "omit": {}
+    },
+    "#/$defs/Workflow": {
+      "fields": [
+        "description",
+        "start",
+        "timeout",
+        "compensation",
+        "steps"
+      ],
+      "omit": {}
+    },
+    "#/$defs/WorkflowCompensationPolicy": {
+      "fields": [
+        "mode",
+        "on",
+        "failure_policy",
+        "order"
+      ],
+      "omit": {}
+    },
+    "#/$defs/WorkflowPredicate": {
+      "fields": [
+        "assertions",
+        "objectives",
+        "steps"
+      ],
+      "omit": {}
+    },
+    "#/$defs/WorkflowStep": {
+      "fields": [
+        "type",
+        "execution_mode",
+        "objective",
+        "procedure_ref",
+        "scaffold_refs",
+        "allowed_action_families",
+        "tool_affordance_refs",
+        "capability_refs",
+        "fact_binding_refs",
+        "next",
+        "on_success",
+        "on_failure",
+        "on_exhausted",
+        "when",
+        "then",
+        "else",
+        "cases",
+        "default",
+        "branches",
+        "join",
+        "workflow",
+        "compensate_with",
+        "max_attempts",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/WorkflowStepStateRef": {
+      "fields": [
+        "step",
+        "outcomes",
+        "min_attempts"
+      ],
+      "omit": {}
+    },
+    "#/$defs/WorkflowSwitchCase": {
+      "fields": [
+        "when",
+        "next",
+        "description"
+      ],
+      "omit": {}
+    },
+    "#/$defs/WorkflowTimeoutPolicy": {
+      "fields": [
+        "seconds"
+      ],
+      "omit": {}
+    }
+  }
+}

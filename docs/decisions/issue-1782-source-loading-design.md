@@ -127,7 +127,7 @@ A targeted 10,000-field decode benchmark took about 130 ms on the development ho
 Fuzz seeds are present; full fuzz and mutation runs belong to CI.
 Python implementation files and published schemas remain unchanged.
 
-The maintainer's formatter-scope decision is pending.
+The maintainer selected option 2: include the model and import-composition prerequisites needed for full formatter parity.
 Full formatter validation and normalization use the model and composition ports assigned to #1783 and #1785.
 `Document.Render` provides YAML presentation, without model defaults, shorthand expansion, legacy model migration or import admission.
 No full formatter-command or issue-completion claim is made by this source component.
@@ -135,3 +135,51 @@ No full formatter-command or issue-completion claim is made by this source compo
 ## API commitments
 
 <!-- go-api implementations/go/internal/sdl/source 35366d84b9f3c94b83a7ef482f8add5f5e305acf6d0450095625ea5d53099d85 -->
+
+## Expanded formatter prerequisite design
+
+The maintainer approved this scope on 2026-11-07, before the expanded implementation.
+`internal/sdl/authoring` owns the native structural model and formatter operation.
+`Parser`, `New`, `Decode`, `Format`, `Request`, `Result` and immutable `Document` are its package interface.
+A document exposes copied normalized JSON and typed authored/materialized contract bindings.
+No caller flag can create an admitted document or mark it semantically valid.
+The existing public SDL consumer plan remains with its delivery owners; no placeholder public operations are added.
+
+The owner reads the packaged, unchanged published schemas and reuses contract model predicates through `CheckPortable`.
+A non-authoritative compatibility layout preserves the reference's field order and serializer omissions.
+Its records name published definition IDs and serialized fields, not Python executable paths or a copied class hierarchy.
+A schema-directed normalization walk preserves enum aliases, whole-field variables, scalar conversions and supplied-field omission.
+Go-specific shorthands and legacy VM migration run before structural validation.
+Decoded input and every retry, copy and serialization remain bounded.
+The output is reparsed under strict source policy and model-checked before return.
+
+Import validation shares one request budget and ancestry set.
+It reads only an explicitly supplied filesystem or captured source map.
+Each supplied-source edge requires a local source, digest pin and unique matching companion lock record.
+The authoring filesystem path retains its existing optional local pins and locks.
+Descriptor, version, revision, exports, parameter, namespace and collision checks apply before combining declarations.
+The formatter emits the normalized authored source, not the expanded import graph.
+Only validation uses the expanded graph; import omission must not hide a malformed imported model.
+Registry authority is explicit and cannot come from an untrusted supplied source set.
+All refusal paths retain typed source diagnostics and value-free error text.
+
+```mermaid
+flowchart LR
+    Source[Bounded source] --> Normalize[Shorthands / enum and scalar normalization]
+    Schema[Packaged published schemas] --> Model[Native structural model]
+    Normalize --> Model
+    Model --> Imports[Bounded import validation]
+    Imports --> Emit[Ordered YAML presentation]
+    Emit --> Strict[Strict source and model re-admission]
+    Strict --> Result[Formatter bytes and migration advisories]
+```
+
+Targeted checks cover model normalization and rejection, exact formatter bytes, imported model failures and each import refusal boundary.
+The existing full formatter corpus runs in CI; local checks select explicit source cases.
+No Python implementation or published schema changes are permitted.
+
+<!-- go-api implementations/go/internal/sdl/authoring bbd60f28c8ed8129a8a320b9ad04b8e91c2dc671e541287f950e9ef696b5870c -->
+
+Module version admission uses the Apache-2.0 [Aqua PEP 440 library](https://github.com/aquasecurity/go-pep440-version).
+The adapter refuses its OR extension and retains Python packaging specifier and prerelease rules.
+Version and constraint inputs remain source-bounded before parsing.

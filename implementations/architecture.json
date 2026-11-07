@@ -85,6 +85,10 @@
         {
           "path": "github.com/google/go-cmp/cmp",
           "reason": "Structured source-value, range and diagnostic comparisons in tests, as required by the Google Go style decisions."
+        },
+        {
+          "path": "github.com/aquasecurity/go-pep440-version",
+          "reason": "Apache-2.0 PEP 440 parser and specifier evaluator used by Trivy; module admission wraps it with the narrower packaging SpecifierSet grammar and prerelease policy."
         }
       ]
     },
@@ -526,7 +530,8 @@
         "implementations/go/internal/base/timestamp",
         "implementations/go/internal/base/value",
         "implementations/go/contract/validation",
-        "implementations/go/contract/admission"
+        "implementations/go/contract/admission",
+        "implementations/go/internal/sdl/authoring"
       ],
       "design": "docs/decisions/issue-1859-go-architecture-contract-design.md",
       "api": {
@@ -5605,6 +5610,41 @@
           "type time.Month constraints[] int comparable=true",
           "type time.Time constraints[] struct{} unexported-fields=true comparable=true",
           "type time.Weekday constraints[] int comparable=true"
+        ]
+      }
+    },
+    {
+      "dir": "implementations/go/internal/sdl/authoring",
+      "layer": "sdl",
+      "public": true,
+      "doc": "Native authored and materialized SDL model admission, source normalization and formatter import checks.",
+      "imports": [
+        "implementations/go/internal/sdl/source",
+        "implementations/go/internal/contract/corpus",
+        "implementations/go/contract/validation",
+        "implementations/go/contract/admission",
+        "implementations/go/contract/binding",
+        "implementations/go/base/fault",
+        "implementations/go/base/digest",
+        "implementations/go/base/canonjson",
+        "implementations/go/base/ingress",
+        "implementations/go/internal/base/jsonpointer",
+        "implementations/go/internal/base/softwareversion"
+      ],
+      "design": "docs/decisions/issue-1782-source-loading-design.md",
+      "api": {
+        "linux-amd64": [
+          "func github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.New(source.Limits) (*Parser, error)",
+          "method (*github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document) Authored() (binding.SdlAuthoringInputV1, bool)",
+          "method (*github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document) JSON() []byte",
+          "method (*github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document) Materialized() (binding.MaterializedScenarioV1, bool)",
+          "method (*github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Parser) Decode(github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Request) (*github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document, error)",
+          "method (*github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Parser) Format(github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Request) (github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Result, error)",
+          "package authoring",
+          "type github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document struct{}",
+          "type github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Parser struct{}",
+          "type github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Request struct{Source []byte; Name string; FS io/fs.FS; Sources map[string][]byte}",
+          "type github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Result struct{Content []byte; Diagnostics []source.Diagnostic}"
         ]
       }
     }

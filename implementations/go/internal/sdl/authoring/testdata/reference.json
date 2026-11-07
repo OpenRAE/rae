@@ -1,0 +1,121 @@
+{
+  "reference": "9ce61105e833d4edfe465bbc0bebce12cd8a9a6d",
+  "cases": [
+    {
+      "name": "minimal",
+      "source": "name: a\n",
+      "accepted": true,
+      "content": "name: a\n",
+      "diagnostics": []
+    },
+    {
+      "name": "field-order",
+      "source": "description: test\nversion: \"1.0\"\nname: a\nnodes: {z: {type: compute}, a: {type: switch}}\n",
+      "accepted": true,
+      "content": "name: a\nversion: '1.0'\ndescription: test\nnodes:\n  z:\n    type: compute\n  a:\n    type: switch\n",
+      "diagnostics": []
+    },
+    {
+      "name": "shorthands",
+      "source": "nodes: {web: {type: compute, source: pkg, resources: {ram: 1 GiB, cpu: \"2\"}, roles: {admin: root}, features: [ssh]}}\nfeatures: {ssh: {source: ssh}}\ninfrastructure: {web: 2}\nname: a\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "legacy-vm",
+      "source": "Name: a\nnodes: {web: {type: VM}}\n",
+      "accepted": true,
+      "content": "name: a\nnodes:\n  web:\n    type: compute\nrealization:\n  constraints:\n  - field_pointer: /nodes/web\n    concern: compute-substrate\n    posture: exact\n    domain:\n      kind: exact\n      value: virtual-machine\n",
+      "diagnostics": [
+        "sdl.noncanonical_field",
+        "sdl.legacy_node_type_vm"
+      ]
+    },
+    {
+      "name": "enum-aliases",
+      "source": "name: a\nnodes: {web: {type: COMPUTE, os: LINUX, architecture: AMD64, endpoint_persona: WORKSTATION}}\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "numeric-type",
+      "source": "name: a\nversion: 1.0\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "bad-cpu",
+      "source": "name: a\nnodes: {web: {type: compute, resources: {ram: 1, cpu: 0}}}\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "bool-cpu",
+      "source": "name: a\nnodes: {web: {type: compute, resources: {ram: 1, cpu: true}}}\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "bad-node-type",
+      "source": "name: a\nnodes: {web: {type: router}}\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "switch-resources",
+      "source": "name: a\nnodes: {web: {type: switch, resources: {ram: 1, cpu: 1}}}\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "duplicate-port",
+      "source": "name: a\nnodes: {web: {type: compute, services: [{port: 80}, {port: 80}]}}\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "invalid-enum",
+      "source": "name: a\nnodes: {web: {type: compute, os: invalid}}\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "bad-revision",
+      "source": "name: a\nsemantic_revision: null\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "omissions",
+      "source": "name: a\ncontrol_context_assets: {}\nnodes: {}\n",
+      "accepted": true,
+      "content": "name: a\nnodes: {}\n",
+      "diagnostics": []
+    },
+    {
+      "name": "unknown",
+      "source": "name: a\nunknown: true\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "variable",
+      "source": "name: a\nnodes: {web: {type: compute, resources: {ram: \"${ram}\", cpu: \"${cpu}\"}}}\n",
+      "accepted": true,
+      "content": "name: a\nnodes:\n  web:\n    type: compute\n    resources:\n      ram: ${ram}\n      cpu: ${cpu}\n",
+      "diagnostics": []
+    },
+    {
+      "name": "processor-owned",
+      "source": "name: a\nrealization: {constraints: [{field_pointer: /nodes/a, concern: compute-substrate, posture: open, provenance: author-declared}]}\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    },
+    {
+      "name": "imports-without-path",
+      "source": "name: a\nimports: [{path: ./module.yaml, namespace: m}]\n",
+      "accepted": false,
+      "error": "SDLParseError"
+    }
+  ]
+}
