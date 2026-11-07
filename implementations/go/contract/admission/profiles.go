@@ -112,7 +112,7 @@ func extensionTerms(terms []string) bool {
 }
 
 func (e *Validator) disclosureProfile(v any) (any, error) {
-	kinds := map[string]string{kindScenario: kindScenario, "scenario_snapshot": kindScenarioSnapshot, "experiment_task": kindTask, "experiment_run": kindRun, "experiment_study": kindStudy, "backend_conformance_claim": kindBackend, "participant_conformance_claim": kindParticipantImplementation, "published_claim": "result"}
+	kinds := map[string]string{kindScenario: kindScenario, "scenario_snapshot": kindScenarioSnapshot, "experiment_task": kindTask, "experiment_run": kindRun, "experiment_study": kindStudy, "backend_conformance_claim": kindBackend, "participant_conformance_claim": kindParticipantImplementation, "published_claim": termResult}
 	kind := stringAt(v, "subject_kind")
 	if kinds[kind] == "" || kinds[kind] != stringAt(v, "subject_ref", fieldRefKind) {
 		return nil, invalid()

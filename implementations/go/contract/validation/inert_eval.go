@@ -58,7 +58,7 @@ func (e *inertEvaluator) check(schema, value *inertNode, first bool) bool {
 	return valid && e.err == nil
 }
 func inertValidationKeyword(key string) bool {
-	return slices.Contains([]string{keywordRef, keywordAdditionalProperties, keywordAllOf, keywordAnyOf, keywordConst, keywordContains, "dependentRequired", keywordDependentSchemas, keywordEnum, "exclusiveMaximum", "exclusiveMinimum", "if", keywordItems, "maxItems", "maxLength", "maxProperties", "maximum", "minItems", "minLength", "minProperties", "minimum", "multipleOf", keywordNot, keywordOneOf, keywordPrefixItems, keywordProperties, keywordPropertyNames, keywordRequired, keywordType}, key)
+	return slices.Contains([]string{keywordRef, keywordAdditionalProperties, keywordAllOf, keywordAnyOf, keywordConst, keywordContains, "dependentRequired", keywordDependentSchemas, keywordEnum, "exclusiveMaximum", "exclusiveMinimum", "if", keywordItems, "maxItems", keywordMaxLength, "maxProperties", "maximum", "minItems", keywordMinLength, "minProperties", "minimum", "multipleOf", keywordNot, keywordOneOf, keywordPrefixItems, keywordProperties, keywordPropertyNames, keywordRequired, keywordType}, key)
 }
 func (e *inertEvaluator) keyword(schema *inertNode, key string, value *inertNode, first bool) bool {
 	child := schema.members[key]

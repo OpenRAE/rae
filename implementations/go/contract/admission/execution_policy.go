@@ -52,14 +52,14 @@ func executionPolicy(v any) error {
 	if !fieldsUnique(v, "failure_classes", "effect_classes", fieldEvidenceRefs) {
 		return invalid()
 	}
-	retry := defaultMember(v, termRetry, map[string]any{"max_attempts": json.Number("1"), "after_effect_policy": retryDisallow})
+	retry := defaultMember(v, termRetry, map[string]any{termMaxAttempts: json.Number("1"), "after_effect_policy": retryDisallow})
 	if err := retryPolicy(retry); err != nil {
 		return err
 	}
 	if err := operationRetryBounds(retry); err != nil {
 		return err
 	}
-	attempts, _ := number(at(retry, "max_attempts"))
+	attempts, _ := number(at(retry, termMaxAttempts))
 	repeats := attempts.Cmp(big.NewRat(1, 1)) > 0
 	if (stringAt(v, "response") == termRetry) != repeats {
 		return invalid()
@@ -70,7 +70,7 @@ func executionPolicy(v any) error {
 	return recoveryPolicy(v, repeats)
 }
 func operationRetryBounds(retry any) error {
-	attempts, ok := number(at(retry, "max_attempts"))
+	attempts, ok := number(at(retry, termMaxAttempts))
 	if !ok || !attempts.IsInt() || attempts.Sign() < 1 || attempts.Cmp(big.NewRat(9007199254740991, 1)) > 0 {
 		return invalid()
 	}
@@ -111,7 +111,7 @@ func recoveryPolicy(v any, repeats bool) error {
 	if (stringAt(v, "clock_basis") == strengthSemantic) != (at(v, "clock_ref") != nil) {
 		return invalid()
 	}
-	exhausted := text(defaultMember(v, "on_exhausted", "terminate"))
+	exhausted := text(defaultMember(v, stepExhausted, "terminate"))
 	fresh := stringAt(v, "response") == responseNewTrial || exhausted == responseNewTrial
 	if fresh != (at(v, "fresh_trial_limit") != nil) || (exhausted != "terminate" && !repeats) {
 		return invalid()
@@ -125,8 +125,8 @@ func recoveryPolicy(v any, repeats bool) error {
 }
 func policyDocument(i validation.Invocation) error {
 	v := i.Instance
-	if at(v, "default") != nil {
-		if err := executionPolicy(at(v, "default")); err != nil {
+	if at(v, termDefault) != nil {
+		if err := executionPolicy(at(v, termDefault)); err != nil {
 			return err
 		}
 	}
@@ -138,8 +138,8 @@ func policyDocument(i validation.Invocation) error {
 		if !canonicalPointer(stringAt(rule, "scope")) {
 			return invalid()
 		}
-		namespace := stringsOf(at(rule, "namespace"))
-		if at(v, "default") != nil && len(namespace) == 0 && stringAt(rule, "scope") == "" {
+		namespace := stringsOf(at(rule, termNamespace))
+		if at(v, termDefault) != nil && len(namespace) == 0 && stringAt(rule, "scope") == "" {
 			return invalid()
 		}
 		identities = append(identities, join(append(namespace, stringAt(rule, "scope"))...))
@@ -164,7 +164,7 @@ func effectivePolicy(v any) error {
 		return invalid()
 	}
 	namespace, scope, found := strings.Cut(stringAt(v, "governing_scope"), "#")
-	if !found || namespace != strings.Join(stringsOf(at(v, "namespace")), ".") {
+	if !found || namespace != strings.Join(stringsOf(at(v, termNamespace)), ".") {
 		return invalid()
 	}
 	if scope == "/" {

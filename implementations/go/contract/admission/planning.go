@@ -59,7 +59,7 @@ func targetTuple(v any) []string {
 func bindingTargets(v any) error {
 	ids, targets := []string{}, []string{}
 	for _, descriptor := range array(v) {
-		ids = append(ids, stringAt(descriptor, "binding_id"))
+		ids = append(ids, stringAt(descriptor, termBindingID))
 		target := targetTuple(at(descriptor, "target"))
 		if target == nil {
 			return invalid()

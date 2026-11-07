@@ -18,7 +18,7 @@ func effectiveInterval(v any) bool {
 }
 func controlOccurrenceLocal(i validation.Invocation) error {
 	v := at(i.Instance, "occurrence")
-	if !fieldsUnique(v, "authority_basis_refs", "controlled_scope_refs", "limitation_refs") || !effectiveInterval(v) {
+	if !fieldsUnique(v, termAuthorityBasisRefs, "controlled_scope_refs", "limitation_refs") || !effectiveInterval(v) {
 		return invalid()
 	}
 	switch stringAt(v, termKind) {
@@ -43,7 +43,7 @@ func crossingLocal(i validation.Invocation) error {
 	root := i.Instance
 	v := at(root, "occurrence")
 	policy := at(v, termPolicy)
-	if !matchingFields(root, at(v, "subject"), fieldParticipantAddress, fieldEpisodeID) || !fieldsUnique(v, "authority_basis_refs", "loss_and_limitations", "required_evidence_refs") || !effectiveInterval(policy) {
+	if !matchingFields(root, at(v, "subject"), fieldParticipantAddress, fieldEpisodeID) || !fieldsUnique(v, termAuthorityBasisRefs, "loss_and_limitations", "required_evidence_refs") || !effectiveInterval(policy) {
 		return invalid()
 	}
 	if numericGreater(at(policy, termValidFromOrder), at(v, "effective_order")) || numericGreater(at(v, "effective_order"), at(policy, termValidUntilOrder)) || numericGreater(at(policy, "effective_order"), at(v, "effective_order")) {

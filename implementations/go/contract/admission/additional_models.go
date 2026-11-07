@@ -20,6 +20,8 @@ func (e *Validator) additionalModel(name string, v any) (bool, error) {
 		return true, uniqueJSONValues(at(v, "values"))
 	case "PlannedRealizationConstraintModel":
 		return true, e.plannedSubstrate(v)
+	case "RealizationConstraintDesignation":
+		return true, e.substrateDomain(stringAt(v, "posture"), at(v, "domain"))
 	case "provisioning-plan-v1", "ProvisioningPlanModel":
 		return true, planModel(v, termProvisioning)
 	case "orchestration-plan-v1", "OrchestrationPlanModel":
@@ -41,7 +43,7 @@ func (e *Validator) additionalModel(name string, v any) (bool, error) {
 	case "OutcomeInterpretationRule":
 		return true, outcomeInterpretation(v)
 	case "LocalOutcomeDefinition":
-		return true, require(len(rowSet(at(v, "criteria"), "criterion_id")) == len(array(at(v, "criteria"))) && len(rowTupleSet(at(v, "criteria"), "source_id", "effect_id")) == len(array(at(v, "criteria"))))
+		return true, require(len(rowSet(at(v, "criteria"), "criterion_id")) == len(array(at(v, "criteria"))) && len(rowTupleSet(at(v, "criteria"), termSourceID, "effect_id")) == len(array(at(v, "criteria"))))
 	case "OutcomeInterpretationSourceBinding":
 		return true, outcomeSourceBinding(v)
 	case "OutcomeInterpretationTargetBinding":

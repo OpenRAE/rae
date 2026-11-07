@@ -3,6 +3,7 @@ package admission
 import (
 	"encoding/json"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
@@ -41,6 +42,9 @@ func TestModelRulesMatchTheReferenceModels(t *testing.T) {
 		if (err == nil) != c.Valid {
 			t.Errorf("%s %s: error = %v, want valid %t", c.Model, c.Name, err, c.Valid)
 		}
+	}
+	for _, c := range sdlConstructorVectors(t) {
+		models[strings.TrimPrefix(c.Pointer, schemaDefinitionsPrefix)] = true
 	}
 	for name := range definitionRules() {
 		if !models[name] {

@@ -97,7 +97,7 @@ func materializationAddressStep(current any, token string, fields []string, rema
 }
 func materializationAddressNamespace(source []string, current any) ([]string, error) {
 	identity := source[1]
-	if source[0] == "forwarding_agents" {
+	if source[0] == termForwardingAgents {
 		identity = stringAt(current, "forwarding_agent_id")
 		if identity == "" {
 			return nil, invalid()

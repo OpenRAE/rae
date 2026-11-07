@@ -18,6 +18,7 @@ import (
 // its runner. Each Go port adds the commands that it implements.
 func runners() map[string]Runner {
 	return map[string]Runner{
+		"cli sdl format":              formatRunner(),
 		"schema validate":             schemaRunner(),
 		"shared timestamp":            shared,
 		"shared version":              shared,

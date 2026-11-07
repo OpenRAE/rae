@@ -48,14 +48,14 @@ func temporalDwell(context any, proofs []any, clock any) (string, string) {
 func validDwellScope(context, proof, clock any) bool {
 	binding := at(context, "binding")
 	start, end, submitted := at(context, "bound_start"), at(context, "bound_end"), at(context, "submitted_at")
-	return stringAt(proof, "evidence_mode") == "continuous" && equal(at(proof, "condition_precondition_id"), at(binding, "condition_precondition_id")) && equal(at(proof, "observation_boundary_address"), at(binding, "observation_boundary_address")) && start != nil && equal(at(start, "segment"), at(end, "segment")) && equal(at(start, "segment"), at(submitted, "segment")) && equal(at(start, "segment"), at(clock, "coordinate", "segment")) && coordinateLE(end, submitted)
+	return stringAt(proof, "evidence_mode") == termContinuous && equal(at(proof, "condition_precondition_id"), at(binding, "condition_precondition_id")) && equal(at(proof, "observation_boundary_address"), at(binding, "observation_boundary_address")) && start != nil && equal(at(start, "segment"), at(end, "segment")) && equal(at(start, "segment"), at(submitted, "segment")) && equal(at(start, "segment"), at(clock, "coordinate", "segment")) && coordinateLE(end, submitted)
 }
 func dwellCoverage(proof, start, end any) (string, string, bool) {
 	position := start
 	holds := true
 	valid := len(array(at(proof, "coverage"))) > 0
 	for _, interval := range array(at(proof, "coverage")) {
-		left, right := at(interval, "start"), at(interval, "end")
+		left, right := at(interval, termStart), at(interval, termEnd)
 		if !equal(left, position) || !coordinateLT(left, right) || !coordinateLE(right, end) || !equal(at(left, "segment"), at(right, "segment")) {
 			valid = false
 		} else {

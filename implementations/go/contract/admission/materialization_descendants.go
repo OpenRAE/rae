@@ -103,7 +103,7 @@ func (r *materializationInventory) predecessor() error {
 	source, manifest := at(r.execution.plan, "materialization_source"), r.execution.manifest
 	var selected any
 	for _, record := range array(at(r.execution.previous, "materialization_attestations")) {
-		if equal(at(record, "run_id"), at(source, "run_id")) && equal(at(record, "artifact", "source"), at(manifest, termIdentity, "name")) && at(record, "inventory") != nil {
+		if equal(at(record, "run_id"), at(source, "run_id")) && equal(at(record, "artifact", termSource), at(manifest, termIdentity, "name")) && at(record, "inventory") != nil {
 			selected = record
 		}
 	}

@@ -122,7 +122,7 @@ func factEvent(event any, sinks, declarations, versions map[string]any) error {
 		return nil
 	}
 	version := versions[stringAt(event, "fact_version_id")]
-	if version == nil || !matchingFields(event, version, "fact_id", "sensitivity", fieldEvidenceRefs, "provenance_refs") || boolean(at(event, "redacted")) != (stringAt(version, "sensitivity") == sensitivitySecret) {
+	if version == nil || !matchingFields(event, version, "fact_id", "sensitivity", fieldEvidenceRefs, "provenance_refs") || boolean(at(event, termRedacted)) != (stringAt(version, "sensitivity") == sensitivitySecret) {
 		return invalid()
 	}
 	if bound {
@@ -158,7 +158,7 @@ func factProjection(projection, version any) error {
 		return invalid()
 	}
 	secret := stringAt(version, "sensitivity") == sensitivitySecret
-	if boolean(at(projection, "redacted")) != secret || boolean(at(projection, "secret_reference_present")) != secret {
+	if boolean(at(projection, termRedacted)) != secret || boolean(at(projection, "secret_reference_present")) != secret {
 		return invalid()
 	}
 	if secret {

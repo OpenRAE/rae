@@ -91,7 +91,7 @@ func conditionSignature(v any) (string, error) {
 		}
 		parameters = append(parameters, join(stringAt(parameter, termName), stringAt(parameter, "value_kind"), value))
 	}
-	bindings, err := meaningKeys(at(v, termRequiredBindings), "binding_id")
+	bindings, err := meaningKeys(at(v, termRequiredBindings), termBindingID)
 	if err != nil {
 		return "", err
 	}

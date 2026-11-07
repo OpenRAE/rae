@@ -121,7 +121,7 @@ func (e *Validator) resourceMeasureSupported(pool any, reset string, context []b
 		return false
 	}
 	kind := at(pool, "resource_kind")
-	coordinate := profile.DomainCoordinate{Namespace: stringAt(kind, "namespace"), Authority: stringAt(kind, termAuthority), ProfileID: stringAt(kind, termProfileID), Revision: stringAt(kind, termRevision), DefinitionDigest: stringAt(kind, "definition_digest")}
+	coordinate := profile.DomainCoordinate{Namespace: stringAt(kind, termNamespace), Authority: stringAt(kind, termAuthority), ProfileID: stringAt(kind, termProfileID), Revision: stringAt(kind, termRevision), DefinitionDigest: stringAt(kind, "definition_digest")}
 	resolution, err := e.owners.ResolveDomainProfile(coordinate, context)
 	if err != nil || resolution.Outcome != profile.Resolved || !resourceSemanticContract(resolution.Definition) {
 		return false

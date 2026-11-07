@@ -114,7 +114,7 @@ func controlPolicyRows(v any) error {
 }
 
 func controlPolicyState(v any) error {
-	if !closedControlObject(v, []string{"state_ref", "controller_ref", "authority_basis_refs", "scope_refs", "authority_status", termValidFromOrder, termValidUntilOrder}, nil) || !controlReference(at(v, "state_ref")) || !controlReference(at(v, "controller_ref")) || !controlReferenceList(at(v, "authority_basis_refs"), 1) || !controlReferenceList(at(v, "scope_refs"), 1) || !controlCount(at(v, termValidFromOrder)) || !controlCount(at(v, termValidUntilOrder)) {
+	if !closedControlObject(v, []string{"state_ref", "controller_ref", termAuthorityBasisRefs, termScopeRefs, "authority_status", termValidFromOrder, termValidUntilOrder}, nil) || !controlReference(at(v, "state_ref")) || !controlReference(at(v, "controller_ref")) || !controlReferenceList(at(v, termAuthorityBasisRefs), 1) || !controlReferenceList(at(v, termScopeRefs), 1) || !controlCount(at(v, termValidFromOrder)) || !controlCount(at(v, termValidUntilOrder)) {
 		return invalid()
 	}
 	return require(stringAt(v, "authority_status") == termActive || stringAt(v, "authority_status") == termRevoked)

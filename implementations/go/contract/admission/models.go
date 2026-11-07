@@ -200,6 +200,9 @@ func controlNeedsDefaults(name string) bool {
 }
 
 func (e *Validator) initialModel(id string, root any, data []byte) error {
+	if id == termMaterializedScenarioV1 {
+		return materializedLocalBound(root, len(data))
+	}
 	if id == termBackendManifestV2 {
 		if err := e.checkResourceProfiles(root, data); err != nil {
 			return err
@@ -252,7 +255,7 @@ func (e *Validator) localModelDetails(id string, root any) error {
 	case termParticipantControlOccurrenceV2:
 		occurrence := at(root, "occurrence")
 		if stringAt(occurrence, "disposition") == termRejected {
-			return require(fieldsUnique(occurrence, "limitation_refs") && fieldsUnique(at(occurrence, "attempted"), "authority_basis_refs", "controlled_scope_refs"))
+			return require(fieldsUnique(occurrence, "limitation_refs") && fieldsUnique(at(occurrence, "attempted"), termAuthorityBasisRefs, "controlled_scope_refs"))
 		}
 		return controlOccurrenceLocal(validation.Invocation{Instance: root})
 	case "participant-information-reconstruction-profile-v1":

@@ -43,7 +43,7 @@ func controlCallIdentity(call, binding any, cutDigest string) error {
 }
 
 func controlCallState(call, request any, calls, outputs []any) error {
-	if stringAt(call, "state_input", "source") == termCommitted {
+	if stringAt(call, "state_input", termSource) == termCommitted {
 		states := controlRows(at(request, "context", "provider_states"), "instance_id")
 		return require(equal(at(call, "state_input", "state"), at(states[stringAt(call, "instance_id")], "state")))
 	}

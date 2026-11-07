@@ -369,13 +369,13 @@ Targeted tests cover changed declarations, path refusals and read budgets.
 
 <!-- go-api implementations/go/contract/binding 5b19be099a1427702f3603820cada98e8a2bd4171f71ccabdb411d4a78fd5f53 -->
 
-<!-- go-api implementations/go/contract/validation 483041a7c377db0cad2d709bce88bae65034c417acec24d4e8f54211a4f8c102 -->
+<!-- go-api implementations/go/contract/validation 517e782102a811bef71af8d660194d882c78b4da19dbab3e1c298084add9e5dd -->
 
 <!-- go-api implementations/tooling/go/contractgen 87666ceb97f022789f40a56348e27f85ee3d5d861f37920162f2ad7e027ebabe -->
 
 <!-- go-api implementations/tooling/go/cmd/contractgen dd92019f9ac35814436893305a3163d7a7ce002936e9c6037a734e820cc1c2fa -->
 
-<!-- go-api implementations/go/contract/admission 2eb5bda5b6f07451535456cf83a497144b7bbca6b1e8892fcfaf1abc670ddeca -->
+<!-- go-api implementations/go/contract/admission 9f7ebabbda2012559cee0f41128c450c122da4c9886f706426cf09a77867f544 -->
 
 ## Model parity repairs
 
@@ -429,3 +429,67 @@ The single-method artifact ports use provider names: `CleanupPlanProvider`,
 trust requirements stay the same. The original `Context` names remain as type
 aliases, so existing consumers continue to compile. No published schema or
 context payload changes.
+
+## SDL fragment reuse — issue 1782
+
+Expose `Validator.CheckModelFragment(contract, pointer, data, limits)` for the SDL model owner.
+It delegates to the existing published-fragment implementation introduced with issue 1781.
+The check includes the compiled shape, local invariants and nested model predicates.
+It grants no SDL phase or contextual admission.
+
+`NewWithSchemas` reuses the immutable published schemas and installs the complete stock admission registry.
+Caller rule callbacks are replaced by owner rules; this constructor cannot grant a missing predicate success.
+
+
+The definition rule for `ResolvedImportProvenance` also applies through `CheckModelFragment`.
+It checks local binding arity and uniqueness, module identity, digest spelling, absolute host paths and registry userinfo.
+The schema retains the published field and namespace limits.
+The SDL formatter uses this boundary for resolution-header validation without claiming phase admission.
+
+
+### SDL construction stage
+
+`CheckSDLConstruction` is distinct from published-contract validation.
+It checks only the packaged authored and materialized SDL model views.
+The views omit the two Node OS dependency clauses, which Python runs in semantic validation.
+A fixed digest pins the exact omitted clauses.
+Changed clauses fail construction of the validator until their stage assignment is reviewed.
+The published schemas, their compiled maps, and their entry points remain unchanged.
+The admission owner supplies stock local rules and nested model predicates.
+No caller flag or callback grants SDL semantic authority.
+
+`CheckSDLLocalSemantics` uses the same model view and includes the published root's local rules.
+The validation owner supplies matched model instances to the admission owner.
+The admission operation also runs its model predicates. Both operations grant no phase or execution authority.
+The materialized formatter uses this operation after strict source reparsing, then runs its native SDL semantic passes.
+
+The construction view preserves the reference model's field-pattern semantics.
+A packaged compatibility record names the published model, field, scalar or item path, and exact reference pattern.
+The schema owner copies only those field views. It checks each target before compiling the copied view.
+Its bounded RE2 adapter preserves strict end anchors and the reference field engine's Unicode classes.
+Other published patterns retain their existing schema semantics.
+The published schemas, normal validation operations and phase-admission gates stay unchanged.
+
+### SDL model predicates
+
+The shared admission owner checks model conditions missing from schema-only checks.
+Register probe selectors, content anchors, account ownership, success criteria and subset bounds by published definition.
+Register workflow step shapes, clock jump policy, image attestation state and filesystem path rules there too.
+These conditions apply to root, nested and imported models.
+Keep reference membership and graph-wide rules with the semantic stage.
+
+
+### SDL observation scope projection
+
+`admission.ResolveSDLObservationScope` resolves a JSON value and an RFC 6901 pointer to the source pointer and existing semantic address form.
+It reuses the materialization address steps and identity digest implementation.
+Only the top-level forwarding-agent list has a declared identity profile in this adapter.
+The recursive structure defaults bound pointer bytes, depth, list members and identity checks.
+This projection grants no semantic or execution authority and does not mutate input.
+The SDL composition owner uses it before and after renaming an agent identity.
+
+SDL local semantic and model-instance walks use the same source-size/schema-graph work bound as construction.
+Other contract families retain the existing generic visit ceiling.
+This keeps materialized formatting from reintroducing the smaller generic ceiling after construction.
+The materialized source concreteness walk also uses its actual input byte count as a conservative node ceiling.
+Other materialization operations keep their declared work limits.

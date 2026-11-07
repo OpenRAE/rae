@@ -33,8 +33,8 @@ func (r *mixedResolution) component(id string, v any) error {
 	if err := r.charge(); err != nil {
 		return err
 	}
-	trusted := r.components[[2]string{id, stringAt(v, "component_id")}]
-	return require(trusted != nil && matchingFields(v, trusted, "component_id", "apparatus_identity_ref", "manifest_ref", "realization_envelope", "native_ownership_ref"))
+	trusted := r.components[[2]string{id, stringAt(v, termComponentID)}]
+	return require(trusted != nil && matchingFields(v, trusted, termComponentID, "apparatus_identity_ref", "manifest_ref", "realization_envelope", "native_ownership_ref"))
 }
 
 func (r *mixedResolution) allocation(id string, v any) error {

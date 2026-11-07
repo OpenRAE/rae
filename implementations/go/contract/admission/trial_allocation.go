@@ -117,7 +117,7 @@ func trialAllocationDraws(plan, allocation, policy, binding any, key randstream.
 		return invalid()
 	}
 	for slot, index := 0, len(order)-1; index > 0; slot, index = slot+1, index-1 {
-		address := map[string]any{"address_profile": "allocation-address-v1", "namespace": at(binding, "namespace"), "allocation_policy_id": at(policy, "policy_id"), "draw_purpose": "condition-assignment", "slot": json.Number(strconv.Itoa(slot)), "local_coordinate": jsonZero}
+		address := map[string]any{"address_profile": "allocation-address-v1", termNamespace: at(binding, termNamespace), "allocation_policy_id": at(policy, "policy_id"), "draw_purpose": "condition-assignment", "slot": json.Number(strconv.Itoa(slot)), "local_coordinate": jsonZero}
 		encoded, err := json.Marshal(address)
 		if err != nil {
 			return invalid()

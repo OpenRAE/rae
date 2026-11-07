@@ -44,7 +44,7 @@ func controlSupportSatisfied(v any) bool {
 }
 
 func controlSupportPreserved(promise, observed any) bool {
-	return stringAt(observed, "status") == termResolved && matchingFields(promise, observed, "instance_id", "feature", "declaration_ref", "declared_level", "effective_level", "installation", "constraints", "limitations") && subsetSet(rowTupleSet(at(promise, "evidence"), termKind, "ref", termRevision, termDigest), rowTupleSet(at(observed, "evidence"), termKind, "ref", termRevision, termDigest))
+	return stringAt(observed, "status") == termResolved && matchingFields(promise, observed, "instance_id", "feature", "declaration_ref", "declared_level", "effective_level", "installation", termConstraints, "limitations") && subsetSet(rowTupleSet(at(promise, "evidence"), termKind, "ref", termRevision, termDigest), rowTupleSet(at(observed, "evidence"), termKind, "ref", termRevision, termDigest))
 }
 
 func controlAdmittedSupportCause(request, item any) string {
@@ -77,13 +77,13 @@ func controlSupportBinding(item any, obligations, slots map[string]any, digest s
 		return invalid()
 	}
 	if obligation := obligations[stringAt(item, "obligation_id")]; obligation != nil {
-		if !equal(at(item, "required_strength"), at(obligation, "required_strength")) || !equal(at(item, "required_constraints"), at(obligation, "constraints")) {
+		if !equal(at(item, "required_strength"), at(obligation, "required_strength")) || !equal(at(item, "required_constraints"), at(obligation, termConstraints)) {
 			return invalid()
 		}
 	}
 	if id, present := strings.CutPrefix(stringAt(item, "obligation_id"), "input:"); present {
 		slot := slots[id]
-		if slot == nil || !equal(at(item, "required_strength"), at(slot, "required_strength")) || !equal(at(item, "required_constraints"), at(slot, "constraints")) {
+		if slot == nil || !equal(at(item, "required_strength"), at(slot, "required_strength")) || !equal(at(item, "required_constraints"), at(slot, termConstraints)) {
 			return invalid()
 		}
 	}

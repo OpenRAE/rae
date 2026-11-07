@@ -60,7 +60,7 @@ func (f *flowControl) controlBinding(v any) error {
 	}
 	occurrence := at(record, "occurrence")
 	identity, related := flowControlIdentity(occurrence)
-	if identity == "" || !equal(at(v, "occurrence_kind"), at(occurrence, termKind)) || !equal(at(v, "occurrence_revision"), at(occurrence, "occurrence_revision")) || !matchingFields(v, record, "participant_address", "episode_id") || !equal(at(v, "controller_ref"), at(occurrence, "controller_ref")) || !equal(at(v, "authority_basis_refs"), flowSorted(at(occurrence, "authority_basis_refs"))) || !equal(at(v, "control_policy_revision"), at(occurrence, "policy_revision")) || stringAt(v, "occurrence_identity_ref") != identity || !equal(at(v, "related_occurrence_refs"), related) || !equal(at(v, "predecessor_event_refs"), flowSorted(at(record, "predecessor_event_refs"))) {
+	if identity == "" || !equal(at(v, "occurrence_kind"), at(occurrence, termKind)) || !equal(at(v, "occurrence_revision"), at(occurrence, "occurrence_revision")) || !matchingFields(v, record, "participant_address", "episode_id") || !equal(at(v, "controller_ref"), at(occurrence, "controller_ref")) || !equal(at(v, termAuthorityBasisRefs), flowSorted(at(occurrence, termAuthorityBasisRefs))) || !equal(at(v, "control_policy_revision"), at(occurrence, "policy_revision")) || stringAt(v, "occurrence_identity_ref") != identity || !equal(at(v, "related_occurrence_refs"), related) || !equal(at(v, "predecessor_event_refs"), flowSorted(at(record, "predecessor_event_refs"))) {
 		return invalid()
 	}
 	return require(equal(at(v, "source_participant_address"), at(record, "participant_address")) && equal(at(v, "source_episode_id"), at(record, "episode_id")))
@@ -143,7 +143,7 @@ func flowCrossingIdentity(v any) (string, []string) {
 		identity = "delivery_id"
 		fields = []string{termDecisionRef, "attempt_ref", "owning_occurrence_ref"}
 	case basisObserved:
-		identity = "observation_id"
+		identity = termObservationID
 		fields = []string{termDecisionRef, "delivery_ref", "owning_observation_ref"}
 	case "audited":
 		identity = "audit_record_ref"

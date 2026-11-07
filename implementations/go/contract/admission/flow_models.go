@@ -92,7 +92,7 @@ func flowCarrierLocal(v any) error {
 	}
 	switch stringAt(v, termKind) {
 	case "participant-control":
-		return flowCanonical(v, "authority_basis_refs", "related_occurrence_refs", "predecessor_event_refs")
+		return flowCanonical(v, termAuthorityBasisRefs, "related_occurrence_refs", "predecessor_event_refs")
 	case termParticipantCrossing:
 		if at(v, "subject_revision") == nil && at(v, "subject_digest") == nil {
 			return invalid()

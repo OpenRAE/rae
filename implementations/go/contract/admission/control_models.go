@@ -55,10 +55,10 @@ func controlTransformationEffect(v any) error {
 	if err := controlReferenceKinds(v, map[string]string{termTransformation: termTransformation, "admission_policy": termPolicy}); err != nil {
 		return err
 	}
-	return require(!equal(at(v, "source", "subject_ref"), at(v, "result", "subject_ref")))
+	return require(!equal(at(v, termSource, "subject_ref"), at(v, termResult, "subject_ref")))
 }
 func controlInjectEffect(v any) error {
-	if err := controlReferenceKinds(v, map[string]string{termDeliveryRef: "inject-delivery", "disclosure_ref": "disclosure"}); err != nil {
+	if err := controlReferenceKinds(v, map[string]string{termDeliveryRef: "inject-delivery", "disclosure_ref": termDisclosure}); err != nil {
 		return err
 	}
 	return require(!equal(at(v, "source_item_ref"), at(v, "result_item_ref")))

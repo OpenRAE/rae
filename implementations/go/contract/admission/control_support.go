@@ -59,14 +59,14 @@ func controlEffectiveSupport(v any) error {
 	if at(v, "installation") != nil && stringAt(v, "installation", termKind) != "installation" {
 		return invalid()
 	}
-	for field, kind := range map[string]string{"constraints": termConstraint, "limitations": "limitation"} {
+	for field, kind := range map[string]string{termConstraints: termConstraint, "limitations": "limitation"} {
 		for _, ref := range array(at(v, field)) {
 			if stringAt(ref, termKind) != kind {
 				return invalid()
 			}
 		}
 	}
-	if effective == assuranceBounded && len(array(at(v, "constraints"))) == 0 {
+	if effective == assuranceBounded && len(array(at(v, termConstraints))) == 0 {
 		return invalid()
 	}
 	if at(v, "downgrade_authority") != nil {

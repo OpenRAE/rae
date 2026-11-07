@@ -147,7 +147,7 @@ func controlDeclarationShape(v any) error {
 			return invalid()
 		}
 	}
-	if !effectiveInterval(v) || !fieldsUnique(v, "authority_basis_refs", "controlled_scope_refs") || len(array(at(v, "authority_basis_refs"))) == 0 || len(array(at(v, "controlled_scope_refs"))) == 0 {
+	if !effectiveInterval(v) || !fieldsUnique(v, termAuthorityBasisRefs, "controlled_scope_refs") || len(array(at(v, termAuthorityBasisRefs))) == 0 || len(array(at(v, "controlled_scope_refs"))) == 0 {
 		return invalid()
 	}
 	return require(controlTransitionKind(stringAt(v, termKind)))

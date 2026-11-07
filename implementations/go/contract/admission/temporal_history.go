@@ -82,7 +82,7 @@ func temporalContextClock(context, event, clocks any) error {
 	if !equal(at(history[sequence], "resulting"), at(context, "submitted_at")) {
 		return invalid()
 	}
-	for field, bindingField := range map[string]string{"bound_start": "start", "bound_end": "end"} {
+	for field, bindingField := range map[string]string{"bound_start": termStart, "bound_end": termEnd} {
 		var expected any
 		if at(context, "binding", bindingField) != nil {
 			copyValue := maps.Clone(object(at(context, "binding", bindingField)))

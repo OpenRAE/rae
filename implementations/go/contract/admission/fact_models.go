@@ -30,7 +30,7 @@ func factSinks(sinks map[string]any) error {
 	return nil
 }
 func factScope(v any) error {
-	expected := map[string]map[string]bool{kindRun: {}, termParticipant: {fieldParticipantAddress: true}, "episode": {fieldParticipantAddress: true, fieldEpisodeID: true}, termWorkflow: {fieldWorkflowAddress: true}}[stringAt(v, termKind)]
+	expected := map[string]map[string]bool{kindRun: {}, termParticipant: {fieldParticipantAddress: true}, termEpisode: {fieldParticipantAddress: true, fieldEpisodeID: true}, termWorkflow: {fieldWorkflowAddress: true}}[stringAt(v, termKind)]
 	if expected == nil {
 		return invalid()
 	}
@@ -105,4 +105,13 @@ func referenceNumber(v any) (*big.Rat, bool) {
 	default:
 		return nil, false
 	}
+}
+
+func referenceNumberCompare(a, b any) (int, bool) {
+	left, lok := referenceNumber(a)
+	right, rok := referenceNumber(b)
+	if !lok || !rok {
+		return 0, false
+	}
+	return left.Cmp(right), true
 }

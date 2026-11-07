@@ -28,7 +28,7 @@ func (r *materializationInventory) augmentation() error {
 		if err != nil {
 			return err
 		}
-		rules = append(rules, materializationScopeRule{path, stringAt(rule, "permission"), stringsOf(at(rule, "namespace"))})
+		rules = append(rules, materializationScopeRule{path, stringAt(rule, "permission"), stringsOf(at(rule, termNamespace))})
 	}
 	for _, difference := range array(at(current.full, "materialization_provenance", "origins")) {
 		if err := r.augmentationDifference(difference, policy, rules, &remaining); err != nil {
@@ -70,7 +70,7 @@ func materializationScopeOpen(policy any, rules []materializationScopeRule, loca
 		names = append(names, key)
 	}
 	slices.Sort(names)
-	permission := text(defaultMember(policy, "default", termOpen))
+	permission := text(defaultMember(policy, termDefault, termOpen))
 	for _, name := range names {
 		if selected := materializationMostSpecificScope(layers[name]); selected != "" {
 			permission = selected

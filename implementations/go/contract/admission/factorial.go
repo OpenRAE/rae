@@ -165,7 +165,7 @@ func factorialCondition(design any, shape factorialShape, levels map[string]any)
 			templates = at(design, "level_effects", factor, level, termBindings)
 		}
 		for _, template := range array(templates) {
-			descriptor, err := factorialDescriptor(template, factor, level, id, "binding_id", "binding-")
+			descriptor, err := factorialDescriptor(template, factor, level, id, termBindingID, "binding-")
 			if err != nil {
 				return nil, err
 			}
@@ -179,9 +179,9 @@ func factorialCondition(design any, shape factorialShape, levels map[string]any)
 			selections = append(selections, descriptor)
 		}
 	}
-	slices.SortFunc(bindings, func(a, b any) int { return strings.Compare(stringAt(a, "binding_id"), stringAt(b, "binding_id")) })
+	slices.SortFunc(bindings, func(a, b any) int { return strings.Compare(stringAt(a, termBindingID), stringAt(b, termBindingID)) })
 	slices.SortFunc(selections, func(a, b any) int { return strings.Compare(stringAt(a, "selection_id"), stringAt(b, "selection_id")) })
-	return map[string]any{"condition_id": id, "factor_levels": maps.Clone(levels), "difficulty_condition": conditionFixed, "difficulty_policy_id": nil, "required_refs": []any{}, "required_parameters": []any{}, termRequiredBindings: bindings, termRequiredSelections: selections, "description": nil}, nil
+	return map[string]any{"condition_id": id, "factor_levels": maps.Clone(levels), "difficulty_condition": conditionFixed, "difficulty_policy_id": nil, "required_refs": []any{}, "required_parameters": []any{}, termRequiredBindings: bindings, termRequiredSelections: selections, termDescription: nil}, nil
 }
 
 func factorialChildren(design any, shape factorialShape) (any, any, error) {
@@ -218,7 +218,7 @@ func factorialChildren(design any, shape factorialShape) (any, any, error) {
 	}
 	conditions := mapKeys(assignments)
 	slices.Sort(conditions)
-	slices.SortFunc(descriptors, func(a, b any) int { return strings.Compare(stringAt(a, "binding_id"), stringAt(b, "binding_id")) })
+	slices.SortFunc(descriptors, func(a, b any) int { return strings.Compare(stringAt(a, termBindingID), stringAt(b, termBindingID)) })
 	allocation := map[string]any{"allocation_unit": kindRun, "allocation_method": at(design, "profile"), "compared_conditions": conditions, "condition_assignments": assignments, "target_runs_per_condition": at(design, "target_runs_per_condition"), "randomization_unit": nil, "blocking_factors": []any{}, "replication_policy": "equal independent runs", "stopping_rule": nil}
 	if len(descriptors) == 0 {
 		return allocation, nil, nil

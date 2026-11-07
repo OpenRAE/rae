@@ -64,7 +64,7 @@ func archiveRecordLocal(v any) error {
 		return invalid()
 	}
 	sensitivity := stringAt(artifact, "sensitivity")
-	return require((sensitivity == "restricted" || sensitivity == "redacted") && !numericGreater(at(artifact, "size_bytes"), json.Number("4194304")))
+	return require((sensitivity == "restricted" || sensitivity == termRedacted) && !numericGreater(at(artifact, "size_bytes"), json.Number("4194304")))
 }
 func runMaterializations(i validation.Invocation) error {
 	v := i.Instance

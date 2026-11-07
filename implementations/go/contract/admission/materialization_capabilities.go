@@ -65,7 +65,7 @@ func (r *materializationInventory) addedNode(entry any, available, live map[stri
 		return invalid()
 	}
 	payload := at(entry, "payload")
-	name := stringAt(payload, "name")
+	name := stringAt(payload, termName)
 	node, err := r.execution.normalizedNode(name, at(payload, "spec", termNode), nil)
 	if err != nil {
 		return err
@@ -98,14 +98,14 @@ func materializationNodeIdentity(entry, node any) error {
 	kind := stringAt(node, "type")
 	prefix := "provision.node."
 	resourceType := termNode
-	if kind == "switch" {
+	if kind == termSwitch {
 		prefix, resourceType = "provision.network.", termNetwork
 	}
-	name := stringAt(payload, "name")
+	name := stringAt(payload, termName)
 	if stringAt(payload, "node_name") != name || stringAt(entry, "address") != prefix+name || stringAt(entry, "resource_type") != resourceType || stringAt(payload, "node_kind") != kind {
 		return invalid()
 	}
-	for _, field := range []string{"features", "conditions", "injects", "roles"} {
+	for _, field := range []string{"features", "conditions", "injects", termRoles} {
 		if len(object(at(node, field))) > 0 {
 			return invalid()
 		}
@@ -131,7 +131,7 @@ func materializationComputeIdentity(payload, node, spec any, name string) error 
 			return invalid()
 		}
 	}
-	allowed := map[string]bool{"name": true, "spec": true, "node_name": true, "node_kind": true, termOsFamily: true, termOsDistribution: true, termOsVersion: true, termArchitecture: true, "count": true, "network_namespace_target": true, "domain_topology": true}
+	allowed := map[string]bool{termName: true, "spec": true, "node_name": true, "node_kind": true, termOsFamily: true, termOsDistribution: true, termOsVersion: true, termArchitecture: true, "count": true, "network_namespace_target": true, "domain_topology": true}
 	return require(subset(mapKeys(payload), allowed) && !strings.Contains(name, "${"))
 }
 
@@ -144,7 +144,7 @@ func materializationCapabilityInventory(live map[string]any) (map[string]any, ma
 		if kind != termNode && kind != termNetwork {
 			continue
 		}
-		name := stringAt(entry, "payload", "name")
+		name := stringAt(entry, "payload", termName)
 		if name == "" || available[name] != nil {
 			return nil, nil, nil, invalid()
 		}

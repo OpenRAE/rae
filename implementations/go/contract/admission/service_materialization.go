@@ -47,7 +47,7 @@ func serviceTarget(v, item, binding any) error {
 	if variableRef(reference) {
 		return nil
 	}
-	for name, node := range object(at(v, "nodes")) {
+	for name, node := range object(at(v, termNodes)) {
 		for _, service := range array(at(node, "services")) {
 			if stringAt(service, termName) != "" && reference == "nodes."+name+".services."+stringAt(service, termName) {
 				return require(name == stringAt(item, "target"))
@@ -69,7 +69,7 @@ func serviceReadback(v any, name string, binding any) error {
 		if proposition == nil {
 			continue
 		}
-		if stringAt(proposition, "basis") != "observed_state" || !containsSubject(at(proposition, "subjects"), name) || !subset(stringsOf(at(binding, "evidence_requirement_refs")), set(at(proposition, "evidence_requirements"))) {
+		if stringAt(proposition, "basis") != basisObservedState || !containsSubject(at(proposition, "subjects"), name) || !subset(stringsOf(at(binding, "evidence_requirement_refs")), set(at(proposition, "evidence_requirements"))) {
 			return invalid()
 		}
 	}

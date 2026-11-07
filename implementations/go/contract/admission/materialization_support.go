@@ -48,7 +48,7 @@ func materializationArtifactSupport(artifact any, declarations []any, kind strin
 	if at(artifact, "exact_artifact") != nil {
 		return invalid()
 	}
-	for _, field := range []string{"constraints", "locked_inputs", "candidates", "materialization_specifications"} {
+	for _, field := range []string{termConstraints, "locked_inputs", "candidates", "materialization_specifications"} {
 		if len(array(at(artifact, field))) > 0 {
 			return invalid()
 		}

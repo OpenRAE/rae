@@ -1,7 +1,7 @@
 package admission
 
 func controlStateInput(v any) error {
-	return require(stringAt(v, "state", termKind) == termProviderState && (stringAt(v, "source") == "tentative") == (at(v, "predecessor_invocation_id") != nil))
+	return require(stringAt(v, "state", termKind) == termProviderState && (stringAt(v, termSource) == "tentative") == (at(v, "predecessor_invocation_id") != nil))
 }
 
 func controlInvocationIdentity(v any) error {

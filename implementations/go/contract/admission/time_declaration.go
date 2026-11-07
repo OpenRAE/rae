@@ -19,7 +19,7 @@ func reducedRatio(v any) bool {
 	return nok && dok && n.IsInt() && d.IsInt() && n.Sign() > 0 && d.Sign() > 0 && new(big.Int).GCD(nil, nil, n.Num(), d.Num()).Cmp(big.NewInt(1)) == 0
 }
 func timeDeclaration(v any) error {
-	for _, section := range []string{"domains", "clocks", fieldMappings, fieldProgressionPolicies, "temporal_constraints"} {
+	for _, section := range []string{termDomains, "clocks", fieldMappings, fieldProgressionPolicies, "temporal_constraints"} {
 		if !keyed(at(v, section), "address") {
 			return invalid()
 		}
@@ -28,7 +28,7 @@ func timeDeclaration(v any) error {
 		return err
 	}
 	for _, clock := range object(at(v, "clocks")) {
-		if at(v, "domains", stringAt(clock, "time_domain_address")) == nil || (stringAt(clock, "monotonicity") == "may_jump") != boolean(at(clock, "supports_jump")) {
+		if at(v, termDomains, stringAt(clock, "time_domain_address")) == nil || (stringAt(clock, "monotonicity") == "may_jump") != boolean(at(clock, "supports_jump")) {
 			return invalid()
 		}
 	}
@@ -44,7 +44,7 @@ func timeMappings(v any) error {
 	edges := map[string][]string{}
 	for _, mapping := range object(at(v, fieldMappings)) {
 		source, target := stringAt(mapping, "source_domain_address"), stringAt(mapping, "target_domain_address")
-		left, right := at(v, "domains", source), at(v, "domains", target)
+		left, right := at(v, termDomains, source), at(v, termDomains, target)
 		if source == target || left == nil || right == nil || !reducedRatio(at(mapping, "scale")) {
 			return invalid()
 		}
@@ -65,7 +65,7 @@ func timePolicies(v any) error {
 		}
 		seen[ref] = true
 		mode := stringAt(policy, "advancement_mode")
-		if (mode == "stepped") != (at(policy, "step_ticks") != nil) || mode != "real_time" && mode != "dilated" && !unitRatio(at(policy, "pacing_ratio")) {
+		if (mode == advancementStepped) != (at(policy, "step_ticks") != nil) || mode != advancementRealTime && mode != advancementDilated && !unitRatio(at(policy, "pacing_ratio")) {
 			return invalid()
 		}
 		if (stringAt(policy, "reset_behavior") != statusUnsupported || stringAt(policy, "replay_behavior") != statusUnsupported) && !boolean(at(clock, "supports_reset")) {
@@ -75,7 +75,7 @@ func timePolicies(v any) error {
 	return nil
 }
 func timeConstraints(v any) error {
-	known := keySet(at(v, "domains"))
+	known := keySet(at(v, termDomains))
 	for key := range object(at(v, "clocks")) {
 		known[key] = true
 	}
@@ -117,9 +117,9 @@ func timeFactoryDefaults(v any) {
 }
 
 func timeDomainDeclarations(v any) error {
-	for _, domain := range object(at(v, "domains")) {
+	for _, domain := range object(at(v, termDomains)) {
 		kind, epoch := stringAt(domain, termKind), stringAt(domain, "epoch")
-		if !reducedRatio(at(domain, "tick_period_seconds")) || kind == termWallClock && epoch != "unix" || kind == termMonotonic && epoch == "unix" {
+		if !reducedRatio(at(domain, "tick_period_seconds")) || kind == termWallClock && epoch != epochUnix || kind == termMonotonic && epoch == epochUnix {
 			return invalid()
 		}
 	}
@@ -135,12 +135,12 @@ func timeConstraint(v, constraint any, known map[string]bool) error {
 			return invalid()
 		}
 	}
-	valid := map[string]bool{"precedence": len(array(at(constraint, "subject_addresses"))) == 2, "duration": at(constraint, "duration_ticks") != nil, termWindow: at(constraint, "start") != nil && at(constraint, "end") != nil, kindDeadline: at(constraint, "end") != nil, "cadence": at(constraint, "cadence_ticks") != nil}[stringAt(constraint, termKind)]
+	valid := map[string]bool{constraintPrecedence: len(array(at(constraint, "subject_addresses"))) == 2, constraintDuration: at(constraint, "duration_ticks") != nil, termWindow: at(constraint, termStart) != nil && at(constraint, termEnd) != nil, kindDeadline: at(constraint, termEnd) != nil, constraintCadence: at(constraint, "cadence_ticks") != nil}[stringAt(constraint, termKind)]
 	if !valid {
 		return invalid()
 	}
-	if at(constraint, "start") != nil && at(constraint, "end") != nil {
-		order, ok := fullCoordinateCompare(at(constraint, "start"), at(constraint, "end"))
+	if at(constraint, termStart) != nil && at(constraint, termEnd) != nil {
+		order, ok := fullCoordinateCompare(at(constraint, termStart), at(constraint, termEnd))
 		if !ok || order > 0 {
 			return invalid()
 		}

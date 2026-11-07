@@ -97,7 +97,7 @@ func (s *controlAgreement) contextView(v, surface, binding any) error {
 	}
 	matches := 0
 	for _, source := range array(at(context, "source_layers")) {
-		if stringAt(source, "source_layer") == "participant_control_context_asset" && equal(at(source, "ref"), at(binding, "source_ref")) && equal(at(source, "source_id"), at(binding, "source_layer_ref")) && set(at(context, termTransformation, "input_source_ids"))[stringAt(source, "source_id")] {
+		if stringAt(source, "source_layer") == "participant_control_context_asset" && equal(at(source, "ref"), at(binding, "source_ref")) && equal(at(source, termSourceID), at(binding, "source_layer_ref")) && set(at(context, termTransformation, "input_source_ids"))[stringAt(source, termSourceID)] {
 			matches++
 		}
 	}

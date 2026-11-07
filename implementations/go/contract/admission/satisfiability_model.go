@@ -6,7 +6,7 @@ func (e *Validator) satisfiabilityModel(root any) error {
 		return err
 	}
 	model := at(v, "normalized_model")
-	if !equal(at(v, "source", "byte_digest"), at(model, "source_digest")) || !equal(at(v, "authored_digest"), at(model, "authored_digest")) {
+	if !equal(at(v, termSource, "byte_digest"), at(model, "source_digest")) || !equal(at(v, "authored_digest"), at(model, "authored_digest")) {
 		return invalid()
 	}
 	for field, digestField := range map[string]string{"normalized_model": "normalized_model_digest", "solver_configuration": "solver_configuration_digest"} {

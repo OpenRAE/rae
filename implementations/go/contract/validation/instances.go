@@ -26,7 +26,7 @@ func (v *Validator) CheckInstances(id string, data []byte, limits ingress.Limits
 		return failure(fault.Operational, "contract-model-check-required")
 	}
 	entry := v.contracts[id]
-	return walkSchema(visit{entry.schema, root, ""}, func(current visit) error {
+	return walkSchemaBound(visit{entry.schema, root, ""}, entry.walkBound(len(data)), func(current visit) error {
 		return entry.visitInstance(id, current, root, check)
 	})
 }

@@ -113,7 +113,7 @@ func (index *crossingIndex) register(record any) error {
 	}
 	index.records[event] = record
 	stage := stringAt(record, "occurrence", "stage")
-	field := map[string]string{termRequested: "request_id", termDecided: termDecisionID, termTransformed: "transformation_id", termDisclosed: "disclosure_id", termDeliveryAttempted: termAttemptID, termDelivered: "delivery_id", basisObserved: "observation_id"}[stage]
+	field := map[string]string{termRequested: "request_id", termDecided: termDecisionID, termTransformed: "transformation_id", termDisclosed: "disclosure_id", termDeliveryAttempted: termAttemptID, termDelivered: "delivery_id", basisObserved: termObservationID}[stage]
 	if field == "" {
 		return nil
 	}
@@ -137,7 +137,7 @@ func (index *crossingIndex) common(record any) error {
 		}
 	}
 	policy := at(v, termPolicy)
-	if !equal(index.policies[join(stringAt(policy, "policy_id"), stringAt(policy, "policy_revision"))], policy) || !subset(stringsOf(at(record, "evidence_refs")), index.evidence) || !subset(stringsOf(at(v, "authority_basis_refs")), index.authority) {
+	if !equal(index.policies[join(stringAt(policy, "policy_id"), stringAt(policy, "policy_revision"))], policy) || !subset(stringsOf(at(record, "evidence_refs")), index.evidence) || !subset(stringsOf(at(v, termAuthorityBasisRefs)), index.authority) {
 		return invalid()
 	}
 	if stringAt(v, "stage") == termRequested || stringAt(v, "stage") == termDecided {
@@ -197,7 +197,7 @@ func (index *crossingIndex) policy(policy any) error {
 
 func (index *crossingIndex) declassificationAuthority(v any) error {
 	if basis := at(v, "declassification_basis_ref"); basis != nil {
-		if !index.authority[text(basis)] || !set(at(v, "authority_basis_refs"))[text(basis)] {
+		if !index.authority[text(basis)] || !set(at(v, termAuthorityBasisRefs))[text(basis)] {
 			return invalid()
 		}
 	}
