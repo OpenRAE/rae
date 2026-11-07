@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[3]
 @pytest.fixture
 def recorders(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     monkeypatch.syspath_prepend(str(ROOT / "tools"))
-    return {
+    modules = {
         name: importlib.import_module("tools.parity_" + name)
         for name in (
             "authoring_layout",
@@ -27,6 +27,20 @@ def recorders(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
             "source_vectors",
         )
     }
+    reference = json.loads((ROOT / "implementations/go/contract/admission/testdata/sdl-constructors.json").read_text())[
+        "reference"
+    ]
+
+    def git_reference(arguments: list[str], *, cwd: Path, text: bool) -> str:
+        # Unit tests also run in shallow CI checkouts. Keep the subprocess
+        # boundary deterministic while checking the real query and directory.
+        assert arguments == ["git", "log", "-1", "--format=%H", "--", "implementations/python/packages/raes"]
+        assert cwd == ROOT
+        assert text is True
+        return reference + "\n"
+
+    monkeypatch.setattr(modules["sdl_constructors"].subprocess, "check_output", git_reference)
+    return modules
 
 
 @pytest.mark.parametrize(

@@ -718,3 +718,6 @@ unchanged. Tests reproduce the stored records and check unsafe file names,
 reference identity, schema predicates and changed reference verdicts. Include
 the recorder paths in the existing Python test lane so hosted coverage checks
 the code that supplies the Go reference data.
+Unit tests supply the frozen Git response and check the query path and root.
+This keeps shallow test checkouts valid. The recorder still checks the actual
+Git identity when run on the reference checkout.
