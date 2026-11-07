@@ -223,11 +223,11 @@ import (
  i "github.com/OpenRAE/rae/implementations/go/base/ingress"
  r "github.com/OpenRAE/rae/implementations/go/processor/realization"
 )
-func use(constraint a.Fragment) {
- scalar, _ := a.AdmitFragment(a.RealizationValue,"linux",i.Limits{})
+func use(v *a.Validator, constraint a.Fragment) {
+ scalar, _ := a.AdmitFragment(v,a.RealizationValue,"linux",i.Limits{})
  projectedScalar, _ := r.ProjectConcern("operating-system",scalar,false,false)
  _ = projectedScalar.Document().(string)
- collection, _ := a.AdmitFragment(a.RealizationValue,[]any{map[string]any{"name":"package"}},i.Limits{})
+ collection, _ := a.AdmitFragment(v,a.RealizationValue,[]any{map[string]any{"name":"package"}},i.Limits{})
  projected, _ := r.ProjectConcern("runtime-packages",collection,false,false)
  _ = projected.Document().([]any)
  _, _ = a.EvaluateRealizationConstraint(constraint,projected,a.DefaultConstraintLimits())
@@ -240,8 +240,8 @@ import (
  t "github.com/OpenRAE/rae/implementations/go/processor/trial"
  i "github.com/OpenRAE/rae/implementations/go/base/ingress"
 )
-func use() {
- _, _ = a.AdmitFragment(a.TrialInputRefs, map[string]any{}, i.Limits{})
+func use(v *a.Validator) {
+ _, _ = a.AdmitFragment(v, a.TrialInputRefs, map[string]any{}, i.Limits{})
  _ = c.Subject{SubjectKind:"node", OwningContractID:"sdl-authoring-input-v1", LifecyclePhase:"expanded-authoring", CanonicalRef:"nodes.a", ArtifactDigest:"sha256:x"}
  _ = c.SchemeSnapshot{SchemeID:"s", Authority:"a", Revision:"1", SourceLocator:"https://example.org", SourceDigest:"sha256:x", Concepts:[]c.SnapshotTerm{{ConceptID:"x", Status:"current"}}}
  _ = r.RealizationPreparation{Operations:[]r.ProvisionOperation{{Address:"nodes.a", Payload:map[string]any{}}}}
@@ -369,9 +369,9 @@ import (
 )
 type resolver struct{}
 func (resolver) Resolve(string,string,string) (a.ScenarioBindingResolution,error) { return a.ScenarioBindingResolution{CanonicalTargetID:"canonical",AllowedValueKinds:[]string{"literal"},Owner:a.BindingOwner{ContractID:"owner"}},nil }
-func use(family s.Scenario) {
+func use(v *a.Validator, family s.Scenario) {
  _, _ = s.ValidateExperimentSelectionAgainstFamily(b.ExperimentAuthoringInputV1{},family)
- _, _ = a.ValidateExperimentBindingTargets(b.ExperimentBindingDescriptorsV1{},resolver{},map[a.ParticipantManifestKey]b.ParticipantImplementationManifestV1{},map[a.ApparatusManifestKey]a.ApparatusManifest{})
+ _, _ = a.ValidateExperimentBindingTargets(v,b.ExperimentBindingDescriptorsV1{},resolver{},map[a.ParticipantManifestKey]b.ParticipantImplementationManifestV1{},map[a.ApparatusManifestKey]a.ApparatusManifest{})
 }`},
 		{"lock trust facts", `package consumer
 import (

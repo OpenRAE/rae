@@ -1,0 +1,3544 @@
+{
+ "reference": "Python validate_experiment_binding_targets",
+ "cases": [
+  {
+   "name": "scenario",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.worker-count",
+      "source_factor_id": "factor.worker-count",
+      "source_factor_level_id": "four",
+      "source_condition_id": "condition.four-workers",
+      "target": {
+       "plane": "scenario",
+       "scenario_family_id": "family.techvault",
+       "variation_point_id": "variation.worker-count",
+       "target_id": "variables.worker_count"
+      },
+      "value_type": "integer",
+      "value": {
+       "kind": "literal",
+       "value": 4
+      },
+      "owner": {
+       "contract_id": "sdl-authoring-input-v1",
+       "contract_version": "1",
+       "validator_id": "raes-sdl-instantiation",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [],
+   "apparatus": [],
+   "result": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.worker-count",
+      "source_factor_id": "factor.worker-count",
+      "source_factor_level_id": "four",
+      "source_condition_id": "condition.four-workers",
+      "target": {
+       "plane": "scenario",
+       "scenario_family_id": "family.techvault",
+       "variation_point_id": "variation.worker-count",
+       "target_id": "variables.worker_count"
+      },
+      "value_type": "integer",
+      "value": {
+       "kind": "literal",
+       "value": 4
+      },
+      "owner": {
+       "contract_id": "sdl-authoring-input-v1",
+       "contract_version": "1",
+       "validator_id": "raes-sdl-instantiation",
+       "validator_version": "1"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "name": "scenario-type-mismatch",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.worker-count",
+      "source_factor_id": "factor.worker-count",
+      "source_factor_level_id": "four",
+      "source_condition_id": "condition.four-workers",
+      "target": {
+       "plane": "scenario",
+       "scenario_family_id": "family.techvault",
+       "variation_point_id": "variation.worker-count",
+       "target_id": "variables.worker_count"
+      },
+      "value_type": "integer",
+      "value": {
+       "kind": "literal",
+       "value": 4
+      },
+      "owner": {
+       "contract_id": "sdl-authoring-input-v1",
+       "contract_version": "1",
+       "validator_id": "raes-sdl-instantiation",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "string",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [],
+   "apparatus": [],
+   "result": null
+  },
+  {
+   "name": "scenario-owner-mismatch",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.worker-count",
+      "source_factor_id": "factor.worker-count",
+      "source_factor_level_id": "four",
+      "source_condition_id": "condition.four-workers",
+      "target": {
+       "plane": "scenario",
+       "scenario_family_id": "family.techvault",
+       "variation_point_id": "variation.worker-count",
+       "target_id": "variables.worker_count"
+      },
+      "value_type": "integer",
+      "value": {
+       "kind": "literal",
+       "value": 4
+      },
+      "owner": {
+       "contract_id": "sdl-authoring-input-v1",
+       "contract_version": "1",
+       "validator_id": "raes-sdl-instantiation",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "2"
+    }
+   },
+   "participants": [],
+   "apparatus": [],
+   "result": null
+  },
+  {
+   "name": "scenario-secret-literal",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.worker-count",
+      "source_factor_id": "factor.worker-count",
+      "source_factor_level_id": "four",
+      "source_condition_id": "condition.four-workers",
+      "target": {
+       "plane": "scenario",
+       "scenario_family_id": "family.techvault",
+       "variation_point_id": "variation.worker-count",
+       "target_id": "variables.worker_count"
+      },
+      "value_type": "integer",
+      "value": {
+       "kind": "literal",
+       "value": 4
+      },
+      "owner": {
+       "contract_id": "sdl-authoring-input-v1",
+       "contract_version": "1",
+       "validator_id": "raes-sdl-instantiation",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal",
+     "secret-reference"
+    ],
+    "sensitivity": "secret",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [],
+   "apparatus": [],
+   "result": null
+  },
+  {
+   "name": "scenario-value-kind",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.worker-count",
+      "source_factor_id": "factor.worker-count",
+      "source_factor_level_id": "four",
+      "source_condition_id": "condition.four-workers",
+      "target": {
+       "plane": "scenario",
+       "scenario_family_id": "family.techvault",
+       "variation_point_id": "variation.worker-count",
+       "target_id": "variables.worker_count"
+      },
+      "value_type": "integer",
+      "value": {
+       "kind": "secret-reference",
+       "reference_id": "operator-secret.worker-count"
+      },
+      "owner": {
+       "contract_id": "sdl-authoring-input-v1",
+       "contract_version": "1",
+       "validator_id": "raes-sdl-instantiation",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [],
+   "apparatus": [],
+   "result": null
+  },
+  {
+   "name": "scenario-unresolved",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.worker-count",
+      "source_factor_id": "factor.worker-count",
+      "source_factor_level_id": "four",
+      "source_condition_id": "condition.four-workers",
+      "target": {
+       "plane": "scenario",
+       "scenario_family_id": "family.techvault",
+       "variation_point_id": "variation.other",
+       "target_id": "variables.worker_count"
+      },
+      "value_type": "integer",
+      "value": {
+       "kind": "literal",
+       "value": 4
+      },
+      "owner": {
+       "contract_id": "sdl-authoring-input-v1",
+       "contract_version": "1",
+       "validator_id": "raes-sdl-instantiation",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [],
+   "apparatus": [],
+   "result": null
+  },
+  {
+   "name": "participant-alias",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.participant-mode",
+      "source_factor_id": "participant-mode",
+      "source_factor_level_id": "deterministic",
+      "source_condition_id": "condition.deterministic",
+      "target": {
+       "plane": "participant-implementation",
+       "participant_address": "participants.red",
+       "implementation_name": "reference-red-agent",
+       "implementation_version": "1.0.0",
+       "manifest_version": "participant-implementation-manifest/v1",
+       "target_id": "mode"
+      },
+      "value_type": "string",
+      "value": {
+       "kind": "literal",
+       "value": "deterministic"
+      },
+      "owner": {
+       "contract_id": "participant-configuration-result-v1",
+       "contract_version": "1",
+       "validator_id": "reference-participant-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [
+    {
+     "key": [
+      "participants.red",
+      "reference-red-agent",
+      "1.0.0",
+      "participant-implementation-manifest/v1"
+     ],
+     "manifest": {
+      "schema_version": "participant-implementation-manifest/v1",
+      "identity": {
+       "name": "reference-red-agent",
+       "version": "1.0.0"
+      },
+      "implementation_kind": "agent",
+      "supported_contract_versions": [
+       "participant-implementation-manifest-v1",
+       "participant-implementation-provenance-v1",
+       "experiment-binding-descriptors-v1",
+       "participant-configuration-result-v1",
+       "participant-episode-state-envelope-v1",
+       "participant-episode-history-event-stream-v1",
+       "participant-behavior-history-event-stream-v1",
+       "participant-decision-surface-v2"
+      ],
+      "compatibility": {
+       "participant_runtimes": [
+        "stub-participant-runtime"
+       ],
+       "processors": [
+        "raes-reference-processor"
+       ],
+       "backends": [
+        "stub"
+       ]
+      },
+      "concept_bindings": [
+       {
+        "scope": "implementation_kind",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_participant_contracts",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_decision_surface_modes",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.tool_affordance_expectations",
+        "family": "tools-and-artifacts"
+       },
+       {
+        "scope": "capabilities.exposure_policy_kinds",
+        "family": "provenance-and-evidence"
+       }
+      ],
+      "constraints": {
+       "max_parallel_episodes": "1"
+      },
+      "capabilities": {
+       "supported_participant_contracts": [
+        "participant-episode-state-envelope-v1",
+        "participant-episode-history-event-stream-v1",
+        "participant-behavior-history-event-stream-v1",
+        "participant-decision-surface-v2"
+       ],
+       "supported_decision_surface_modes": [
+        "autonomous",
+        "policy-directed"
+       ],
+       "tool_affordance_expectations": [
+        "shell",
+        "http-api"
+       ],
+       "exposure_policy_kinds": [
+        "task-statement",
+        "observation-stream"
+       ]
+      },
+      "configuration_registry": {
+       "owner": {
+        "contract_id": "participant-configuration-result-v1",
+        "contract_version": "1",
+        "validator_id": "reference-participant-configuration",
+        "validator_version": "1"
+       },
+       "targets": {
+        "policy.temperature": {
+         "target_id": "policy.temperature",
+         "value_type": "number",
+         "aliases": [
+          "temperature"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "public",
+         "default": {
+          "kind": "literal",
+          "value": 0.25
+         }
+        },
+        "policy.mode": {
+         "target_id": "policy.mode",
+         "value_type": "string",
+         "aliases": [
+          "mode"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "internal"
+        },
+        "credentials.api": {
+         "target_id": "credentials.api",
+         "value_type": "string",
+         "aliases": [],
+         "allowed_value_kinds": [
+          "secret-reference"
+         ],
+         "sensitivity": "secret"
+        }
+       }
+      }
+     }
+    }
+   ],
+   "apparatus": [],
+   "result": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.participant-mode",
+      "source_factor_id": "participant-mode",
+      "source_factor_level_id": "deterministic",
+      "source_condition_id": "condition.deterministic",
+      "target": {
+       "plane": "participant-implementation",
+       "participant_address": "participants.red",
+       "implementation_name": "reference-red-agent",
+       "implementation_version": "1.0.0",
+       "manifest_version": "participant-implementation-manifest/v1",
+       "target_id": "policy.mode"
+      },
+      "value_type": "string",
+      "value": {
+       "kind": "literal",
+       "value": "deterministic"
+      },
+      "owner": {
+       "contract_id": "participant-configuration-result-v1",
+       "contract_version": "1",
+       "validator_id": "reference-participant-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "name": "participant-canonical",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.participant-mode",
+      "source_factor_id": "participant-mode",
+      "source_factor_level_id": "deterministic",
+      "source_condition_id": "condition.deterministic",
+      "target": {
+       "plane": "participant-implementation",
+       "participant_address": "participants.red",
+       "implementation_name": "reference-red-agent",
+       "implementation_version": "1.0.0",
+       "manifest_version": "participant-implementation-manifest/v1",
+       "target_id": "policy.mode"
+      },
+      "value_type": "string",
+      "value": {
+       "kind": "literal",
+       "value": "deterministic"
+      },
+      "owner": {
+       "contract_id": "participant-configuration-result-v1",
+       "contract_version": "1",
+       "validator_id": "reference-participant-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [
+    {
+     "key": [
+      "participants.red",
+      "reference-red-agent",
+      "1.0.0",
+      "participant-implementation-manifest/v1"
+     ],
+     "manifest": {
+      "schema_version": "participant-implementation-manifest/v1",
+      "identity": {
+       "name": "reference-red-agent",
+       "version": "1.0.0"
+      },
+      "implementation_kind": "agent",
+      "supported_contract_versions": [
+       "participant-implementation-manifest-v1",
+       "participant-implementation-provenance-v1",
+       "experiment-binding-descriptors-v1",
+       "participant-configuration-result-v1",
+       "participant-episode-state-envelope-v1",
+       "participant-episode-history-event-stream-v1",
+       "participant-behavior-history-event-stream-v1",
+       "participant-decision-surface-v2"
+      ],
+      "compatibility": {
+       "participant_runtimes": [
+        "stub-participant-runtime"
+       ],
+       "processors": [
+        "raes-reference-processor"
+       ],
+       "backends": [
+        "stub"
+       ]
+      },
+      "concept_bindings": [
+       {
+        "scope": "implementation_kind",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_participant_contracts",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_decision_surface_modes",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.tool_affordance_expectations",
+        "family": "tools-and-artifacts"
+       },
+       {
+        "scope": "capabilities.exposure_policy_kinds",
+        "family": "provenance-and-evidence"
+       }
+      ],
+      "constraints": {
+       "max_parallel_episodes": "1"
+      },
+      "capabilities": {
+       "supported_participant_contracts": [
+        "participant-episode-state-envelope-v1",
+        "participant-episode-history-event-stream-v1",
+        "participant-behavior-history-event-stream-v1",
+        "participant-decision-surface-v2"
+       ],
+       "supported_decision_surface_modes": [
+        "autonomous",
+        "policy-directed"
+       ],
+       "tool_affordance_expectations": [
+        "shell",
+        "http-api"
+       ],
+       "exposure_policy_kinds": [
+        "task-statement",
+        "observation-stream"
+       ]
+      },
+      "configuration_registry": {
+       "owner": {
+        "contract_id": "participant-configuration-result-v1",
+        "contract_version": "1",
+        "validator_id": "reference-participant-configuration",
+        "validator_version": "1"
+       },
+       "targets": {
+        "policy.temperature": {
+         "target_id": "policy.temperature",
+         "value_type": "number",
+         "aliases": [
+          "temperature"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "public",
+         "default": {
+          "kind": "literal",
+          "value": 0.25
+         }
+        },
+        "policy.mode": {
+         "target_id": "policy.mode",
+         "value_type": "string",
+         "aliases": [
+          "mode"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "internal"
+        },
+        "credentials.api": {
+         "target_id": "credentials.api",
+         "value_type": "string",
+         "aliases": [],
+         "allowed_value_kinds": [
+          "secret-reference"
+         ],
+         "sensitivity": "secret"
+        }
+       }
+      }
+     }
+    }
+   ],
+   "apparatus": [],
+   "result": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.participant-mode",
+      "source_factor_id": "participant-mode",
+      "source_factor_level_id": "deterministic",
+      "source_condition_id": "condition.deterministic",
+      "target": {
+       "plane": "participant-implementation",
+       "participant_address": "participants.red",
+       "implementation_name": "reference-red-agent",
+       "implementation_version": "1.0.0",
+       "manifest_version": "participant-implementation-manifest/v1",
+       "target_id": "policy.mode"
+      },
+      "value_type": "string",
+      "value": {
+       "kind": "literal",
+       "value": "deterministic"
+      },
+      "owner": {
+       "contract_id": "participant-configuration-result-v1",
+       "contract_version": "1",
+       "validator_id": "reference-participant-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "name": "participant-missing-manifest",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.participant-mode",
+      "source_factor_id": "participant-mode",
+      "source_factor_level_id": "deterministic",
+      "source_condition_id": "condition.deterministic",
+      "target": {
+       "plane": "participant-implementation",
+       "participant_address": "participants.red",
+       "implementation_name": "reference-red-agent",
+       "implementation_version": "1.0.0",
+       "manifest_version": "participant-implementation-manifest/v1",
+       "target_id": "mode"
+      },
+      "value_type": "string",
+      "value": {
+       "kind": "literal",
+       "value": "deterministic"
+      },
+      "owner": {
+       "contract_id": "participant-configuration-result-v1",
+       "contract_version": "1",
+       "validator_id": "reference-participant-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [],
+   "apparatus": [],
+   "result": null
+  },
+  {
+   "name": "participant-identity",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.participant-mode",
+      "source_factor_id": "participant-mode",
+      "source_factor_level_id": "deterministic",
+      "source_condition_id": "condition.deterministic",
+      "target": {
+       "plane": "participant-implementation",
+       "participant_address": "participants.red",
+       "implementation_name": "reference-red-agent",
+       "implementation_version": "1.0.0",
+       "manifest_version": "participant-implementation-manifest/v1",
+       "target_id": "mode"
+      },
+      "value_type": "string",
+      "value": {
+       "kind": "literal",
+       "value": "deterministic"
+      },
+      "owner": {
+       "contract_id": "participant-configuration-result-v1",
+       "contract_version": "1",
+       "validator_id": "reference-participant-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [
+    {
+     "key": [
+      "participants.red",
+      "reference-red-agent",
+      "1.0.0",
+      "participant-implementation-manifest/v1"
+     ],
+     "manifest": {
+      "schema_version": "participant-implementation-manifest/v1",
+      "identity": {
+       "name": "different-red-agent",
+       "version": "1.0.0"
+      },
+      "implementation_kind": "agent",
+      "supported_contract_versions": [
+       "participant-implementation-manifest-v1",
+       "participant-implementation-provenance-v1",
+       "experiment-binding-descriptors-v1",
+       "participant-configuration-result-v1",
+       "participant-episode-state-envelope-v1",
+       "participant-episode-history-event-stream-v1",
+       "participant-behavior-history-event-stream-v1",
+       "participant-decision-surface-v2"
+      ],
+      "compatibility": {
+       "participant_runtimes": [
+        "stub-participant-runtime"
+       ],
+       "processors": [
+        "raes-reference-processor"
+       ],
+       "backends": [
+        "stub"
+       ]
+      },
+      "concept_bindings": [
+       {
+        "scope": "implementation_kind",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_participant_contracts",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_decision_surface_modes",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.tool_affordance_expectations",
+        "family": "tools-and-artifacts"
+       },
+       {
+        "scope": "capabilities.exposure_policy_kinds",
+        "family": "provenance-and-evidence"
+       }
+      ],
+      "constraints": {
+       "max_parallel_episodes": "1"
+      },
+      "capabilities": {
+       "supported_participant_contracts": [
+        "participant-episode-state-envelope-v1",
+        "participant-episode-history-event-stream-v1",
+        "participant-behavior-history-event-stream-v1",
+        "participant-decision-surface-v2"
+       ],
+       "supported_decision_surface_modes": [
+        "autonomous",
+        "policy-directed"
+       ],
+       "tool_affordance_expectations": [
+        "shell",
+        "http-api"
+       ],
+       "exposure_policy_kinds": [
+        "task-statement",
+        "observation-stream"
+       ]
+      },
+      "configuration_registry": {
+       "owner": {
+        "contract_id": "participant-configuration-result-v1",
+        "contract_version": "1",
+        "validator_id": "reference-participant-configuration",
+        "validator_version": "1"
+       },
+       "targets": {
+        "policy.temperature": {
+         "target_id": "policy.temperature",
+         "value_type": "number",
+         "aliases": [
+          "temperature"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "public",
+         "default": {
+          "kind": "literal",
+          "value": 0.25
+         }
+        },
+        "policy.mode": {
+         "target_id": "policy.mode",
+         "value_type": "string",
+         "aliases": [
+          "mode"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "internal"
+        },
+        "credentials.api": {
+         "target_id": "credentials.api",
+         "value_type": "string",
+         "aliases": [],
+         "allowed_value_kinds": [
+          "secret-reference"
+         ],
+         "sensitivity": "secret"
+        }
+       }
+      }
+     }
+    }
+   ],
+   "apparatus": [],
+   "result": null
+  },
+  {
+   "name": "participant-no-registry",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.participant-mode",
+      "source_factor_id": "participant-mode",
+      "source_factor_level_id": "deterministic",
+      "source_condition_id": "condition.deterministic",
+      "target": {
+       "plane": "participant-implementation",
+       "participant_address": "participants.red",
+       "implementation_name": "reference-red-agent",
+       "implementation_version": "1.0.0",
+       "manifest_version": "participant-implementation-manifest/v1",
+       "target_id": "mode"
+      },
+      "value_type": "string",
+      "value": {
+       "kind": "literal",
+       "value": "deterministic"
+      },
+      "owner": {
+       "contract_id": "participant-configuration-result-v1",
+       "contract_version": "1",
+       "validator_id": "reference-participant-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [
+    {
+     "key": [
+      "participants.red",
+      "reference-red-agent",
+      "1.0.0",
+      "participant-implementation-manifest/v1"
+     ],
+     "manifest": {
+      "schema_version": "participant-implementation-manifest/v1",
+      "identity": {
+       "name": "reference-red-agent",
+       "version": "1.0.0"
+      },
+      "implementation_kind": "agent",
+      "supported_contract_versions": [
+       "participant-implementation-manifest-v1",
+       "participant-implementation-provenance-v1",
+       "experiment-binding-descriptors-v1",
+       "participant-configuration-result-v1",
+       "participant-episode-state-envelope-v1",
+       "participant-episode-history-event-stream-v1",
+       "participant-behavior-history-event-stream-v1",
+       "participant-decision-surface-v2"
+      ],
+      "compatibility": {
+       "participant_runtimes": [
+        "stub-participant-runtime"
+       ],
+       "processors": [
+        "raes-reference-processor"
+       ],
+       "backends": [
+        "stub"
+       ]
+      },
+      "concept_bindings": [
+       {
+        "scope": "implementation_kind",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_participant_contracts",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_decision_surface_modes",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.tool_affordance_expectations",
+        "family": "tools-and-artifacts"
+       },
+       {
+        "scope": "capabilities.exposure_policy_kinds",
+        "family": "provenance-and-evidence"
+       }
+      ],
+      "constraints": {
+       "max_parallel_episodes": "1"
+      },
+      "capabilities": {
+       "supported_participant_contracts": [
+        "participant-episode-state-envelope-v1",
+        "participant-episode-history-event-stream-v1",
+        "participant-behavior-history-event-stream-v1",
+        "participant-decision-surface-v2"
+       ],
+       "supported_decision_surface_modes": [
+        "autonomous",
+        "policy-directed"
+       ],
+       "tool_affordance_expectations": [
+        "shell",
+        "http-api"
+       ],
+       "exposure_policy_kinds": [
+        "task-statement",
+        "observation-stream"
+       ]
+      }
+     }
+    }
+   ],
+   "apparatus": [],
+   "result": null
+  },
+  {
+   "name": "participant-owner",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.participant-mode",
+      "source_factor_id": "participant-mode",
+      "source_factor_level_id": "deterministic",
+      "source_condition_id": "condition.deterministic",
+      "target": {
+       "plane": "participant-implementation",
+       "participant_address": "participants.red",
+       "implementation_name": "reference-red-agent",
+       "implementation_version": "1.0.0",
+       "manifest_version": "participant-implementation-manifest/v1",
+       "target_id": "mode"
+      },
+      "value_type": "string",
+      "value": {
+       "kind": "literal",
+       "value": "deterministic"
+      },
+      "owner": {
+       "contract_id": "participant-configuration-result-v1",
+       "contract_version": "1",
+       "validator_id": "reference-participant-configuration",
+       "validator_version": "2"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [
+    {
+     "key": [
+      "participants.red",
+      "reference-red-agent",
+      "1.0.0",
+      "participant-implementation-manifest/v1"
+     ],
+     "manifest": {
+      "schema_version": "participant-implementation-manifest/v1",
+      "identity": {
+       "name": "reference-red-agent",
+       "version": "1.0.0"
+      },
+      "implementation_kind": "agent",
+      "supported_contract_versions": [
+       "participant-implementation-manifest-v1",
+       "participant-implementation-provenance-v1",
+       "experiment-binding-descriptors-v1",
+       "participant-configuration-result-v1",
+       "participant-episode-state-envelope-v1",
+       "participant-episode-history-event-stream-v1",
+       "participant-behavior-history-event-stream-v1",
+       "participant-decision-surface-v2"
+      ],
+      "compatibility": {
+       "participant_runtimes": [
+        "stub-participant-runtime"
+       ],
+       "processors": [
+        "raes-reference-processor"
+       ],
+       "backends": [
+        "stub"
+       ]
+      },
+      "concept_bindings": [
+       {
+        "scope": "implementation_kind",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_participant_contracts",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_decision_surface_modes",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.tool_affordance_expectations",
+        "family": "tools-and-artifacts"
+       },
+       {
+        "scope": "capabilities.exposure_policy_kinds",
+        "family": "provenance-and-evidence"
+       }
+      ],
+      "constraints": {
+       "max_parallel_episodes": "1"
+      },
+      "capabilities": {
+       "supported_participant_contracts": [
+        "participant-episode-state-envelope-v1",
+        "participant-episode-history-event-stream-v1",
+        "participant-behavior-history-event-stream-v1",
+        "participant-decision-surface-v2"
+       ],
+       "supported_decision_surface_modes": [
+        "autonomous",
+        "policy-directed"
+       ],
+       "tool_affordance_expectations": [
+        "shell",
+        "http-api"
+       ],
+       "exposure_policy_kinds": [
+        "task-statement",
+        "observation-stream"
+       ]
+      },
+      "configuration_registry": {
+       "owner": {
+        "contract_id": "participant-configuration-result-v1",
+        "contract_version": "1",
+        "validator_id": "reference-participant-configuration",
+        "validator_version": "1"
+       },
+       "targets": {
+        "policy.temperature": {
+         "target_id": "policy.temperature",
+         "value_type": "number",
+         "aliases": [
+          "temperature"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "public",
+         "default": {
+          "kind": "literal",
+          "value": 0.25
+         }
+        },
+        "policy.mode": {
+         "target_id": "policy.mode",
+         "value_type": "string",
+         "aliases": [
+          "mode"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "internal"
+        },
+        "credentials.api": {
+         "target_id": "credentials.api",
+         "value_type": "string",
+         "aliases": [],
+         "allowed_value_kinds": [
+          "secret-reference"
+         ],
+         "sensitivity": "secret"
+        }
+       }
+      }
+     }
+    }
+   ],
+   "apparatus": [],
+   "result": null
+  },
+  {
+   "name": "participant-value-type",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.participant-mode",
+      "source_factor_id": "participant-mode",
+      "source_factor_level_id": "deterministic",
+      "source_condition_id": "condition.deterministic",
+      "target": {
+       "plane": "participant-implementation",
+       "participant_address": "participants.red",
+       "implementation_name": "reference-red-agent",
+       "implementation_version": "1.0.0",
+       "manifest_version": "participant-implementation-manifest/v1",
+       "target_id": "mode"
+      },
+      "value_type": "integer",
+      "value": {
+       "kind": "literal",
+       "value": 1
+      },
+      "owner": {
+       "contract_id": "participant-configuration-result-v1",
+       "contract_version": "1",
+       "validator_id": "reference-participant-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [
+    {
+     "key": [
+      "participants.red",
+      "reference-red-agent",
+      "1.0.0",
+      "participant-implementation-manifest/v1"
+     ],
+     "manifest": {
+      "schema_version": "participant-implementation-manifest/v1",
+      "identity": {
+       "name": "reference-red-agent",
+       "version": "1.0.0"
+      },
+      "implementation_kind": "agent",
+      "supported_contract_versions": [
+       "participant-implementation-manifest-v1",
+       "participant-implementation-provenance-v1",
+       "experiment-binding-descriptors-v1",
+       "participant-configuration-result-v1",
+       "participant-episode-state-envelope-v1",
+       "participant-episode-history-event-stream-v1",
+       "participant-behavior-history-event-stream-v1",
+       "participant-decision-surface-v2"
+      ],
+      "compatibility": {
+       "participant_runtimes": [
+        "stub-participant-runtime"
+       ],
+       "processors": [
+        "raes-reference-processor"
+       ],
+       "backends": [
+        "stub"
+       ]
+      },
+      "concept_bindings": [
+       {
+        "scope": "implementation_kind",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_participant_contracts",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_decision_surface_modes",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.tool_affordance_expectations",
+        "family": "tools-and-artifacts"
+       },
+       {
+        "scope": "capabilities.exposure_policy_kinds",
+        "family": "provenance-and-evidence"
+       }
+      ],
+      "constraints": {
+       "max_parallel_episodes": "1"
+      },
+      "capabilities": {
+       "supported_participant_contracts": [
+        "participant-episode-state-envelope-v1",
+        "participant-episode-history-event-stream-v1",
+        "participant-behavior-history-event-stream-v1",
+        "participant-decision-surface-v2"
+       ],
+       "supported_decision_surface_modes": [
+        "autonomous",
+        "policy-directed"
+       ],
+       "tool_affordance_expectations": [
+        "shell",
+        "http-api"
+       ],
+       "exposure_policy_kinds": [
+        "task-statement",
+        "observation-stream"
+       ]
+      },
+      "configuration_registry": {
+       "owner": {
+        "contract_id": "participant-configuration-result-v1",
+        "contract_version": "1",
+        "validator_id": "reference-participant-configuration",
+        "validator_version": "1"
+       },
+       "targets": {
+        "policy.temperature": {
+         "target_id": "policy.temperature",
+         "value_type": "number",
+         "aliases": [
+          "temperature"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "public",
+         "default": {
+          "kind": "literal",
+          "value": 0.25
+         }
+        },
+        "policy.mode": {
+         "target_id": "policy.mode",
+         "value_type": "string",
+         "aliases": [
+          "mode"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "internal"
+        },
+        "credentials.api": {
+         "target_id": "credentials.api",
+         "value_type": "string",
+         "aliases": [],
+         "allowed_value_kinds": [
+          "secret-reference"
+         ],
+         "sensitivity": "secret"
+        }
+       }
+      }
+     }
+    }
+   ],
+   "apparatus": [],
+   "result": null
+  },
+  {
+   "name": "participant-unknown-target",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.participant-mode",
+      "source_factor_id": "participant-mode",
+      "source_factor_level_id": "deterministic",
+      "source_condition_id": "condition.deterministic",
+      "target": {
+       "plane": "participant-implementation",
+       "participant_address": "participants.red",
+       "implementation_name": "reference-red-agent",
+       "implementation_version": "1.0.0",
+       "manifest_version": "participant-implementation-manifest/v1",
+       "target_id": "variables.worker_count"
+      },
+      "value_type": "string",
+      "value": {
+       "kind": "literal",
+       "value": "deterministic"
+      },
+      "owner": {
+       "contract_id": "participant-configuration-result-v1",
+       "contract_version": "1",
+       "validator_id": "reference-participant-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [
+    {
+     "key": [
+      "participants.red",
+      "reference-red-agent",
+      "1.0.0",
+      "participant-implementation-manifest/v1"
+     ],
+     "manifest": {
+      "schema_version": "participant-implementation-manifest/v1",
+      "identity": {
+       "name": "reference-red-agent",
+       "version": "1.0.0"
+      },
+      "implementation_kind": "agent",
+      "supported_contract_versions": [
+       "participant-implementation-manifest-v1",
+       "participant-implementation-provenance-v1",
+       "experiment-binding-descriptors-v1",
+       "participant-configuration-result-v1",
+       "participant-episode-state-envelope-v1",
+       "participant-episode-history-event-stream-v1",
+       "participant-behavior-history-event-stream-v1",
+       "participant-decision-surface-v2"
+      ],
+      "compatibility": {
+       "participant_runtimes": [
+        "stub-participant-runtime"
+       ],
+       "processors": [
+        "raes-reference-processor"
+       ],
+       "backends": [
+        "stub"
+       ]
+      },
+      "concept_bindings": [
+       {
+        "scope": "implementation_kind",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_participant_contracts",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_decision_surface_modes",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.tool_affordance_expectations",
+        "family": "tools-and-artifacts"
+       },
+       {
+        "scope": "capabilities.exposure_policy_kinds",
+        "family": "provenance-and-evidence"
+       }
+      ],
+      "constraints": {
+       "max_parallel_episodes": "1"
+      },
+      "capabilities": {
+       "supported_participant_contracts": [
+        "participant-episode-state-envelope-v1",
+        "participant-episode-history-event-stream-v1",
+        "participant-behavior-history-event-stream-v1",
+        "participant-decision-surface-v2"
+       ],
+       "supported_decision_surface_modes": [
+        "autonomous",
+        "policy-directed"
+       ],
+       "tool_affordance_expectations": [
+        "shell",
+        "http-api"
+       ],
+       "exposure_policy_kinds": [
+        "task-statement",
+        "observation-stream"
+       ]
+      },
+      "configuration_registry": {
+       "owner": {
+        "contract_id": "participant-configuration-result-v1",
+        "contract_version": "1",
+        "validator_id": "reference-participant-configuration",
+        "validator_version": "1"
+       },
+       "targets": {
+        "policy.temperature": {
+         "target_id": "policy.temperature",
+         "value_type": "number",
+         "aliases": [
+          "temperature"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "public",
+         "default": {
+          "kind": "literal",
+          "value": 0.25
+         }
+        },
+        "policy.mode": {
+         "target_id": "policy.mode",
+         "value_type": "string",
+         "aliases": [
+          "mode"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "internal"
+        },
+        "credentials.api": {
+         "target_id": "credentials.api",
+         "value_type": "string",
+         "aliases": [],
+         "allowed_value_kinds": [
+          "secret-reference"
+         ],
+         "sensitivity": "secret"
+        }
+       }
+      }
+     }
+    }
+   ],
+   "apparatus": [],
+   "result": null
+  },
+  {
+   "name": "participant-alias-duplicate",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.participant-mode",
+      "source_factor_id": "participant-mode",
+      "source_factor_level_id": "deterministic",
+      "source_condition_id": "condition.deterministic",
+      "target": {
+       "plane": "participant-implementation",
+       "participant_address": "participants.red",
+       "implementation_name": "reference-red-agent",
+       "implementation_version": "1.0.0",
+       "manifest_version": "participant-implementation-manifest/v1",
+       "target_id": "mode"
+      },
+      "value_type": "string",
+      "value": {
+       "kind": "literal",
+       "value": "deterministic"
+      },
+      "owner": {
+       "contract_id": "participant-configuration-result-v1",
+       "contract_version": "1",
+       "validator_id": "reference-participant-configuration",
+       "validator_version": "1"
+      }
+     },
+     {
+      "binding_id": "binding.participant-mode-duplicate",
+      "source_factor_id": "participant-mode",
+      "source_factor_level_id": "deterministic",
+      "source_condition_id": "condition.deterministic",
+      "target": {
+       "plane": "participant-implementation",
+       "participant_address": "participants.red",
+       "implementation_name": "reference-red-agent",
+       "implementation_version": "1.0.0",
+       "manifest_version": "participant-implementation-manifest/v1",
+       "target_id": "policy.mode"
+      },
+      "value_type": "string",
+      "value": {
+       "kind": "literal",
+       "value": "deterministic"
+      },
+      "owner": {
+       "contract_id": "participant-configuration-result-v1",
+       "contract_version": "1",
+       "validator_id": "reference-participant-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [
+    {
+     "key": [
+      "participants.red",
+      "reference-red-agent",
+      "1.0.0",
+      "participant-implementation-manifest/v1"
+     ],
+     "manifest": {
+      "schema_version": "participant-implementation-manifest/v1",
+      "identity": {
+       "name": "reference-red-agent",
+       "version": "1.0.0"
+      },
+      "implementation_kind": "agent",
+      "supported_contract_versions": [
+       "participant-implementation-manifest-v1",
+       "participant-implementation-provenance-v1",
+       "experiment-binding-descriptors-v1",
+       "participant-configuration-result-v1",
+       "participant-episode-state-envelope-v1",
+       "participant-episode-history-event-stream-v1",
+       "participant-behavior-history-event-stream-v1",
+       "participant-decision-surface-v2"
+      ],
+      "compatibility": {
+       "participant_runtimes": [
+        "stub-participant-runtime"
+       ],
+       "processors": [
+        "raes-reference-processor"
+       ],
+       "backends": [
+        "stub"
+       ]
+      },
+      "concept_bindings": [
+       {
+        "scope": "implementation_kind",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_participant_contracts",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_decision_surface_modes",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.tool_affordance_expectations",
+        "family": "tools-and-artifacts"
+       },
+       {
+        "scope": "capabilities.exposure_policy_kinds",
+        "family": "provenance-and-evidence"
+       }
+      ],
+      "constraints": {
+       "max_parallel_episodes": "1"
+      },
+      "capabilities": {
+       "supported_participant_contracts": [
+        "participant-episode-state-envelope-v1",
+        "participant-episode-history-event-stream-v1",
+        "participant-behavior-history-event-stream-v1",
+        "participant-decision-surface-v2"
+       ],
+       "supported_decision_surface_modes": [
+        "autonomous",
+        "policy-directed"
+       ],
+       "tool_affordance_expectations": [
+        "shell",
+        "http-api"
+       ],
+       "exposure_policy_kinds": [
+        "task-statement",
+        "observation-stream"
+       ]
+      },
+      "configuration_registry": {
+       "owner": {
+        "contract_id": "participant-configuration-result-v1",
+        "contract_version": "1",
+        "validator_id": "reference-participant-configuration",
+        "validator_version": "1"
+       },
+       "targets": {
+        "policy.temperature": {
+         "target_id": "policy.temperature",
+         "value_type": "number",
+         "aliases": [
+          "temperature"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "public",
+         "default": {
+          "kind": "literal",
+          "value": 0.25
+         }
+        },
+        "policy.mode": {
+         "target_id": "policy.mode",
+         "value_type": "string",
+         "aliases": [
+          "mode"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "internal"
+        },
+        "credentials.api": {
+         "target_id": "credentials.api",
+         "value_type": "string",
+         "aliases": [],
+         "allowed_value_kinds": [
+          "secret-reference"
+         ],
+         "sensitivity": "secret"
+        }
+       }
+      }
+     }
+    }
+   ],
+   "apparatus": [],
+   "result": null
+  },
+  {
+   "name": "participant-secret-literal",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.participant-mode",
+      "source_factor_id": "participant-mode",
+      "source_factor_level_id": "deterministic",
+      "source_condition_id": "condition.deterministic",
+      "target": {
+       "plane": "participant-implementation",
+       "participant_address": "participants.red",
+       "implementation_name": "reference-red-agent",
+       "implementation_version": "1.0.0",
+       "manifest_version": "participant-implementation-manifest/v1",
+       "target_id": "credentials.api"
+      },
+      "value_type": "string",
+      "value": {
+       "kind": "literal",
+       "value": "inline"
+      },
+      "owner": {
+       "contract_id": "participant-configuration-result-v1",
+       "contract_version": "1",
+       "validator_id": "reference-participant-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [
+    {
+     "key": [
+      "participants.red",
+      "reference-red-agent",
+      "1.0.0",
+      "participant-implementation-manifest/v1"
+     ],
+     "manifest": {
+      "schema_version": "participant-implementation-manifest/v1",
+      "identity": {
+       "name": "reference-red-agent",
+       "version": "1.0.0"
+      },
+      "implementation_kind": "agent",
+      "supported_contract_versions": [
+       "participant-implementation-manifest-v1",
+       "participant-implementation-provenance-v1",
+       "experiment-binding-descriptors-v1",
+       "participant-configuration-result-v1",
+       "participant-episode-state-envelope-v1",
+       "participant-episode-history-event-stream-v1",
+       "participant-behavior-history-event-stream-v1",
+       "participant-decision-surface-v2"
+      ],
+      "compatibility": {
+       "participant_runtimes": [
+        "stub-participant-runtime"
+       ],
+       "processors": [
+        "raes-reference-processor"
+       ],
+       "backends": [
+        "stub"
+       ]
+      },
+      "concept_bindings": [
+       {
+        "scope": "implementation_kind",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_participant_contracts",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_decision_surface_modes",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.tool_affordance_expectations",
+        "family": "tools-and-artifacts"
+       },
+       {
+        "scope": "capabilities.exposure_policy_kinds",
+        "family": "provenance-and-evidence"
+       }
+      ],
+      "constraints": {
+       "max_parallel_episodes": "1"
+      },
+      "capabilities": {
+       "supported_participant_contracts": [
+        "participant-episode-state-envelope-v1",
+        "participant-episode-history-event-stream-v1",
+        "participant-behavior-history-event-stream-v1",
+        "participant-decision-surface-v2"
+       ],
+       "supported_decision_surface_modes": [
+        "autonomous",
+        "policy-directed"
+       ],
+       "tool_affordance_expectations": [
+        "shell",
+        "http-api"
+       ],
+       "exposure_policy_kinds": [
+        "task-statement",
+        "observation-stream"
+       ]
+      },
+      "configuration_registry": {
+       "owner": {
+        "contract_id": "participant-configuration-result-v1",
+        "contract_version": "1",
+        "validator_id": "reference-participant-configuration",
+        "validator_version": "1"
+       },
+       "targets": {
+        "policy.temperature": {
+         "target_id": "policy.temperature",
+         "value_type": "number",
+         "aliases": [
+          "temperature"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "public",
+         "default": {
+          "kind": "literal",
+          "value": 0.25
+         }
+        },
+        "policy.mode": {
+         "target_id": "policy.mode",
+         "value_type": "string",
+         "aliases": [
+          "mode"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "internal"
+        },
+        "credentials.api": {
+         "target_id": "credentials.api",
+         "value_type": "string",
+         "aliases": [],
+         "allowed_value_kinds": [
+          "secret-reference"
+         ],
+         "sensitivity": "secret"
+        }
+       }
+      }
+     }
+    }
+   ],
+   "apparatus": [],
+   "result": null
+  },
+  {
+   "name": "participant-secret-reference",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.participant-mode",
+      "source_factor_id": "participant-mode",
+      "source_factor_level_id": "deterministic",
+      "source_condition_id": "condition.deterministic",
+      "target": {
+       "plane": "participant-implementation",
+       "participant_address": "participants.red",
+       "implementation_name": "reference-red-agent",
+       "implementation_version": "1.0.0",
+       "manifest_version": "participant-implementation-manifest/v1",
+       "target_id": "credentials.api"
+      },
+      "value_type": "string",
+      "value": {
+       "kind": "secret-reference",
+       "reference_id": "operator-secret.api"
+      },
+      "owner": {
+       "contract_id": "participant-configuration-result-v1",
+       "contract_version": "1",
+       "validator_id": "reference-participant-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [
+    {
+     "key": [
+      "participants.red",
+      "reference-red-agent",
+      "1.0.0",
+      "participant-implementation-manifest/v1"
+     ],
+     "manifest": {
+      "schema_version": "participant-implementation-manifest/v1",
+      "identity": {
+       "name": "reference-red-agent",
+       "version": "1.0.0"
+      },
+      "implementation_kind": "agent",
+      "supported_contract_versions": [
+       "participant-implementation-manifest-v1",
+       "participant-implementation-provenance-v1",
+       "experiment-binding-descriptors-v1",
+       "participant-configuration-result-v1",
+       "participant-episode-state-envelope-v1",
+       "participant-episode-history-event-stream-v1",
+       "participant-behavior-history-event-stream-v1",
+       "participant-decision-surface-v2"
+      ],
+      "compatibility": {
+       "participant_runtimes": [
+        "stub-participant-runtime"
+       ],
+       "processors": [
+        "raes-reference-processor"
+       ],
+       "backends": [
+        "stub"
+       ]
+      },
+      "concept_bindings": [
+       {
+        "scope": "implementation_kind",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_participant_contracts",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_decision_surface_modes",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.tool_affordance_expectations",
+        "family": "tools-and-artifacts"
+       },
+       {
+        "scope": "capabilities.exposure_policy_kinds",
+        "family": "provenance-and-evidence"
+       }
+      ],
+      "constraints": {
+       "max_parallel_episodes": "1"
+      },
+      "capabilities": {
+       "supported_participant_contracts": [
+        "participant-episode-state-envelope-v1",
+        "participant-episode-history-event-stream-v1",
+        "participant-behavior-history-event-stream-v1",
+        "participant-decision-surface-v2"
+       ],
+       "supported_decision_surface_modes": [
+        "autonomous",
+        "policy-directed"
+       ],
+       "tool_affordance_expectations": [
+        "shell",
+        "http-api"
+       ],
+       "exposure_policy_kinds": [
+        "task-statement",
+        "observation-stream"
+       ]
+      },
+      "configuration_registry": {
+       "owner": {
+        "contract_id": "participant-configuration-result-v1",
+        "contract_version": "1",
+        "validator_id": "reference-participant-configuration",
+        "validator_version": "1"
+       },
+       "targets": {
+        "policy.temperature": {
+         "target_id": "policy.temperature",
+         "value_type": "number",
+         "aliases": [
+          "temperature"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "public",
+         "default": {
+          "kind": "literal",
+          "value": 0.25
+         }
+        },
+        "policy.mode": {
+         "target_id": "policy.mode",
+         "value_type": "string",
+         "aliases": [
+          "mode"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "internal"
+        },
+        "credentials.api": {
+         "target_id": "credentials.api",
+         "value_type": "string",
+         "aliases": [],
+         "allowed_value_kinds": [
+          "secret-reference"
+         ],
+         "sensitivity": "secret"
+        }
+       }
+      }
+     }
+    }
+   ],
+   "apparatus": [],
+   "result": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.participant-mode",
+      "source_factor_id": "participant-mode",
+      "source_factor_level_id": "deterministic",
+      "source_condition_id": "condition.deterministic",
+      "target": {
+       "plane": "participant-implementation",
+       "participant_address": "participants.red",
+       "implementation_name": "reference-red-agent",
+       "implementation_version": "1.0.0",
+       "manifest_version": "participant-implementation-manifest/v1",
+       "target_id": "credentials.api"
+      },
+      "value_type": "string",
+      "value": {
+       "kind": "secret-reference",
+       "reference_id": "operator-secret.api"
+      },
+      "owner": {
+       "contract_id": "participant-configuration-result-v1",
+       "contract_version": "1",
+       "validator_id": "reference-participant-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "name": "apparatus",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.apparatus-parallelism",
+      "source_factor_id": "parallelism",
+      "source_factor_level_id": "four",
+      "source_condition_id": "condition.four-workers",
+      "target": {
+       "plane": "apparatus",
+       "component_kind": "processor",
+       "component_name": "raes-reference-processor",
+       "component_version": "0.2.0",
+       "manifest_version": "processor-manifest/v2",
+       "target_id": "execution.parallelism"
+      },
+      "value_type": "integer",
+      "value": {
+       "kind": "literal",
+       "value": 4
+      },
+      "owner": {
+       "contract_id": "processor-manifest/v2",
+       "contract_version": "1",
+       "validator_id": "raes-reference-processor-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [],
+   "apparatus": [
+    {
+     "key": [
+      "processor",
+      "raes-reference-processor",
+      "0.2.0",
+      "processor-manifest/v2"
+     ],
+     "kind": "processor",
+     "manifest": {
+      "schema_version": "processor-manifest/v2",
+      "identity": {
+       "name": "raes-reference-processor",
+       "version": "0.2.0"
+      },
+      "supported_contract_versions": [
+       "processor-manifest-v2",
+       "provisioning-plan-v1",
+       "orchestration-plan-v1",
+       "evaluation-plan-v1",
+       "workflow-cancellation-request-v1",
+       "operation-receipt-v1",
+       "operation-status-v1",
+       "runtime-snapshot-v1",
+       "experiment-binding-descriptors-v1"
+      ],
+      "compatibility": {
+       "backends": [
+        "stub"
+       ]
+      },
+      "concept_bindings": [
+       {
+        "scope": "capabilities.supported_sdl_versions",
+        "family": "scenarios"
+       },
+       {
+        "scope": "capabilities.supported_features",
+        "family": "apparatus-declarations"
+       }
+      ],
+      "constraints": {},
+      "capabilities": {
+       "supported_sdl_versions": [
+        "sdl-authoring-input-v1"
+       ],
+       "supported_features": [
+        "compilation",
+        "planning",
+        "orchestration-coordination",
+        "evaluation-coordination",
+        "workflow-semantics",
+        "objective-window-consistency",
+        "dependency-ordering",
+        "runtime-control-plane"
+       ],
+       "participant_tools": {
+        "semantic_versions": [
+         "participant-tool-profile/v1"
+        ],
+        "max_bindings_per_profile": null,
+        "max_participants_per_binding": null,
+        "feature_support": [
+         {
+          "feature": "tool_affordances",
+          "support_level": "exact",
+          "constraint_refs": [],
+          "limitation_refs": [],
+          "disclosure_refs": [],
+          "evidence_refs": [
+           "tests:ACT-619",
+           "tests:API-414"
+          ]
+         },
+         {
+          "feature": "scoped_tool_affordances",
+          "support_level": "exact",
+          "constraint_refs": [],
+          "limitation_refs": [],
+          "disclosure_refs": [],
+          "evidence_refs": [
+           "tests:ACT-619",
+           "tests:API-414"
+          ]
+         }
+        ]
+       }
+      },
+      "configuration_registry": {
+       "owner": {
+        "contract_id": "processor-manifest/v2",
+        "contract_version": "1",
+        "validator_id": "raes-reference-processor-configuration",
+        "validator_version": "1"
+       },
+       "targets": {
+        "execution.parallelism": {
+         "target_id": "execution.parallelism",
+         "value_type": "integer",
+         "aliases": [
+          "parallelism"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "internal",
+         "default": {
+          "kind": "literal",
+          "value": 1
+         }
+        }
+       }
+      }
+     }
+    }
+   ],
+   "result": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.apparatus-parallelism",
+      "source_factor_id": "parallelism",
+      "source_factor_level_id": "four",
+      "source_condition_id": "condition.four-workers",
+      "target": {
+       "plane": "apparatus",
+       "component_kind": "processor",
+       "component_name": "raes-reference-processor",
+       "component_version": "0.2.0",
+       "manifest_version": "processor-manifest/v2",
+       "target_id": "execution.parallelism"
+      },
+      "value_type": "integer",
+      "value": {
+       "kind": "literal",
+       "value": 4
+      },
+      "owner": {
+       "contract_id": "processor-manifest/v2",
+       "contract_version": "1",
+       "validator_id": "raes-reference-processor-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "name": "apparatus-alias",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.apparatus-parallelism",
+      "source_factor_id": "parallelism",
+      "source_factor_level_id": "four",
+      "source_condition_id": "condition.four-workers",
+      "target": {
+       "plane": "apparatus",
+       "component_kind": "processor",
+       "component_name": "raes-reference-processor",
+       "component_version": "0.2.0",
+       "manifest_version": "processor-manifest/v2",
+       "target_id": "parallelism"
+      },
+      "value_type": "integer",
+      "value": {
+       "kind": "literal",
+       "value": 4
+      },
+      "owner": {
+       "contract_id": "processor-manifest/v2",
+       "contract_version": "1",
+       "validator_id": "raes-reference-processor-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [],
+   "apparatus": [
+    {
+     "key": [
+      "processor",
+      "raes-reference-processor",
+      "0.2.0",
+      "processor-manifest/v2"
+     ],
+     "kind": "processor",
+     "manifest": {
+      "schema_version": "processor-manifest/v2",
+      "identity": {
+       "name": "raes-reference-processor",
+       "version": "0.2.0"
+      },
+      "supported_contract_versions": [
+       "processor-manifest-v2",
+       "provisioning-plan-v1",
+       "orchestration-plan-v1",
+       "evaluation-plan-v1",
+       "workflow-cancellation-request-v1",
+       "operation-receipt-v1",
+       "operation-status-v1",
+       "runtime-snapshot-v1",
+       "experiment-binding-descriptors-v1"
+      ],
+      "compatibility": {
+       "backends": [
+        "stub"
+       ]
+      },
+      "concept_bindings": [
+       {
+        "scope": "capabilities.supported_sdl_versions",
+        "family": "scenarios"
+       },
+       {
+        "scope": "capabilities.supported_features",
+        "family": "apparatus-declarations"
+       }
+      ],
+      "constraints": {},
+      "capabilities": {
+       "supported_sdl_versions": [
+        "sdl-authoring-input-v1"
+       ],
+       "supported_features": [
+        "compilation",
+        "planning",
+        "orchestration-coordination",
+        "evaluation-coordination",
+        "workflow-semantics",
+        "objective-window-consistency",
+        "dependency-ordering",
+        "runtime-control-plane"
+       ],
+       "participant_tools": {
+        "semantic_versions": [
+         "participant-tool-profile/v1"
+        ],
+        "max_bindings_per_profile": null,
+        "max_participants_per_binding": null,
+        "feature_support": [
+         {
+          "feature": "tool_affordances",
+          "support_level": "exact",
+          "constraint_refs": [],
+          "limitation_refs": [],
+          "disclosure_refs": [],
+          "evidence_refs": [
+           "tests:ACT-619",
+           "tests:API-414"
+          ]
+         },
+         {
+          "feature": "scoped_tool_affordances",
+          "support_level": "exact",
+          "constraint_refs": [],
+          "limitation_refs": [],
+          "disclosure_refs": [],
+          "evidence_refs": [
+           "tests:ACT-619",
+           "tests:API-414"
+          ]
+         }
+        ]
+       }
+      },
+      "configuration_registry": {
+       "owner": {
+        "contract_id": "processor-manifest/v2",
+        "contract_version": "1",
+        "validator_id": "raes-reference-processor-configuration",
+        "validator_version": "1"
+       },
+       "targets": {
+        "execution.parallelism": {
+         "target_id": "execution.parallelism",
+         "value_type": "integer",
+         "aliases": [
+          "parallelism"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "internal",
+         "default": {
+          "kind": "literal",
+          "value": 1
+         }
+        }
+       }
+      }
+     }
+    }
+   ],
+   "result": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.apparatus-parallelism",
+      "source_factor_id": "parallelism",
+      "source_factor_level_id": "four",
+      "source_condition_id": "condition.four-workers",
+      "target": {
+       "plane": "apparatus",
+       "component_kind": "processor",
+       "component_name": "raes-reference-processor",
+       "component_version": "0.2.0",
+       "manifest_version": "processor-manifest/v2",
+       "target_id": "execution.parallelism"
+      },
+      "value_type": "integer",
+      "value": {
+       "kind": "literal",
+       "value": 4
+      },
+      "owner": {
+       "contract_id": "processor-manifest/v2",
+       "contract_version": "1",
+       "validator_id": "raes-reference-processor-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   }
+  },
+  {
+   "name": "apparatus-identity",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.apparatus-parallelism",
+      "source_factor_id": "parallelism",
+      "source_factor_level_id": "four",
+      "source_condition_id": "condition.four-workers",
+      "target": {
+       "plane": "apparatus",
+       "component_kind": "processor",
+       "component_name": "raes-reference-processor",
+       "component_version": "0.2.0",
+       "manifest_version": "processor-manifest/v2",
+       "target_id": "execution.parallelism"
+      },
+      "value_type": "integer",
+      "value": {
+       "kind": "literal",
+       "value": 4
+      },
+      "owner": {
+       "contract_id": "processor-manifest/v2",
+       "contract_version": "1",
+       "validator_id": "raes-reference-processor-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [],
+   "apparatus": [
+    {
+     "key": [
+      "processor",
+      "raes-reference-processor",
+      "0.2.0",
+      "processor-manifest/v2"
+     ],
+     "kind": "processor",
+     "manifest": {
+      "schema_version": "processor-manifest/v2",
+      "identity": {
+       "name": "different-processor",
+       "version": "0.2.0"
+      },
+      "supported_contract_versions": [
+       "processor-manifest-v2",
+       "provisioning-plan-v1",
+       "orchestration-plan-v1",
+       "evaluation-plan-v1",
+       "workflow-cancellation-request-v1",
+       "operation-receipt-v1",
+       "operation-status-v1",
+       "runtime-snapshot-v1",
+       "experiment-binding-descriptors-v1"
+      ],
+      "compatibility": {
+       "backends": [
+        "stub"
+       ]
+      },
+      "concept_bindings": [
+       {
+        "scope": "capabilities.supported_sdl_versions",
+        "family": "scenarios"
+       },
+       {
+        "scope": "capabilities.supported_features",
+        "family": "apparatus-declarations"
+       }
+      ],
+      "constraints": {},
+      "capabilities": {
+       "supported_sdl_versions": [
+        "sdl-authoring-input-v1"
+       ],
+       "supported_features": [
+        "compilation",
+        "planning",
+        "orchestration-coordination",
+        "evaluation-coordination",
+        "workflow-semantics",
+        "objective-window-consistency",
+        "dependency-ordering",
+        "runtime-control-plane"
+       ],
+       "participant_tools": {
+        "semantic_versions": [
+         "participant-tool-profile/v1"
+        ],
+        "max_bindings_per_profile": null,
+        "max_participants_per_binding": null,
+        "feature_support": [
+         {
+          "feature": "tool_affordances",
+          "support_level": "exact",
+          "constraint_refs": [],
+          "limitation_refs": [],
+          "disclosure_refs": [],
+          "evidence_refs": [
+           "tests:ACT-619",
+           "tests:API-414"
+          ]
+         },
+         {
+          "feature": "scoped_tool_affordances",
+          "support_level": "exact",
+          "constraint_refs": [],
+          "limitation_refs": [],
+          "disclosure_refs": [],
+          "evidence_refs": [
+           "tests:ACT-619",
+           "tests:API-414"
+          ]
+         }
+        ]
+       }
+      },
+      "configuration_registry": {
+       "owner": {
+        "contract_id": "processor-manifest/v2",
+        "contract_version": "1",
+        "validator_id": "raes-reference-processor-configuration",
+        "validator_version": "1"
+       },
+       "targets": {
+        "execution.parallelism": {
+         "target_id": "execution.parallelism",
+         "value_type": "integer",
+         "aliases": [
+          "parallelism"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "internal",
+         "default": {
+          "kind": "literal",
+          "value": 1
+         }
+        }
+       }
+      }
+     }
+    }
+   ],
+   "result": null
+  },
+  {
+   "name": "apparatus-no-registry",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.apparatus-parallelism",
+      "source_factor_id": "parallelism",
+      "source_factor_level_id": "four",
+      "source_condition_id": "condition.four-workers",
+      "target": {
+       "plane": "apparatus",
+       "component_kind": "processor",
+       "component_name": "raes-reference-processor",
+       "component_version": "0.2.0",
+       "manifest_version": "processor-manifest/v2",
+       "target_id": "execution.parallelism"
+      },
+      "value_type": "integer",
+      "value": {
+       "kind": "literal",
+       "value": 4
+      },
+      "owner": {
+       "contract_id": "processor-manifest/v2",
+       "contract_version": "1",
+       "validator_id": "raes-reference-processor-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [],
+   "apparatus": [
+    {
+     "key": [
+      "processor",
+      "raes-reference-processor",
+      "0.2.0",
+      "processor-manifest/v2"
+     ],
+     "kind": "processor",
+     "manifest": {
+      "schema_version": "processor-manifest/v2",
+      "identity": {
+       "name": "raes-reference-processor",
+       "version": "0.2.0"
+      },
+      "supported_contract_versions": [
+       "processor-manifest-v2",
+       "provisioning-plan-v1",
+       "orchestration-plan-v1",
+       "evaluation-plan-v1",
+       "workflow-cancellation-request-v1",
+       "operation-receipt-v1",
+       "operation-status-v1",
+       "runtime-snapshot-v1",
+       "experiment-binding-descriptors-v1"
+      ],
+      "compatibility": {
+       "backends": [
+        "stub"
+       ]
+      },
+      "concept_bindings": [
+       {
+        "scope": "capabilities.supported_sdl_versions",
+        "family": "scenarios"
+       },
+       {
+        "scope": "capabilities.supported_features",
+        "family": "apparatus-declarations"
+       }
+      ],
+      "constraints": {},
+      "capabilities": {
+       "supported_sdl_versions": [
+        "sdl-authoring-input-v1"
+       ],
+       "supported_features": [
+        "compilation",
+        "planning",
+        "orchestration-coordination",
+        "evaluation-coordination",
+        "workflow-semantics",
+        "objective-window-consistency",
+        "dependency-ordering",
+        "runtime-control-plane"
+       ],
+       "participant_tools": {
+        "semantic_versions": [
+         "participant-tool-profile/v1"
+        ],
+        "max_bindings_per_profile": null,
+        "max_participants_per_binding": null,
+        "feature_support": [
+         {
+          "feature": "tool_affordances",
+          "support_level": "exact",
+          "constraint_refs": [],
+          "limitation_refs": [],
+          "disclosure_refs": [],
+          "evidence_refs": [
+           "tests:ACT-619",
+           "tests:API-414"
+          ]
+         },
+         {
+          "feature": "scoped_tool_affordances",
+          "support_level": "exact",
+          "constraint_refs": [],
+          "limitation_refs": [],
+          "disclosure_refs": [],
+          "evidence_refs": [
+           "tests:ACT-619",
+           "tests:API-414"
+          ]
+         }
+        ]
+       }
+      }
+     }
+    }
+   ],
+   "result": null
+  },
+  {
+   "name": "apparatus-kind",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.apparatus-parallelism",
+      "source_factor_id": "parallelism",
+      "source_factor_level_id": "four",
+      "source_condition_id": "condition.four-workers",
+      "target": {
+       "plane": "apparatus",
+       "component_kind": "backend",
+       "component_name": "raes-reference-processor",
+       "component_version": "0.2.0",
+       "manifest_version": "processor-manifest/v2",
+       "target_id": "execution.parallelism"
+      },
+      "value_type": "integer",
+      "value": {
+       "kind": "literal",
+       "value": 4
+      },
+      "owner": {
+       "contract_id": "processor-manifest/v2",
+       "contract_version": "1",
+       "validator_id": "raes-reference-processor-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [],
+   "apparatus": [
+    {
+     "key": [
+      "backend",
+      "raes-reference-processor",
+      "0.2.0",
+      "processor-manifest/v2"
+     ],
+     "kind": "processor",
+     "manifest": {
+      "schema_version": "processor-manifest/v2",
+      "identity": {
+       "name": "raes-reference-processor",
+       "version": "0.2.0"
+      },
+      "supported_contract_versions": [
+       "processor-manifest-v2",
+       "provisioning-plan-v1",
+       "orchestration-plan-v1",
+       "evaluation-plan-v1",
+       "workflow-cancellation-request-v1",
+       "operation-receipt-v1",
+       "operation-status-v1",
+       "runtime-snapshot-v1",
+       "experiment-binding-descriptors-v1"
+      ],
+      "compatibility": {
+       "backends": [
+        "stub"
+       ]
+      },
+      "concept_bindings": [
+       {
+        "scope": "capabilities.supported_sdl_versions",
+        "family": "scenarios"
+       },
+       {
+        "scope": "capabilities.supported_features",
+        "family": "apparatus-declarations"
+       }
+      ],
+      "constraints": {},
+      "capabilities": {
+       "supported_sdl_versions": [
+        "sdl-authoring-input-v1"
+       ],
+       "supported_features": [
+        "compilation",
+        "planning",
+        "orchestration-coordination",
+        "evaluation-coordination",
+        "workflow-semantics",
+        "objective-window-consistency",
+        "dependency-ordering",
+        "runtime-control-plane"
+       ],
+       "participant_tools": {
+        "semantic_versions": [
+         "participant-tool-profile/v1"
+        ],
+        "max_bindings_per_profile": null,
+        "max_participants_per_binding": null,
+        "feature_support": [
+         {
+          "feature": "tool_affordances",
+          "support_level": "exact",
+          "constraint_refs": [],
+          "limitation_refs": [],
+          "disclosure_refs": [],
+          "evidence_refs": [
+           "tests:ACT-619",
+           "tests:API-414"
+          ]
+         },
+         {
+          "feature": "scoped_tool_affordances",
+          "support_level": "exact",
+          "constraint_refs": [],
+          "limitation_refs": [],
+          "disclosure_refs": [],
+          "evidence_refs": [
+           "tests:ACT-619",
+           "tests:API-414"
+          ]
+         }
+        ]
+       }
+      },
+      "configuration_registry": {
+       "owner": {
+        "contract_id": "processor-manifest/v2",
+        "contract_version": "1",
+        "validator_id": "raes-reference-processor-configuration",
+        "validator_version": "1"
+       },
+       "targets": {
+        "execution.parallelism": {
+         "target_id": "execution.parallelism",
+         "value_type": "integer",
+         "aliases": [
+          "parallelism"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "internal",
+         "default": {
+          "kind": "literal",
+          "value": 1
+         }
+        }
+       }
+      }
+     }
+    }
+   ],
+   "result": null
+  },
+  {
+   "name": "apparatus-missing",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.apparatus-parallelism",
+      "source_factor_id": "parallelism",
+      "source_factor_level_id": "four",
+      "source_condition_id": "condition.four-workers",
+      "target": {
+       "plane": "apparatus",
+       "component_kind": "processor",
+       "component_name": "raes-reference-processor",
+       "component_version": "0.2.0",
+       "manifest_version": "processor-manifest/v2",
+       "target_id": "execution.parallelism"
+      },
+      "value_type": "integer",
+      "value": {
+       "kind": "literal",
+       "value": 4
+      },
+      "owner": {
+       "contract_id": "processor-manifest/v2",
+       "contract_version": "1",
+       "validator_id": "raes-reference-processor-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [],
+   "apparatus": [],
+   "result": null
+  },
+  {
+   "name": "apparatus-value-type",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.apparatus-parallelism",
+      "source_factor_id": "parallelism",
+      "source_factor_level_id": "four",
+      "source_condition_id": "condition.four-workers",
+      "target": {
+       "plane": "apparatus",
+       "component_kind": "processor",
+       "component_name": "raes-reference-processor",
+       "component_version": "0.2.0",
+       "manifest_version": "processor-manifest/v2",
+       "target_id": "execution.parallelism"
+      },
+      "value_type": "number",
+      "value": {
+       "kind": "literal",
+       "value": 4.5
+      },
+      "owner": {
+       "contract_id": "processor-manifest/v2",
+       "contract_version": "1",
+       "validator_id": "raes-reference-processor-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [],
+   "apparatus": [
+    {
+     "key": [
+      "processor",
+      "raes-reference-processor",
+      "0.2.0",
+      "processor-manifest/v2"
+     ],
+     "kind": "processor",
+     "manifest": {
+      "schema_version": "processor-manifest/v2",
+      "identity": {
+       "name": "raes-reference-processor",
+       "version": "0.2.0"
+      },
+      "supported_contract_versions": [
+       "processor-manifest-v2",
+       "provisioning-plan-v1",
+       "orchestration-plan-v1",
+       "evaluation-plan-v1",
+       "workflow-cancellation-request-v1",
+       "operation-receipt-v1",
+       "operation-status-v1",
+       "runtime-snapshot-v1",
+       "experiment-binding-descriptors-v1"
+      ],
+      "compatibility": {
+       "backends": [
+        "stub"
+       ]
+      },
+      "concept_bindings": [
+       {
+        "scope": "capabilities.supported_sdl_versions",
+        "family": "scenarios"
+       },
+       {
+        "scope": "capabilities.supported_features",
+        "family": "apparatus-declarations"
+       }
+      ],
+      "constraints": {},
+      "capabilities": {
+       "supported_sdl_versions": [
+        "sdl-authoring-input-v1"
+       ],
+       "supported_features": [
+        "compilation",
+        "planning",
+        "orchestration-coordination",
+        "evaluation-coordination",
+        "workflow-semantics",
+        "objective-window-consistency",
+        "dependency-ordering",
+        "runtime-control-plane"
+       ],
+       "participant_tools": {
+        "semantic_versions": [
+         "participant-tool-profile/v1"
+        ],
+        "max_bindings_per_profile": null,
+        "max_participants_per_binding": null,
+        "feature_support": [
+         {
+          "feature": "tool_affordances",
+          "support_level": "exact",
+          "constraint_refs": [],
+          "limitation_refs": [],
+          "disclosure_refs": [],
+          "evidence_refs": [
+           "tests:ACT-619",
+           "tests:API-414"
+          ]
+         },
+         {
+          "feature": "scoped_tool_affordances",
+          "support_level": "exact",
+          "constraint_refs": [],
+          "limitation_refs": [],
+          "disclosure_refs": [],
+          "evidence_refs": [
+           "tests:ACT-619",
+           "tests:API-414"
+          ]
+         }
+        ]
+       }
+      },
+      "configuration_registry": {
+       "owner": {
+        "contract_id": "processor-manifest/v2",
+        "contract_version": "1",
+        "validator_id": "raes-reference-processor-configuration",
+        "validator_version": "1"
+       },
+       "targets": {
+        "execution.parallelism": {
+         "target_id": "execution.parallelism",
+         "value_type": "integer",
+         "aliases": [
+          "parallelism"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "internal",
+         "default": {
+          "kind": "literal",
+          "value": 1
+         }
+        }
+       }
+      }
+     }
+    }
+   ],
+   "result": null
+  },
+  {
+   "name": "mixed-planes",
+   "descriptors": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.worker-count",
+      "source_factor_id": "factor.worker-count",
+      "source_factor_level_id": "four",
+      "source_condition_id": "condition.four-workers",
+      "target": {
+       "plane": "scenario",
+       "scenario_family_id": "family.techvault",
+       "variation_point_id": "variation.worker-count",
+       "target_id": "variables.worker_count"
+      },
+      "value_type": "integer",
+      "value": {
+       "kind": "literal",
+       "value": 4
+      },
+      "owner": {
+       "contract_id": "sdl-authoring-input-v1",
+       "contract_version": "1",
+       "validator_id": "raes-sdl-instantiation",
+       "validator_version": "1"
+      }
+     },
+     {
+      "binding_id": "binding.participant-mode",
+      "source_factor_id": "participant-mode",
+      "source_factor_level_id": "deterministic",
+      "source_condition_id": "condition.deterministic",
+      "target": {
+       "plane": "participant-implementation",
+       "participant_address": "participants.red",
+       "implementation_name": "reference-red-agent",
+       "implementation_version": "1.0.0",
+       "manifest_version": "participant-implementation-manifest/v1",
+       "target_id": "mode"
+      },
+      "value_type": "string",
+      "value": {
+       "kind": "literal",
+       "value": "deterministic"
+      },
+      "owner": {
+       "contract_id": "participant-configuration-result-v1",
+       "contract_version": "1",
+       "validator_id": "reference-participant-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   },
+   "resolution": {
+    "canonical_target_id": "variables.worker_count",
+    "value_type": "integer",
+    "allowed_value_kinds": [
+     "literal"
+    ],
+    "sensitivity": "public",
+    "owner": {
+     "contract_id": "sdl-authoring-input-v1",
+     "contract_version": "1",
+     "validator_id": "raes-sdl-instantiation",
+     "validator_version": "1"
+    }
+   },
+   "participants": [
+    {
+     "key": [
+      "participants.red",
+      "reference-red-agent",
+      "1.0.0",
+      "participant-implementation-manifest/v1"
+     ],
+     "manifest": {
+      "schema_version": "participant-implementation-manifest/v1",
+      "identity": {
+       "name": "reference-red-agent",
+       "version": "1.0.0"
+      },
+      "implementation_kind": "agent",
+      "supported_contract_versions": [
+       "participant-implementation-manifest-v1",
+       "participant-implementation-provenance-v1",
+       "experiment-binding-descriptors-v1",
+       "participant-configuration-result-v1",
+       "participant-episode-state-envelope-v1",
+       "participant-episode-history-event-stream-v1",
+       "participant-behavior-history-event-stream-v1",
+       "participant-decision-surface-v2"
+      ],
+      "compatibility": {
+       "participant_runtimes": [
+        "stub-participant-runtime"
+       ],
+       "processors": [
+        "raes-reference-processor"
+       ],
+       "backends": [
+        "stub"
+       ]
+      },
+      "concept_bindings": [
+       {
+        "scope": "implementation_kind",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_participant_contracts",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.supported_decision_surface_modes",
+        "family": "apparatus-declarations"
+       },
+       {
+        "scope": "capabilities.tool_affordance_expectations",
+        "family": "tools-and-artifacts"
+       },
+       {
+        "scope": "capabilities.exposure_policy_kinds",
+        "family": "provenance-and-evidence"
+       }
+      ],
+      "constraints": {
+       "max_parallel_episodes": "1"
+      },
+      "capabilities": {
+       "supported_participant_contracts": [
+        "participant-episode-state-envelope-v1",
+        "participant-episode-history-event-stream-v1",
+        "participant-behavior-history-event-stream-v1",
+        "participant-decision-surface-v2"
+       ],
+       "supported_decision_surface_modes": [
+        "autonomous",
+        "policy-directed"
+       ],
+       "tool_affordance_expectations": [
+        "shell",
+        "http-api"
+       ],
+       "exposure_policy_kinds": [
+        "task-statement",
+        "observation-stream"
+       ]
+      },
+      "configuration_registry": {
+       "owner": {
+        "contract_id": "participant-configuration-result-v1",
+        "contract_version": "1",
+        "validator_id": "reference-participant-configuration",
+        "validator_version": "1"
+       },
+       "targets": {
+        "policy.temperature": {
+         "target_id": "policy.temperature",
+         "value_type": "number",
+         "aliases": [
+          "temperature"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "public",
+         "default": {
+          "kind": "literal",
+          "value": 0.25
+         }
+        },
+        "policy.mode": {
+         "target_id": "policy.mode",
+         "value_type": "string",
+         "aliases": [
+          "mode"
+         ],
+         "allowed_value_kinds": [
+          "literal"
+         ],
+         "sensitivity": "internal"
+        },
+        "credentials.api": {
+         "target_id": "credentials.api",
+         "value_type": "string",
+         "aliases": [],
+         "allowed_value_kinds": [
+          "secret-reference"
+         ],
+         "sensitivity": "secret"
+        }
+       }
+      }
+     }
+    }
+   ],
+   "apparatus": [],
+   "result": {
+    "schema_version": "experiment-binding-descriptors/v1",
+    "descriptors": [
+     {
+      "binding_id": "binding.worker-count",
+      "source_factor_id": "factor.worker-count",
+      "source_factor_level_id": "four",
+      "source_condition_id": "condition.four-workers",
+      "target": {
+       "plane": "scenario",
+       "scenario_family_id": "family.techvault",
+       "variation_point_id": "variation.worker-count",
+       "target_id": "variables.worker_count"
+      },
+      "value_type": "integer",
+      "value": {
+       "kind": "literal",
+       "value": 4
+      },
+      "owner": {
+       "contract_id": "sdl-authoring-input-v1",
+       "contract_version": "1",
+       "validator_id": "raes-sdl-instantiation",
+       "validator_version": "1"
+      }
+     },
+     {
+      "binding_id": "binding.participant-mode",
+      "source_factor_id": "participant-mode",
+      "source_factor_level_id": "deterministic",
+      "source_condition_id": "condition.deterministic",
+      "target": {
+       "plane": "participant-implementation",
+       "participant_address": "participants.red",
+       "implementation_name": "reference-red-agent",
+       "implementation_version": "1.0.0",
+       "manifest_version": "participant-implementation-manifest/v1",
+       "target_id": "policy.mode"
+      },
+      "value_type": "string",
+      "value": {
+       "kind": "literal",
+       "value": "deterministic"
+      },
+      "owner": {
+       "contract_id": "participant-configuration-result-v1",
+       "contract_version": "1",
+       "validator_id": "reference-participant-configuration",
+       "validator_version": "1"
+      }
+     }
+    ]
+   }
+  }
+ ]
+}

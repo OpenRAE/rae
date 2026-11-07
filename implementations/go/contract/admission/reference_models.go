@@ -2,7 +2,7 @@ package admission
 
 func (e *Validator) referenceModels(v any) error {
 	for _, model := range object(at(v, "models")) {
-		if e.conceptFamilies[stringAt(model, "concept_family")] == nil {
+		if !e.knownFamily(stringAt(model, "concept_family")) {
 			return invalid()
 		}
 		if err := e.referenceModelBindings(model); err != nil {

@@ -4,7 +4,6 @@ import (
 	"slices"
 	"strings"
 	"testing"
-	"testing/fstest"
 
 	"github.com/OpenRAE/rae/implementations/go/contract/validation"
 )
@@ -12,7 +11,11 @@ import (
 // TestCompleteRegistry is the CI guard for the expanded scope. It enumerates
 // missing implementations independently of fixtures and never inserts stubs.
 func TestCompleteRegistry(t *testing.T) {
-	e, err := newCatalogOwner()
+	schemas, err := validation.New(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	e, err := newCatalogOwner(schemas)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -43,10 +46,10 @@ func TestCompleteRegistry(t *testing.T) {
 }
 
 func TestCatalogIngressFailsClosed(t *testing.T) {
-	for _, raw := range []string{`{"v":1,"v":2}`, `{"v":NaN}`, `[]`, `{"private-payload":`, strings.Repeat(" ", 8*1048576+1)} {
-		_, err := readCatalog(fstest.MapFS{"catalog.json": {Data: []byte(raw)}}, "catalog.json")
+	for _, raw := range []string{`{"v":1,"v":2}`, `{"v":NaN}`, `[]`, `{"private-payload":`, strings.Repeat(" ", 8*1048576+1), ""} {
+		_, err := parseCatalog([]byte(raw))
 		if err == nil || strings.Contains(err.Error(), "private-payload") {
-			t.Errorf("readCatalog failure = %v, want safe refusal", err)
+			t.Errorf("parseCatalog failure = %v, want safe refusal", err)
 		}
 	}
 }

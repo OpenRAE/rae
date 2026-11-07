@@ -1,6 +1,7 @@
 package admission
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/OpenRAE/rae/implementations/go/contract/validation"
@@ -24,9 +25,8 @@ func (e *Validator) scalarRules() map[string]definition {
 }
 
 func (e *Validator) drawPurpose(i validation.Invocation) error {
-	definition := object(e.vocabularies["random-stream-draw-purposes"])
-	_, known := object(definition["terms"])[stringAt(i.Instance, "draw_purpose")]
-	return require(known)
+	purposes, _ := e.authority.Vocabulary("random-stream-draw-purposes")
+	return require(slices.Contains(purposes.Terms, stringAt(i.Instance, "draw_purpose")))
 }
 func (e *Validator) participantDrawAddress(i validation.Invocation) error {
 	if err := e.drawPurpose(i); err != nil {

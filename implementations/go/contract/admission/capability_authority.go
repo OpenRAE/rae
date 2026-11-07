@@ -104,7 +104,7 @@ func coreDistributionFamily(distribution string) string {
 	case "rocky-linux":
 		return termLinux
 	case "solaris":
-		return "other"
+		return termOther
 	case "ubuntu":
 		return termLinux
 	case "windows-client":

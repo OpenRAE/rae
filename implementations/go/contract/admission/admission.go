@@ -4,29 +4,27 @@
 package admission
 
 import (
-	"io"
-	"io/fs"
 	"maps"
 
 	"github.com/OpenRAE/rae/implementations/go/base/fault"
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
+	"github.com/OpenRAE/rae/implementations/go/contract/concept"
+	"github.com/OpenRAE/rae/implementations/go/contract/profile"
 	"github.com/OpenRAE/rae/implementations/go/contract/validation"
-	"github.com/OpenRAE/rae/implementations/go/internal/contract/corpus"
 )
 
 // Validator holds immutable compiled schemas, catalogs and semantic predicates.
 // A caller can share it when its trusted context implementations are safe to share.
 type Validator struct {
 	low                *validation.Validator
-	vocabularies       map[string]any
+	authority          *concept.Authority
+	owners             *profile.Profiles
+	documents          []concept.Document
 	profiles           []any
 	streams            map[string]any
-	relationCatalogs   map[string]any
-	relationProfiles   map[string]any
-	currentRelations   any
 	controlDigests     map[string]string
 	informationProfile any
-	conceptFamilies    map[string]any
+	definitions        map[string]func(any) error
 }
 
 type definition struct {
@@ -42,59 +40,50 @@ func require(ok bool) error {
 	return nil
 }
 
-func newCatalogOwner() (*Validator, error) {
-	source, err := corpus.Open()
+// newCatalogOwner reads the packaged authority through its owners. The
+// family rules keep their tree views of the documents that they consume.
+func newCatalogOwner(schemas *validation.Validator) (*Validator, error) {
+	authority, err := concept.Load(schemas)
 	if err != nil {
 		return nil, err
 	}
-	catalog, err := readCatalog(source, "concept-authority/controlled-vocabularies-v1.json")
+	owners, err := profile.Load(schemas)
 	if err != nil {
 		return nil, err
 	}
-	profiles, err := readCatalog(source, "profiles/validation/validation-profile-catalog-v1.json")
+	owner := &Validator{authority: authority, owners: owners, documents: append(authority.Documents(), owners.Documents()...), streams: map[string]any{}, definitions: definitionRules()}
+	byPath := make(map[string][]byte, len(owner.documents))
+	for _, document := range owner.documents {
+		byPath[document.Path] = document.JSON
+	}
+	profiles, err := parseCatalog(byPath["profiles/validation/validation-profile-catalog-v1.json"])
 	if err != nil {
 		return nil, err
 	}
-	owner := &Validator{vocabularies: object(catalog["vocabularies"]), profiles: array(profiles["profiles"]), streams: map[string]any{}}
+	owner.profiles = array(profiles["profiles"])
 	for _, id := range []string{termBlake3XofV1, "blake3-xof-participant-v1"} {
-		profile, loadErr := readCatalog(source, "profiles/random-stream/"+id+".json")
+		stream, loadErr := parseCatalog(byPath["profiles/random-stream/"+id+".json"])
 		if loadErr != nil {
 			return nil, loadErr
 		}
-		if stringAt(profile, termProfileID) != id || !keyed(at(profile, "transforms"), "transform_id") {
+		if stringAt(stream, termProfileID) != id || !keyed(at(stream, "transforms"), "transform_id") {
 			return nil, fault.New(fault.Operational, codeContractCatalogInvalid, nil)
 		}
-		owner.streams[id] = profile
+		owner.streams[id] = stream
 	}
-	if err = owner.loadBehavioral(source); err != nil {
+	if err = owner.loadControlProfiles(byPath); err != nil {
 		return nil, err
 	}
-	if err = owner.loadControlProfiles(source); err != nil {
-		return nil, err
-	}
-	families, familyErr := readCatalog(source, "concept-authority/concept-families-v1.json")
-	if familyErr != nil {
-		return nil, familyErr
-	}
-	owner.conceptFamilies = object(at(families, "families"))
-	owner.informationProfile, err = readCatalog(source, "profiles/participant-information-reconstruction/occurrence-prefix-evidence-v1.json")
+	owner.informationProfile, err = parseCatalog(byPath["profiles/participant-information-reconstruction/occurrence-prefix-evidence-v1.json"])
 	if err != nil {
 		return nil, err
 	}
 	return owner, nil
 }
 
-func readCatalog(source fs.FS, path string) (map[string]any, error) {
-	file, err := source.Open(path)
-	if err != nil {
-		return nil, fault.New(fault.Operational, codeContractCatalogInvalid, nil)
-	}
+// parseCatalog reads the tree view of one owner document.
+func parseCatalog(raw []byte) (map[string]any, error) {
 	const maxBytes = 8 * 1048576
-	raw, readErr := io.ReadAll(io.LimitReader(file, maxBytes+1))
-	closeErr := file.Close()
-	if readErr != nil || closeErr != nil || len(raw) > maxBytes {
-		return nil, fault.New(fault.Operational, codeContractCatalogInvalid, nil)
-	}
 	value, err := ingress.Parse(raw, ingress.Limits{MaxBytes: maxBytes, MaxDepth: 64}, ingress.Object)
 	if err != nil {
 		return nil, fault.New(fault.Operational, codeContractCatalogInvalid, nil)
@@ -105,11 +94,11 @@ func readCatalog(source fs.FS, path string) (map[string]any, error) {
 // New constructs a complete registry. It refuses any published invariant that
 // has no implemented predicate; missing callbacks never become success.
 func New() (*Validator, error) {
-	e, err := newCatalogOwner()
+	base, err := validation.New(nil)
 	if err != nil {
 		return nil, err
 	}
-	base, err := validation.New(nil)
+	e, err := newCatalogOwner(base)
 	if err != nil {
 		return nil, err
 	}

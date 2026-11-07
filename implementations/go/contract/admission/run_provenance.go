@@ -30,10 +30,8 @@ func runTrialProvenance(i validation.Invocation) error {
 		return invalid()
 	}
 	for _, ref := range refs {
-		contract := map[string]string{termProvisioning: termProvisioningPlanV1, termOrchestration: termOrchestrationPlanV1, termEvaluation: termEvaluationPlanV1}[stringAt(ref, "plan_kind")]
-		artifact := at(ref, "artifact_ref")
-		if contract == "" || stringAt(artifact, fieldRefKind) != "other" || stringAt(artifact, fieldRefVersion) != contract || at(artifact, "ref_digest") == nil || at(artifact, "ref_path") != nil {
-			return invalid()
+		if err := processorPlanReference(ref); err != nil {
+			return err
 		}
 	}
 	attempts := array(at(p, "execution_attempts"))
@@ -48,6 +46,15 @@ func runTrialProvenance(i validation.Invocation) error {
 	}
 	return nil
 }
+
+// processorPlanReference requires a digest-bound reference to the published
+// contract of the plan kind.
+func processorPlanReference(ref any) error {
+	contract := map[string]string{termProvisioning: termProvisioningPlanV1, termOrchestration: termOrchestrationPlanV1, termEvaluation: termEvaluationPlanV1}[stringAt(ref, "plan_kind")]
+	artifact := at(ref, "artifact_ref")
+	return require(contract != "" && stringAt(artifact, fieldRefKind) == termOther && stringAt(artifact, fieldRefVersion) == contract && at(artifact, "ref_digest") != nil && at(artifact, "ref_path") == nil)
+}
+
 func archiveRecordLocal(v any) error {
 	artifact, ref := at(v, "artifact"), at(v, "reference")
 	if at(v, "inventory") != nil && !equal(at(v, "inventory", termRunID), at(v, termRunID)) {

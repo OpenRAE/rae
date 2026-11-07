@@ -1,0 +1,168 @@
+package profile
+
+import (
+	"github.com/OpenRAE/rae/implementations/go/contract/binding"
+	"github.com/OpenRAE/rae/implementations/go/contract/concept"
+	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
+	"github.com/OpenRAE/rae/implementations/go/contract/validation"
+)
+
+type ComparisonLimits struct{ MaxSubjects, MaxDependencyEdges, MaxPathDepth, MaxPaths, MaxDiagnostics int }
+type ComparisonProfile struct {
+	ProfileID, AnalyzerProfile, ProjectionProfile, ImpactClosurePolicy string
+	IdentityAxis, TextualAxis, StructuralAxis, SemanticAxis            string
+	DependencyRuleVersions, OwnerProjectionVersions                    map[string]string
+	Limits                                                             ComparisonLimits
+	Digest                                                             string
+}
+
+func (p *Profiles) ComparisonProfile(name string) (ComparisonProfile, error)
+
+const CurrentAssessmentRevision = "2026-10-31"
+
+type CompletenessProfile struct {
+	ID           string
+	Dispositions map[string]string
+}
+type CompletenessTaxonomy struct {
+	ProfileFamily, Revision string
+	Concerns                []string
+	Profiles                []CompletenessProfile
+}
+type CompletenessAssessment struct {
+	ProfileFamily, TaxonomyRevision, Revision string
+	Statuses                                  map[string]string
+}
+type CompletenessResult struct {
+	ProfileID        string
+	Complete         bool
+	BlockingConcerns []string
+}
+
+func (p *Profiles) CompletenessTaxonomy() CompletenessTaxonomy
+func (p *Profiles) CompletenessAssessment(revision string) (CompletenessAssessment, error)
+func EvaluateCompleteness(taxonomy CompletenessTaxonomy, assessment CompletenessAssessment) ([]CompletenessResult, error)
+
+type DomainOperation string
+
+const (
+	StructuralValidation DomainOperation = "structural-validation"
+	SemanticValidation   DomainOperation = "semantic-validation"
+	Refinement           DomainOperation = "refinement"
+	Comparison           DomainOperation = "comparison"
+	Interpretation       DomainOperation = "interpretation"
+	Execution            DomainOperation = "execution"
+	TypedReport          DomainOperation = "typed-report"
+)
+
+type DomainResolutionOutcome string
+
+const (
+	Resolved              DomainResolutionOutcome = "resolved"
+	NamespaceUnadmitted   DomainResolutionOutcome = "namespace-unadmitted"
+	NamespaceCollision    DomainResolutionOutcome = "namespace-collision"
+	DefinitionUnavailable DomainResolutionOutcome = "definition-unavailable"
+	IncompatibleRevision  DomainResolutionOutcome = "incompatible-revision"
+	DigestMismatch        DomainResolutionOutcome = "digest-mismatch"
+	CoordinateCollision   DomainResolutionOutcome = "coordinate-collision"
+)
+
+type DomainAdmissionOutcome string
+
+const (
+	Validated             DomainAdmissionOutcome = "validated"
+	OpaquePreserved       DomainAdmissionOutcome = "opaque-preserved"
+	ResolutionRefused     DomainAdmissionOutcome = "resolution-refused"
+	ContextRefused        DomainAdmissionOutcome = "context-refused"
+	UnsupportedOperation  DomainAdmissionOutcome = "unsupported-operation"
+	UnsupportedVocabulary DomainAdmissionOutcome = "unsupported-vocabulary"
+	UnsupportedKeyword    DomainAdmissionOutcome = "unsupported-keyword"
+	SchemaInvalid         DomainAdmissionOutcome = "schema-invalid"
+	ValueInvalid          DomainAdmissionOutcome = "value-invalid"
+	LimitExceeded         DomainAdmissionOutcome = "limit-exceeded"
+)
+
+type DomainLimits struct {
+	MaxDefinitions, MaxBindings, MaxDepth, MaxNodes               int
+	MaxScalarBytes, MaxReferences, MaxEvaluations, MaxDiagnostics int
+}
+
+func DefaultDomainLimits() DomainLimits
+func (limits DomainLimits) Validate() error
+
+type DomainCoordinate struct{ Namespace, Authority, ProfileID, Revision, DefinitionDigest string }
+type DomainProvenance struct{ SourceLocator, SourceDigest, TrustDecisionID string }
+type DomainResolution struct {
+	Outcome     DomainResolutionOutcome
+	Definition  *binding.DomainProfileDefinitionV1
+	Provenance  *DomainProvenance
+	Diagnostics []diagnostic.Diagnostic
+}
+type DomainBindingAdmission struct {
+	BindingID                             string
+	Outcome                               DomainAdmissionOutcome
+	ResolutionOutcome                     DomainResolutionOutcome
+	StructurallyValid, SemanticsSupported bool
+	Opaque                                bool
+	Provenance                            *DomainProvenance
+	Basis                                 string
+	Diagnostics                           []diagnostic.Diagnostic
+}
+type DomainAdmissionReport struct {
+	Results              []DomainBindingAdmission
+	BindingsTotal        int
+	DiagnosticsTruncated bool
+}
+
+func (r DomainAdmissionReport) Admitted() bool
+func (p *Profiles) ResolveDomainProfile(coordinate DomainCoordinate, context []byte) (DomainResolution, error)
+func (p *Profiles) AdmitDomainBindings(bindings []binding.DomainProfileBindingV1, context []byte, policy binding.DomainProfileAdmissionPolicyV1) (DomainAdmissionReport, error)
+func (p *Profiles) ParseDomainBinding(data []byte, maxBytes int, limits DomainLimits) (binding.DomainProfileBindingV1, error)
+func DomainDefinitionDigest(definition binding.DomainProfileDefinitionV1) (string, error)
+
+type Profiles struct{ _ []byte }
+
+func Load(schemas *validation.Validator) (*Profiles, error)
+func (p *Profiles) Documents() []concept.Document
+
+const MaxRelationProfileBytes = 256 << 10
+const (
+	CrossingKind      = "participant-crossing-dpbb/v1"
+	CrossingMultiKind = "participant-crossing-multi-dpbb/v1"
+)
+
+type RelationProfile struct {
+	ID, Revision, TaxonomyID, TaxonomyRevision, RelationID  string
+	ParameterKind, LeftCarrierRef, RightCarrierRef          string
+	ObservationProjectionRef, ObservationProjectionRevision string
+}
+type BehavioralClaim struct {
+	TaxonomyID, TaxonomyRevision, RelationID                string
+	LeftCarrierRef, RightCarrierRef                         string
+	ObservationProjectionRef, ObservationProjectionRevision string
+	ProfileRef, ProfileRevision, AssuranceAxis              string
+}
+
+func (p *Profiles) RelationProfileIDs() []string
+func (p *Profiles) RelationProfile(id, revision string) (RelationProfile, error)
+func (p *Profiles) CheckBehavioralClaim(authority *concept.Authority, claim BehavioralClaim, supplied *RelationProfile) error
+
+type ValidationStrength struct {
+	ID   string
+	Rank int
+}
+type ValidationProfile struct {
+	ID, Version, Title, MinimumStrength                              string
+	SubjectKinds, RequiredGates, OptionalGates, LimitationCategories []string
+	EvidenceExpectations, DiagnosticExpectations                     []string
+	ExtensionTermsAllowed                                            bool
+}
+type ValidationCatalog struct {
+	Version                                       string
+	Strengths                                     []ValidationStrength
+	SubjectKinds, GateKinds, LimitationCategories []string
+	Profiles                                      []ValidationProfile
+}
+
+func (p *Profiles) ValidationCatalog() ValidationCatalog
+func (p *Profiles) SelectValidationProfile(id, version, subjectKind string) (ValidationProfile, error)

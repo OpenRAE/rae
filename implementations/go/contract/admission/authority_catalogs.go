@@ -4,10 +4,9 @@ import "strings"
 
 func (e *Validator) ucoCatalog(v any) error {
 	expected := map[string]string{}
-	for id, family := range e.conceptFamilies {
-		provenance := stringAt(family, "provenance")
-		if stringAt(family, termAuthority) == "UCO" && (provenance == "adopted" || provenance == "adapted") {
-			expected[id] = provenance
+	for _, family := range e.authority.Families() {
+		if family.Authority == "UCO" && (family.Provenance == "adopted" || family.Provenance == "adapted") {
+			expected[family.ID] = family.Provenance
 		}
 	}
 	rows := object(at(v, "alignments"))
@@ -50,4 +49,9 @@ func conceptFamilyKeys(v any) error {
 		}
 	}
 	return nil
+}
+
+func (e *Validator) knownFamily(id string) bool {
+	_, known := e.authority.Family(id)
+	return known
 }
