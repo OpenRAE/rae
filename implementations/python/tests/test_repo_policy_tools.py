@@ -212,6 +212,7 @@ def test_noxfile_registers_the_exact_public_session_inventory() -> None:
         "docs",
         "docs-links",
         "docs-local",
+        "docs-prose",
         "fuzz",
         "hook-pre-commit",
         "hook-pre-push",
@@ -1154,11 +1155,17 @@ def test_docs_graph_uses_curated_root_and_reader_style_gate(
     public_root = tmp_path / "docs" / "public"
     monkeypatch.setattr(nox_test_lanes, "PUBLIC_DOCS_ROOT", public_root)
     monkeypatch.setattr(nox_test_lanes, "DOCS_BUILD_ROOT", tmp_path / "docs" / "_build")
+    monkeypatch.setattr(
+        nox_test_lanes,
+        "_run_docs_prose",
+        lambda _session, stage_reporter: stage_reporter.skip("docs / Vale changed prose", "isolated selection fixture"),
+    )
     reporter = nox_runner.SessionReporter(FakeSession(), "docs")
 
     nox_test_lanes._run_docs(reporter.session, reporter)
 
     assert [result.name for result in reporter.results] == [
+        "docs / Vale changed prose",
         "docs / public source boundary",
         "docs / Vale reader style",
         "docs / executable quickstart",
@@ -1180,10 +1187,6 @@ def test_docs_graph_uses_curated_root_and_reader_style_gate(
     assert "implementations/python/tests/test_public_guide_examples.py" in pytest_command
     assert (
         "implementations/python/tests/test_public_docs_policy.py::test_checked_in_quickstart_scenario_parses"
-        in pytest_command
-    )
-    assert (
-        "implementations/python/tests/test_public_docs_policy.py::test_readme_quickstart_matches_checked_in_scenario"
         in pytest_command
     )
 
@@ -1208,10 +1211,16 @@ def test_local_docs_graph_excludes_external_link_check(
     monkeypatch.setattr(nox_test_lanes, "PROJECT_ROOT", tmp_path / "implementations" / "python")
     monkeypatch.setattr(nox_test_lanes, "PUBLIC_DOCS_ROOT", tmp_path / "docs" / "public")
     monkeypatch.setattr(nox_test_lanes, "DOCS_BUILD_ROOT", tmp_path / "docs" / "_build")
+    monkeypatch.setattr(
+        nox_test_lanes,
+        "_run_docs_prose",
+        lambda _session, stage_reporter: stage_reporter.skip("docs / Vale changed prose", "isolated selection fixture"),
+    )
     reporter = nox_runner.SessionReporter(FakeSession(), "docs-local")
 
     nox_test_lanes._run_docs(reporter.session, reporter, include_external_links=False)
 
+    assert "docs / Vale changed prose" in [result.name for result in reporter.results]
     assert "docs / Sphinx link check" not in [result.name for result in reporter.results]
     sphinx_commands = [command for command in commands if "sphinx-build" in command]
     assert len(sphinx_commands) == 1

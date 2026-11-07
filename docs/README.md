@@ -4,6 +4,10 @@ Hosted reader documentation lives only under [`docs/public/`](public/index.md).
 The rest of `docs/` contains developer, design, research, migration, audit, and
 working records that remain visible in the repository.
 
+To use RAES, complete the [quickstart](public/quickstart.md). To explore
+research questions, read the [research context](public/research.md). To cite
+RAES, use the [citation guide](public/citation.md).
+
 ## Find your way around the repository
 
 - [`docs/public/`](public/index.md) for hosted reader documentation;
@@ -19,15 +23,27 @@ pull requests.
 
 ## Work on the repository
 
+These pages help you do a task:
+
 - [Development workflow](DEVELOPMENT_WORKFLOW.md)
 - [Repository design tools](develop/ground-control-design-checks.md)
 - [Development container](explain/development-container.md)
+- [Release process](explain/releasing.md)
+- [Revised control migration](migration/revised-control.md)
+
+## Look up repository rules
+
+These pages give exact facts:
+
 - [Coding standards](explain/reference/coding-standards.md)
 - [Documentation style guide](explain/reference/documentation-style-guide.md)
 - [Current control semantics and support](explain/reference/revised-control-semantics.md)
 - [Executable control examples](examples/revised-control.md)
-- [Revised control migration](migration/revised-control.md)
-- [Release process](explain/releasing.md)
+
+## Understand the design
+
+These pages give reasons and relationships:
+
 - [Architecture decisions](decisions/adrs/README.md)
 - [Developer package and artifact architecture](decisions/package-artifacts/README.md)
 - [Current design-review follow-ups to historical ADRs](research/language-extensibility/adr-follow-ups.md)
