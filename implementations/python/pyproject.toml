@@ -67,8 +67,8 @@ docs = [
     "sphinx-reredirects==1.1.0",
 ]
 distributed = [
-    "psycopg[binary]==3.3.6",
-    "temporalio==1.34.0",
+    "psycopg[binary]==3.3.8",
+    "temporalio==1.35.0",
 ]
 
 [project.scripts]
