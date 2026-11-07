@@ -7,7 +7,8 @@ source_refs:
   - docs/explain/reference/canonical-reference-map.md
 description: >
   This library supplies non-normative examples, templates, and patterns for
-  domain-neutral RAES authoring. The current examples mainly cover cyber.
+  domain-neutral agentic environment authoring with RAES.
+  The current examples mainly cover cyber.
   Other domains need their own profiles, assets, backends, and evidence requirements.
   The Python reference implementation parses and semantically validates SDL bodies.
   Its experiment loader validates experiment-authoring-input-v1 bodies.
