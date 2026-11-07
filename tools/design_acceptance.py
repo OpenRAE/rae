@@ -2,7 +2,7 @@
 # ruff: noqa: E402
 """Run one exact pytest case and report its outcome as one JSON object.
 
-The Ground Control design review runs this as ``workflow.design.acceptance_command``.
+Run this by hand. The Ground Control schema 1 configuration has no design commands.
 Stdin holds one JSON object with ``test_file`` (a repository-relative path in the
 pytest project ``implementations/python``) and ``test_name``. The name matches a
 collected case when it equals the case name, such as ``test_x`` or ``test_x[a]``,

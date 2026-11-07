@@ -1,4 +1,4 @@
-"""Issue #1919: Ground Control design check commands.
+"""Issue #1919: repository design tools. Issue #1970: schema 1 configuration.
 
 The acceptance adapter runs as a subprocess, because it starts its own pytest
 session. The cases that it observes are in tests/fixtures/design_acceptance.
@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import io
 import json
-import re
 import subprocess
 import sys
 from collections import Counter
@@ -51,55 +50,16 @@ def _observe(test_file: str, test_name: str) -> dict[str, object]:
     return observation
 
 
-def _design() -> dict[str, str]:
-    return _configuration()["workflow"]["design"]
-
-
 def _configuration() -> dict:
     return yaml.safe_load((REPO_ROOT / ".ground-control.yaml").read_text(encoding="utf-8"))
 
 
-def _adr_status(path: str) -> str:
-    lines = [line.strip() for line in (REPO_ROOT / path).read_text(encoding="utf-8").splitlines()]
-    for index, line in enumerate(lines):
-        if line.lower().startswith("**status:**"):
-            return line.split(":**", 1)[1].strip().lower()
-        if line == "## Status":
-            return next(item for item in lines[index + 1 :] if item).lower()
-    raise AssertionError(f"{path} has no status")
-
-
-def test_configuration_names_real_commands_and_existing_references() -> None:
+def test_configuration_stays_within_the_ground_control_schema() -> None:
     configuration = _configuration()
-    design = configuration["workflow"]["design"]
 
-    assert configuration["schema_version"] == 2
-    assert set(design) == {"compile_command", "structural_command", "wiring_command", "acceptance_command"}
-    for script in ("tools/check_repo_policy.py", "tools/design_wiring.py", "tools/design_acceptance.py"):
-        assert script in " ".join(design.values())
-        assert (REPO_ROOT / script).is_file()
-    for test_path in re.findall(r"tests/test_\w+\.py", design["structural_command"]):
-        assert (REPO_ROOT / "implementations" / "python" / test_path).is_file()
-    paths = [module["path"] for module in configuration["architecture"]["modules"]]
-    assert len(paths) == len(set(paths))
-    for module in configuration["architecture"]["modules"]:
-        assert module["path"] == "." or (REPO_ROOT / module["path"]).exists(), module["path"]
-        for reference in module["implementations"]:
-            assert (REPO_ROOT / reference).is_file(), reference
-        for reference in module["adrs"]:
-            assert reference.startswith("docs/decisions/adrs/adr-"), reference
-            assert _adr_status(reference) == "accepted", reference
-
-
-def test_design_commands_run_from_locked_environments_without_credentials() -> None:
-    for name, command in _design().items():
-        uv_runs = command.count("uv run")
-        assert uv_runs >= 1, name
-        assert command.count("--frozen --no-sync") == uv_runs, name
-        assert not re.search(r"(?i)token|secret|password|\.env\b|curl|wget|pip install|uv sync", command), name
-    assert "-p no:cacheprovider" in _design()["structural_command"]
-    assert 'PYTHONPYCACHEPREFIX="$d"' in _design()["compile_command"]
-    assert "trap 'rm -rf \"$d\"' EXIT" in _design()["compile_command"]
+    assert configuration["schema_version"] == 1
+    assert "design" not in configuration["workflow"]
+    assert "architecture" not in configuration
 
 
 def test_adapter_distinguishes_every_observation_status() -> None:
@@ -125,25 +85,6 @@ def test_adapter_distinguishes_every_observation_status() -> None:
 
 def _status(observation: dict[str, object]) -> tuple[object, object]:
     return observation["status"], observation["matches"]
-
-
-def test_module_map_covers_every_tracked_area() -> None:
-    modules = {module["path"] for module in _configuration()["architecture"]["modules"]}
-    tracked = subprocess.run(  # noqa: S603 -- fixed git command.
-        ["git", "ls-files"],  # noqa: S607
-        cwd=REPO_ROOT,
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout.splitlines()
-    packages = REPO_ROOT / "implementations" / "python" / "packages"
-
-    assert "." in modules
-    for package in sorted(path.name for path in packages.iterdir() if (path / "__init__.py").is_file()):
-        assert f"implementations/python/packages/{package}" in modules, package
-    for area in ("contracts", "specs", "docs", "examples", "tools", ".github", "implementations/python/tests"):
-        assert area in modules, area
-        assert any(path.startswith(f"{area}/") for path in tracked), area
 
 
 def test_existing_workflow_gates_remain_configured() -> None:
@@ -172,9 +113,9 @@ def test_readme_links_the_design_check_instructions() -> None:
 
     assert f"https://github.com/OpenRAE/rae/blob/main/{page}" in readme
     assert "(develop/ground-control-design-checks.md)" in (REPO_ROOT / "docs" / "README.md").read_text(encoding="utf-8")
-    instructions = (REPO_ROOT / page).read_text(encoding="utf-8")
-    for name in _design():
-        assert f"`{name}`" in instructions, name
+    for script in ("tools/design_wiring.py", "tools/design_acceptance.py"):
+        assert script in (REPO_ROOT / page).read_text(encoding="utf-8")
+        assert (REPO_ROOT / script).is_file()
 
 
 def test_adapter_keeps_the_assertion_message_of_a_failing_case() -> None:
