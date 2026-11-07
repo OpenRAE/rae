@@ -183,3 +183,21 @@ No Python implementation or published schema changes are permitted.
 Module version admission uses the Apache-2.0 [Aqua PEP 440 library](https://github.com/aquasecurity/go-pep440-version).
 The adapter refuses its OR extension and retains Python packaging specifier and prerelease rules.
 Version and constraint inputs remain source-bounded before parsing.
+
+The compatibility metadata also names explicit scalar normalization operations at published model fields.
+These records distinguish enum normalization from strict literals, and ordinary scalar coercion from strict scalar fields.
+Do not infer enum normalization from an `enum` annotation: some reference fields require exact spelling.
+The recorder extracts presentation and primitive-conversion facts from the unchanged reference, filters them through published schema fields, and checks regeneration.
+The Go implementation owns the conversion algorithms and model predicates; metadata contains no executable code or class paths.
+Keep unrestricted JSON values outside model scalar coercion.
+
+### Module-version boundary correction
+
+Reference vectors found that the proposed Aqua adapter refuses integer version components above 64 bits.
+It also differs from the pinned packaging 26.0 membership policy and arbitrary equality grammar.
+Do not ship that adapter or dependency.
+The authoring owner will parse the [PEP 440 grammar](https://peps.python.org/pep-0440/) with bounded RE2 matches and compare normalized decimal strings without integer narrowing.
+Native keys order epoch, zero-padded release components, prerelease, postrelease, development and local labels.
+Specifier checks retain prefix equality, compatible releases, arbitrary equality and the reference's invalid-version fallback.
+Digit limits distinguish a numeric conversion failure from an invalid version spelling.
+The input and scalar ceilings apply before parsing; reference vectors cover the library defects and each specifier operator.

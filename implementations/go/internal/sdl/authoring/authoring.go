@@ -3,7 +3,6 @@
 package authoring
 
 import (
-	"bytes"
 	"embed"
 	"encoding/json"
 	"io/fs"
@@ -47,8 +46,9 @@ type Parser struct {
 }
 
 type layout struct {
-	Fields []string            `json:"fields"`
-	Omit   map[string][]string `json:"omit"`
+	Fields []string                `json:"fields"`
+	Omit   map[string][]string     `json:"omit"`
+	Scalar map[string]scalarPolicy `json:"scalar"`
 }
 
 // New loads the packaged contracts and checks presentation metadata against them.
@@ -133,11 +133,15 @@ func (d *Document) Materialized() (binding.MaterializedScenarioV1, bool) {
 
 // Decode checks strict source and the structural model, including imports.
 func (p *Parser) Decode(request Request) (*Document, error) {
+	captured, err := captureRequest(request)
+	if err != nil {
+		return nil, err
+	}
 	document, err := p.decode(request.Source, request.Name, "reject")
 	if err != nil {
 		return nil, err
 	}
-	if err = p.checkImports(document, request); err != nil {
+	if err = p.checkImports(document, request, captured); err != nil {
 		return nil, err
 	}
 	return document, nil
@@ -146,6 +150,10 @@ func (p *Parser) Decode(request Request) (*Document, error) {
 // Format migrates supported syntax, emits model field order, and strictly
 // re-admits the resulting source and import graph before returning bytes.
 func (p *Parser) Format(request Request) (Result, error) {
+	captured, err := captureRequest(request)
+	if err != nil {
+		return Result{}, err
+	}
 	d, err := p.decode(request.Source, request.Name, "accept")
 	if err != nil {
 		return Result{}, err
@@ -165,7 +173,11 @@ func (p *Parser) Format(request Request) (Result, error) {
 		return Result{}, err
 	}
 	request.Source = content
-	if _, err = p.Decode(request); err != nil {
+	strict, err := p.decode(request.Source, request.Name, "reject")
+	if err != nil {
+		return Result{}, err
+	}
+	if err = p.checkImports(strict, request, captured); err != nil {
 		return Result{}, err
 	}
 	return Result{Content: content, Diagnostics: d.warnings}, nil
@@ -201,11 +213,11 @@ func (p *Parser) decode(raw []byte, name, policy string) (*Document, error) {
 		id = "materialized-scenario-v1"
 	}
 	walk := normalizer{parser: p, id: id, ranges: parsed.KeyRanges(), remaining: p.limits.MaxComposedNodes}
-	normalized, err := walk.walk(p.schemas[id], "#", value, "")
+	normalized, err := walk.walk(p.schemas[id], "#", value, "", scalarPolicy{})
 	if err != nil {
 		return nil, err
 	}
-	encoded, err := encode(normalized, p.limits.MaxComposedBytes)
+	encoded, err := encode(normalized, p.limits.MaxComposedBytes, false)
 	if err != nil {
 		return nil, err
 	}
@@ -213,18 +225,38 @@ func (p *Parser) decode(raw []byte, name, policy string) (*Document, error) {
 	if err = p.models.CheckPortable(id, encoded, limits); err != nil {
 		return nil, &modelError{path: "", cause: err}
 	}
-	return &Document{contract: id, data: encoded, source: parsed, warnings: warnings}, nil
-}
-func invalid() error              { return fault.New(fault.InvalidInput, "sdl-model-invalid", nil) }
-func object(v any) map[string]any { m, _ := v.(map[string]any); return m }
-func array(v any) []any           { s, _ := v.([]any); return s }
-func text(v any) string           { s, _ := v.(string); return s }
-
-// encode uses an ordered object representation and stops before exceeding its ceiling.
-func encode(value any, limit int64) ([]byte, error) {
-	var out bytes.Buffer
-	if err := writeJSON(&out, value, limit); err != nil {
+	encoded, err = encode(normalized, p.limits.MaxComposedBytes, true)
+	if err != nil {
 		return nil, err
 	}
-	return out.Bytes(), nil
+	return &Document{contract: id, data: encoded, source: parsed, warnings: warnings}, nil
+}
+func invalid() error { return fault.New(fault.InvalidInput, "sdl-model-invalid", nil) }
+func object(value any) map[string]any {
+	switch v := value.(type) {
+	case map[string]any:
+		return v
+	case ordered:
+		result := make(map[string]any, len(v))
+		for _, field := range v {
+			result[field.name] = field.value
+		}
+		return result
+	default:
+		return nil
+	}
+}
+func array(v any) []any { s, _ := v.([]any); return s }
+func text(v any) string { s, _ := v.(string); return s }
+
+func captureRequest(request Request) (*source.Sources, error) {
+	if request.FS != nil || request.Sources != nil {
+		if !fs.ValidPath(request.Name) {
+			return nil, importError("path-invalid")
+		}
+	}
+	if request.Sources != nil {
+		return source.Capture(request.Sources)
+	}
+	return nil, nil
 }

@@ -1,10 +1,10 @@
 package authoring
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"maps"
+	"regexp"
 	"slices"
 	"sort"
 	"strconv"
@@ -17,6 +17,7 @@ import (
 type field struct {
 	name  string
 	value any
+	omit  bool
 }
 type ordered []field
 
@@ -25,6 +26,7 @@ type normalizer struct {
 	id        string
 	ranges    map[string]source.Range
 	remaining int
+	patterns  map[string]*regexp.Regexp
 }
 
 func resolve(root map[string]any, pointer string) map[string]any {
@@ -48,14 +50,8 @@ func (w *normalizer) dereference(schema map[string]any, pointer string) (map[str
 	}
 	return nil, pointer
 }
-func (w *normalizer) walk(schema map[string]any, pointer string, value any, path string) (result any, failure error) {
-	defer func() {
-		if failure != nil {
-			if _, ok := errors.AsType[*modelError](failure); !ok {
-				failure = &modelError{path: path, cause: failure}
-			}
-		}
-	}()
+func (w *normalizer) walk(schema map[string]any, pointer string, value any, path string, policy scalarPolicy) (result any, failure error) {
+	defer func() { failure = locatedModelError(failure, path) }()
 	w.remaining--
 	if w.remaining < 0 || strings.Count(path, "/") > w.parser.limits.MaxDepth {
 		return nil, invalid()
@@ -64,41 +60,58 @@ func (w *normalizer) walk(schema map[string]any, pointer string, value any, path
 	if schema == nil {
 		schema = map[string]any{}
 	}
-	if strings.HasSuffix(pointer, "/$defs/Source") {
-		if s, ok := value.(string); ok {
-			value = map[string]any{"name": s, "version": "*"}
-		}
-	}
-	var err error
-	value, err = w.scalar(schema, value)
+	value = packageShorthand(pointer, value)
+	value, err := w.convert(schema, value, policy)
 	if err != nil {
 		return nil, err
 	}
-	if branches := alternatives(schema); len(branches) > 0 {
-		chosen, selected := w.choose(branches, value)
-		if chosen != nil {
-			return w.walk(chosen, selected, value, path)
+	if chosen, selected := w.choose(alternatives(schema), value); chosen != nil {
+		policy.Convert = nil
+		return w.walk(chosen, selected, value, path, policy)
+	}
+	return w.walkValue(schema, pointer, value, path, policy)
+}
+func locatedModelError(err error, path string) error {
+	if err == nil {
+		return nil
+	}
+	if _, ok := errors.AsType[*modelError](err); ok {
+		return err
+	}
+	return &modelError{path: path, cause: err}
+}
+func packageShorthand(pointer string, value any) any {
+	if pointer == "#/$defs/Source" {
+		if s, ok := value.(string); ok {
+			return map[string]any{"name": s, "version": "*"}
 		}
 	}
+	return value
+}
+func (w *normalizer) walkValue(schema map[string]any, pointer string, value any, path string, policy scalarPolicy) (any, error) {
 	switch v := value.(type) {
 	case map[string]any:
-		return w.mapping(schema, pointer, v, path)
+		return w.mapping(schema, pointer, v, path, policy)
 	case []any:
-		result := make([]any, len(v))
-		for i, item := range v {
-			child := object(schema["items"])
-			if positional := array(schema["prefixItems"]); i < len(positional) {
-				child = object(positional[i])
-			}
-			result[i], err = w.walk(child, pointer+"/items", item, path+"/"+strconv.Itoa(i))
-			if err != nil {
-				return nil, err
-			}
-		}
-		return result, nil
+		return w.sequence(schema, pointer, v, path, policy)
 	default:
 		return value, nil
 	}
+}
+func (w *normalizer) sequence(schema map[string]any, pointer string, items []any, path string, policy scalarPolicy) (any, error) {
+	result := make([]any, len(items))
+	for i, item := range items {
+		child := object(schema["items"])
+		if positional := array(schema["prefixItems"]); i < len(positional) {
+			child = object(positional[i])
+		}
+		value, err := w.walk(child, pointer+"/items", item, path+"/"+strconv.Itoa(i), childPolicy(policy.Items))
+		if err != nil {
+			return nil, err
+		}
+		result[i] = value
+	}
+	return result, nil
 }
 func alternatives(schema map[string]any) []any {
 	if branches := array(schema["anyOf"]); len(branches) > 0 {
@@ -109,7 +122,8 @@ func alternatives(schema map[string]any) []any {
 func (w *normalizer) choose(branches []any, value any) (map[string]any, string) {
 	for _, item := range branches {
 		schema, pointer := w.dereference(object(item), "")
-		if schemaMatches(schema, value) {
+		_, isString := value.(string)
+		if schemaMatches(schema, value) || pointer == "#/$defs/Source" && isString {
 			return object(item), pointer
 		}
 	}
@@ -123,6 +137,11 @@ func schemaMatches(schema map[string]any, value any) bool {
 	case map[string]any:
 		if text(schema["type"]) != "object" && schema["properties"] == nil {
 			return false
+		}
+		for _, required := range array(schema["required"]) {
+			if _, ok := v[text(required)]; !ok {
+				return false
+			}
 		}
 		for name, raw := range object(schema["properties"]) {
 			if expected, present := object(raw)["const"]; present && v[name] != expected {
@@ -146,35 +165,63 @@ func schemaMatches(schema map[string]any, value any) bool {
 		return len(schema) == 0
 	}
 }
-func (w *normalizer) mapping(schema map[string]any, pointer string, value map[string]any, path string) (any, error) {
-	if err := w.modelInput(pointer, value); err != nil {
-		return nil, err
-	}
-	props := object(schema["properties"])
-	keys := w.keys(value, path)
+func (w *normalizer) mapping(schema map[string]any, pointer string, value map[string]any, path string, policy scalarPolicy) (any, error) {
 	presentation := w.parser.layouts[w.id][pointer]
-	if len(presentation.Fields) > 0 {
-		keys = fieldOrder(keys, presentation.Fields)
-	}
+	keys := fieldOrder(w.keys(value, path), presentation.Fields)
 	result := make(ordered, 0, len(value))
 	for _, name := range keys {
-		child, known := props[name]
-		if !known {
-			child = schema["additionalProperties"]
+		child, err := w.propertySchema(schema, name)
+		if err != nil {
+			return nil, err
 		}
 		raw, err := w.fieldInput(pointer, name, value[name])
 		if err != nil {
 			return nil, err
 		}
-		normalized, err := w.walk(object(child), pointer+"/properties/"+name, raw, path+"/"+jsonpointer.EscapeToken(name))
+		fieldPolicy, present := presentation.Scalar[name]
+		if !present {
+			fieldPolicy = childPolicy(policy.Values)
+		}
+		normalized, err := w.walk(child, pointer+"/properties/"+name, raw, path+"/"+jsonpointer.EscapeToken(name), fieldPolicy)
 		if err != nil {
 			return nil, err
 		}
-		if !omitted(normalized, presentation.Omit[name]) {
-			result = append(result, field{name, normalized})
-		}
+		result = append(result, field{name: name, value: normalized, omit: omitted(normalized, presentation.Omit[name])})
+	}
+	if err := w.modelCheck(pointer, object(result)); err != nil {
+		return nil, err
 	}
 	return result, nil
+}
+func (w *normalizer) propertySchema(schema map[string]any, name string) (map[string]any, error) {
+	if child, present := object(schema["properties"])[name]; present {
+		return object(child), nil
+	}
+	patterns := object(schema["patternProperties"])
+	for _, pattern := range slices.Sorted(maps.Keys(patterns)) {
+		compiled, err := w.propertyPattern(pattern)
+		if err != nil {
+			return nil, err
+		}
+		if compiled.MatchString(name) {
+			return object(patterns[pattern]), nil
+		}
+	}
+	return object(schema["additionalProperties"]), nil
+}
+func (w *normalizer) propertyPattern(pattern string) (*regexp.Regexp, error) {
+	if w.patterns == nil {
+		w.patterns = map[string]*regexp.Regexp{}
+	}
+	if compiled := w.patterns[pattern]; compiled != nil {
+		return compiled, nil
+	}
+	compiled, err := regexp.Compile(pattern)
+	if err != nil {
+		return nil, err
+	}
+	w.patterns[pattern] = compiled
+	return compiled, nil
 }
 func (w *normalizer) keys(value map[string]any, path string) []string {
 	keys := slices.Sorted(maps.Keys(value))
@@ -206,88 +253,29 @@ func fieldOrder(keys, fields []string) []string {
 	return result
 }
 func omitted(value any, policies []string) bool {
-	for _, policy := range policies {
-		switch policy {
-		case "always":
-			return true
-		case "null":
-			if value == nil {
-				return true
-			}
-		case "empty":
-			if v, ok := value.(ordered); ok && len(v) == 0 {
-				return true
-			}
-		case "blank":
-			if value == "" {
-				return true
-			}
-		case "false":
-			if value == false {
-				return true
-			}
-		}
-	}
-	return false
+	return slices.ContainsFunc(policies, func(policy string) bool { return omitValue(value, policy) })
 }
-func writeJSON(out *bytes.Buffer, value any, limit int64) error {
-	var raw []byte
-	switch v := value.(type) {
-	case float64:
-		normalized, err := normalizeFloat(v)
-		if err != nil {
-			return err
-		}
-		raw = []byte(normalized.(json.Number))
-	case ordered:
-		if err := appendJSON(out, []byte{'{'}, limit); err != nil {
-			return err
-		}
-		for i, entry := range v {
-			if i > 0 {
-				if err := appendJSON(out, []byte{','}, limit); err != nil {
-					return err
-				}
-			}
-			name, _ := json.Marshal(entry.name)
-			if err := appendJSON(out, append(name, ':'), limit); err != nil {
-				return err
-			}
-			if err := writeJSON(out, entry.value, limit); err != nil {
-				return err
-			}
-		}
-		raw = []byte{'}'}
-	case []any:
-		if err := appendJSON(out, []byte{'['}, limit); err != nil {
-			return err
-		}
-		for i, item := range v {
-			if i > 0 {
-				if err := appendJSON(out, []byte{','}, limit); err != nil {
-					return err
-				}
-			}
-			if err := writeJSON(out, item, limit); err != nil {
-				return err
-			}
-		}
-		raw = []byte{']'}
+func omitValue(value any, policy string) bool {
+	switch policy {
+	case "always":
+		return true
+	case "null":
+		return value == nil
+	case "empty":
+		v, ok := value.(ordered)
+		return ok && len(v) == 0
+	case "empty-sequence":
+		v, ok := value.([]any)
+		return ok && len(v) == 0
+	case "blank":
+		v, ok := value.(string)
+		return ok && v == ""
+	case "false":
+		v, ok := value.(bool)
+		return ok && !v
 	default:
-		var err error
-		raw, err = json.Marshal(value)
-		if err != nil {
-			return invalid()
-		}
+		return false
 	}
-	return appendJSON(out, raw, limit)
-}
-func appendJSON(out *bytes.Buffer, raw []byte, limit int64) error {
-	if int64(len(raw)) > limit-int64(out.Len()) {
-		return invalid()
-	}
-	_, _ = out.Write(raw)
-	return nil
 }
 
 type modelError struct {

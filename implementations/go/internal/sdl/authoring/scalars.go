@@ -19,44 +19,16 @@ func variable(value any) bool {
 		if part == "__private" && i < len(parts)-1 {
 			continue
 		}
-		if part == "" || len(part) > 64 || !portableInitial(part[0]) {
+		if !localIdentifier(part) {
 			return false
-		}
-		for _, r := range part {
-			if !(r >= 'a' && r <= 'z' || r >= '0' && r <= '9' || r == '_' || r == '-') {
-				return false
-			}
 		}
 	}
 	return true
 }
-func portableInitial(b byte) bool { return b >= 'a' && b <= 'z' || b >= '0' && b <= '9' }
-func (w *normalizer) scalar(schema map[string]any, value any) (any, error) {
-	if value == nil || variable(value) {
-		return value, nil
-	}
-	branches := alternatives(schema)
-	enums := append([]any(nil), array(schema["enum"])...)
-	kinds := map[string]bool{text(schema["type"]): true}
-	for _, raw := range branches {
-		child, _ := w.dereference(object(raw), "")
-		kinds[text(child["type"])] = true
-		enums = append(enums, array(child["enum"])...)
-	}
-	if len(enums) > 0 {
-		return normalizeEnum(value, enums)
-	}
-	if kinds["integer"] {
-		return normalizeInteger(value, kinds["string"])
-	}
-	if kinds["number"] {
-		return normalizeFloat(value)
-	}
-	if kinds["boolean"] {
-		return normalizeBoolean(value, kinds["string"])
-	}
-	return value, nil
+func localIdentifier(s string) bool {
+	return len(s) > 0 && len(s) <= 64 && portableInitial(s[0]) && strings.Trim(s, "abcdefghijklmnopqrstuvwxyz0123456789_-") == ""
 }
+func portableInitial(b byte) bool { return b >= 'a' && b <= 'z' || b >= '0' && b <= '9' }
 func normalizeEnum(value any, members []any) (any, error) {
 	s, ok := value.(string)
 	if !ok {
@@ -64,9 +36,6 @@ func normalizeEnum(value any, members []any) (any, error) {
 	}
 	normalized := strings.ReplaceAll(strings.ToLower(s), "-", "_")
 	for _, member := range members {
-		if member == value {
-			return value, nil
-		}
 		if member == normalized {
 			return normalized, nil
 		}
@@ -74,40 +43,105 @@ func normalizeEnum(value any, members []any) (any, error) {
 	return nil, invalid()
 }
 func normalizeInteger(value any, custom bool) (any, error) {
-	if boolean, ok := value.(bool); ok {
+	switch v := value.(type) {
+	case bool:
 		if custom {
 			return nil, invalid()
 		}
-		if boolean {
+		if v {
 			return json.Number("1"), nil
 		}
 		return json.Number("0"), nil
-	}
-	s := ""
-	switch v := value.(type) {
-	case string:
-		s = strings.TrimSpace(v)
-	case json.Number:
-		s = v.String()
 	case float64:
-		if custom {
+		if custom || math.IsInf(v, 0) || math.IsNaN(v) || math.Trunc(v) != v {
 			return nil, invalid()
 		}
-		s = strconv.FormatFloat(v, 'g', -1, 64)
+		return json.Number(strconv.FormatFloat(v, 'f', 0, 64)), nil
+	case json.Number:
+		return decimalInteger(v.String(), custom)
+	case string:
+		return decimalInteger(pythonTrim(v), custom)
 	default:
-		return value, nil
+		return nil, invalid()
 	}
-	integer, ok := new(big.Int).SetString(s, 10)
-	if ok && (!custom || !strings.HasPrefix(s, "+")) {
-		return json.Number(integer.String()), nil
+}
+func decimalInteger(s string, custom bool) (any, error) {
+	if s == "" {
+		return nil, invalid()
+	}
+	negative := false
+	if s[0] == '-' || s[0] == '+' {
+		negative = s[0] == '-'
+		if !negative && custom {
+			return nil, invalid()
+		}
+		s = s[1:]
 	}
 	if !custom {
-		f, err := strconv.ParseFloat(s, 64)
-		if err == nil && !math.IsInf(f, 0) && math.Trunc(f) == f {
-			return json.Number(strconv.FormatFloat(f, 'f', 0, 64)), nil
+		var err error
+		s, err = laxIntegerText(s)
+		if err != nil {
+			return nil, err
 		}
 	}
-	return nil, invalid()
+	var digits strings.Builder
+	for _, r := range s {
+		digit, ok := decimalDigit(r, custom)
+		if !ok || digits.Len() >= 4300 {
+			return nil, invalid()
+		}
+		digits.WriteByte('0' + digit)
+	}
+	if digits.Len() == 0 {
+		return nil, invalid()
+	}
+	integer, ok := new(big.Int).SetString(digits.String(), 10)
+	if !ok {
+		return nil, invalid()
+	}
+	if negative {
+		integer.Neg(integer)
+	}
+	return json.Number(integer.String()), nil
+}
+func laxIntegerText(s string) (string, error) {
+	if strings.ContainsRune(s, '_') {
+		for i, c := range s {
+			if c == '_' && (i == 0 || i+1 == len(s) || s[i-1] < '0' || s[i-1] > '9' || s[i+1] < '0' || s[i+1] > '9') {
+				return "", invalid()
+			}
+		}
+		s = strings.ReplaceAll(s, "_", "")
+	}
+	if whole, fraction, present := strings.Cut(s, "."); present {
+		if whole == "" || fraction == "" || strings.Trim(fraction, "0") != "" {
+			return "", invalid()
+		}
+		s = whole
+	}
+	return s, nil
+}
+func decimalDigit(r rune, allowUnicode bool) (byte, bool) {
+	if r >= '0' && r <= '9' {
+		return byte(r - '0'), true
+	}
+	if !allowUnicode {
+		return 0, false
+	}
+	for _, block := range unicode.Digit.R16 {
+		if r >= rune(block.Lo) && r <= rune(block.Hi) && (r-rune(block.Lo))%rune(block.Stride) == 0 {
+			return byte((r - rune(block.Lo)) / rune(block.Stride) % 10), true
+		}
+	}
+	for _, block := range unicode.Digit.R32 {
+		if r >= rune(block.Lo) && r <= rune(block.Hi) && (r-rune(block.Lo))%rune(block.Stride) == 0 {
+			return byte((r - rune(block.Lo)) / rune(block.Stride) % 10), true
+		}
+	}
+	return 0, false
+}
+func pythonTrim(s string) string {
+	return strings.TrimFunc(s, func(r rune) bool { return unicode.IsSpace(r) || r >= 0x1c && r <= 0x1f })
 }
 func normalizeFloat(value any) (any, error) {
 	s := ""
@@ -117,7 +151,7 @@ func normalizeFloat(value any) (any, error) {
 	case float64:
 		s = strconv.FormatFloat(v, 'g', -1, 64)
 	case string:
-		s = strings.TrimSpace(v)
+		s = pythonTrim(v)
 	default:
 		return nil, invalid()
 	}
@@ -144,11 +178,19 @@ func normalizeBoolean(value any, custom bool) (any, error) {
 		}
 	}
 	if s, ok := value.(string); ok {
-		switch strings.ToLower(strings.TrimSpace(s)) {
-		case "true", "yes", "on", "1", "y", "t":
+		switch strings.ToLower(pythonTrim(s)) {
+		case "true", "yes", "on", "1":
 			return true, nil
-		case "false", "no", "off", "0", "n", "f":
+		case "false", "no", "off", "0":
 			return false, nil
+		case "y", "t":
+			if !custom {
+				return true, nil
+			}
+		case "n", "f":
+			if !custom {
+				return false, nil
+			}
 		}
 	}
 	return nil, invalid()
@@ -172,8 +214,11 @@ func ram(value any) (any, error) {
 		return nil, invalid()
 	}
 	s = strings.TrimSpace(s)
-	if i, ok := new(big.Int).SetString(s, 10); ok && i.Sign() > 0 && !strings.HasPrefix(s, "+") && !strings.HasPrefix(s, "-") {
-		return json.Number(i.String()), nil
+	if parsed, err := decimalInteger(s, true); err == nil && !strings.HasPrefix(s, "-") && !strings.HasPrefix(s, "+") {
+		if n, ok := parsed.(json.Number); ok && n != "0" {
+			return n, nil
+		}
+		return nil, invalid()
 	}
 	index := strings.IndexFunc(s, func(r rune) bool { return !unicode.IsDigit(r) && r != '.' })
 	if index < 1 {

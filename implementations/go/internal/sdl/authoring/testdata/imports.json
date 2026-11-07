@@ -1,0 +1,200 @@
+[
+  {
+    "name": "local-import",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n"
+  },
+  {
+    "name": "supplied-valid",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": true,
+    "accepted": true,
+    "content": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: '>=1,<2'\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n"
+  },
+  {
+    "name": "missing-pin",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError"
+  },
+  {
+    "name": "bad-pin",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: SHA256:E65B325F1FE88E1B5040FC7FC468F470A4F42EB36DA06FFF7B69D7DB96244E55\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError"
+  },
+  {
+    "name": "bad-digest",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:0000000000000000000000000000000000000000000000000000000000000000\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError"
+  },
+  {
+    "name": "missing-lock",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError"
+  },
+  {
+    "name": "mismatched-lock",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"9\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError"
+  },
+  {
+    "name": "duplicate-lock",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}, {\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError"
+  },
+  {
+    "name": "duplicate-json",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"imports\":[],\"imports\":[]}"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError"
+  },
+  {
+    "name": "registry-refused",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: oci:example.invalid/demo\n  namespace: demo\n  version: \">=1,<2\"\n  digest: sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes.lock.json": "{\"schema_version\": \"raes-lock/v1\", \"imports\": [{\"source\": \"local:module.yaml\", \"namespace\": \"demo\", \"requested_version\": \">=1,<2\", \"resolved_source\": \"module.yaml\", \"module_id\": \"example/demo\", \"module_version\": \"1.2\", \"manifest_digest\": \"\", \"content_digest\": \"sha256:e65b325f1fe88e1b5040fc7fc468f470a4f42eb36da06fff7b69d7db96244e55\", \"export_hash\": \"15b62a5767f3de3c7beed9dd791f4af113564d7c43a59eae4f6ebf57b51954e5\", \"signer_id\": \"\"}]}"
+    },
+    "supplied": true,
+    "accepted": false,
+    "error": "SDLImportError"
+  },
+  {
+    "name": "missing-source",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError"
+  },
+  {
+    "name": "missing-descriptor",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError"
+  },
+  {
+    "name": "bad-model",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\nunknown: true\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLParseError"
+  },
+  {
+    "name": "bad-export",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [missing]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError"
+  },
+  {
+    "name": "revision-mismatch",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\nsemantic_revision: raes-progressive-semantics/v1\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError"
+  },
+  {
+    "name": "version-mismatch",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError"
+  },
+  {
+    "name": "duplicate-import",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError"
+  },
+  {
+    "name": "cycle",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\nimports: [{source: \"local:module.yaml\", namespace: loop}]\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError"
+  },
+  {
+    "name": "trust-disabled",
+    "files": {
+      "main.yaml": "name: root\nimports:\n- source: local:module.yaml\n  namespace: demo\n  version: \">=1,<2\"\n",
+      "module.yaml": "name: module\nmodule: {id: example/demo, version: \"1.2\", exports: {nodes: [web]}}\nnodes: {web: {type: compute}}\n",
+      "raes-trust.yaml": "allow_unsigned_local_sources: false\n"
+    },
+    "supplied": false,
+    "accepted": false,
+    "error": "SDLImportError"
+  }
+]

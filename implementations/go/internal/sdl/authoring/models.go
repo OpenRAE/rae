@@ -2,12 +2,21 @@ package authoring
 
 import (
 	"encoding/json"
+	"math/big"
 	"net/netip"
 	"strings"
 )
 
-func (w *normalizer) modelInput(pointer string, value map[string]any) error {
+func (w *normalizer) modelCheck(pointer string, value map[string]any) error {
 	switch strings.TrimPrefix(pointer, "#/$defs/") {
+	case "Script":
+		return scriptModel(value)
+	case "Variable":
+		return variableModel(value)
+	case "Inject":
+		if populated(value["from_entity"]) != populated(value["to_entities"]) {
+			return invalid()
+		}
 	case "Node":
 		return nodeModel(value)
 	case "InfraNode":
@@ -17,7 +26,10 @@ func (w *normalizer) modelInput(pointer string, value map[string]any) error {
 	case "ModuleDescriptor":
 		return moduleModel(value)
 	case "ImportDecl":
-		if (text(value["source"]) == "") == (text(value["path"]) == "") || text(value["namespace"]) == "" {
+		if _, err := versionSpec(text(value["version"])); err != nil {
+			return err
+		}
+		if (text(value["source"]) == "") == (text(value["path"]) == "") || !localIdentifier(text(value["namespace"])) {
 			return invalid()
 		}
 	case "Scenario", "MaterializedScenario":
@@ -27,7 +39,12 @@ func (w *normalizer) modelInput(pointer string, value map[string]any) error {
 }
 func nodeModel(value map[string]any) error {
 	if strings.EqualFold(text(value["type"]), "switch") {
-		for _, key := range []string{"source", "resources", "os", "os_distribution", "os_version", "architecture", "features", "conditions", "injects", "roles", "services", "asset_value", "endpoint_persona", "runtime"} {
+		for _, key := range []string{"source", "resources", "os", "os_distribution", "architecture", "asset_value", "endpoint_persona", "runtime"} {
+			if value[key] != nil {
+				return invalid()
+			}
+		}
+		for _, key := range []string{"os_version", "features", "conditions", "injects", "roles", "services"} {
 			if populated(value[key]) {
 				return invalid()
 			}
@@ -70,6 +87,8 @@ func populated(value any) bool {
 	case []any:
 		return len(v) > 0
 	case map[string]any:
+		return len(v) > 0
+	case ordered:
 		return len(v) > 0
 	default:
 		return true
@@ -133,6 +152,10 @@ func networkModel(value map[string]any) error {
 	return nil
 }
 func moduleModel(value map[string]any) error {
+	parts := strings.Split(text(value["id"]), "/")
+	if len(parts) != 2 || !localIdentifier(parts[0]) || !localIdentifier(parts[1]) {
+		return invalid()
+	}
 	if !uniqueStrings(array(value["parameters"]), false) {
 		return invalid()
 	}
@@ -145,6 +168,17 @@ func moduleModel(value map[string]any) error {
 }
 func (w *normalizer) fieldInput(pointer, name string, value any) (any, error) {
 	model := strings.TrimPrefix(pointer, "#/$defs/")
+	if model == "Script" {
+		if name == "start_time" || name == "end_time" {
+			return duration(value)
+		}
+		if name == "events" {
+			return eventDurations(value)
+		}
+	}
+	if (model == "Script" || model == "Story") && name == "speed" && !variable(value) {
+		return speed(value, model)
+	}
 	if model == "Resources" && name == "ram" {
 		return ram(value)
 	}
@@ -157,14 +191,11 @@ func (w *normalizer) fieldInput(pointer, name string, value any) (any, error) {
 		if !ok {
 			return nil, invalid()
 		}
-		number, err := n.Int64()
-		if err != nil {
-			if bound.maximum > 0 {
-				return nil, invalid()
-			}
-			return parsed, nil
+		number, valid := new(big.Int).SetString(n.String(), 10)
+		if !valid {
+			return nil, invalid()
 		}
-		if number < bound.minimum || bound.maximum > 0 && number > bound.maximum {
+		if number.Cmp(big.NewInt(bound.minimum)) < 0 || bound.maximum > 0 && number.Cmp(big.NewInt(bound.maximum)) > 0 {
 			return nil, invalid()
 		}
 		return parsed, nil
@@ -207,4 +238,81 @@ func architecture(value any) any {
 		return canonical
 	}
 	return s
+}
+
+func eventDurations(value any) (any, error) {
+	events := object(value)
+	if events == nil {
+		return value, nil
+	}
+	result := map[string]any{}
+	for name, value := range events {
+		parsed, err := duration(value)
+		if err != nil {
+			return nil, err
+		}
+		result[name] = parsed
+	}
+	return result, nil
+}
+func speed(value any, model string) (any, error) {
+	parsed, err := normalizeFloat(value)
+	if err != nil {
+		return nil, err
+	}
+	n, ok := parsed.(json.Number)
+	if !ok {
+		return nil, invalid()
+	}
+	f, err := n.Float64()
+	if err != nil || model == "Script" && f <= 0 || model == "Story" && f < 1 {
+		return nil, invalid()
+	}
+	return parsed, nil
+}
+func variableModel(value map[string]any) error {
+	kind := strings.ToLower(text(value["type"]))
+	if v := value["default"]; v != nil && (!variableType(v, kind) || !allowedValue(v, array(value["allowed_values"]))) {
+		return invalid()
+	}
+	for _, v := range array(value["allowed_values"]) {
+		if !variableType(v, kind) {
+			return invalid()
+		}
+	}
+	return nil
+}
+
+func scriptModel(value map[string]any) error {
+	start, err := duration(value["start_time"])
+	if err != nil {
+		return err
+	}
+	end, err := duration(value["end_time"])
+	if err != nil {
+		return err
+	}
+	lower, lOK := start.(json.Number)
+	upper, uOK := end.(json.Number)
+	if !lOK || !uOK {
+		return nil
+	}
+	minimum, mOK := new(big.Int).SetString(lower.String(), 10)
+	maximum, xOK := new(big.Int).SetString(upper.String(), 10)
+	if !mOK || !xOK || minimum.Cmp(maximum) > 0 {
+		return invalid()
+	}
+	for _, raw := range object(value["events"]) {
+		parsed, err := duration(raw)
+		if err != nil {
+			return err
+		}
+		if n, ok := parsed.(json.Number); ok {
+			number, valid := new(big.Int).SetString(n.String(), 10)
+			if !valid || number.Cmp(minimum) < 0 || number.Cmp(maximum) > 0 {
+				return invalid()
+			}
+		}
+	}
+	return nil
 }
