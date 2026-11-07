@@ -53,7 +53,7 @@ func configurationTargetModel(v any) error {
 	if secret && (len(kinds) != 1 || kinds[0] != "secret-reference") {
 		return invalid()
 	}
-	def := at(v, "default")
+	def := at(v, termDefault)
 	if def == nil {
 		return nil
 	}

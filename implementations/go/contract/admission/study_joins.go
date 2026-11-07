@@ -145,7 +145,7 @@ func studyStochastic(v any, runs []any) error {
 				unbound[id] = true
 				continue
 			}
-			identity := join(referenceKey(at(binding, "profile_ref")), stringAt(binding, "namespace"))
+			identity := join(referenceKey(at(binding, "profile_ref")), stringAt(binding, termNamespace))
 			if previous, ok := identities[id]; ok && previous != identity {
 				return invalid()
 			}

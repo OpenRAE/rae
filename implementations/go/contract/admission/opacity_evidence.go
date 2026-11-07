@@ -121,7 +121,7 @@ func (e *Validator) opacityModelEvidence(i validation.Invocation) error {
 
 func opacityCoverage(v any) error {
 	c := at(v, "coverage")
-	declared := at(c, "declared")
+	declared := at(c, assuranceDeclared)
 	assumptions := at(v, fieldAssumptions)
 	if countAt(c, "explored_states") > countAt(declared, "states") || countAt(c, "explored_transitions") > countAt(declared, termTransitions) || countAt(c, "reachable_evaluation_points") > countAt(c, "explored_states") || countAt(c, "reachable_secret_points") > countAt(c, "reachable_evaluation_points") {
 		return invalid()
@@ -150,7 +150,7 @@ func opacityCoverage(v any) error {
 }
 
 func opacityModelCounterexample(v, counter any) error {
-	declared := at(v, "coverage", "declared")
+	declared := at(v, "coverage", assuranceDeclared)
 	if countAt(counter, "actual_state_ordinal") >= countAt(declared, "states") {
 		return invalid()
 	}

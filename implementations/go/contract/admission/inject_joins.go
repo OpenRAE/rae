@@ -173,14 +173,14 @@ func (e *Validator) injectCorrelation(i validation.Invocation) error {
 		return checkErr
 	}
 	message := at(outcome, "response", "message")
-	if stringAt(message, termKind) != messageOutcome || stringAt(message, "proposed_state") != outcomeSucceeded || at(message, "result") == nil {
+	if stringAt(message, termKind) != messageOutcome || stringAt(message, "proposed_state") != outcomeSucceeded || at(message, termResult) == nil {
 		return invalid()
 	}
 	digest, err := jsonDigest(outcome)
 	if err != nil {
 		return err
 	}
-	expected := map[string]any{"occurrence": at(outcome, "occurrence"), messageOutcome: map[string]any{termContractID: termInjectOccurrenceOutcomeV1, termArtifactID: at(occurrence, "request", "occurrence_id"), termDigest: digest}, "result": at(message, "result"), termSchemaVersion: "inject-occurrence-correlation/v1"}
+	expected := map[string]any{"occurrence": at(outcome, "occurrence"), messageOutcome: map[string]any{termContractID: termInjectOccurrenceOutcomeV1, termArtifactID: at(occurrence, "request", "occurrence_id"), termDigest: digest}, termResult: at(message, termResult), termSchemaVersion: "inject-occurrence-correlation/v1"}
 	actual, err := e.defaulted("inject-occurrence-correlation-v1", i.Instance)
 	if err != nil {
 		return err

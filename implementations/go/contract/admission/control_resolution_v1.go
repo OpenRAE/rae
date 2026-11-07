@@ -14,7 +14,7 @@ func (r *controlResolution) validateV1(v any) error {
 	for _, support := range array(at(v, "support")) {
 		id := stringAt(support, "instance_id")
 		binding := bindings[id]
-		if stringAt(support, "effective_level") != statusUnsupported && !equal(r.indexes[termBindings][id], binding) || !equal(r.indexes["effective"][id], support) {
+		if stringAt(support, "effective_level") != statusUnsupported && !equal(r.indexes[termBindings][id], binding) || !equal(r.indexes[termEffective][id], support) {
 			return invalid()
 		}
 		bindingRaw, supportRaw := controlRaw(binding), controlRaw(support)

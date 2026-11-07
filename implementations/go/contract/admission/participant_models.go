@@ -1,7 +1,7 @@
 package admission
 
 func participantContractVersions(values any) bool {
-	return declaredManifestContracts(values, "participant")
+	return declaredManifestContracts(values, termParticipant)
 }
 
 // vocabularyScope admits each value through the vocabulary that governs the

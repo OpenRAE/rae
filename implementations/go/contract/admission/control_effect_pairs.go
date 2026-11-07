@@ -3,7 +3,7 @@ package admission
 func controlEffectSubject(v any) string {
 	switch stringAt(v, termKind) {
 	case termTransform, termMask, termRoute:
-		return stringAt(v, "source", "subject_ref")
+		return stringAt(v, termSource, "subject_ref")
 	case "request-review":
 		return stringAt(v, "parent", "subject_ref")
 	case termInterrupt, termShutdown:
@@ -24,13 +24,13 @@ func controlLifecycleInvalidates(lifecycle, operation, context any) bool {
 	case termInject, termHandoff:
 		scope = operation
 	case termTransform, termMask, termRoute:
-		scope = at(operation, "result")
+		scope = at(operation, termResult)
 	case termPermit, termDelay:
 		scope = at(operation, "subject")
 	default:
 		return false
 	}
-	scopes := map[string]any{termParticipant: at(scope, "participant_address"), "episode": at(scope, "episode_id"), "run": at(context, "run", "ref")}
+	scopes := map[string]any{termParticipant: at(scope, "participant_address"), termEpisode: at(scope, "episode_id"), "run": at(context, "run", "ref")}
 	value, known := scopes[stringAt(lifecycle, "target_kind")]
 	return !known || equal(value, at(lifecycle, "target_ref"))
 }

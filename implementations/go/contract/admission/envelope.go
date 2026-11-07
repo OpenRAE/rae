@@ -108,7 +108,7 @@ func (e *Validator) envelopeConcerns(v any) error {
 var envelopePath = regexp.MustCompile(`^[^.\[\]]+(?:\.[^.\[\]]+|\[[0-9]+\])*$`)
 
 func envelopeExpression(v any) error {
-	domains := object(at(v, "domains"))
+	domains := object(at(v, termDomains))
 	edges := map[string][]string{}
 	if err := envelopeDomainGraph(domains, edges); err != nil {
 		return err

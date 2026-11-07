@@ -4,10 +4,10 @@ import "github.com/OpenRAE/rae/implementations/go/contract/validation"
 
 func behavioralCatalog(i validation.Invocation) error {
 	v := i.Instance
-	if !unique(rowIDs(at(v, "bibliography"), "source_id")) || !unique(rowIDs(at(v, "claim_surfaces"), termSurfaceID)) || !keyed(at(v, "relations"), fieldRelationID) || !keyed(at(v, "worked_examples"), "example_id") {
+	if !unique(rowIDs(at(v, "bibliography"), termSourceID)) || !unique(rowIDs(at(v, "claim_surfaces"), termSurfaceID)) || !keyed(at(v, "relations"), fieldRelationID) || !keyed(at(v, "worked_examples"), "example_id") {
 		return invalid()
 	}
-	sources, relations := rowSet(at(v, "bibliography"), "source_id"), keySet(at(v, "relations"))
+	sources, relations := rowSet(at(v, "bibliography"), termSourceID), keySet(at(v, "relations"))
 	for _, relation := range object(at(v, "relations")) {
 		if !subset(stringsOf(at(relation, "source_refs")), sources) {
 			return invalid()
@@ -39,7 +39,7 @@ func exampleSystem(v any) error {
 		return invalid()
 	}
 	for _, transition := range array(at(v, termTransitions)) {
-		if !states[stringAt(transition, "source")] || !states[stringAt(transition, "target")] {
+		if !states[stringAt(transition, termSource)] || !states[stringAt(transition, "target")] {
 			return invalid()
 		}
 	}

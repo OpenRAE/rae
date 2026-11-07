@@ -103,7 +103,7 @@ func indexPlanOperations(v any, domain string) (planOperationIndex, error) {
 	allowed := map[string][]string{
 		termProvisioning:  {"network", "node", "feature-binding", "content-placement", "account-placement", "domain-controller-placement", "generated-artifact", "persistent-volume"},
 		termOrchestration: {"inject-binding", "inject", "event", "script", "story", termWorkflow},
-		termEvaluation:    {"condition-binding", "proposition", "assertion", "objective"},
+		termEvaluation:    {"condition-binding", "proposition", "assertion", termObjective},
 	}
 	addresses, live, nodes := map[string]bool{}, map[string]bool{}, map[string]bool{}
 	for _, op := range operations {

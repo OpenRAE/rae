@@ -109,7 +109,7 @@ func flowReleaseEdge(release any, labels map[string]any, produced map[string]boo
 
 func flowIndexes(v any) (map[string]map[string]any, error) {
 	indexes := map[string]map[string]any{}
-	for field, id := range map[string]string{termLabels: "label_id", termDerivations: "derivation_id", termReleases: "release_id", termSinkDecisions: termDecisionID, termBindings: "binding_id"} {
+	for field, id := range map[string]string{termLabels: "label_id", termDerivations: "derivation_id", termReleases: "release_id", termSinkDecisions: termDecisionID, termBindings: termBindingID} {
 		rows := array(at(v, field))
 		indexes[field] = controlRows(rows, id)
 		if len(indexes[field]) != len(rows) {

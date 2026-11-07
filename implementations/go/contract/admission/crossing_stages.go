@@ -26,7 +26,7 @@ func (index *crossingIndex) stage(record any) error {
 
 func crossingSuccessor(record, prior any, sameSubject bool) error {
 	v, previous := at(record, "occurrence"), at(prior, "occurrence")
-	if prior == nil || !matchingFields(record, prior, "participant_address", "episode_id") || !matchingFields(v, previous, "direction", "interaction_kind", "audience_scope_ref", "controller_ref", "authority_basis_refs", termPolicy, "order_model") || sameSubject && !equal(at(v, "subject"), at(previous, "subject")) || !numericGreater(at(v, "effective_order"), at(previous, "effective_order")) || !set(at(record, "predecessor_event_refs"))[stringAt(prior, "event_id")] {
+	if prior == nil || !matchingFields(record, prior, "participant_address", "episode_id") || !matchingFields(v, previous, "direction", "interaction_kind", "audience_scope_ref", "controller_ref", termAuthorityBasisRefs, termPolicy, "order_model") || sameSubject && !equal(at(v, "subject"), at(previous, "subject")) || !numericGreater(at(v, "effective_order"), at(previous, "effective_order")) || !set(at(record, "predecessor_event_refs"))[stringAt(prior, "event_id")] {
 		return invalid()
 	}
 	return nil

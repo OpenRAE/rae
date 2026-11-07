@@ -132,7 +132,7 @@ func selectionFactors(i validation.Invocation) error {
 	v := i.Instance
 	descriptors := map[string]any{}
 	for _, descriptor := range array(at(v, "binding_descriptors", "descriptors")) {
-		descriptors[stringAt(descriptor, "binding_id")] = descriptor
+		descriptors[stringAt(descriptor, termBindingID)] = descriptor
 	}
 	allocation := at(v, "run_plan", "allocation")
 	for _, policy := range object(at(v, "run_plan", "selection_policies")) {
@@ -174,7 +174,7 @@ func (e *Validator) stochasticDraws(i validation.Invocation) error {
 	}
 	for _, draw := range array(at(i.Instance, "stochastic_draws")) {
 		binding := at(controls[stringAt(draw, "control_id")], "executable_binding")
-		if binding == nil || !equal(at(draw, "address", "namespace"), at(binding, "namespace")) {
+		if binding == nil || !equal(at(draw, "address", termNamespace), at(binding, termNamespace)) {
 			return invalid()
 		}
 		profile := e.streams[stringAt(binding, "profile_ref", fieldRefID)]

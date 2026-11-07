@@ -75,7 +75,7 @@ func controlStateBindings(v any) error {
 		return invalid()
 	}
 	for _, call := range calls {
-		if stringAt(call, "state_input", "source") != "tentative" {
+		if stringAt(call, "state_input", termSource) != "tentative" {
 			continue
 		}
 		predecessor := proposed[stringAt(call, "state_input", "predecessor_invocation_id")]

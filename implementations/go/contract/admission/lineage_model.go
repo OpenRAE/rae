@@ -6,7 +6,7 @@ import (
 )
 
 func lineageLedger(v any) error {
-	for _, pair := range [][2]string{{"citations", "citation_id"}, {"sources", "source_id"}, {"subjects", "subject_id"}, {"third_party_dispositions", "source_ref"}} {
+	for _, pair := range [][2]string{{"citations", "citation_id"}, {"sources", termSourceID}, {"subjects", "subject_id"}, {"third_party_dispositions", "source_ref"}} {
 		if len(rowSet(at(v, pair[0]), pair[1])) != len(array(at(v, pair[0]))) {
 			return invalid()
 		}
@@ -17,7 +17,7 @@ func lineageLedger(v any) error {
 		if !citations[stringAt(source, "citation_ref")] || lineageSource(source) != nil {
 			return invalid()
 		}
-		sources[stringAt(source, "source_id")] = source
+		sources[stringAt(source, termSourceID)] = source
 	}
 	for _, disposition := range array(at(v, "third_party_dispositions")) {
 		id := stringAt(disposition, "source_ref")

@@ -35,8 +35,8 @@ func statefulReferences(i validation.Invocation) error {
 }
 func resourceConsumers(v, resource any, occupied map[string]bool) error {
 	for _, consumer := range array(at(resource, "consumers")) {
-		name, ok := resolveName(stringAt(consumer, termNode), "nodes", at(v, "nodes"))
-		if !ok || stringAt(v, "nodes", name, "os") == termWindows {
+		name, ok := resolveName(stringAt(consumer, termNode), termNodes, at(v, termNodes))
+		if !ok || stringAt(v, termNodes, name, "os") == termWindows {
 			return invalid()
 		}
 		key := join(name, stringAt(consumer, "mount_destination"))
@@ -71,7 +71,7 @@ func resolveGeneratedValue(v, source any, consumed map[string]bool) (any, error)
 	return output, nil
 }
 func generatedValueReferences(v any, consumed map[string]bool) error {
-	for _, node := range object(at(v, "nodes")) {
+	for _, node := range object(at(v, termNodes)) {
 		if err := environmentGeneratedValues(v, node, consumed); err != nil {
 			return err
 		}
@@ -81,7 +81,7 @@ func generatedValueReferences(v any, consumed map[string]bool) error {
 	}
 	for _, proposition := range object(at(v, "propositions")) {
 		if source := at(proposition, "predicate", "expected_from"); source != nil {
-			if stringAt(proposition, "basis") != "observed_state" {
+			if stringAt(proposition, "basis") != basisObservedState {
 				return invalid()
 			}
 			if _, err := resolveGeneratedValue(v, source, consumed); err != nil {
@@ -92,7 +92,7 @@ func generatedValueReferences(v any, consumed map[string]bool) error {
 	return nil
 }
 func environmentGeneratedValues(v, node any, consumed map[string]bool) error {
-	for _, field := range []string{"environment", "environment_files"} {
+	for _, field := range []string{termEnvironment, "environment_files"} {
 		for _, entry := range array(at(node, "runtime", field)) {
 			source := at(entry, "value_from")
 			if source == nil {
@@ -103,7 +103,7 @@ func environmentGeneratedValues(v, node any, consumed map[string]bool) error {
 				return err
 			}
 			classification := at(entry, "value_classification")
-			if stringAt(output, "sensitivity") == sensitivitySecret && classification != nil && text(classification) != "redacted" {
+			if stringAt(output, "sensitivity") == sensitivitySecret && classification != nil && text(classification) != termRedacted {
 				return invalid()
 			}
 		}
@@ -117,7 +117,7 @@ func statefulOrphansAndMounts(v any, consumed, occupied map[string]bool) error {
 			return invalid()
 		}
 	}
-	for name, node := range object(at(v, "nodes")) {
+	for name, node := range object(at(v, termNodes)) {
 		for _, mount := range array(at(node, "runtime", "mounts")) {
 			if occupied[join(name, stringAt(mount, "target"))] {
 				return invalid()

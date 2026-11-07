@@ -2,7 +2,7 @@ package admission
 
 func contextSourceBindings(v any) error {
 	sources := array(at(v, "source_layers"))
-	if len(rowSet(sources, "source_id")) != len(sources) || !subset(stringsOf(at(v, "transformation", "input_source_ids")), rowSet(sources, "source_id")) {
+	if len(rowSet(sources, termSourceID)) != len(sources) || !subset(stringsOf(at(v, "transformation", "input_source_ids")), rowSet(sources, termSourceID)) {
 		return invalid()
 	}
 	refs := set(at(v, "derived_from_refs"))
@@ -24,7 +24,7 @@ func jointActionModel(v any) error {
 		return invalid()
 	}
 	policy := stringAt(v, "conflict_policy")
-	if policy == "unsupported" {
+	if policy == statusUnsupported {
 		return require(unsupported && !exact)
 	}
 	conflict := jointActionConflict(array(at(v, "access_sets")))

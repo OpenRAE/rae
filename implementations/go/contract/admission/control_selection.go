@@ -74,12 +74,12 @@ func controlSlotGraph(slots []any, instances map[string]bool) error {
 	return require(!graph.HasCycle(edges))
 }
 func controlStrengthPin(v any) error {
-	for _, constraint := range array(at(v, "constraints")) {
+	for _, constraint := range array(at(v, termConstraints)) {
 		if stringAt(constraint, termKind) != termConstraint {
 			return invalid()
 		}
 	}
-	return require(stringAt(v, "required_strength") != assuranceBounded || len(array(at(v, "constraints"))) > 0)
+	return require(stringAt(v, "required_strength") != assuranceBounded || len(array(at(v, termConstraints))) > 0)
 }
 func controlObligations(v any) error {
 	obligations := array(at(v, "obligations"))

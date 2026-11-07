@@ -42,9 +42,10 @@ func materializationQualified(value string) bool {
 	return true
 }
 
-func materializedLocal(v any) error {
+func materializedLocal(v any) error { return materializedLocalBound(v, 100000) }
+func materializedLocalBound(v any, bound int) error {
 	work := 0
-	if !materializationConcrete(v, &work) {
+	if !materializationConcreteBound(v, &work, bound) {
 		return invalid()
 	}
 	for _, origin := range array(at(v, "materialization_provenance", "origins")) {
@@ -56,7 +57,7 @@ func materializedLocal(v any) error {
 		}
 	}
 	for _, binding := range array(at(v, "materialization_provenance", "resource_bindings")) {
-		if _, present := object(at(v, "nodes"))[stringAt(binding, "node_name")]; !present {
+		if _, present := object(at(v, termNodes))[stringAt(binding, "node_name")]; !present {
 			return invalid()
 		}
 	}
@@ -64,8 +65,11 @@ func materializedLocal(v any) error {
 }
 
 func materializationConcrete(v any, work *int) bool {
+	return materializationConcreteBound(v, work, 100000)
+}
+func materializationConcreteBound(v any, work *int, bound int) bool {
 	*work++
-	if *work > 100000 {
+	if *work > bound {
 		return false
 	}
 	switch value := v.(type) {
@@ -73,13 +77,13 @@ func materializationConcrete(v any, work *int) bool {
 		return !materializedToken.MatchString(value)
 	case map[string]any:
 		for _, child := range value {
-			if !materializationConcrete(child, work) {
+			if !materializationConcreteBound(child, work, bound) {
 				return false
 			}
 		}
 	case []any:
 		for _, child := range value {
-			if !materializationConcrete(child, work) {
+			if !materializationConcreteBound(child, work, bound) {
 				return false
 			}
 		}
@@ -98,7 +102,7 @@ func materializationProvenance(v any) error {
 	}
 	origins := map[string]bool{}
 	for _, origin := range array(at(v, "origins")) {
-		kind := "present"
+		kind := termPresent
 		if stringAt(origin, "change") == termRemoved {
 			kind = termRemoved
 		}

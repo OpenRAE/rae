@@ -106,9 +106,9 @@ func conditionParameters(run, assignment any) bool {
 func conditionBindingsAndSelections(run, assignment any) bool {
 	for _, required := range array(at(assignment, termRequiredBindings)) {
 		found := false
-		expected := realizationMeaning(required, "binding_id")
+		expected := realizationMeaning(required, termBindingID)
 		for _, binding := range array(at(run, "realized_bindings")) {
-			if equal(expected, realizationMeaning(at(binding, "descriptor"), "binding_id")) && bindingConfiguration(run, binding) {
+			if equal(expected, realizationMeaning(at(binding, "descriptor"), termBindingID)) && bindingConfiguration(run, binding) {
 				found = true
 			}
 		}

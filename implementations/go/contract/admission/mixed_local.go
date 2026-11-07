@@ -36,7 +36,7 @@ func (e *Validator) mixedCompositionLocal(i validation.Invocation) error {
 	return require(digest == stringAt(v, "profile_digest"))
 }
 func mixedIdentityMaps(v any) error {
-	for section, field := range map[string]string{termComponents: "component_id", termAllocations: "allocation_id", termEdges: "edge_id", termPhases: "phase_id", termTransitions: "transition_id"} {
+	for section, field := range map[string]string{termComponents: termComponentID, termAllocations: "allocation_id", termEdges: "edge_id", termPhases: "phase_id", termTransitions: "transition_id"} {
 		if !keyed(at(v, section), field) {
 			return invalid()
 		}

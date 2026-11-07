@@ -3,7 +3,7 @@ package admission
 func (index *controlOccurrenceIndex) validate(record any) error {
 	occurrence := at(record, "occurrence")
 	declaration := index.declarations[join(stringAt(occurrence, "declaration_ref"), stringAt(record, fieldParticipantAddress), stringAt(record, fieldEpisodeID))]
-	if declaration == nil || !matchingFields(record, declaration, fieldParticipantAddress, fieldEpisodeID) || !equal(at(record, "actor_ref"), at(declaration, "controller_ref")) || !matchingFields(occurrence, declaration, termKind, "controller_ref", "controller_state_ref", "authority_basis_refs", "controlled_scope_refs", "behavior_specification_ref", "mixed_control_policy_ref", "policy_revision", termExpectedStateRevision, "effective_order", termValidFromOrder, termValidUntilOrder) {
+	if declaration == nil || !matchingFields(record, declaration, fieldParticipantAddress, fieldEpisodeID) || !equal(at(record, "actor_ref"), at(declaration, "controller_ref")) || !matchingFields(occurrence, declaration, termKind, "controller_ref", "controller_state_ref", termAuthorityBasisRefs, "controlled_scope_refs", "behavior_specification_ref", "mixed_control_policy_ref", "policy_revision", termExpectedStateRevision, "effective_order", termValidFromOrder, termValidUntilOrder) {
 		return invalid()
 	}
 	if stringAt(occurrence, "disposition") == termRejected {

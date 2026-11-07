@@ -75,7 +75,7 @@ func validInertLimits(l InertLimits) bool {
 func inertFailure() error            { return failure(fault.InvalidInput, "contract-profile-invalid") }
 func inertOutcome(code string) error { return failure(fault.InvalidInput, code) }
 func inertSafeKeywords() []string {
-	return []string{"$anchor", "$comment", keywordDefs, "$id", keywordRef, keywordSchema, "$vocabulary", keywordAdditionalProperties, keywordAllOf, keywordAnyOf, keywordConst, keywordContains, "default", "dependentRequired", keywordDependentSchemas, "deprecated", "description", keywordElse, keywordEnum, "examples", "exclusiveMaximum", "exclusiveMinimum", "if", keywordItems, "maxContains", "maxItems", "maxLength", "maxProperties", "maximum", "minContains", "minItems", "minLength", "minProperties", "minimum", "multipleOf", keywordNot, keywordOneOf, keywordPrefixItems, keywordProperties, keywordPropertyNames, "readOnly", keywordRequired, keywordThen, "title", keywordType, "writeOnly"}
+	return []string{"$anchor", "$comment", keywordDefs, "$id", keywordRef, keywordSchema, "$vocabulary", keywordAdditionalProperties, keywordAllOf, keywordAnyOf, keywordConst, keywordContains, "default", "dependentRequired", keywordDependentSchemas, "deprecated", "description", keywordElse, keywordEnum, "examples", "exclusiveMaximum", "exclusiveMinimum", "if", keywordItems, "maxContains", "maxItems", keywordMaxLength, "maxProperties", "maximum", "minContains", "minItems", keywordMinLength, "minProperties", "minimum", "multipleOf", keywordNot, keywordOneOf, keywordPrefixItems, keywordProperties, keywordPropertyNames, "readOnly", keywordRequired, keywordThen, "title", keywordType, "writeOnly"}
 }
 
 // inertInspection walks the schema in document order. It returns the outcome

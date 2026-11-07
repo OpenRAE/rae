@@ -96,7 +96,7 @@ func runtimeExecutionBindings(v any) error {
 		return invalid()
 	}
 	bindings := array(at(v, "execution_bindings"))
-	if len(rowSet(bindings, "binding_id")) != len(bindings) {
+	if len(rowSet(bindings, termBindingID)) != len(bindings) {
 		return invalid()
 	}
 	actions, targets := set(at(v, termSupportedAutonomousActionContracts)), set(at(v, "supported_autonomous_target_addresses"))

@@ -1,0 +1,775 @@
+{
+  "AccountCredentialBinding": {
+    "credential_id": "portable"
+  },
+  "Clock": {
+    "authority_ref": "nonblank",
+    "description": "nonblank",
+    "time_domain_ref": "nonblank"
+  },
+  "CollectionTarget": {
+    "owner": "qualified"
+  },
+  "ConsumerSelector": {
+    "mount_destination": "contained-mount",
+    "node": "qualified"
+  },
+  "ContentItem": {
+    "name": "portable"
+  },
+  "Database": {
+    "database_id": "portable",
+    "name": "nonblank"
+  },
+  "DatabaseGrant": {
+    "grantee_role_ref": "nonblank",
+    "object_ref": "nonblank"
+  },
+  "DatabaseRole": {
+    "name": "nonblank",
+    "role_id": "portable"
+  },
+  "DatabaseSchema": {
+    "name": "nonblank",
+    "schema_id": "portable"
+  },
+  "DatabaseSetting": {
+    "name": "nonblank"
+  },
+  "DatabaseTable": {
+    "name": "nonblank",
+    "table_id": "portable"
+  },
+  "DeploymentCell": {
+    "node_refs": "unique-nonblank"
+  },
+  "DnsResourceRecordSet": {
+    "rrset_id": "portable"
+  },
+  "DnsRuntimeSetting": {
+    "name": "nonblank"
+  },
+  "DnsZone": {
+    "zone_id": "portable"
+  },
+  "GeneratedArtifactConsumer": {
+    "mount_destination": "contained-mount",
+    "selected_outputs": "list-portable"
+  },
+  "GeneratedArtifactOutput": {
+    "name": "portable",
+    "path": "contained-relative"
+  },
+  "GeneratedArtifactValueSource": {
+    "output": "portable"
+  },
+  "IdentityForest": {
+    "domain_refs": "unique-nonblank"
+  },
+  "ImageConfig": {
+    "working_directory": "optional-absolute-path"
+  },
+  "ImageCopiedSource": {
+    "destination_path": "absolute-path",
+    "source_path": "nonblank"
+  },
+  "ImageSourceInput": {
+    "destination_path": "optional-absolute-path",
+    "identifier": "nonblank"
+  },
+  "LogicalTimingTarget": {
+    "owner": "qualified"
+  },
+  "MaterializationProvenance": {
+    "attestation_id": "portable"
+  },
+  "MixedControlControllerState": {
+    "controller_ref": "nonblank",
+    "policy_revision": "nonblank"
+  },
+  "MixedControlParticipantOperation": {
+    "initial_state_ref": "portable",
+    "participant_ref": "nonblank",
+    "policy_revision": "nonblank"
+  },
+  "MixedControlPermittedTransition": {
+    "from_state_ref": "portable",
+    "to_state_ref": "portable"
+  },
+  "MixedControlPolicy": {
+    "initial_state_ref": "portable",
+    "participant_ref": "nonblank",
+    "policy_revision": "nonblank"
+  },
+  "MixedControlScriptStep": {
+    "permitted_transition_ref": "portable",
+    "step_id": "portable",
+    "target_step_ref": "nullable-portable"
+  },
+  "MixedControlTransition": {
+    "completion_evidence_refs": "unique-nonblank",
+    "evidence_refs": "unique-nonblank",
+    "from_state_ref": "portable",
+    "policy_revision": "nonblank",
+    "proposal_ref": "nullable-portable",
+    "to_state_ref": "portable"
+  },
+  "ModuleDescriptor": {
+    "parameters": "list-portable"
+  },
+  "OrderPrecedence": {
+    "after": "portable",
+    "before": "portable"
+  },
+  "OutcomeInterpretationRule": {
+    "diagnostics": "unique-nonblank",
+    "evidence_refs": "unique-nonblank",
+    "interpretation_basis": "nonblank",
+    "limitations": "unique-nonblank",
+    "observation_point_basis": "nonblank",
+    "semantic_version": "nonblank"
+  },
+  "OutcomeInterpretationSourceBinding": {
+    "diagnostics": "unique-nonblank",
+    "evidence_refs": "unique-nonblank",
+    "interpretation_role": "nonblank",
+    "provenance_refs": "unique-nonblank",
+    "ref": "nonblank",
+    "source_id": "nonblank"
+  },
+  "OutcomeInterpretationTargetBinding": {
+    "diagnostics": "unique-nonblank",
+    "evidence_refs": "unique-nonblank",
+    "governance_ref": "nullable-nonblank",
+    "limitations": "unique-nonblank",
+    "ref": "nonblank",
+    "relation": "nonblank",
+    "target_id": "nonblank"
+  },
+  "ParticipantActionArgumentDefinition": {
+    "default_disclosure_ref": "nullable-nonblank",
+    "loss_disclosure_ref": "nullable-nonblank",
+    "normalization_disclosure_ref": "nullable-nonblank",
+    "omission_disclosure_ref": "nullable-nonblank"
+  },
+  "ParticipantActionContract": {
+    "evidence_expectations": "unique-nonblank",
+    "fidelity_claim": "nonblank",
+    "observation_expectations": "unique-nonblank",
+    "procedure_basis": "nonblank",
+    "realization_profile": "nonblank",
+    "semantic_version": "nonblank",
+    "state_transition_effects": "unique-nonblank"
+  },
+  "ParticipantActionEffect": {
+    "description": "nonblank",
+    "effect_id": "nonblank",
+    "evidence_refs": "unique-nonblank",
+    "target_refs": "unique-nonblank"
+  },
+  "ParticipantActionPrecondition": {
+    "description": "nonblank",
+    "evidence_refs": "unique-nonblank",
+    "precondition_id": "nonblank",
+    "support_refs": "unique-nonblank"
+  },
+  "ParticipantActivityActionCandidate": {
+    "depends_on": "list-portable"
+  },
+  "ParticipantAutonomousExecutionPolicyV1": {
+    "action_order": "unique-nonblank",
+    "temporal_constraint_refs": "unique-nonblank"
+  },
+  "ParticipantAutonomousExecutionPolicyV2": {
+    "pause_window_refs": "unique-nonblank",
+    "work_window_refs": "unique-nonblank"
+  },
+  "ParticipantAutonomousExecutionPolicyV3": {
+    "pause_window_refs": "unique-nonblank",
+    "work_window_refs": "unique-nonblank"
+  },
+  "ParticipantBackendFailureMapping": {
+    "backend_error_code": "nonblank",
+    "diagnostic": "nonblank"
+  },
+  "ParticipantBackendTimingDisclosure": {
+    "affected_temporal_ids": "unique-nonblank",
+    "description": "nonblank",
+    "disclosure_id": "nonblank",
+    "limitations": "unique-nonblank"
+  },
+  "ParticipantBehaviorSpecification": {
+    "action_contract_refs": "unique-nonblank",
+    "authority_scope_refs": "unique-nonblank",
+    "backend_feature_support_refs": "unique-nonblank",
+    "behavior_mode": "nullable-nonblank",
+    "evidence_contract_refs": "unique-nonblank",
+    "extension_policy": "nonblank",
+    "observation_boundary_refs": "unique-nonblank",
+    "outcome_interpretation_rule_refs": "unique-nonblank",
+    "participant_refs": "unique-nonblank",
+    "participant_role_refs": "unique-nonblank",
+    "realization_profile_ref": "nullable-nonblank",
+    "semantic_version": "nonblank"
+  },
+  "ParticipantEvaluationAuthority": {
+    "objective_refs": "unique-nonblank",
+    "proof_producer_refs": "unique-nonblank",
+    "receipt_authority_refs": "unique-nonblank",
+    "score_authority_refs": "unique-nonblank"
+  },
+  "ParticipantInjectDelivery": {
+    "control_authority_scope_refs": "unique-nonblank",
+    "control_evidence_refs": "unique-nonblank",
+    "control_transition_ref": "nullable-portable",
+    "evidence_requirement_refs": "unique-nonblank",
+    "inject_ref": "nonblank",
+    "observation_boundary_ref": "nonblank",
+    "participant_ref": "nonblank",
+    "result_item_ref": "nonblank",
+    "source_item_ref": "nonblank",
+    "temporal_constraint_refs": "unique-nonblank"
+  },
+  "ParticipantInjectDeliveryControl": {
+    "authority_scope_refs": "unique-nonblank",
+    "evidence_refs": "unique-nonblank",
+    "permitted_transition_ref": "portable"
+  },
+  "ParticipantInjectDeliveryPolicy": {
+    "audience_scope_ref": "nonblank",
+    "disclosure_basis_ref": "nonblank",
+    "exposure_policy_ref": "nonblank",
+    "policy_ref": "nonblank",
+    "policy_revision": "nonblank",
+    "visibility_basis_ref": "nonblank"
+  },
+  "ParticipantInteractionDeclaration": {
+    "merge_rule_ref": "nullable-nonblank",
+    "rationale": "nonblank",
+    "related_actions": "list-nonblank",
+    "shared_state_refs": "list-nonblank",
+    "target": "nonblank"
+  },
+  "ParticipantObservationBoundary": {
+    "latency_profile": "nonblank",
+    "projection_basis": "nonblank",
+    "realized_view_disclosure": "nullable-nonblank",
+    "redaction_policy": "nonblank"
+  },
+  "ParticipantRelationship": {
+    "authority_basis_refs": "unique-nonblank",
+    "behavior_specification_refs": "unique-nonblank",
+    "objective_refs": "unique-nonblank",
+    "observation_boundary_refs": "unique-nonblank",
+    "scope_refs": "unique-nonblank",
+    "source_action_refs": "unique-nonblank",
+    "target_action_refs": "unique-nonblank"
+  },
+  "ParticipantResourceBudgetDimension": {
+    "evidence_refs": "unique-nonblank",
+    "owner_ref": "portable",
+    "parent_budget_ref": "nullable-portable"
+  },
+  "ParticipantResourceBudgetPolicy": {
+    "policy_id": "portable"
+  },
+  "ParticipantTemporalContract": {
+    "backend_disclosure_refs": "unique-nonblank",
+    "clock_authority": "nonblank",
+    "description": "nonblank",
+    "duration_ref": "nullable-nonblank",
+    "ordering_basis": "nonblank",
+    "randomization_basis": "nullable-nonblank",
+    "replay_boundary": "nullable-nonblank",
+    "reset_boundary": "nullable-nonblank",
+    "temporal_id": "nonblank",
+    "window_ref": "nullable-nonblank"
+  },
+  "ParticipantToolAffordance": {
+    "action_contract_refs": "unique-nonblank",
+    "observation_boundary_refs": "unique-nonblank",
+    "participant_refs": "unique-nonblank",
+    "participant_role_refs": "unique-nonblank"
+  },
+  "ParticipantViewRule": {
+    "certainty": "nullable-nonblank",
+    "disclosure_rule": "nullable-nonblank",
+    "effective_from": "nullable-nonblank",
+    "evidence_refs": "list-nonblank",
+    "information_ref": "nonblank",
+    "latency_profile": "nullable-nonblank",
+    "realized_backend_disclosure": "nullable-nonblank",
+    "visibility_basis": "nonblank"
+  },
+  "ParticipantViewTransition": {
+    "action_instance_id": "nullable-nonblank",
+    "certainty": "nullable-nonblank",
+    "disclosure_rule": "nullable-nonblank",
+    "effective_from": "nullable-nonblank",
+    "evidence_refs": "list-nonblank",
+    "information_ref": "nullable-nonblank",
+    "latency_profile": "nullable-nonblank",
+    "realized_backend_disclosure": "nullable-nonblank",
+    "transition_id": "nullable-nonblank",
+    "trigger": "nullable-nonblank"
+  },
+  "ReferenceTarget": {
+    "owner": "qualified"
+  },
+  "RelationshipDomainJoin": {
+    "controller_refs": "unique-nonblank"
+  },
+  "RelationshipForwardingEdge": {
+    "forwarder_ref": "nonblank"
+  },
+  "RelationshipProxyUpstream": {
+    "route_ref": "nonblank"
+  },
+  "RelationshipSharedService": {
+    "mutable_state_refs": "unique-nonblank"
+  },
+  "RuntimeAppAuthorization": {
+    "app_authorization_id": "portable"
+  },
+  "RuntimeAppAuthorizationGrant": {
+    "grant_id": "portable"
+  },
+  "RuntimeAppAuthorizationPrincipal": {
+    "principal_id": "portable"
+  },
+  "RuntimeAppAuthorizationRole": {
+    "role_id": "portable"
+  },
+  "RuntimeAppAuthorizationRoleMapping": {
+    "mapping_id": "portable"
+  },
+  "RuntimeAppAuthorizationTenant": {
+    "tenant_id": "portable"
+  },
+  "RuntimeApplicationExposedField": {
+    "name": "nonblank"
+  },
+  "RuntimeApplicationParameter": {
+    "name": "nonblank"
+  },
+  "RuntimeApplicationRedirect": {
+    "target": "nonblank"
+  },
+  "RuntimeApplicationRoute": {
+    "route_id": "portable"
+  },
+  "RuntimeApplicationSurface": {
+    "application_id": "portable"
+  },
+  "RuntimeCloudServiceLimit": {
+    "limit_id": "portable",
+    "name": "nonblank",
+    "unit": "nonblank"
+  },
+  "RuntimeControlInterface": {
+    "control_interface_id": "portable"
+  },
+  "RuntimeDatabaseService": {
+    "database_service_id": "portable"
+  },
+  "RuntimeDatastoreCluster": {
+    "cluster_id": "portable"
+  },
+  "RuntimeDatastoreEnginePlugin": {
+    "plugin_id": "portable"
+  },
+  "RuntimeDatastoreMapping": {
+    "mapping_id": "portable"
+  },
+  "RuntimeDatastoreNode": {
+    "node_id": "portable"
+  },
+  "RuntimeDatastoreNodeEndpoint": {
+    "endpoint_id": "portable"
+  },
+  "RuntimeDatastorePartition": {
+    "partition_id": "portable"
+  },
+  "RuntimeDatastorePersistence": {
+    "persistence_id": "portable"
+  },
+  "RuntimeDatastoreService": {
+    "datastore_service_id": "portable"
+  },
+  "RuntimeDatastoreSetting": {
+    "setting_id": "portable"
+  },
+  "RuntimeDatastoreTemplate": {
+    "template_id": "portable"
+  },
+  "RuntimeDatastoreTransportSecurity": {
+    "transport_security_id": "portable"
+  },
+  "RuntimeDependencyManifest": {
+    "path": "absolute-path"
+  },
+  "RuntimeDeviceMapping": {
+    "container_path": "absolute-path",
+    "host_path": "absolute-path"
+  },
+  "RuntimeDnsService": {
+    "dns_service_id": "portable"
+  },
+  "RuntimeEnvironmentFile": {
+    "name": "portable"
+  },
+  "RuntimeExtraHost": {
+    "address": "nonblank",
+    "hostname": "nonblank"
+  },
+  "RuntimeFileService": {
+    "file_service_id": "portable"
+  },
+  "RuntimeFileServiceAccessObservation": {
+    "observation_id": "portable",
+    "resource_ref": "nonblank",
+    "subject_ref": "nonblank"
+  },
+  "RuntimeFileServiceAccessRule": {
+    "resource_ref": "nonblank",
+    "rule_id": "portable",
+    "subject_ref": "nonblank"
+  },
+  "RuntimeFileServicePrincipal": {
+    "name": "nonblank",
+    "principal_id": "portable"
+  },
+  "RuntimeFileServiceShare": {
+    "name": "nonblank",
+    "share_id": "portable"
+  },
+  "RuntimeFilesystemEntry": {
+    "path": "absolute-path"
+  },
+  "RuntimeForwardingAgent": {
+    "forwarding_agent_id": "qualified"
+  },
+  "RuntimeForwardingBufferPolicy": {
+    "buffer_policy_id": "portable"
+  },
+  "RuntimeForwardingReloadChannel": {
+    "reload_channel_id": "portable"
+  },
+  "RuntimeForwardingSetting": {
+    "setting_id": "portable"
+  },
+  "RuntimeForwardingShipTarget": {
+    "target_id": "portable"
+  },
+  "RuntimeForwardingSource": {
+    "source_id": "portable"
+  },
+  "RuntimeForwardingTransform": {
+    "transform_id": "portable"
+  },
+  "RuntimeIdentityAccessObservation": {
+    "action": "nonblank",
+    "context_refs": "list-nonblank",
+    "evidence_refs": "list-nonblank",
+    "observation_id": "portable",
+    "principal_ref": "nonblank",
+    "resource_ref": "nonblank"
+  },
+  "RuntimeIdentityAttribute": {
+    "name": "nonblank",
+    "values": "unique-nonblank"
+  },
+  "RuntimeIdentityAuthority": {
+    "identity_authority_id": "portable"
+  },
+  "RuntimeIdentityAuthorityService": {
+    "service_id": "portable"
+  },
+  "RuntimeIdentityPermissionBinding": {
+    "actions": "list-nonblank",
+    "binding_id": "portable",
+    "principal_refs": "list-nonblank",
+    "resource_refs": "list-nonblank"
+  },
+  "RuntimeIdentityPolicy": {
+    "policy_id": "portable"
+  },
+  "RuntimeIdentityPolicyCondition": {
+    "language": "nonblank"
+  },
+  "RuntimeIdentityRelationship": {
+    "external_target": "optional-nonblank",
+    "relationship_id": "portable",
+    "source_ref": "nonblank",
+    "target_ref": "optional-nonblank"
+  },
+  "RuntimeIdentityResourceAccess": {
+    "attachment_ref": "nonblank"
+  },
+  "RuntimeIdentityResourceScope": {
+    "provider": "nonblank",
+    "scope_id": "portable",
+    "scope_kind": "nonblank"
+  },
+  "RuntimeIdentitySubject": {
+    "name": "nonblank",
+    "subject_id": "portable"
+  },
+  "RuntimeIdentityUse": {
+    "principal_ref": "nonblank",
+    "use_id": "portable",
+    "workload_ref": "nonblank"
+  },
+  "RuntimeInventoryAlternative": {
+    "references": "list-qualified"
+  },
+  "RuntimeLocalGroup": {
+    "name": "nonblank"
+  },
+  "RuntimeLocalUser": {
+    "home": "optional-absolute-path",
+    "shell": "optional-absolute-path",
+    "username": "nonblank"
+  },
+  "RuntimeMailAlias": {
+    "alias_id": "portable"
+  },
+  "RuntimeMailComponent": {
+    "component_id": "portable",
+    "name": "nonblank"
+  },
+  "RuntimeMailDomain": {
+    "domain_id": "portable"
+  },
+  "RuntimeMailListener": {
+    "listener_id": "portable"
+  },
+  "RuntimeMailMailbox": {
+    "mailbox_id": "portable"
+  },
+  "RuntimeMailMailboxStore": {
+    "store_id": "portable"
+  },
+  "RuntimeMailQueue": {
+    "queue_id": "portable"
+  },
+  "RuntimeMailRoutingRule": {
+    "rule_id": "portable"
+  },
+  "RuntimeMailService": {
+    "mail_service_id": "portable"
+  },
+  "RuntimeMailSetting": {
+    "name": "nonblank",
+    "setting_id": "portable"
+  },
+  "RuntimeMount": {
+    "target": "absolute-path"
+  },
+  "RuntimeNetworkDetectionControlChannel": {
+    "channel_id": "portable"
+  },
+  "RuntimeNetworkDetectionEngine": {
+    "network_detection_engine_id": "portable"
+  },
+  "RuntimeNetworkDetectionNetworkSet": {
+    "set_id": "portable"
+  },
+  "RuntimeNetworkDetectionOutputStream": {
+    "path": "optional-absolute-path",
+    "stream_id": "portable"
+  },
+  "RuntimeNetworkDetectionRuleSource": {
+    "source_id": "portable"
+  },
+  "RuntimeNetworkEndpoint": {
+    "network": "nonblank"
+  },
+  "RuntimeNetworkNamespace": {
+    "target_node_ref": "nonblank"
+  },
+  "RuntimeNetworkSensor": {
+    "network_sensor_id": "portable"
+  },
+  "RuntimeOrchestrationAuthority": {
+    "orchestration_authority_id": "portable"
+  },
+  "RuntimeOrchestrationRealizedChild": {
+    "workload_id": "portable"
+  },
+  "RuntimeOrchestrationSpawnTemplate": {
+    "template_id": "portable"
+  },
+  "RuntimePlatformApplication": {
+    "platform_application_id": "portable"
+  },
+  "RuntimePlatformApplicationCapability": {
+    "capability_id": "portable"
+  },
+  "RuntimePlatformApplicationConnector": {
+    "connector_id": "portable"
+  },
+  "RuntimePlatformApplicationContentObject": {
+    "content_object_id": "portable"
+  },
+  "RuntimePlatformApplicationExecutionPolicy": {
+    "policy_id": "optional-portable"
+  },
+  "RuntimePlatformApplicationMarking": {
+    "marking_id": "portable"
+  },
+  "RuntimePlatformApplicationOrganization": {
+    "organization_id": "portable"
+  },
+  "RuntimePlatformApplicationSetting": {
+    "setting_id": "portable"
+  },
+  "RuntimePlatformApplicationTenant": {
+    "tenant_id": "portable"
+  },
+  "RuntimePlatformApplicationUpstreamBinding": {
+    "binding_id": "portable"
+  },
+  "RuntimeProcessIdentity": {
+    "working_directory": "optional-absolute-path"
+  },
+  "RuntimeScheduledJob": {
+    "scheduled_job_id": "portable"
+  },
+  "RuntimeSecretConsumer": {
+    "consumer_ref": "nonblank",
+    "resolution_evidence_refs": "list-nonblank",
+    "selection_id": "portable"
+  },
+  "RuntimeSecretSelector": {
+    "kind": "nonblank",
+    "value": "nonblank"
+  },
+  "RuntimeSecretVersion": {
+    "version_id": "portable"
+  },
+  "RuntimeSecurityMonitoringAgent": {
+    "agent_id": "portable",
+    "name": "nonblank"
+  },
+  "RuntimeSecurityMonitoringAgentGroup": {
+    "group_id": "portable"
+  },
+  "RuntimeSecurityMonitoringComponent": {
+    "component_id": "portable",
+    "name": "nonblank"
+  },
+  "RuntimeSecurityMonitoringContentSet": {
+    "content_id": "portable"
+  },
+  "RuntimeSecurityMonitoringDetectionDefinition": {
+    "definition_id": "portable",
+    "source_file_ref": "optional-absolute-path"
+  },
+  "RuntimeSecurityMonitoringFieldPredicate": {
+    "field": "nonblank"
+  },
+  "RuntimeSecurityMonitoringListener": {
+    "listener_id": "portable"
+  },
+  "RuntimeSecurityMonitoringManager": {
+    "security_monitoring_manager_id": "portable"
+  },
+  "RuntimeSecurityMonitoringSetting": {
+    "name": "nonblank",
+    "setting_id": "portable",
+    "source_path": "optional-absolute-path"
+  },
+  "RuntimeServiceListener": {
+    "service_listener_id": "portable"
+  },
+  "RuntimeServiceSecret": {
+    "replica_locations": "list-nonblank",
+    "secret_id": "portable"
+  },
+  "RuntimeSoftwareComponent": {
+    "component_id": "portable",
+    "manifest_path": "optional-absolute-path",
+    "name": "nonblank",
+    "repository_refs": "list-portable"
+  },
+  "RuntimeSoftwareComponentHash": {
+    "algorithm": "nonblank",
+    "value": "nonblank"
+  },
+  "RuntimeSoftwareComponentRefinement": {
+    "refinement_id": "portable"
+  },
+  "RuntimeSoftwareRepository": {
+    "repository_id": "portable",
+    "trust_ref": "nullable-portable"
+  },
+  "RuntimeSoftwareRepositoryRefinement": {
+    "refinement_id": "portable"
+  },
+  "RuntimeSoftwareTrustBinding": {
+    "trust_id": "portable"
+  },
+  "RuntimeSoftwareTrustRefinement": {
+    "refinement_id": "portable"
+  },
+  "RuntimeSshServer": {
+    "authorized_keys_file": "optional-absolute-path",
+    "chroot_directory": "optional-absolute-path",
+    "service": "nonblank"
+  },
+  "RuntimeSudoRule": {
+    "principal": "nonblank"
+  },
+  "SelectionRelation": {
+    "members": "list-portable",
+    "point": "qualified"
+  },
+  "ServiceManagerUnit": {
+    "unit_file_path": "optional-absolute-path",
+    "unit_id": "portable"
+  },
+  "SshMatchCriterion": {
+    "pattern": "nonblank"
+  },
+  "SshMatchRule": {
+    "authorized_keys_file": "optional-absolute-path",
+    "chroot_directory": "optional-absolute-path"
+  },
+  "StatefulResourceConsumer": {
+    "mount_destination": "contained-mount"
+  },
+  "StructuralTarget": {
+    "owner": "qualified"
+  },
+  "TemporalConstraint": {
+    "clock_ref": "nonblank",
+    "description": "nonblank",
+    "subject_refs": "unique-nonblank"
+  },
+  "TimeDomain": {
+    "description": "nonblank"
+  },
+  "TimeDomainMapping": {
+    "description": "nonblank",
+    "source_domain_ref": "nonblank",
+    "target_domain_ref": "nonblank"
+  },
+  "TimeProgressionPolicy": {
+    "clock_ref": "nonblank",
+    "description": "nonblank"
+  },
+  "VariableTarget": {
+    "variable": "qualified"
+  },
+  "VariationMember": {
+    "reference": "qualified"
+  },
+  "WorkflowStep": {
+    "allowed_action_families": "unique-nonblank",
+    "capability_refs": "unique-nonblank",
+    "fact_binding_refs": "unique-nonblank",
+    "scaffold_refs": "unique-nonblank",
+    "tool_affordance_refs": "unique-nonblank"
+  }
+}

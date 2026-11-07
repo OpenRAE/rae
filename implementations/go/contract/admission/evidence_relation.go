@@ -78,7 +78,7 @@ func relationCapture(v any, specs []any) (any, error) {
 		return nil, invalid()
 	}
 	found := false
-	for _, ref := range array(at(selected, "scope_refs")) {
+	for _, ref := range array(at(selected, termScopeRefs)) {
 		if matchingFields(ref, at(v, "authority_ref"), fieldRefKind, fieldRefID, fieldRefVersion, "ref_digest", "ref_path") {
 			found = true
 		}

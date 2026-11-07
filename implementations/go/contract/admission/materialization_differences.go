@@ -111,7 +111,7 @@ func (d *materializationDiff) mapping(a, b materializationOperand) error {
 
 func (d *materializationDiff) sequence(a, b materializationOperand, left, right []any) error {
 	fields := d.identities[jsonpointer.FromTokens(b.path)]
-	if len(b.path) == 3 && b.path[0] == "nodes" && b.path[2] == "services" {
+	if len(b.path) == 3 && b.path[0] == termNodes && b.path[2] == "services" {
 		fields = []string{termName}
 	}
 	if len(fields) > 0 {

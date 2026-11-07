@@ -126,7 +126,7 @@ func designationShape(*Validator) nativeShape {
 		"closure":         orNull(oneOfTerms(termOpenWorld, termClosedWorld)),
 		"governing_scope": orNull(textOf(0)),
 		"delegated":       isBoolean,
-		"source":          textOf(0),
+		termSource:        textOf(0),
 	}}
 }
 
@@ -230,7 +230,7 @@ func measurementRequirement(v any) error {
 func controlDeclarationNativeShape(*Validator) nativeShape {
 	shape := nativeShape{required: map[string]nativeCheck{
 		termKind:                  oneOfTerms(termProposal, termApproval, termDenial, termExternalDirection, termIntervention, termHandoff, termOverride, termCancellation),
-		"authority_basis_refs":    listOf(1, textOf(1)),
+		termAuthorityBasisRefs:    listOf(1, textOf(1)),
 		"controlled_scope_refs":   listOf(1, textOf(1)),
 		termExpectedStateRevision: integerFrom(0),
 		fieldEffectiveOrder:       integerFrom(0),
@@ -249,7 +249,7 @@ func injectDeliveryShape(*Validator) nativeShape {
 		required: map[string]nativeCheck{fieldAddress: textOf(0), termName: textOf(0), "spec": isObject},
 		optional: map[string]nativeCheck{"control": orNull(injectDeliveryControlShape().holds)},
 	}
-	for _, field := range []string{"binding_id", "behavior_specification_address", fieldParticipantAddress, "inject_address", "event_address", "script_address", "story_address", "source_item_ref", "source_item_address", "result_item_ref", "result_item_address", "observation_boundary_address", "delivery_kind", "policy_ref", fieldPolicyRevision, "exposure_policy_ref", "audience_scope_ref", "visibility_basis_ref", "disclosure_basis_ref", "order_basis", "failure_disposition", "control_transition_address", "controller_address"} {
+	for _, field := range []string{termBindingID, "behavior_specification_address", fieldParticipantAddress, "inject_address", "event_address", "script_address", "story_address", "source_item_ref", "source_item_address", "result_item_ref", "result_item_address", "observation_boundary_address", "delivery_kind", "policy_ref", fieldPolicyRevision, "exposure_policy_ref", "audience_scope_ref", "visibility_basis_ref", "disclosure_basis_ref", "order_basis", "failure_disposition", "control_transition_address", "controller_address"} {
 		shape.optional[field] = textOf(0)
 	}
 	for _, field := range []string{"ordering_dependencies", "refresh_dependencies", "temporal_constraint_addresses", "evidence_requirement_addresses", "control_authority_scope_refs", "control_authority_scope_addresses", "control_evidence_refs", "control_evidence_addresses"} {
@@ -267,7 +267,7 @@ func injectDeliveryControlShape() nativeShape {
 	for _, field := range []string{fieldSemantics, fieldPolicyRevision, "permitted_transition_address", "controller_address"} {
 		shape.optional[field] = textOf(0)
 	}
-	for _, field := range []string{"authority_scope_refs", "authority_scope_addresses", fieldEvidenceRefs, "evidence_addresses"} {
+	for _, field := range []string{fieldAuthorityScopeRefs, "authority_scope_addresses", fieldEvidenceRefs, "evidence_addresses"} {
 		shape.optional[field] = listOf(0, textOf(0))
 	}
 	return shape

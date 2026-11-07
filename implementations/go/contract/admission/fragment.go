@@ -248,3 +248,13 @@ func fragmentChecks() map[FragmentProfile]fragmentCheck {
 	maps.Copy(checks, portChecks())
 	return checks
 }
+
+// CheckModelFragment checks a reachable published object fragment, its local
+// invariants and nested owner model rules. It grants no contextual or SDL phase
+// admission. The returned error contains a stable code, never source values.
+func (e *Validator) CheckModelFragment(contract, pointer string, data []byte, limits ingress.Limits) error {
+	if e == nil || e.low == nil {
+		return fragmentInvalid()
+	}
+	return e.checkModelFragment(contract, pointer, data, limits)
+}

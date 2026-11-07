@@ -28,7 +28,7 @@ func materializationProcessDemands(demands, capabilities []any) bool {
 	return true
 }
 func materializationLimitValue(v, capability any) bool {
-	if text(v) == "unlimited" {
+	if text(v) == termUnlimited {
 		return boolean(at(capability, "supports_unlimited"))
 	}
 	n, ok := number(v)

@@ -100,7 +100,7 @@ func contextMediated(i validation.Invocation) error {
 	if at(i.Instance, "derivation_basis_ref") == nil || at(i.Instance, "redaction_policy_ref") == nil {
 		return invalid()
 	}
-	return require(subset(rowIDs(layers, "source_id"), set(at(i.Instance, termTransformation, "input_source_ids"))))
+	return require(subset(rowIDs(layers, termSourceID), set(at(i.Instance, termTransformation, "input_source_ids"))))
 }
 func contextPayload(i validation.Invocation) error {
 	if at(i.Instance, "payload_ref") == nil {

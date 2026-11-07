@@ -212,8 +212,8 @@ func associatedDescriptor(artifact any, descriptors map[string]bool, locators ma
 	if descriptor["satisfies_refs"] == nil {
 		descriptor["satisfies_refs"] = []any{}
 	}
-	if _, ok := descriptor["description"]; !ok {
-		descriptor["description"] = nil
+	if _, ok := descriptor[termDescription]; !ok {
+		descriptor[termDescription] = nil
 	}
 	delete(descriptor, termArtifactID)
 	checksum := maps.Clone(object(at(artifact, "checksum")))

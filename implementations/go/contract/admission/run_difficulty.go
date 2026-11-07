@@ -65,7 +65,7 @@ func difficultyProvenance(v any) error {
 	if condition == conditionFixed {
 		return require(len(array(at(v, "decisions"))) == 0 && len(array(at(v, "interventions"))) == 0 && disposition == "fixed-baseline")
 	}
-	expected := map[string]string{"adaptive": "adaptation-is-treatment", "scaffolded": "scaffold-exposure-is-treatment"}[condition]
+	expected := map[string]string{"adaptive": "adaptation-is-treatment", termScaffolded: "scaffold-exposure-is-treatment"}[condition]
 	if disposition != expected && disposition != "descriptive-only" {
 		return invalid()
 	}
@@ -102,11 +102,11 @@ func difficultyDecisions(v, policy any) error {
 func difficultyObservations(decision, policy any) error {
 	observations := array(at(decision, "observation_refs"))
 	sources := at(policy, "observation_sources")
-	if !equalSet(rowSet(observations, "source_id"), keySet(sources)) {
+	if !equalSet(rowSet(observations, termSourceID), keySet(sources)) {
 		return invalid()
 	}
 	for _, observation := range observations {
-		source := at(sources, stringAt(observation, "source_id"))
+		source := at(sources, stringAt(observation, termSourceID))
 		if !equal(at(observation, "source_ref"), at(source, "source_ref")) {
 			return invalid()
 		}

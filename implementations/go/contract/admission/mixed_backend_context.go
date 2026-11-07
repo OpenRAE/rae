@@ -50,7 +50,7 @@ func (e *Validator) mixedBackendBindings(i validation.Invocation) (err error) {
 	if err != nil {
 		return err
 	}
-	if len(rowSet(bindings, "binding_id")) != len(bindings) {
+	if len(rowSet(bindings, termBindingID)) != len(bindings) {
 		return invalid()
 	}
 	candidate, err := e.defaulted(termMixedBackendExecutionBindingV1, i.Instance)
@@ -100,7 +100,7 @@ func mixedBackendRequest(binding, request any) error {
 	if err != nil {
 		return err
 	}
-	reference := map[string]any{termContractID: termMixedBackendExecutionBindingV1, termArtifactID: at(binding, "binding_id"), termDigest: digest}
+	reference := map[string]any{termContractID: termMixedBackendExecutionBindingV1, termArtifactID: at(binding, termBindingID), termDigest: digest}
 	subject := at(binding, "subject")
 	service := at(subject, "bridge")
 	if stringAt(subject, "kind") == termHandoff {
