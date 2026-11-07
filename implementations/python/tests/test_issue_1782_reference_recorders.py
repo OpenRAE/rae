@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import importlib
 import json
 from pathlib import Path
@@ -140,6 +141,26 @@ def test_predicate_recorder_accepts_only_audited_shapes(
     recorders: dict[str, Any], function, operation: str | None
 ) -> None:
     assert recorders["sdl_field_rules"].direct_rule(function) == operation
+
+
+@pytest.mark.parametrize(
+    ("expression", "operation"),
+    [
+        ("helper(value)", "nonblank"),
+        ("helper(other)", None),
+        ("helper()", None),
+        ("owner.helper(value)", None),
+        ("helper(value) if value else value", "optional-nonblank"),
+        ("helper(value) if value else other", None),
+        ("helper(value) if other else value", None),
+    ],
+)
+def test_helper_predicates_preserve_argument_identity(
+    recorders: dict[str, Any], expression: str, operation: str | None
+) -> None:
+    recorder = recorders["sdl_field_rules"]
+    value = ast.parse(expression, mode="eval").body
+    assert recorder.returned_helper(value, "value", {"helper": recorder.require_non_empty}) == operation
 
 
 @pytest.mark.parametrize("name", ["../escape.yaml", "/absolute.yaml", "nested/../../escape.yaml"])

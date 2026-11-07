@@ -15,6 +15,7 @@ import textwrap
 from enum import Enum
 from functools import partial
 from pathlib import Path
+from types import FunctionType
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -62,7 +63,7 @@ def function_policy(function: object, seen: set[object] | None = None) -> set[st
     return nested_policies(function, seen)
 
 
-def nested_policies(function: Any, seen: set[object]) -> set[str]:
+def nested_policies(function: FunctionType, seen: set[object]) -> set[str]:
     if function in seen:
         return set()
     seen.add(function)

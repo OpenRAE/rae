@@ -10,6 +10,7 @@ import json
 import sys
 import textwrap
 from pathlib import Path
+from types import FunctionType
 from typing import Any
 
 from pydantic import BaseModel
@@ -174,7 +175,7 @@ def nonblank_guard(body: list[ast.stmt], argument: str) -> str | None:
     return scalar_nonblank_guard(guard, argument, operation)
 
 
-def function_declaration(function: Any) -> ast.FunctionDef | ast.Lambda | None:
+def function_declaration(function: FunctionType) -> ast.FunctionDef | ast.Lambda | None:
     source, first_line = inspect.getsourcelines(function)
     tree = ast.parse(textwrap.dedent("".join(source)))
     declaration = tree.body[0]
@@ -192,21 +193,27 @@ def function_declaration(function: Any) -> ast.FunctionDef | ast.Lambda | None:
     return None
 
 
-def returned_helper(value: ast.expr | None, argument: str, namespace: dict[str, Any]) -> str | None:
-    optional = isinstance(value, ast.IfExp) and isinstance(value.test, ast.Name)
-    if optional:
-        if value.test.id != argument or not isinstance(value.orelse, ast.Name) or value.orelse.id != argument:
-            return None
-        value = value.body
-    if not (
+def argument_helper(value: ast.expr | None, argument: str) -> ast.Name | None:
+    if (
         isinstance(value, ast.Call)
         and isinstance(value.func, ast.Name)
         and value.args
         and isinstance(value.args[0], ast.Name)
         and value.args[0].id == argument
     ):
+        return value.func
+    return None
+
+
+def returned_helper(value: ast.expr | None, argument: str, namespace: dict[str, Any]) -> str | None:
+    optional = isinstance(value, ast.IfExp) and isinstance(value.test, ast.Name)
+    if optional:
+        if value.test.id != argument or not isinstance(value.orelse, ast.Name) or value.orelse.id != argument:
+            return None
+        value = value.body
+    if (helper := argument_helper(value, argument)) is None:
         return None
-    operation = HELPERS.get(namespace.get(value.func.id))
+    operation = HELPERS.get(namespace.get(helper.id))
     if operation and optional:
         operation = "optional-" + operation
     return operation
@@ -225,7 +232,7 @@ def declaration_rule(declaration: ast.FunctionDef | ast.Lambda, namespace: dict[
     return nonblank_guard(body, argument)
 
 
-def direct_rule(function: Any) -> str | None:
+def direct_rule(function: object) -> str | None:
     function = getattr(function, "__func__", function)
     if function in HELPERS:
         return HELPERS[function]

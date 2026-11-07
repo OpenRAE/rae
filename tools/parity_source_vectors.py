@@ -21,6 +21,7 @@ sys.path.insert(0, str(ROOT / "implementations/python/packages"))
 
 import yaml
 from raes import SDLParseError, SDLParserLimits, load_sdl_fragment
+from raes._errors import SDLParseDiagnostic
 from raes._mapping_scopes import MappingScope
 from raes._runtime_service_families import RUNTIME_SERVICE_FAMILIES
 from raes._source_profile import SDLSourceParseOptions
@@ -34,7 +35,7 @@ DUPLICATE_SOURCE = "a: x\na: y\n"
 OUTPUT = ROOT / "implementations/go/internal/sdl/source/testdata/reference.json"
 
 
-def machine(diagnostic: Any) -> dict[str, Any]:
+def machine(diagnostic: SDLParseDiagnostic) -> dict[str, Any]:
     result = diagnostic.as_dict()
     result.pop("message", None)
     for related in result.get("related", []):
