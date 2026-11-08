@@ -15,23 +15,3 @@ func TestJSONWorkerReference(t *testing.T) {
 		}
 	}
 }
-
-func TestSchemaPythonUnicodeVersion(t *testing.T) {
-	for _, tc := range []struct {
-		pattern, value string
-		matches        bool
-	}{
-		{`^\d$`, "٢", true},
-		{`^\d$`, "\U00011de2", false},
-		{`^\w$`, "\U0001e6c0", false},
-		{`^\D$`, "\U00011de2", true},
-	} {
-		re, err := compileSchemaPattern(tc.pattern, true)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if got := re.MatchString(tc.value); got != tc.matches {
-			t.Errorf("%q on %q=%t want=%t", tc.pattern, tc.value, got, tc.matches)
-		}
-	}
-}

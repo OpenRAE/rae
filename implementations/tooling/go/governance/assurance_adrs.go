@@ -9,10 +9,10 @@ import (
 	"strings"
 )
 
-var assuranceADRFile = regexp.MustCompile(`^adr-([` + pythonSchemaDigits() + `]{3})-.+[.]md\z`)
-var assuranceADRLevel = regexp.MustCompile(`(?m)^Classification:[` + pythonSchemaSpace + `]*(FM[` + pythonSchemaDigits() + `]+)[` + pythonSchemaSpace + `]*$`)
-var assuranceADRArtifacts = regexp.MustCompile(`(?m)^Required artifacts:[` + pythonSchemaSpace + `]*(.+?)[` + pythonSchemaSpace + `]*$`)
-var assuranceADRWaivers = regexp.MustCompile(`(?m)^Waivers:[` + pythonSchemaSpace + `]*(.+?)[` + pythonSchemaSpace + `]*$`)
+var assuranceADRFile = regexp.MustCompile(`^adr-([\p{Nd}]{3})-.+[.]md\z`)
+var assuranceADRLevel = regexp.MustCompile(`(?m)^Classification:[` + fixedWhitespaceClass + `]*(FM[\p{Nd}]+)[` + fixedWhitespaceClass + `]*$`)
+var assuranceADRArtifacts = regexp.MustCompile(`(?m)^Required artifacts:[` + fixedWhitespaceClass + `]*(.+?)[` + fixedWhitespaceClass + `]*$`)
+var assuranceADRWaivers = regexp.MustCompile(`(?m)^Waivers:[` + fixedWhitespaceClass + `]*(.+?)[` + fixedWhitespaceClass + `]*$`)
 
 func assuranceADRClassifications(r *repository, levels map[string]*mapping) ([]Finding, error) {
 	findings, err := assuranceTemplateFindings(r)

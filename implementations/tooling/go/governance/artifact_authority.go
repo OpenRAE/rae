@@ -1,8 +1,11 @@
 package governance
 
 import (
+	"errors"
 	"slices"
 	"strings"
+
+	"github.com/santhosh-tekuri/jsonschema/v6"
 
 	"github.com/OpenRAE/rae/implementations/go/base/fault"
 )
@@ -51,10 +54,23 @@ func toolingRecord(r *repository, value *mapping, authority, definition string) 
 		return errArtifactSelection
 	}
 	var profileError error
-	compiler := schemaCompiler(true, true, &profileError)
-	compiler.UseRegexpEngine(compileToolingPattern)
+	compiler := schemaCompiler(true, &profileError)
+	compiler.UseRegexpEngine(func(source string) (jsonschema.Regexp, error) {
+		pattern, patternErr := compileToolingPattern(source)
+		if errors.Is(patternErr, errSchemaPattern) {
+			profileError = patternErr
+		}
+		return pattern, patternErr
+	})
 	meta, err := compiler.Compile(defaultMetaschema)
-	if err != nil || meta.Validate(schemaTransport(schema)) != nil {
+	if err != nil {
+		return errArtifactSelection
+	}
+	err = meta.Validate(schemaTransport(schema))
+	if profileError != nil {
+		return profileError
+	}
+	if err != nil {
 		return errArtifactSelection
 	}
 	transport, ok := schemaTransport(schema).(map[string]any)
@@ -67,6 +83,9 @@ func toolingRecord(r *repository, value *mapping, authority, definition string) 
 		return errArtifactSelection
 	}
 	compiled, err := compiler.Compile(location)
+	if profileError != nil {
+		return profileError
+	}
 	if err != nil || compiled.Validate(schemaTransport(value)) != nil {
 		return errArtifactSelection
 	}

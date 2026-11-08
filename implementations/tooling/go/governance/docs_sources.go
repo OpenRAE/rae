@@ -20,7 +20,7 @@ const publicSourceLimit = 1_000_000
 const publicRedirectLimit = 100_000
 const publicIndexLimit = 5_000_000
 
-var publicADRName = regexp.MustCompile(`(?i)^adr-[` + pythonSchemaDigits() + `]{3,}-`)
+var publicADRName = regexp.MustCompile(`(?i)^adr-[\p{Nd}]{3,}-`)
 
 type documentationEntry struct {
 	name string
