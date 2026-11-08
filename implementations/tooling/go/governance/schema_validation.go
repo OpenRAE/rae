@@ -18,7 +18,7 @@ func candidateSchema(data []byte) (*jsonschema.Schema, error) {
 	return compileCandidate(value, true, false)
 }
 
-func schemaCompiler(python, formats bool, profileError *error) *jsonschema.Compiler {
+func schemaCompiler(formats bool, profileError *error) *jsonschema.Compiler {
 	compiler := jsonschema.NewCompiler()
 	compiler.DefaultDraft(jsonschema.Draft2020)
 	compiler.UseLoader(offlineSchemas{})
@@ -26,7 +26,7 @@ func schemaCompiler(python, formats bool, profileError *error) *jsonschema.Compi
 	compiler.RegisterVocabulary(schemaNumericProfile())
 	compiler.AssertVocabs()
 	compiler.UseRegexpEngine(func(source string) (jsonschema.Regexp, error) {
-		pattern, err := compileSchemaPattern(source, python)
+		pattern, err := compileSchemaPattern(source)
 		if errors.Is(err, errSchemaPattern) {
 			*profileError = err
 		}
@@ -38,22 +38,22 @@ func schemaCompiler(python, formats bool, profileError *error) *jsonschema.Compi
 	return compiler
 }
 
-func compileCandidate(value any, python, formats bool) (*jsonschema.Schema, error) {
-	if err := checkCandidateMeta(value, python); err != nil {
+func compileCandidate(value any, coverage, formats bool) (*jsonschema.Schema, error) {
+	if err := checkCandidateMeta(value, coverage); err != nil {
 		return nil, err
 	}
 	if err := checkSchemaJSON(value); err != nil {
 		return nil, err
 	}
-	if !python && object(value) == nil {
+	if !coverage && object(value) == nil {
 		return nil, policyInputError("schema file must be a JSON object")
 	}
 	var profileError error
-	compiler := schemaCompiler(python, formats, &profileError)
+	compiler := schemaCompiler(formats, &profileError)
 	const id = "https://governance.invalid/candidate"
 	transport := schemaTransport(value)
 	if root, ok := transport.(map[string]any); ok {
-		root["$schema"] = candidateDialect(value, python)
+		root["$schema"] = candidateDialect(value, coverage)
 	}
 	if err := compiler.AddResource(id, transport); err != nil {
 		return nil, err
@@ -89,13 +89,13 @@ func schemaTransport(value any) any {
 
 // Metaschema checking does not follow candidate $ref values or compile their
 // targets. This preserves the reference's distinct schema-syntax surface.
-func checkCandidateMeta(value any, python bool) error {
+func checkCandidateMeta(value any, coverage bool) error {
 	if err := checkSchemaJSON(value); err != nil {
 		return err
 	}
-	id := candidateDialect(value, python)
+	id := candidateDialect(value, coverage)
 	var profileError error
-	compiler := schemaCompiler(python, true, &profileError)
+	compiler := schemaCompiler(true, &profileError)
 	meta, err := compiler.Compile(id)
 	if err != nil {
 		return err

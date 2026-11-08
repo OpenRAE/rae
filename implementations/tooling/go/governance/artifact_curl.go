@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"time"
 	"unicode/utf8"
@@ -121,10 +122,7 @@ func (b *artifactProbeBuffer) Write(data []byte) (int, error) {
 	return count, nil
 }
 func supportedCurlVersion(text string) bool {
-	pattern, err := compileSchemaPattern(`(\d{1,10})[.](\d{1,10})[.](\d{1,10})`, true)
-	if err != nil {
-		return false
-	}
+	pattern := regexp.MustCompile(`([0-9]{1,10})[.]([0-9]{1,10})[.]([0-9]{1,10})`)
 	match := pattern.FindStringSubmatch(text)
 	if match == nil {
 		return false
