@@ -89,7 +89,10 @@ def test_semantic_evidence_requires_unique_case_names(recorder) -> None:
         recorder.semantic([vector("minimal")] * 2)
 
 
-@pytest.mark.parametrize("name", ["finite-import-domains", "nested-finite-import-domains", "ordered-import-findings", "public-runtime-derivation"])
+@pytest.mark.parametrize(
+    "name",
+    ["finite-import-domains", "nested-finite-import-domains", "ordered-import-findings", "public-runtime-derivation"],
+)
 def test_frozen_import_identity_and_original_locations(recorder, name: str) -> None:
     path = ROOT / "implementations/go/internal/sdl/authoring/testdata/semantic-imports.json"
     row = next(row for row in json.loads(path.read_text()) if row["name"] == name)
@@ -113,9 +116,9 @@ def test_corpus_oracle_preserves_owner_evidence_and_isolates_paths(recorder, mon
     row = vector(name)
     arguments = {"sdl_content": row["source"], "semantic_validation": False}
     monkeypatch.setattr(recorder, "read_blob", lambda *_: json.dumps(arguments).encode())
-    result = json.loads(json.dumps(recorder.corpus_semantic(
-        {"name": name, "files": {"arguments.json": "sha256:" + "a" * 64}}, ROOT
-    )))
+    result = json.loads(
+        json.dumps(recorder.corpus_semantic({"name": name, "files": {"arguments.json": "sha256:" + "a" * 64}}, ROOT))
+    )
     assert result["constructed"]
     for key in ("accepted", "findings", "advisories", "locations", "canonical", "digest", "explicitness"):
         if key in row:

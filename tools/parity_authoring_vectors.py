@@ -70,7 +70,9 @@ def formatter(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if "limits" in row:
             recorded["limits"] = row["limits"]
         try:
-            value = format_sdl_source(row["source"], limits=SDLParserLimits(**row.get("limits", {})))
+            value = format_sdl_source(
+                row["source"], limits=SDLParserLimits(**row.get("limits", {}))
+            )
             recorded.update(
                 accepted=True,
                 content=value.content,
@@ -86,7 +88,9 @@ def import_result(row: dict[str, Any]) -> SDLFormatResult:
     files = row["files"]
     limits = SDLParserLimits(**row.get("limits", {}))
     if row["supplied"]:
-        sources = SuppliedSources.capture({key: value.encode() for key, value in files.items()})
+        sources = SuppliedSources.capture(
+            {key: value.encode() for key, value in files.items()}
+        )
         path, _ = sources.root(MAIN_SOURCE)
         return format_sdl_source(
             files[MAIN_SOURCE],
@@ -97,7 +101,9 @@ def import_result(row: dict[str, Any]) -> SDLFormatResult:
     with tempfile.TemporaryDirectory(prefix="sdl-import-reference-") as directory:
         write_import_files(row, directory)
         result = format_sdl_source(
-            files[MAIN_SOURCE].replace(ROOT_MARKER, directory) if row.get("rooted") else files[MAIN_SOURCE],
+            files[MAIN_SOURCE].replace(ROOT_MARKER, directory)
+            if row.get("rooted")
+            else files[MAIN_SOURCE],
             path=Path(directory) / MAIN_SOURCE,
             limits=limits,
         )
@@ -120,10 +126,14 @@ def reference_path(directory: str, name: str) -> Path:
 def write_import_files(row: dict[str, Any], directory: str) -> None:
     for name, content in row["files"].items():
         path = reference_path(directory, name)
-        path.write_text(content.replace(ROOT_MARKER, directory) if row.get("rooted") else content)
+        path.write_text(
+            content.replace(ROOT_MARKER, directory) if row.get("rooted") else content
+        )
     for name, target in row.get("links", {}).items():
         path = reference_path(directory, name)
-        path.symlink_to(target.replace(ROOT_MARKER, directory) if row.get("rooted") else target)
+        path.symlink_to(
+            target.replace(ROOT_MARKER, directory) if row.get("rooted") else target
+        )
 
 
 def imports(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -176,7 +186,10 @@ def provenance() -> dict[str, Any]:
     return {
         "reference_commit": commit,
         "reference_package_sha256": digest.hexdigest(),
-        "dependencies": {name: importlib.metadata.version(name) for name in ("PyYAML", "pydantic", "packaging")},
+        "dependencies": {
+            name: importlib.metadata.version(name)
+            for name in ("PyYAML", "pydantic", "packaging")
+        },
     }
 
 
@@ -203,7 +216,9 @@ def read_semantic_vectors() -> list[dict[str, Any]]:
         if shard["name"] != f"semantics-{index:03d}.json":
             raise ValueError("noncanonical semantic shard name")
         rows.extend(json.loads((VECTORS / shard["name"]).read_bytes()))
-    if len(rows) != manifest["case_count"] or len({row["name"] for row in rows}) != len(rows):
+    if len(rows) != manifest["case_count"] or len({row["name"] for row in rows}) != len(
+        rows
+    ):
         raise ValueError("incomplete or duplicate semantic cases")
     return rows
 
@@ -229,7 +244,13 @@ def write_semantic_vectors(rows: list[dict[str, Any]], check: bool) -> bool:
         encoded = (json.dumps(chunk, indent=2, ensure_ascii=True) + "\n").encode()
         if len(encoded) > SEMANTIC_SHARD_BYTES:
             raise ValueError("one semantic vector exceeds the shard ceiling")
-        manifest["shards"].append({"name": name, "case_count": len(chunk), "sha256": hashlib.sha256(encoded).hexdigest()})
+        manifest["shards"].append(
+            {
+                "name": name,
+                "case_count": len(chunk),
+                "sha256": hashlib.sha256(encoded).hexdigest(),
+            }
+        )
         valid = write_or_check(name, chunk, check) and valid
     valid = write_or_check("semantics.json", manifest, check) and valid
     return valid
@@ -259,7 +280,9 @@ def semantic_input(row: dict[str, Any], limits: SDLParserLimits) -> Any:
     return document
 
 
-def semantic_parse(row: dict[str, Any], limits: SDLParserLimits, *, skip: bool = False) -> Any:
+def semantic_parse(
+    row: dict[str, Any], limits: SDLParserLimits, *, skip: bool = False
+) -> Any:
     return parse_sdl(
         row["source"],
         path=row.get("_path", Path(MAIN_SOURCE)),
@@ -286,7 +309,9 @@ def semantic(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
         limits = SDLParserLimits(**row.get("limits", {}))
         document = semantic_input(row, limits)
         if isinstance(document, MaterializedScenario):
-            content = {name: getattr(document, name) for name in ScenarioContent.model_fields}
+            content = {
+                name: getattr(document, name) for name in ScenarioContent.model_fields
+            }
             if not validate_realization_value(
                 content, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS, python_carriers=True
             ).conformant:
@@ -306,7 +331,10 @@ def semantic(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             semantic_source_diagnostics(exc, document)
             recorded.update(
                 accepted=False,
-                findings=[{"message": f.message, "owner": f.owner, "pointer": f.pointer} for f in exc.findings],
+                findings=[
+                    {"message": f.message, "owner": f.owner, "pointer": f.pointer}
+                    for f in exc.findings
+                ],
                 locations=[d.as_dict() if d else None for d in exc.diagnostics],
             )
         else:
@@ -324,7 +352,9 @@ def semantic(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 recorded["canonical_error"] = type(exc).__name__
         recorded["advisories"] = validator.warnings
         if row.get("record_explicitness"):
-            recorded["explicitness"] = {path: asdict(record) for path, record in document.explicitness.items()}
+            recorded["explicitness"] = {
+                path: asdict(record) for path, record in document.explicitness.items()
+            }
         result.append(recorded)
     return result
 
@@ -360,19 +390,29 @@ def semantic_imports(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     result = []
     for row in rows:
         with tempfile.TemporaryDirectory(prefix="sdl-import-semantic-") as directory:
-            request = {"name": row["name"], "source": row["files"][MAIN_SOURCE], "record_explicitness": True}
+            request = {
+                "name": row["name"],
+                "source": row["files"][MAIN_SOURCE],
+                "record_explicitness": True,
+            }
             request["_path"] = Path(directory) / MAIN_SOURCE
             if row["supplied"]:
-                sources = SuppliedSources.capture({name: content.encode() for name, content in row["files"].items()})
+                sources = SuppliedSources.capture(
+                    {name: content.encode() for name, content in row["files"].items()}
+                )
                 request["_path"], _ = sources.root(MAIN_SOURCE)
-                request["_traversal"] = CompositionTraversal.supplied_root(SDLParserLimits(), sources)
+                request["_traversal"] = CompositionTraversal.supplied_root(
+                    SDLParserLimits(), sources
+                )
             else:
                 write_import_files(row, directory)
             recorded = semantic([request])[0]
             for location in recorded["locations"]:
                 if location:
                     source = Path(location["source"])
-                    location["source"] = str(source.relative_to("/" if row["supplied"] else directory))
+                    location["source"] = str(
+                        source.relative_to("/" if row["supplied"] else directory)
+                    )
             recorded.update(files=row["files"], supplied=row["supplied"])
             result.append(recorded)
     return result
@@ -389,7 +429,11 @@ def record_corpus(output: Path, selected: list[str]) -> None:
         raise ValueError("requested semantic corpus cases were not found")
     if len({row["name"] for row in rows}) != len(rows):
         raise ValueError("semantic corpus case names must be unique")
-    result = {"schema": "raes-sdl-semantic-oracle/v1", "complete": not selected, "cases": rows}
+    result = {
+        "schema": "raes-sdl-semantic-oracle/v1",
+        "complete": not selected,
+        "cases": rows,
+    }
     output.write_text(json.dumps(result, ensure_ascii=True) + "\n")
     print(f"recorded semantic admission for {len(rows)} retained corpus inputs")
 
@@ -398,23 +442,41 @@ def selection(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Record finite solver witnesses and the shared deterministic state cost."""
     result = []
     for row in rows:
-        recorded = {key: row[key] for key in ("name", "variables", "groups", "clauses", "budget", "required")}
+        recorded = {
+            key: row[key]
+            for key in ("name", "variables", "groups", "clauses", "budget", "required")
+        }
         variables = [tuple(value) for value in row["variables"]]
         groups = [
-            _SelectionGroup(tuple(variables[index] for index in group["members"]), group["minimum"], group["maximum"])
+            _SelectionGroup(
+                tuple(variables[index] for index in group["members"]),
+                group["minimum"],
+                group["maximum"],
+            )
             for group in row["groups"]
         ]
-        clauses = [tuple((variables[index], value) for index, value in clause) for clause in row["clauses"]]
+        clauses = [
+            tuple((variables[index], value) for index, value in clause)
+            for clause in row["clauses"]
+        ]
         solver = _SelectionSatisfiability(groups, clauses)
         solver._remaining_states = row["budget"]
         calls = []
         for required in row["required"]:
             try:
-                witness = solver.has_witness({variables[required]: True} if required >= 0 else None)
+                witness = solver.has_witness(
+                    {variables[required]: True} if required >= 0 else None
+                )
                 exhausted = False
             except _SelectionBudgetExceeded:
                 witness, exhausted = False, True
-            calls.append({"witness": witness, "exhausted": exhausted, "remaining": solver._remaining_states})
+            calls.append(
+                {
+                    "witness": witness,
+                    "exhausted": exhausted,
+                    "remaining": solver._remaining_states,
+                }
+            )
         recorded["calls"] = calls
         result.append(recorded)
     return result
@@ -424,10 +486,26 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
     mode = parser.add_mutually_exclusive_group()
-    mode.add_argument("--semantic", action="store_true", help="Record only the targeted semantic and selection vectors.")
-    mode.add_argument("--selection", action="store_true", help="Record only the targeted selection solver vectors.")
-    mode.add_argument("--semantic-imports", action="store_true", help="Record imported semantic identities.")
-    mode.add_argument("--corpus", action="store_true", help="Record retained MCP source inputs for CI.")
+    mode.add_argument(
+        "--semantic",
+        action="store_true",
+        help="Record only the targeted semantic and selection vectors.",
+    )
+    mode.add_argument(
+        "--selection",
+        action="store_true",
+        help="Record only the targeted selection solver vectors.",
+    )
+    mode.add_argument(
+        "--semantic-imports",
+        action="store_true",
+        help="Record imported semantic identities.",
+    )
+    mode.add_argument(
+        "--corpus",
+        action="store_true",
+        help="Record retained MCP source inputs for CI.",
+    )
     parser.add_argument("--output", type=Path)
     parser.add_argument("--case", action="append", default=[])
     args = parser.parse_args()
@@ -440,14 +518,23 @@ def main() -> int:
         parser.error("--output and --case require --corpus")
     if args.semantic_imports:
         rows = json.loads((VECTORS / "semantic-imports.json").read_bytes())
-        return 0 if write_or_check("semantic-imports.json", semantic_imports(rows), args.check) else 1
+        return (
+            0
+            if write_or_check(
+                "semantic-imports.json", semantic_imports(rows), args.check
+            )
+            else 1
+        )
     if args.selection:
         rows = json.loads((VECTORS / "selection.json").read_bytes())
         return 0 if write_or_check("selection.json", selection(rows), args.check) else 1
     if args.semantic:
         rows = read_semantic_vectors()
         valid = write_semantic_vectors(semantic(rows), args.check)
-        valid = write_or_check("semantics-provenance.json", provenance(), args.check) and valid
+        valid = (
+            write_or_check("semantics-provenance.json", provenance(), args.check)
+            and valid
+        )
         rows = json.loads((VECTORS / "selection.json").read_bytes())
         valid = write_or_check("selection.json", selection(rows), args.check) and valid
         return 0 if valid else 1

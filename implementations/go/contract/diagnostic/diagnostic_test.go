@@ -7,7 +7,8 @@ import (
 
 func TestOriginalPointerIsOptionalMetadata(t *testing.T) {
 	for _, pointer := range []string{"", "/nodes/web"} {
-		data, err := json.Marshal(Diagnostic{OriginalPointer: pointer})
+		//nolint:musttag // Legacy diagnostic members retain encoding/json's default names; this test locks the additive metadata surface.
+		data, err := json.Marshal(Diagnostic{Code: "sdl.semantic", OriginalPointer: pointer})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -17,6 +18,9 @@ func TestOriginalPointerIsOptionalMetadata(t *testing.T) {
 		}
 		if _, present := fields["OriginalPointer"]; present {
 			t.Fatal("Go field name changed the diagnostic JSON surface")
+		}
+		if string(fields["Code"]) != `"sdl.semantic"` {
+			t.Fatal("optional metadata changed an existing diagnostic member")
 		}
 		original, present := fields["original_path"]
 		if present != (pointer != "") {

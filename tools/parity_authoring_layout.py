@@ -49,7 +49,9 @@ PRIMITIVES = {
 
 def reference_function(value: object) -> bool:
     """Follow only reference functions, never library or process callbacks."""
-    return inspect.isfunction(value) and value.__module__.startswith(("raes.", "raes_contracts."))
+    return inspect.isfunction(value) and value.__module__.startswith(
+        ("raes.", "raes_contracts.")
+    )
 
 
 def function_policy(function: object, seen: set[object] | None = None) -> set[str]:
@@ -105,7 +107,9 @@ def numeric_bounds(function: object, seen: set[object] | None = None) -> dict[st
     return result
 
 
-def call_bounds(call: ast.Call, namespace: dict[str, Any], seen: set[object]) -> dict[str, str]:
+def call_bounds(
+    call: ast.Call, namespace: dict[str, Any], seen: set[object]
+) -> dict[str, str]:
     result = {}
     for keyword in call.keywords:
         if keyword.arg in {"minimum", "maximum"}:
@@ -124,7 +128,9 @@ def direct_enums(values: list[Any]) -> set[type[Enum]]:
     return result
 
 
-def enum_arguments(function: object, seen: set[object] | None = None) -> set[type[Enum]]:
+def enum_arguments(
+    function: object, seen: set[object] | None = None
+) -> set[type[Enum]]:
     """Record primitive enum arguments as values and governed scope IDs."""
     values = []
     if isinstance(function, partial):
@@ -157,12 +163,16 @@ def scalar_shapes(schema: dict[str, Any]) -> list[str]:
         "function-wrap",
         "nullable",
     }:
-        return scalar_shapes(schema["schema"]) + (["null"] if kind == "nullable" else [])
+        return scalar_shapes(schema["schema"]) + (
+            ["null"] if kind == "nullable" else []
+        )
     if kind == "union":
         return [
             shape
             for choice in schema["choices"]
-            for shape in scalar_shapes(choice[0] if isinstance(choice, tuple) else choice)
+            for shape in scalar_shapes(
+                choice[0] if isinstance(choice, tuple) else choice
+            )
         ]
     names = {
         "int": "integer",
@@ -188,7 +198,9 @@ def conversion_plan(function: object, result: dict[str, Any]) -> None:
 
 def enum_plan(function: object, conversions: set[str], result: dict[str, Any]) -> None:
     enums = enum_arguments(function)
-    members = {item.value for cls in enums for item in cls if isinstance(item.value, str)}
+    members = {
+        item.value for cls in enums for item in cls if isinstance(item.value, str)
+    }
     if members:
         result["members"] = sorted(members)
     if "vocabulary" in conversions:
@@ -220,7 +232,13 @@ def container_plan(schema: dict[str, Any]) -> dict[str, Any]:
     elif kind == "union":
         for raw in schema["choices"]:
             child = raw[0] if isinstance(raw, tuple) else raw
-            result.update({key: value for key, value in scalar_plan(child).items() if key in {"items", "values"}})
+            result.update(
+                {
+                    key: value
+                    for key, value in scalar_plan(child).items()
+                    if key in {"items", "values"}
+                }
+            )
     return result
 
 
@@ -249,7 +267,13 @@ def visitor_plan(schema: dict[str, Any]) -> dict[str, Any]:
         for model in (Scenario, MaterializedScenario)
         for item in model.__pydantic_core_schema__.get("definitions", [])
     }
-    validator = SchemaValidator({"type": "definitions", "schema": schema, "definitions": list(definitions.values())})
+    validator = SchemaValidator(
+        {
+            "type": "definitions",
+            "schema": schema,
+            "definitions": list(definitions.values()),
+        }
+    )
     sentinels = []
     for token in ("unknown", "other"):
         try:
@@ -259,14 +283,24 @@ def visitor_plan(schema: dict[str, Any]) -> dict[str, Any]:
         if isinstance(value, Enum):
             sentinels.append(token)
     result = {"explicitness_enums": sentinels} if sentinels else {}
-    while schema.get("type") in {"default", "nullable", "function-before", "function-after", "function-wrap"}:
+    while schema.get("type") in {
+        "default",
+        "nullable",
+        "function-before",
+        "function-after",
+        "function-wrap",
+    }:
         schema = schema["schema"]
     kind = schema.get("type")
     if kind in {"tuple", "set", "frozenset"}:
         result["explicitness_atomic"] = True
-    elif kind == "list" and (child := visitor_plan(schema.get("items_schema", {"type": "any"}))):
+    elif kind == "list" and (
+        child := visitor_plan(schema.get("items_schema", {"type": "any"}))
+    ):
         result["items"] = child
-    elif kind == "dict" and (child := visitor_plan(schema.get("values_schema", {"type": "any"}))):
+    elif kind == "dict" and (
+        child := visitor_plan(schema.get("values_schema", {"type": "any"}))
+    ):
         result["values"] = child
     return result
 
@@ -290,7 +324,11 @@ def conversion_fields(schema: dict[str, Any], cls: type[BaseModel]) -> dict[str,
         plan = scalar_plan(field["schema"])
         merge_plan(plan, visitor_plan(field["schema"]))
         if plan:
-            alias = cls.model_fields[name].serialization_alias or cls.model_fields[name].alias or name
+            alias = (
+                cls.model_fields[name].serialization_alias
+                or cls.model_fields[name].alias
+                or name
+            )
             result[alias] = plan
     return result
 
@@ -319,7 +357,10 @@ class Layout(GenerateJsonSchema):
     def model_schema(self, schema: dict[str, Any]) -> dict[str, Any]:
         document = super().model_schema(schema)
         cls = schema["cls"]
-        fields = [field.serialization_alias or field.alias or name for name, field in cls.model_fields.items()]
+        fields = [
+            field.serialization_alias or field.alias or name
+            for name, field in cls.model_fields.items()
+        ]
         omit = {
             field.serialization_alias or field.alias or name: policy
             for name, field in cls.model_fields.items()
@@ -338,7 +379,10 @@ class Layout(GenerateJsonSchema):
         }
         if model_names:
             document["x-layout"]["model_names"] = model_names
-        if any(name.endswith(("classification", "sensitivity")) for name in cls.model_fields):
+        if any(
+            name.endswith(("classification", "sensitivity"))
+            for name in cls.model_fields
+        ):
             document["x-layout"]["capability_classified"] = True
         public = sorted(getattr(cls, "realization_public_parameter_fields", ()))
         if public:
@@ -348,7 +392,12 @@ class Layout(GenerateJsonSchema):
 
 def factory_defaults(cls: type[BaseModel]) -> dict[str, Any]:
     result = {}
-    audited = {("ExecutionPolicy", "retry"), ("TimeDomainMapping", "scale"), ("TimeProgressionPolicy", "pacing_ratio"), ("ExpandedScenario", "expansion_provenance")}
+    audited = {
+        ("ExecutionPolicy", "retry"),
+        ("TimeDomainMapping", "scale"),
+        ("TimeProgressionPolicy", "pacing_ratio"),
+        ("ExpandedScenario", "expansion_provenance"),
+    }
     for name, field in cls.model_fields.items():
         factory = field.default_factory
         if factory is None or field.exclude:
@@ -389,12 +438,22 @@ def record() -> bytes:
                 if "x-layout" in value
             }
         )
-        published = schema if cls is ExpandedScenario else json.loads((ROOT / "contracts/schemas/sdl" / (contract + ".json")).read_bytes())
+        published = (
+            schema
+            if cls is ExpandedScenario
+            else json.loads(
+                (ROOT / "contracts/schemas/sdl" / (contract + ".json")).read_bytes()
+            )
+        )
         filter_records(records, published)
         result[contract] = records
     authored = result["sdl-authoring-input-v1"]
     materialized = result["materialized-scenario-v1"]
-    common = {key: value for key, value in authored.items() if key != "#" and materialized.get(key) == value}
+    common = {
+        key: value
+        for key, value in authored.items()
+        if key != "#" and materialized.get(key) == value
+    }
     for key in common:
         del authored[key]
         del materialized[key]
@@ -414,10 +473,20 @@ def filter_records(records: dict[str, Any], published: dict[str, Any]) -> None:
         fields = definition.get("properties", {})
         row["fields"] = [field for field in row["fields"] if field in fields]
         for key in ("omit", "scalar", "factory_defaults"):
-            row[key] = {field: value for field, value in row[key].items() if field in fields}
+            row[key] = {
+                field: value for field, value in row[key].items() if field in fields
+            }
         if "model_names" in row:
-            row["model_names"] = {field: name for field, name in row["model_names"].items() if field in fields}
-        row["scalar"] = {field: compact for field, plan in row["scalar"].items() if (compact := compact_plan(plan))}
+            row["model_names"] = {
+                field: name
+                for field, name in row["model_names"].items()
+                if field in fields
+            }
+        row["scalar"] = {
+            field: compact
+            for field, plan in row["scalar"].items()
+            if (compact := compact_plan(plan))
+        }
 
 
 def main() -> int:
