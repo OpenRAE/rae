@@ -13,11 +13,14 @@ import (
 	"golang.org/x/net/idna"
 )
 
-const directiveFence = "^[ \\t]*[`~:]{3,}[ \\t]*\\{"
-const directiveFileOption = "[\"']?(?:file|url|diff)[\"']?[ \\t]*:[ \\t]+([^" + pythonSchemaSpace + "]+)"
+// Fixed documentation and record whitespace; no configurable pattern translation.
+const fixedWhitespaceClass = `\t\n\v\f\r\x1c-\x1f\x85\p{Z}`
 
-var directiveArgument = regexp.MustCompile(`(?im)^[` + pythonSchemaSpace + `]*\.\.[` + pythonSchemaSpace + `]+(?:include|literalinclude|download)::[` + pythonSchemaSpace + `]+([^` + pythonSchemaSpace + `]+)`)
-var mystDirectiveArgument = regexp.MustCompile(`(?im)` + directiveFence + `(?:include|literalinclude|download)\}[` + pythonSchemaSpace + `]+([^` + pythonSchemaSpace + `]+)`)
+const directiveFence = "^[ \\t]*[`~:]{3,}[ \\t]*\\{"
+const directiveFileOption = "[\"']?(?:file|url|diff)[\"']?[ \\t]*:[ \\t]+([^" + fixedWhitespaceClass + "]+)"
+
+var directiveArgument = regexp.MustCompile(`(?im)^[` + fixedWhitespaceClass + `]*\.\.[` + fixedWhitespaceClass + `]+(?:include|literalinclude|download)::[` + fixedWhitespaceClass + `]+([^` + fixedWhitespaceClass + `]+)`)
+var mystDirectiveArgument = regexp.MustCompile(`(?im)` + directiveFence + `(?:include|literalinclude|download)\}[` + fixedWhitespaceClass + `]+([^` + fixedWhitespaceClass + `]+)`)
 var downloadRole = regexp.MustCompile("(?i)\\{download\\}`(?:[^`<]*<)?([^>`]+)>?`")
 var directiveOption = regexp.MustCompile(`(?im)^[ \t]*:` + directiveFileOption)
 var directiveOpening = regexp.MustCompile(directiveFence)

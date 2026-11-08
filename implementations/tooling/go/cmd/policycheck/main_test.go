@@ -318,3 +318,22 @@ func TestCommandConfiguration(t *testing.T) {
 		t.Fatalf("JSON output=%q, %q", stdout, stderr)
 	}
 }
+
+func TestSchemaPatternConfigurationExit(t *testing.T) {
+	root := t.TempDir()
+	schema := "contracts/schemas/profiles/example-v1.json"
+	target := "contracts/fixtures/profiles/example-v1/valid/example.json"
+	for name, data := range map[string]string{schema: `{"type":"string","pattern":"(?=sensitive-pattern)"}`, target: `"accepted"`} {
+		file := filepath.Join(root, name)
+		if err := os.MkdirAll(filepath.Dir(file), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(file, []byte(data), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	_, stderr := invoke(t, 1, "--tool=json-artifacts", "--repo-root="+root, target)
+	if !strings.Contains(stderr, "schema pattern") || strings.Contains(stderr, "sensitive-pattern") {
+		t.Fatalf("wrong error boundary: %q", stderr)
+	}
+}

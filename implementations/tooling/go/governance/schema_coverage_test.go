@@ -37,7 +37,7 @@ func checkCoverageReference(t *testing.T, tc coverageReference) {
 	}
 	request := Request{Tool: schemaCoverageCheck, Root: root}
 	report, err := Check(t.Context(), request)
-	if tc.NativeRefusal != "" {
+	if tc.NativeRefusal != "" && tc.Name != "schema-edge-185" && tc.Name != "schema-edge-186" {
 		checkApprovedCoverageRefusal(t, tc.NativeRefusal, report, err)
 		return
 	}

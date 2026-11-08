@@ -158,6 +158,7 @@ Review checks these trust explanations whenever bound evidence changes.
 | Contract admission and defaults | `contract/admission` and `contract/validation`; published schemas, full family rules and explicit trusted context |
 | Operation and persistence semantics | Planned runtime layer; transports and embedders share the same core |
 | Architecture checks | Tooling `arch`; standard Go types and existing model/findings, no product-internal imports |
+| Governance patterns | Tooling `governance`; the [#1983 target](../decisions/issue-1799-go-governance-design.md#issue-1983-pattern-boundary) uses Go regex syntax and classified configuration errors. Product contract matching keeps its separate profile. |
 
 These primitive owners stay in `rae`.
 The model's `consumer_api` section declares the public imports.
@@ -377,24 +378,24 @@ flowchart BT
 | `docs/decisions/issue-1779-shared-primitives-completion.md` | `53b8dcd5ef5e1ad44ca2948eca10fff0d180028b807a496ddbe82e61e9e573ed` |
 | `docs/decisions/issue-1780-contract-validation-design.md` | `af16cabe834eb350d8074c0856a1ac783c2f56f775a0eddd79326a99b3f84269` |
 | `docs/decisions/issue-1783-sdl-semantics-design.md` | `8bccd27d3825ea9d2ab7031c20b0c07d1e6b7d39d371d3ec31eb244fda98568f` |
-| `docs/decisions/issue-1799-go-governance-design.md` | `1ab7caf68082ae72c58f71ed29b96f1eeb8872aac8ce894d6ef4047abec7925e` |
+| `docs/decisions/issue-1799-go-governance-design.md` | `abcc366a9fba4afcd8a9e0e42af3907f5cd858249152b8eacad25b85fb91e6e7` |
 | `docs/decisions/issue-1825-public-go-api.md` | `6f264cb6dd7fef28567fcb804a56b8b94f63b883f59f4be35d0ffc41095ca721` |
 | `docs/decisions/issue-1859-go-architecture-contract-design.md` | `0057d0da3d7466e02c34cf5545aa14245bc398486519d3dd15457e515f6230ce` |
 | `docs/decisions/issue-1891-runtime-repository-boundary.md` | `e8233ecdf836dbbad4dda9ef373572dd466f1cf59ad0eeb4ab01cc9fd476e406` |
 | `docs/decisions/issue-1892-public-go-packages-design.md` | `e66f0bb12f0615a6b5614fe149a2a78b13289c42845c683537df80ec1907fc53` |
 | `specs/sdl/diagnostics.md` | `422c46a1080f4dced095729967658f300520fa59b16c1923d113a758422a231e` |
 | `specs/sdl/document-model.md` | `496290792659c189242ab93923f6f50e305e383d50588a4d75269d9ade2e2970` |
-<!-- go-component base b67d63402d847e9c5f3a14b43b5a703b55ba4c4d0b631204b67ca6a65eabd06f -->
-<!-- go-component contract d4d3721eec2ac8804214750d46006900c0203952110061d4882afbf2b4d65e41 -->
-<!-- go-component sdl 6ad81dbcdf32146ac038057b84816f6f536d1fda3acc77a8381b164470ccb4e7 -->
-<!-- go-component processor 26854c90465669bd9fd34e38b45a655c591807e7ffcd8cef0b93e7bf0cc3790d -->
-<!-- go-component backend 4ee49cefa937dc018e6d93400cf24beb232b8b608dbf3b1b03595c263a1ddd3d -->
-<!-- go-component runtime 2d41672fa5abe12620819ffff49e587bf93d92e73947166210731d331245e167 -->
-<!-- go-component conformance 07c708fc666e48e2a795c2426873d733d1e95c16861686cc2f865e9664d57d13 -->
-<!-- go-component app 4ff9611329e35075e6bb47151469b8a1d161e45427ee5f689f9fc76d66275e11 -->
-<!-- go-component adapter 8d7b702ad694f9fc4b3c9891cb68a2c7f27097f140c887d1d417a6763d2c4b71 -->
-<!-- go-component command 876947acb2c14d5b69086f895641c00f24c7d8536bb6ef6b66912cc219847dfb -->
-<!-- go-component parity c720a1833295a35108d4b4aba50d6abb69ef91343c9d4189dd13388e66b8d30e -->
-<!-- go-component tooling 2381f7ec804626bf78b85fd18e1a5ce1b2b8923fdfe5e408440f6a821b3f4e05 -->
+<!-- go-component base ebffa405db3334e2d112a606c33a184478a97480f6de01e35d5ee60a5ac2b799 -->
+<!-- go-component contract f3da2eb669384bc55b004abd03dfcd63c663c1c7dab8c94da6fa872cab312a2f -->
+<!-- go-component sdl 54868bc53527dacd6366a66eab8e09681680870ef25506a0578be038e3e1b5dd -->
+<!-- go-component processor 94b633926dcc372ee2557625397502305dcd84e8d02623825443261e1b8d5abd -->
+<!-- go-component backend 7fa1941db409861c69a54906d9f635c7583c4602998c75badfd992ba486b83ff -->
+<!-- go-component runtime d3354f6ddd56204e11f3a00ea31b8a710e99fea6e810b2d197247c04b8c694d4 -->
+<!-- go-component conformance db96893b83573baa4ea427ee03f68aa0d4f5a955a2fd0ef9a3390a0ece456a97 -->
+<!-- go-component app 35b3caab41a2a8c58ba25627c0ce65f134d9f9c027d3494fc2965568d5381430 -->
+<!-- go-component adapter 635577c020bfbe1cea988f2a21b22398ba6b32b587ced940264625e03b3b0b43 -->
+<!-- go-component command 6254888889c8e21c38cb3a7f0522a3ed4be16ae9fcc661f7b623f6d5b7290251 -->
+<!-- go-component parity 51c03d0a1910efcc3b85a06e23c2fb58dc42c2196ad6e7bb6d7a7c2cceb9038b -->
+<!-- go-component tooling 53dcede50380cc1a8eb8a1d0fddb9387361bc9aec20b41ad95e0ca7b0cd500d8 -->
 
 <!-- /go-view -->
