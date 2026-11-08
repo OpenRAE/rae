@@ -17,6 +17,7 @@ import (
 const (
 	semanticProfile             = "raes-sdl-semantic/v2"
 	materializedSemanticProfile = "raes-sdl-materialized/v1"
+	canonicalModelErrorCode     = "sdl-canonical-model"
 )
 
 // Validated reports successful semantic admission of this immutable value.
@@ -71,13 +72,13 @@ func (d *Document) CanonicalBytes() ([]byte, error) {
 	}
 	var scenario map[string]json.RawMessage
 	if err := json.Unmarshal(d.data, &scenario); err != nil {
-		return nil, fault.New(fault.Operational, "sdl-canonical-model", nil)
+		return nil, fault.New(fault.Operational, canonicalModelErrorCode, nil)
 	}
 	delete(scenario, "expansion_provenance")
 	if raw := scenario[variationPointsField]; len(raw) != 0 {
 		var points map[string]json.RawMessage
 		if err := json.Unmarshal(raw, &points); err != nil {
-			return nil, fault.New(fault.Operational, "sdl-canonical-model", nil)
+			return nil, fault.New(fault.Operational, canonicalModelErrorCode, nil)
 		}
 		if len(points) == 0 {
 			delete(scenario, variationPointsField)
@@ -94,7 +95,7 @@ func (d *Document) CanonicalBytes() ([]byte, error) {
 
 func canonicalSemanticJSON(encoded []byte, err error) ([]byte, error) {
 	if err != nil {
-		return nil, fault.New(fault.Operational, "sdl-canonical-model", nil)
+		return nil, fault.New(fault.Operational, canonicalModelErrorCode, nil)
 	}
 	canonical, err := canonjson.JCS(encoded)
 	if err != nil {

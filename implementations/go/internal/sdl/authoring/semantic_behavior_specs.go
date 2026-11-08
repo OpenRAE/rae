@@ -48,7 +48,7 @@ func (m *semanticModel) behaviorFact(name string) (semanticBehavior, error) {
 	var mixed *semanticMixed
 	if hasField(raw.MixedControl) {
 		var value semanticMixed
-		if decodeErr := json.Unmarshal(fieldValue(raw.MixedControl), &value); decodeErr != nil {
+		if json.Unmarshal(fieldValue(raw.MixedControl), &value) != nil {
 			return semanticBehavior{}, invalid()
 		}
 		mixed = &value

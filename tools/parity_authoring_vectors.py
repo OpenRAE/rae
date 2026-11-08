@@ -43,7 +43,7 @@ from raes.formatting import SDLFormatResult, format_sdl_source
 from raes.materialization import MaterializedScenario
 from raes.module_registry._digests import _normalize_exact_or_range, _satisfies_version
 from raes.parser import _load_normalized_data, parse_sdl
-from raes.scenario import ScenarioContent
+from raes.scenario import ExpandedScenario, Scenario, ScenarioContent
 from raes.validator import SemanticValidator
 from raes.validator._variation_satisfiability import (
     _SelectionBudgetExceeded,
@@ -61,6 +61,9 @@ ROOT_MARKER = "$ROOT"
 VECTORS = ROOT / "implementations/go/internal/sdl/authoring/testdata"
 SEMANTIC_SHARD_BYTES = 450 * 1024
 SEMANTIC_SCHEMA = "raes-sdl-semantic-vectors/v1"
+SELECTION_FILE = "selection.json"
+
+type SemanticDocument = Scenario | ExpandedScenario | MaterializedScenario
 
 
 def formatter(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -241,7 +244,7 @@ def write_semantic_vectors(rows: list[dict[str, Any]], check: bool) -> bool:
     return valid
 
 
-def semantic_input(row: dict[str, Any], limits: SDLParserLimits) -> Any:
+def semantic_input(row: dict[str, Any], limits: SDLParserLimits) -> SemanticDocument:
     path = row.get("_path", Path(MAIN_SOURCE))
     policy = "accept" if row.get("accept_migration") else "reject"
     if not row.get("materialized") and not row.get("_corpus"):
@@ -265,7 +268,7 @@ def semantic_input(row: dict[str, Any], limits: SDLParserLimits) -> Any:
     return document
 
 
-def semantic_parse(row: dict[str, Any], limits: SDLParserLimits, *, skip: bool = False) -> Any:
+def semantic_parse(row: dict[str, Any], limits: SDLParserLimits, *, skip: bool = False) -> SemanticDocument:
     return parse_sdl(
         row["source"],
         path=row.get("_path", Path(MAIN_SOURCE)),
@@ -280,59 +283,72 @@ def semantic(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Record the actual rule findings before command adapters summarize them."""
     if len({row["name"] for row in rows}) != len(rows):
         raise ValueError("semantic case names must be unique")
-    result = []
-    for row in rows:
-        recorded = {key: row[key] for key in ("name", "source")}
-        if "limits" in row:
-            recorded["limits"] = row["limits"]
-        if row.get("materialized"):
-            recorded["materialized"] = True
-        if row.get("record_explicitness"):
-            recorded["record_explicitness"] = True
-        limits = SDLParserLimits(**row.get("limits", {}))
-        document = semantic_input(row, limits)
+    return [semantic_record(row) for row in rows]
+
+
+def semantic_record(row: dict[str, Any]) -> dict[str, Any]:
+    recorded = {key: row[key] for key in ("name", "source")}
+    if "limits" in row:
+        recorded["limits"] = row["limits"]
+    for flag in ("materialized", "record_explicitness"):
+        if row.get(flag):
+            recorded[flag] = True
+    limits = SDLParserLimits(**row.get("limits", {}))
+    document = semantic_input(row, limits)
+    if not portable_semantic_input(document):
+        recorded.update(
+            accepted=False,
+            admission_error="materialized SDL exceeds portable bounds",
+            findings=[],
+            locations=[],
+            advisories=[],
+        )
+        return recorded
+    recorded.update(semantic_findings(row, document, limits))
+    if row.get("record_explicitness"):
+        recorded["explicitness"] = {path: asdict(record) for path, record in document.explicitness.items()}
+    return recorded
+
+
+def portable_semantic_input(document: SemanticDocument) -> bool:
+    if isinstance(document, MaterializedScenario):
+        content = {name: getattr(document, name) for name in ScenarioContent.model_fields}
+        return validate_realization_value(
+            content, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS, python_carriers=True
+        ).conformant
+    return True
+
+
+def semantic_findings(row: dict[str, Any], document: SemanticDocument, limits: SDLParserLimits) -> dict[str, Any]:
+    validator = SemanticValidator(document)
+    try:
+        validator.validate()
+    except SDLValidationError as exc:
+        semantic_source_diagnostics(exc, document)
+        recorded = {
+            "accepted": False,
+            "findings": [{"message": f.message, "owner": f.owner, "pointer": f.pointer} for f in exc.findings],
+            "locations": [d.as_dict() if d else None for d in exc.diagnostics],
+        }
+    else:
+        admitted = semantic_parse(row, limits)
+        recorded = {"accepted": True, "findings": [], "locations": []}
+        recorded.update(semantic_identity(admitted))
+    recorded["advisories"] = validator.warnings
+    return recorded
+
+
+def semantic_identity(document: SemanticDocument) -> dict[str, Any]:
+    try:
         if isinstance(document, MaterializedScenario):
-            content = {name: getattr(document, name) for name in ScenarioContent.model_fields}
-            if not validate_realization_value(
-                content, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS, python_carriers=True
-            ).conformant:
-                recorded.update(
-                    accepted=False,
-                    admission_error="materialized SDL exceeds portable bounds",
-                    findings=[],
-                    locations=[],
-                    advisories=[],
-                )
-                result.append(recorded)
-                continue
-        validator = SemanticValidator(document)
-        try:
-            validator.validate()
-        except SDLValidationError as exc:
-            semantic_source_diagnostics(exc, document)
-            recorded.update(
-                accepted=False,
-                findings=[{"message": f.message, "owner": f.owner, "pointer": f.pointer} for f in exc.findings],
-                locations=[d.as_dict() if d else None for d in exc.diagnostics],
-            )
+            canonical = canonical_materialized_sdl_bytes(document)
+            digest = canonical_materialized_sdl_digest(document).value
         else:
-            admitted = semantic_parse(row, limits)
-            recorded.update(accepted=True, findings=[], locations=[])
-            try:
-                if isinstance(admitted, MaterializedScenario):
-                    canonical = canonical_materialized_sdl_bytes(admitted)
-                    digest = canonical_materialized_sdl_digest(admitted).value
-                else:
-                    canonical = canonical_sdl_bytes(admitted)
-                    digest = canonical_sdl_digest(admitted).value
-                recorded.update(canonical=canonical.decode(), digest=digest)
-            except (SDLError, ValueError) as exc:
-                recorded["canonical_error"] = type(exc).__name__
-        recorded["advisories"] = validator.warnings
-        if row.get("record_explicitness"):
-            recorded["explicitness"] = {path: asdict(record) for path, record in document.explicitness.items()}
-        result.append(recorded)
-    return result
+            canonical = canonical_sdl_bytes(document)
+            digest = canonical_sdl_digest(document).value
+    except (SDLError, ValueError) as exc:
+        return {"canonical_error": type(exc).__name__}
+    return {"canonical": canonical.decode(), "digest": digest}
 
 
 def corpus_semantic(case: dict[str, Any], corpus: Path) -> dict[str, Any]:
@@ -452,61 +468,89 @@ def selection(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return result
 
 
-def main() -> int:
+def argument_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument(
         "--semantic",
-        action="store_true",
+        action="store_const",
+        dest="mode",
+        const="semantic",
         help="Record only the targeted semantic and selection vectors.",
     )
     mode.add_argument(
         "--selection",
-        action="store_true",
+        action="store_const",
+        dest="mode",
+        const="selection",
         help="Record only the targeted selection solver vectors.",
     )
     mode.add_argument(
         "--semantic-imports",
-        action="store_true",
+        action="store_const",
+        dest="mode",
+        const="semantic-imports",
         help="Record imported semantic identities.",
     )
     mode.add_argument(
         "--corpus",
-        action="store_true",
+        action="store_const",
+        dest="mode",
+        const="corpus",
         help="Record retained MCP source inputs for CI.",
     )
     parser.add_argument("--output", type=Path)
     parser.add_argument("--case", action="append", default=[])
+    return parser
+
+
+def main() -> int:
+    parser = argument_parser()
     args = parser.parse_args()
-    if args.corpus:
+    if args.mode == "corpus":
         if args.check or args.output is None:
             parser.error("--corpus requires --output and does not support --check")
         record_corpus(args.output, args.case)
-        return 0
-    if args.output is not None or args.case:
-        parser.error("--output and --case require --corpus")
-    if args.semantic_imports:
-        rows = json.loads((VECTORS / "semantic-imports.json").read_bytes())
-        return 0 if write_or_check("semantic-imports.json", semantic_imports(rows), args.check) else 1
-    if args.selection:
-        rows = json.loads((VECTORS / "selection.json").read_bytes())
-        return 0 if write_or_check("selection.json", selection(rows), args.check) else 1
-    if args.semantic:
-        rows = read_semantic_vectors()
-        valid = write_semantic_vectors(semantic(rows), args.check)
-        valid = write_or_check("semantics-provenance.json", provenance(), args.check) and valid
-        rows = json.loads((VECTORS / "selection.json").read_bytes())
-        valid = write_or_check("selection.json", selection(rows), args.check) and valid
-        return 0 if valid else 1
+        valid = True
+    else:
+        if args.output is not None or args.case:
+            parser.error("--output and --case require --corpus")
+        recorders = {
+            None: record_presentation,
+            "semantic": record_semantics,
+            "selection": record_selection,
+            "semantic-imports": record_semantic_imports,
+        }
+        valid = recorders[args.mode](args.check)
+    return 0 if valid else 1
+
+
+def record_semantic_imports(check: bool) -> bool:
+    name = "semantic-imports.json"
+    rows = json.loads((VECTORS / name).read_bytes())
+    return write_or_check(name, semantic_imports(rows), check)
+
+
+def record_selection(check: bool) -> bool:
+    rows = json.loads((VECTORS / SELECTION_FILE).read_bytes())
+    return write_or_check(SELECTION_FILE, selection(rows), check)
+
+
+def record_semantics(check: bool) -> bool:
+    valid = write_semantic_vectors(semantic(read_semantic_vectors()), check)
+    valid = write_or_check("semantics-provenance.json", provenance(), check) and valid
+    return record_selection(check) and valid
+
+
+def record_presentation(check: bool) -> bool:
     source = json.loads((VECTORS / "reference.json").read_bytes())
     source["cases"] = formatter(source["cases"])
-    valid = write_or_check("reference.json", source, args.check)
+    valid = write_or_check("reference.json", source, check)
     for name, record in (("imports.json", imports), ("versions.json", versions)):
         rows = json.loads((VECTORS / name).read_bytes())
-        valid = write_or_check(name, record(rows), args.check) and valid
-    valid = write_or_check("provenance.json", provenance(), args.check) and valid
-    return 0 if valid else 1
+        valid = write_or_check(name, record(rows), check) and valid
+    return write_or_check("provenance.json", provenance(), check) and valid
 
 
 if __name__ == "__main__":

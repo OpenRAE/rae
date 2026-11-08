@@ -95,7 +95,7 @@ func (d *declarationIndex) children(section, name, address string, value map[str
 		}
 		d.namedItems(array(value[servicesField]), address+".services.", false, servicesField, "service", appendPath(path, servicesField))
 		if runtime := object(value["runtime"]); runtime != nil {
-			d.runtime(runtime, address+".runtime.", "", name, "", nil, appendPath(path, "runtime"), runtimeDeclarationSpecs())
+			d.runtime(runtime, runtimeDeclarationContext{prefix: address + ".runtime.", node: name, tokens: appendPath(path, "runtime")}, runtimeDeclarationSpecs())
 		}
 	case infrastructureField:
 		d.namedItems(array(value["acls"]), address+".acls.", false, "acls", "infrastructure-acl", appendPath(path, "acls"))
@@ -153,8 +153,7 @@ type runtimeDeclarationContext struct {
 	tokens                           []string
 }
 
-func (d *declarationIndex) runtime(value map[string]any, prefix, parentKind, node, parent string, owner map[string]any, tokens []string, specs []runtimeDeclaration) {
-	context := runtimeDeclarationContext{prefix, parentKind, node, parent, owner, tokens}
+func (d *declarationIndex) runtime(value map[string]any, context runtimeDeclarationContext, specs []runtimeDeclaration) {
 	for _, spec := range specs {
 		d.runtimeCollection(value, context, spec)
 	}
@@ -173,6 +172,6 @@ func (d *declarationIndex) runtimeCollection(value map[string]any, context runti
 		}
 		path := appendPath(appendPath(context.tokens, spec.collection), strconv.Itoa(i))
 		d.add(address, "", declaration{target: true, authority: true, action: true, kind: kind, node: context.node, parent: context.parent, value: item, owner: root, tokens: appendPath(path, spec.identity), collisionKind: "runtime-" + spec.collection})
-		d.runtime(item, address+".", kind, context.node, address, root, path, spec.children)
+		d.runtime(item, runtimeDeclarationContext{address + ".", kind, context.node, address, root, path}, spec.children)
 	}
 }

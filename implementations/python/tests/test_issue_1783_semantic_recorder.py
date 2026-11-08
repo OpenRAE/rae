@@ -58,8 +58,9 @@ def test_materialized_oracle_constructs_without_semantic_admission(recorder) -> 
     row = vector("workflow-missing-start")
     document = recorder.semantic_input(row, SDLParserLimits())
     assert not document.semantic_validated
+    validator = SemanticValidator(document)
     with pytest.raises(SDLValidationError):
-        SemanticValidator(document).validate()
+        validator.validate()
     # The normal parser intentionally refuses this description even when its
     # caller requests construction only. The oracle does not alter that API.
     with pytest.raises(SDLValidationError):
@@ -71,8 +72,9 @@ def test_semantic_oracle_does_not_hide_operational_errors(recorder, monkeypatch:
         raise RuntimeError("reference failure")
 
     monkeypatch.setattr(recorder, "canonical_sdl_bytes", broken_canonical)
+    row = vector("minimal")
     with pytest.raises(RuntimeError, match="reference failure"):
-        recorder.semantic([vector("minimal")])
+        recorder.semantic([row])
 
 
 def test_materialized_portable_limit_precedes_semantic_rules(recorder, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -87,8 +89,9 @@ def test_materialized_portable_limit_precedes_semantic_rules(recorder, monkeypat
 
 
 def test_semantic_evidence_requires_unique_case_names(recorder) -> None:
+    row = vector("minimal")
     with pytest.raises(ValueError, match="case names must be unique"):
-        recorder.semantic([vector("minimal")] * 2)
+        recorder.semantic([row] * 2)
 
 
 @pytest.mark.parametrize(

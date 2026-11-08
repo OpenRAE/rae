@@ -425,9 +425,9 @@ def record() -> bytes:
         del materialized[key]
     result["$shared"] = common
     expanded = result["sdl-expanded-authoring-object-v1"]
-    for key in list(expanded):
-        if key != "#" and expanded[key] == authored.get(key, common.get(key)):
-            del expanded[key]
+    result["sdl-expanded-authoring-object-v1"] = {
+        key: value for key, value in expanded.items() if key == "#" or value != authored.get(key, common.get(key))
+    }
     return (json.dumps(result, indent=2, sort_keys=True) + "\n").encode()
 
 

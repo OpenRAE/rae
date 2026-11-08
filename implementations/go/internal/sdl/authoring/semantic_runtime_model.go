@@ -30,11 +30,13 @@ type semanticRuntime struct {
 	Sensors        []semanticNetworkSensor           `json:"network_sensors"`
 	Engines        []semanticDetectionEngine         `json:"network_detection_engines"`
 	Network        *semanticRuntimeNetwork           `json:"network"`
-	Container      *struct {
-		Namespaces *struct {
-			Network *semanticNetworkNamespace `json:"network"`
-		} `json:"namespaces"`
-	} `json:"container"`
+	Container      *semanticRuntimeContainer         `json:"container"`
+}
+type semanticRuntimeContainer struct {
+	Namespaces *semanticRuntimeNamespaces `json:"namespaces"`
+}
+type semanticRuntimeNamespaces struct {
+	Network *semanticNetworkNamespace `json:"network"`
 }
 type semanticRuntimeNetwork struct {
 	Endpoints []semanticRuntimeEndpoint `json:"endpoints"`

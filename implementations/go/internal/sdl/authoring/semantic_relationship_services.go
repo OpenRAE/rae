@@ -139,9 +139,10 @@ func (m *semanticModel) checkRelationshipMail(c *semanticCollector) {
 			continue
 		}
 		ids, access := service.ids(), row.services.mail
-		c.mailReference(owner, label+" mail_access", "listener_ref", access.Listener, ids.listeners)
-		c.mailReference(owner, label+" mail_access", "mailbox_ref", access.Mailbox, ids.mailboxes)
-		c.mailReference(owner, label+" mail_access", "domain_ref", access.Domain, ids.domains)
+		label += " mail_access"
+		c.mailReference(owner, label, "listener_ref", access.Listener, ids.listeners)
+		c.mailReference(owner, label, "mailbox_ref", access.Mailbox, ids.mailboxes)
+		c.mailReference(owner, label, "domain_ref", access.Domain, ids.domains)
 	}
 }
 func (m *semanticModel) checkRelationshipForwarding(c *semanticCollector) {

@@ -6,6 +6,10 @@ import (
 	"strings"
 )
 
+func nodeLabel(name string) string {
+	return fmt.Sprintf("Node '%s'", name)
+}
+
 func (m *semanticModel) checkRuntimeNetwork(c *semanticCollector) {
 	infrastructure := map[string]semanticInfrastructure{}
 	for _, row := range m.infrastructure {
@@ -31,7 +35,7 @@ func (m *semanticModel) checkNetworkNamespace(c *semanticCollector, source seman
 	}
 	name := strings.TrimPrefix(namespace.Target, nodesPrefix)
 	target, known := m.node(name)
-	owner, label := semanticOwner{nodesSection, source.name}, "Node '"+source.name+"'"
+	owner, label := semanticOwner{nodesSection, source.name}, nodeLabel(source.name)
 	if !known {
 		c.report(owner, fmt.Sprintf("%s network namespace references undefined node '%s'", label, name))
 		return
@@ -55,7 +59,7 @@ func singletonInfrastructure(entry semanticInfrastructure) bool {
 	return entry.count == nil || entry.count.Cmp(big.NewInt(1)) == 0
 }
 func (m *semanticModel) checkSharedNamespaceState(c *semanticCollector, source semanticNode) {
-	owner, label := semanticOwner{nodesSection, source.name}, "Node '"+source.name+"' sharing a network namespace cannot declare independent "
+	owner, label := semanticOwner{nodesSection, source.name}, nodeLabel(source.name)+" sharing a network namespace cannot declare independent "
 	entry := fieldValue(m.transport.Infrastructure)[source.name]
 	if len(fieldValue(entry.Links)) > 0 || hasField(entry.Properties) || len(fieldValue(entry.Acls)) > 0 {
 		c.report(owner, label+"infrastructure network state")
@@ -70,7 +74,7 @@ func (m *semanticModel) checkRuntimeEndpoint(c *semanticCollector, name string, 
 	if variable(ref) {
 		return
 	}
-	owner, label := semanticOwner{nodesSection, name}, "Node '"+name+"' runtime network endpoint"
+	owner, label := semanticOwner{nodesSection, name}, nodeLabel(name)+" runtime network endpoint"
 	entry, known := infrastructure[ref]
 	if !known {
 		c.report(owner, fmt.Sprintf("%s references undefined network '%s'", label, ref))
