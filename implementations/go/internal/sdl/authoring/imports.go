@@ -23,6 +23,7 @@ type composition struct {
 	seen         map[string]bool
 	localDenied  map[string]bool
 	records      map[string][]map[string]any
+	facts        map[string]*importFacts
 }
 
 func (p *Parser) checkImports(document *Document, request Request, captured *source.Sources) error {
@@ -33,7 +34,7 @@ func (p *Parser) checkImports(document *Document, request Request, captured *sou
 	if err != nil {
 		return err
 	}
-	if len(array(value["imports"])) == 0 {
+	if len(array(value[importsField])) == 0 {
 		return nil
 	}
 	if request.Name == "" {
@@ -53,11 +54,15 @@ func (p *Parser) checkImports(document *Document, request Request, captured *sou
 			return err
 		}
 	}
-	_, err = c.expand(document, value, name, 0)
-	return err
+	expanded, err := c.expand(document, value, name, 0)
+	if err != nil {
+		return err
+	}
+	return c.retainExpanded(document, expanded, name)
 }
 func (p *Parser) modelValue(document *Document) (map[string]any, error) {
-	value, err := ingress.Parse(document.data, modelLimits(document.data), ingress.Object)
+	data := document.modelBytes()
+	value, err := ingress.Parse(data, modelLimits(data), ingress.Object)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +84,18 @@ func (c *composition) expand(document *Document, value map[string]any, name stri
 	c.seen[name] = true
 	defer delete(c.seen, name)
 	c.records[name] = nil
-	imports := array(value["imports"])
+	if c.facts == nil {
+		c.facts = map[string]*importFacts{}
+	}
+	facts, err := newImportFacts(document, value)
+	if err != nil {
+		return nil, err
+	}
+	c.facts[name] = facts
+	if _, present := value["version"]; !present {
+		value["version"] = "*"
+	}
+	imports := array(value[importsField])
 	lock, err := c.lock(name, len(imports) > 0)
 	if err != nil {
 		return nil, err
@@ -97,7 +113,7 @@ func (c *composition) expand(document *Document, value map[string]any, name stri
 			return nil, err
 		}
 	}
-	delete(value, "imports")
+	delete(value, importsField)
 	return value, nil
 }
 func (c *composition) edge(parent, decl map[string]any, importer string, depth int, lock *lockfile) error {
@@ -130,7 +146,7 @@ func (c *composition) edge(parent, decl map[string]any, importer string, depth i
 	if err != nil {
 		return err
 	}
-	if err = indexDeclarations(value).effectTargets(value); err != nil {
+	if err = c.parser.checkModuleEffectTargets(child); err != nil {
 		return err
 	}
 	descriptor, err := admittedModule(child, value, decl, raw, c.localDenied[importer])
@@ -150,13 +166,15 @@ func (c *composition) edge(parent, decl map[string]any, importer string, depth i
 	if err = validateExports(expanded, descriptor); err != nil {
 		return err
 	}
-	expanded, err = c.bind(expanded, decl, descriptor)
+	expanded, err = c.bind(expanded, decl, descriptor, c.facts[name])
 	if err != nil {
 		return err
 	}
+	symbols := symbolsFor(expanded, text(decl[namespaceField]), descriptor)
 	if err = c.combine(parent, expanded, text(decl[namespaceField]), descriptor); err != nil {
 		return err
 	}
+	c.inheritImportFacts(importer, name, text(decl[namespaceField]), symbols)
 	return c.addImportRecords(importer, name, requestedDecl, descriptor, raw)
 }
 func importSource(decl map[string]any) string {

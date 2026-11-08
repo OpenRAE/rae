@@ -76,14 +76,14 @@ func decodeLock(raw []byte, limit int64) (*lockfile, error) {
 		return nil, importError(lockInvalidCode)
 	}
 	value := object(decoded)
-	if !closed(value, nil, []string{"schema_version", "imports"}) {
+	if !closed(value, nil, []string{"schema_version", importsField}) {
 		return nil, importError(lockInvalidCode)
 	}
 	if version, ok := value["schema_version"]; ok && version != "raes-lock/v1" {
 		return nil, importError(lockInvalidCode)
 	}
-	rows, ok := value["imports"].([]any)
-	if _, present := value["imports"]; present && !ok {
+	rows, ok := value[importsField].([]any)
+	if _, present := value[importsField]; present && !ok {
 		return nil, importError(lockInvalidCode)
 	}
 	lock := &lockfile{}

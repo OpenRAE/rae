@@ -1,16 +1,27 @@
 package authoring
 
 const (
-	strictNumberShape      = "number!"
-	sharedLayoutKey        = "$shared"
-	parameterRefusedCode   = "parameter-refused"
-	budgetExceededCode     = "budget-exceeded"
-	pathInvalidCode        = "path-invalid"
-	localImportPrefix      = "local:"
-	sha256Prefix           = "sha256:"
-	lockInvalidCode        = "lock-invalid"
-	deploymentTenantPrefix = "deployment_tenants."
-	nodesPrefix            = "nodes."
+	valueField         = "value"
+	importsField       = "imports"
+	allowedValuesField = "allowed_values"
+	countField         = "count"
+	fieldPointerField  = "field_pointer"
+	kindField          = "kind"
+
+	noneTerm                    = "none"
+	selfTerm                    = "self"
+	handoffTerm                 = "handoff"
+	evidenceRequirementsSection = "evidence_requirements"
+	strictNumberShape           = "number!"
+	sharedLayoutKey             = "$shared"
+	parameterRefusedCode        = "parameter-refused"
+	budgetExceededCode          = "budget-exceeded"
+	pathInvalidCode             = "path-invalid"
+	localImportPrefix           = "local:"
+	sha256Prefix                = "sha256:"
+	lockInvalidCode             = "lock-invalid"
+	deploymentTenantPrefix      = "deployment_tenants."
+	nodesPrefix                 = "nodes."
 )
 
 const (
@@ -106,7 +117,13 @@ const (
 
 const computeType = "compute"
 
-const commandField = "command"
+const (
+	runtimeField = "runtime"
+	openTerm     = "open"
+	falseTerm    = "false"
+	trueTerm     = "true"
+	otherTerm    = "other"
+)
 
 const accessObservationsField = "access_observations"
 
@@ -149,10 +166,6 @@ const (
 	joinStepType     = "join"
 )
 
-const onFailureField = "on_failure"
-
-const onSuccessField = "on_success"
-
 const (
 	participantRefsField     = "participant_refs"
 	participantRoleRefsField = "participant_role_refs"
@@ -185,4 +198,9 @@ const (
 	protocolField           = "protocol"
 	forestTrustField        = "forest_trust"
 	identityFederationField = "identity_federation"
+)
+
+const (
+	temporalConstraintsSection = "temporal_constraints"
+	mailServicesField          = "mail_services"
 )

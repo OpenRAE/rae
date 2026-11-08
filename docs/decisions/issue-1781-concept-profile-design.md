@@ -316,11 +316,11 @@ Thus a nested union member without its tag is refused in a fragment, as in a who
 The architecture model records the typed interface of each package.
 Each line below commits this design to that interface.
 
-<!-- go-api implementations/go/contract/diagnostic 040441af1c0bec9978fafa927a6a3366d0e3b5bb302581c35fdcf809819b376e -->
+<!-- go-api implementations/go/contract/diagnostic b2c94c0e94d12f7029268c3edf96e7b88e6b97b192f658bc256dd30736c839b2 -->
 
-<!-- go-api implementations/go/contract/concept d6861ce78451cf3d07e03ca17bb051a51a44651b9e238e9a5de724ced47c11cd -->
+<!-- go-api implementations/go/contract/concept 5b24a390561afe25669d9a5b1c4bfba93e374fe1f5c005e8c22c5e32fa2882a0 -->
 
-<!-- go-api implementations/go/contract/profile 4ac84f8912b9e07e288358a13b71fee3e3a7a87f094d0a58f795899278c69417 -->
+<!-- go-api implementations/go/contract/profile 50a25c6f86bb5a965fa3372cb8319bee0cd7e64d2861a8bdab3a1a6a77fa7d6a -->
 
 <!-- go-api implementations/go/internal/contract/domainprofile 1e611b77eb3507157548369c33197223032cef8639f34cc59147901f53624b9c -->
 

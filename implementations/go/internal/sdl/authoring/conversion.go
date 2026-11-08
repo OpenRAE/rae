@@ -9,14 +9,16 @@ import (
 )
 
 type scalarPolicy struct {
-	Members []string      `json:"members"`
-	Scopes  []string      `json:"scopes"`
-	Minimum *string       `json:"minimum"`
-	Maximum *string       `json:"maximum"`
-	Shapes  []string      `json:"shapes"`
-	Convert []string      `json:"convert"`
-	Items   *scalarPolicy `json:"items"`
-	Values  *scalarPolicy `json:"values"`
+	ExplicitnessAtomic bool          `json:"explicitness_atomic"`
+	ExplicitnessEnums  []string      `json:"explicitness_enums"`
+	Members            []string      `json:"members"`
+	Scopes             []string      `json:"scopes"`
+	Minimum            *string       `json:"minimum"`
+	Maximum            *string       `json:"maximum"`
+	Shapes             []string      `json:"shapes"`
+	Convert            []string      `json:"convert"`
+	Items              *scalarPolicy `json:"items"`
+	Values             *scalarPolicy `json:"values"`
 }
 
 func childPolicy(policy *scalarPolicy) scalarPolicy {

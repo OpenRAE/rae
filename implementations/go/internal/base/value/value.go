@@ -108,6 +108,21 @@ type budget struct {
 // It never calls methods on an unknown carrier. The walk is iterative and
 // bounded even for a cyclic Go map or slice.
 func Validate(value any, limits Limits) error {
+	return validate(value, limits, nil)
+}
+
+// ValidateProjected admits one shallow view per visited value. The caller
+// explicitly supplies trusted projection code; unknown projected scalar
+// carriers retain Validate's refusal. Depth and node limits are checked before
+// invoking project, and queued children are bounded before visiting them.
+func ValidateProjected(root any, limits Limits, project func(any) (any, error)) error {
+	if project == nil {
+		return ErrInput
+	}
+	return validate(root, limits, project)
+}
+
+func validate(value any, limits Limits, project func(any) (any, error)) error {
 	if err := limits.Validate(); err != nil {
 		return err
 	}
@@ -119,6 +134,13 @@ func Validate(value any, limits Limits) error {
 		state.nodes++
 		if item.depth > limits.MaxDepth || state.nodes > limits.MaxNodes || state.nodes > limits.MaxOperations {
 			return ErrLimit
+		}
+		if project != nil {
+			projected, err := project(item.value)
+			if err != nil {
+				return err
+			}
+			item.value = projected
 		}
 		children, err := state.visit(item)
 		if err != nil {

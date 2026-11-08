@@ -1,6 +1,7 @@
 // Package diagnostic defines the structured result records that contract,
 // SDL and processor operations return. A record carries machine-readable
-// codes and locations; its message never repeats a supplied value.
+// codes and locations. Domain findings may name source identifiers; the
+// enclosing fault category and code remain independent of supplied values.
 package diagnostic
 
 import "github.com/OpenRAE/rae/implementations/go/base/fault"
@@ -10,10 +11,12 @@ import "github.com/OpenRAE/rae/implementations/go/base/fault"
 type Range struct{ StartLine, StartColumn, EndLine, EndColumn int }
 
 // Diagnostic is one machine-readable finding. Code, Domain and Address
-// identify the finding; Message is fixed text for a reader.
+// identify the finding; Message describes it for a reader.
 type Diagnostic struct {
-	Code, Severity, Stage, Source, Pointer, Message, Domain, Address string
-	Range                                                            *Range
+	Code, Severity, Stage, Source, Pointer string
+	OriginalPointer                        string `json:"original_path,omitempty"`
+	Message, Domain, Address               string
+	Range                                  *Range
 }
 
 // Error is an operation failure that also carries its diagnostics. Its

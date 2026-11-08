@@ -27,7 +27,7 @@ func (c *composition) namespaceVariables(value map[string]any, namespace string,
 	}
 	for _, raw := range object(result[variationPointsField]) {
 		point := object(raw)
-		if point["kind"] == "parameter" {
+		if point[kindField] == variationParameterKind {
 			target := object(point[targetField])
 			if renamed, present := names[text(target["variable"])]; present {
 				target["variable"] = renamed

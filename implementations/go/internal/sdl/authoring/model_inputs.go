@@ -39,9 +39,9 @@ func structuredInput(model, name string, value any) (any, error) {
 		}
 	case "AlternativeVariationPoint/target":
 		if target := object(value); target != nil {
-			if _, present := target["kind"]; !present {
+			if _, present := target[kindField]; !present {
 				inferred := maps.Clone(target)
-				inferred["kind"] = "reference"
+				inferred[kindField] = "reference"
 				return inferred, nil
 			}
 		}
@@ -53,12 +53,12 @@ func omitInferredTarget(pointer, name string, original, normalized any) any {
 	if pointer != "#/$defs/AlternativeVariationPoint" || name != targetField || object(original) == nil {
 		return normalized
 	}
-	if _, present := object(original)["kind"]; present {
+	if _, present := object(original)[kindField]; present {
 		return normalized
 	}
 	if fields, ok := normalized.(ordered); ok {
 		for i := range fields {
-			if fields[i].name == "kind" {
+			if fields[i].name == kindField {
 				fields[i].omit = true
 			}
 		}

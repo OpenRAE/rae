@@ -66,6 +66,10 @@
         {
           "path": "golang.org/x/text/language",
           "reason": "The language-neutral casing tag used by the existing Unicode casing library."
+        },
+        {
+          "path": "golang.org/x/text/unicode/rangetable",
+          "reason": "Reuse the existing Go supplementary Unicode dependency to quote reference diagnostic strings with Python 3.14 Unicode 16 printability."
         }
       ]
     },
@@ -4237,7 +4241,7 @@
         "implementations/go/base/fault",
         "implementations/go/base/canonjson"
       ],
-      "design": "docs/decisions/issue-1779-shared-primitives-completion.md",
+      "design": "docs/decisions/issue-1783-sdl-semantics-design.md",
       "api": {
         "linux-amd64": [
           "const github.com/OpenRAE/rae/implementations/go/internal/base/value.MaterializationBytes untyped int = 4194304",
@@ -4248,6 +4252,7 @@
           "func github.com/OpenRAE/rae/implementations/go/internal/base/value.Plan() github.com/OpenRAE/rae/implementations/go/internal/base/value.Limits",
           "func github.com/OpenRAE/rae/implementations/go/internal/base/value.Runtime() github.com/OpenRAE/rae/implementations/go/internal/base/value.Limits",
           "func github.com/OpenRAE/rae/implementations/go/internal/base/value.Validate(value any, limits github.com/OpenRAE/rae/implementations/go/internal/base/value.Limits) error",
+          "func github.com/OpenRAE/rae/implementations/go/internal/base/value.ValidateProjected(root any, limits github.com/OpenRAE/rae/implementations/go/internal/base/value.Limits, project func(any) (any, error)) error",
           "method *github.com/OpenRAE/rae/implementations/go/internal/base/value.DocumentText func (github.com/OpenRAE/rae/implementations/go/internal/base/value.DocumentText).MarshalJSON() ([]byte, error) selected=func() ([]byte, error)",
           "method *github.com/OpenRAE/rae/implementations/go/internal/base/value.Limits func (github.com/OpenRAE/rae/implementations/go/internal/base/value.Limits).Validate() error selected=func() error",
           "method error func (error).Error() string selected=func() string",
@@ -4975,7 +4980,7 @@
           "package diagnostic",
           "type error constraints[] interface{Error() string} comparable=true",
           "type github.com/OpenRAE/rae/implementations/go/base/fault.Category constraints[] uint8 comparable=true",
-          "type github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Diagnostic constraints[] struct{Code string \"\" embedded=false; Severity string \"\" embedded=false; Stage string \"\" embedded=false; Source string \"\" embedded=false; Pointer string \"\" embedded=false; Message string \"\" embedded=false; Domain string \"\" embedded=false; Address string \"\" embedded=false; Range *github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Range \"\" embedded=false} unexported-fields=false comparable=true",
+          "type github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Diagnostic constraints[] struct{Code string \"\" embedded=false; Severity string \"\" embedded=false; Stage string \"\" embedded=false; Source string \"\" embedded=false; Pointer string \"\" embedded=false; OriginalPointer string \"json:\\\"original_path,omitempty\\\"\" embedded=false; Message string \"\" embedded=false; Domain string \"\" embedded=false; Address string \"\" embedded=false; Range *github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Range \"\" embedded=false} unexported-fields=false comparable=true",
           "type github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Error constraints[] interface{Category() github.com/OpenRAE/rae/implementations/go/base/fault.Category; Code() string; Diagnostics() []github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Diagnostic; Unwrap() error; error} comparable=true",
           "type github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Range constraints[] struct{StartLine int \"\" embedded=false; StartColumn int \"\" embedded=false; EndLine int \"\" embedded=false; EndColumn int \"\" embedded=false} unexported-fields=false comparable=true"
         ]
@@ -5059,7 +5064,7 @@
           "type github.com/OpenRAE/rae/implementations/go/contract/concept.SnapshotTerm constraints[] struct{ConceptID string \"\" embedded=false; Status string \"\" embedded=false; SuccessorConceptIDs []string \"\" embedded=false} unexported-fields=false comparable=false",
           "type github.com/OpenRAE/rae/implementations/go/contract/concept.Subject constraints[] struct{SubjectKind string \"\" embedded=false; OwningContractID string \"\" embedded=false; LifecyclePhase string \"\" embedded=false; CanonicalRef string \"\" embedded=false; ArtifactDigest string \"\" embedded=false} unexported-fields=false comparable=true",
           "type github.com/OpenRAE/rae/implementations/go/contract/concept.Vocabulary constraints[] struct{ID string \"\" embedded=false; Title string \"\" embedded=false; Description string \"\" embedded=false; Kind string \"\" embedded=false; ExtensionPolicy string \"\" embedded=false; ExtensionPattern string \"\" embedded=false; GovernedScopes []string \"\" embedded=false; Terms []string \"\" embedded=false} unexported-fields=false comparable=false",
-          "type github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Diagnostic constraints[] struct{Code string \"\" embedded=false; Severity string \"\" embedded=false; Stage string \"\" embedded=false; Source string \"\" embedded=false; Pointer string \"\" embedded=false; Message string \"\" embedded=false; Domain string \"\" embedded=false; Address string \"\" embedded=false; Range *github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Range \"\" embedded=false} unexported-fields=false comparable=true",
+          "type github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Diagnostic constraints[] struct{Code string \"\" embedded=false; Severity string \"\" embedded=false; Stage string \"\" embedded=false; Source string \"\" embedded=false; Pointer string \"\" embedded=false; OriginalPointer string \"json:\\\"original_path,omitempty\\\"\" embedded=false; Message string \"\" embedded=false; Domain string \"\" embedded=false; Address string \"\" embedded=false; Range *github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Range \"\" embedded=false} unexported-fields=false comparable=true",
           "type github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Range constraints[] struct{StartLine int \"\" embedded=false; StartColumn int \"\" embedded=false; EndLine int \"\" embedded=false; EndColumn int \"\" embedded=false} unexported-fields=false comparable=true",
           "type github.com/OpenRAE/rae/implementations/go/contract/validation.Input constraints[] struct{ContractID string \"json:\\\"contract_id\\\"\" embedded=false; Path string \"json:\\\"instance_path\\\"\" embedded=false} unexported-fields=false comparable=true",
           "type github.com/OpenRAE/rae/implementations/go/contract/validation.Invocation constraints[] struct{Key github.com/OpenRAE/rae/implementations/go/contract/validation.Key \"\" embedded=false; Path string \"\" embedded=false; Root any \"\" embedded=false; Instance any \"\" embedded=false; Context any \"\" embedded=false; Inputs []github.com/OpenRAE/rae/implementations/go/contract/validation.Input \"\" embedded=false; Source string \"\" embedded=false} unexported-fields=false comparable=false",
@@ -5407,7 +5412,7 @@
           "type github.com/OpenRAE/rae/implementations/go/contract/concept.SnapshotTerm constraints[] struct{ConceptID string \"\" embedded=false; Status string \"\" embedded=false; SuccessorConceptIDs []string \"\" embedded=false} unexported-fields=false comparable=false",
           "type github.com/OpenRAE/rae/implementations/go/contract/concept.Subject constraints[] struct{SubjectKind string \"\" embedded=false; OwningContractID string \"\" embedded=false; LifecyclePhase string \"\" embedded=false; CanonicalRef string \"\" embedded=false; ArtifactDigest string \"\" embedded=false} unexported-fields=false comparable=true",
           "type github.com/OpenRAE/rae/implementations/go/contract/concept.Vocabulary constraints[] struct{ID string \"\" embedded=false; Title string \"\" embedded=false; Description string \"\" embedded=false; Kind string \"\" embedded=false; ExtensionPolicy string \"\" embedded=false; ExtensionPattern string \"\" embedded=false; GovernedScopes []string \"\" embedded=false; Terms []string \"\" embedded=false} unexported-fields=false comparable=false",
-          "type github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Diagnostic constraints[] struct{Code string \"\" embedded=false; Severity string \"\" embedded=false; Stage string \"\" embedded=false; Source string \"\" embedded=false; Pointer string \"\" embedded=false; Message string \"\" embedded=false; Domain string \"\" embedded=false; Address string \"\" embedded=false; Range *github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Range \"\" embedded=false} unexported-fields=false comparable=true",
+          "type github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Diagnostic constraints[] struct{Code string \"\" embedded=false; Severity string \"\" embedded=false; Stage string \"\" embedded=false; Source string \"\" embedded=false; Pointer string \"\" embedded=false; OriginalPointer string \"json:\\\"original_path,omitempty\\\"\" embedded=false; Message string \"\" embedded=false; Domain string \"\" embedded=false; Address string \"\" embedded=false; Range *github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Range \"\" embedded=false} unexported-fields=false comparable=true",
           "type github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Range constraints[] struct{StartLine int \"\" embedded=false; StartColumn int \"\" embedded=false; EndLine int \"\" embedded=false; EndColumn int \"\" embedded=false} unexported-fields=false comparable=true",
           "type github.com/OpenRAE/rae/implementations/go/contract/profile.BehavioralClaim constraints[] struct{TaxonomyID string \"\" embedded=false; TaxonomyRevision string \"\" embedded=false; RelationID string \"\" embedded=false; LeftCarrierRef string \"\" embedded=false; RightCarrierRef string \"\" embedded=false; ObservationProjectionRef string \"\" embedded=false; ObservationProjectionRevision string \"\" embedded=false; ProfileRef string \"\" embedded=false; ProfileRevision string \"\" embedded=false; AssuranceAxis string \"\" embedded=false} unexported-fields=false comparable=true",
           "type github.com/OpenRAE/rae/implementations/go/contract/profile.ComparisonLimits constraints[] struct{MaxSubjects int \"\" embedded=false; MaxDependencyEdges int \"\" embedded=false; MaxPathDepth int \"\" embedded=false; MaxPaths int \"\" embedded=false; MaxDiagnostics int \"\" embedded=false} unexported-fields=false comparable=true",
@@ -5671,24 +5676,25 @@
       "public": true,
       "doc": "Complete contract-family semantic admission, explicit trusted context and portable validation parity.",
       "imports": [
-        "implementations/go/contract/validation",
-        "implementations/go/contract/binding",
+        "implementations/go/base/address",
         "implementations/go/base/canonjson",
         "implementations/go/base/digest",
-        "implementations/go/internal/base/timestamp",
-        "implementations/go/internal/base/graph",
-        "implementations/go/internal/base/urisafety",
-        "implementations/go/base/address",
-        "implementations/go/internal/base/jsonpointer",
-        "implementations/go/internal/base/value",
-        "implementations/go/internal/base/domain",
-        "implementations/go/internal/base/randstream",
         "implementations/go/base/fault",
         "implementations/go/base/ingress",
+        "implementations/go/contract/binding",
         "implementations/go/contract/concept",
         "implementations/go/contract/profile",
+        "implementations/go/contract/validation",
+        "implementations/go/internal/base/domain",
+        "implementations/go/internal/base/graph",
+        "implementations/go/internal/base/jsonpointer",
+        "implementations/go/internal/base/randstream",
+        "implementations/go/internal/base/softwareversion",
+        "implementations/go/internal/base/timestamp",
+        "implementations/go/internal/base/urisafety",
+        "implementations/go/internal/base/value",
         "implementations/go/internal/contract/domainprofile",
-        "implementations/go/internal/base/softwareversion"
+        "implementations/go/internal/contract/sdlrules"
       ],
       "design": "docs/decisions/issue-1780-contract-validation-design.md",
       "api": {
@@ -6932,20 +6938,30 @@
         "implementations/go/base/fault",
         "implementations/go/base/ingress",
         "implementations/go/contract/admission",
+        "implementations/go/contract/binding",
         "implementations/go/contract/concept",
+        "implementations/go/contract/diagnostic",
         "implementations/go/contract/validation",
+        "implementations/go/internal/base/domain",
         "implementations/go/internal/base/graph",
         "implementations/go/internal/base/jsonpointer",
+        "implementations/go/internal/base/value",
         "implementations/go/internal/contract/corpus",
+        "implementations/go/internal/contract/sdlrules",
         "implementations/go/internal/sdl/source"
       ],
-      "design": "docs/decisions/issue-1782-source-loading-design.md",
+      "design": "docs/decisions/issue-1783-sdl-semantics-design.md",
       "api": {
         "linux-amd64": [
           "func github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.New(limits github.com/OpenRAE/rae/implementations/go/internal/sdl/source.Limits) (*github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Parser, error)",
+          "method *github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document func (*github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document).CanonicalBytes() ([]byte, error) selected=func() ([]byte, error)",
+          "method *github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document func (*github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document).CanonicalDigest() (string, error) selected=func() (string, error)",
+          "method *github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document func (*github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document).Explicitness() map[string]github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.ExplicitnessRecord selected=func() map[string]github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.ExplicitnessRecord",
           "method *github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document func (*github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document).JSON() []byte selected=func() []byte",
+          "method *github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document func (*github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document).Validated() bool selected=func() bool",
           "method *github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Parser func (*github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Parser).Decode(request github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Request) (*github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document, error) selected=func(request github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Request) (*github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document, error)",
           "method *github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Parser func (*github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Parser).Format(request github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Request) (github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Result, error) selected=func(request github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Request) (github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Result, error)",
+          "method *github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Parser func (*github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Parser).Validate(document *github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document) (*github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document, []github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Diagnostic, error) selected=func(document *github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document) (*github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document, []github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Diagnostic, error)",
           "method *github.com/OpenRAE/rae/implementations/go/internal/sdl/source.Diagnostic func (github.com/OpenRAE/rae/implementations/go/internal/sdl/source.Diagnostic).Machine() map[string]any selected=func() map[string]any",
           "method *github.com/OpenRAE/rae/implementations/go/internal/sdl/source.Limits func (github.com/OpenRAE/rae/implementations/go/internal/sdl/source.Limits).Validate() error selected=func() error",
           "method *io/fs.FileMode func (io/fs.FileMode).IsDir() bool selected=func() bool",
@@ -7089,7 +7105,10 @@
           "package authoring",
           "type any = interface{}",
           "type error constraints[] interface{Error() string} comparable=true",
+          "type github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Diagnostic constraints[] struct{Code string \"\" embedded=false; Severity string \"\" embedded=false; Stage string \"\" embedded=false; Source string \"\" embedded=false; Pointer string \"\" embedded=false; OriginalPointer string \"json:\\\"original_path,omitempty\\\"\" embedded=false; Message string \"\" embedded=false; Domain string \"\" embedded=false; Address string \"\" embedded=false; Range *github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Range \"\" embedded=false} unexported-fields=false comparable=true",
+          "type github.com/OpenRAE/rae/implementations/go/contract/diagnostic.Range constraints[] struct{StartLine int \"\" embedded=false; StartColumn int \"\" embedded=false; EndLine int \"\" embedded=false; EndColumn int \"\" embedded=false} unexported-fields=false comparable=true",
           "type github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Document constraints[] struct{} unexported-fields=true comparable=false",
+          "type github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.ExplicitnessRecord constraints[] struct{Path string \"json:\\\"path\\\"\" embedded=false; Classification string \"json:\\\"classification\\\"\" embedded=false; Provenance string \"json:\\\"provenance\\\"\" embedded=false; Reason string \"json:\\\"reason\\\"\" embedded=false; Variables []string \"json:\\\"variables\\\"\" embedded=false} unexported-fields=false comparable=false",
           "type github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Parser constraints[] struct{} unexported-fields=true comparable=false",
           "type github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Request constraints[] struct{Source []byte \"\" embedded=false; Name string \"\" embedded=false; RootDir string \"\" embedded=false; FS io/fs.FS \"\" embedded=false; Sources map[string][]byte \"\" embedded=false} unexported-fields=false comparable=false",
           "type github.com/OpenRAE/rae/implementations/go/internal/sdl/authoring.Result constraints[] struct{Content []byte \"\" embedded=false; Diagnostics []github.com/OpenRAE/rae/implementations/go/internal/sdl/source.Diagnostic \"\" embedded=false} unexported-fields=false comparable=false",
@@ -7284,6 +7303,30 @@
           "package main"
         ]
       }
+    },
+    {
+      "dir": "implementations/go/internal/contract/sdlrules",
+      "layer": "contract",
+      "public": true,
+      "doc": "Shared typed SDL reference findings for contract and SDL admission.",
+      "imports": [
+        "implementations/go/base/fault",
+        "implementations/go/contract/binding",
+        "implementations/go/internal/base/jsonpointer"
+      ],
+      "design": "docs/decisions/issue-1783-sdl-semantics-design.md",
+      "api": {
+        "linux-amd64": [
+          "func github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.ServiceMaterialization(data []byte, order map[string][]string) ([]github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.Finding, error)",
+          "func github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.StatefulReferences(data []byte, order map[string][]string) ([]github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.Finding, error)",
+          "func github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.TemporalBindings(data []byte, order map[string][]string) ([]github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.Finding, error)",
+          "method error func (error).Error() string selected=func() string",
+          "package sdlrules",
+          "type error constraints[] interface{Error() string} comparable=true",
+          "type github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.Finding constraints[] struct{Owner github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.Owner \"\" embedded=false; Message string \"\" embedded=false} unexported-fields=false comparable=true",
+          "type github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.Owner constraints[] struct{Section string \"\" embedded=false; Name string \"\" embedded=false} unexported-fields=false comparable=true"
+        ]
+      }
     }
   ],
   "configurations": [
@@ -7318,7 +7361,8 @@
     "specs/sdl/document-model.md": "496290792659c189242ab93923f6f50e305e383d50588a4d75269d9ade2e2970",
     "specs/sdl/diagnostics.md": "422c46a1080f4dced095729967658f300520fa59b16c1923d113a758422a231e",
     "docs/decisions/adrs/adr-119-consumer-parse-of-supplied-sdl-sources.md": "b29df4c1c6dcb690d540532011f498a0a1afbe794877ec38e5b80d8cb66b5442",
-    "docs/decisions/issue-1799-go-governance-design.md": "1ab7caf68082ae72c58f71ed29b96f1eeb8872aac8ce894d6ef4047abec7925e"
+    "docs/decisions/issue-1799-go-governance-design.md": "1ab7caf68082ae72c58f71ed29b96f1eeb8872aac8ce894d6ef4047abec7925e",
+    "docs/decisions/issue-1783-sdl-semantics-design.md": "8bccd27d3825ea9d2ab7031c20b0c07d1e6b7d39d371d3ec31eb244fda98568f"
   },
   "consumer_api": {
     "design": "docs/decisions/issue-1825-public-go-api.md",
@@ -7715,7 +7759,7 @@
           "runtime"
         ],
         "declarations": "implementations/architecture-api/planned/rae/contract/diagnostic.go.txt",
-        "declarations_sha256": "3ae4238f9b7278c98faaae0d11dc9b53e5feebf4eccbd003208624fc0d00ba10"
+        "declarations_sha256": "26ac7d5fd84d78913c8ccc9ab8f26713885b2e05e77097746b245353ddee28dd"
       },
       {
         "owner": "rae",

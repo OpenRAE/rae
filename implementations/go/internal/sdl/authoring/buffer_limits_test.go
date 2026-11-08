@@ -199,7 +199,7 @@ func TestAliasNormalizationSharesScalarBytes(t *testing.T) {
 	runtime.GC()
 	var before, after runtime.MemStats
 	runtime.ReadMemStats(&before)
-	_, err = parser.construct(value, authoringContract, nil, parsed)
+	_, _, err = parser.construct(value, authoringContract, nil, parsed)
 	runtime.ReadMemStats(&after)
 	if err == nil {
 		t.Fatal("normalization exceeded its working ceiling")

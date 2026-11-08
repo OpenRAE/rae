@@ -24,6 +24,7 @@ type normalizer struct {
 	parser                        *Parser
 	id                            string
 	hints                         map[string][]string
+	order                         map[string][]string
 	patterns                      map[string]*regexp.Regexp
 	workingLimit, scalarRemaining int64
 	scalars                       map[string]string
@@ -217,6 +218,7 @@ func objectMatches(schema, value map[string]any) bool {
 	return true
 }
 func (w *normalizer) mapping(schema map[string]any, pointer string, value map[string]any, path []string, policy scalarPolicy, view source.View) (any, error) {
+	value = w.contentConstructorInput(pointer, value)
 	if pointer == "#/$defs/DomainProfileSchemaModel" && value["schema_digest"] == nil {
 		value = maps.Clone(value)
 		delete(value, "schema_digest")
@@ -258,6 +260,34 @@ func (w *normalizer) mapping(schema map[string]any, pointer string, value map[st
 	}
 	return result, nil
 }
+
+// The legacy service discriminator is supplied by the Content constructor,
+// before union selection. Profile bindings never receive a service default.
+func (w *normalizer) contentConstructorInput(pointer string, value map[string]any) map[string]any {
+	if pointer != "#/$defs/Content" {
+		return value
+	}
+	binding, mapping := value["service_materialization"].(map[string]any)
+	if !mapping {
+		return value
+	}
+	if _, supplied := binding["interface_profile"]; supplied {
+		return value
+	}
+	if _, legacy := binding["target_service_ref"]; !legacy {
+		return value
+	}
+	profile := resolve(w.parser.schemas[w.id], "#/$defs/DomainProfileBindingModel")
+	for name := range object(profile["properties"]) {
+		if _, supplied := binding[name]; supplied {
+			return value
+		}
+	}
+	result, service := maps.Clone(value), maps.Clone(binding)
+	service["interface_profile"] = "service-content"
+	result["service_materialization"] = service
+	return result
+}
 func (w *normalizer) propertySchema(schema map[string]any, name string) (map[string]any, error) {
 	if child, present := object(schema["properties"])[name]; present {
 		return object(child), nil
@@ -293,6 +323,9 @@ func (w *normalizer) propertyPattern(pattern string) (*regexp.Regexp, error) {
 }
 func (w *normalizer) keys(value map[string]any, path []string, view source.View) []string {
 	known := view.Keys()
+	if known == nil && w.order != nil {
+		known = w.order[jsonpointer.FromTokens(path)]
+	}
 	if known == nil && nodeListPath(path) {
 		known = w.hints[jsonpointer.FromTokens(path)]
 	}

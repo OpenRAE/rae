@@ -73,15 +73,15 @@ func actionArgumentOutput(fields ordered, order []string) ordered {
 		return fields
 	}
 	for i, field := range fields {
-		if field.name == "allowed_values" || field.name == defaultField {
+		if field.name == allowedValuesField || field.name == defaultField {
 			fields[i].value = trimArgumentValue(field.value)
 		}
 	}
-	values := object(fields)["allowed_values"]
+	values := object(fields)[allowedValuesField]
 	if values == nil {
 		values = []any{}
 	}
-	return setModelField(fields, order, "allowed_values", values)
+	return setModelField(fields, order, allowedValuesField, values)
 }
 
 func trimArgumentValue(value any) any {
