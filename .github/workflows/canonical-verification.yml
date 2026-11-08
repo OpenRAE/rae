@@ -590,7 +590,8 @@ jobs:
   go:
     needs: trust-ref
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ inputs.exhaustive-mutations && 360 || (matrix.name == 'tooling' && 40 || 25) }}
+    # Include pinned tool builds, the independent reference corpus, and race tests.
+    timeout-minutes: ${{ inputs.exhaustive-mutations && 360 || 40 }}
     strategy:
       fail-fast: false
       matrix:
