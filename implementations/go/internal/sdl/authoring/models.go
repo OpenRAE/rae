@@ -91,7 +91,7 @@ func (w *normalizer) fieldInput(pointer, name string, value any) (any, error) {
 		}
 		return w.caseText(pythonTrim(protocol), false)
 	}
-	if bound, ok := integerBound(model, name); ok && !variable(value) {
+	if bound, ok := integerBound(model, name); ok && value != nil && !variable(value) {
 		return boundedInteger(value, bound)
 	}
 	switch model {

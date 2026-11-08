@@ -5035,7 +5035,23 @@
         "methods": {
           "convert": [
             "strings"
-          ]
+          ],
+          "items": {
+            "convert": [
+              "http-method"
+            ],
+            "members": [
+              "CONNECT",
+              "DELETE",
+              "GET",
+              "HEAD",
+              "OPTIONS",
+              "PATCH",
+              "POST",
+              "PUT",
+              "TRACE"
+            ]
+          }
         },
         "session_required": {
           "convert": [

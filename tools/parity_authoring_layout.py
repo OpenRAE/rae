@@ -44,6 +44,7 @@ PRIMITIVES = {
     "parse_limit_value": "limit",
     "parse_account_vocabulary": "account-vocabulary",
     "normalize_capability_name": "capability",
+    "normalize_http_method": "http-method",
 }
 
 
@@ -200,8 +201,11 @@ def wrapper_plan(schema: dict[str, Any]) -> dict[str, Any]:
     kind = schema["type"]
     if kind == "function-after":
         function = schema["function"].get("function")
-        if "capability" in function_policy(function):
-            result["convert"] = sorted(set(result.get("convert", [])) | {"capability"})
+        conversions = function_policy(function) & {"capability", "http-method"}
+        if conversions:
+            result["convert"] = sorted(set(result.get("convert", [])) | conversions)
+        if "http-method" in conversions:
+            result["members"] = sorted(function.__globals__["_HTTP_METHODS"])
     if kind == "function-before":
         conversion_plan(schema["function"].get("function"), result)
     return result

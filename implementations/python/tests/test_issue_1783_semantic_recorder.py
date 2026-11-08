@@ -40,6 +40,8 @@ def vector(name: str) -> dict:
         "explicitness-atomic-child-variable",
         "explicitness-dns-exact-extension",
         "service-profile-constructor-default",
+        "canonical-http-wire-methods",
+        "condition-null-optional-integers",
     ],
 )
 def test_frozen_semantic_evidence_matches_reference(recorder, name: str) -> None:

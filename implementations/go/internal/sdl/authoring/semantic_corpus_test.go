@@ -2,6 +2,7 @@ package authoring
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"testing"
 	"testing/fstest"
@@ -83,6 +84,10 @@ func checkSemanticCorpusVector(t *testing.T, parser *Parser, row semanticCorpusV
 		err = parser.checkImports(document, request, nil)
 	}
 	if (err == nil) != row.Constructed {
+		t.Logf("construction diagnostics: %+v", source.Diagnostics(err))
+		if model, ok := errors.AsType[*modelError](err); ok {
+			t.Logf("model failure at %s: %+v", model.path, model.cause)
+		}
 		t.Fatalf("construction = %v; want constructed %v", err, row.Constructed)
 	}
 	if err == nil {

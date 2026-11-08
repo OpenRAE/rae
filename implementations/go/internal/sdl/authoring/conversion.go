@@ -103,6 +103,8 @@ func (w *normalizer) scalarOperation(schema map[string]any, value any, operation
 		return w.accountVocabulary(value, policy)
 	case "capability":
 		return w.capability(value)
+	case "http-method":
+		return httpMethod(value, policy.Members), nil
 	case "enum", "vocabulary":
 		return w.enum(schema, value, operation == "vocabulary", policy)
 	case integerType:
@@ -130,6 +132,16 @@ func (w *normalizer) scalarOperation(schema map[string]any, value any, operation
 	default:
 		return nil, invalid()
 	}
+}
+
+func httpMethod(value any, members []string) any {
+	if method, ok := value.(string); ok {
+		normalized := upper(method)
+		if slices.Contains(members, normalized) {
+			return normalized
+		}
+	}
+	return value
 }
 func (w *normalizer) enum(schema map[string]any, value any, extension bool, policy scalarPolicy) (any, error) {
 	s, ok := value.(string)

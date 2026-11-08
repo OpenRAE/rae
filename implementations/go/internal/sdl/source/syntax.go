@@ -43,6 +43,8 @@ type preflight struct {
 	options                Options
 	layout                 sourceLayout
 	aliases, flow, scalars int
+	indents                []int
+	line                   int
 	skipName               bool
 	limitAlias             *token.Token
 }
@@ -85,14 +87,8 @@ func (p *preflight) token(t *token.Token, data []byte) error {
 	if err := p.presentation(t, data); err != nil {
 		return err
 	}
-	if t.Type == token.SequenceStartType || t.Type == token.MappingStartType {
-		p.flow++
-	}
-	if t.Type == token.SequenceEndType || t.Type == token.MappingEndType {
-		p.flow--
-	}
-	if p.flow+t.Position.IndentLevel > p.options.Limits.MaxDepth {
-		return failure(sourceLimitCode, tokenRange(t), p.options)
+	if err := p.nesting(t); err != nil {
+		return err
 	}
 	if t.Type == token.DoubleQuoteType {
 		if span, ok := quotedSurrogate(t); ok {
@@ -100,6 +96,38 @@ func (p *preflight) token(t *token.Token, data []byte) error {
 		}
 	}
 	return p.value(t)
+}
+
+func (p *preflight) nesting(t *token.Token) error {
+	if p.flow == 0 && t.Type != token.CommentType && (t.Position.Line != p.line || t.Type == token.SequenceEntryType) {
+		p.indentation(t)
+	}
+	if t.Type == token.SequenceStartType || t.Type == token.MappingStartType {
+		p.flow++
+	}
+	if t.Type == token.SequenceEndType || t.Type == token.MappingEndType {
+		p.flow--
+	}
+	if p.flow+len(p.indents)-1 > p.options.Limits.MaxDepth {
+		return failure(sourceLimitCode, tokenRange(t), p.options)
+	}
+	return nil
+}
+
+// Scanner IndentLevel decrements only once on any dedent. Track active
+// indentation columns so sibling subtrees cannot accumulate fictitious depth.
+func (p *preflight) indentation(t *token.Token) {
+	indent := t.Position.IndentNum
+	if t.Type == token.SequenceEntryType {
+		indent = t.Position.Column - 1
+	}
+	for len(p.indents) > 0 && p.indents[len(p.indents)-1] > indent {
+		p.indents = p.indents[:len(p.indents)-1]
+	}
+	if len(p.indents) == 0 || p.indents[len(p.indents)-1] < indent {
+		p.indents = append(p.indents, indent)
+	}
+	p.line = t.Position.Line
 }
 func (p *preflight) presentation(t *token.Token, data []byte) error {
 	r := tokenRange(t)

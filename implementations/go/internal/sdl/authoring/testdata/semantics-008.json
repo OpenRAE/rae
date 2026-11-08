@@ -4531,5 +4531,369 @@
         "variables": []
       }
     }
+  },
+  {
+    "name": "canonical-http-wire-methods",
+    "source": "\nname: techvault-application-surface\nnodes:\n  techvault-webapp:\n    type: compute\n    os: linux\n    services:\n      - port: 8080\n        name: techvault-http\n    runtime:\n      applications:\n        - application_id: techvault-webapp\n          service: techvault-http\n          protocol: http\n          base_path: /\n          framework: flask\n          routes:\n            - route_id: login\n              path: /login\n              methods: [get, post, mY-EXTENSION]\n              auth_required: false\n              session_required: false\n              parameters:\n                - name: username\n                  location: form\n                  required: true\n              responses:\n                - status_code: \"200\"\n                  content_type: text/html\n              redirects:\n                - target: /dashboard\n                  status_code: \"302\"\n",
+    "record_explicitness": true,
+    "accepted": true,
+    "findings": [],
+    "locations": [],
+    "canonical": "{\"module_node_variable_refs\":{},\"module_variable_specs\":{},\"profile\":\"raes-sdl-semantic/v2\",\"scenario\":{\"name\":\"techvault-application-surface\",\"nodes\":{\"techvault-webapp\":{\"os\":\"linux\",\"runtime\":{\"applications\":[{\"application_id\":\"techvault-webapp\",\"base_path\":\"/\",\"framework\":\"flask\",\"protocol\":\"http\",\"routes\":[{\"auth_required\":false,\"methods\":[\"GET\",\"POST\",\"mY-EXTENSION\"],\"parameters\":[{\"location\":\"form\",\"name\":\"username\",\"required\":true}],\"path\":\"/login\",\"redirects\":[{\"status_code\":302,\"target\":\"/dashboard\"}],\"responses\":[{\"content_type\":\"text/html\",\"status_code\":200}],\"route_id\":\"login\",\"session_required\":false}],\"service\":\"techvault-http\"}]},\"services\":[{\"name\":\"techvault-http\",\"port\":8080}],\"type\":\"compute\"}}}}",
+    "digest": "sha256:1bc34ab8cd37005b6743fab640539814bad03d635e71054e379edd4d8ef7c55d",
+    "advisories": [
+      "Node 'techvault-webapp' is compute without 'resources'. This is valid SDL, but may be undeployable unless the backend supplies defaults."
+    ],
+    "explicitness": {
+      "name": {
+        "path": "name",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.type": {
+        "path": "nodes.techvault-webapp.type",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.os": {
+        "path": "nodes.techvault-webapp.os",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.services[0].port": {
+        "path": "nodes.techvault-webapp.services[0].port",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.services[0].name": {
+        "path": "nodes.techvault-webapp.services[0].name",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.services[0]": {
+        "path": "nodes.techvault-webapp.services[0]",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "derived from child declarations",
+        "variables": []
+      },
+      "nodes.techvault-webapp.services": {
+        "path": "nodes.techvault-webapp.services",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "derived from child declarations",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].application_id": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].application_id",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].service": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].service",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].protocol": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].protocol",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].base_path": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].base_path",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].framework": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].framework",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].route_id": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].route_id",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].path": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].path",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].methods[0]": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].methods[0]",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].methods[1]": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].methods[1]",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].methods[2]": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].methods[2]",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].methods": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].methods",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "derived from child declarations",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].auth_required": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].auth_required",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].session_required": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].session_required",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].parameters[0].name": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].parameters[0].name",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].parameters[0].location": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].parameters[0].location",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].parameters[0].required": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].parameters[0].required",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].parameters[0]": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].parameters[0]",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "derived from child declarations",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].parameters": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].parameters",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "derived from child declarations",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].responses[0].status_code": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].responses[0].status_code",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].responses[0].content_type": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].responses[0].content_type",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].responses[0]": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].responses[0]",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "derived from child declarations",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].responses": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].responses",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "derived from child declarations",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].redirects[0].target": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].redirects[0].target",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].redirects[0].status_code": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].redirects[0].status_code",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].redirects[0]": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].redirects[0]",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "derived from child declarations",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0].redirects": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0].redirects",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "derived from child declarations",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes[0]": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes[0]",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "derived from child declarations",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0].routes": {
+        "path": "nodes.techvault-webapp.runtime.applications[0].routes",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "derived from child declarations",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications[0]": {
+        "path": "nodes.techvault-webapp.runtime.applications[0]",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "derived from child declarations",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime.applications": {
+        "path": "nodes.techvault-webapp.runtime.applications",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "derived from child declarations",
+        "variables": []
+      },
+      "nodes.techvault-webapp.runtime": {
+        "path": "nodes.techvault-webapp.runtime",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "derived from child declarations",
+        "variables": []
+      },
+      "nodes.techvault-webapp": {
+        "path": "nodes.techvault-webapp",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "derived from child declarations",
+        "variables": []
+      },
+      "nodes": {
+        "path": "nodes",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "derived from child declarations",
+        "variables": []
+      }
+    }
+  },
+  {
+    "name": "condition-null-optional-integers",
+    "source": "name: nullable-condition\nconditions:\n  health:\n    command: /bin/true\n    interval: 15\n    timeout: null\n    retries: null\n    start_period: null\n",
+    "record_explicitness": true,
+    "accepted": true,
+    "findings": [],
+    "locations": [],
+    "canonical": "{\"module_node_variable_refs\":{},\"module_variable_specs\":{},\"profile\":\"raes-sdl-semantic/v2\",\"scenario\":{\"conditions\":{\"health\":{\"command\":\"/bin/true\",\"interval\":15,\"retries\":null,\"start_period\":null,\"timeout\":null}},\"name\":\"nullable-condition\"}}",
+    "digest": "sha256:bc77d93b1c70701e95cc40a5bf4b65eb438146c96b09937cb448e72117eec5d8",
+    "advisories": [],
+    "explicitness": {
+      "name": {
+        "path": "name",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "conditions.health.command": {
+        "path": "conditions.health.command",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "conditions.health.interval": {
+        "path": "conditions.health.interval",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "conditions.health.timeout": {
+        "path": "conditions.health.timeout",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "conditions.health.retries": {
+        "path": "conditions.health.retries",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "conditions.health.start_period": {
+        "path": "conditions.health.start_period",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "authored concrete value",
+        "variables": []
+      },
+      "conditions.health": {
+        "path": "conditions.health",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "derived from child declarations",
+        "variables": []
+      },
+      "conditions": {
+        "path": "conditions",
+        "classification": "exact",
+        "provenance": "author-declared",
+        "reason": "derived from child declarations",
+        "variables": []
+      }
+    }
   }
 ]

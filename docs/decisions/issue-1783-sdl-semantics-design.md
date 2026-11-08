@@ -275,6 +275,15 @@ A manifest records each shard name, case count, and SHA-256 digest.
 The native tests verify the manifest and compare every retained case.
 This changes fixture storage only. It does not remove cases or change expected results.
 Existing source and import checks retain ownership of their boundaries.
+Non-text sources remain explicit transport refusals in the corpus oracle.
+The source depth check counts active indentation levels, including compact block sequences.
+Sibling entries do not consume nesting depth. The exact graph checks retain the depth and work limits.
+Literal mapping keys reject variable placeholders. Opaque profile data keeps its existing key policy.
+Optional integer fields preserve null values. Required fields and numeric bounds still apply.
+Recorded scalar metadata supplies the built-in HTTP method aliases.
+Canonical output preserves the exact case of extension methods.
+The regular product Go job has the existing 40-minute tooling allowance for reference recording and race tests.
+All verification steps remain enabled.
 
 ## API commitment
 
