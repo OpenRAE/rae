@@ -341,11 +341,19 @@ def corpus_semantic(case: dict[str, Any], corpus: Path) -> dict[str, Any]:
     arguments = json.loads(read_blob(corpus, identity))
     row = {
         "name": case["name"],
-        "source": arguments["sdl_content"],
+        "source": arguments.get("sdl_content"),
         "record_explicitness": True,
         "accept_migration": arguments.get("accept_migration_syntax", False),
         "_corpus": True,
     }
+    if not isinstance(row["source"], str):
+        return {
+            "name": row["name"],
+            "source": row["source"],
+            "constructed": False,
+            "input_error": "non-text-source",
+            "accept_migration": row["accept_migration"],
+        }
     with tempfile.TemporaryDirectory(prefix="sdl-semantic-oracle-") as directory:
         row["_path"] = Path(directory) / MAIN_SOURCE
         try:

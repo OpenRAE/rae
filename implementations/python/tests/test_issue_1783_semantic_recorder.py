@@ -134,6 +134,26 @@ def test_corpus_oracle_keeps_construction_refusal_separate(recorder, monkeypatch
     assert "accepted" not in result
 
 
+@pytest.mark.parametrize("source", [None, [], {}, 42, True])
+@pytest.mark.parametrize("migration", [False, ["invalid"]])
+def test_corpus_oracle_retains_non_text_transport_refusals(recorder, monkeypatch, source, migration) -> None:
+    arguments = {"sdl_content": source, "accept_migration_syntax": migration}
+    monkeypatch.setattr(recorder, "read_blob", lambda *_: json.dumps(arguments).encode())
+
+    def unexpected_semantic(_rows):
+        pytest.fail("non-text transport input must not reach the SDL parser")
+
+    monkeypatch.setattr(recorder, "semantic", unexpected_semantic)
+    result = recorder.corpus_semantic({"name": "non-text", "files": {"arguments.json": "sha256:" + "a" * 64}}, ROOT)
+    assert result == {
+        "name": "non-text",
+        "source": source,
+        "constructed": False,
+        "input_error": "non-text-source",
+        "accept_migration": migration,
+    }
+
+
 def test_corpus_oracle_preserves_operational_failures(recorder, monkeypatch) -> None:
     monkeypatch.setattr(recorder, "read_blob", lambda *_: b'{"sdl_content":"name: example"}')
 

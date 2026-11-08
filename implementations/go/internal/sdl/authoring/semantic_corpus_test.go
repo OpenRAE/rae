@@ -12,8 +12,10 @@ import (
 type semanticCorpusVector struct {
 	semanticVector
 
-	Constructed bool `json:"constructed"`
-	Migration   bool `json:"accept_migration"`
+	Source      json.RawMessage `json:"source"`
+	Constructed bool            `json:"constructed"`
+	Migration   json.RawMessage `json:"accept_migration"`
+	InputError  string          `json:"input_error"`
 }
 
 // CI records every retained MCP source input with the unchanged reference.
@@ -55,11 +57,27 @@ func TestSemanticCorpusReference(t *testing.T) {
 
 func checkSemanticCorpusVector(t *testing.T, parser *Parser, row semanticCorpusVector) {
 	t.Helper()
+	if len(row.Source) == 0 || row.Source[0] != '"' {
+		if row.InputError != "non-text-source" || row.Constructed {
+			t.Fatal("non-text source must retain its transport refusal")
+		}
+		return
+	}
+	if row.InputError != "" {
+		t.Fatal("text source must reach the SDL owner")
+	}
+	if err := json.Unmarshal(row.Source, &row.semanticVector.Source); err != nil {
+		t.Fatal(err)
+	}
+	var migration bool
+	if err := json.Unmarshal(row.Migration, &migration); err != nil {
+		t.Fatal(err)
+	}
 	policy := "reject"
-	if row.Migration {
+	if migration {
 		policy = "accept"
 	}
-	request := Request{Source: []byte(row.Source), Name: "main.yaml", FS: fstest.MapFS{}}
+	request := Request{Source: []byte(row.semanticVector.Source), Name: "main.yaml", FS: fstest.MapFS{}}
 	document, err := parser.decode(request.Source, request.Name, policy)
 	if err == nil {
 		err = parser.checkImports(document, request, nil)
