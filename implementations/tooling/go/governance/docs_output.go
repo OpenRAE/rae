@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-var publicSearchWrapper = regexp.MustCompile(`(?s)^[` + pythonSchemaSpace + `]*Search\.setIndex\((.*)\)[` + pythonSchemaSpace + `]*;?[` + pythonSchemaSpace + `]*\z`)
+var publicSearchWrapper = regexp.MustCompile(`(?s)^[` + fixedWhitespaceClass + `]*Search\.setIndex\((.*)\)[` + fixedWhitespaceClass + `]*;?[` + fixedWhitespaceClass + `]*\z`)
 
 func publicOutputPath(r *repository, selection string) (string, error) {
 	absolute, err := documentPath(r.absolute, selection)

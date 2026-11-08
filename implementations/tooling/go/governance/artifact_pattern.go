@@ -36,5 +36,5 @@ func compileToolingPattern(source string) (jsonschema.Regexp, error) {
 	if source == toolingManifestPattern {
 		return toolingPathPattern{}, nil
 	}
-	return compileSchemaPattern(source, true)
+	return compileSchemaPattern(source)
 }

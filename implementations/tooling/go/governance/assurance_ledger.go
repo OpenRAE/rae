@@ -12,7 +12,7 @@ import (
 
 const ledgerEntryPrefix = "entries["
 
-var assuranceLedgerADR = regexp.MustCompile(`^ADR-[` + pythonSchemaDigits() + `]{3}\z`)
+var assuranceLedgerADR = regexp.MustCompile(`^ADR-[\p{Nd}]{3}\z`)
 
 func ledgerFinding(rule, message string) Finding {
 	return finding("fm-classification-ledger-"+rule, message, assuranceLedger)

@@ -39,7 +39,8 @@ Optional vocabulary verification uses the reviewed artifact locks and one shared
 This PR also ports the existing artifact-policy helper; no Python subprocess remains in this verification path.
 One private selector validates the whole lock and admission shapes, then only the selected source-snapshot dependency closure and its profiles.
 It preserves policy/evidence joins, locator screening, denied hashes, checked-in snapshot hashes and cycle rejection.
-Its existing manifest-path pattern has a narrow standard-library predicate adapter; unsupported future patterns still refuse evaluation.
+Its fixed manifest-path restriction has a private predicate adapter.
+Issue #1983 uses string and character checks for this restriction; configurable patterns use standard-library `regexp`.
 Host, installation and OCI selection modes are outside this vocabulary consumer. Unsupported selection shapes are refused.
 Go invokes the existing qualified absolute curl executable with its unchanged scrubbed environment and transfer budgets.
 Standard-library file descriptors, byte limits and SHA-256 admit both local and transferred objects before use.
@@ -123,10 +124,10 @@ A pattern outside the standard library's supported syntax is a configuration err
 The checker refuses that policy before evaluating requirements.
 Fixed checks use ordinary string and character operations where a regex is unnecessary.
 Requirement policy contains no pattern translator or separate matching engine.
-Candidate-schema validation uses standard `regexp` with a small spelling adapter for the published patterns.
-The adapter keeps the two reference profiles: ECMAScript Unicode for the JSON artifact command, and Python Unicode for declared coverage.
-It preserves character classes, dot and final-newline rules. Unsupported pattern syntax refuses the candidate schema.
-It does not add lookaround, backreference execution or a dependency on an upstream patch.
+Issue #1983 removes the candidate-schema spelling adapter and its Python parser call.
+Configurable patterns use Go `regexp` syntax without translation, including its character classes, dot and anchor rules.
+Malformed or unsupported patterns refuse evaluation as configuration errors.
+The schema compiler's existing regexp callback owns this boundary; it adds no matching engine or upstream patch.
 Finite floats reach schema validation as their exact binary values, preserving mixed integer comparisons.
 The schema engine's existing extension interface retains the reference's floating-point `multipleOf` arithmetic.
 The engine still owns schema syntax, branching and error locations; no parallel schema evaluator is added.
@@ -135,7 +136,8 @@ Schema validation rejects non-finite numbers and unpaired Unicode surrogates exp
 It resolves references during compilation, including references in unused branches.
 The user approved both compatibility changes on 2026-11-07; current checked-in artifacts pass.
 Other governance readers retain their separate legacy JSON profiles.
-Python character classes and worker counts use the reference interpreter's Unicode 16 assignments.
+Worker counts, identifier boundaries and format checks retain the reference interpreter's Unicode 16 assignments.
+These non-pattern checks do not define configurable regex semantics.
 Schema format assertions retain the validators available in the frozen Python environment.
 The artifact command also retains its explicit time and date-time checks.
 Unknown root dialect annotations keep the reference's Draft 2020-12 fallback after original metadata validation.
@@ -159,6 +161,118 @@ Network and environment-inspection builtins are unavailable to candidate policy.
 The ADR-117 Python structural ratchet remains its independent existing gate; this port does not replace that owner.
 Compile and evaluation failures cannot become successful empty evaluations.
 The original Python tool and verified Conftest installation remain unchanged and enforced.
+
+## Issue 1983 pattern boundary
+
+This section records the #1983 architecture preflight against revision `e71ddbc29e9e06658ddbe2b2c12edf8ed424f044`.
+It gives the target design. It does not show that the code has passed checks.
+The supplied issue is the contract. It has no formal requirement UID.
+The issue's scope fits this change.
+
+### Owners and reuse
+
+`implementations/tooling/go/governance` owns the change.
+Its public `Check`, `Request`, `Report` and `Finding` interfaces stay unchanged.
+`cmd/policycheck` remains the command and error boundary.
+The architecture model already declares these packages, imports and entry points.
+This preflight updates design prose and its bound architecture evidence.
+It adds no package, exported identifier or dependency edge.
+
+| Concern | Existing owner to reuse |
+| --- | --- |
+| Configurable patterns | `requirement_policy.go:orderPhase` already uses `regexp.Compile`; `schema_validation.go:schemaCompiler` supplies the schema engine callback. |
+| Candidate schema semantics | `compileCandidate`, `checkCandidateMeta`, `schemaTransport`, `schemaNumericProfile` and `frozenSchemaFormats` retain their separate responsibilities. |
+| Schema and artifact selection | `json_routes.go` owns artifact routes; `coverage_evidence.go` reads actual candidate schemas; `artifact_authority.go:toolingRecord` validates tooling records. |
+| Contract model admission | `contract.go:validateContract` continues to use public `contract/admission.Validator`; generic schema validation cannot replace it. |
+| Failure classification | `policyInputError`, `errors.go:classifyPolicyError` and public `base/fault` retain the existing categories. |
+| Reporting | `Check` and `cmd/policycheck:run` retain ordered findings, report modes and command exit behavior. |
+
+The configurable pattern seam is the existing `UseRegexpEngine` callback.
+Compile unchanged source with `regexp.Compile`.
+Use `MatchString` for schema search semantics.
+Requirement patterns retain their separate match-from-start behavior.
+Do not add anchors, translate escapes, or share a matcher that changes either contract.
+Go-supported flags, Unicode properties and quoted literals must remain available.
+Go's [regexp syntax reference](https://pkg.go.dev/regexp/syntax) defines supported syntax and repetition limits.
+Lookaround, backreferences and Python-only escapes fail compilation.
+ASCII shorthand classes and strict end anchors can change verdicts for patterns that compile in both languages.
+These are deliberate syntax-profile changes, not reasons to retain translation.
+
+The current `python` parameter also controls schema dialect and root-shape behavior.
+Removing regex profiles must preserve those controls and format assertion choices.
+Keep those choices at existing compiler callers. Name each choice for its purpose.
+A new pattern in supported Go syntax needs only data and tests.
+It needs no edit to a pattern allowlist.
+The exact fixed tooling-path exception belongs only in `compileToolingPattern`, never the general candidate compiler.
+Changed exception syntax must refuse evaluation rather than select an approximate predicate.
+
+### Security and failure boundaries
+
+| Layer | Required boundary |
+| --- | --- |
+| Source and filesystem admission | Retain `openRepository`, `repositoryPath`, `regularRepoFile`, bounded readers and selected-file checks. A successful pattern match grants no file access. |
+| JSON and schema shapes | Retain `decodeJSON`, `boundedJSONObject`, `checkSchemaJSON` and engine metaschema validation. Keep finite-number, Unicode-scalar, duplicate-member and per-surface size rules. |
+| Reference resolution | Retain `offlineSchemas` and `nonlocalToolingReference`. Metaschema-only checks must not start resolving candidate references or retrieving schemas. |
+| Artifact policy | Retain `selectSourceSnapshot`, `sourceLock.validate`, `portableManifestPath`, digest/size checks and dependency/profile joins before acquisition. |
+| Environment shapes | `jsonWorkerSetting` still validates `RAES_JSON_SCHEMA_WORKERS` through `pythonIntegerText`. Regex cleanup must not change this integer grammar. |
+| Auth and secret handling | This local compiler adds no principal or authentication surface. Keep existing read-only GitHub/requirement clients, secret-path refusal and `secretArtifactLocator` screening. |
+| Host processes and argv | Pattern evaluation stays in-process. Retain qualified curl, scrubbed environment, fixed argument arrays, locator screening and transfer budgets; no pattern or credential subprocess. |
+| Errors and observability | Return a value-free `policyInputError` through `Check`. The command prints known errors and exits 1; unexpected errors remain generic and exit 70. |
+| Persistence and workflow authority | No schema, policy, historical record, artifact lock or evidence rewrite. No new cache, store, telemetry, service or publication route. |
+
+Normalize every configurable-pattern compile failure to the existing input-error family.
+Do not return raw `regexp` errors: their text can contain candidate pattern values.
+The existing `errSchemaPattern` provides a reusable, value-free classification.
+Capture callback failures for each compiler call before library errors hide their category.
+Both compiler failures and metaschema validation can carry callback refusals.
+`jsonArtifacts` and `coverageValidated` must propagate them rather than create ordinary validation findings.
+`toolingRecord` replaces the compiler callback and currently collapses errors into operational `errArtifactSelection`.
+Its pattern configuration failures must instead preserve `fault.InvalidInput` before acquisition.
+Keep ordinary artifact rejection and payload validation failures distinct from pattern configuration failures.
+Do not add another exception hierarchy, error envelope, logger configuration or schema validator.
+
+### Removal boundaries and evidence
+
+Remove `schema_pattern_escape.go`, the pattern writer and regex-only Unicode class construction.
+Remove the schema compiler call to `admission.ParsePythonPattern`, not the public parser or semantic admission owner.
+Inert Python source parsing still uses that API to resolve named string escapes; it performs no policy pattern matching.
+`schema_unicode.go:pythonAssigned` also serves integer parsing, authority-word boundaries and IDN format checks.
+Preserve those non-regex uses and their Unicode assignment profile; do not delete shared support by filename.
+`artifact_curl.go:supportedCurlVersion` also calls the schema-pattern adapter.
+Its fixed version grammar must use standard matching without retaining Python Unicode regex support.
+Remove only dependencies that become unused; `contract/admission` and `x/text` still have other consumers.
+Product `contract/validation` and `contract/admission` pattern compatibility is outside this governance issue.
+
+Fixed path restrictions need string or character checks and explicit tests for NUL, prefixes, separators and dot components.
+Keep schema-path predicates separate from `portableManifestPath`, which owns admission of selected manifest paths.
+The current predicate has LF-sensitive lookahead behavior; compare embedded and trailing newline cases explicitly.
+Do not silently broaden path admission or retain a general Python lookaround/anchor emulator to preserve those cases.
+
+Eleven published schema files contain negative lookahead at the reviewed revision.
+Examples include `contracts/schemas/plans/evaluation-plan-v1.json` and `contracts/schemas/sdl/sdl-authoring-input-v1.json`.
+Their `$(?![\s\S])` suffix currently relies on the spelling adapter.
+Standard compilation must refuse these unchanged schemas.
+`TestCandidateSchemaRepository` and `TestJSONArtifactRepository` therefore need precise expectations for native refusals, with supported-schema success cases retained.
+This is a cutover constraint. It does not authorize schema edits, restored translation or weaker validation.
+The retained Python gates stay enforced until #1804.
+
+Existing tests include `schema_pattern_test.go`, `schema_validation_test.go`, `schema_coverage_test.go` and `artifact_pattern_test.go`.
+`requirement_pattern_test.go` supplies the existing public-boundary assertion for `fault.InvalidInput`.
+Cover supported matches and nonmatches, malformed syntax, unsupported constructs, `patternProperties`, nested schemas and metaschema-only checks.
+Exercise configuration refusals through `Check` and the command, including inventory mode and tooling selection before network access.
+Keep payload `format: regex` mismatches distinct from invalid schema pattern configuration.
+Do not restrict supported Go constructs merely to satisfy old compatibility tests.
+Retain recorded Python verdicts as evidence; update native expectations for intentional divergences without rewriting the reference tools.
+Reuse the existing native-refusal handling where applicable, with precise case-level expectations rather than broad parity skips.
+Check unchanged repository schemas and locked source selections, plus worker, IDN, authority and curl regressions affected by shared helpers.
+Local verification selects explicit cases; CI owns full parity, race, coverage, fuzz and mutation verification under ADR-121.
+Keep `.ground-control.yaml`, `.gc/plan-rules.md`, `noxfile.py` and `.github/workflows/canonical-verification.yml` as the workflow owners.
+The existing `archcheck -design` checks the declared design. `.vale.ini` and the `docs-prose` lane check changed prose.
+This change needs no new workflow, check runner or requirement record.
+
+The non-goals are a repository-wide regex migration, new engine, schema dialect redesign, runtime change or workflow cutover.
+Published schemas, Python tools, policy data, ADR pins and historical records remain unchanged.
+No implementation code or tests are changed by this preflight.
 
 ## Documentation boundary
 
