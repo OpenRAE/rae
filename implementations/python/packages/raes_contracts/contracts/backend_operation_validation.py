@@ -27,14 +27,20 @@ from .backend_operation_response import (
 
 
 def backend_operation_request_digest(request: BackendOperationRequestModel) -> str:
+    """Return the canonical JSON digest of the complete request, including its binding."""
+
     return canonical_json_digest(request.model_dump(mode="json"))
 
 
 def backend_operation_control_digest(control: BackendOperationControlModel) -> str:
+    """Return the canonical JSON digest of the complete control message."""
+
     return canonical_json_digest(control.model_dump(mode="json"))
 
 
 def canonical_backend_operation_capabilities_digest(capabilities: BackendOperationCapabilitiesModel) -> str:
+    """Return the canonical JSON digest that binds an admission to declared capabilities."""
+
     return canonical_json_digest(capabilities.model_dump(mode="json"))
 
 

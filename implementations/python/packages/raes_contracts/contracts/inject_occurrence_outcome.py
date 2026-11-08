@@ -135,6 +135,8 @@ def inject_occurrence_reference(occurrence: InjectOccurrenceModel) -> OperationA
 
 
 def inject_occurrence_outcome_digest(outcome: InjectOccurrenceOutcomeModel) -> str:
+    """Return the canonical JSON digest of the occurrence outcome and retained evidence references."""
+
     return canonical_json_digest(outcome.model_dump(mode="json"))
 
 

@@ -365,6 +365,11 @@ def iter_participant_episode_snapshot_violations(
     participant_episode_results: object,
     participant_episode_history: object,
 ) -> Iterator[tuple[str, str]]:
+    """Yield path and message pairs for inconsistent episode results and history.
+
+    This delegates to the shared snapshot validator and does not change the supplied state.
+    """
+
     from raes_contracts.participant_episode_snapshot import (
         iter_participant_episode_snapshot_violations as _iter_snapshot_violations,
     )
