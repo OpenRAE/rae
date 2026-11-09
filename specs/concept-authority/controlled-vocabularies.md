@@ -19,7 +19,7 @@ surfaces where cross-artifact comparison depends on shared portable values.
 
 ## Decision record
 
-[ADR-012](../../docs/decisions/adrs/adr-012-shared-concept-authority-and-aces-extension-discipline.md)
+ADR-012 in the [decision index](../../docs/decisions/adrs/README.md)
 governs this specification.
 
 ## Controlled vocabulary catalog

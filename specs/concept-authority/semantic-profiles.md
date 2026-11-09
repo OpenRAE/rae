@@ -11,7 +11,7 @@ publication, processing, and runtime operation.
 
 ## Decision record
 
-[ADR-012](../../docs/decisions/adrs/adr-012-shared-concept-authority-and-aces-extension-discipline.md)
+ADR-012 in the [decision index](../../docs/decisions/adrs/README.md)
 governs this specification.
 
 ## Profile model
@@ -97,7 +97,7 @@ assumptions; they are not UCO profiles and do not adopt UCO authoring syntax.
 records the concept-authority relationship for adopted and adapted cyber-domain families.
 A profile may require these families.
 The artifact pins the reviewed UCO version and lists each adapted family's divergences.
-See [ADR-012](../../docs/decisions/adrs/adr-012-shared-concept-authority-and-aces-extension-discipline.md).
+See ADR-012 in the [decision index](../../docs/decisions/adrs/README.md).
 
 <!-- vale RAES.HeadingCase = YES -->
 

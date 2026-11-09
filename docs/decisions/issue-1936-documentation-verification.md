@@ -176,6 +176,15 @@ The complete invariant-oracle module and semantic-coverage module then passed.
 This is a prose repair with an existing executable check.
 The I15 table excerpt still matches its source clause after punctuation cleanup.
 
+The first CI fast-feedback run rejected six direct ADR-012 links in four pages.
+Its immutable filename contains the retired project name.
+These pages now reach ADR-012 through the existing decision index.
+The historical file, index, and identity check remain unchanged.
+No policy exception was added.
+The identity check and the five-file Vale check pass after this repair.
+All local links on the four reference pages resolve.
+Actual Tab input reached each page's decision-index links in local Chrome renders.
+
 ## Rendered review
 
 Existing MyST and Sphinx rendered the sources to local temporary files.
