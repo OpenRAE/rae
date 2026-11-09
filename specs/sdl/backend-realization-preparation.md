@@ -89,8 +89,9 @@ Public typed runtime scalar domains are retained from whole-field finite
 variables through instantiation and lowered at their original source pointers.
 The recursive document owns those nested domains; it does not need a second
 editable flat bound list. Classification- or sensitivity-governed records are
-not a source of raw alternate values in phase provenance: a domain that cannot
-be represented by its safe owning projection is rejected before execution.
+not a source of raw alternate values in phase provenance.
+A domain that cannot be represented by its safe owning projection is rejected
+before execution.
 
 An exact scalar creates no otherwise unnecessary collection-default decision.
 
