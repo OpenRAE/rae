@@ -40,6 +40,7 @@ and existing supplied predecessor to choose values. It returns a closed response
 with a boolean success claim, bounded diagnostics and provisioning operations.
 Unknown fields, invalid identities/actions, duplicate operation addresses,
 invalid or excessive payloads, and invalid diagnostic carriers are rejected.
+
 Work bounds apply to the complete proposal and predecessor, before recursive
 copying or serialization; individually bounded entries do not exempt the
 aggregate. The input and authority commitments must identify the same submitted
@@ -55,12 +56,14 @@ apply. This includes recursive exact descendants, domains, local closure,
 presence, identity and dependency rules; static non-realization control values
 cannot be rewritten as delegated choices. Backend envelope membership includes
 closed record and ancestor scopes, not only independently matching leaf domains.
+
 Comparison uses bounded portable values from the existing preparation codec.
 Compiler tuples and transported arrays preserve the same ordered values.
 This applies to concern constraints, residual payloads, and selected delivery.
 Controller order, membership, field presence, and scalar types remain exact.
 Booleans are distinct from integers, including inside nested collections.
 Invalid carriers fail before conversion; conversion grants no additional authority.
+
 The original plan and stored snapshots retain their native representations.
 The Python implementation uses the fixed recursive
 [`PLAN_AUTHORITY_LIMITS` profile](recursive-realization-constraints.md#5-bounded-outcomes)
@@ -70,19 +73,22 @@ An individual payload therefore retains the aggregate carrier's supported scale;
 it does not fall back to the smaller generic recursive-relation default.
 These bounds preserve exact roles, subjects, native IDs and content references.
 Exhausted work never admits a completion.
+
 For typed concerns, default-presence rules are recovered through the existing
 concern validator and shared envelope engine. Serialized defaults do not become
 extra realizable dimensions. Domain checks still use the safe supplied values;
 reconstructed placeholders for committed material are never treated as observed
 values. A finite-domain template is one allowed member, not a requirement to
 select that same member.
+
 Public typed runtime scalar domains are retained from whole-field finite
 variables through instantiation and lowered at their original source pointers.
 The recursive document owns those nested domains; it does not need a second
 editable flat bound list. Classification- or sensitivity-governed records are
-not a source of raw alternate values in phase provenance: a domain that cannot
+not a source of raw alternate values in phase provenance. A domain that cannot
 be represented by its safe owning projection is rejected before execution.
 An exact scalar creates no otherwise unnecessary collection-default decision.
+
 Specialized runtime collections retain their owning comparison policy through
 recursive carriage. Mount targets, published host endpoints, forwarding and
 listener IDs, and compound process-limit selector identities remain distinct
@@ -90,6 +96,7 @@ from inventory order. Capability and mount-option sets use comparison-only
 scalar records; finite scalar and record-key choices carry bounded collision-free identity aliases
 while actual selected values remain independently constrained. These records
 do not change native persistence shapes. Ambiguous identities fail closed.
+
 An operating-system choice must match a compatible configured row; mixing the
 family from one row with the distribution or version from another is invalid.
 Unknown support is not an executable completion.
@@ -110,8 +117,8 @@ credential-bearing diagnostic redaction still applies to those warnings.
 
 An empty authored operation list does not exempt a conditional plan from
 planner authorization or mandatory-observation/mutation atomicity admission.
-Preparation does not itself grant authority for new portable resource members:
-such additions require an independently admitted enclosing collection, including
+Preparation does not itself grant authority for new portable resource members.
+Such additions require an independently admitted enclosing collection, including
 its universe, identity, cardinality, domain and dependency rules.
 
 ## Prepared portable membership
@@ -139,6 +146,7 @@ checking total capacity and changed backend support. Unknown counts, unavailable
 references and unsupported choices fail before apply. Collection membership
 does not independently grant participant roles, feature/control bindings or
 identity-domain membership.
+
 The existing semantic validator checks the selected portable node context,
 including node-local services, network references, package architecture and
 unresolved variables. Existing generated-artifact and persistent-volume codecs
@@ -159,7 +167,14 @@ teardown deletes the complete trusted portable inventory, including additions.
 Apply consumes the admitted completion. Its successful result must still satisfy
 the original recursive authority and deliver the selected values. A different
 allowed value is not interchangeable with the supported completion admitted for
-this operation. This exact-completion comparison uses the authenticated recursive
+this operation.
+
+A field that the admitted completion leaves absent is not a selection and
+carries no delivery obligation. Null, false, zero and empty values are present
+values. The original recursive authority still checks every value that apply
+delivers, including a value at an absent field.
+
+This exact-completion comparison uses the authenticated recursive
 projection: ordered positions remain distinct even when their allowed domains
 overlap. Existing set-like concern identities remain order-independent.
 Available operating-system observations are compared with that
@@ -176,13 +191,15 @@ identity, honest change accounting and specialized carrier owners before lossy
 sanitization. Safe projections preserve ordered sequences and the meaning of
 set-like collections. Credential egress is validated against the admitted
 completion before native concern sanitization. Sanitization failure retains its
-own invariant diagnostic instead of being reinterpreted as failed delivery. The sanitized
-candidate is checked again against the same constraints and already-admitted
-transient observations before runtime-owned provenance and durable publication;
-this second check does not collect or retain observations. Native participant
-result types are retained. Stateful service dependencies remain injected services,
-not cloned value carriers. Non-provisioning calls cannot replace realization
-envelopes or realization observations.
+own invariant diagnostic instead of being reinterpreted as failed delivery.
+
+The sanitized candidate is checked again against the same constraints and
+already-admitted transient observations. This check occurs before runtime-owned
+provenance and durable publication; it does not collect or retain observations.
+Native participant result types are retained. Stateful service dependencies
+remain injected services, not cloned value carriers. Non-provisioning calls
+cannot replace realization envelopes or realization observations.
+
 A rejected successful claim returns the immediate trusted predecessor with no
 candidate details, changed addresses or success provenance. Honest, valid partial
 failure cleanup remains distinct from a rejected successful claim.
