@@ -36,8 +36,9 @@ def installer_without_lock(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_bad_archive_is_rejected_before_installation(tmp_path: Path, ensure: str) -> None:
     archive = tmp_path / "bad.tar.gz"
     archive.write_bytes(b"changed archive")
+    install = getattr(documentation_tools, ensure)
     with pytest.raises(ArtifactAcquisitionError):
-        getattr(documentation_tools, ensure)(tmp_path, local_input=archive)
+        install(tmp_path, local_input=archive)
     assert not list(tmp_path.rglob("ste"))
     assert not list(tmp_path.rglob("ste-lint.sh"))
 
