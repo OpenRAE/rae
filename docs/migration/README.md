@@ -52,6 +52,7 @@ Reconcile pending work through its original owner before changing a live binding
 Preserve uncertain effects, receipts, budgets, store history, and original run identity.
 A restart, new episode, or new retry key does not authorize another native effect.
 The native owner must establish cessation and cleanup before resource reuse.
+
 External deployment remains unverified here.
 It needs the exact release pairing and installed services.
 It also needs authorized commands, readback, and cleanup evidence.
