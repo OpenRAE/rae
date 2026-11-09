@@ -169,8 +169,7 @@ def _validate_current_scope(
     expected = _resources_for_domain(resources, domain)
     observed = actual.for_domain(domain)
     if expected.keys() != observed.keys() or any(
-        not _materialized_entry_matches(observed[address], _value_free_resource(resource))
-        for address, resource in expected.items()
+        not _materialized_entry_matches(observed[address], resource) for address, resource in expected.items()
     ):
         raise InvalidInputError("materialization inventory does not match the complete returned scope")
 
@@ -250,6 +249,7 @@ def _materialized_entry_matches(
     resource: PlannedResource,
     requirements: tuple[CompiledRealizationRequirement, ...] = (),
 ) -> bool:
+    resource = _value_free_resource(resource)
     if resource.resource_type in {"node", "network"}:
         expected_spec, observed_spec = resource.payload.get("spec"), entry.payload.get("spec")
         if not isinstance(expected_spec, dict) or not isinstance(observed_spec, dict):

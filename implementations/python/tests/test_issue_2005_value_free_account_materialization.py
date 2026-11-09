@@ -42,3 +42,13 @@ def test_described_account_matches_its_value_free_runtime_entry():
     changed = {**stored, "spec": {**stored["spec"], "username": "root"}}
     with pytest.raises(InvalidInputError):
         _validate_current_scope({ADDRESS: resource}, _scope(changed), RuntimeDomain.PROVISIONING)
+
+
+def test_value_free_account_matches_in_every_compared_scope():
+    from raes_processor.planner.materialization_admission import _materialized_entry_matches
+
+    resource = PlannedResource(
+        address=ADDRESS, domain=RuntimeDomain.PROVISIONING, resource_type="account-placement", payload=PAYLOAD
+    )
+    stored = _scope(value_free_account_placement_payload(PAYLOAD)).entries[ADDRESS]
+    assert _materialized_entry_matches(stored, resource)
