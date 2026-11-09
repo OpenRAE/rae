@@ -4,6 +4,7 @@ from collections.abc import Mapping
 
 from pydantic import TypeAdapter
 from raes import SDLValidationError
+from raes.accounts import Account
 from raes.content import Content
 from raes.nodes import Node
 from raes.scenario import ExpandedScenario
@@ -63,7 +64,10 @@ def _typed_context(live: Mapping[str, object]) -> ExpandedScenario:
                 {**spec, "consumers": _canonical_consumers(spec.get("consumers", []))}
             )
         elif entry.resource_type == "account-placement":
-            context["accounts"][name] = entry.payload.get("spec", {})
+            # The runtime stores account material value-free; restore the blanks for the typed model.
+            context["accounts"][name] = typed_runtime_observation_shape(
+                entry.payload.get("spec", {}), adapter=TypeAdapter(Account)
+            )
         elif entry.resource_type == "content-placement":
             context["content"][name] = Content.model_validate(entry.payload.get("spec", {}))
     return ExpandedScenario(name="prepared-node-context", **context)

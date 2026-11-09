@@ -259,9 +259,11 @@ def _delivery_violation(
 
     expected = _value(operation.payload, authority.payload_pointer)
     actual = _delivered_value(authority, entry, snapshot)
-    if expected is _MISSING and actual is _MISSING:
+    if expected is _MISSING:
+        # The completion selected nothing here, so it carries no delivery
+        # obligation. The realization gate still checks the delivered value.
         return None
-    if expected is _MISSING or actual is _MISSING:
+    if actual is _MISSING:
         return "Backend did not deliver its admitted realization completion."
     recursive = authority.constraint_document is not None
     expected = portable_realization_value(
