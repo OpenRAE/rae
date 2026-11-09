@@ -255,16 +255,14 @@ def _delivered_value(authority: ResolvedRealizationAuthority, entry: object, sna
 def _delivery_violation(
     authority: ResolvedRealizationAuthority, operation: object, entry: object, snapshot: RuntimeSnapshot
 ) -> str | None:
-    """Compare one admitted selection against what the backend delivered.
-
-    A field that the completion leaves absent is not a selection; the original
-    realization authority still checks any value delivered there.
-    """
+    """Compare one admitted completion against what the backend delivered."""
 
     expected = _value(operation.payload, authority.payload_pointer)
-    if expected is _MISSING:
-        return None
     actual = _delivered_value(authority, entry, snapshot)
+    if expected is _MISSING:
+        # The completion selected nothing here, so it carries no delivery
+        # obligation. The realization gate still checks the delivered value.
+        return None
     if actual is _MISSING:
         return "Backend did not deliver its admitted realization completion."
     recursive = authority.constraint_document is not None
