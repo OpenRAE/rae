@@ -12,21 +12,20 @@ contracts carry that path as portable data with pure validators:
 | `inject-occurrence-outcome-v1` | Per-binding readback for one claimed occurrence and its settlement. |
 | `inject-occurrence-correlation-v1` | The exact applied occurrence, outcome and produced result that a participant consumer joins. |
 
-The shared runtime accepts these carriers through `submit_inject` and the P2
-trigger route when a trusted realization resolver and an explicitly declared
-executing provider are installed. A backend distribution supplies that provider;
-see the [operator guide](../../public/guides/external-injects.md). The contracts
-add no scheduler or operation kind.
+The shared runtime accepts these carriers through `submit_inject` and the P2 trigger route.
+This needs a trusted realization resolver and an executing provider with an explicit declaration.
+A backend distribution supplies that provider; see the [operator guide](../../public/guides/external-injects.md).
+The contracts add no scheduler or operation kind.
 
-Import the models and helpers from `raes_contracts.contracts`, and
-`require_inject_occurrence_provider` from
-`raes_backend_protocols.operation_supervision`. The schemas are under
+Import the models and helpers from `raes_contracts.contracts`.
+Import `require_inject_occurrence_provider` from `raes_backend_protocols.operation_supervision`. The schemas are under
 `contracts/schemas/control-plane/`, and the examples are under
 `contracts/fixtures/control-plane/inject-*` and
 `contracts/fixtures/control-plane/backend-operation-request-v1/valid/inject-*`.
 The request names existing compiled `orchestration.inject`,
 `orchestration.inject-binding`, `orchestration.event`, `orchestration.script`
-and `orchestration.story` addresses, so no processor binding changes.
+and `orchestration.story` addresses.
+No processor binding changes.
 
 ## Request
 
@@ -44,24 +43,25 @@ and `orchestration.story` addresses, so no processor binding changes.
 | `input_ref` | Optional content-bound reference to an input document that the realization's input contract checks. There are no inline values, and absence means no runtime parameters. |
 | `expected_head` | The ordering head the caller observed. A stale head is refused, never rebased. |
 
-Every placement requires an explicit `kind` discriminator, including independent
-placement. Both the published schemas and the Python models refuse an omitted
+Every placement requires an explicit `kind` discriminator.
+This includes independent placement. Both the published schemas and the Python models refuse an omitted
 discriminator.
 
 ### Binding addresses
 
 The compiler renders a node binding as
-`orchestration.inject-binding.<node>.<inject>`, and module namespaces put dots
-inside both names. When a scenario imports a module under namespace `mod`,
+`orchestration.inject-binding.<node>.<inject>`.
+Module namespaces put dots inside both names. When a scenario imports a module under namespace `mod`,
 `orchestration.inject-binding.mod.host.mod.release` binds node `mod.host` to
-inject `mod.release`, yet it also ends in `.release`. The end of an address
+inject `mod.release`.
+Yet it also ends in `.release`. The end of an address
 therefore doesn't show which inject it binds.
 
 Local validation requires each binding address to equal the rendering of its
 `node` and the requested inject. Carrying node `provision.node.mod.host`, that
 binding can't serve a request for `release`. Local validation can't see the
-plan, so it doesn't show that the node exists or that the plan records this node
-for the binding. A consumer resolves both against the pinned plan's
+plan.
+It doesn't show that the node exists or that the plan records this node for the binding. A consumer resolves both against the pinned plan's
 `inject-binding` operations.
 
 This revision selects only `Node.injects` bindings. Under EI-01, a top-level
@@ -70,11 +70,12 @@ contract, which this revision doesn't carry.
 
 ## Occurrence
 
-`InjectOccurrenceModel` records the atomic claim (EI-03). It holds the exact
-request, the runtime `operation_id`, the actor-bound `OperationAdmissionContext`,
-admission evidence, the expected store revision, the trusted order token, and
-the scenario, source, realization and required-evidence pins. Local validation
-requires that:
+`InjectOccurrenceModel` records the atomic claim (EI-03).
+It holds the exact request and runtime `operation_id`.
+It also holds the `OperationAdmissionContext` bound to the actor and the admission evidence.
+It retains the expected store revision and trusted order token.
+Its pins cover the scenario, source, realization and required evidence.
+Local validation requires that:
 
 - the admission context is an `orchestration` operation for the requested
   target and run;
@@ -95,9 +96,10 @@ store and recovery agreement.
 | A reused retry key, occurrence, operation, schedule slot, order position or order predecessor in one store | `validate_inject_occurrence_claims` rejects the claim set. |
 | A fresh key and fresh occurrence for the same inject | Valid; admission checks every current constraint again. |
 
-Two claims that follow the same head would fork the run's order, so each
-predecessor is claimed once. Head tokens are opaque, so the claim set can't
-check that a predecessor is the head that the preceding claim produced. That
+Two claims that follow the same head would fork the run's order.
+Thus each predecessor is claimed once.
+Head tokens are opaque.
+The claim set can't check that a predecessor is the head that the preceding claim produced. That
 chain belongs to the ordering authority (EI-03).
 
 `inject_trigger_request_digest` and `inject_occurrence_digest` return RFC 8785
@@ -155,31 +157,34 @@ occurrence with zero dispatch and a retained claim. Under the ADR-104
 (S3), a contextual refusal after the claim but before dispatch withdraws the
 acceptance through `CANCELLED` with a refusal diagnostic.
 
-`validate_inject_occurrence_outcome` joins the readback to the exact occurrence
-and invocation, including the response binding and request digest. When the
-invocation narrows its effect scope to `resources`, each binding's
-`residual_scope` must stay inside those addresses, as
-`validate_backend_operation_response` requires of the backend's own residual
-effects. A runtime that adopts these contracts must still validate native
-results and commit the terminal operation, snapshot and audit records.
+`validate_inject_occurrence_outcome` joins the readback to the exact occurrence and invocation.
+This includes the response binding and request digest.
+An invocation can narrow its effect scope to `resources`.
+Each binding's `residual_scope` must then stay inside those addresses.
+`validate_backend_operation_response` requires the same of the backend's own residual effects.
+
+A runtime that adopts these contracts must still validate native results.
+It must also commit the terminal operation, snapshot and audit records.
 
 ## Participant correlation
 
-`inject_occurrence_correlation` returns an `InjectOccurrenceCorrelationModel`
-only for a validated outcome whose backend proposal is `succeeded` with a
-produced result. It names the occurrence, the outcome digest and the result.
+`inject_occurrence_correlation` returns an `InjectOccurrenceCorrelationModel` only for a validated outcome.
+That outcome's backend proposal must be `succeeded` with a produced result.
+The correlation names the occurrence, the outcome digest and the result.
 `inject_occurrence_outcome_digest` returns that RFC 8785 outcome digest.
 A participant-directed consumer, such as a DSL-142 delivery or an API-424
 inject effect, joins those exact identities instead of an inject declaration
 or the latest narrative event (EI-05). A refused, failed, partial or
-indeterminate outcome yields no join. A correlation grants no disclosure,
-delivery or observation, so build it only from an outcome that an adopting
-runtime has validated and committed.
+indeterminate outcome yields no join.
+
+A correlation grants no disclosure, delivery or observation.
+Build it only from an outcome that an adopting runtime has validated and committed.
 
 A consumer that receives a correlation checks it with
-`validate_inject_occurrence_correlation`. The check recomputes the join from
-the occurrence, invocation and outcome, and requires the received correlation
-to equal it, so a changed occurrence, outcome digest or result is refused.
+`validate_inject_occurrence_correlation`.
+The check recomputes the join from the occurrence, invocation and outcome.
+It requires the received correlation to equal that join.
+A changed occurrence, outcome digest or result is refused.
 
 ## Backend declaration
 
@@ -204,16 +209,22 @@ distribution supplies one (see
 | SDL participant behavior specifications | `evidence_contract_refs` may cite `inject-occurrence-v1` and `inject-occurrence-outcome-v1`, which previously raised `participant.behavior-spec-evidence-contract-unbound`. The compiler copies them through, and no runtime path reads them. `inject-occurrence-correlation-v1` still raises that diagnostic. |
 | `operation-receipt-v1` and `operation-status-v1` | Unchanged status meaning and no new operation kind. Typed occurrence/outcome/evidence fields extend the internal record codec; local schema 9 and PostgreSQL schema 2 retain historical records without inventing evidence. |
 
-No lossless conversion produces these carriers from legacy records. Do not
-fabricate occurrence IDs, order tokens, readback evidence or results. The four
-contracts are draft v1 publications under ADR-009 and ADR-061, and each
-publication entry records its content hash and contract-facing change.
+No lossless conversion produces these carriers from legacy records.
+Do not fabricate occurrence IDs, order tokens, readback evidence, or results.
+The four contracts are draft v1 publications under ADR-009 and ADR-061.
+Publication records give contract identity, schema path, and stability.
+They contain no content hash or change summary.
+Git records schema history.
+
+Required runtime content pins use exact schema artifacts.
+Obtain those artifacts from a pinned release or Git revision.
+Apply the owning protocol's digest rule to those artifacts.
 
 ## Adoption boundaries
 
 ADR-112 defines the semantics; #1367 implements the selected runtime slice. Reuse
 ADR-104's operation authority, ADR-110's participant composition and ADR-113's
-execution machinery. The following owners apply to consumers of these carriers;
+execution machinery. The following owners apply to consumers of these carriers.
 Python paths are relative to `implementations/python/packages/`.
 
 The [#1367 execution preflight](../../decisions/issue-1367-external-inject-execution-preflight.md)
@@ -260,25 +271,27 @@ including TLS/proxy and connection limits, counted request bytes, bounded
 offload, worker/profile checks, private storage and service credentials.
 
 Extensions belong in versioned realization/input/target contracts and admitted
-backend guarantees. V1 selects compiled `Node.injects` bindings; non-node targets
-need an explicit versioned interpretation. Preserve omission/null/default and
+backend guarantees.
+V1 selects compiled `Node.injects` bindings.
+Non-node targets need an explicit versioned interpretation. Preserve omission/null/default and
 ordering commitments, historical readers and ADR-061/075 publication rules.
-Accepted ADRs retain ADR-059 amendment/pin protection. Keep the schema bundle,
-per-contract publication entries, facade exports, versions, backend allowlists
-and installed `raes_contracts.corpus` aligned through existing generation and
-packaging tools. Allowlist changes also affect SDL behavior evidence references
+Accepted ADRs retain ADR-059 amendment/pin protection.
+
+Keep the schema bundle, per-contract publication entries, facade exports, versions, backend allowlists and installed `raes_contracts.corpus` aligned.
+Use existing generation and packaging tools. Allowlist changes also affect SDL behavior evidence references
 without advertising backend support.
 
-JSON Schema does not execute `x-raes-invariants`, and the current
-`raes_conformance/conformance/validators.py` registry does not register these
-contracts. Direct helper tests and publication are not conformance-CLI adoption.
+JSON Schema does not execute `x-raes-invariants`.
+The current `raes_conformance/conformance/validators.py` registry does not register these contracts.
+Direct helper tests and publication are not conformance-CLI adoption.
 Existing fixture tests establish structural/contextual joins and participant-free
-parser/compiler agreement. Executable consumers additionally need evidence at
-authentication, ingress, store, provider and final-sink boundaries, including
-competing claims, failed commits and crash/late outcomes. The #1367 implementation
-adds the selected execution path, endpoints and internal store migration described
-in the operator guide, with no new operation kind, SDL grammar or participant
-registration/delivery. Acceptance, willingness,
+parser/compiler agreement.
+
+Executable consumers also need evidence at authentication, ingress, store, provider and final-sink boundaries.
+This includes competing claims, failed commits and crash/late outcomes.
+The #1367 implementation adds the selected execution path, endpoints and internal store migration described in the operator guide.
+It adds no operation kind, SDL grammar or participant registration/delivery.
+Acceptance, willingness,
 installation, effects, delivery and observation remain separate facts.
 
 ## Participant-free example
@@ -337,22 +350,24 @@ belong to the runtime and backend adoption that the
 
 ## Installed participant delivery
 
-Issue #1368 adds three draft contracts: `participant-inject-application-v1`
-pins the world operation, authored binding digest, recipient/episode and snapshot
-cut, with an exact reusable-control event reference when required;
-`participant-inject-delivery-v1` carries the successful world correlation,
-authored result/disclosure/observation coordinates and bounded projected content;
-`participant-inject-delivery-receipt-v1` names the separate delivery operation.
-Validate their models as well as their published schemas. Local validation grants
-no authority and cannot resolve their cross-message joins.
+Issue #1368 adds three draft contracts:
 
-The installed runtime reader uses the original compiled schedule anchors and
-rechecks the exact world/result and accepted-control history, audience, shared
-time, independent delivery policy and final crossing after transformation. It
+- `participant-inject-application-v1` pins the world operation, authored binding digest, recipient/episode and snapshot cut.
+  When required, it includes an exact reusable-control event reference.
+- `participant-inject-delivery-v1` carries the successful world correlation, authored result/disclosure/observation coordinates and bounded projected content.
+- `participant-inject-delivery-receipt-v1` names the separate delivery operation.
+
+Validate their models as well as their published schemas.
+Local validation grants no authority and cannot resolve their cross-message joins.
+
+The installed runtime reader uses the original compiled schedule anchors.
+It rechecks the exact world/result and accepted-control history, audience, shared time and independent delivery policy.
+It also rechecks the final crossing after transformation. It
 refuses unsupported independent participant joins and legacy-flat control
 composition. Participant-free world triggering retains its existing meaning.
-The durable claim is unique per occurrence/binding and per control-event/binding;
-retries retrieve the retained result without executing the world again.
+
+The durable claim is unique per occurrence/binding and per control-event/binding.
+Retries retrieve the retained result without executing the world again.
 
 Authored capture obligations use the existing observation lifecycle after world
 readback. Capture failure does not reverse an applied effect and withholds

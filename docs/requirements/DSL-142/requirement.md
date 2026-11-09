@@ -142,3 +142,7 @@ backend execution, delivery or observation.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/observation_lifecycle.py` (Preserve independent mandatory capture when an optional selector fails)
 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/observation_demand.py`
+
+- IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-delivery-invocation-request-v1.json` (Runtime-owned participant delivery tool composition, issue #1829)
+- IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-delivery-invocation-context-v1.json` (Runtime-owned participant delivery tool composition, issue #1829)
+- IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-delivery-invocation-outcome-v1.json` (Runtime-owned participant delivery tool composition, issue #1829)

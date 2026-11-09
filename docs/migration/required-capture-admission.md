@@ -1,4 +1,14 @@
-# Required capture admission migration
+<a id="required-capture-admission-migration"></a>
+
+# Required capture admission reference
+
+## Versions and purpose
+
+Source: `Descriptive supported_* discovery lists and metadata-only satisfaction claims`.
+Target: `Atomic capture_offers and process-local ValidatedRunEvidence proof`.
+This is a compatibility reference for the Python implementation in RAES 11.0.2.
+The contracts below retain their separate identities and obligations.
+This page does not supply a standalone converter or deployment procedure.
 
 Issue #1237 adds a process-local content proof to authoritative run validation.
 The proof is immutable.
@@ -196,3 +206,9 @@ They need independent matching and diagnostic cases.
 They also need shared pre-effect conformance tests.
 Exact scope targets and wildcard subsets retain different meanings.
 Media overlap, availability, fidelity, and disclosure also retain distinct semantics.
+
+## Continue
+
+Use [revised-control migration](revised-control.md) to coordinate admission owners.
+Use [experiment record production](../public/guides/experiment-records.md) to validate supplied evidence bytes.
+Read [capture semantics](../../specs/sdl/observability-and-evidence.md) for authored intent.

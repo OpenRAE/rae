@@ -59,11 +59,8 @@ def semantic_explicitness_leaves(
     }
     if not candidates:
         return []
-    return [
-        record
-        for path, record in candidates.items()
-        if not any(other != path and other.startswith((f"{path}.", f"{path}[")) for other in candidates)
-    ]
+    ancestors = {path[:index] for path in candidates for index, char in enumerate(path) if char in ".["}
+    return [record for path, record in candidates.items() if path not in ancestors]
 
 
 __all__ = ["semantic_explicitness_record", "semantic_explicitness_leaves"]

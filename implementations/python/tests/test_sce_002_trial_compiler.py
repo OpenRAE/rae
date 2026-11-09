@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pytest
 import raes_processor.trial_compiler.compiler as trial_compiler_module
+from contract_fixtures import load_contract_fixture
 from hypothesis import given, settings
 from hypothesis import strategies as st
 from paths import REPO_ROOT
@@ -346,7 +347,7 @@ def _request(*, run_count: int = 2, sample: bool = False) -> TrialCompilationReq
     }
     capture_spec = ExperimentCaptureSpecModel.model_validate(capture_payload)
     authoring_digest = canonical_json_digest(experiment.model_dump(mode="json"))
-    envelope = BackendRealizationEnvelopeModel.model_validate_json(_ENVELOPE_FIXTURE.read_text(encoding="utf-8"))
+    envelope = BackendRealizationEnvelopeModel.model_validate(load_contract_fixture(_ENVELOPE_FIXTURE))
     manifest_payload = json.loads(_BACKEND_MANIFEST_FIXTURE.read_text(encoding="utf-8"))
     manifest_payload["identity"] = {"name": "backend-a", "version": "1"}
     manifest_payload["supported_contract_versions"].append("realization-envelope-v1")
@@ -806,7 +807,7 @@ def test_partition_order_drives_coordinate_admission(monkeypatch) -> None:
 
 def test_reversed_partition_order_cannot_change_coordinate_failure_diagnostic() -> None:
     request = _request()
-    payload = json.loads(_ENVELOPE_FIXTURE.read_text(encoding="utf-8"))
+    payload = load_contract_fixture(_ENVELOPE_FIXTURE)
     payload["expression"]["domains"] = {
         "windows-only": {
             "kind": "enum",
@@ -1083,7 +1084,7 @@ def test_product_limit_precedes_cartesian_materialization(monkeypatch) -> None:
 
 def test_selected_scenario_must_be_a_member_of_exact_envelope() -> None:
     request = _request()
-    payload = json.loads(_ENVELOPE_FIXTURE.read_text(encoding="utf-8"))
+    payload = load_contract_fixture(_ENVELOPE_FIXTURE)
     payload["expression"]["domains"] = {"windows-only": {"kind": "enum", "values": ["windows"]}}
     payload["expression"]["bindings"] = [
         {
@@ -1104,7 +1105,7 @@ def test_selected_scenario_must_be_a_member_of_exact_envelope() -> None:
 
 def test_realization_envelope_content_digest_changes_sealed_plan_identity() -> None:
     request = _request()
-    changed_payload = json.loads(_ENVELOPE_FIXTURE.read_text(encoding="utf-8"))
+    changed_payload = load_contract_fixture(_ENVELOPE_FIXTURE)
     topology = next(claim for claim in changed_payload["concerns"] if claim["concern"] == "topology")
     topology["mechanism"] = "alternate-trusted-topology-mechanism"
     changed_payload["digest"] = realization_envelope_digest(changed_payload)

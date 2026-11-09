@@ -1,21 +1,26 @@
-# Objective Semantics
+# Objective semantics
 
-This directory holds the formal artifacts for declarative-objective semantics —
-the objective-window slice (`SEM-202`) and the surrounding actor-binding,
-target-resolution, success-interpretation, and dependency-ordering semantics
-(`SEM-207`).
+Find exact declarative-objective rules here.
+`SEM-202` covers objective windows.
+`SEM-207` covers ownership, assignment, targets, success, and dependencies.
+The [objective reference](declarative-objective-semantics.md) gives the complete contract.
+The [truth algebra](proposition-and-assertion-semantics.md) defines assertion outcomes.
 
 ## Scope
 
-- actor binding: an authored `agent` xor an authored `entity` owns the
-  objective; agent-action checks reuse the declaring agent's `actions`
+- ownership and assignment: `owner`, `assigned_participant`, or both, under
+  [ADR-109](../../../docs/decisions/adrs/adr-109-participant-identity-and-objective-assignment.md).
+  Ownership resolves to an entity; assignment resolves to an `agents` declaration.
+  Each action resolves to a declared action contract, including for an unassigned objective.
 - target resolution through the objective-subject purpose of the
   named-reference index (bare or
   section-qualified), fail-closed on missing/ambiguous references
-- success interpretation: `mode` (`all_of` / `any_of`) over referenced
-  `conditions` (observable state only; the OCR scoring surfaces `metrics`,
-  `evaluations`, `tlos`, and `goals` were removed by
-  [ADR-073](../../../docs/decisions/adrs/adr-073-scoring-reward-language-scope.md))
+- success interpretation: `mode` (`all_of` / `any_of` / `at_least`) over
+  invariant or postcondition `assertions`, under
+  [ADR-079](../../../docs/decisions/adrs/adr-079-backend-neutral-proposition-and-truth-semantics.md).
+  `at_least` requires a threshold from one to the assertion count.
+  Other modes forbid the threshold.
+  The former `success.conditions` field is rejected.
 - windows: normalized story/script/event/workflow/workflow-step reference
   resolution; consistency between `window.stories`, `window.scripts`,
   `window.events`, `window.workflows`, and `window.steps`; reachability
@@ -33,10 +38,10 @@ target-resolution, success-interpretation, and dependency-ordering semantics
   references
 - composition-ready invariants for later namespace/module expansion
 
-## Implementation Mapping
+## Implementation mapping
 
 - shared name-level source of truth for whole-objective semantics:
-  `implementations/python/packages/raes/semantics/objective_semantics.py`
+  `implementations/python/packages/raes/semantics/objective_semantics/`
   (`analyze_objective_semantics`, `partition_objective_dependencies`,
   `OBJECTIVE_*_DEPENDENCY_ROLES`)
 - shared objective-window helper:

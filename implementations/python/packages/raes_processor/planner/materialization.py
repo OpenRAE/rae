@@ -12,6 +12,7 @@ from raes_contracts.materialization import (
     MATERIALIZATION_ATTESTATION_CONTRACT,
     MATERIALIZATION_LIMIT_ERROR,
     MATERIALIZATION_MAX_BYTES,
+    MaterializationReportingScope,
     MaterializationSource,
 )
 from raes_contracts.materialization_inventory import RUNTIME_DESCENDANTS_CONTRACT
@@ -21,9 +22,18 @@ from ..models import RuntimeModel
 
 
 def attach_materialization_sources[DomainPlan: (ProvisioningPlan, OrchestrationPlan, EvaluationPlan)](
-    plans: tuple[DomainPlan, ...], model: RuntimeModel, manifest: BackendManifest, scope: PlanScope | None
+    plans: tuple[DomainPlan, ...],
+    model: RuntimeModel,
+    manifest: BackendManifest,
+    scope: PlanScope | None,
+    *,
+    reporting_scope: MaterializationReportingScope = "all-phases",
 ) -> tuple[tuple[DomainPlan, ...], list[Diagnostic]]:
     source, diagnostics = planned_materialization_source(model, manifest, scope)
+    if reporting_scope not in {"all-phases", "provisioning"}:
+        raise ValueError("unsupported materialization reporting scope")
+    if source is not None and reporting_scope != "all-phases":
+        source = source.model_copy(update={"reporting_scope": reporting_scope})
     scope_required = (
         model.realization_instance is not None and model.realization_instance.augmentation_scope is not None
     )

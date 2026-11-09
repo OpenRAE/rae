@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.bounded_domains import EnumDomain
 from raes_contracts.compute_substrate import validate_compute_substrate_constraint
+from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.realization_structure import RealizationConstraintDocument, RealizationStructure
 from raes_contracts.vocabulary import ObservationStrength, RealizationVerificationScope
@@ -41,7 +42,7 @@ class CompiledRealizationRequirement:
     structure: RealizationStructure | None = None
     constraint_document: RealizationConstraintDocument | None = None
     constraint_binding: str | None = None
-    structure_error: bool = False
+    structure_error: bool | Diagnostic = False
     recursive_pending: bool = False
 
     def __post_init__(self) -> None:

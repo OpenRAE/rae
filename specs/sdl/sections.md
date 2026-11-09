@@ -1,4 +1,5 @@
-# Catalog 1 — Section Catalog
+<!-- vale RAES.HeadingCase = NO -->
+# Catalog 1 — section catalog
 
 This catalog enumerates every top-level field of an SDL document: its kind, its
 value shape, whether it is required, the shape of its keys, and the sections it
@@ -6,6 +7,8 @@ references. It is the normative section enumeration and is written to match the
 published `contracts/schemas/sdl/sdl-authoring-input-v1.json` schema; where this
 table and that schema diverge, the divergence is a defect to reconcile
 ([README](README.md)).
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Value-shape legend:
 
@@ -40,6 +43,7 @@ machinery is not retained as an empty compatibility field. "References" is
 | `module` | composition | mapping | normalized | optional; default null | `module.id` | none | [ADR-053](../../docs/decisions/adrs/adr-053-sdl-module-composition-for-inventory-backed-scenarios.md) |
 | `imports` | composition | list | normalized | optional; default empty list | `namespace` | none | [ADR-053](../../docs/decisions/adrs/adr-053-sdl-module-composition-for-inventory-backed-scenarios.md) |
 | `realization` | composition | mapping | normalized | optional; default null | none | none | [explicitness and realization](../formal/realization/explicitness-and-realization.md) |
+| `trial_parallelism` | section | mapping | normalized, expanded, instantiated | optional; default null | none | none | [trial scheduling](../formal/scenario-variation-trial-realization/README.md#svr-031--scheduler-opacity) |
 | `nodes` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [nodes and runtime inventory](runtime-inventory.md) |
 | `infrastructure` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [document model](document-model.md) |
 | `features` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [document model](document-model.md) |
@@ -87,7 +91,7 @@ addition would impose a large, unexpected authoring burden. The policy also
 survives into materialized descriptions, where its addresses retain their
 original-source meaning. See [augmentation scope](augmentation-scope.md).
 
-<!-- sdl-catalog-summary top-level=47 metadata-composition=7 sections=40 maps=37 lists=1 -->
+<!-- sdl-catalog-summary top-level=48 metadata-composition=7 sections=41 maps=37 lists=1 -->
 
 The section set therefore has two authoring shapes: maps keyed by stable
 user-defined identifiers and the scenario-level `forwarding_agents` list, whose
@@ -113,6 +117,9 @@ emulator. Authors who require or bound a mechanism use
 `realization.constraints`; an omitted compute-substrate constraint deliberately
 leaves that registered concern open. A switch remains a strict connectivity
 resource and cannot carry compute-substrate constraints or compute-only fields.
+A switch can state a compute-only field only with its empty value: `null`, an
+empty string, or an empty collection. That value has the same meaning as an
+omitted field, and realization authority treats it as omitted.
 
 `forwarding_agents` is the **scenario-level** forwarding-agent inventory. It is
 distinct from the node-scoped `forwarding_agents` runtime-family collection that
@@ -138,18 +145,17 @@ ordering is normative (resolution and failure semantics in
   `injects` naming `entities` and `events` naming precondition assertions. Objective
   windows bind `stories`/`scripts`/`events`/`workflows`.
 
-Participant-directed delivery is an explicit nested binding under
-`behavior_specifications.*.participant_inject_deliveries`. It anchors one
-participant to one inject occurrence across the event/script/story chain and
-binds a participant-visible result, observation boundary, revisioned delivery
-policy, shared-time constraint, evidence requirement, and—when applicable—a
-mixed-control transition. Direction and intervention bindings also state the
-controller, authority scope, effective order, validity interval, and evidence
-basis that must agree with that transition and its target controller state.
-Their order must satisfy the named temporal constraints, and their control
-evidence must be covered by the named evidence requirements. An inject without
-that binding remains ordinary orchestration input; `injects.*.environment`
-never implies participant delivery.
+Participant-directed delivery is an explicit nested binding under `behavior_specifications.*.participant_inject_deliveries`.
+It anchors one participant to one inject occurrence across the event/script/story chain.
+It binds a participant-visible result, observation boundary, revisioned delivery policy, shared-time constraint, and evidence requirement.
+When applicable, it also binds a mixed-control transition.
+
+Direction and intervention bindings state the controller, authority scope, effective order, validity interval, and evidence basis.
+These must agree with the transition and its target controller state.
+Their order must satisfy the named temporal constraints.
+Their control evidence must be covered by the named evidence requirements.
+An inject without that binding remains ordinary orchestration input.
+`injects.*.environment` never implies participant delivery.
 
 The view rule that admits the result must itself agree with the delivery's
 visibility and disclosure bases. Every control scope and evidence reference
@@ -208,11 +214,10 @@ never as authored SDL.
 
 ## Extending the section set
 
-A new top-level authoring section is added by: defining its model and the
-published schema field, adding a row to this catalog (with its shape,
-requiredness, key shape, and references), adding its reference edges to
-[`references.md`](references.md), and updating the reference implementation and
-its tests. Scenario-native observability or authored evidence-requirement
-sections must also satisfy
-[`observability-and-evidence.md`](observability-and-evidence.md). No parallel
-section registry exists or should be created.
+A new top-level authoring section requires its model, published schema field, and a row in this catalog.
+The row gives its shape, requiredness, key shape, and references.
+Its reference edges belong in [the reference catalog](references.md).
+The reference implementation and its tests must also be updated.
+Scenario-native observability and authored evidence-requirement sections must also satisfy
+[the evidence-plane reference](observability-and-evidence.md).
+No parallel section registry exists or should be created.

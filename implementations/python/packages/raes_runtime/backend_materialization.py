@@ -111,7 +111,12 @@ def finalize_materialization(
         return finalize_runtime_inventory(raw, accepted, context, previous, archive)
     accepted = cast(ApplyResult, replace(accepted, materialization_attestation=None))
     source = getattr(context.operation_plan, "materialization_source", None)
-    if accepted.success and (source is not None or raw.materialization_attestation is not None):
+    required = source is not None and (
+        source.reporting_scope == "all-phases"
+        or isinstance(context.operation_plan, ProvisioningPlan)
+        or (context.augmentation is not None and bool(context.augmentation.preparation.effects))
+    )
+    if accepted.success and (required or raw.materialization_attestation is not None):
         accepted = _finalize_legacy_materialization(raw, accepted, context, previous, archive)
     return accepted
 

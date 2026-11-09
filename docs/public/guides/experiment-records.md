@@ -1,8 +1,25 @@
 # Keep complete experiment records
 
+Produce a bundle that accounts for every started run, including runs with missing results.
+
+## Before you start
+
+Use the Python runtime in RAES 11.0.2.
+Keep the `RuntimeControlPlane` that admitted your experiment, its `experiment_id`, stores, and installed evidence owners.
+The caller needs the original experiment's actor scope.
+An experiment ID alone grants no access.
+This is a host-composition task; a standalone script cannot supply these owners.
+
+## Collect the bundle
+
 Use `RuntimeControlPlane.experiment_records(experiment_id, ...)` to read every started run.
 The method keeps the actor scope that was admitted for the experiment.
 It does not start trial effects or permit resource reuse.
+
+Pass `identity=` with the admitted caller identity.
+Omit `archive` when you need inspection without an external archive write.
+The builder can retain record decisions in its runtime store.
+It is not an unlocked read of that store.
 
 A run can exist without a score.
 For example, a node can fail to start before a model is called.
@@ -72,6 +89,9 @@ Additional accounting versions remain separate members with role `other`.
 ## Write to a configured archive
 
 Pass an `ExperimentRecordArchive` that is approved for your deployment.
+Confirm destination approval before supplying it. Record data can contain protected settings and evidence.
+If readback conflicts, preserve the existing version and investigate the difference.
+Do not overwrite an immutable record to complete a retry.
 The owner stores source artifacts under their own fixed keys.
 It writes run and study versions that cannot change.
 The runtime freezes each candidate before the write and checks exact readback.
@@ -91,3 +111,22 @@ Old stores without observed end times remain partial.
 Reading a record never invents a missing historical time.
 The legacy replacement archive also freezes its candidate before writing.
 A lost acknowledgement resumes the same bytes and keeps the version reserved during recovery.
+## Assigned execution
+
+The [assigned-trial API](assigned-trials.md) retains the original experiment admission across execution hosts.
+`ingest_trial_outcome()` verifies remote facts through an explicitly installed original-evidence owner.
+Accepted observations feed the same run and study producer described here.
+Started assignments without terminal results remain partial or indeterminate records.
+Duplicate delivery preserves the original attempt, evidence, and run identity.
+
+## Finish and retain evidence
+
+Success returns an `ExperimentRecordBundle` with run records, accounting, and validation results.
+Inspect `validation_by_run` and `validation_failures` before using measurements.
+Restore authorized evidence readers and repeat validation when missing evidence becomes available.
+Do not replace failed checks with invented measurements.
+The builder closes transferred evidence readers. The host owns archive connections and runtime shutdown.
+Use the original runtime cleanup path before reusing resources.
+
+Read the {py:class}`RuntimeControlPlane <raes_runtime.RuntimeControlPlane>` for the method signature.
+Read [experiment concepts](../concepts.md) for the distinction between execution and evidence.

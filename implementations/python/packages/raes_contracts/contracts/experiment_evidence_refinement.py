@@ -324,7 +324,9 @@ def _dimension_is_stricter(
     elif dimension == "integrity-requirements":
         authored_integrity = _enum_value(authored.integrity)
         base = set() if authored_integrity == "none" else {authored_integrity}
-        is_stricter = _set_refinement(dimension=dimension, base=base, scoped=set(scoped.integrity_requirements))
+        is_stricter = _set_refinement(
+            dimension=dimension, base=base, scoped=set(scoped.integrity_requirements) - {"none"}
+        )
     else:
         base_required = _enum_value(authored.loss_disclosure) == "required"
         if base_required and not scoped.loss_disclosure_required:

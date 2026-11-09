@@ -260,6 +260,22 @@ def _verify_compatibility_install(
         f"python compatibility / {label} CLI help",
         lambda: _run(session, str(raes), "--help"),
     )
+    # The installed candidate compiles its own consumer inputs; no compiled plan is committed (#1944).
+    inputs_dir = environment_dir.parent / f"{environment_dir.name}-assigned-trial"
+    reporter.run(
+        f"python compatibility / {label} assigned trial inputs",
+        lambda: _run(session, str(python), str(PROJECT_ROOT / "tests" / "assigned_trial_inputs.py"), str(inputs_dir)),
+    )
+    reporter.run(
+        f"python compatibility / {label} assigned trial processes",
+        lambda: _run(
+            session,
+            str(python),
+            "-I",
+            str(PROJECT_ROOT / "tests" / "installed_assigned_trial_consumer.py"),
+            str(inputs_dir / "assigned-trial-inputs.json"),
+        ),
+    )
 
 
 def _compatibility_distribution_stages(

@@ -1,4 +1,4 @@
-# Participant Behavior Model Formal Design
+# Participant behavior model formal design
 
 This document is the issue #77 formal design artifact for:
 
@@ -23,7 +23,7 @@ generated schema coverage, compiled runtime records, and focused tests. It
 does not establish complete ACT-602, ACT-607, or ACT-608 behavior-model
 enforcement or mixed-backend conformance.
 
-## Current Coverage And Gap
+## Current coverage and gap
 
 Existing coverage:
 
@@ -58,7 +58,7 @@ is closed. The
 maps PBM-01 to PBM-12 to their current contracts, implementation, tests, and
 coverage, and names the open owner of each remaining gap.
 
-## Model Summary
+## Model summary
 
 The participant behavior model is:
 
@@ -89,9 +89,12 @@ The model has three layers:
 
 These layers are linked by stable references. They are not interchangeable.
 
-## ACT-603 - Abstract Participant Interaction Model
+<!-- vale RAES.HeadingCase = NO -->
+## ACT-603 - abstract participant interaction model
 
 An abstract participant interaction is the tuple:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 Interaction =
@@ -134,10 +137,13 @@ Rules:
 - Outcome interpretation is participant-local until a named rule relates it to
   scenario, workflow, objective, evaluation, evidence, or reward surfaces.
 
-### ACT-603 Implementation Preflight Guardrails
+<!-- vale RAES.HeadingCase = NO -->
+### ACT-603 implementation preflight guardrails
 
 Executable ACT-603 work must be a binding over existing RAES surfaces, not a
 new participant stack. The canonical incumbents are:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 - SDL authored semantics: `agents.*`, `action_contracts`,
   `observation_boundaries`, and `outcome_interpretation_rules` in
@@ -209,10 +215,13 @@ Anti-patterns for ACT-603 implementations:
 - making backend capability declarations prove that a specific participant
   implementation ran. Use provenance and runtime evidence for that claim.
 
-## ACT-602 - Executable Participant Behavior Model
+<!-- vale RAES.HeadingCase = NO -->
+## ACT-602 - executable participant behavior model
 
 Executable behavior means the model is machine-checkable through RAES gates.
 The executable chain is:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 SDL authoring
@@ -242,9 +251,12 @@ Required executable properties:
 Implementation issue #204 (PR #588) delivered executable contract bindings,
 validators, fixtures, and conformance evidence for this requirement.
 
-## ACT-606 - First-Class Participant Behavior Specifications
+<!-- vale RAES.HeadingCase = NO -->
+## ACT-606 - first-class participant behavior specifications
 
 A behavior specification is a named, versioned aggregate:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 BehaviorSpecification =
@@ -303,17 +315,19 @@ Rules:
   claim in a run or conformance report.
 - Extension fields follow the governed `x-<owner>:<term>` discipline.
 
-Implementation issue #206 adds the executable SDL authoring and validation
-surface for this aggregate. The Python reference implementation parses
-`behavior_specifications`, validates participant, role, action, observation,
-outcome, authority, extension, and governed-mode refs, includes the surface in
-generated SDL schemas, and compiles stable
-`participant.behavior-specification.<name>` runtime records without creating a
-parallel participant stack.
+Implementation issue #206 adds executable SDL authoring and validation for this aggregate.
+The Python reference implementation parses `behavior_specifications`.
+It validates participant, role, action, observation, outcome, authority, extension, and governed-mode refs.
+The surface appears in the generated SDL schemas.
+Compilation produces stable `participant.behavior-specification.<name>` runtime records.
+It creates no parallel participant stack.
 
-## ACT-607 - Authority And Scope Boundaries
+<!-- vale RAES.HeadingCase = NO -->
+## ACT-607 - authority and scope boundaries
 
 Authority and scope are authored semantics. The model distinguishes:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 | Facet | Portable meaning | Not equivalent to |
 | --- | --- | --- |
@@ -343,10 +357,13 @@ Rules:
 Implementation issue #207 (PR #596) delivered executable authority/scope
 extensions beyond the ACT-601 fields.
 
-### ACT-607 Implementation Preflight Guardrails
+<!-- vale RAES.HeadingCase = NO -->
+### ACT-607 implementation preflight guardrails
 
 Executable ACT-607 work must extend the existing participant-authoring and
 behavior surfaces. The canonical incumbents are:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 - SDL authored semantics: `agents.*.starting_accounts`,
   `initial_knowledge`, `starting_assertions`, `authority_anchors`,
@@ -396,13 +413,11 @@ Security and boundary gates remain in force:
   change updates model source, generated schema bundle, publication-manifest
   ledger, and fixtures together.
 
-The extensibility seam is a parameterized authority/scope reference resolver:
-reuse the named-reference index for authority anchors, the spatial/resource
-operating-scope index for scope, and add explicit allowed-target/facet
-parameters when a future boundary type needs a narrower target set. If runtime
-claims need normalized addresses, add that normalization at the compiler
-addressing boundary rather than copying raw, possibly ambiguous authoring refs
-into a second resolver.
+A parameterized authority/scope reference resolver supplies the extension interface.
+Use the named-reference index for authority anchors and the spatial/resource operating-scope index for scope.
+When a future boundary type needs a narrower target set, add explicit allowed-target/facet parameters.
+If runtime claims need normalized addresses, add normalization at the compiler addressing boundary.
+Do not copy raw, possibly ambiguous authoring refs into a second resolver.
 
 Anti-patterns for ACT-607 implementations:
 
@@ -418,10 +433,13 @@ Anti-patterns for ACT-607 implementations:
 - proving conformance only through schema acceptance without semantic negative
   tests, runtime evidence, and redaction/leakage checks.
 
-## ACT-608 - Participant Behavior Modes
+<!-- vale RAES.HeadingCase = NO -->
+## ACT-608 - participant behavior modes
 
 Behavior mode declares how decisions are selected or controlled at the
 participant decision-surface boundary.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 | Requirement wording | Controlled vocabulary term |
 | --- | --- |
@@ -450,11 +468,14 @@ Rules:
 Implementation issue #208 (PR #616) delivered executable declaration,
 selection, validation, and conformance for behavior modes.
 
-## ACT-609 - Offensive Behavior Vocabularies
+<!-- vale RAES.HeadingCase = NO -->
+## ACT-609 - offensive behavior vocabularies
 
 Offensive classifications of attack-oriented participant tasks, goals, or
 activities use generic bindings against the exact behavior-specification
 subject.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 The base terms in `participant-offensive-behavior-activities` are a direct
 adoption of MITRE ATT&CK Enterprise tactics v19.1. The pinned source artifact is
@@ -463,14 +484,13 @@ records the upstream STIX bundle URL, ATT&CK version, retrieval date, SHA-256
 digest, MITRE terms URL, and citation URLs. The source artifact was extracted
 from the ATT&CK Enterprise matrix order, not hand-curated by RAES.
 
-The base terms in `participant-ai-offensive-behavior-activities` are a separate
-direct adoption of MITRE ATLAS tactics release v2026.06 (`collection.version`
-`2026.06`, `format-version` `6.0.0`). The pinned source artifact is
-`contracts/concept-authority/atlas-tactics-source-v1.json`; it records the
-upstream YAML release asset URL, ATLAS content and format versions, retrieval
-date, SHA-256 digest, MITRE ATLAS project and license citations, matrix id, and
-term lineage fields. The source artifact was extracted from the ATLAS
-`ATLAS-matrix` sequence order, not hand-curated by RAES.
+The `participant-ai-offensive-behavior-activities` base terms directly adopt MITRE ATLAS tactics release v2026.06.
+The `collection.version` is `2026.06`.
+The `format-version` is `6.0.0`.
+The pinned source is `contracts/concept-authority/atlas-tactics-source-v1.json`.
+It records the upstream YAML release asset URL, ATLAS content and format versions, retrieval date, and SHA-256 digest.
+It also records MITRE ATLAS project and license citations, matrix id, and term lineage fields.
+Extraction uses the ATLAS `ATLAS-matrix` sequence order, not a term order selected by RAES.
 
 Rules:
 
@@ -543,12 +563,15 @@ Issue #209 originally implemented native behavior refs. Issue #989 retires
 those fields and compiler carry-through in favor of
 [generic concept bindings](../../concept-authority/external-concept-bindings.md).
 
-## ACT-610 - Defensive Behavior Vocabularies
+<!-- vale RAES.HeadingCase = NO -->
+## ACT-610 - defensive behavior vocabularies
 
 Defensive intent and outcome classifications use generic bindings against
 the exact behavior-specification subject. The optional
 `participant-defensive-behavior-activities` source catalog is independent of
 ATT&CK and ATLAS and governs no SDL field.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 The eight base terms are RAES adaptations of the active NIST CSF 2.0 Detect,
 Respond, and Recover categories. The pinned source artifact is
@@ -583,7 +606,8 @@ retires that field and its compiler carry-through in favor of
 The pinned source artifact, catalog terms, and source-integrity checker that
 #210 added remain.
 
-## ACT-611 - Autonomous Service And Agent Behavior Vocabularies
+<!-- vale RAES.HeadingCase = NO -->
+## ACT-611 - autonomous service and agent behavior vocabularies
 
 Autonomous-service and autonomous-agent vocabulary relationships are portable
 external assertions about an exact behavior specification, not another field
@@ -591,6 +615,8 @@ inside that specification. ACT-611 uses
 `external-concept-bindings/v1` to bind the canonical
 `behavior_specifications.<name>` declaration and artifact digest to pinned
 ActivityStreams Activity type IRIs or FIPA communicative-act identifiers.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Rules:
 
@@ -610,7 +636,8 @@ Rules:
 The source and conformance contract is specified in
 [`specs/concept-authority/autonomous-behavior-vocabularies.md`](../../concept-authority/autonomous-behavior-vocabularies.md).
 
-## ACT-617 - Mixed-Control Participant Operation
+<!-- vale RAES.HeadingCase = NO -->
+## ACT-617 - mixed-control participant operation
 
 Issue #1351 and ADR-110 amend the normative policy/application distinction in
 [`mixed-control-policy-occurrence/rev1`](../participant-semantics/reusable-mixed-control.md).
@@ -618,6 +645,8 @@ MC-01–MC-09 define reusable permissions, explicit finite scripts, exact
 occurrences, source-controller authority, validity, replay and directed-delivery
 joins. The [migration contract](../../../docs/migration/reusable-mixed-control.md)
 preserves historical meaning and states the required reader boundary.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ### Legacy fixed-coordinate form
 
@@ -644,15 +673,17 @@ MixedControl =
   control_transition+
 ```
 
-Each controller state binds a controller agent (or `self`), that controller's
-declared authority bases, a non-widening subset of the behavior
-specification's authority scope, the policy revision, an order-bounded
-validity interval, active/revoked authority state, and evidence refs. Each
-transition has a portable local identity and preserves a distinct `proposal`,
-`approval`, `denial`, `external-direction`, `intervention`, `handoff`,
-`override`, or `cancellation` fact with from/to controller states, expected
-and resulting state revisions, effective order and validity, evidence, and
-proposal identity/revision where required.
+Each controller state binds all of these coordinates:
+
+- Controller agent (or `self`) and that controller's declared authority bases.
+- A non-widening subset of the behavior specification's authority scope.
+- Policy revision and order-bounded validity interval.
+- Active/revoked authority state and evidence refs.
+
+Each transition has a portable local identity.
+It preserves a distinct `proposal`, `approval`, `denial`, `external-direction`, `intervention`, `handoff`, `override`, or `cancellation` fact.
+The fact includes from/to controller states, expected and resulting state revisions, effective order and validity, and evidence.
+Where required, it also includes proposal identity/revision.
 
 Rules:
 
@@ -692,7 +723,8 @@ issue #1364 (PR #1613) delivered the installed runtime path. The
 [coverage matrix](../participant-semantics/semantic-coverage.md) row
 `ACT-617.F` names the open owners of the remaining consumer adoption.
 
-## ACT-619 - Reusable Participant Tool Profiles
+<!-- vale RAES.HeadingCase = NO -->
+## ACT-619 - reusable participant tool profiles
 
 A participant tool profile is the `tool_affordances` of one behavior
 specification `S` together with its participant and role selection. It has no
@@ -704,6 +736,8 @@ item shape as the specification. Let `Sel(X)` be the PI-03 resolver of
 [participant identity](../../sdl/participant-identity.md) applied to the
 selector of `X` over the composed scenario, and let `A_f` and `B_f` be the
 binding's action and boundary refs.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 | ID | Rule |
 | --- | --- |
@@ -747,7 +781,7 @@ instantiated-snapshot digest.
 The [tool-profile decision](../../../docs/decisions/issue-301-participant-tool-profiles.md)
 records the alternatives, the #294 reconciliation, and the unsupported cases.
 
-## Cross-Clause Invariants
+## Cross-clause invariants
 
 | ID | Invariant | Primary clauses |
 | --- | --- | --- |
@@ -765,7 +799,7 @@ records the alternatives, the #294 reconciliation, and the unsupported cases.
 | PBM-12 | Autonomous behavior vocabulary terms are external assertions about exact behavior specifications and do not create native or executable behavior meaning. | ACT-611 |
 | PBM-13 | Tool-profile bindings only narrow their behavior specification, add up without precedence, and never grant availability, visibility, or admission by themselves. | ACT-619 |
 
-## Child-Issue Mapping
+## Child-issue mapping
 
 This table records the original executable ownership. Every issue in it is
 closed; the coverage matrix names the open owner of each remaining gap.
@@ -783,7 +817,7 @@ closed; the coverage matrix names the open owner of each remaining gap.
 | #251 | ACT-617 | Authored controller/authority state, ordered fail-closed control transitions, composition, and typed compiler projection. |
 | #301 | ACT-619 | Reusable tool profiles: binding participant selectors, conflict rejection, compilation, v2 projection filtering, and the v1 refusal. |
 
-## Verification Expectations
+## Verification expectations
 
 Any executable issue that claims this model must provide:
 

@@ -6,7 +6,7 @@ type: NON_FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-05-18T04:25:47.598518Z
-updated_at: 2026-10-21T00:00:00Z
+updated_at: 2026-11-06T00:00:00Z
 ---
 
 # ASR-532 — Runtime Backend Result Integrity
@@ -29,6 +29,16 @@ containment, and comprehensive backend acceptance testing remain outside this
 requirement.
 
 ## Traceability
+
+- IMPLEMENTS → GITHUB_ISSUE `1958` (Finite recursive verification work for unchanged large secret plans)
+- TESTS → TEST `implementations/python/tests/test_issue_1885_cloud_authority_budget.py` (2,048-secret completion, changed selections, and planning-time evaluation exhaustion)
+- TESTS → TEST `implementations/python/tests/test_issue_1885_binding_limits.py` (Finite binding admission and escaped value and carrier failure addresses)
+- TESTS → TEST `implementations/python/tests/cloud_authority_budget_fixtures.py` (Native and logical secret identity mutations across execution boundaries)
+- DOCUMENTS → SPEC `specs/sdl/recursive-realization-constraints.md` (Shared finite authority profile and compiler evaluation admission)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/materialization.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/materialization.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1914_materialization_source_budget.py`
 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/realization_cleanup.py` (Original authority is validated before cleanup comparison)
 - TESTS → TEST `implementations/python/tests/test_issue_1805_open_concern_disclosure.py` (Reject unsupported success and preserve trusted or recoverable inventory)

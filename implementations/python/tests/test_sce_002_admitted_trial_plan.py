@@ -12,6 +12,7 @@ import json
 from pathlib import Path
 
 import pytest
+from contract_fixtures import contract_fixture_text, load_contract_fixture
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes_contracts.contracts.admitted_trial_plan import (
@@ -64,21 +65,10 @@ from raes_contracts.contracts.trial_cleanup import (
     CleanupObligationModel,
     CleanupResourceBoundaryModel,
     ExecutionRetryPolicyModel,
-    IsolationDimensionEvidenceModel,
-    SchedulerIsolationProofModel,
     TrialCleanupPlanModel,
 )
+from raes_contracts.trial_parallelism import OpenTrialParallelismModel
 from raes_schemas import schema_bundle
-
-_REQUIRED_ISOLATION_DIMENSIONS = (
-    "range-instance",
-    "host-capacity",
-    "ports",
-    "storage",
-    "control-plane-locks",
-    "secret-scope",
-    "cleanup",
-)
 
 FIXTURES_ROOT = Path(__file__).resolve().parents[3] / "contracts" / "fixtures"
 CONTRACT_ID = "admitted-trial-plan-v1"
@@ -100,25 +90,9 @@ def _profiles(**overrides: object) -> AdmittedTrialPlanProfilesModel:
         "random_stream_profile": "blake3-xof-v1",
         "execution_control_profile": "attempt-control-v1",
         "cleanup_profile": "trial-cleanup-v1",
-        "isolation_profile": "scheduler-isolation-v1",
     }
     fields.update(overrides)
     return AdmittedTrialPlanProfilesModel(**fields)
-
-
-def _parallel_proof(entry_ids: list[str]) -> SchedulerIsolationProofModel:
-    return SchedulerIsolationProofModel(
-        schema_version="scheduler-isolation-proof/v1",
-        proof_id="proof-parallel",
-        plan_entry_ids=entry_ids,
-        requested_parallelism=2,
-        dimensions=[
-            IsolationDimensionEvidenceModel(
-                dimension=dimension, independent=True, evidence_refs=[f"evidence:{dimension}"]
-            )
-            for dimension in _REQUIRED_ISOLATION_DIMENSIONS
-        ],
-    )
 
 
 def _input_refs(**overrides: object) -> AdmittedTrialPlanInputRefsModel:
@@ -441,16 +415,6 @@ def test_cleanup_plans_must_not_be_orphaned() -> None:
         _plan(cleanup_plans=cleanup)
 
 
-def test_isolation_proof_entries_must_resolve() -> None:
-    proof = SchedulerIsolationProofModel(
-        schema_version="scheduler-isolation-proof/v1",
-        proof_id="proof-a",
-        plan_entry_ids=["entry-a", "ghost-entry"],
-    )
-    with pytest.raises(ValidationError, match="isolation proof references unknown plan entries"):
-        _plan(isolation_proof=proof)
-
-
 def test_admission_entry_count_must_match_entries() -> None:
     admission = AdmittedTrialPlanAdmissionModel(admitted_at_stage="admitted-sealed", entry_count=5)
     with pytest.raises(ValidationError, match="entry_count must equal the number of admitted entries"):
@@ -507,9 +471,9 @@ def test_stochastic_draw_coordinate_must_match_entry() -> None:
         _plan(entries={"entry-a": entry})
 
 
-def test_parallel_isolation_rejects_shared_resources() -> None:
-    # F5: bounded parallelism must not authorize entries that own the same
-    # resource, even with an otherwise complete isolation proof.
+def test_trial_parallelism_alone_admits_parallel_trials_that_name_shared_resources() -> None:
+    # Issue #1940: every trial instantiates the same SDL, so equal resource names
+    # do not connect trials. The authored value is the only parallelism control.
     entries = {
         "entry-a": _entry(entry_id="entry-a", run_id="run-a", condition_id="baseline", cleanup_ref="cleanup-a"),
         "entry-b": _entry(entry_id="entry-b", run_id="run-b", condition_id="treatment", cleanup_ref="cleanup-b"),
@@ -518,27 +482,13 @@ def test_parallel_isolation_rejects_shared_resources() -> None:
         "cleanup-a": _cleanup_plan("cleanup-a", "entry-a", "run-a", resource="a"),
         "cleanup-b": _cleanup_plan("cleanup-b", "entry-b", "run-b", resource="a"),
     }
-    proof = _parallel_proof(["entry-a", "entry-b"])
-    with pytest.raises(ValidationError, match="parallel entries that share resources"):
-        _plan(entries=entries, cleanup_plans=shared_resource_cleanup, isolation_proof=proof)
-
-
-def test_parallel_isolation_accepts_disjoint_resources() -> None:
-    entries = {
-        "entry-a": _entry(entry_id="entry-a", run_id="run-a", condition_id="baseline", cleanup_ref="cleanup-a"),
-        "entry-b": _entry(entry_id="entry-b", run_id="run-b", condition_id="treatment", cleanup_ref="cleanup-b"),
-    }
-    disjoint_cleanup = {
-        "cleanup-a": _cleanup_plan("cleanup-a", "entry-a", "run-a", resource="a"),
-        "cleanup-b": _cleanup_plan("cleanup-b", "entry-b", "run-b", resource="b"),
-    }
     plan = _plan(
         entries=entries,
-        cleanup_plans=disjoint_cleanup,
-        isolation_proof=_parallel_proof(["entry-a", "entry-b"]),
+        cleanup_plans=shared_resource_cleanup,
+        trial_parallelism=OpenTrialParallelismModel(posture="open"),
     )
-    assert plan.isolation_proof is not None
-    assert plan.isolation_proof.requested_parallelism == 2
+    assert plan.parallelism_bounds() == (1, 2)
+    assert "isolation_proof" not in plan.model_dump(mode="json")
 
 
 def test_random_stream_profile_must_match_control_binding() -> None:
@@ -763,7 +713,7 @@ def test_schema_bundle_publishes_admitted_trial_plan_contract() -> None:
 def test_admitted_plan_ingress_reconstructs_and_revalidates_complete_plan() -> None:
     fixture = FIXTURES_ROOT / "plans" / CONTRACT_ID / "valid" / "minimal.json"
 
-    admitted = parse_admitted_trial_plan_json(fixture.read_bytes())
+    admitted = parse_admitted_trial_plan_json(contract_fixture_text(fixture).encode())
 
     assert admitted.plan_id == "plan-a"
     assert tuple(admitted.entries) == ("entry-a",)
@@ -803,9 +753,9 @@ def test_admitted_trial_plan_fixture_corpora_validate() -> None:
     assert valid, "missing valid fixtures"
     assert invalid, "missing invalid fixtures"
     for path in valid:
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = load_contract_fixture(path)
         assert not list(validator.iter_errors(payload)), path.name
         AdmittedTrialPlanModel.model_validate(payload)
     for path in invalid:
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = load_contract_fixture(path)
         assert list(validator.iter_errors(payload)), path.name

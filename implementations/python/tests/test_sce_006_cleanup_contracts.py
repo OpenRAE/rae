@@ -29,8 +29,6 @@ from raes_contracts.contracts.trial_cleanup import (
     CleanupObligationResultModel,
     CleanupResourceBoundaryModel,
     ExecutionRetryPolicyModel,
-    IsolationDimensionEvidenceModel,
-    SchedulerIsolationProofModel,
     TrialCleanupPlanModel,
     TrialCleanupReceiptModel,
     validate_trial_cleanup_receipt,
@@ -42,7 +40,6 @@ FIXTURES_ROOT = Path(__file__).resolve().parents[3] / "contracts" / "fixtures"
 FIXTURE_GROUPS = {
     "trial-cleanup-plan-v1": "plans",
     "trial-cleanup-receipt-v1": "control-plane",
-    "scheduler-isolation-proof-v1": "control-plane",
 }
 
 
@@ -587,80 +584,6 @@ def test_reset_retry_policy_rejects_non_retry_capable_reset_obligations(
         )
 
 
-def _dimension(dimension: str) -> IsolationDimensionEvidenceModel:
-    return IsolationDimensionEvidenceModel(
-        dimension=dimension,
-        independent=True,
-        evidence_refs=[f"evidence:{dimension}"],
-    )
-
-
-def test_scheduler_isolation_defaults_to_serial_without_parallel_proof() -> None:
-    proof = SchedulerIsolationProofModel(
-        schema_version="scheduler-isolation-proof/v1",
-        proof_id="proof-serial",
-        plan_entry_ids=["trial-entry-a"],
-    )
-
-    assert proof.requested_parallelism == 1
-    assert proof.dimensions == []
-
-
-def test_parallel_scheduler_requires_every_isolation_dimension() -> None:
-    dimensions = [_dimension("range-instance")]
-    with pytest.raises(ValidationError, match="parallel isolation proof requires dimensions"):
-        SchedulerIsolationProofModel(
-            schema_version="scheduler-isolation-proof/v1",
-            proof_id="proof-parallel",
-            plan_entry_ids=["trial-entry-a", "trial-entry-b"],
-            requested_parallelism=2,
-            dimensions=dimensions,
-        )
-
-
-def test_parallel_scheduler_accepts_complete_independent_evidence() -> None:
-    required = (
-        "range-instance",
-        "host-capacity",
-        "ports",
-        "storage",
-        "control-plane-locks",
-        "secret-scope",
-        "cleanup",
-    )
-    proof = SchedulerIsolationProofModel(
-        schema_version="scheduler-isolation-proof/v1",
-        proof_id="proof-parallel",
-        plan_entry_ids=["trial-entry-a", "trial-entry-b"],
-        requested_parallelism=2,
-        dimensions=[_dimension(dimension) for dimension in required],
-    )
-
-    assert proof.requested_parallelism == 2
-
-
-def test_parallel_scheduler_requires_secret_scope_isolation() -> None:
-    # SCE-006 governs secret scope as a required parallel isolation dimension; a
-    # proof carrying every other dimension but omitting secret-scope must fail.
-    without_secret_scope = (
-        "range-instance",
-        "host-capacity",
-        "ports",
-        "storage",
-        "control-plane-locks",
-        "cleanup",
-    )
-    dimensions = [_dimension(dimension) for dimension in without_secret_scope]
-    with pytest.raises(ValidationError, match="secret-scope"):
-        SchedulerIsolationProofModel(
-            schema_version="scheduler-isolation-proof/v1",
-            proof_id="proof-parallel",
-            plan_entry_ids=["trial-entry-a", "trial-entry-b"],
-            requested_parallelism=2,
-            dimensions=dimensions,
-        )
-
-
 def test_contracts_forbid_unbounded_metadata_and_secret_payload_fields() -> None:
     payload = _plan().model_dump(mode="json")
     payload["environment"] = {"TOKEN": "secret"}
@@ -669,17 +592,13 @@ def test_contracts_forbid_unbounded_metadata_and_secret_payload_fields() -> None
         TrialCleanupPlanModel.model_validate(payload)
 
 
-def test_schema_bundle_publishes_cleanup_and_isolation_contracts() -> None:
+def test_schema_bundle_publishes_cleanup_contracts_without_an_isolation_proof() -> None:
     bundle = schema_bundle()
 
-    assert {
-        "trial-cleanup-plan-v1",
-        "trial-cleanup-receipt-v1",
-        "scheduler-isolation-proof-v1",
-    } <= set(bundle)
+    assert {"trial-cleanup-plan-v1", "trial-cleanup-receipt-v1"} <= set(bundle)
+    assert "scheduler-isolation-proof-v1" not in bundle
     assert bundle["trial-cleanup-plan-v1"]["additionalProperties"] is False
     assert bundle["trial-cleanup-receipt-v1"]["additionalProperties"] is False
-    assert bundle["scheduler-isolation-proof-v1"]["additionalProperties"] is False
 
 
 def test_cleanup_capability_requires_both_plan_and_receipt_contracts() -> None:
@@ -820,7 +739,7 @@ def test_trial_control_admission_refuses_undeclared_operation_guarantees() -> No
 
 @pytest.mark.parametrize(
     "contract_id",
-    ["trial-cleanup-plan-v1", "trial-cleanup-receipt-v1", "scheduler-isolation-proof-v1"],
+    ["trial-cleanup-plan-v1", "trial-cleanup-receipt-v1"],
 )
 def test_cleanup_contract_fixture_corpora_validate(contract_id: str) -> None:
     validator = Draft202012Validator(schema_bundle()[contract_id])

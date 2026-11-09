@@ -19,3 +19,11 @@ this hosted guide. Start with the
 
 RAES can support a bounded reproduction attempt. One successful parse,
 realization, or replay does not prove scientific reproducibility.
+
+For exact release rules, use the
+[formal specification index for RAES 11.0.2](https://github.com/OpenRAE/rae/blob/v11.0.2/specs/formal/README.md)
+and [schema reference](https://github.com/OpenRAE/rae/blob/v11.0.2/contracts/schemas/README.md).
+Each formal domain gives its model, implementation evidence, and claim limits.
+For development checks, use the
+[local specification and contract check guide](https://github.com/OpenRAE/rae/blob/dev/docs/develop/check-specification-contracts.md).
+That guide names its source revision and does not add support to the released package.

@@ -1,4 +1,4 @@
-# Goal-Oriented Workflow Step Semantics
+# Goal-oriented workflow step semantics
 
 SCE-004 adds a realization coordinate to executable workflow steps without
 changing objective truth or control-flow semantics.
@@ -14,7 +14,7 @@ control nodes, which already bind an actor, targets, dependencies, a time
 window, and evidence-bearing success assertions through the referenced
 objective.
 
-## Admission Invariants
+## Admission invariants
 
 - `scripted` may identify a governed procedure; procedure identity remains
   realization provenance and never defines proposition truth.
@@ -36,7 +36,7 @@ objective.
   `scaffolded-steps` workflow feature fails capability admission; it does not
   silently downgrade the mode.
 
-## Attempt and Success Invariants
+## Attempt and success invariants
 
 Each attempt records the authored mode, objective address, exposed scaffold
 references, selected action family/tool/affordance, runtime-fact versions,
@@ -50,13 +50,13 @@ A participant report, tool exit status, or workflow-local outcome cannot
 satisfy that implication by itself. Different tools may therefore realize the
 same objective without changing its backend-neutral success meaning.
 
-## Implementation Mapping
+## Implementation mapping
 
 - authored mode and fail-closed validation:
   `implementations/python/packages/raes/orchestration/__init__.py`
 - compiled realization projection and feature requirements:
   `implementations/python/packages/raes_processor/compiler/workflow_steps.py`
 - portable attempt provenance:
-  `implementations/python/packages/raes_contracts/workflow.py`
+  `implementations/python/packages/raes_contracts/workflow/`
 - behavioral regression surface:
   `implementations/python/tests/test_sce_004_goal_oriented_steps.py`

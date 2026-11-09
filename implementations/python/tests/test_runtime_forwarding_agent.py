@@ -175,6 +175,13 @@ def test_kebab_case_enum_inputs_normalize() -> None:
     assert agent.sources[0].parse_format is RuntimeForwardingParseFormat.EVE_JSON
 
 
+def test_socket_source_kind_names_a_listening_socket_input() -> None:
+    agent = RuntimeForwardingAgent(
+        **_log_forwarder(sources=[{"source_id": "local-syslog", "kind": "socket", "parse_format": "syslog"}])
+    )
+    assert agent.sources[0].kind is RuntimeForwardingSourceKind.SOCKET
+
+
 def test_open_tail_kinds_impose_no_profile() -> None:
     # unknown / other are permissive — a near-empty instance validates.
     for kind in ("unknown", "other"):

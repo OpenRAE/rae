@@ -27,7 +27,9 @@ class PreparationOperationModel(PlanOperationModel):
     @model_validator(mode="after")
     def _validate_selected_operation(self) -> PreparationOperationModel:
         require_plan_operation_identity(RuntimeDomain.PROVISIONING, self.address, self.resource_type)
-        if not validate_realization_value(self.payload, python_carriers=True).conformant:
+        if not validate_realization_value(
+            self.payload, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS, python_carriers=True
+        ).conformant:
             raise ValueError("prepared payload exceeds its portable value bounds")
         return self
 

@@ -1,4 +1,4 @@
-# Scientific-Scenario Completeness Profiles
+# Scientific-scenario completeness profiles
 
 Status: **normative**.
 
@@ -11,7 +11,7 @@ It does not change ordinary SDL validity. A document containing only `name` may
 be a valid SDL fragment while being unsuitable for deployment, participant
 evaluation, controlled experimentation, or a reproducible benchmark.
 
-## Normative Artifacts
+## Normative artifacts
 
 The two machine-readable authorities are:
 
@@ -34,7 +34,7 @@ or profile means requires a new taxonomy revision. The join identity is:
 (profile_family, taxonomy_revision, assessment_revision, profile_id, concern_id)
 ```
 
-## Disposition And Delivery
+## Disposition and delivery
 
 Profile disposition and delivery status are different dimensions:
 
@@ -67,9 +67,12 @@ witness, and an explicit binding obligation. `partial`, `missing`, and
 `deliberately-excluded` never satisfy a required row. Completeness is computed;
 it is not stored as a mutable boolean.
 
-## REV1 Outcomes
+<!-- vale RAES.HeadingCase = NO -->
+## REV1 outcomes
 
 The following block is checked mechanically against the normative artifacts.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 <!-- scientific-completeness-summary:start -->
 | Profile | Complete | Blocking required concerns |
@@ -87,7 +90,7 @@ production SDL parser. An incomplete stronger profile may have an illustration,
 but that illustration MUST be labeled as a gap illustration and MUST NOT be
 used to upgrade the profile.
 
-## Composition Boundary
+## Composition boundary
 
 The stronger profiles compose SDL with existing experiment and evidence
 contracts. Factors, allocation, stochastic controls, apparatus context, runs,
@@ -112,7 +115,7 @@ concern without promoting any currently incomplete stronger profile: passing
 the same bounded probes or producing equal result tuples is not evidence of
 bisimulation.
 
-## Security And Evidence Boundary
+## Security and evidence boundary
 
 Profile artifacts contain only identifiers, classifications, repository paths,
 contract ids, issue references, and bounded claim summaries. They MUST NOT

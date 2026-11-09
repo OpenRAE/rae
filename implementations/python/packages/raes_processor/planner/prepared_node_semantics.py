@@ -40,6 +40,11 @@ def _typed_context(live: Mapping[str, object]) -> ExpandedScenario:
         for entry in live.values()
         if entry.resource_type in {"node", "network"}
     }
+    content_specs = {
+        entry.address: {"spec": entry.payload.get("spec")}
+        for entry in live.values()
+        if entry.resource_type == "content-placement"
+    }
     for entry in live.values():
         name = entry.payload.get("name")
         if entry.resource_type in {"node", "network"}:
@@ -48,7 +53,9 @@ def _typed_context(live: Mapping[str, object]) -> ExpandedScenario:
             context["infrastructure"][name] = spec["infrastructure"]
         elif entry.resource_type == "generated-artifact":
             spec = entry.payload.get("spec", {})
-            artifact, _ = _validated_generated_artifact_payload(address=entry.address, spec=spec, node_specs=node_specs)
+            artifact, _ = _validated_generated_artifact_payload(
+                address=entry.address, spec=spec, node_specs=node_specs, content_specs=content_specs
+            )
             context["generated_artifacts"][name] = artifact
         elif entry.resource_type == "persistent-volume":
             spec = _closed_spec(entry)

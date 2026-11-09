@@ -1,7 +1,6 @@
-"""Reproducible negative evidence for the complete rev2 crossing carrier."""
+"""Reproducible negative evidence for the complete rev2 crossing carrier, built and admitted on each run."""
 
 import argparse
-import re
 from collections import deque
 from dataclasses import asdict
 from pathlib import Path
@@ -18,12 +17,10 @@ from . import export
 from .aut import parse_aut, render_aut
 from .counterexample_mutations import CASE_IDS, build_mutations
 from .counterexample_witnesses import check_divergence, check_formula
-from .export import digest, publish_bundle
-from .ingress import read_bytes, safe_path
+from .export import digest
+from .ingress import read_bytes
 
 ROOT = Path(__file__).resolve().parents[3]
-OUTPUT_ROOT = "specs/formal/participant-semantics/counterexamples"
-MAPPING_ROOT = "specs/formal/participant-semantics/runtime-mapping/rev1"
 CALIBRATION_IDS = ("finite-stutter", "weak-choice", "internal-divergence")
 SOURCE_PATHS = (
     *export.SOURCE_PATHS,
@@ -152,14 +149,9 @@ def validate_inventory(bundle: dict[str, bytes]) -> None:
 
 
 def _baseline(root: Path):
+    """Build the baseline models from the current sources; no retained copy is committed (issue #1929)."""
     current = export.build_bundle(root)
-    retained = decoded(read_bytes(root, export.OUTPUT_PATH + "/manifest.json"))
-    result = {}
-    for name in ("abstract.aut", "concrete.aut", "abstract.json", "concrete.json"):
-        payload = read_bytes(root, export.OUTPUT_PATH + "/" + name)
-        if digest(payload) != retained["artifact_digests"][name] or payload != current[name]:
-            raise EvidenceIntegrityError("retained baseline drift")
-        result[name] = payload
+    result = {name: current[name] for name in ("abstract.aut", "concrete.aut", "abstract.json", "concrete.json")}
     return result, decoded(current["manifest.json"])
 
 
@@ -254,9 +246,6 @@ def _manifest(root, bundle, cases, current):
     selected = selection()
     executing = _source_pins(root)
     sources = {path: executing[path] for path in SUBJECT_SOURCE_PATHS}
-    mapping = {name: read_bytes(root, MAPPING_ROOT + "/" + name) for name in ("manifest.json", "cases.json")}
-    if decoded(mapping["manifest.json"])["artifact_digests"]["cases.json"] != digest(mapping["cases.json"]):
-        raise EvidenceIntegrityError("historical mapping drift")
     return {
         "schema": "participant-crossing-counterexamples/v2",
         "profile": "participant-crossing-dpbb-finite-v1@rev2",
@@ -264,13 +253,7 @@ def _manifest(root, bundle, cases, current):
         "projection": current["projection"],
         "catalog_revision": current["catalog_revision"],
         "catalog_digest": current["catalog_digest"],
-        "baseline_manifest_digest": digest(read_bytes(root, export.OUTPUT_PATH + "/manifest.json")),
-        "mapping": {
-            "path": MAPPING_ROOT,
-            "scope": "historical-observations",
-            "digests": {name: digest(value) for name, value in mapping.items()},
-            "case_counts": decoded(mapping["manifest.json"])["case_counts"],
-        },
+        "baseline_manifest_digest": canonical_json_digest(current),
         "source_digests": sources,
         "source_identity": canonical_json_digest(sources),
         "tool": {
@@ -305,10 +288,6 @@ def _manifest(root, bundle, cases, current):
         "completion_behavior": "terminal-can-retry-or-advance-cut",
         "deadlock_behavior": "no-outgoing-transition",
     }
-
-
-def output_path(bundle: dict[str, bytes]) -> str:
-    return OUTPUT_ROOT + "/capture-" + digest(bundle["manifest.json"]).split(":", 1)[1]
 
 
 def _admit_mutations(bundle, baseline):
@@ -363,14 +342,10 @@ def _admit_calibrations(bundle):
     return expected_calibrations
 
 
-def admit_bundle(
-    root: Path, bundle: dict[str, bytes], expected_manifest_digest: str, *, require_authenticity: bool = False
-) -> None:
+def admit_bundle(root: Path, bundle: dict[str, bytes], *, require_authenticity: bool = False) -> None:
     """Admit against an independently selected pin; never adopt candidate policy."""
 
     validate_inventory(bundle)
-    if digest(bundle["manifest.json"]) != expected_manifest_digest:
-        raise EvidenceIntegrityError("corpus differs from retained manifest pin")
     if require_authenticity:
         raise EvidenceIntegrityError("unsigned corpus cannot satisfy authenticity policy")
     baseline, current = _baseline(root)
@@ -392,52 +367,17 @@ def admit_bundle(
         raise EvidenceIntegrityError("invalid corpus metadata")
 
 
-def load_retained(root: Path) -> tuple[dict[str, bytes], str]:
-    """Read the repository's reviewed pin separately from the candidate bundle."""
-
-    pin = decoded(read_bytes(root, OUTPUT_ROOT + "/pin.json", max_bytes=4096))
-    if (
-        set(pin) != {"schema", "capture", "manifest_digest", "review_subject_digest"}
-        or pin["schema"] != "participant-crossing-counterexample-pin/v1"
-    ):
-        raise EvidenceIntegrityError("invalid corpus pin")
-    expected = pin["manifest_digest"]
-    if not isinstance(expected, str) or re.fullmatch(r"sha256:[0-9a-f]{64}", expected) is None:
-        raise EvidenceIntegrityError("invalid corpus pin")
-    path = OUTPUT_ROOT + "/capture-" + expected.split(":", 1)[1]
-    if pin["capture"] != path or {item.name for item in safe_path(root, path).iterdir()} != inventory():
-        raise EvidenceIntegrityError("invalid corpus inventory")
-    bundle = {name: read_bytes(root, path + "/" + name) for name in inventory()}
-    if decoded(bundle["manifest.json"])["review_subject_digest"] != pin["review_subject_digest"]:
-        raise EvidenceIntegrityError("corpus review pin drift")
-    return bundle, expected
-
-
-def publish(root: Path) -> str:
-    bundle = build_bundle(root)
-    admit_bundle(root, bundle, digest(bundle["manifest.json"]))
-    path = output_path(bundle)
-    publish_bundle(root, bundle, path)
-    return path
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("record", "check", "replay"))
-    args = parser.parse_args()
+    parser.add_argument("action", choices=("check",))
+    parser.parse_args()
     try:
-        if args.action == "record":
-            path = publish(ROOT)
-        else:
-            bundle, pin = load_retained(ROOT)
-            admit_bundle(ROOT, bundle, pin)
-            path = output_path(bundle)
-            if args.action == "replay":
-                export._check_expected(ROOT, build_bundle(ROOT), path)
+        # Build the corpus from the current sources and admit it against the expectations in code.
+        admit_bundle(ROOT, build_bundle(ROOT))
     except OSError, RaesError:
         print("crossing corpus: evidence admission failed")
         return 1
-    print(path)
+    print("crossing corpus: verified")
     return 0
 
 

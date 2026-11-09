@@ -1,4 +1,4 @@
-# Proposition, Assertion, and Truth-Result Semantics
+# Proposition, assertion, and truth-result semantics
 
 ## Authority and claim level
 
@@ -178,8 +178,10 @@ propositions. The planner compares that requirement with
 clock authority. A future authored per-proposition time domain requires a new
 governed language/profile revision rather than a backend-local inference.
 
-A runtime truth result is admitted only if its proposition and assertion
-addresses resolve to semantic entries in the same snapshot, the proposition
-entry has the same evaluation basis, and the assertion entry has the same
-proposition link and polarity. This prevents a structurally valid envelope from
-changing or detaching the compiled claim.
+Runtime truth-result admission requires all of these conditions:
+
+- Its proposition and assertion addresses resolve to semantic entries in the same snapshot.
+- The proposition entry has the same evaluation basis.
+- The assertion entry has the same proposition link and polarity.
+
+A structurally valid envelope cannot change or detach the compiled claim.

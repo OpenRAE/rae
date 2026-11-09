@@ -45,7 +45,7 @@ copying or serialization; individually bounded entries do not exempt the
 aggregate. The input and authority commitments must identify the same submitted
 operation even when the caller supplies detached value copies.
 Portable apply and validation inputs are bounded before isolation or hashing.
-The runtime budget includes a total scalar-byte limit, not just per-value sizes.
+The runtime budget includes both total and per-value scalar-byte limits.
 Native value arguments and supplemental realization requirements are included;
 injected service dependencies are not traversed as portable values. Invalid
 Unicode is a rejected input, not an escaping serialization error.
@@ -55,6 +55,21 @@ apply. This includes recursive exact descendants, domains, local closure,
 presence, identity and dependency rules; static non-realization control values
 cannot be rewritten as delegated choices. Backend envelope membership includes
 closed record and ancestor scopes, not only independently matching leaf domains.
+Comparison uses bounded portable values from the existing preparation codec.
+Compiler tuples and transported arrays preserve the same ordered values.
+This applies to concern constraints, residual payloads, and selected delivery.
+Controller order, membership, field presence, and scalar types remain exact.
+Booleans are distinct from integers, including inside nested collections.
+Invalid carriers fail before conversion; conversion grants no additional authority.
+The original plan and stored snapshots retain their native representations.
+The Python implementation uses the fixed recursive
+[`PLAN_AUTHORITY_LIMITS` profile](recursive-realization-constraints.md#5-bounded-outcomes)
+for both original authority and selected-value evaluation. Prepared operation
+payloads use `RUNTIME_SNAPSHOT_VALUE_LIMITS`, as does the complete response.
+An individual payload therefore retains the aggregate carrier's supported scale;
+it does not fall back to the smaller generic recursive-relation default.
+These bounds preserve exact roles, subjects, native IDs and content references.
+Exhausted work never admits a completion.
 For typed concerns, default-presence rules are recovered through the existing
 concern validator and shared envelope engine. Serialized defaults do not become
 extra realizable dimensions. Domain checks still use the safe supplied values;

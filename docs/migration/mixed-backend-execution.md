@@ -1,4 +1,14 @@
-# Mixed-backend execution contracts migration
+<a id="mixed-backend-execution-contracts-migration"></a>
+
+# Mixed-backend execution compatibility reference
+
+## Versions and purpose
+
+Source: `Historical MixedEdgeExecutionBinding and MixedHandoffBinding callbacks`.
+Target: `Explicit mixed-backend-execution-binding-v1 and mixed-backend-stage-report-v1 installations`.
+This is a compatibility reference for the Python implementation in RAES 11.0.2.
+The contracts below retain their separate identities and obligations.
+This page does not supply a standalone converter or deployment procedure.
 
 Issue #1371 publishes portable contracts for the executable mixed-backend
 obligations that
@@ -358,3 +368,10 @@ validator can prove.
 These contracts add no generic federation framework, HLA, FMI or HELICS
 support, common clock or physical-OT timing guarantee. They also add no
 exactly-once effects, multi-controller authority or backend equivalence.
+
+## Continue
+
+Use [revised-control migration](revised-control.md) for coordinated adoption.
+Read [mixed participant composition](../explain/reference/mixed-participant-composition.md) for installation and runtime behavior.
+Live probes require the backend owner's permissions, native readback, and cleanup evidence.
+No automatic callback conversion is provided.

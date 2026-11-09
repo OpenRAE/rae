@@ -1,9 +1,12 @@
+<!-- vale RAES.HeadingCase = NO -->
 # Participant semantic coverage: SEM-212 to SEM-215
 
 Part of the [participant semantic coverage matrix](../semantic-coverage.md),
 which defines the scope, columns, evidence classes, and coverage rule.
 These are the clause rows for the "Design commitments" bullets of SEM-212,
 SEM-213, and SEM-215.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 | Facet | Clause | Requirement(s) | Excerpt | Normative location | Contract | Implementation | Tests | Evidence class | Coverage | Owner | Acceptance test |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |

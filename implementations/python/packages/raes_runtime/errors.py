@@ -20,4 +20,8 @@ class IdempotencyClaimConflictError(ConflictError):
     """An idempotency claim does not match the original request that holds the key."""
 
 
-__all__ = ("IdempotencyClaimConflictError", "RuntimeBudgetExhaustedError")
+class TrialPending(ConflictError):
+    """The attempt needs observation or reconciliation, never blind redispatch."""
+
+
+__all__ = ("IdempotencyClaimConflictError", "RuntimeBudgetExhaustedError", "TrialPending")

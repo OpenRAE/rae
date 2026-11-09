@@ -76,7 +76,6 @@ class AdmittedTrialPlanProfilesModel(ContractModel):
     random_stream_profile: Literal["blake3-xof-v1"]
     execution_control_profile: Literal["attempt-control-v1"]
     cleanup_profile: Literal["trial-cleanup-v1"]
-    isolation_profile: Literal["scheduler-isolation-v1"]
     allocation_profile: Literal["none", "fisher-yates-allocation-v1"] = "none"
     treatment_profile: Literal["factorial-treatments-v1"] | None = Field(
         default=None, exclude_if=lambda value: value is None

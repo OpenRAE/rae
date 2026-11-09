@@ -1,4 +1,4 @@
-"""Open concern omission cannot establish successful runtime realization."""
+"""Open concern reports and observation claims require corroboration."""
 
 from copy import deepcopy
 from dataclasses import replace
@@ -109,7 +109,10 @@ def test_explicit_empty_open_report_requires_matching_sufficient_evidence(route,
 
     diagnostics, provenance = _evaluate(route, requirement, plan, snapshot, manifest)
 
-    if evidence == "valid":
+    if evidence in {"missing", "address", "field_path", "domain", "kind"}:
+        assert diagnostics == []
+        assert provenance == ()
+    elif evidence == "valid":
         assert diagnostics == []
         assert [(item.requirement_kind, item.provenance) for item in provenance] == [
             (requirement.requirement_kind, ExplicitnessProvenance.BACKEND_REALIZED)
@@ -140,7 +143,8 @@ def test_inapplicable_open_requirement_does_not_demand_a_report(deleted):
 
 
 @pytest.mark.parametrize("reported", [True, False])
-def test_adapter_retains_only_corroborated_successful_reports(reported):
+@pytest.mark.parametrize("observed", [True, False])
+def test_adapter_retains_only_corroborated_successful_reports(reported, observed):
     requirement, plan, manifest, operation = _case()
     retained = replace(operation, address="provision.node.retained", payload={"node_name": "retained"})
     baseline = RuntimeSnapshot(
@@ -150,7 +154,9 @@ def test_adapter_retains_only_corroborated_successful_reports(reported):
     )
 
     def backend(submitted, snapshot):
-        returned = _returned(requirement, submitted, operation, {"mail_services": []} if reported else {})
+        returned = _returned(
+            requirement, submitted, operation, {"mail_services": []} if reported else {}, observed=observed
+        )
         return ApplyResult(
             True,
             returned.with_entries({**deepcopy(dict(snapshot.entries)), **returned.entries}),
@@ -167,13 +173,18 @@ def test_adapter_retains_only_corroborated_successful_reports(reported):
         realization=_RealizationApplyContext(plan=plan, manifest=manifest),
     )
 
-    assert result.success is reported, result.diagnostics
-    if reported:
+    assert result.success is (reported or not observed), result.diagnostics
+    if reported or not observed:
         assert result.snapshot.entries[retained.address] == baseline.entries[retained.address]
-        assert result.snapshot.entries[operation.address].payload["spec"]["node"]["runtime"]["mail_services"] == []
+        assert result.snapshot.entries[operation.address].payload["spec"]["node"]["runtime"] == (
+            {"mail_services": []} if reported else {}
+        )
         assert result.snapshot.realization_observations == ()
-        assert any(
-            item.requirement_kind == requirement.requirement_kind for item in result.snapshot.realization_provenance
+        assert (
+            any(
+                item.requirement_kind == requirement.requirement_kind for item in result.snapshot.realization_provenance
+            )
+            is observed
         )
     else:
         assert result.snapshot == baseline
@@ -224,7 +235,9 @@ def test_cleanup_projection_preserves_original_authority_and_supplied_value_chec
     elif corruption == "closed":
         snapshot.entries[operation.address].payload["node_kind"] = "switch"
     else:
-        snapshot.entries[operation.address].payload["spec"]["node"]["runtime"]["mail_services"] = []
+        snapshot.entries[operation.address].payload["spec"]["node"]["runtime"]["mail_services"] = [
+            {"mail_service_id": "mx"}
+        ]
     original = deepcopy(plan)
 
     diagnostics = realization_cleanup_diagnostics(plan, snapshot, manifest=manifest)
@@ -233,7 +246,7 @@ def test_cleanup_projection_preserves_original_authority_and_supplied_value_chec
     assert plan == original
 
 
-def test_missing_report_with_only_a_source_constraint_is_rejected():
+def test_empty_open_concern_with_only_a_source_floor_needs_no_report():
     requirement, plan, manifest, _ = _case()
     requirement = replace(
         requirement, verification_scope=None, required_observation_strength=ObservationStrength.GUEST_OBSERVED
@@ -241,5 +254,5 @@ def test_missing_report_with_only_a_source_constraint_is_rejected():
 
     diagnostics, provenance = realization_disclosure((requirement,), plan, RuntimeSnapshot(), manifest=manifest)
 
-    assert [item.code for item in diagnostics] == ["runtime.backend-contract-invalid"]
+    assert diagnostics == []
     assert provenance == ()

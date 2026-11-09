@@ -71,6 +71,11 @@ class RuntimeInteractionEvaluationMixin:
                 else MixedControlPlanningAdmission(context.mixed_control_model)
             ),
             refresh_evaluation=True,
+            materialization_reporting=(
+                execution.evaluation.materialization_source.reporting_scope
+                if execution.evaluation.materialization_source is not None
+                else "all-phases"
+            ),
         )
         if not refreshed.is_valid:
             raise ConflictError("evaluation refresh could not be planned")

@@ -12,6 +12,12 @@ from raes_contracts.runtime_state import (
 
 from .operation_invocation_ledger import require_invocation_transition, require_record_invocation
 from .operation_reconciliation_ledger import InvocationReconciliation
+from .participant_delivery_invocation_records import (
+    delivery_invocation_binding,
+    delivery_tool_binding,
+    require_delivery_invocation_transition,
+    require_delivery_tool_transition,
+)
 from .record_immutability import immutable_value_error, is_immutable_value_error
 
 if TYPE_CHECKING:
@@ -36,6 +42,9 @@ def _require_operation_record_identity(record: ControlPlaneOperationRecord) -> N
     require_record_invocation(record)
     require_inject_record(record)
     require_delivery_record(record)
+
+    delivery_invocation_binding(record)
+    delivery_tool_binding(record)
     from .participant_control_effect_evidence import require_effect_claim_payload
 
     require_effect_claim_payload(record)
@@ -54,6 +63,9 @@ def _require_same_operation_identity(
     _require_operation_record_identity(existing)
     _require_operation_record_identity(replacement)
     require_inject_transition(existing, replacement)
+
+    require_delivery_invocation_transition(existing, replacement)
+    require_delivery_tool_transition(existing, replacement)
     if (
         existing.inject_delivery != replacement.inject_delivery
         or existing.inject_delivery_control != replacement.inject_delivery_control
@@ -72,6 +84,7 @@ def _require_same_operation_identity(
         existing.status.context,
         existing.idempotency_key,
         existing.request_fingerprint,
+        existing.legacy_request_commitment,
     ) != (
         replacement.status.schema_version,
         replacement.status.operation_id,
@@ -80,6 +93,7 @@ def _require_same_operation_identity(
         replacement.status.context,
         replacement.idempotency_key,
         replacement.request_fingerprint,
+        replacement.legacy_request_commitment,
     ):
         raise immutable_value_error("operation identity is immutable after its durable claim")
 

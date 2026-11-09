@@ -1,4 +1,4 @@
-# Participant-Crossing Counterexample Corpus
+# Participant-crossing counterexample corpus
 
 Requirements: SEM-232, ASR-535, SEM-230, GOV-913. Classification: FM3.
 
@@ -49,7 +49,7 @@ Raw checker output remains private until result and witness admission completes.
 The publication boundary accepts no arbitrary diagnostic text.
 
 The corpus uses GOV-913's existing `evidence_artifact` role.
-Checksums establish byte integrity against an independently retained repository pin.
+Each run builds the corpus from the current sources; no capture or pin is committed.
 They do not establish authenticity, independent review, semantic correctness, or current runtime coverage.
 Review records bind the exact mutation and expectation digest.
 The [GOV-913 preflight boundary](../../../docs/decisions/issue-973-crossing-counterexample-preflight.md#gov-913-integrity-authenticity-and-review-authority)
@@ -152,8 +152,7 @@ Independent mutation review remains necessary after automated checks pass.
 The corpus manifest binds subject sources only.
 These are the model sources, the mutation and witness modules, and the corpus module.
 Each run checks the tool-admission code, locks, and other apparatus for stability.
-Native replay must reproduce every artifact byte.
-The retained model construction record keeps its own historical source digests.
+Each run recomputes every comparison and refuses a decision that differs from the expectation in code.
 The [evidence identity design](../../../docs/decisions/issue-976-crossing-evidence-identity-design.md) records this split.
 
 ## Existing authorities

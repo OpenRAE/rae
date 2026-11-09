@@ -398,6 +398,7 @@ def _compile(
             treatments=_has_typed_treatments(request),
         ),
         allocation=allocation,
+        trial_parallelism=request.family.trial_parallelism,
         input_refs=(replacement.input_refs(request, entries) if replacement else canonical_input_refs(request)),
         stochastic_controls=controls,
         cleanup_plans=cleanup_plans,

@@ -13,7 +13,7 @@ from raes_contracts.contracts import (
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import ConflictError
 from raes_contracts.immutable_history import mutable_history_value
-from raes_contracts.materialization import MaterializationSubmission
+from raes_contracts.materialization import MaterializationReportingScope, MaterializationSubmission
 from raes_contracts.planning import PlanScope, RuntimeDomain
 from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
@@ -33,6 +33,7 @@ from .manager_destroy import _DestroyPhaseMixin
 from .manager_inventory import RuntimeInventoryMixin
 from .manager_lifecycle import RuntimeManagerLifecycleMixin, manager_owned
 from .manager_plan_admission import reference_participant_driver_diagnostics, runtime_plan_precondition_diagnostics
+from .participant_delivery_driver import delivery_tool_driver_actions
 
 _RUNTIME_APPLY_ADDRESS, _APPLY_EVALUATOR_ADDRESS = "runtime.apply", "runtime.apply.evaluator"
 _APPLY_ORCHESTRATOR_ADDRESS = "runtime.apply.orchestrator"
@@ -44,6 +45,7 @@ _ROLLBACK_ORCHESTRATOR_ADDRESS = "runtime.rollback.orchestrator"
 class InteractionPlanningOptions(TypedDict, total=False):
     run_scope: PlanScope | None
     refresh_evaluation: bool
+    materialization_reporting: MaterializationReportingScope
 
 
 @dataclass
@@ -82,6 +84,7 @@ class RuntimeInteractionMixin(
     ) -> ExecutionPlan:
         run_scope = options.pop("run_scope", None)
         refresh_evaluation = options.pop("refresh_evaluation", False)
+        materialization_reporting = options.pop("materialization_reporting", "all-phases")
         if options:
             raise TypeError("unsupported interaction planning option")
         model = compile_scenario_runtime_model(
@@ -102,10 +105,18 @@ class RuntimeInteractionMixin(
             scope=scope,
             artifact_availability=artifact_availability,
             refresh_evaluation=refresh_evaluation,
+            materialization_reporting=materialization_reporting,
             profile_context=getattr(self._target.provisioner, "domain_profile_context", None),
         )
         return replace(
-            execution_plan, diagnostics=[*execution_plan.diagnostics, *reference_participant_driver_diagnostics(model)]
+            execution_plan,
+            diagnostics=[
+                *execution_plan.diagnostics,
+                *reference_participant_driver_diagnostics(
+                    model,
+                    delivery_actions=delivery_tool_driver_actions(self, model),
+                ),
+            ],
         )
 
     @manager_owned
@@ -323,6 +334,7 @@ class RuntimeInteractionMixin(
             self._target,
             self._snapshot,
             durable_lifecycle_available=self._store_commits.crash_atomic,
+            delivery_actions=delivery_tool_driver_actions(self, execution_plan.model),
         )
         diagnostics.extend(precondition_diagnostics)
         failure = None

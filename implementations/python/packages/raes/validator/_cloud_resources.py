@@ -226,7 +226,14 @@ class _CloudResourcesMixin:
 
     def _verify_cloud_secret(self, secret: RuntimeServiceSecret) -> None:
         if secret.resource_scope_ref:
-            self._cloud_model(secret.resource_scope_ref, RuntimeIdentityResourceScope, "secret scope")
+            scope = self._cloud_model(secret.resource_scope_ref, RuntimeIdentityResourceScope, "secret scope")
+            if (
+                secret.replication is not None
+                and scope is not None
+                and scope.provider != "gcp"
+                and not self._is_unresolved_var(scope.provider)
+            ):
+                self._err("cloud-provider: GCP Secret Manager replication requires a gcp scope")
         for field in ("encryption_key_ref", "reset_owner_ref", "deletion_owner_ref"):
             reference = getattr(secret, field)
             if reference:

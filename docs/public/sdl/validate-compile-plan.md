@@ -6,12 +6,17 @@ The guide stops at that backend boundary. Nothing is provisioned or started.
 
 ## Install the command-line tool
 
-You need Python 3.14. Install RAES in a virtual environment:
+This tutorial uses Python 3.14 and RAES 11.0.2.
+You need write access to a new working directory and read access to your package source.
+Use that directory for the scenario and `plan.json`. The plan command replaces an existing `plan.json`.
+No backend credential or resource permission is required.
+
+Install RAES in a virtual environment:
 
 ```console
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install raes
+python -m pip install raes==11.0.2
 ```
 
 The package installs the `raes` command. After installation, the commands in
@@ -493,6 +498,15 @@ Run `raes semantic compile scenario.sdl.yaml --output json` and read
 **Plan for a specific backend.**
 Run `raes processor plan scenario.sdl.yaml --manifest backend.json --format json`.
 `backend.json` is the backend's manifest in the backend-manifest-v2 format.
+
+## Keep the result and clean up
+
+Keep the final SDL and plan if you need them for review.
+Correct the named declaration after a validation failure, then repeat validation before compilation.
+Do not treat the intentional `capture.offer-missing` plan failure as permission to execute.
+Delete your local scenario, `plan.json`, and virtual environment when the exercise is finished.
+No native cleanup is needed because no backend ran.
+Read the [CLI reference](../api/cli.rst) and [artifact concepts](../concepts.md) after completing the exercise.
 
 ## Know where RAES stops
 

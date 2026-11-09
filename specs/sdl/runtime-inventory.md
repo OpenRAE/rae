@@ -1,4 +1,5 @@
-# Catalog 4 — Runtime-Family Index
+<!-- vale RAES.HeadingCase = NO -->
+# Catalog 4 — runtime-family index
 
 The runtime inventory is the node-scoped record of logical service state an SDL
 document declares for a node. This file is a normative **index**: it places the
@@ -7,6 +8,8 @@ shape, and states the invariants every family shares **once**. It deliberately
 **delegates** each family's per-field semantics to that family's ADR rather than
 restating them, so the authoring spec does not duplicate the runtime ADR
 sequence.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ## 1. Placement and boundary
 
@@ -78,22 +81,18 @@ contracts.
 
 ### Other node-runtime surfaces
 
-A node's `runtime` also carries surfaces that are not ref-targetable families in
-the index above but follow the same invariants and are governed by their own
-ADRs: local identity
-([ADR-024](../../docs/decisions/adrs/adr-024-local-identity-inventory-surface.md)),
-container image provenance
-([ADR-023](../../docs/decisions/adrs/adr-023-container-image-build-provenance-surface.md)),
-software components
-([ADR-034](../../docs/decisions/adrs/adr-034-runtime-software-component-inventory.md)),
-service-manager units
-([ADR-035](../../docs/decisions/adrs/adr-035-service-manager-unit-state-runtime-surface.md)),
-and container init/reaper state
-([ADR-027](../../docs/decisions/adrs/adr-027-container-init-reaper-runtime-surface.md)).
-These authored identity surfaces are kept **separate** from one another:
-authored `accounts`, runtime local identity, application authorization, database
-roles, and participant identities are distinct models and MUST NOT be collapsed
-into one.
+A node's `runtime` also carries surfaces outside the ref-targetable family index above.
+They follow the same invariants and have their own ADRs:
+
+- [Local identity](../../docs/decisions/adrs/adr-024-local-identity-inventory-surface.md) (ADR-024).
+- [Container image provenance](../../docs/decisions/adrs/adr-023-container-image-build-provenance-surface.md) (ADR-023).
+- [Software components](../../docs/decisions/adrs/adr-034-runtime-software-component-inventory.md) (ADR-034).
+- [Service-manager units](../../docs/decisions/adrs/adr-035-service-manager-unit-state-runtime-surface.md) (ADR-035).
+- [Container init/reaper state](../../docs/decisions/adrs/adr-027-container-init-reaper-runtime-surface.md) (ADR-027).
+
+These authored identity surfaces remain **separate**.
+Authored `accounts`, runtime local identity, application authorization, database roles, and participant identities are distinct models.
+They MUST NOT be collapsed into one.
 
 Service-manager rows use portable `unit_id` as their stable comparison key.
 Their optional `unit_name` is exact native data, not a portable systemd name.
@@ -198,12 +197,12 @@ invent a private token or collapse a known token into `other`.
 
 ## Extending the runtime-family index
 
-A new runtime family is added by: defining its model and published schema,
-authoring its owning ADR, registering it in the canonical family registry (key,
-collection, primary `<noun>_id`, child-ref tree), and adding one row to the index
-above. The shared invariants (§3) apply automatically; the nested runtime-family
-reference form ([references.md §1](references.md)) addresses its elements without
-bespoke prose. No second runtime-family registry exists or should be created.
+A new runtime family requires its model, published schema, and owning ADR.
+It also requires registration in the canonical family registry and one row in the index above.
+The registration gives the key, collection, primary `<noun>_id`, and child-ref tree.
+The shared invariants (§3) apply automatically.
+The nested runtime-family [reference form](references.md#1-reference-forms) addresses its elements without separate prose.
+No second runtime-family registry exists or should be created.
 
 ### Private identity example
 

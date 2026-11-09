@@ -89,15 +89,11 @@ def test_published_schema_enforces_security_invariants():
             jsonschema.validate(_load(path), schema)
 
 
-def test_manifest_entry_registered_with_consistent_ledger():
-    """Exact canonical-hash parity is enforced by tools/check_schema_publication.py;
-    here we assert the entry exists, points at the published schema, and its
-    last_change ledger hash is self-consistent with the entry content_hash."""
+def test_manifest_entry_registered():
+    """The publication record exists and points at the published schema."""
     manifest = load_schema_publication_catalog(REPO_ROOT)
     entry = next(item for item in manifest["schemas"] if item["contract_id"] == CONTRACT_ID)
     assert entry["schema_path"] == "contracts/schemas/asset-trust/reusable-asset-trust-policy-v1.json"
-    assert len(entry["content_hash"]) == 64
-    assert entry["last_change"]["content_hash"] == entry["content_hash"]
 
 
 def test_valid_fixtures_pass_validation():

@@ -38,6 +38,8 @@ def action_crossing_intent(
     request: ParticipantActionAdmissionRequest,
     evidence: ParticipantCrossingEvidence,
     identity: ControlPlaneIdentity,
+    *,
+    effective_order: int | None = None,
 ) -> ParticipantCrossingIntent:
     """Build the canonical ingress crossing for one participant action."""
 
@@ -70,7 +72,9 @@ def action_crossing_intent(
             "authority_basis_refs": list(authority_basis_refs),
             "requested_operation": ParticipantCrossingOperation.ADMISSION,
             "action_or_projection_ref": request.action_contract_address,
-            "effective_order": _next_effective_order(control_plane, request.participant_address),
+            "effective_order": effective_order
+            if effective_order is not None
+            else _next_effective_order(control_plane, request.participant_address),
             "order_model": "logical_clock",
         },
     )

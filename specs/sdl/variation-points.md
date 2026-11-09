@@ -5,7 +5,7 @@ Status: **normative**.
 Requirements: SCE-002
 
 Decisions: [ADR-084](../../docs/decisions/adrs/adr-084-scenario-variation-and-deterministic-trial-realization.md)
-and accepted [ADR-070](../../docs/decisions/adrs/adr-070-realization-envelope-domain-witness-algebra.md)
+and accepted [ADR-070](../../docs/decisions/adrs/adr-070-realization-envelope-semantics.md)
 
 ## 1. Scope and authority
 
@@ -20,6 +20,9 @@ forbidden in instantiated scenarios and snapshots. Composition MUST complete
 before selection. Public instantiation of an unresolved family MUST fail closed.
 The public `select_scenario_family()` API applies complete recorded selections.
 It MUST NOT use variable defaults or first members as implicit selections.
+Selection MUST keep authored field presence. A field that the family omits
+stays omitted in the selected scenario, so selection does not change its
+explicitness or realization authority.
 
 ## 2. Common form
 

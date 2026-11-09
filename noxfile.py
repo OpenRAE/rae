@@ -59,6 +59,7 @@ from tools.nox_support.runner import (
     SessionReporter,
     _paths_trigger,
     _requirement_aware_policy_args,
+    _run_changed_test_modules,
     _run_pytest,
     _sync_project,
 )
@@ -67,6 +68,7 @@ from tools.nox_support.test_lanes import (
     _run_coverage_reduce,
     _run_docs,
     _run_docs_linkcheck,
+    _run_docs_prose,
     _run_fuzz,
     _run_integration_tests,
     _run_osv_scan,
@@ -128,12 +130,12 @@ def participant_opacity_proof(session: nox.Session) -> None:
 
 @nox.session(name="participant-crossing-machine-check")
 def participant_crossing_machine_check(session: nox.Session) -> None:
-    """Replay the complete finite decision without synchronization or acquisition."""
+    """Build and check the complete finite decision without synchronization or acquisition."""
     reporter = SessionReporter(session, "participant-crossing-machine-check")
     try:
-        if list(session.posargs) not in ([], ["--publish"]):
-            session.error("Use no arguments, or --publish for qualified CI artifact staging.")
-        run_machine_check(session, reporter, publish=list(session.posargs) == ["--publish"])
+        if session.posargs:
+            session.error("The participant-crossing machine check takes no arguments.")
+        run_machine_check(session, reporter)
     finally:
         reporter.summary()
 
@@ -231,6 +233,17 @@ def docs_local(session: nox.Session) -> None:
         reporter.summary()
 
 
+@nox.session(name="docs-prose")
+def docs_prose(session: nox.Session) -> None:
+    """Run the existing style linter on selected maintained prose only."""
+    reporter = SessionReporter(session, "docs-prose")
+    try:
+        _sync_project(session)
+        _run_docs_prose(session, reporter)
+    finally:
+        reporter.summary()
+
+
 @nox.session(name="docs-links")
 def docs_links(session: nox.Session) -> None:
     """Check external documentation links; intended for the dedicated CI job."""
@@ -275,7 +288,7 @@ def hook_pre_commit(session: nox.Session) -> None:
         if changed_tests:
             reporter.run(
                 "tests / directly changed pytest modules",
-                lambda: _run_pytest(session, *changed_tests, "-q"),
+                lambda: _run_changed_test_modules(session, changed_tests),
                 detail=" ".join(changed_tests),
             )
         elif _paths_trigger(changed, FULL_TEST_TRIGGER_PREFIXES):

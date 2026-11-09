@@ -1,10 +1,5 @@
 {
-  "content_hash": "cf09f64efd54dece7eecc7b4bc0c5cfa80c9ef463095b32c4a8a20ac913f5c9a",
   "contract_id": "materialized-scenario-v1",
-  "last_change": {
-    "content_hash": "cf09f64efd54dece7eecc7b4bc0c5cfa80c9ef463095b32c4a8a20ac913f5c9a",
-    "summary": "Add typed scope audit recording, exact exemptions, portable nonblank and uniqueness constraints, and the scope uniqueness semantic invariant (issue #1831)."
-  },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"
 }

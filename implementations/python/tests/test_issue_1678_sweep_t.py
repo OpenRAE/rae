@@ -24,6 +24,7 @@ from types import SimpleNamespace
 
 import pytest
 import yaml
+from contract_fixtures import load_contract_fixture
 from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError, OperationalError
 from test_pr_body_guard import GROUND_CONTROL_REQUIREMENT_FREE
 from tools.policy.common import PolicyFailure
@@ -203,7 +204,6 @@ def _sharded_schema_publication(root: Path, entry_text: str) -> None:
         json.dumps(
             {
                 "schema_version": "schema-publication-manifest/v2",
-                "hash_algorithm": "sha256-canonical-json",
                 "entries_directory": "contracts/schema-publication/entries",
                 "tombstones_directory": "contracts/schema-publication/tombstones",
             }
@@ -868,7 +868,7 @@ def test_adr_pin_gate_reports_an_unconstructable_manifest_scalar_as_malformed(tm
 
     _nox_write(
         tmp_path / adr_gate.MANIFEST_PATH,
-        f"hash_algorithm: sha256\nnote: {_NOX_SENTINEL}\nadrs: [{{id: ADR-001, date: {scalar}}}]\n",
+        f"note: {_NOX_SENTINEL}\nadrs: [{{id: ADR-001, date: {scalar}}}]\n",
     )
 
     failures = adr_gate.evaluate_adr_immutability(tmp_path)
@@ -884,7 +884,7 @@ def test_adr_pin_gate_does_not_report_a_value_error_defect_as_invalid_yaml(
 ) -> None:
     import tools.check_adr_immutability as adr_gate
 
-    _nox_write(tmp_path / adr_gate.MANIFEST_PATH, "hash_algorithm: sha256\nadrs: []\n")
+    _nox_write(tmp_path / adr_gate.MANIFEST_PATH, "adrs: []\n")
 
     def defective(_path: Path) -> dict:
         raise ValueError(_NOX_DEFECT)
@@ -1595,14 +1595,8 @@ def test_schema_publication_gate_reports_an_undecodable_base_manifest(tmp_path, 
     assert reason == "base schema publication manifest at base is not valid JSON"
 
 
-def test_schema_publication_gate_reports_a_schema_without_a_utf8_form(tmp_path, monkeypatch, capsys):
+def test_schema_publication_gate_reports_an_invalid_input_failure(monkeypatch, capsys):
     from tools import check_schema_publication
-
-    path = _write(tmp_path, "contracts/schemas/example.json", '{"title": "\\ud800"}')
-    schema, reason = check_schema_publication._load_schema(path, "contracts/schemas/example.json")
-    assert reason is None
-    with pytest.raises(InvalidInputError, match="UTF-8"):
-        check_schema_publication._schema_content_digest(schema)
 
     def refuse(*_args, **_kwargs):
         raise InvalidInputError("published schema text has no UTF-8 form")
@@ -2014,7 +2008,7 @@ def test_schema_publication_gate_reports_a_stable_schema_beyond_the_comparison_d
     deep = _nested_objects(5000)
     base = json.dumps({"properties": {"value": deep}})
     entry = gate.ManifestEntry(
-        "example-contract", "contracts/schemas/example-contract.json", "stable", "0" * 64, {"properties": {}}
+        "example-contract", "contracts/schemas/example-contract.json", "stable", {"properties": {}}
     )
     base_entry = {"contract_id": "example-contract", "schema_path": entry.schema_path, "stability": "stable"}
     monkeypatch.setattr(gate, "_load_base_manifest", lambda _root, _rev: ({"example-contract": base_entry}, None))
@@ -2515,20 +2509,18 @@ def test_proof_gate_refuses_a_session_source_that_is_not_utf8(tmp_path: Path) ->
     root.write_text("session Participant_Opacity = HOL +\n", encoding="utf-8")
     theory.write_bytes(b"theory Participant_Opacity imports Main begin \xff\n")
     manifest = _installers2_manifest()
-    manifest["session"]["root_digest"] = "sha256:" + hashlib.sha256(root.read_bytes()).hexdigest()
-    manifest["session"]["theory_digest"] = "sha256:" + hashlib.sha256(theory.read_bytes()).hexdigest()
     with pytest.raises(ProofEvidenceError, match="proof session source is unreadable or not UTF-8"):
         _validate_session(manifest, tmp_path)
 
 
 def test_proof_gate_refuses_an_unreadable_bound_source(tmp_path: Path) -> None:
-    from tools.check_participant_opacity_proof import ProofEvidenceError, _validate_digest_bound_path
+    from tools.check_participant_opacity_proof import ProofEvidenceError, _validate_bound_path
 
     source = tmp_path / "source.md"
     source.write_text("text", encoding="utf-8")
     _installers2_unreadable(source)
     with pytest.raises(ProofEvidenceError, match="semantic source repository file is unreadable"):
-        _validate_digest_bound_path(tmp_path, {"path": "source.md", "digest": "sha256:0"}, "semantic source")
+        _validate_bound_path(tmp_path, {"path": "source.md"}, "semantic source")
 
 
 # --- Python closure: operator paths and client output get the existing closure refusals.
@@ -3604,12 +3596,10 @@ def test_identity_cutover_record_with_an_unhashable_class_is_a_manifest_failure(
         class_field: value,
         "rationale": "retained history",
         "occurrences": 1,
-        "content_sha256": "0" * 64,
         **extra,
     }
     manifest = {
         "schema_version": cutover.MANIFEST_SCHEMA,
-        "hash_algorithm": "sha256",
         "records": [],
         "operational_bindings": [],
         "generated_history_records": [],
@@ -3694,7 +3684,7 @@ def test_repo_policy_and_adr_gate_report_an_empty_tagged_number_as_malformed(tmp
     from tools.policy.repo_policy import _load_policy_guarded
 
     _nox2_write(tmp_path / "tools/policy/adr_policy.yaml", 'value: !!int ""\n')
-    _nox2_write(tmp_path / adr_gate.MANIFEST_PATH, 'hash_algorithm: sha256\nadrs: [{id: ADR-001, pin: !!float ""}]\n')
+    _nox2_write(tmp_path / adr_gate.MANIFEST_PATH, 'adrs: [{id: ADR-001, path: !!float ""}]\n')
 
     policy, failures = _load_policy_guarded(tmp_path)
 
@@ -4019,10 +4009,7 @@ def test_adr_pin_gate_compares_a_base_revision_that_is_not_utf8(tmp_path: Path) 
         capture_output=True,
     )
     _nox2_write(tmp_path / relative, head)
-    manifest = {
-        "hash_algorithm": "sha256",
-        "adrs": [{"id": "ADR-001", "path": relative, "pin": adr_gate.content_hash(head)}],
-    }
+    manifest = {"adrs": [{"id": "ADR-001", "path": relative}]}
     _nox2_write(tmp_path / adr_gate.MANIFEST_PATH, json.dumps(manifest))
 
     failures = adr_gate.evaluate_adr_immutability(tmp_path, base_rev="HEAD")
@@ -4896,7 +4883,7 @@ def test_tooling2_validator_launch_defects_still_propagate(monkeypatch):
 def _tooling2_edit_json(path: Path, edit) -> None:
     import json
 
-    document = json.loads(path.read_text(encoding="utf-8"))
+    document = load_contract_fixture(path)
     edit(document)
     path.write_text(json.dumps(document), encoding="utf-8")
 
@@ -5278,7 +5265,7 @@ def _sweep_t_tooling_failures(tmp_path: Path, edit_schema, edit_lock=None) -> se
     for relative, edit in ((POLICY_SCHEMAS[ARTIFACT_LOCK_PATH], edit_schema), (ARTIFACT_LOCK_PATH, edit_lock)):
         if edit is not None:
             path = tmp_path / relative
-            document = json.loads(path.read_text(encoding="utf-8"))
+            document = load_contract_fixture(path)
             edit(document)
             path.write_text(json.dumps(document), encoding="utf-8")
     failures = evaluate_tooling_artifact_policy(tmp_path, tracked_paths=["tools/acquire_tool_a.py"])

@@ -1,5 +1,7 @@
 # Describe a reproducible agentic environment
 
+To get started and run a scenario, see [LilRÆ](https://github.com/openrae/lilrae).
+
 RAES, the Reproducible Agentic Environments System, helps you describe an
 agentic environment, check it before anything runs, and keep evidence about
 what a run realized. RAES SDL is its YAML language for authored scenarios.
@@ -20,6 +22,61 @@ How a scenario reaches a run:
 3. The backend builds the environment, and participants act in it.
 4. Reports and evidence describe what was realized and observed.
 
+## Validate your first scenario
+
+Complete the [quickstart](quickstart.md) first. You install RAES, validate a
+small SDL file, and print its name. You need standard CPython 3.14. You do not
+need a backend or a repository checkout. The exercise creates no infrastructure.
+
+To explore research questions, read the [research context](research.md). To
+cite RAES in your work, use the [citation guide](citation.md).
+
+## Choose what you need
+
+- **Tutorials (learn):** Complete the [quickstart](quickstart.md). Then
+  [inspect and format a scenario](tutorials/first-scenario.md). This second
+  tutorial needs a repository checkout.
+- **How-to guides (do a task):** Use the
+  [Python guide](guides/python.md) or the
+  [command-line guide](guides/cli.md). To write and check a larger scenario,
+  [validate, compile, and inspect a scenario plan](sdl/validate-compile-plan.md).
+- **Reference (look up facts):** Use the [API reference](api/index.rst), the
+  [SDL specifications](https://github.com/OpenRAE/rae/tree/main/specs/sdl), and
+  the [published contracts](https://github.com/OpenRAE/rae/tree/main/contracts).
+- **Explanation (understand):** Read the [core concepts](concepts.md), the
+  [research context](research.md), and the [current limits](limitations.md).
+
+## Choose your route
+
+- **Scenario authors:** Start with the [SDL guide](sdl/index.md). Browse the
+  [worked examples](https://github.com/OpenRAE/rae/tree/main/examples/scenarios).
+- **Pack authors:** Follow the env-packs
+  [quickstart](https://github.com/OpenRAE/env-packs/blob/main/docs/public/quickstart.md).
+- **Python and CLI users:** Use the [Python guide](guides/python.md), the
+  [command-line guide](guides/cli.md), and the
+  [API reference](api/index.rst). To serve the runtime over HTTP, read
+  [serve the runtime control plane](guides/control-plane.md).
+- **Participant control:** Use the
+  [participant-control guide](participant-control.md)
+  to govern participant input and output.
+- **Backend and adapter implementers:** Read the
+  [backend and conformance guide](backends.md)
+  and see [OpenRAE/adapters](https://github.com/OpenRAE/adapters).
+  To admit tool calls inside a participant invocation, read
+  [admit participant tool actions](guides/invocation-tool-actions.md).
+- **Shifter and LilRAE users:** Install and run each backend from its own
+  documentation: [Shifter](https://github.com/Brad-Edwards/shifter) and
+  [LilRAE](https://openrae.github.io/lilrae/).
+- **Researchers:** Review the [research context](research.md),
+  [current limits](limitations.md), and [citation guide](citation.md).
+- **Contributors:** Follow
+  [CONTRIBUTING.md](https://github.com/OpenRAE/rae/blob/main/CONTRIBUTING.md),
+  the [governance model](https://github.com/OpenRAE/rae/blob/main/GOVERNANCE.md),
+  and the
+  [developer documentation index](https://github.com/OpenRAE/rae/blob/main/docs/README.md).
+- **Help:** See [get help](support.md) for issues and private security
+  reports.
+
 ## What RAES provides
 
 RAES owns the meaning of an authored scenario and the formats around it:
@@ -39,63 +96,17 @@ Cyber, AI security, AI safety, testing, research, and evaluation are
 non-exhaustive application areas. Additional domains can add their own
 profiles, assets, examples, vocabularies, backends, and evidence rules.
 
-## Validate your first scenario
-
-You need standard CPython 3.14. Install the published package in a virtual
-environment:
-
-```console
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install raes
-```
-
-Save this file as `first-scenario.sdl.yaml`:
-
-```{literalinclude} _static/examples/first-scenario.sdl.yaml
-:language: yaml
-```
-
-Validate it:
-
-```console
-python - <<'PY'
-from pathlib import Path
-from raes import parse_sdl_file
-
-scenario = parse_sdl_file(Path("first-scenario.sdl.yaml"))
-print(f"Validated {scenario.name} with {len(scenario.nodes)} nodes.")
-PY
-```
-
-The command prints:
-
-```text
-Validated first-scenario with 2 nodes.
-```
-
-RAES has checked the file shape and current semantic rules. It has not created
-infrastructure. Continue with the [quickstart](quickstart.md) to learn what
-each part means.
-
 ## Run a scenario on a backend
 
 This repository includes contracts, stubs, and conformance tests. It does not
-include a concrete deployment backend or a managed environment service. RAES
-7.0.0 was the last release to bundle a reference backend; see the
-[concrete backends migration](https://github.com/OpenRAE/rae/blob/main/docs/migration/concrete-backends.md).
+include a concrete deployment backend or a managed environment service.
 External backends realize scenarios outside this repository:
-
-- [Shifter](https://github.com/Brad-Edwards/shifter) is a multi-user cyber
-  range platform.
-- [LilRAE](https://github.com/OpenRAE/lilrae), formerly APTL, is a
-  single-user backend for local labs, cyber ranges, and other environments.
-- Your own backend can declare what it supports in a backend manifest and
-  test that claim with the RAES conformance tests. Start with the
-  [backend and conformance guide](backends.md).
-- [OpenRAE/adapters](https://github.com/OpenRAE/adapters) holds adapter
-  projects for simulators and cyber gyms. None is released. Each adapter's own
-  conformance reports and evidence records state what it can run.
+[Shifter](https://github.com/Brad-Edwards/shifter),
+[LilRAE](https://github.com/OpenRAE/lilrae), or your own backend. To write a
+backend, start with the [backend and conformance guide](backends.md).
+[OpenRAE/adapters](https://github.com/OpenRAE/adapters) holds adapter projects
+for simulators and cyber gyms. None is released. Each adapter's own conformance
+reports and evidence records state what it can run.
 
 Shifter, LilRAE, and the adapters are separate projects with their own
 documentation. This repository does not ship or certify them. A backend's own
@@ -110,45 +121,6 @@ RAES remains authoritative for the SDL, concept, and reusable-asset
 trust-policy meanings a pack relies on. Catalogs make packs easier to find.
 They do not add SDL semantics.
 
-To build a pack, follow the env-packs
-[quickstart](https://github.com/OpenRAE/env-packs/blob/main/docs/public/quickstart.md).
-It scaffolds a first pack and validates it.
-
-## Choose your route
-
-- **New to RAES:** Learn the [core concepts](concepts.md), then complete
-  the [first-scenario tutorial](tutorials/first-scenario.md).
-- **Scenario authors:** Start with the [SDL guide](sdl/index.md), then
-  [validate, compile, and inspect a scenario plan](sdl/validate-compile-plan.md).
-  Browse the
-  [worked examples](https://github.com/OpenRAE/rae/tree/main/examples/scenarios).
-- **Pack authors:** Follow the env-packs
-  [quickstart](https://github.com/OpenRAE/env-packs/blob/main/docs/public/quickstart.md).
-- **Python and CLI users:** Use the [Python guide](guides/python.md), the
-  [command-line guide](guides/cli.md), and the
-  [API reference](api/index.rst). To serve the runtime over HTTP, read
-  [serve the runtime control plane](guides/control-plane.md).
-- **Participant control:** Use the
-  [participant-control guide](participant-control.md)
-  to govern participant input and output.
-- **Backend and adapter implementers:** Read the
-  [backend and conformance guide](backends.md)
-  and see [OpenRAE/adapters](https://github.com/OpenRAE/adapters).
-  To admit tool calls inside an autonomous invocation, read
-  [admit tool actions inside an autonomous invocation](guides/invocation-tool-actions.md).
-- **Shifter and LilRAE users:** Install and run each backend from its own
-  documentation: [Shifter](https://github.com/Brad-Edwards/shifter) and
-  [LilRAE](https://openrae.github.io/lilrae/).
-- **Researchers:** Review the [research context](research.md),
-  [current limits](limitations.md), and [citation guide](citation.md).
-- **Contributors:** Follow
-  [CONTRIBUTING.md](https://github.com/OpenRAE/rae/blob/main/CONTRIBUTING.md),
-  the [governance model](https://github.com/OpenRAE/rae/blob/main/GOVERNANCE.md),
-  and the
-  [developer documentation index](https://github.com/OpenRAE/rae/blob/main/docs/README.md).
-- **Help:** See [get help](support.md) for issues and private security
-  reports.
-
 ## Know the limits
 
 An authored scenario records intent. A backend may realize only the parts it
@@ -162,18 +134,8 @@ choosing RAES for a study or integration.
 
 ## Cite RAES
 
-```bibtex
-@software{raes,
-  author  = {Edwards, Brad},
-  title   = {RAES: Reproducible Agentic Environments System},
-  year    = {2026},
-  license = {MIT},
-  url     = {https://github.com/OpenRAE/rae}
-}
-```
-
-Also record the release or commit, scenario, backend, and run evidence that
-you used. The [citation guide](citation.md) lists what to include.
+Use the [citation guide](citation.md). It gives the software citation. Also
+record the release or commit, scenario, backend, and run evidence that you used.
 
 RAES is released under the
 [MIT License](https://github.com/OpenRAE/rae/blob/main/LICENSE). Third-party
@@ -193,6 +155,7 @@ guides/python
 guides/cli
 guides/control-plane
 guides/experiment-records
+guides/assigned-trials
 guides/supervised-execution
 guides/external-injects
 guides/invocation-tool-actions

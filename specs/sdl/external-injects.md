@@ -5,7 +5,8 @@ Semantic decision: external-inject-occurrence/rev1, under
 This is the normative DSL-111/DSL-142 amendment, not a wire schema, endpoint or
 claim that the current runtime/backend executes these rules.
 
-## EI-01 — Authored intent and resolved targets
+<!-- vale RAES.HeadingCase = NO -->
+## EI-01 — authored intent and resolved targets
 
 Reuse Inject, Event, Script, Story and optional Node.injects declarations.
 An external trigger instantiates one authored inject, not an arbitrary command
@@ -15,6 +16,8 @@ compiled-plan content pins, realization profile/version, source artifact
 identity and integrity, target/run, concrete binding set and narrative placement
 when applicable. Entities describe narrative endpoints; neither they nor an
 opaque environment string identify a host, actor, participant or controller.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 The request selects one admitted binding or an explicit nonempty subset of a
 resolved fan-out. Each binding names a concrete realization instance and its
@@ -36,7 +39,8 @@ The selected source's intrinsic preconditions also remain binding. Unknown or
 unsupported assertion truth refuses; use the existing proposition/assertion
 owner. No synthetic event, script, story or participant is required.
 
-## EI-02 — Input and identities
+<!-- vale RAES.HeadingCase = NO -->
+## EI-02 — input and identities
 
 Separate static source artifact, runtime input, produced result and disclosed
 item. A realization declares a closed, bounded input contract with media/schema
@@ -46,6 +50,8 @@ Parse serialized input with existing bounded duplicate/nonfinite-rejecting
 ingress before ambiguity is lost, then validate shape and contextual bindings.
 Perform the same semantic checks for embedder calls and persistence readers.
 Existing Inject.environment gains no shell or environment-assignment grammar.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Persist a value-free commitment to admitted intent and classified input refs;
 extend the owning ephemeral exact-retry mechanism deliberately for any
@@ -76,7 +82,8 @@ over or inspect its receipt. Authorize receipt access before any lookup and
 before revealing whether another actor's claim exists. Re-check current read
 authorization, not original execution admissibility, for an exact retry.
 
-## EI-03 — Trusted order, time and admission
+<!-- vale RAES.HeadingCase = NO -->
+## EI-03 — trusted order, time and admission
 
 One admitted ordering authority sequences scheduled, external and derived
 requests for the same orchestration run. Its token names the scope, exact
@@ -88,13 +95,20 @@ validity are independent: resolve domain, clock, segment, tick/microstep and
 explicit mappings through the shared time owner. An expired or unmappable
 request cannot become valid through a smaller order number.
 
-Admission requires authenticated principal, current mutation authorization,
-exact target/run/plan and binding, applicable event/schedule assertions,
-payload/source trust, selected interpretation, bounds and causal budgets,
-supported installed protocol, and admitted outcome/evidence capability.
+<!-- vale RAES.HeadingCase = YES -->
+
+Admission requires all of these inputs:
+
+- An authenticated principal and current mutation authorization.
+- Exact target/run/plan and binding.
+- Applicable event/schedule assertions.
+- Payload/source trust and the selected interpretation.
+- Bounds and causal budgets.
+- A supported installed protocol and admitted outcome/evidence capability.
+
 Existing inject-binding support or successful plan start is not that capability.
-An audit-only principal cannot trigger. General world effects require neither
-declared participants nor a participant-runtime component.
+An audit-only principal cannot trigger.
+General world effects require neither declared participants nor a participant-runtime component.
 
 A pre-claim denial has no accepted occurrence; use bounded, redacted rejection
 audit. Claim the operation, request key, occurrence and optional schedule slot
@@ -105,9 +119,12 @@ revision, preconditions, time, budgets, effect reservation and backend
 willingness. An invalid queued request is withdrawn with zero dispatch and a
 retained claim. No no-op or participant-view fallback may stand for execution.
 
-## EI-04 — Execution and settlement
+<!-- vale RAES.HeadingCase = NO -->
+## EI-04 — execution and settlement
 
 The abstract relation is:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 - unclaimed -> denied, or atomically admitted with immutable claims;
 - admitted -> withdrawn before dispatch, or running with durable intent;
@@ -122,16 +139,20 @@ reservation, bounded supervision and execution-generation fence. Store CAS
 does not fence a remote effect. A lost owner or timeout does not release a
 conflicting reservation without evidenced cessation.
 
-Backend support, willingness, acceptance and applied effects are separate facts.
-A backend may refuse before any effect, and its refusal still needs the
-contractually valid no-effect/cessation basis. After invocation, an exception,
-disconnect, cancellation acknowledgement or invalid result proves neither
-success nor absence. Unknown or potentially late effects are indeterminate.
-Known partial effects require per-binding residual state and cessation evidence
-under the admitted outcome contract; missing targets cannot be assumed absent.
-For fan-out, retain each binding's outcome: all applied is effect-applied, all
-proven absent is effect-absent, a fully known mixture is known-partial, and any
-unknown binding makes the aggregate indeterminate while preserving known facts.
+Backend support, willingness, acceptance, and applied effects are separate facts.
+A backend may refuse before any effect.
+The refusal still needs the contractually valid no-effect/cessation basis.
+After invocation, an exception, disconnect, cancellation acknowledgement, or invalid result proves neither success nor absence.
+Unknown or potentially late effects are indeterminate.
+
+Known partial effects require per-binding residual state and cessation evidence under the admitted outcome contract.
+Missing targets cannot be assumed absent.
+Fan-out retains each binding's outcome:
+
+- All applied means effect-applied.
+- All proven absent means effect-absent.
+- A fully known mixture means known-partial.
+- Any unknown binding makes the aggregate indeterminate, while known facts remain recorded.
 
 Validate outcomes against occurrence, attempt/generation, target/run/binding
 revisions, source/input commitment, backend identity, observation/readback basis
@@ -150,13 +171,16 @@ state. There is no exactly-once remote execution, universal rollback, liveness
 or physical cancellation guarantee. P0 has only its admitted in-process
 guarantees; P1/P2 durability does not imply P3 multi-writer coordination.
 
-## EI-05 — Optional participant composition
+<!-- vale RAES.HeadingCase = NO -->
+## EI-05 — optional participant composition
 
 World effects, disclosure authorization, delivery, observation and control
 acceptance have separate records and outcomes. An environment-only occurrence
 may affect services used by undeclared people/agents. A researcher can trigger
 an authored world condition without becoming a participant or controller.
 Changing a world approval condition is not approval of an API-409 proposal.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 An explicit participant binding additionally resolves declared addressee,
 episode, authenticated audience, observation boundary, independently pinned
@@ -194,7 +218,8 @@ The new semantic join permits an independently admitted external occurrence
 without a schedule, but only through explicit versioned occurrence/reader
 support. Do not fabricate anchors or make old fields optional to pass validation.
 
-## EI-06 — Ownership, compatibility and assurance
+<!-- vale RAES.HeadingCase = NO -->
+## EI-06 — ownership, compatibility and assurance
 
 ADR-104/API-403/404 own operations, authorization, retries, storage and recovery.
 API-402 and RUN-300/304 own portable submissions and live history. DSL-111 owns
@@ -204,6 +229,8 @@ API-423/RUN-319 retain disclosure/delivery; SEM-235/API-424/RUN-320 retain
 modular-effect admission, causal budgets and predecessor obligations. API-421
 owns shared time and ASR-532 owns backend-result admission. This amendment
 composes those owners and creates no second authority for them.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 The shared runtime drives execution through the existing orchestrator/backend
 boundary. A concrete backend owns artifact execution, native target access,
@@ -219,11 +246,16 @@ No published schema or runnable parser form changes here. Existing canonical
 authoring is reused where sufficient; realization input/target contracts are
 explicit adoption artifacts, not new mandatory SDL fields.
 
-Invariants: claims are unique and immutable; denial/retry never dispatches;
-every dispatch follows a valid claim and running intent; no stale cut is
-silently rebased; unknown effects stay unknown; fan-out retains every selected
-binding; participant delivery cannot create a world effect or observation;
-historical interpretation and actor attribution remain stable.
+The following invariants apply:
+
+- Claims are unique and immutable.
+- Denial/retry never dispatches.
+- Every dispatch follows a valid claim and running intent.
+- No stale cut is silently rebased.
+- Unknown effects stay unknown.
+- Fan-out retains every selected binding.
+- Participant delivery cannot create a world effect or observation.
+- Historical interpretation and actor attribution remain stable.
 
 The [bounded test relation](../../implementations/python/tests/test_issue_1353_external_inject_design.py)
 checks finite claim/order/lifecycle/outcome and

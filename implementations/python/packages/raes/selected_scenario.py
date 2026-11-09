@@ -22,6 +22,7 @@ from ._declarations import build_declaration_index
 from ._errors import SDLInstantiationError, SDLSelectionError
 from ._selection_provenance import reconcile_selection_provenance
 from .experiment_selection import validate_selection_outcome
+from .family_admission import has_modified_omitted_default
 from .instantiate import instantiate_scenario
 from .phase_contracts import TrialInstantiationProvenance
 from .scenario import ExpandedScenario, InstantiatedScenario
@@ -400,6 +401,15 @@ def _validate_target_writes(
         raise SDLSelectionError("a collection variation write conflicts with a descendant variation write")
 
 
+def _selection_payload(family: ExpandedScenario) -> dict[str, object]:
+    """Rebuild the family with field presence, so selection keeps omitted fields absent."""
+
+    if has_modified_omitted_default(family):
+        # An exclude-unset reconstruction would silently discard this value.
+        raise SDLSelectionError("scenario family has a modified omitted default; re-admit the family before selection")
+    return family.model_dump(mode="python", by_alias=True, exclude_unset=True)
+
+
 def select_scenario_family(
     family: ExpandedScenario,
     outcomes: Mapping[str, object],
@@ -422,7 +432,7 @@ def select_scenario_family(
         validate_selection_outcome(family.variation_points[point_id], outcomes[point_id])
     _validate_cross_point_relations(family, outcomes)
 
-    payload = family.model_dump(mode="python", by_alias=True)
+    payload = _selection_payload(family)
     _validate_target_writes(payload, family, outcomes)
     parameters: dict[str, object] = {}
     for point_id in sorted(family.variation_points):
@@ -430,6 +440,10 @@ def select_scenario_family(
         outcome = outcomes[point_id]
         if isinstance(point, ParameterVariationPoint) and isinstance(outcome, LiteralBindingValueModel):
             parameters[point.target.variable] = outcome.value
+            # A selected experimental factor is fixed for this trial, while its
+            # original family retains the complete admissible domain.
+            payload["variables"][point.target.variable]["allowed_values"] = [outcome.value]
+            payload["variables"][point.target.variable]["default"] = outcome.value
         else:
             _apply_structural_outcome(payload, family, point, outcome)
     payload["variation_points"] = {}

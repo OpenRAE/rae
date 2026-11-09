@@ -1,4 +1,4 @@
-# Authored Identity-Domain Topology
+# Authored identity-domain topology
 
 Status: **normative**. This specification defines the SDL realization-intent
 surface established by
@@ -59,7 +59,7 @@ name.
 The `authority_account_ref` on a domain is also an explicit domain binding. It
 MUST resolve to an account placed on one of that domain's controller nodes.
 
-## 4. Active Directory invariants
+## 4. Active directory invariants
 
 For the initial `active_directory` profile, semantic validation MUST reject:
 

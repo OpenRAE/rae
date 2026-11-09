@@ -1,4 +1,4 @@
-# Participant Relationships
+# Participant relationships
 
 Status: normative. Requirement: ACT-612. This specification extends the existing
 SDL `relationships` graph under ADR-020/022/052/067 and the sparse-description

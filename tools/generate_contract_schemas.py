@@ -72,6 +72,10 @@ _EXACT_SCHEMA_DIRECTORIES = (
             "participant-control-context-asset-v1",
             "participant-control-context-change-v1",
             "participant-control-context-record-v1",
+            "participant-crossing-evidence-v1",
+            "participant-delivery-invocation-request-v1",
+            "participant-delivery-invocation-context-v1",
+            "participant-delivery-invocation-outcome-v1",
             "participant-control-occurrence-v2",
             "participant-control-selection-v1",
             "participant-control-evaluation-v1",
@@ -179,7 +183,7 @@ def write_schema_bundle(schemas_dir: Path) -> None:
 
 def _serialize_schema(name: str, schema: dict[str, object]) -> str:
     """Keep large self-contained schemas readable one definition per line."""
-    if name != "materialized-scenario-v1":
+    if name not in {"materialized-scenario-v1", "trial-outcome-v1"}:
         return json.dumps(schema, indent=2, sort_keys=True) + "\n"
 
     def compact(value: object) -> str:

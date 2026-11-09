@@ -21,6 +21,23 @@ digest and provenance detail. Component availability does not establish service
 readiness, enrollment, invocation or behavior. Those obligations retain their
 existing service, condition, proposition and participant-contract owners.
 
+### Model configuration
+
+`model` names the model that a software component uses. The field is optional.
+A value MUST be a string with at least one non-whitespace character.
+RAES treats it as an opaque name. RAES does not select a provider, fetch the model or run inference.
+Authors MAY use a literal or `${variable}`. Existing parameter variation points can choose the value.
+Each trial SDL MUST keep its chosen model.
+Include a model revision in the name when the experiment needs to fix that revision.
+
+The field follows existing realization rules. A literal fixes the exact model.
+A variable keeps its declared domain until a variation point selects its trial value.
+The trial then admits only that choice. The source family keeps the full domain.
+The backend MUST NOT replace the choice with another member of that domain.
+When `model` is absent or null in an open software scope, the backend selects the model.
+SDL documents that omit this field gain no new model requirement.
+A declaration states what is required. Runtime evidence shows which model was used.
+
 The optional `package` refinement reuses the exact `RuntimePackage` wire shape:
 manager, name and distribution-package version, with optional architecture,
 opaque source label, package URL identity and legacy repository. The top-level

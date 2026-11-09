@@ -263,7 +263,7 @@ def selected_inventory_rows(
         raise ValueError("inventory candidate is undefined or outside the target owner collection")
     selected = set(references)
     return [
-        item.model_dump(mode="python", by_alias=True)
+        item.model_dump(mode="python", by_alias=True, exclude_unset=True)
         for item in getattr(node.runtime, collection)
         if f"nodes.{owner}.runtime.{collection}.{getattr(item, spec.id_field)}" in selected
     ]
@@ -292,4 +292,8 @@ def selected_child_rows(
     if not set(references).issubset(rows):
         raise ValueError("inventory candidate is undefined or outside the target owner collection")
     selected = set(references)
-    return [item.model_dump(mode="python", by_alias=True) for address, item in rows.items() if address in selected]
+    return [
+        item.model_dump(mode="python", by_alias=True, exclude_unset=True)
+        for address, item in rows.items()
+        if address in selected
+    ]

@@ -2220,7 +2220,10 @@
         },
         "semantic_versions": {
           "items": {
-            "const": "participant-invocation-tool-actions/v1",
+            "enum": [
+              "participant-invocation-tool-actions/v1",
+              "participant-invocation-tool-actions/v2"
+            ],
             "type": "string"
           },
           "minItems": 1,

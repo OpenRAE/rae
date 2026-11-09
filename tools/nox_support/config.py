@@ -7,6 +7,9 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PROJECT_ROOT = REPO_ROOT / "implementations" / "python"
+# A changed module whose tests all belong to another lane, for example
+# integration, collects nothing in a fast lane: pytest exits 5. That lane runs it.
+CHANGED_MODULE_PYTEST_CODES = (0, 5)
 PUBLIC_DOCS_ROOT = REPO_ROOT / "docs" / "public"
 DOCS_BUILD_ROOT = REPO_ROOT / "docs" / "_build"
 PUBLIC_DOCS_ENTRYPOINTS = (
@@ -19,11 +22,12 @@ PUBLIC_DOCS_ENTRYPOINTS = (
     "SUPPORT.md",
 )
 PUBLIC_DOCS_EXAMPLE_TESTS = (
+    "implementations/python/tests/test_public_guide_examples.py",
     "implementations/python/tests/test_public_docs_policy.py::test_checked_in_quickstart_scenario_parses",
-    "implementations/python/tests/test_public_docs_policy.py::test_readme_quickstart_matches_checked_in_scenario",
+    "implementations/python/tests/test_sdl_reference_quick_example.py::test_quick_example_passes_semantic_validation",
     "implementations/python/tests/test_public_docs_policy.py::test_first_scenario_tutorial_shows_real_format_results",
     "implementations/python/tests/test_public_docs_policy.py::test_participant_control_claim_example_is_bounded",
-    "implementations/python/tests/test_issue_938_landing_page.py::test_quickstart_prints_the_output_each_page_shows",
+    "implementations/python/tests/test_issue_938_landing_page.py::test_quickstart_prints_the_output_the_page_shows",
 )
 RUFF_CONFIG = PROJECT_ROOT / "pyproject.toml"
 OSV_LOCKFILE_PATH = PROJECT_ROOT / "uv.lock"

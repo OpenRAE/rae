@@ -6,6 +6,7 @@ from typing import Literal
 
 from pydantic import Field, StrictInt, model_validator
 
+from .._sealing import sealing_active
 from ..addressing import CompiledAddress, is_compiler_owned_temporal_subject_address
 from ..json_serialization import sorted_json_digest
 from ..versions import (
@@ -381,9 +382,13 @@ class RealizedTimeModelProvenanceModel(ContractModel):
     evidence_refs: list[NonEmptyString] = Field(min_length=1)
 
     @model_validator(mode="after")
-    def _validate_provenance(self) -> RealizedTimeModelProvenanceModel:
-        if self.declaration_digest != self.declared_model.canonical_digest():
+    def _validate_declaration_digest(self) -> RealizedTimeModelProvenanceModel:
+        if not sealing_active() and self.declaration_digest != self.declared_model.canonical_digest():
             raise ValueError("declaration_digest must match declared_model")
+        return self
+
+    @model_validator(mode="after")
+    def _validate_provenance(self) -> RealizedTimeModelProvenanceModel:
         declared_sets = (
             set(self.declared_model.domains),
             set(self.declared_model.clocks),

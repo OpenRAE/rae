@@ -22,7 +22,6 @@ finite result for `participant-crossing-dpbb-finite-v1@rev2`.
 - [Machine-readable program](implementation-program.json)
 - [Formal authority](../../../specs/formal/participant-semantics/participant-crossing-bisimulation.md)
 - [Finite machine check (#974)](../../../specs/formal/participant-semantics/participant-crossing-machine-check.md)
-- [Isolated reproduction (#975)](../../../specs/formal/participant-semantics/participant-crossing-reproduction.md)
 - [Evidence identity and publication (#976)](../../decisions/issue-976-crossing-evidence-identity-design.md)
 
 The pinned `dpbranching-bisim` decision relates the declared initial states of
