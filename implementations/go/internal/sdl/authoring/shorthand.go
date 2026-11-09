@@ -12,7 +12,7 @@ func shorthands(value map[string]any, hints map[string][]string) error {
 	infrastructure := object(value[infrastructureField])
 	for key, item := range infrastructure {
 		if _, ok := item.(json.Number); ok || variable(item) {
-			infrastructure[key] = map[string]any{"count": item}
+			infrastructure[key] = map[string]any{countField: item}
 		}
 	}
 	for name, item := range object(value[nodesSection]) {
@@ -107,10 +107,10 @@ func vmRealization(value map[string]any) (map[string]any, error) {
 func addVMConstraint(realization map[string]any, pointer string) error {
 	for _, raw := range array(realization["constraints"]) {
 		constraint := object(raw)
-		if constraint["field_pointer"] == pointer && constraint["concern"] == "compute-substrate" && len(array(constraint[namespaceField])) == 0 {
+		if constraint[fieldPointerField] == pointer && constraint["concern"] == "compute-substrate" && len(array(constraint[namespaceField])) == 0 {
 			return invalid()
 		}
 	}
-	realization["constraints"] = append(array(realization["constraints"]), map[string]any{"field_pointer": pointer, "concern": "compute-substrate", "posture": exactTerm, "domain": map[string]any{"kind": exactTerm, "value": "virtual-machine"}})
+	realization["constraints"] = append(array(realization["constraints"]), map[string]any{fieldPointerField: pointer, "concern": "compute-substrate", "posture": exactTerm, "domain": map[string]any{kindField: exactTerm, valueField: "virtual-machine"}})
 	return nil
 }

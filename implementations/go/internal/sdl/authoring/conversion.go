@@ -9,14 +9,16 @@ import (
 )
 
 type scalarPolicy struct {
-	Members []string      `json:"members"`
-	Scopes  []string      `json:"scopes"`
-	Minimum *string       `json:"minimum"`
-	Maximum *string       `json:"maximum"`
-	Shapes  []string      `json:"shapes"`
-	Convert []string      `json:"convert"`
-	Items   *scalarPolicy `json:"items"`
-	Values  *scalarPolicy `json:"values"`
+	ExplicitnessAtomic bool          `json:"explicitness_atomic"`
+	ExplicitnessEnums  []string      `json:"explicitness_enums"`
+	Members            []string      `json:"members"`
+	Scopes             []string      `json:"scopes"`
+	Minimum            *string       `json:"minimum"`
+	Maximum            *string       `json:"maximum"`
+	Shapes             []string      `json:"shapes"`
+	Convert            []string      `json:"convert"`
+	Items              *scalarPolicy `json:"items"`
+	Values             *scalarPolicy `json:"values"`
 }
 
 func childPolicy(policy *scalarPolicy) scalarPolicy {
@@ -101,6 +103,8 @@ func (w *normalizer) scalarOperation(schema map[string]any, value any, operation
 		return w.accountVocabulary(value, policy)
 	case "capability":
 		return w.capability(value)
+	case "http-method":
+		return httpMethod(value, policy.Members), nil
 	case "enum", "vocabulary":
 		return w.enum(schema, value, operation == "vocabulary", policy)
 	case integerType:
@@ -128,6 +132,16 @@ func (w *normalizer) scalarOperation(schema map[string]any, value any, operation
 	default:
 		return nil, invalid()
 	}
+}
+
+func httpMethod(value any, members []string) any {
+	if method, ok := value.(string); ok {
+		normalized := upper(method)
+		if slices.Contains(members, normalized) {
+			return normalized
+		}
+	}
+	return value
 }
 func (w *normalizer) enum(schema map[string]any, value any, extension bool, policy scalarPolicy) (any, error) {
 	s, ok := value.(string)

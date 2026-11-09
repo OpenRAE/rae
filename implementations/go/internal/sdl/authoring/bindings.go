@@ -17,11 +17,26 @@ type substitution struct {
 	inline      map[string]string
 }
 
-func (c *composition) bind(value, decl, descriptor map[string]any) (map[string]any, error) {
+func (c *composition) bind(value, decl, descriptor map[string]any, facts *importFacts) (map[string]any, error) {
+	var err error
+	value, err = c.bindingPayload(value, facts.order)
+	if err != nil {
+		return nil, err
+	}
 	variables := object(value[variablesSection])
 	s := substitution{values: map[string]any{}, preserved: preservedVariables(value), copies: &c.copies, inline: map[string]string{}}
-	if err := s.resolveValues(variables, object(decl["parameters"]), descriptor); err != nil {
+	if err = s.resolveValues(variables, object(decl["parameters"]), descriptor); err != nil {
 		return nil, err
+	}
+	if err = c.captureImportConstraints(value, s.preserved, facts); err != nil {
+		return nil, err
+	}
+	for name, value := range s.values {
+		origin := "default"
+		if _, provided := object(decl["parameters"])[name]; provided {
+			origin = "provided"
+		}
+		facts.bindings = append(facts.bindings, map[string]any{variationParameterKind: []any{name}, "origin": origin, valueField: value})
 	}
 	content := make(map[string]any, len(value))
 	for key, child := range value {
@@ -55,7 +70,7 @@ func preservedVariables(value map[string]any) map[string]bool {
 	result := map[string]bool{}
 	for _, raw := range object(value[variationPointsField]) {
 		point := object(raw)
-		if point["kind"] == "parameter" {
+		if point[kindField] == variationParameterKind {
 			result[text(object(point[targetField])["variable"])] = true
 		}
 	}
@@ -99,7 +114,7 @@ func bindingCandidate(name string, definition, parameters map[string]any) (any, 
 		}
 		return nil, false, nil
 	}
-	if !variableType(candidate, text(definition["type"])) || !allowedValue(candidate, array(definition["allowed_values"])) {
+	if !variableType(candidate, text(definition["type"])) || !allowedValue(candidate, array(definition[allowedValuesField])) {
 		return nil, false, importError(parameterRefusedCode)
 	}
 	return candidate, true, nil

@@ -137,7 +137,7 @@ func rewritePolicy(policy map[string]any, symbols importSymbols) map[string]any 
 		renamed := []any{}
 		for _, reference := range array(refs) {
 			replacement := reference
-			if qualified, present := symbols["evidence_requirements"][text(reference)]; present {
+			if qualified, present := symbols[evidenceRequirementsSection][text(reference)]; present {
 				replacement = qualified
 			}
 			renamed = append(renamed, replacement)

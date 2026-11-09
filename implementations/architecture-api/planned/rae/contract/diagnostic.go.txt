@@ -4,7 +4,9 @@ import "github.com/OpenRAE/rae/implementations/go/base/fault"
 
 type Range struct{ StartLine, StartColumn, EndLine, EndColumn int }
 type Diagnostic struct {
-	Code, Severity, Stage, Source, Pointer, Message, Domain, Address string
+	Code, Severity, Stage, Source, Pointer string
+	OriginalPointer string `json:"original_path,omitempty"`
+	Message, Domain, Address string
 	Range                                                            *Range
 }
 type Error interface {

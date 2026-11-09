@@ -345,7 +345,11 @@
         "scopes"
       ],
       "omit": {},
-      "scalar": {}
+      "scalar": {
+        "scopes": {
+          "explicitness_atomic": true
+        }
+      }
     },
     "#/$defs/AugmentationScopeRule": {
       "factory_defaults": {},
@@ -355,7 +359,11 @@
         "namespace"
       ],
       "omit": {},
-      "scalar": {}
+      "scalar": {
+        "namespace": {
+          "explicitness_atomic": true
+        }
+      }
     },
     "#/$defs/BooleanPredicate": {
       "factory_defaults": {},
@@ -550,6 +558,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "built_in",
             "other",
@@ -655,6 +667,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "built_in",
             "other",
@@ -669,6 +685,10 @@
         "role_type": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "admin",
@@ -703,6 +723,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "built_in",
             "other",
@@ -717,6 +741,7 @@
       }
     },
     "#/$defs/DatabaseSetting": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "name",
@@ -730,6 +755,10 @@
         "provenance": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "configuration_file",
@@ -747,6 +776,10 @@
         "value_classification": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "operator_secret",
@@ -861,6 +894,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "https",
             "other",
@@ -932,6 +969,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "auto",
             "disabled",
@@ -947,6 +988,10 @@
         "forwarding_policy": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "first",
@@ -1028,6 +1073,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "axfr",
             "configuration_file",
@@ -1047,6 +1096,10 @@
         "record_type": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "a",
@@ -1102,6 +1155,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "any",
             "ch",
@@ -1118,6 +1175,7 @@
       }
     },
     "#/$defs/DnsRuntimeSetting": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "name",
@@ -1131,6 +1189,10 @@
         "provenance": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "configuration_file",
@@ -1148,6 +1210,10 @@
         "value_classification": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "operator_secret",
@@ -1301,6 +1367,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "catalog",
             "forward",
@@ -1318,6 +1388,10 @@
         "provenance": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "axfr",
@@ -1339,6 +1413,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "forward",
             "infrastructure",
@@ -1354,6 +1432,10 @@
         "zone_class": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "any",
@@ -1448,6 +1530,9 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "other"
+          ],
           "members": [
             "add",
             "arg",
@@ -1487,7 +1572,11 @@
         "children"
       ],
       "omit": {},
-      "scalar": {}
+      "scalar": {
+        "children": {
+          "explicitness_atomic": true
+        }
+      }
     },
     "#/$defs/DomainProfileBindingOwnerModel": {
       "factory_defaults": {},
@@ -1510,7 +1599,11 @@
         "evidence_refs"
       ],
       "omit": {},
-      "scalar": {}
+      "scalar": {
+        "evidence_refs": {
+          "explicitness_atomic": true
+        }
+      }
     },
     "#/$defs/DomainProfileCoordinateModel": {
       "factory_defaults": {},
@@ -1534,7 +1627,11 @@
         "allowed_contexts"
       ],
       "omit": {},
-      "scalar": {}
+      "scalar": {
+        "allowed_contexts": {
+          "explicitness_atomic": true
+        }
+      }
     },
     "#/$defs/DomainProfileSchemaModel": {
       "factory_defaults": {},
@@ -1547,7 +1644,11 @@
         "schema_document"
       ],
       "omit": {},
-      "scalar": {}
+      "scalar": {
+        "required_vocabularies": {
+          "explicitness_atomic": true
+        }
+      }
     },
     "#/$defs/DomainProfileSemanticContractModel": {
       "factory_defaults": {},
@@ -1606,6 +1707,7 @@
       "scalar": {}
     },
     "#/$defs/EvidenceRequirement": {
+      "capability_classified": true,
       "factory_defaults": {
         "channel_refs": [],
         "field_selectors": [],
@@ -1646,6 +1748,9 @@
           "convert": [
             "enum"
           ],
+          "explicitness_enums": [
+            "other"
+          ],
           "members": [
             "api_response",
             "database_record",
@@ -1673,6 +1778,9 @@
           "convert": [
             "enum"
           ],
+          "explicitness_enums": [
+            "other"
+          ],
           "members": [
             "chain_of_custody",
             "checksum",
@@ -1685,6 +1793,9 @@
         "loss_disclosure": {
           "convert": [
             "enum"
+          ],
+          "explicitness_enums": [
+            "other"
           ],
           "members": [
             "best_effort",
@@ -1707,6 +1818,9 @@
           "convert": [
             "enum"
           ],
+          "explicitness_enums": [
+            "other"
+          ],
           "members": [
             "aggregate_only",
             "derived_only",
@@ -1719,6 +1833,9 @@
         "retention": {
           "convert": [
             "enum"
+          ],
+          "explicitness_enums": [
+            "other"
           ],
           "members": [
             "archival",
@@ -1739,6 +1856,10 @@
             "enum",
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "operator_secret",
             "other",
@@ -1754,6 +1875,9 @@
         "source_class": {
           "convert": [
             "enum"
+          ],
+          "explicitness_enums": [
+            "other"
           ],
           "members": [
             "apparatus",
@@ -1832,6 +1956,15 @@
             "integer!"
           ]
         },
+        "effect_classes": {
+          "explicitness_atomic": true
+        },
+        "evidence_refs": {
+          "explicitness_atomic": true
+        },
+        "failure_classes": {
+          "explicitness_atomic": true
+        },
         "fresh_trial_limit": {
           "shapes": [
             "integer!",
@@ -1847,7 +1980,11 @@
         "scopes"
       ],
       "omit": {},
-      "scalar": {}
+      "scalar": {
+        "scopes": {
+          "explicitness_atomic": true
+        }
+      }
     },
     "#/$defs/ExecutionPolicyScope": {
       "factory_defaults": {},
@@ -1857,7 +1994,11 @@
         "policy"
       ],
       "omit": {},
-      "scalar": {}
+      "scalar": {
+        "namespace": {
+          "explicitness_atomic": true
+        }
+      }
     },
     "#/$defs/ExecutionRetryPolicyModel": {
       "factory_defaults": {
@@ -1880,6 +2021,7 @@
       }
     },
     "#/$defs/ExperimentArtifactRefModel": {
+      "capability_classified": true,
       "factory_defaults": {
         "satisfies_refs": []
       },
@@ -1996,6 +2138,7 @@
       "scalar": {}
     },
     "#/$defs/GeneratedArtifactOutput": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "name",
@@ -2078,6 +2221,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "in_toto",
             "none",
@@ -2094,6 +2241,9 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown"
+          ],
           "members": [
             "absent",
             "present",
@@ -2106,6 +2256,9 @@
         "verification": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown"
           ],
           "members": [
             "failed",
@@ -2121,6 +2274,7 @@
       }
     },
     "#/$defs/ImageBuildArg": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "name",
@@ -2133,6 +2287,10 @@
         "value_classification": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "operator_secret",
@@ -2196,6 +2354,7 @@
       "scalar": {}
     },
     "#/$defs/ImageEnvironmentDefault": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "name",
@@ -2208,6 +2367,10 @@
         "value_classification": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "operator_secret",
@@ -2587,6 +2750,9 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "other"
+          ],
           "members": [
             "freebsd",
             "linux",
@@ -2723,6 +2889,9 @@
       ],
       "omit": {},
       "scalar": {
+        "prohibited_stages": {
+          "explicitness_atomic": true
+        },
         "required": {
           "shapes": [
             "boolean"
@@ -2744,15 +2913,28 @@
       ],
       "omit": {},
       "scalar": {
+        "component_refs": {
+          "explicitness_atomic": true
+        },
+        "excluded_scopes": {
+          "explicitness_atomic": true
+        },
         "max_items": {
           "shapes": [
             "integer",
             "null"
           ]
+        },
+        "names": {
+          "explicitness_atomic": true
+        },
+        "window_refs": {
+          "explicitness_atomic": true
         }
       }
     },
     "#/$defs/OperatorSecretCredentialMaterial": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "classification",
@@ -2948,7 +3130,15 @@
         "backend_timing_disclosures"
       ],
       "omit": {},
-      "scalar": {}
+      "scalar": {
+        "failure_classes": {
+          "items": {
+            "explicitness_enums": [
+              "unknown"
+            ]
+          }
+        }
+      }
     },
     "#/$defs/ParticipantActionEffect": {
       "factory_defaults": {
@@ -3012,6 +3202,13 @@
             "integer",
             "string"
           ]
+        },
+        "retryable_failure_classes": {
+          "items": {
+            "explicitness_enums": [
+              "unknown"
+            ]
+          }
         },
         "weight": {
           "convert": [
@@ -3229,7 +3426,13 @@
         "diagnostic"
       ],
       "omit": {},
-      "scalar": {}
+      "scalar": {
+        "failure_class": {
+          "explicitness_enums": [
+            "unknown"
+          ]
+        }
+      }
     },
     "#/$defs/ParticipantBackendTimingDisclosure": {
       "factory_defaults": {
@@ -3904,6 +4107,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "cert",
             "gssapi",
@@ -3968,6 +4175,7 @@
       }
     },
     "#/$defs/RelationshipForwardingEdge": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "forwarder_ref",
@@ -3998,6 +4206,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "cef",
             "csv",
@@ -4018,6 +4230,10 @@
         "target_listener_role": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "agent_enrollment",
@@ -4099,6 +4315,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "anonymous",
             "cram_md5",
@@ -4121,6 +4341,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "esmtp",
             "imap",
@@ -4142,6 +4366,10 @@
         "tls_mode": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "implicit_tls",
@@ -4232,6 +4460,10 @@
         "integration_kind": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "analyzer",
@@ -4380,6 +4612,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "app_resource",
             "cql_resource",
@@ -4431,6 +4667,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "app_resource",
             "cql_resource",
@@ -4451,6 +4691,7 @@
       }
     },
     "#/$defs/RuntimeAppAuthorizationPrincipal": {
+      "capability_classified": true,
       "factory_defaults": {
         "backend_roles": []
       },
@@ -4497,6 +4738,10 @@
         "kind": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "api_key",
@@ -4576,6 +4821,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeApplicationDisclosure": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "trigger",
@@ -4589,6 +4835,10 @@
         "sensitivity": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "operator_secret",
@@ -4617,6 +4867,7 @@
       }
     },
     "#/$defs/RuntimeApplicationExposedField": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "name",
@@ -4629,6 +4880,10 @@
         "sensitivity": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "operator_secret",
@@ -4658,6 +4913,10 @@
         "location": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "cookie",
@@ -4776,7 +5035,23 @@
         "methods": {
           "convert": [
             "strings"
-          ]
+          ],
+          "items": {
+            "convert": [
+              "http-method"
+            ],
+            "members": [
+              "CONNECT",
+              "DELETE",
+              "GET",
+              "HEAD",
+              "OPTIONS",
+              "PATCH",
+              "POST",
+              "PUT",
+              "TRACE"
+            ]
+          }
         },
         "session_required": {
           "convert": [
@@ -4853,6 +5128,10 @@
         "protocol": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "http",
@@ -5160,6 +5439,7 @@
       }
     },
     "#/$defs/RuntimeControlInterface": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "control_interface_id",
@@ -5177,6 +5457,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "other",
             "read_only",
@@ -5190,6 +5474,10 @@
         "bind_source_sensitivity": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "operator_secret",
@@ -5206,6 +5494,10 @@
         "kind": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "file",
@@ -5248,6 +5540,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "mariadb",
             "mongodb",
@@ -5267,6 +5563,10 @@
         "protocol": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "mongodb",
@@ -5525,6 +5825,10 @@
             "convert": [
               "vocabulary"
             ],
+            "explicitness_enums": [
+              "unknown",
+              "other"
+            ],
             "members": [
               "cluster_manager",
               "coordinating",
@@ -5584,6 +5888,10 @@
         "role": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "client",
@@ -5672,6 +5980,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "column_family",
             "index",
@@ -5721,6 +6033,10 @@
         "replication_strategy": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "network_topology_strategy",
@@ -5783,6 +6099,10 @@
         "eviction": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "allkeys_lfu",
@@ -5862,6 +6182,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "key_value",
             "other",
@@ -5877,6 +6201,10 @@
         "engine": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "cassandra",
@@ -5916,6 +6244,7 @@
       }
     },
     "#/$defs/RuntimeDatastoreSetting": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "setting_id",
@@ -5932,6 +6261,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "operator_secret",
             "other",
@@ -5947,6 +6280,10 @@
         "provenance": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "configuration_file",
@@ -6119,6 +6456,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "bind",
             "coredns",
@@ -6148,6 +6489,10 @@
             "convert": [
               "vocabulary"
             ],
+            "explicitness_enums": [
+              "unknown",
+              "other"
+            ],
             "members": [
               "authoritative",
               "caching_resolver",
@@ -6175,6 +6520,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeEnvironmentVariable": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "name",
@@ -6195,6 +6541,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "compose",
             "container",
@@ -6211,6 +6561,10 @@
         "value_classification": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "operator_secret",
@@ -6260,6 +6614,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "afp",
             "cifs",
@@ -6279,6 +6637,7 @@
       }
     },
     "#/$defs/RuntimeFileServiceAccessObservation": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "observation_id",
@@ -6295,6 +6654,10 @@
         "action": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "administer",
@@ -6316,6 +6679,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "computed",
             "directory_policy",
@@ -6334,6 +6701,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "allowed",
             "denied",
@@ -6349,6 +6720,10 @@
         "sensitivity": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "operator_secret",
@@ -6381,6 +6756,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "administer",
             "browse",
@@ -6401,6 +6780,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "computed",
             "directory_policy",
@@ -6419,6 +6802,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "allow",
             "deny",
@@ -6433,6 +6820,7 @@
       }
     },
     "#/$defs/RuntimeFileServicePrincipal": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "principal_id",
@@ -6452,6 +6840,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "default_or_trivial",
             "no_credential",
@@ -6468,6 +6860,10 @@
         "kind": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "alias",
@@ -6488,6 +6884,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "built_in",
             "operator",
@@ -6504,6 +6904,10 @@
         "status": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "disabled",
@@ -6572,6 +6976,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "disk",
             "ipc",
@@ -6611,6 +7019,7 @@
       }
     },
     "#/$defs/RuntimeFilesystemEntry": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "path",
@@ -6635,6 +7044,10 @@
         "entry_type": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "device",
@@ -6665,6 +7078,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "expected_absent",
             "other",
@@ -6678,6 +7095,10 @@
         "sensitivity": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "operator_secret",
@@ -6705,6 +7126,10 @@
         "stability": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "cache",
@@ -6763,6 +7188,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "content_sync",
             "log_forwarder",
@@ -6776,6 +7205,10 @@
         "implementation": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "filebeat",
@@ -6824,6 +7257,10 @@
         "crypto": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "aes",
@@ -6885,6 +7322,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "cli",
             "file_drop",
@@ -6901,6 +7342,7 @@
       }
     },
     "#/$defs/RuntimeForwardingSetting": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "setting_id",
@@ -6929,6 +7371,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "command_line",
             "configuration_file",
@@ -6944,6 +7390,7 @@
       }
     },
     "#/$defs/RuntimeForwardingShipTarget": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "target_id",
@@ -6998,6 +7445,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "beats",
             "http",
@@ -7033,6 +7484,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "api_pull",
             "other",
@@ -7047,6 +7502,10 @@
         "parse_format": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "cef",
@@ -7081,6 +7540,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "ioc_to_rule",
             "other",
@@ -7113,6 +7576,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeIdentityAttribute": {
+      "capability_classified": true,
       "factory_defaults": {
         "values": []
       },
@@ -7129,6 +7593,10 @@
         "origin": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "built_in",
@@ -7149,6 +7617,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "built_in",
             "directory",
@@ -7167,6 +7639,10 @@
         "value_classification": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "operator_secret",
@@ -7222,6 +7698,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "authorization_system",
             "cloud_iam",
@@ -7265,6 +7745,10 @@
         "protocol": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "ad_ds_rpc",
@@ -7327,6 +7811,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "access",
             "conditional_access",
@@ -7369,6 +7857,10 @@
         "relationship_type": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "associated",
@@ -7452,6 +7944,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "application",
             "computer",
@@ -7472,6 +7968,10 @@
         "origin": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "built_in",
@@ -7611,6 +8111,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "image",
             "operator",
@@ -7704,6 +8208,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "image",
             "operator",
@@ -7719,6 +8227,10 @@
         "stability": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "cache",
@@ -7795,6 +8307,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "antivirus",
             "imap_server",
@@ -7829,6 +8345,10 @@
         "role": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "alias",
@@ -7876,6 +8396,10 @@
             "convert": [
               "vocabulary"
             ],
+            "explicitness_enums": [
+              "unknown",
+              "other"
+            ],
             "members": [
               "anonymous",
               "cram_md5",
@@ -7904,6 +8428,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "esmtp",
             "imap",
@@ -7926,6 +8454,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "inbound_mx",
             "lmtp",
@@ -7945,6 +8477,10 @@
         "tls_mode": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "implicit_tls",
@@ -7967,6 +8503,10 @@
       }
     },
     "#/$defs/RuntimeMailMailbox": {
+      "capability_classified": true,
+      "capability_public": [
+        "address"
+      ],
       "factory_defaults": {
         "auth_mechanisms": []
       },
@@ -7994,6 +8534,10 @@
             "convert": [
               "vocabulary"
             ],
+            "explicitness_enums": [
+              "unknown",
+              "other"
+            ],
             "members": [
               "anonymous",
               "cram_md5",
@@ -8017,6 +8561,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "default_or_trivial",
             "fixture",
@@ -8034,6 +8582,10 @@
         "role": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "abuse",
@@ -8053,6 +8605,10 @@
         "status": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "disabled",
@@ -8081,6 +8637,10 @@
         "kind": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "database",
@@ -8113,6 +8673,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "active",
             "bounce",
@@ -8144,6 +8708,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "dynamic",
             "log_derived",
@@ -8173,6 +8741,10 @@
         "kind": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "alias",
@@ -8224,6 +8796,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimeMailSetting": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "setting_id",
@@ -8240,6 +8813,10 @@
         "provenance": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "command_output",
@@ -8259,6 +8836,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "operator_secret",
             "other",
@@ -8274,6 +8855,7 @@
       }
     },
     "#/$defs/RuntimeMount": {
+      "capability_classified": true,
       "factory_defaults": {
         "options": []
       },
@@ -8307,6 +8889,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "operator_secret",
             "other",
@@ -8322,6 +8908,10 @@
         "propagation": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "other",
@@ -8350,6 +8940,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "bind",
             "image",
@@ -8366,6 +8960,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "operator_secret",
             "other",
@@ -8381,6 +8979,10 @@
         "stability": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "cache",
@@ -8429,6 +9031,10 @@
         "driver": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "bridge",
@@ -8480,6 +9086,10 @@
             "convert": [
               "vocabulary"
             ],
+            "explicitness_enums": [
+              "unknown",
+              "other"
+            ],
             "members": [
               "config_reload",
               "other",
@@ -8513,6 +9123,10 @@
         "kind": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "cli",
@@ -8571,6 +9185,10 @@
             "convert": [
               "vocabulary"
             ],
+            "explicitness_enums": [
+              "unknown",
+              "other"
+            ],
             "members": [
               "dns",
               "ftp",
@@ -8622,6 +9240,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "detection_engine",
             "ids",
@@ -8644,6 +9266,10 @@
         "implementation": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "arkime",
@@ -8684,6 +9310,10 @@
         "kind": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "custom",
@@ -8744,6 +9374,10 @@
             "convert": [
               "vocabulary"
             ],
+            "explicitness_enums": [
+              "unknown",
+              "other"
+            ],
             "members": [
               "alert",
               "anomaly",
@@ -8790,6 +9424,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "eve_json",
             "fast_log",
@@ -8833,6 +9471,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "json",
             "other",
@@ -8853,6 +9495,10 @@
         "kind": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "built_in",
@@ -8993,6 +9639,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "af_packet",
             "dpdk",
@@ -9021,6 +9671,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "other",
             "security_onion",
@@ -9048,6 +9702,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "host_local",
             "inline",
@@ -9062,6 +9720,10 @@
         "sensor_kind": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "flow_collector",
@@ -9091,6 +9753,10 @@
         "restart": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "always",
@@ -9130,6 +9796,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "containerd",
             "cri_o",
@@ -9146,6 +9816,10 @@
         "privilege_class": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "host_root_equivalent",
@@ -9286,6 +9960,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "analytics_dashboard",
             "analyzer_engine",
@@ -9322,6 +10000,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "analysis_execution",
             "analytics_presentation",
@@ -9339,6 +10021,7 @@
       }
     },
     "#/$defs/RuntimePlatformApplicationConnector": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "connector_id",
@@ -9376,6 +10059,10 @@
         "kind": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "analyzer_engine",
@@ -9419,6 +10106,10 @@
         "kind": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "analyzer",
@@ -9518,6 +10209,7 @@
       "scalar": {}
     },
     "#/$defs/RuntimePlatformApplicationSetting": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "setting_id",
@@ -9546,6 +10238,10 @@
         "provenance": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "config_file",
@@ -9586,6 +10282,10 @@
         "role": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "backend_api",
@@ -9707,6 +10407,10 @@
         "role": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "agent",
@@ -9924,6 +10628,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "failure",
             "other",
@@ -10036,6 +10744,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "active",
             "available",
@@ -10105,6 +10817,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "active_response",
             "agent_enrollment",
@@ -10132,6 +10848,10 @@
         "status": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "degraded",
@@ -10185,6 +10905,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "json",
             "other",
@@ -10205,6 +10929,10 @@
         "kind": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "active_response",
@@ -10321,6 +11049,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "active_response_trigger",
             "correlation_rule",
@@ -10352,6 +11084,10 @@
         "engine": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "elastic_security",
@@ -10525,6 +11261,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "contains",
             "equals",
@@ -10569,6 +11309,10 @@
         "role": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "agent_enrollment",
@@ -10646,6 +11390,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "elastic_security",
             "microsoft_sentinel",
@@ -10669,6 +11417,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "detection_engine",
             "hids",
@@ -10687,6 +11439,7 @@
       }
     },
     "#/$defs/RuntimeSecurityMonitoringSetting": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "setting_id",
@@ -10703,6 +11456,10 @@
         "provenance": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "api",
@@ -10721,6 +11478,10 @@
         "value_classification": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "operator_secret",
@@ -10765,6 +11526,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "ipv4",
             "ipv6",
@@ -10798,6 +11563,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "other",
             "sctp",
@@ -10813,6 +11582,10 @@
         "provenance": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "docker_inspect",
@@ -10835,6 +11608,10 @@
         "scope": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "local_socket",
@@ -10910,6 +11687,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "application",
             "container",
@@ -10937,6 +11718,10 @@
         "provenance": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "dependency_manifest",
@@ -11187,6 +11972,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "group",
             "other",
@@ -11263,6 +12052,7 @@
       }
     },
     "#/$defs/SecretFixtureCredentialMaterial": {
+      "capability_classified": true,
       "factory_defaults": {},
       "fields": [
         "classification",
@@ -11297,6 +12087,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "activating",
             "active",
@@ -11314,6 +12108,10 @@
         "enabled_state": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "alias",
@@ -11348,6 +12146,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "bad_setting",
             "error",
@@ -11378,6 +12180,10 @@
           "convert": [
             "vocabulary"
           ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
+          ],
           "members": [
             "other",
             "systemd",
@@ -11390,6 +12196,10 @@
         "result": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "core_dump",
@@ -11412,6 +12222,10 @@
         "unit_type": {
           "convert": [
             "vocabulary"
+          ],
+          "explicitness_enums": [
+            "unknown",
+            "other"
           ],
           "members": [
             "automount",
@@ -11997,6 +12811,11 @@
         "max_attempts",
         "description"
       ],
+      "model_names": {
+        "default": "default_step",
+        "else": "else_step",
+        "then": "then_step"
+      },
       "omit": {},
       "scalar": {
         "max_attempts": {
@@ -12046,6 +12865,9 @@
         "next",
         "description"
       ],
+      "model_names": {
+        "next": "next_step"
+      },
       "omit": {},
       "scalar": {}
     },
@@ -12229,7 +13051,14 @@
           "null"
         ]
       },
-      "scalar": {}
+      "scalar": {
+        "origins": {
+          "explicitness_atomic": true
+        },
+        "resource_bindings": {
+          "explicitness_atomic": true
+        }
+      }
     },
     "#/$defs/MaterializedResourceBinding": {
       "factory_defaults": {},
@@ -12308,15 +13137,24 @@
       ],
       "omit": {},
       "scalar": {
+        "backend_selections": {
+          "explicitness_atomic": true
+        },
         "complete": {
           "shapes": [
             "boolean!"
           ]
         },
+        "descendants": {
+          "explicitness_atomic": true
+        },
         "sequence": {
           "shapes": [
             "integer!"
           ]
+        },
+        "unavailable_evidence": {
+          "explicitness_atomic": true
         }
       }
     },
@@ -12737,7 +13575,11 @@
           "always"
         ]
       },
-      "scalar": {}
+      "scalar": {
+        "namespace": {
+          "explicitness_atomic": true
+        }
+      }
     },
     "#/$defs/RealizationDesignation": {
       "factory_defaults": {},
@@ -12747,7 +13589,14 @@
         "constraints"
       ],
       "omit": {},
-      "scalar": {}
+      "scalar": {
+        "constraints": {
+          "explicitness_atomic": true
+        },
+        "scopes": {
+          "explicitness_atomic": true
+        }
+      }
     },
     "#/$defs/RealizationScopeDesignation": {
       "factory_defaults": {},
@@ -12757,7 +13606,11 @@
         "posture"
       ],
       "omit": {},
-      "scalar": {}
+      "scalar": {
+        "namespace": {
+          "explicitness_atomic": true
+        }
+      }
     },
     "#/$defs/RecordDomain": {
       "factory_defaults": {},
@@ -12925,6 +13778,317 @@
       ],
       "omit": {},
       "scalar": {}
+    }
+  },
+  "sdl-expanded-authoring-object-v1": {
+    "#": {
+      "factory_defaults": {
+        "accounts": {},
+        "action_contracts": {},
+        "agents": {},
+        "assertions": {},
+        "behavior_specifications": {},
+        "clocks": {},
+        "conditions": {},
+        "content": {},
+        "control_context_assets": {},
+        "deployment_cells": {},
+        "deployment_tenants": {},
+        "entities": {},
+        "events": {},
+        "evidence_requirements": {},
+        "expansion_provenance": {
+          "capability_constraints": [],
+          "explicitness": [],
+          "imports": [],
+          "realization_constraints": [],
+          "realization_designations": []
+        },
+        "features": {},
+        "forwarding_agents": [],
+        "generated_artifacts": {},
+        "identity_domains": {},
+        "identity_facades": {},
+        "identity_forests": {},
+        "infrastructure": {},
+        "injects": {},
+        "nodes": {},
+        "objectives": {},
+        "observation_boundaries": {},
+        "outcome_interpretation_rules": {},
+        "persistent_volumes": {},
+        "propositions": {},
+        "relationships": {},
+        "scripts": {},
+        "stories": {},
+        "temporal_constraints": {},
+        "time_domain_mappings": {},
+        "time_domains": {},
+        "time_progression_policies": {},
+        "variables": {},
+        "variation_points": {},
+        "workflows": {}
+      },
+      "fields": [
+        "name",
+        "version",
+        "description",
+        "semantic_revision",
+        "nodes",
+        "infrastructure",
+        "features",
+        "conditions",
+        "propositions",
+        "assertions",
+        "entities",
+        "injects",
+        "events",
+        "scripts",
+        "stories",
+        "content",
+        "generated_artifacts",
+        "persistent_volumes",
+        "accounts",
+        "identity_domains",
+        "identity_forests",
+        "identity_facades",
+        "deployment_tenants",
+        "deployment_cells",
+        "relationships",
+        "forwarding_agents",
+        "control_context_assets",
+        "agents",
+        "action_contracts",
+        "observation_boundaries",
+        "outcome_interpretation_rules",
+        "behavior_specifications",
+        "evidence_requirements",
+        "execution_policy",
+        "augmentation_scope",
+        "time_domains",
+        "clocks",
+        "time_domain_mappings",
+        "time_progression_policies",
+        "temporal_constraints",
+        "objectives",
+        "workflows",
+        "variables",
+        "variation_points",
+        "expansion_provenance"
+      ],
+      "omit": {
+        "augmentation_scope": [
+          "null"
+        ],
+        "control_context_assets": [
+          "null",
+          "empty",
+          "empty-sequence",
+          "blank",
+          "false"
+        ],
+        "execution_policy": [
+          "null"
+        ],
+        "semantic_revision": [
+          "null"
+        ]
+      },
+      "scalar": {}
+    },
+    "#/$defs/CapabilityConstraint": {
+      "factory_defaults": {},
+      "fields": [
+        "kind",
+        "field_pointer",
+        "parameter",
+        "allowed_values"
+      ],
+      "omit": {},
+      "scalar": {
+        "allowed_values": {
+          "explicitness_atomic": true
+        },
+        "parameter": {
+          "explicitness_atomic": true
+        }
+      }
+    },
+    "#/$defs/ExpansionProvenance": {
+      "factory_defaults": {},
+      "fields": [
+        "imports",
+        "capability_constraints",
+        "parameter_derivations",
+        "explicitness",
+        "realization_designations",
+        "realization_constraints"
+      ],
+      "omit": {
+        "parameter_derivations": [
+          "null",
+          "empty",
+          "empty-sequence",
+          "blank",
+          "false"
+        ]
+      },
+      "scalar": {
+        "capability_constraints": {
+          "explicitness_atomic": true
+        },
+        "explicitness": {
+          "explicitness_atomic": true
+        },
+        "imports": {
+          "explicitness_atomic": true
+        },
+        "parameter_derivations": {
+          "explicitness_atomic": true
+        },
+        "realization_constraints": {
+          "explicitness_atomic": true
+        },
+        "realization_designations": {
+          "explicitness_atomic": true
+        }
+      }
+    },
+    "#/$defs/ExplicitnessProvenanceRecord": {
+      "capability_classified": true,
+      "factory_defaults": {},
+      "fields": [
+        "model_path",
+        "classification",
+        "provenance",
+        "reason",
+        "parameters"
+      ],
+      "omit": {},
+      "scalar": {
+        "parameters": {
+          "explicitness_atomic": true
+        }
+      }
+    },
+    "#/$defs/ParameterBinding": {
+      "factory_defaults": {},
+      "fields": [
+        "parameter",
+        "origin",
+        "value"
+      ],
+      "omit": {},
+      "scalar": {
+        "parameter": {
+          "explicitness_atomic": true
+        },
+        "value": {
+          "shapes": [
+            "boolean",
+            "integer",
+            "number",
+            "string"
+          ]
+        }
+      }
+    },
+    "#/$defs/ParameterDerivation": {
+      "factory_defaults": {},
+      "fields": [
+        "field_pointer",
+        "segments"
+      ],
+      "omit": {},
+      "scalar": {
+        "segments": {
+          "explicitness_atomic": true
+        }
+      }
+    },
+    "#/$defs/ParameterLiteralSegment": {
+      "factory_defaults": {},
+      "fields": [
+        "kind",
+        "value"
+      ],
+      "omit": {},
+      "scalar": {}
+    },
+    "#/$defs/ParameterReferenceSegment": {
+      "factory_defaults": {},
+      "fields": [
+        "kind",
+        "parameter",
+        "variable_type",
+        "allowed_values"
+      ],
+      "omit": {},
+      "scalar": {
+        "allowed_values": {
+          "explicitness_atomic": true
+        },
+        "parameter": {
+          "explicitness_atomic": true
+        }
+      }
+    },
+    "#/$defs/RealizationConstraintRecord": {
+      "factory_defaults": {},
+      "fields": [
+        "namespace",
+        "field_pointer",
+        "concern",
+        "posture",
+        "domain",
+        "provenance"
+      ],
+      "omit": {},
+      "scalar": {
+        "namespace": {
+          "explicitness_atomic": true
+        }
+      }
+    },
+    "#/$defs/RealizationDesignationRecord": {
+      "factory_defaults": {},
+      "fields": [
+        "namespace",
+        "field_pointer",
+        "posture"
+      ],
+      "omit": {},
+      "scalar": {
+        "namespace": {
+          "explicitness_atomic": true
+        }
+      }
+    },
+    "#/$defs/ResolvedImportProvenance": {
+      "factory_defaults": {},
+      "fields": [
+        "namespace",
+        "requested_source",
+        "requested_version",
+        "requested_digest",
+        "module_id",
+        "module_version",
+        "resolved_source",
+        "manifest_digest",
+        "content_digest",
+        "export_hash",
+        "signer_id",
+        "bindings"
+      ],
+      "omit": {},
+      "scalar": {
+        "bindings": {
+          "explicitness_atomic": true
+        },
+        "namespace": {
+          "explicitness_atomic": true
+        }
+      }
     }
   }
 }

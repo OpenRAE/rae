@@ -590,7 +590,8 @@ jobs:
   go:
     needs: trust-ref
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ inputs.exhaustive-mutations && 360 || (matrix.name == 'tooling' && 40 || 25) }}
+    # Include pinned tool builds, the independent reference corpus, and race tests.
+    timeout-minutes: ${{ inputs.exhaustive-mutations && 360 || 40 }}
     strategy:
       fail-fast: false
       matrix:
@@ -696,6 +697,13 @@ jobs:
             tools/parity_sdl_constructors.py --check
           uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_authoring_vectors.py --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_authoring_vectors.py --semantic --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_authoring_vectors.py --semantic-imports --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_authoring_vectors.py --corpus --output "${RUNNER_TEMP}/sdl-semantic-oracle.json"
+          echo "RAES_SEMANTIC_ORACLE=${RUNNER_TEMP}/sdl-semantic-oracle.json" >> "${GITHUB_ENV}"
           uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_format_bytes.py --output "${RUNNER_TEMP}/sdl-format-bytes.json"
           echo "RAES_FORMAT_BYTE_ORACLE=${RUNNER_TEMP}/sdl-format-bytes.json" >> "${GITHUB_ENV}"

@@ -23,8 +23,9 @@ sys.path.insert(0, str(ROOT / "implementations/python/packages"))
 
 from pydantic import BaseModel  # noqa: E402
 from pydantic.json_schema import GenerateJsonSchema  # noqa: E402
+from pydantic_core import SchemaValidator, ValidationError  # noqa: E402
 from raes.materialization import MaterializedScenario  # noqa: E402
-from raes.scenario import Scenario  # noqa: E402
+from raes.scenario import ExpandedScenario, Scenario  # noqa: E402
 
 PRIMITIVES = {
     "normalize_enum_value": "normalize",
@@ -43,6 +44,7 @@ PRIMITIVES = {
     "parse_limit_value": "limit",
     "parse_account_vocabulary": "account-vocabulary",
     "normalize_capability_name": "capability",
+    "normalize_http_method": "http-method",
 }
 
 
@@ -199,8 +201,11 @@ def wrapper_plan(schema: dict[str, Any]) -> dict[str, Any]:
     kind = schema["type"]
     if kind == "function-after":
         function = schema["function"].get("function")
-        if "capability" in function_policy(function):
-            result["convert"] = sorted(set(result.get("convert", [])) | {"capability"})
+        conversions = function_policy(function) & {"capability", "http-method"}
+        if conversions:
+            result["convert"] = sorted(set(result.get("convert", [])) | conversions)
+        if "http-method" in conversions:
+            result["members"] = sorted(function.__globals__["_HTTP_METHODS"])
     if kind == "function-before":
         conversion_plan(schema["function"].get("function"), result)
     return result
@@ -241,6 +246,55 @@ def scalar_plan(schema: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+def visitor_plan(schema: dict[str, Any]) -> dict[str, Any]:
+    """Record reference visitor distinctions that JSON alone does not retain."""
+    definitions = {
+        item["ref"]: item
+        for model in (Scenario, MaterializedScenario)
+        for item in model.__pydantic_core_schema__.get("definitions", [])
+    }
+    validator = SchemaValidator(
+        {
+            "type": "definitions",
+            "schema": schema,
+            "definitions": list(definitions.values()),
+        }
+    )
+    sentinels = []
+    for token in ("unknown", "other"):
+        try:
+            value = validator.validate_python(token)
+        except ValidationError, ValueError, TypeError:
+            continue
+        if isinstance(value, Enum):
+            sentinels.append(token)
+    result = {"explicitness_enums": sentinels} if sentinels else {}
+    while schema.get("type") in {
+        "default",
+        "nullable",
+        "function-before",
+        "function-after",
+        "function-wrap",
+    }:
+        schema = schema["schema"]
+    kind = schema.get("type")
+    if kind in {"tuple", "set", "frozenset"}:
+        result["explicitness_atomic"] = True
+    elif kind == "list" and (child := visitor_plan(schema.get("items_schema", {"type": "any"}))):
+        result["items"] = child
+    elif kind == "dict" and (child := visitor_plan(schema.get("values_schema", {"type": "any"}))):
+        result["values"] = child
+    return result
+
+
+def merge_plan(target: dict[str, Any], extra: dict[str, Any]) -> None:
+    for name, value in extra.items():
+        if name in {"items", "values"}:
+            merge_plan(target.setdefault(name, {}), value)
+        else:
+            target[name] = value
+
+
 def conversion_fields(schema: dict[str, Any], cls: type[BaseModel]) -> dict[str, Any]:
     core = schema["schema"]
     while core.get("type") != "model-fields":
@@ -249,7 +303,9 @@ def conversion_fields(schema: dict[str, Any], cls: type[BaseModel]) -> dict[str,
             return {}
     result = {}
     for name, field in core["fields"].items():
-        if plan := scalar_plan(field["schema"]):
+        plan = scalar_plan(field["schema"])
+        merge_plan(plan, visitor_plan(field["schema"]))
+        if plan:
             alias = cls.model_fields[name].serialization_alias or cls.model_fields[name].alias or name
             result[alias] = plan
     return result
@@ -291,12 +347,29 @@ class Layout(GenerateJsonSchema):
             "scalar": conversion_fields(schema, cls),
             "factory_defaults": factory_defaults(cls),
         }
+        model_names = {
+            field.serialization_alias or field.alias or name: name
+            for name, field in cls.model_fields.items()
+            if (field.serialization_alias or field.alias or name) != name
+        }
+        if model_names:
+            document["x-layout"]["model_names"] = model_names
+        if any(name.endswith(("classification", "sensitivity")) for name in cls.model_fields):
+            document["x-layout"]["capability_classified"] = True
+        public = sorted(getattr(cls, "realization_public_parameter_fields", ()))
+        if public:
+            document["x-layout"]["capability_public"] = public
         return document
 
 
 def factory_defaults(cls: type[BaseModel]) -> dict[str, Any]:
     result = {}
-    audited = {("ExecutionPolicy", "retry"), ("TimeDomainMapping", "scale"), ("TimeProgressionPolicy", "pacing_ratio")}
+    audited = {
+        ("ExecutionPolicy", "retry"),
+        ("TimeDomainMapping", "scale"),
+        ("TimeProgressionPolicy", "pacing_ratio"),
+        ("ExpandedScenario", "expansion_provenance"),
+    }
     for name, field in cls.model_fields.items():
         factory = field.default_factory
         if factory is None or field.exclude:
@@ -326,6 +399,7 @@ def record() -> bytes:
     for contract, cls in (
         ("sdl-authoring-input-v1", Scenario),
         ("materialized-scenario-v1", MaterializedScenario),
+        ("sdl-expanded-authoring-object-v1", ExpandedScenario),
     ):
         schema = cls.model_json_schema(schema_generator=Layout)
         records = {"#": schema["x-layout"]}
@@ -336,7 +410,11 @@ def record() -> bytes:
                 if "x-layout" in value
             }
         )
-        published = json.loads((ROOT / "contracts/schemas/sdl" / (contract + ".json")).read_bytes())
+        published = (
+            schema
+            if cls is ExpandedScenario
+            else json.loads((ROOT / "contracts/schemas/sdl" / (contract + ".json")).read_bytes())
+        )
         filter_records(records, published)
         result[contract] = records
     authored = result["sdl-authoring-input-v1"]
@@ -346,6 +424,10 @@ def record() -> bytes:
         del authored[key]
         del materialized[key]
     result["$shared"] = common
+    expanded = result["sdl-expanded-authoring-object-v1"]
+    result["sdl-expanded-authoring-object-v1"] = {
+        key: value for key, value in expanded.items() if key == "#" or value != authored.get(key, common.get(key))
+    }
     return (json.dumps(result, indent=2, sort_keys=True) + "\n").encode()
 
 
@@ -358,6 +440,8 @@ def filter_records(records: dict[str, Any], published: dict[str, Any]) -> None:
         row["fields"] = [field for field in row["fields"] if field in fields]
         for key in ("omit", "scalar", "factory_defaults"):
             row[key] = {field: value for field, value in row[key].items() if field in fields}
+        if "model_names" in row:
+            row["model_names"] = {field: name for field, name in row["model_names"].items() if field in fields}
         row["scalar"] = {field: compact for field, plan in row["scalar"].items() if (compact := compact_plan(plan))}
 
 

@@ -7,7 +7,7 @@ import (
 
 func declarationSections() []string {
 	return []string{
-		nodesSection, infrastructureField, featuresSection, conditionsSection, propositionsField, assertionsSection, entitiesField, injectsSection, eventsSection, scriptsField, storiesField, contentField, controlAssetsSection, generatedArtifactsField, persistentVolumesField, accountsSection, identityDomainsField, identityForestsField, identityFacadesField, deploymentTenantsField, deploymentCellsField, relationshipsField, agentsSection, actionsSection, boundariesSection, outcomeRulesSection, behaviorSection, "evidence_requirements", "time_domains", "clocks", "time_domain_mappings", "time_progression_policies", "temporal_constraints", objectivesSection, workflowsSection, variablesSection, variationPointsField,
+		nodesSection, infrastructureField, featuresSection, conditionsSection, propositionsField, assertionsSection, entitiesField, injectsSection, eventsSection, scriptsField, storiesField, contentField, controlAssetsSection, generatedArtifactsField, persistentVolumesField, accountsSection, identityDomainsField, identityForestsField, identityFacadesField, deploymentTenantsField, deploymentCellsField, relationshipsField, agentsSection, actionsSection, boundariesSection, outcomeRulesSection, behaviorSection, evidenceRequirementsSection, "time_domains", "clocks", "time_domain_mappings", "time_progression_policies", temporalConstraintsSection, objectivesSection, workflowsSection, variablesSection, variationPointsField,
 	}
 }
 func validateExports(value, descriptor map[string]any) error {
@@ -82,9 +82,7 @@ func (c *composition) combineSection(parent, incoming map[string]any, section, n
 		}
 		current[qualified] = value
 	}
-	if len(current) > 0 {
-		parent[section] = current
-	}
+	parent[section] = current
 	return nil
 }
 func qualifiedImport(namespace, name string, exports []any) string {
@@ -94,7 +92,7 @@ func qualifiedImport(namespace, name string, exports []any) string {
 	return namespace + ".__private." + name
 }
 func (c *composition) combineAgents(parent map[string]any, incoming []any, namespace string, exports []any) error {
-	current := array(parent[forwardingSection])
+	current := append([]any{}, array(parent[forwardingSection])...)
 	identities := map[string]bool{}
 	for _, agent := range current {
 		identities[text(object(agent)["forwarding_agent_id"])] = true
@@ -112,9 +110,7 @@ func (c *composition) combineAgents(parent map[string]any, incoming []any, names
 		agent["forwarding_agent_id"] = qualified
 		current = append(current, agent)
 	}
-	if len(current) > 0 {
-		parent[forwardingSection] = current
-	}
+	parent[forwardingSection] = current
 	return nil
 }
 

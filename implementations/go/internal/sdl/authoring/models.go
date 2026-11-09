@@ -91,7 +91,7 @@ func (w *normalizer) fieldInput(pointer, name string, value any) (any, error) {
 		}
 		return w.caseText(pythonTrim(protocol), false)
 	}
-	if bound, ok := integerBound(model, name); ok && !variable(value) {
+	if bound, ok := integerBound(model, name); ok && value != nil && !variable(value) {
 		return boundedInteger(value, bound)
 	}
 	switch model {
@@ -210,10 +210,10 @@ func speed(value any, model string) (any, error) {
 }
 func variableModel(value map[string]any) error {
 	kind := lower(text(value["type"]))
-	if v := value[defaultField]; v != nil && (!variableType(v, kind) || !allowedValue(v, array(value["allowed_values"]))) {
+	if v := value[defaultField]; v != nil && (!variableType(v, kind) || !allowedValue(v, array(value[allowedValuesField]))) {
 		return invalid()
 	}
-	for _, v := range array(value["allowed_values"]) {
+	for _, v := range array(value[allowedValuesField]) {
 		if !variableType(v, kind) {
 			return invalid()
 		}

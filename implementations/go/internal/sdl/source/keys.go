@@ -2,6 +2,7 @@ package source
 
 import (
 	"errors"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -47,6 +48,8 @@ func inWords(word, words string) bool { return strings.Contains(" "+words+" ", "
 
 const declarations = "nodes infrastructure features conditions propositions assertions entities injects events scripts stories content control_context_assets generated_artifacts persistent_volumes accounts identity_domains identity_forests identity_facades deployment_tenants deployment_cells relationships agents action_contracts observation_boundaries outcome_interpretation_rules behavior_specifications evidence_requirements time_domains clocks time_domain_mappings time_progression_policies temporal_constraints objectives workflows variables variation_points"
 const literalFields = "features conditions injects roles log_options labels driver_options ipam_options facts entities events steps extensions interactive_access control_context controller_states transitions permitted_transitions alternatives inventory members fixed_positions tool_affordances participant_inject_deliveries owners dimensions"
+
+var variableToken = regexp.MustCompile(`\$\{(?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\.)*[a-z0-9][a-z0-9_-]{0,63}\}`)
 
 func childScope(scope, key string, value *node) string {
 	if scope == dataScope || scope == structuralScope && (key == "schema_document" || key == "profile_value") {
@@ -190,6 +193,9 @@ func (a *keyAnalysis) entry(e member, scope string, tokens []string, active map[
 	}
 	c := canonical(key, scope)
 	child := descend(tokens, c)
+	if scope == literalScope && !declarationPath(tokens) && variableToken.MatchString(key) {
+		a.add(identifierInvalidCode, e.key, path.child(c), nil, nil)
+	}
 	if scope == structuralScope && key != c && !suppress {
 		a.add("sdl.noncanonical_field", e.key, path.child(c), nil, []string{key, c})
 	}

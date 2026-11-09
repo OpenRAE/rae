@@ -1,5 +1,6 @@
-// Package authoring owns structural SDL normalization and canonical formatting.
-// A structural document does not grant semantic or execution authority.
+// Package authoring owns immutable SDL documents, structural normalization,
+// semantic admission, canonical identity and formatting.
+// A structural document requires separate semantic admission.
 package authoring
 
 import (
@@ -56,10 +57,13 @@ type Parser struct {
 }
 
 type layout struct {
-	Fields          []string                   `json:"fields"`
-	Omit            map[string][]string        `json:"omit"`
-	Scalar          map[string]scalarPolicy    `json:"scalar"`
-	FactoryDefaults map[string]json.RawMessage `json:"factory_defaults"`
+	CapabilityClassified bool                       `json:"capability_classified"`
+	CapabilityPublic     []string                   `json:"capability_public"`
+	ModelNames           map[string]string          `json:"model_names"`
+	Fields               []string                   `json:"fields"`
+	Omit                 map[string][]string        `json:"omit"`
+	Scalar               map[string]scalarPolicy    `json:"scalar"`
+	FactoryDefaults      map[string]json.RawMessage `json:"factory_defaults"`
 }
 
 // New loads the packaged contracts and checks presentation metadata against them.
@@ -95,19 +99,8 @@ func New(limits source.Limits) (*Parser, error) {
 	if err = json.Unmarshal(raw, &p.layouts); err != nil {
 		return nil, err
 	}
-	for _, id := range []string{authoringContract, materializedContract} {
-		raw, err = fs.ReadFile(packaged, "schemas/sdl/"+id+".json")
-		if err != nil {
-			return nil, err
-		}
-		var schema map[string]any
-		if err = json.Unmarshal(raw, &schema); err != nil {
-			return nil, err
-		}
-		p.schemas[id] = schema
-		if err = p.checkLayout(id); err != nil {
-			return nil, err
-		}
+	if err = p.loadSchemaViews(packaged); err != nil {
+		return nil, err
 	}
 	return p, nil
 }
@@ -132,9 +125,15 @@ func (p *Parser) checkLayout(id string) error {
 // Document is an immutable structurally checked authored or materialized model.
 // Each accessor returns a fresh copy. Semantic admission is a later operation.
 type Document struct {
+	expanded         *Document
+	importOrigins    map[semanticOwner]importOrigin
+	modelData        []byte
 	contract         string
 	data             []byte
 	source           *source.Document
+	sourceName       string
+	validated        bool
+	semantic         *semanticModel
 	compositionValue map[string]any
 	warnings         []source.Diagnostic
 }
@@ -242,15 +241,15 @@ func (p *Parser) decodeDocument(raw []byte, name, policy string, imported bool) 
 	if err = p.precheckComposition(value, imported); err != nil {
 		return nil, err
 	}
-	encoded, err := p.construct(value, id, hints, parsed)
+	encoded, modelData, err := p.construct(value, id, hints, parsed)
 	if err != nil {
 		return nil, err
 	}
 	warnings := append(parsed.Diagnostics(), migrated...)
-	return &Document{compositionValue: value, contract: id, data: encoded, source: parsed, warnings: warnings}, nil
+	return &Document{compositionValue: value, contract: id, data: encoded, modelData: modelData, source: parsed, sourceName: name, warnings: warnings}, nil
 }
 func (p *Parser) precheckComposition(value map[string]any, imported bool) error {
-	if !imported && len(array(value["imports"])) == 0 {
+	if !imported && len(array(value[importsField])) == 0 {
 		return nil
 	}
 	budget, err := source.NewBudget(p.limits)
@@ -259,21 +258,29 @@ func (p *Parser) precheckComposition(value map[string]any, imported bool) error 
 	}
 	return budget.AddValue(value)
 }
-func (p *Parser) construct(value map[string]any, id string, hints map[string][]string, parsed *source.Document) ([]byte, error) {
+func (p *Parser) construct(value map[string]any, id string, hints map[string][]string, parsed *source.Document) ([]byte, []byte, error) {
 	limit := jsonWorkingLimit(p.limits.MaxInputBytes, p.limits.MaxExpandedNodes)
 	walk := normalizer{parser: p, id: id, hints: hints, workingLimit: limit}
 	normalized, err := walk.walk(p.schemas[id], "#", value, nil, scalarPolicy{}, parsed.View())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	encoded, err := encode(normalized, limit, false)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if err = p.models.CheckSDLConstruction(id, "#", encoded, modelLimits(encoded)); err != nil {
-		return nil, &modelError{path: "", cause: err}
+		return nil, nil, &modelError{path: "", cause: err}
 	}
-	return encode(normalized, limit, true)
+	serialized, err := encode(normalized, limit, true)
+	return serialized, encoded, err
+}
+
+func (d *Document) modelBytes() []byte {
+	if len(d.modelData) > 0 {
+		return d.modelData
+	}
+	return d.data
 }
 func invalid() error { return fault.New(fault.InvalidInput, "sdl-model-invalid", nil) }
 func object(value any) map[string]any {
@@ -334,14 +341,27 @@ func requestPaths(request Request) error {
 func (p *Parser) layoutRecords(id string) map[string]layout {
 	result := make(map[string]layout, len(p.layouts[sharedLayoutKey])+len(p.layouts[id]))
 	maps.Copy(result, p.layouts[sharedLayoutKey])
+	if id == expandedContract {
+		maps.Copy(result, p.layouts[authoringContract])
+	}
 	maps.Copy(result, p.layouts[id])
 	return result
 }
 func (p *Parser) layoutFor(id, pointer string) layout {
+	row, _ := p.lookupLayout(id, pointer)
+	return row
+}
+func (p *Parser) lookupLayout(id, pointer string) (layout, bool) {
 	if row, present := p.layouts[id][pointer]; present {
-		return row
+		return row, true
 	}
-	return p.layouts[sharedLayoutKey][pointer]
+	if id == expandedContract {
+		if row, present := p.layouts[authoringContract][pointer]; present {
+			return row, true
+		}
+	}
+	row, present := p.layouts[sharedLayoutKey][pointer]
+	return row, present
 }
 
 // Internal model bytes have already passed source or composition accounting.

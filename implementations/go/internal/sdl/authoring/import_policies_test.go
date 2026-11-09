@@ -17,12 +17,12 @@ func TestImportedPoliciesKeepLexicalScopes(t *testing.T) {
 	}
 	c := composition{parser: parser}
 	incoming := map[string]any{
-		"nodes":                 map[string]any{"n": map[string]any{}},
-		"features":              map[string]any{"f": map[string]any{}},
-		"clocks":                map[string]any{"clock": map[string]any{}},
-		"evidence_requirements": map[string]any{"e": map[string]any{}},
-		"augmentation_scope":    map[string]any{"default": "closed", "scopes": []any{map[string]any{"scope": "/nodes/n", "permission": "open"}}},
-		"execution_policy":      map[string]any{"default": map[string]any{"policy_id": "p", "response": "terminate"}, "scopes": []any{map[string]any{"scope": "/nodes/n/features/f", "policy": map[string]any{"policy_id": "q", "response": "hold", "clock_basis": "semantic", "clock_ref": "clock", "evidence_refs": []any{"e"}}}}},
+		"nodes":                     map[string]any{"n": map[string]any{}},
+		"features":                  map[string]any{"f": map[string]any{}},
+		"clocks":                    map[string]any{"clock": map[string]any{}},
+		evidenceRequirementsSection: map[string]any{"e": map[string]any{}},
+		"augmentation_scope":        map[string]any{"default": "closed", "scopes": []any{map[string]any{"scope": "/nodes/n", "permission": "open"}}},
+		"execution_policy":          map[string]any{"default": map[string]any{"policy_id": "p", "response": "terminate"}, "scopes": []any{map[string]any{"scope": "/nodes/n/features/f", "policy": map[string]any{"policy_id": "q", "response": "hold", "clock_basis": "semantic", "clock_ref": "clock", "evidence_refs": []any{"e"}}}}},
 	}
 	parent := map[string]any{"augmentation_scope": map[string]any{"default": "closed"}}
 	if err = c.composePolicies(parent, incoming, "m", nil); err != nil {
