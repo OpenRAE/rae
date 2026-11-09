@@ -45,7 +45,9 @@ def _completion(concern: tuple[str, tuple[str, ...]], value: object) -> Provisio
     kind, path = concern
     return ProvisioningPlan(
         operations=[
-            ProvisionOp(action=ChangeAction.CREATE, address=_ADDRESS, resource_type="node", payload=_payload(path, value))
+            ProvisionOp(
+                action=ChangeAction.CREATE, address=_ADDRESS, resource_type="node", payload=_payload(path, value)
+            )
         ],
         realization_authority=(
             ResolvedRealizationAuthority(
