@@ -178,7 +178,9 @@ def _without_runtime_evidence(entry: SnapshotEntry) -> SnapshotEntry:
     """Leave out runtime-owned artifact evidence; the described SDL cannot contain it."""
     if "artifact_satisfaction" not in entry.payload:
         return entry
-    return replace(entry, payload={key: value for key, value in entry.payload.items() if key != "artifact_satisfaction"})
+    return replace(
+        entry, payload={key: value for key, value in entry.payload.items() if key != "artifact_satisfaction"}
+    )
 
 
 def _resources_for_domain(resources: dict[str, PlannedResource], domain: RuntimeDomain) -> dict[str, PlannedResource]:
