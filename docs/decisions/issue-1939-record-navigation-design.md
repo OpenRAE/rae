@@ -85,13 +85,31 @@ Keep each instruction within 20 words and each description within 25 words.
 ## Verification boundaries
 
 Use targeted documentation checks and existing preservation checks locally.
-Full builds, full link checks, integration tests, and formal replay remain in CI.
+Full builds, full link checks, integration suites, and formal replay remain in CI.
 Review rendered introductions and descriptive links.
 Repeat the released first-use exercise in a clean temporary environment.
 
 Follow routes to accepted and superseded decisions, a formal result, a capture, and an open question.
 Check exact-reference navigation from its entry page.
-No executable behavior changes, so mutation testing has no changed code target.
+No product behavior changes, so mutation testing has no changed runtime target.
 Preserve existing mutation tests for evidence checkers.
 
 Record commands, results, source revisions, exclusions, and any uncertainty in the PR.
+
+## Integration timeout follow-up
+
+CI timed out the existing full-size cloud inventory delivery case after 120 seconds.
+The case traverses 2,048 synthetic objects across transport, preparation, and delivery.
+Other integration cases passed.
+Use the existing 300-second timeout convention for this full-size case only.
+Keep its fixture size, assertions, negative cases, and runtime resource limits unchanged.
+
+The owning test module is `test_issue_1885_cloud_authority_budget.py`.
+Its existing pytest marker supplies the test deadline.
+The existing participant stress and formal replay cases use the same deadline.
+No application interface, schema, dependency, trust boundary, or runtime behavior changes.
+The data flow above remains valid.
+Only a selected failing case runs locally; the full integration suite remains in CI.
+
+[Pytest-timeout 2.4.0](https://pypi.org/project/pytest-timeout/2.4.0/) documents the per-item marker override.
+The timer detects hangs; it does not measure precise performance.
