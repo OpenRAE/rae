@@ -72,6 +72,12 @@ After admission, use the [runtime task guides](../public/guides/control-plane.md
 and [experiment records procedure](../public/guides/experiment-records.md).
 Read [participant-control boundaries](../public/participant-control-explanation.md) for the separate authority and evidence planes.
 
+## Prepare for the Go cutover
+
+The [Go cutover migration](go-cutover.md) records the deprecation of the `raes` Python distribution.
+It names the Go replacement surfaces and their publishers.
+The Python import API has no Python replacement.
+
 ## Read retained historical records
 
 The [RAES identity cutover record](raes-rename.md) retains the 1.1.0-to-2.0.0 boundary and later naming history.
