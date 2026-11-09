@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 from raes_contracts.diagnostics import Diagnostic, Severity
 from raes_contracts.runtime_state import RuntimeSnapshot
 
+from .realization_comparison import portable_realization_value
 from .realization_concerns import realization_concern_descriptor
 from .software_identity import validate_returned_software_references
 
@@ -73,12 +74,13 @@ def realization_payloads_match(
             requirements,
             observed=True,
         )
+        # Compiled tuples and transported arrays carry the same ordered values.
+        return portable_realization_value(declared_projection) == portable_realization_value(observed_projection)
     except TypeError, ValueError:
         # A malformed or legacy snapshot is not equivalent to the desired
         # resource. Reconciliation repairs it with UPDATE instead of making
         # planning itself fail.
         return False
-    return declared_projection == observed_projection
 
 
 def realization_payload_projections(
