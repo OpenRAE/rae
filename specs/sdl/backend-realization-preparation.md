@@ -162,6 +162,8 @@ allowed value is not interchangeable with the supported completion admitted for
 this operation. This exact-completion comparison uses the authenticated recursive
 projection: ordered positions remain distinct even when their allowed domains
 overlap. Existing set-like concern identities remain order-independent.
+A field that the completion leaves absent carries no delivery obligation. The
+realization gate still checks the value that apply delivers there.
 Available operating-system observations are compared with that
 completion as well as with the original author constraint. Independently
 applicable observation scope, strength and corroboration floors remain binding.
