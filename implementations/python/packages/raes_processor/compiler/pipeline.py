@@ -69,7 +69,14 @@ def compile_scenario_runtime_model(
     profile: str | None = None,
     profile_authority: PlanProfileAuthority | None = None,
 ) -> RuntimeModel:
-    """Instantiate an SDL scenario and compile it into runtime artifacts."""
+    """Instantiate authoring input when needed and return a compiled runtime model.
+
+    ``parameters`` and ``profile`` select instantiation values for authoring input.
+    Instantiated and materialized input passes directly to compilation.
+    The result can contain error diagnostics; inspect them before planning.
+    Admission and instantiation can raise invalid-input or SDL exceptions.
+    This function performs no backend execution.
+    """
 
     concrete_scenario = (
         scenario
@@ -180,7 +187,14 @@ def compile_runtime_model(
     *,
     profile_authority: PlanProfileAuthority | None = None,
 ) -> RuntimeModel:
-    """Compile an SDL scenario into bound runtime objects."""
+    """Return bound runtime objects after scenario and profile admission.
+
+    Authoring input is instantiated with its defaults.
+    Use :func:`compile_scenario_runtime_model` to supply parameters or a profile.
+    ``profile_authority`` is revalidated before it enters the compiled model.
+    The result retains compilation diagnostics rather than implying successful realization.
+    This function performs no backend execution.
+    """
 
     authority = _admitted_profile_authority(profile_authority)
     if isinstance(scenario, MaterializedScenario):

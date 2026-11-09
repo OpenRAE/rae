@@ -125,6 +125,8 @@ class ExperimentRecordArchive(Protocol):
 
 
 class ExperimentEvidenceReader(Protocol):
+    """Callable that opens authorized evidence readers for one immutable run version."""
+
     def __call__(self, run: ExperimentRunModel) -> ExperimentRunEvidenceInputs:
         """Open fresh authorized immutable readers for this exact run version."""
         ...

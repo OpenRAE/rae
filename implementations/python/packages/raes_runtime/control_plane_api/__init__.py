@@ -109,7 +109,15 @@ def create_control_plane_app(
     security: ControlPlaneSecurityConfig | None = None,
     profile: ControlPlaneProfile | None = None,
 ) -> FastAPI:
-    """Create a reference HTTP/JSON control-plane app."""
+    """Return a sealed reference HTTP application without starting a server.
+
+    ``control_plane`` owns the runtime services and retained operation state.
+    ``security=None`` selects strict defaults with no built-in credentials.
+    An explicit profile must select P2 over an explicitly selected P1 core.
+    Invalid profile, worker or application composition raises an error at construction.
+    Application shutdown drains calls and closes the supplied control plane.
+    Request bodies, pending mutations and audit work use the configured bounds.
+    """
 
     declaration = select_profile(profile) if profile is not None else None
     if declaration is not None:

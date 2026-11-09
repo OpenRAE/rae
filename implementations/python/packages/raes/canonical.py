@@ -36,6 +36,8 @@ class SDLCanonicalDigest:
     value: str
 
     def as_dict(self) -> dict[str, str]:
+        """Return the profile, algorithm and digest value as a new mapping."""
+
         return {"profile": self.profile, "algorithm": self.algorithm, "value": self.value}
 
 
