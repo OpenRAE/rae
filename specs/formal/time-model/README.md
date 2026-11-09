@@ -1,9 +1,9 @@
-# RAES Shared Time Model
+# RAES shared time model
 
 This specification defines the semantic authority implemented for SEM-227,
 SEM-228, SEM-229, DSL-126, DSL-127, DSL-128, RUN-317, and RUN-318.
 
-## Authority Boundary
+## Authority boundary
 
 The SDL owns authored temporal meaning. The processor owns canonical compiled
 identities. The runtime owns lifecycle control and observation. A backend may
@@ -14,7 +14,7 @@ model under EXP-734.
 Neither host timestamps, backend scheduler order, transport receipt order, nor
 map iteration order is semantic time.
 
-## Domains And Coordinates
+## Domains and coordinates
 
 A time domain is:
 
@@ -69,7 +69,7 @@ Synchronization is separately declared as none, authority-following, barrier,
 or conservative. Drift is a bounded claim, not prose. Pacing does not establish
 ordering or causality.
 
-## Temporal Constraints
+## Temporal constraints
 
 The first closed constraint family is:
 
@@ -82,7 +82,7 @@ The first closed constraint family is:
 Constraints resolve one clock. Causality is intentionally absent: causal claims
 remain governed by participant attribution and its evidence basis.
 
-## Runtime State Machine
+## Runtime state machine
 
 For each compiled clock:
 
@@ -120,7 +120,7 @@ references to this shared model while retaining action-specific event points
 and state-machine semantics. The migration must be explicit and cannot infer a
 shared clock from matching strings.
 
-## Implementation Map
+## Implementation map
 
 | Concern | Authority |
 | --- | --- |

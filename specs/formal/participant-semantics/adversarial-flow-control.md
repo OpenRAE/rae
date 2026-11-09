@@ -1,10 +1,13 @@
-# SEM-233 And ASR-536 Adversarial Participant Flow Control
+<!-- vale RAES.HeadingCase = NO -->
+# SEM-233 and ASR-536 adversarial participant flow control
 
 Issue #1354 and ADR-114 publish [IFC profile variability and publication](ifc-profile-variability.md).
 The amendment separates authored requirements, exact profile expressibility
 and evidenced realization, preserving this document's original revision and
 implementation boundary. It adds no registered owner-aware profile or runtime
 support; its migration contract governs future adoption.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Status: SEM-233 definition and portable-contract authority are published;
 runtime and evaluation claims require their own exact execution evidence.
@@ -64,7 +67,7 @@ Every derived identity is fresh and binds the source identities, derivation
 kind, profile and revision, exact policy/state cut, authority, destination or
 sink, and safe evidence refs. No release operation mutates a prior fact.
 
-## Exact Revision-1 Flow Algebra
+## Exact revision-1 flow algebra
 
 For revision 1, profile `phi` declares two independent, closed, finite
 universes:
@@ -171,7 +174,7 @@ decisions, release events, SEM-230 memory scope, and expected history heads.
 Replay under a later cut receives a fresh final-sink decision; the later policy
 does not reinterpret the historical label or release.
 
-## Typed Carrier And Derivation Mapping
+## Typed carrier and derivation mapping
 
 The mapping is semantic and reference-based. Issue #1001 does not change the
 incumbent contracts.
@@ -386,16 +389,16 @@ Every denied case records zero prohibited `RuntimeTarget` calls and zero
 participant/external disclosure. Tests also inspect append-only histories,
 safe audit/error evidence, and replay.
 
-## Bounded Executable Evidence
+## Bounded executable evidence
 
-`implementations/python/tests/sem233_boundary_flow_model.py` is a test-local
-finite interpretation of the revision-1 powerset algebra. Its companion
-`test_sem_233_adversarial_boundary_flow.py` exercises closure, associativity,
-commutativity, idempotence, monotonicity, traversal-order independence,
-coordinate independence, conservative derivation, unknown/missing labels,
-cross-profile joins, laundering attempts, coordinate-specific rewrites,
-release-operation conflation, handoff, cross-episode replay, stale cuts, sink
-obligations, and every deny-first final predicate conjunct.
+`implementations/python/tests/sem233_boundary_flow_model.py` is a test-local finite interpretation of the revision-1 powerset algebra.
+Its companion `test_sem_233_adversarial_boundary_flow.py` exercises:
+
+- Closure, associativity, commutativity, idempotence, and monotonicity.
+- Traversal-order independence, coordinate independence, and conservative derivation.
+- Unknown/missing labels, cross-profile joins, laundering attempts, and coordinate-specific rewrites.
+- Release-operation conflation, handoff, cross-episode replay, and stale cuts.
+- Sink obligations and every deny-first final predicate conjunct.
 
 Those cases are bounded falsification evidence over synthetic refs. The model
 is not a portable contract, runtime implementation, backend realization,

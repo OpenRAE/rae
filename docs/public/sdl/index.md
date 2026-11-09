@@ -31,8 +31,11 @@ and read its plan, follow
 The published schemas and normative specifications remain the authority for
 accepted fields and meaning:
 
-- [SDL schema](https://github.com/OpenRAE/rae/tree/main/contracts/schemas/sdl)
-- [Normative SDL specification](https://github.com/OpenRAE/rae/tree/main/specs)
+- [SDL schema for RAES 11.0.2](https://github.com/OpenRAE/rae/tree/v11.0.2/contracts/schemas/sdl)
+- [SDL document and source rules](https://github.com/OpenRAE/rae/blob/v11.0.2/specs/sdl/document-model.md)
+- [Exact section catalog](https://github.com/OpenRAE/rae/blob/v11.0.2/specs/sdl/sections.md)
+- [Reference resolution rules](https://github.com/OpenRAE/rae/blob/v11.0.2/specs/sdl/references.md)
+- [Normative SDL specification index](https://github.com/OpenRAE/rae/tree/v11.0.2/specs/sdl)
 - [Worked examples](https://github.com/OpenRAE/rae/tree/main/examples/scenarios)
 
 ## Finish

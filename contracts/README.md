@@ -1,5 +1,12 @@
 # Contracts
 
+Find published schemas, fixture corpora, profiles, and catalogs here.
+These artifacts define portable contracts under the
+[authority boundary](../specs/authority/authority-boundary.yaml).
+Start with the [schema reference](schemas/README.md) for exact structures.
+Use [local contract checks](../docs/develop/check-specification-contracts.md)
+to compare the reference implementation with these artifacts.
+
 The [participant control-context asset contracts](../specs/supply-chain/participant-control-context-assets.md)
 define immutable instruction and policy versions, authorized lifecycle changes,
 and selection evidence separate from disclosure and delivery. Private contents
@@ -22,9 +29,7 @@ and participant correlation under
 [ADR-112](../docs/decisions/adrs/adr-112-external-inject-triggering-and-execution.md).
 They grant no trigger authority and execute nothing.
 
-`contracts/` contains the machine-readable contract side of the repository.
-
-The goal of this bucket is organizational clarity:
+## Artifact families
 
 - `schemas/` contains published contract schemas
 - `fixtures/` contains valid and invalid payload corpora for those contracts.
@@ -48,18 +53,23 @@ publication inventory. Each contract has an independent record under
 not rewrite one shared array. The contracts verification gate assembles those
 records deterministically and checks that every entry points at
 `contracts/schemas/`, every listed schema exists, every JSON Schema file is
-listed, and every entry records its stability class and canonical content hash.
+listed, and every entry records its stability class.
+Records contain `contract_id`, `schema_path`, and `stability`.
+They contain no `content_hash` or `last_change`.
+Git records schema history under the issue 1929 amendments to ADR-009 and ADR-061.
 
 ## Published-schema coverage
 
-Publication proves a contract exists; it does not prove anything exercises it.
-Every entry in the publication catalog must carry at least one of: a checked-in
-artifact that the corpus router validates against that schema, a delivered
-assurance artifact naming the schema in
-`specs/formal/assurance-fulfillment.yaml`, or a validated `coverage`
-association on the contract's publication record. A formal model is never
-required, and a `waived_artifacts` entry is an unresolved obligation rather than
-evidence. `tools/check_schema_coverage.py` enforces this over the whole
+Publication establishes that a contract exists.
+It does not establish that a check exercises it.
+Every publication-catalog entry must have at least one of these evidence sources:
+
+- A checked-in artifact that the corpus router validates against the schema.
+- A delivered assurance artifact naming the schema in `specs/formal/assurance-fulfillment.yaml`.
+- A validated `coverage` association on the publication record.
+
+A formal model is never required.
+A `waived_artifacts` entry is an unresolved obligation, not evidence. `tools/check_schema_coverage.py` enforces this over the whole
 published inventory as the `policy / published schema coverage` stage, and
 `--report` prints the covering leg per contract. The rule, the repair order, and
 the `coverage` shape are documented in
@@ -68,21 +78,20 @@ the `coverage` shape are documented in
 ## Schema authority direction (ADR-009 §7)
 
 The published schemas under `contracts/schemas/` are the **hand-governed
-normative authority**. Changes to a contract originate as edits to the published
-schema, reviewed against the SDL prose specification — not as a side-effect of
-regenerating from a reference implementation. The Python `schema_bundle()` and
-`tools/generate_contract_schemas.py` are the reference implementation's output;
-`tools/check_generated_schemas.py` runs that generation into a throwaway
-directory and **proves the reference implementation still matches the published
-normative schemas** (it never overwrites them). A new schema adds one record
+normative authority**. Contract changes start with a reviewed published-schema edit.
+The review compares the change with the SDL prose specification.
+The reference implementation consumes that authority.
+Its `raes_schemas.schema_bundle()` interface produces a comparison bundle.
+`tools/check_generated_schemas.py` generates that bundle into a temporary directory.
+It checks exact equality with the published schemas and never overwrites them.
+A new schema adds one record
 under `schema-publication/entries/`. A schema change does not edit its record:
 git holds the schema history, and the pull request review covers the change. A
 schema **removal** adds an independent tombstone record (schema path + summary)
 under `schema-publication/tombstones/`. `tools/check_schema_publication.py
 --base-rev` refuses an incompatible change to a `stable` schema and a removal
-without a tombstone. This is the steady state ADR-009 §7 calls for;
-optional code generation *from* the normative schemas into implementation
-bindings remains future work.
+without a tombstone. This is the authority direction specified by ADR-009 §7.
+Optional generation of implementation bindings *from* the schemas is not implemented.
 
 Current checked-in schemas are marked `draft` in the manifest. A `v1` or `v2`
 filename suffix identifies the schema lineage; it does not by itself promise a
@@ -102,7 +111,7 @@ semantic results independently. See the
 [authoring-adapter contract](../specs/conformance/authoring-adapters.md) and
 [consumer guide](../docs/explain/reference/authoring-adapter-conformance.md).
 
-At the architecture level, the contract space spans more than just backend I/O.
+The contract space includes backend I/O and other artifact boundaries.
 It includes:
 
 - processor-facing contracts and manifests
@@ -111,11 +120,9 @@ It includes:
 - live runtime/control-plane contracts
 - experiment, evidence, and provenance artifact boundaries
 
-The control-plane `participant-context-view-v1` contract includes the SEM-214
-meaning and comparability envelope for derived operational context views:
-participant-local scope, audience scope, observation point, governed source
-layers, transformation rule, evidence/provenance basis, semantic limitations,
-and explicit comparability disclosure.
+The control-plane `participant-context-view-v1` contract carries SEM-214 meaning and comparability for derived operational context views.
+Its envelope gives participant-local scope, audience scope, observation point, and governed source layers.
+It also gives the transformation rule, evidence/provenance basis, semantic limitations, and explicit comparability disclosure.
 
 The participant-runtime `participant-information-state-record-v1` contract
 closes ACT-604's portable information-state reference at one exact participant,

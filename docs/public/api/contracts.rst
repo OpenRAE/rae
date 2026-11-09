@@ -6,6 +6,12 @@ runtime, backend protocols, conformance tools, and authoring tools use them.
 They define the typed boundary for runtime calls to backends. Keep them out of
 runtime and processor modules.
 
+For exact portable structures, use the
+`published schema reference for RAES 11.0.2 <https://github.com/OpenRAE/rae/blob/v11.0.2/contracts/schemas/README.md>`_.
+The `normative specification index <https://github.com/OpenRAE/rae/blob/v11.0.2/specs/README.md>`_
+links to required meaning.
+The Python API supplies implementation evidence. It does not replace either authority.
+
 Diagnostics
 -----------
 

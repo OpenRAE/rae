@@ -194,7 +194,7 @@ The gates cover these checks:
   Version-classification tests check this behavior.
 - Published schema evolution uses the schema publication checker, generated-schema parity and fixture validation.
   It also uses publication records, Git schema history and tombstones.
-- ADR evolution uses the ADR index and accepted-content pin gate.
+- ADR evolution uses the ADR index and the amendment gate against the base revision.
 - `tools/check_deprecation_lifecycle.py` validates the deprecation and lifecycle records in `specs/evolution/deprecation-records.yaml`.
   It checks the complete-record contract and removal eligibility.
   Published schemas also need an ADR-061 `removed_schemas` tombstone reference.
@@ -202,7 +202,7 @@ The gates cover these checks:
   It also uses trust, signature, digest and semantic tests.
 - Contract and manifest evolution uses closed DTO validation, manifest authority, fixtures, profiles and conformance checks.
 - Repository completion uses `tools/check_repo_policy.py`,
-  `tools/check_requirement_governance.py`, `tools/verify_all.py`, and the
+  `tools/check_requirement_governance.py`, `tools/nox_support/graph.py`, and the
   canonical nox verification graph.
 
 These checks need no secret or credential.

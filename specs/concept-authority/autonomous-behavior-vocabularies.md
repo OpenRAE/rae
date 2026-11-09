@@ -1,4 +1,4 @@
-# Autonomous Behavior Vocabulary Bindings
+# Autonomous behavior vocabulary bindings
 
 ## Scope
 
@@ -16,12 +16,15 @@ ACT-611 adds source snapshots and examples at that composition boundary. It
 does not add SDL syntax, a participant subtype, a native autonomous-behavior
 taxonomy, or another resolver.
 
-## Initial Schemes
+## Initial schemes
 
-### W3C ActivityStreams Activity Types
+<!-- vale RAES.HeadingCase = NO -->
+### W3C ActivityStreams activity types
 
 The directly adopted external identifiers are the 28 Activity types listed by
 the dated W3C Activity Vocabulary Recommendation of 23 May 2017.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 | Coordinate | Value |
 | --- | --- |
@@ -38,10 +41,13 @@ case-fold, translate, merge, or deduplicate these identifiers.
 not members of this behavior scheme, do not become RAES participant types, and
 do not prove that an authored behavior is autonomous.
 
-### FIPA Communicative Act Library
+<!-- vale RAES.HeadingCase = NO -->
+### FIPA communicative act library
 
 The second scheme publishes the 22 exact lower-case communicative-act symbols
 from FIPA specification SC00037J, Standard status dated 2002-12-03.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 | Coordinate | Value |
 | --- | --- |
@@ -62,7 +68,7 @@ pins the stable official `SC00037J.pdf` representation by SHA-256. The
 maintenance verifier checks the PDF bytes and separately confirms the exact
 act identifiers in the HTML specification.
 
-## Candidate Decisions
+## Candidate decisions
 
 The complete primary-source comparison is recorded in
 `docs/decisions/issue-211-act-611-autonomous-behavior-vocabularies-preflight.md`.
@@ -79,7 +85,7 @@ No copied FIPA formal model or purchased IEEE standard text is published.
 Source records contain identifiers, citations, rights notices, and locally
 authored scope constraints rather than copied definitions.
 
-## Exact Behavior Subject
+## Exact behavior subject
 
 An ACT-611 assertion targets the exact coordinate returned by
 `external_concept_subjects()` for a behavior declaration:
@@ -99,7 +105,7 @@ realization, and evidence. The external assertion only relates that aggregate
 to another scheme. A map key, `spec_id`, participant name, label, compiled
 address, JSON Pointer, or unqualified string is not an identity substitute.
 
-## Portable Assertion Semantics
+## Portable assertion semantics
 
 Both initial schemes use the unchanged
 `external-concept-bindings/v1` syntax. Relationship, motivation, semantic
@@ -125,7 +131,7 @@ Participant availability remains `eligibility-only`; disclosure, exposure,
 delivery, and understanding continue through their existing deny-first
 boundaries.
 
-## Offline Admission And Extensibility
+## Offline admission and extensibility
 
 Each source-specific adapter projects its pinned record to
 `ExternalConceptSchemeSnapshotModel`. It preserves the concept list, including

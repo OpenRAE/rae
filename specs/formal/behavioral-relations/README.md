@@ -1,8 +1,8 @@
-# Behavioral-Relation Taxonomy And Claim Discipline
+# Behavioral-relation taxonomy and claim discipline
 
 Classification: FM2, relation and assurance semantics.
 
-## Scope And Authority
+## Scope and authority
 
 This specification governs the meaning of RAES claims about validation,
 conformance, realization, comparison, refinement, equivalence, participant
@@ -43,7 +43,7 @@ model checker, theorem prover, stochastic simulator, game solver, scheduler,
 or runtime engine. A relation whose definition is present but whose assurance
 record is `future` or `deliberately-unproved` remains unproved.
 
-## Core Objects
+## Core objects
 
 Let a labelled transition system be
 
@@ -73,7 +73,7 @@ environments, and observations. “All” on one axis says nothing about an omit
 axis. A finite case set therefore cannot satisfy a universal quantifier merely
 because every executed case passed.
 
-## Relation Families
+## Relation families
 
 The following identifiers are distinct. A consumer MUST use the exact catalog
 identifier rather than an artifact-local synonym.
@@ -125,7 +125,7 @@ None of these rows is an implication ladder. For example:
 - `statistical-equivalence` does not establish any behavioral equivalence;
 - `profile-satisfaction` does not establish `empirical-adequacy`.
 
-## Required Formal Dimensions
+## Required formal dimensions
 
 Every relation entry MUST state all of the following, even when a dimension is
 outside scope:
@@ -147,7 +147,7 @@ outside scope:
 
 Missing dimensions are not defaults. They are an incomplete claim.
 
-## Claim Binding
+## Claim binding
 
 A consumer claim is a `BehavioralClaimBindingModel`. It MUST carry:
 
@@ -184,16 +184,22 @@ Assurance axes are independent:
 | backend realization | Is the named feature natively realized with provenance? |
 | backend conformance | Did the named realization pass bounded adversarial cases? |
 
-Positive bindings use axis-native assurance statuses. Definition is `defined`,
-checker is `implemented`, bounded test is `tested`, model check is
-`model-checked`, proof is `proved`, runtime enforcement is `enforced`, backend
-declaration is `declared`, backend realization is `realized`, and backend
-conformance is `conformant`. Their evidence scope must match the axis:
-structural for definition/declaration, finite for bounded tests, the
-same-named model-check/proof scopes, structural or finite for
-checker/runtime/realization, and finite or statistical for backend
-conformance. Future axes and deliberately unproved proof axes are structural
-records, not positive results.
+Positive bindings use axis-native assurance statuses:
+
+| Axis | Status | Evidence scope |
+| --- | --- | --- |
+| Definition | `defined` | Structural |
+| Checker | `implemented` | Structural or finite |
+| Bounded test | `tested` | Finite |
+| Model check | `model-checked` | Model-check |
+| Proof | `proved` | Proof |
+| Runtime enforcement | `enforced` | Structural or finite |
+| Backend declaration | `declared` | Structural |
+| Backend realization | `realized` | Structural or finite |
+| Backend conformance | `conformant` | Finite or statistical |
+
+The evidence scope must match the axis.
+Future axes and deliberately unproved proof axes are structural records, not positive results.
 
 The legacy implementation aggregate must agree with explicit checker,
 runtime-enforcement, and backend-realization states. The legacy proof aggregate
@@ -206,7 +212,7 @@ combinations.
 not “proved”. The report truth value or study result remains separate from the
 assurance status of the mechanism producing it.
 
-## Claim Surfaces
+## Claim surfaces
 
 ### SDL transformations
 
@@ -249,14 +255,16 @@ comparison.
 
 ### Participant information-flow policy
 
-The SEM-230 claim surface uses `policy-noninterference` only when participant,
-episode and memory scope, audience, exact-cut policy-decision sequence,
-low-equivalence relation, adaptive low-strategy class, dynamic purge, permitted
-declassification schedule, scheduler/environment classes, order model, and
-observation projection are fixed. The baseline is
-termination- and progress-insensitive, untimed, and set-based under
-nondeterminism. Partial-order claims compare the declared visible order
-relation, not one linearization. Probability measures are outside the baseline.
+The SEM-230 claim surface uses `policy-noninterference` only when all of these coordinates are fixed:
+
+- Participant, episode and memory scope, and audience.
+- Exact-cut policy-decision sequence and low-equivalence relation.
+- Adaptive low-strategy class, dynamic purge, and permitted declassification schedule.
+- Scheduler/environment classes, order model, and observation projection.
+
+The baseline is termination- and progress-insensitive, untimed, and set-based under nondeterminism.
+Partial-order claims compare the declared visible order relation, not one linearization.
+Probability measures are outside the baseline.
 
 The executable SEM-230 cases are bounded falsification evidence. They do not
 establish the universal hyperproperty, runtime enforcement, backend
@@ -265,13 +273,13 @@ or epistemic indistinguishability.
 
 ### Participant predicate opacity
 
-The SEM-231 claim surface uses `participant-predicate-opacity` only with a
-revisioned relation-parameter profile. The profile fixes the observer or
-coalition, selected predicate, possible-point and cut scope, complete
-observation and delivery projection, retained memory, allowed adaptive
-strategies, supervisor visibility, exact-cut policy and release behavior,
-scheduler/environment, concurrency, partial order, time/progress, and
-probability treatment.
+The SEM-231 claim surface uses `participant-predicate-opacity` only with a revisioned relation-parameter profile.
+That profile fixes:
+
+- Observer or coalition, selected predicate, and possible-point and cut scope.
+- Complete observation and delivery projection, retained memory, and allowed adaptive strategies.
+- Supervisor visibility and exact-cut policy and release behavior.
+- Scheduler/environment, concurrency, partial order, time/progress, and probability treatment.
 
 The baseline is one-sided, possibilistic, untimed, and progress-insensitive.
 It requires a nonsecret alternative in every actual secret information cell.
@@ -291,14 +299,15 @@ enforcement, backend declaration, realization, or conformance.
 
 ### Participant-crossing bisimulation
 
-The SEM-232 design surface uses
-`divergence-preserving-branching-bisimulation` only with a revisioned closed
-relation-parameter profile. The profile binds independently derived left and
-right LTS sources and digests, initial states, a complete quantified carrier,
-the participant/audience projection, the exact visible and tau partitions,
-deadlock, termination, divergence, order and model dimensions, a witness
-family, assurance axis, tool and result provenance, limitations, and
-nonclaims.
+The SEM-232 design surface uses `divergence-preserving-branching-bisimulation` only with a revisioned closed relation-parameter profile.
+That profile binds:
+
+- Independently derived left and right LTS sources and digests, and initial states.
+- A complete quantified carrier and participant/audience projection.
+- Exact visible and tau partitions.
+- Deadlock, termination, divergence, order, and model dimensions.
+- A witness family and assurance axis.
+- Tool and result provenance, limitations, and nonclaims.
 
 The first target is
 `participant-crossing-dpbb-finite-v1@rev2`: the complete finite abstract
@@ -316,22 +325,27 @@ defines `participant-crossing-multi-operation-dpbb-finite-v1@rev1`, with at most
 two fresh identities, history-sensitive retry, cached-result observations and
 bounded response loss. Neither construction establishes equivalence.
 
-Revision `rev6` defines the relation, profile, and proof program. It does not
-run the model check. A positive finite result uses the `model-check`
-assurance axis only when the carrier is the complete quantified finite domain,
-both model constructions are independent, all mutations fail as expected, and
-the exact pinned result is independently reproduced.
+Revision `rev6` defines the relation, profile, and proof program.
+It does not run the model check.
+A positive finite result uses the `model-check` assurance axis only under these conditions:
 
-Revision `rev14` records one such result. The pinned
-[machine check](../participant-semantics/participant-crossing-machine-check.md)
-relates the declared initial states of the complete
-`participant-crossing-dpbb-finite-v1@rev2` carrier. A separate reviewer
-accepted a fresh qualified
-[reproduction](../participant-semantics/participant-crossing-reproduction.md)
-of that pinned capture. The relation keeps its `deliberately-unproved` proof
-axis. The result does not cover the multi-operation profile or any other
-carrier, order, time, probability, concurrency, controller, policy cut, or
-backend.
+- The carrier is the complete quantified finite domain.
+- Both model constructions are independent.
+- All mutations fail as expected.
+- The exact pinned result is independently reproduced.
+
+Taxonomy revision `rev14` records a historical result for the complete
+`participant-crossing-dpbb-finite-v1@rev2` carrier's declared initial states.
+The [original reproduction record](https://github.com/OpenRAE/rae/blob/4120ee77a49e89dfe273016e7721b52b3b1b7dfd/specs/formal/participant-semantics/participant-crossing-reproduction.md)
+describes the separately accepted reproduction at its publication revision.
+Commit `80b089b55b1f09ce594657d9c81cfa1f9a05e8a7` removed retained captures and reproduction records from the working tree.
+The [current machine-check reference](../participant-semantics/participant-crossing-machine-check.md)
+and [formal-package guide](../../../implementations/formal/participant_crossing/README.md)
+describe fresh checks and their limits.
+They supply no independent reproduction by themselves.
+
+The relation keeps its `deliberately-unproved` proof axis.
+The historical result covers no multi-operation profile or other carrier, order, time, probability, concurrency, controller, policy cut, or backend.
 
 Formal equivalence does not establish live-runtime realization, backend
 conformance, whole-runtime equivalence, policy noninterference, or predicate
@@ -367,31 +381,28 @@ gates.
 
 ### Determinism, stability, and replay-consistency verification
 
-The ASR-514 claim surface verifies a producer's explicit repeatability claim as
-a single binary baseline-to-repetition comparison of one held-fixed subject. It
-adds no relation: a determinism or replay-consistency claim over exact canonical
-outputs binds the existing `canonical-artifact-identity` relation, whose two
-carriers name the compared baseline and repetition artifacts, and the comparator
-only decides whether the two projected outcomes are identical under one declared
-observation projection, variation policy, and versioned equality criterion. A
-larger set of repeated runs composes as several such pairwise cases; the binary
-relation is never reinterpreted as an n-ary one. The evidence boundary is
-bounded to the named pair, subject, projection, variation policy, and criterion.
-A pair is admitted only when the baseline and repetition carry distinct run
-identities of the same digest-held-fixed subject (ADR-068), the declared
-held-fixed dimensions are held fixed with only permitted variation, and reset,
-isolation, and cleanup are independently verified with no residual state.
-Unequal projected outcomes refute the finite claim; indeterminate, unsupported,
-withheld, incomparable, unverified, or residual evidence is inconclusive or
-unsupported, never a match.
+ASR-514 checks a producer's explicit repeatability claim through one binary baseline-to-repetition comparison of one held-fixed subject.
+It adds no relation.
+Determinism and replay-consistency claims over exact canonical outputs bind the existing `canonical-artifact-identity` relation.
+Its two carriers name the compared baseline and repetition artifacts.
+The comparator checks projected outcome identity under one declared observation projection, variation policy, and versioned equality criterion.
 
-The result is finite empirical evidence for the named cohort only. It does not
-establish universal determinism, statistical equivalence, trace equivalence,
-bisimulation, backend equivalence, or necessity; a shared seed, a reused task
-identifier, wall-clock proximity, an exit status, or a completed replay is not
-substitutable for its gates. Statistical stability under controlled variation
-and participant-history replay remain separate criteria bound to
-`statistical-equivalence` or `participant-projected-history-equivalence`.
+Multiple repeated runs form several pairwise cases.
+The binary relation never becomes n-ary.
+Evidence is bounded to the named pair, subject, projection, variation policy, and criterion.
+Pair admission requires distinct baseline and repetition run identities for the same digest-held-fixed subject (ADR-068).
+Declared held-fixed dimensions must stay fixed, with only permitted variation.
+Reset, isolation, and cleanup must be independently verified, with no residual state.
+
+Unequal projected outcomes refute the finite claim.
+Indeterminate, unsupported, withheld, incomparable, unverified, or residual evidence is inconclusive or unsupported.
+It is never a match.
+
+The result is finite empirical evidence for the named cohort only.
+It establishes no universal determinism, statistical equivalence, trace equivalence, bisimulation, backend equivalence, or necessity.
+A shared seed, reused task identifier, wall-clock proximity, exit status, or completed replay cannot replace its gates.
+Statistical stability under controlled variation and participant-history replay remain separate criteria.
+They bind `statistical-equivalence` or `participant-projected-history-equivalence`.
 
 ### Independent adequacy studies
 
@@ -403,7 +414,7 @@ uncertainty procedure, equivalence margin when applicable, falsification
 criteria, missing-data handling, and limitations. Results from issue #729 will
 therefore be bounded empirical evidence, not universal behavioral proof.
 
-## Worked Counterexamples
+## Worked counterexamples
 
 ### A passing probe is not bisimulation
 
@@ -438,7 +449,7 @@ visible trace can weakly match while strong bisimulation fails. Neither finite
 case proves `io-alternating-refinement`; each can falsify an incorrect
 implication used in a backend claim.
 
-## Assurance Boundary For Revision 5
+## Assurance boundary for revision 5
 
 Implemented and tested now:
 
@@ -479,7 +490,7 @@ artifacts:
 - statistical equivalence without a predeclared margin and test; and
 - empirical adequacy without a preregistered population, criteria, and evidence.
 
-## Primary Sources
+## Primary sources
 
 The catalog records the complete title, authors, publication year and venue,
 edition/version, and immutable DOI, ISBN, or primary publication URL for each

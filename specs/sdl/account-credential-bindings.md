@@ -1,4 +1,4 @@
-# Account Credential Bindings
+# Account credential bindings
 
 This specification defines the portable relationship between a top-level SDL
 account and credential material used to authenticate that account. It is the
@@ -143,13 +143,15 @@ a fixture value. Persistence and API publication consume the already-closed
 snapshot and repeat only this structural path projection as an idempotent
 defense.
 
-A participant-visible fixture requires an explicit governed view rule naming
-the exact canonical account address and `credential_id`, a disclosed visibility
-and disclosure decision, an authorized participant audience binding, and the
-existing marking, transformation, crossing-policy, audit, and provenance
-evidence. `starting_accounts` and `interactive_access` establish eligibility
-only; they are not disclosure authority. An operator-secret projection exposes
-classification/reference presence only, never the reference ID or value.
+A participant-visible fixture requires an explicit governed view rule.
+The rule names the exact canonical account address and `credential_id`.
+The fixture also requires a disclosed visibility and disclosure decision and an authorized participant audience binding.
+Existing marking, transformation, crossing-policy, audit, and provenance evidence remain required.
+`starting_accounts` and `interactive_access` establish eligibility only.
+They are not disclosure authority.
+
+An operator-secret projection exposes classification/reference presence only.
+It never exposes the reference ID or value.
 
 ## 7. Non-goals
 

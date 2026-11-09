@@ -133,6 +133,35 @@ def test_changed_prose_check_preserves_literal_content(prose_check) -> None:
 
 
 @pytest.mark.integration
+@pytest.mark.parametrize(
+    ("path", "excepted"),
+    [
+        ("specs/formal/participant-runtime/README.md", True),
+        ("specs/formal/participant-runtime/unlisted.md", False),
+        ("docs/public/guide.md", False),
+    ],
+)
+def test_reference_metric_exception_keeps_unlisted_paths_checked(prose_check, path: str, excepted: bool) -> None:
+    text = (
+        "# Read the relation\n\nNoninterference constrains declassification.\n"
+        "Reconstruction requires provenance. Instantiation checks declarations.\n"
+        "Observation preserves participant identity.\n"
+    )
+    result = prose_check.run(path, text, posargs=[path])
+    assert (result.returncode == 0) is excepted, result.stdout + result.stderr
+    assert ("RAES.ReadingLevel" not in result.stdout) is excepted, result.stdout + result.stderr
+
+
+@pytest.mark.integration
+def test_reference_metric_exception_keeps_other_prose_rules(prose_check) -> None:
+    path = "specs/formal/participant-runtime/README.md"
+    result = prose_check.run(path, "# Read the relation\n\nUtilize the the tool.\n", posargs=[path])
+    assert result.returncode != 0
+    assert "RAES.PlainWords" in result.stdout, result.stdout + result.stderr
+    assert "Vale.Repetition" in result.stdout, result.stdout + result.stderr
+
+
+@pytest.mark.integration
 def test_changed_prose_check_leaves_build_and_hooks_unchanged(prose_check) -> None:
     result = prose_check.run("implementations/data.json", "{}\n")
     assert result.returncode == 0, result.stdout + result.stderr

@@ -53,6 +53,9 @@ A valid SDL document can exceed the selected backend's capabilities.
 A manifest claim does not prove that the declared code is installed.
 Start with the [backend-manifest schemas](https://github.com/OpenRAE/rae/tree/v11.0.2/contracts/schemas/backend-manifest)
 and [conformance API reference](api/contracts.rst).
+The [runtime contract reference](https://github.com/OpenRAE/rae/blob/v11.0.2/specs/formal/runtime-contracts/README.md)
+gives exact portable result and capability rules for that release.
+Read its implementation evidence before treating a schema as proof of native support.
 
 `run_target_conformance(target)` exercises the surface of an explicitly supplied runtime target.
 It can invoke target effects. Obtain resource permissions and a verified cleanup procedure before calling it.

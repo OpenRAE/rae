@@ -4,6 +4,7 @@ This specification defines DSL-437 execution as a composition of existing
 participant semantics and the shared time model. It introduces no background
 actor, inject, or private clock.
 
+<!-- vale RAES.HeadingCase = NO -->
 ## ACT-605 baseline behavior profile coverage
 
 ACT-605's declarative baseline and background behavior profiles are the
@@ -12,6 +13,8 @@ automation, and ambient scenario activity reuse the same participant, action,
 observation, shared-time, native-execution, and evidence invariants. ACT-605
 adds no separate profile root or actor kind and changes none of the v1, v2, or
 v3 policy semantics.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ## V1 authored policy
 
@@ -101,6 +104,7 @@ V1 and v2 limits compile into the same canonical demand representation with
 `legacy_maximum` provenance. They do not acquire v3 capacity, fairness,
 isolation, or runtime-accounting requirements.
 
+<!-- vale RAES.HeadingCase = NO -->
 ## Bounded action guarantees (ACT-614)
 
 An action temporal contract opts into `participant-shared-time/v1` through
@@ -109,6 +113,8 @@ cadence, waiting and cooldown never imply a deadline or continuous dwell.
 The binding selects a declared clock and a constraint naming that action.
 The selected event must appear in the action's declared event points. An
 autonomous policy and its bound actions use the same shared clock.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 - A deadline selects `start`, `end` (completion), `observed`, or `effective`.
   The selected event coordinate must be at or before the inclusive deadline.

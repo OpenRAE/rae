@@ -1,6 +1,6 @@
-# Workflow State Machine
+# Workflow state machine
 
-## State Variables
+## State variables
 
 - `current`: the active control location or locations
 - `steps[step].lifecycle`: `pending | running | completed`
@@ -12,7 +12,7 @@ The portable workflow result contract exposes only workflow-visible step state
 through a wire-safe plain-data envelope. Language-native runtime models may be
 derived from that envelope after validation.
 
-## Step Kinds
+## Step kinds
 
 - `objective`
   - observable outcomes: `succeeded`, `failed`
@@ -30,7 +30,7 @@ derived from that envelope after validation.
 - `end`
   - not step-state observable
 
-## Transition Rules
+## Transition rules
 
 - `objective`
   - `pending -> running -> completed`
@@ -49,14 +49,14 @@ derived from that envelope after validation.
 - `end`
   - terminates control flow
 
-## Join Semantics
+## Join semantics
 
 - each `join` has exactly one owning `parallel`
 - the owning parallel defines the legal branch roots
 - only nodes in the owning parallel's branch closure may directly enter the join
 - every explicit branch path must converge on the join
 
-## Predicate Visibility
+## Predicate visibility
 
 - step-state predicates may target only observable step kinds
 - a predicate may reference only step state guaranteed to be known on every path before that predicate executes
@@ -64,11 +64,11 @@ derived from that envelope after validation.
   - the owning `parallel`
   - branch-local step state guaranteed on every path within each branch before the join
 
-## Implementation Mapping
+## Implementation mapping
 
-- semantic contract definitions: `implementations/python/packages/raes_processor/semantics/workflow.py`
+- semantic contract definitions: `implementations/python/packages/raes_contracts/workflow/semantics.py`
 - validation and visibility checks: `implementations/python/packages/raes/validator/`
 - compiled step contracts: `implementations/python/packages/raes_processor/compiler/`
 - typed runtime envelopes and result validation:
   - `implementations/python/packages/raes_processor/models/`
-  - `implementations/python/packages/raes_processor/manager.py`
+  - `implementations/python/packages/raes_runtime/manager.py`

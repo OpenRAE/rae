@@ -1,4 +1,5 @@
-# Catalog 5 - Observability and Evidence Planes
+<!-- vale RAES.HeadingCase = NO -->
+# Catalog 5 - observability and evidence planes
 
 This catalog states SDL authoring rules for ADR-066. The implemented
 `evidence_requirements` top-level section carries authored capture intent;
@@ -7,6 +8,8 @@ runtime families. A future field still has to update `sections.md`,
 `references.md`, the published SDL schemas, the reference implementation,
 fixtures, and tests.
 
+<!-- vale RAES.HeadingCase = YES -->
+
 [`augmentation_scope`](augmentation-scope.md) separately controls permission
 for in-world additions needed by capture or other apparatus. **Omission means
 open.** Authors must explicitly forbid additions: a closed default would impose
@@ -14,7 +17,7 @@ a large, unexpected burden by requiring them to anticipate every backend's
 implementation details. Closed scope cannot be bypassed by silently installing
 instrumentation or omitting required evidence while claiming success.
 
-## Plane Rule
+## Plane rule
 
 An SDL authoring construct that makes an observability or evidence claim MUST
 have a primary plane:
@@ -28,13 +31,11 @@ have a primary plane:
 The carrier decides the plane. A string such as `log`, `trace`, `telemetry`,
 `observation`, or `evidence` does not decide meaning on its own.
 
-## Scenario-Native Observability
+## Scenario-native observability
 
-A scenario-native observability system is an in-world resource. It may be a
-runtime service, sensor, detection engine, monitoring manager, telemetry
-collector, tracing backend, metrics store, dashboard, forwarding agent, or
-comparable scenario element when the scenario makes that system part of the
-environment.
+A scenario-native observability system is an in-world resource. It may be a runtime service, sensor, detection engine, monitoring manager, telemetry collector, tracing backend, metrics store, dashboard, or forwarding agent.
+It may also be a comparable scenario element.
+In each case, the scenario makes that system part of the environment.
 
 Scenario-native observability systems:
 
@@ -52,7 +53,7 @@ A new runtime family is appropriate only when the observability system has a
 distinct product-neutral logical service identity, collection name, primary id,
 child-ref tree, owning ADR, schema, validation, and tests.
 
-## Authored Evidence Requirements
+## Authored evidence requirements
 
 An authored evidence requirement says what data, evidence, or output must be
 captured. It is an authoring obligation, not proof of capture.
@@ -185,7 +186,7 @@ Environment-visible or comparability-relevant apparatus additionally maps to
 the existing run-level augmentation disclosure. Neither ownership role nor a
 configured ship target proves delivery or captured evidence.
 
-## Processor/Backend Operational Observability
+## Processor/Backend operational observability
 
 Processor/backend operational observability includes apparatus logs,
 diagnostics, audit records, health checks, traces, setup evidence, measurement
@@ -202,31 +203,34 @@ SDL authoring MUST NOT depend on backend-private object ids, raw trace payloads,
 operator secrets, process argv, environment dumps, full stack traces, or
 diagnostic text as portable evidence or participant-visible state.
 
-## Captured Evidence And Derived Analysis
+## Captured evidence and derived analysis
 
 Captured evidence belongs to evidence records or artifact references. Derived
 analysis belongs to derived measures, result summaries, outcome
 interpretations, studies, reports, exports, or claims.
 
-SDL authoring MAY name the requirement or source that later evidence must
-satisfy, but it MUST NOT treat a captured artifact, backend log, result
-summary, metric value, or analysis output as the authored requirement itself.
+SDL authoring MAY name the requirement or source that later evidence must satisfy.
+It MUST NOT treat a captured artifact, backend log, result summary, metric value, or analysis output as the authored requirement itself.
 
 Derived analysis MUST cite source evidence before it supports a claim. Hidden
 truth, hidden answer keys, evaluator state, private traces, prompts, secrets,
 and adjudication assets MUST NOT become participant-visible or public analysis
 content without an explicit marking, redaction, and authorization boundary.
 
-## Required-Capture Admission
+## Required-capture admission
 
-Every explicit SDL or experiment capture demand is conjunctive. Before any
-effect, the selected backend must provide one coherent versioned capture offer
-that covers the demand's output contract and fields together with its artifact,
-media, capture, source, scope, exact authored scope refs, channel, window,
-integrity, sensitivity, loss/redaction, the exact redaction-policy identity,
-retention, and export terms. Scope-ref offers name concrete targets; wildcard
-scope refs are not admission authority. Support must not be synthesized by
-combining legacy capability lists or independent offers.
+Every explicit SDL or experiment capture demand is conjunctive.
+Before any effect, the selected backend must provide one coherent versioned capture offer.
+That offer must cover the demand's output contract and fields together with all of these terms:
+
+- Artifact, media, capture, source, and scope.
+- Exact authored scope refs, channel, and window.
+- Integrity, sensitivity, and loss/redaction.
+- Exact redaction-policy identity, retention, and export.
+
+Scope-ref offers name concrete targets.
+Wildcard scope refs are not admission authority.
+Support must not be synthesized from legacy capability lists or independent offers.
 
 Scientific evidence admission MUST also require an implemented response verifier for the requested integrity mode.
 The current shared content proof supports `checksum` and `sha256-digest`.
@@ -249,16 +253,15 @@ An SDL requirement that names `capture_spec_ref` and
 capture-spec payload is available for resolution; a matching backend offer
 cannot substitute for the referenced governed requirement.
 
-After a run, a satisfaction claim is valid only when the task requirement
-resolves through the admitted capture specification and evidence record to one
-emitted artifact whose supplied bytes, digest, media/role, integrity mode, and
-required fields validate through both the published schema and the owning
-semantic model. Evidence-based study conditions consume only those validated
-bindings, never run reference metadata. The record timestamp must also fall
-inside the resolved capture window (and the run bounds for run/task windows). A redacted
-record must bind the exact governed policy and fails closed unless a content
-verifier for that policy is available. Artifact `satisfies_refs`, URIs, summaries, and
-backend assertions are not content proof.
+After a run, satisfaction requires a task requirement that resolves through the admitted capture specification and evidence record to one emitted artifact.
+Its supplied bytes, digest, media/role, integrity mode, and required fields must validate through the published schema and owning semantic model.
+Evidence-based study conditions consume only those validated bindings, never run reference metadata.
+
+The record timestamp must fall inside the resolved capture window.
+For run/task windows, it must also fall inside the run bounds.
+A redacted record must bind the exact governed policy.
+It fails closed unless a content verifier for that policy is available.
+Artifact `satisfies_refs`, URIs, summaries, and backend assertions are not content proof.
 
 ## Augmentation
 
@@ -292,7 +295,7 @@ run-traced evidence refs. SDL authoring that depends on augmentation output
 must map to that run-provenance carrier rather than relying on backend logs,
 free-form metadata, evaluator internals, or untyped diagnostic text.
 
-## Reference And Validation Requirements
+## Reference and validation requirements
 
 Future SDL fields for this catalog must satisfy the existing SDL gates:
 
@@ -305,7 +308,7 @@ Future SDL fields for this catalog must satisfy the existing SDL gates:
 - published schema parity with the reference implementation; and
 - ADR-056/057 redaction for observed values and secret-bearing facts.
 
-## Extension Rule
+## Extension rule
 
 To add a scenario-native observability or authored evidence-requirement
 surface, update the canonical catalogs instead of adding parallel prose:

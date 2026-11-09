@@ -1,23 +1,20 @@
-# Classification-Based Assurance Fulfillment Map (ASR-505, review FM-1, issue #485)
+# Classification-based assurance fulfillment (ASR-505, issue #485, review FM-1)
 #
-# Companion to specs/formal/assurance-policy.yaml. The policy file defines the
-# FM0-FM3 ladder and the required artifact kinds per level (its self-description).
-# This file records, per classified formal-spec subsystem under specs/formal/,
-# whether each required artifact kind for that subsystem's FM level is actually
-# DELIVERED (a concrete, non-empty repo path) or explicitly WAIVED (an ISO date
-# plus at least one tracking reference). It makes ADR-018's "the policy cannot rot
-# silently" claim true for fulfillment, not just description: a subsystem can no
-# longer be classified FM3 forever with no artifacts and a green CI.
+# specs/formal/assurance-policy.yaml defines the FM0-FM3 levels and artifacts.
+# This companion reference records fulfillment for each classified subsystem.
+# DELIVERED means a concrete, non-empty repository path.
+# WAIVED means an ISO date and at least one tracking reference.
+# A waiver is not delivered evidence.
 #
-# Required reading:
-#   docs/decisions/adrs/adr-007-lightweight-formal-methods-policy.md  -- policy
-#   docs/decisions/adrs/adr-018-classification-based-assurance-policy.md  -- seam
-#   specs/formal/assurance-policy.yaml  -- the FM ladder and required artifacts
+# Read these sources:
+#   docs/decisions/adrs/adr-007-lightweight-formal-methods-policy.md
+#   docs/decisions/adrs/adr-018-classification-based-assurance-policy.md
+#   specs/formal/assurance-policy.yaml
 #
-# Gated by tools/check_assurance_policy.py (nox -s policy / verify). Required
-# artifact kinds are DERIVED from assurance-policy.yaml by FM level -- do not
-# duplicate them here. Distinct from docs/explain/reference/fm-classification-
-# ledger.yaml, which is the per-change ADR classification record.
+# tools/check_assurance_policy.py derives required artifacts from the policy.
+# Do not duplicate those requirements here.
+# docs/explain/reference/fm-classification-ledger.yaml separately records
+# the ADR classification for each change.
 
 fulfillment: classification-based-assurance-fulfillment
 
