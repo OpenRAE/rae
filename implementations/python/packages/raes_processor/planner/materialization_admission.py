@@ -30,6 +30,7 @@ from raes_contracts.materialization import (
     MaterializationSubmission,
 )
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, PlannedResource, ProvisioningPlan, RuntimeDomain
+from raes_contracts.account_credentials import value_free_account_placement_payload
 from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
 
 from ..compiler import compile_runtime_model, validate_materialization_origins
@@ -168,9 +169,17 @@ def _validate_current_scope(
     expected = _resources_for_domain(resources, domain)
     observed = actual.for_domain(domain)
     if expected.keys() != observed.keys() or any(
-        not _materialized_entry_matches(observed[address], resource) for address, resource in expected.items()
+        not _materialized_entry_matches(observed[address], _value_free_resource(resource))
+        for address, resource in expected.items()
     ):
         raise InvalidInputError("materialization inventory does not match the complete returned scope")
+
+
+def _value_free_resource(resource: PlannedResource) -> PlannedResource:
+    """Describe account material value-free, as the runtime stores it."""
+    if resource.resource_type != "account-placement":
+        return resource
+    return replace(resource, payload=value_free_account_placement_payload(resource.payload))
 
 
 def _resources_for_domain(resources: dict[str, PlannedResource], domain: RuntimeDomain) -> dict[str, PlannedResource]:
