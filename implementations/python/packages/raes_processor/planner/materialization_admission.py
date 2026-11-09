@@ -14,6 +14,7 @@ from raes import (
 from raes.materialization_provenance import MaterializedResourceBinding
 from raes.scenario import InstantiatedScenario
 from raes_backend_protocols.manifest import BackendManifest, backend_manifest_v2_model
+from raes_contracts.account_credentials import value_free_account_placement_payload
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.materialization_attestation import (
     MaterializationArchiveRecord,
@@ -30,7 +31,6 @@ from raes_contracts.materialization import (
     MaterializationSubmission,
 )
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, PlannedResource, ProvisioningPlan, RuntimeDomain
-from raes_contracts.account_credentials import value_free_account_placement_payload
 from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
 
 from ..compiler import compile_runtime_model, validate_materialization_origins
