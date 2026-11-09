@@ -113,3 +113,24 @@ def test_runtime_artifact_evidence_is_not_compared_with_the_described_sdl():
         admit_materialization_submission(
             result.materialization_attestation, request, execution.manifest, previous, actual
         )
+
+
+def test_runtime_artifact_evidence_is_ignored_in_every_compared_scope():
+    from raes_contracts.planning import PlannedResource, RuntimeDomain
+    from raes_contracts.runtime_state import SnapshotEntry
+    from raes_processor.planner.materialization_admission import _materialized_entry_matches
+
+    payload = {"name": "rules", "spec": {"target": "host", "path": "/etc/rules"}}
+    resource = PlannedResource(
+        address="provision.content.rules",
+        domain=RuntimeDomain.PROVISIONING,
+        resource_type="content-placement",
+        payload=payload,
+    )
+    entry = SnapshotEntry(
+        address=resource.address,
+        domain=RuntimeDomain.PROVISIONING,
+        resource_type="content-placement",
+        payload={**payload, "artifact_satisfaction": {"requirement_id": "runtime-owned"}},
+    )
+    assert _materialized_entry_matches(entry, resource)
