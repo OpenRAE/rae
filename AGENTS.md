@@ -27,8 +27,13 @@ For documentation, use the existing
 It gives the clean setup, changed-path checks, Diataxis purposes, and STE review.
 Compare each claim with code at the specified revision. Keep technical meaning,
 normative obligations, legal text, and pinned evidence. Record sources and results
-in the PR. Vale checks style. It does not show accuracy or full STE conformance.
-Use the checked-in tools and guidance when a licensed skill is unavailable.
+in the PR.
+
+Vale checks style. It does not show accuracy or full STE conformance.
+
+Use the pinned `OpenRAE/doc-tools` documentation skill and the existing local
+guide. The guide gives its release source and normal agent installation routes.
+Checks need no personal skill installation.
 Do not copy a personal skill or add a custom tool without approval.
 
 - Use `.codex-skills/raes-asset-inventory-capture/SKILL.md` from Codex. This

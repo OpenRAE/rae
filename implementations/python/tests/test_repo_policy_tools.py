@@ -1150,6 +1150,8 @@ def test_docs_graph_uses_curated_root_and_reader_style_gate(
     fake_vale = tmp_path / "vale"
     fake_vale.write_text("", encoding="utf-8")
     monkeypatch.setattr(nox_test_lanes, "ensure_vale", lambda _repo_root: fake_vale)
+    monkeypatch.setattr(nox_test_lanes, "ensure_doc_tools", lambda _repo_root: tmp_path / "doc-tools")
+    monkeypatch.setattr(nox_test_lanes, "sync_doc_tools_styles", lambda *_args: None)
     monkeypatch.setattr(nox_test_lanes, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(nox_test_lanes, "PROJECT_ROOT", tmp_path / "implementations" / "python")
     public_root = tmp_path / "docs" / "public"
@@ -1207,6 +1209,8 @@ def test_local_docs_graph_excludes_external_link_check(
     fake_vale = tmp_path / "vale"
     fake_vale.write_text("", encoding="utf-8")
     monkeypatch.setattr(nox_test_lanes, "ensure_vale", lambda _repo_root: fake_vale)
+    monkeypatch.setattr(nox_test_lanes, "ensure_doc_tools", lambda _repo_root: tmp_path / "doc-tools")
+    monkeypatch.setattr(nox_test_lanes, "sync_doc_tools_styles", lambda *_args: None)
     monkeypatch.setattr(nox_test_lanes, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(nox_test_lanes, "PROJECT_ROOT", tmp_path / "implementations" / "python")
     monkeypatch.setattr(nox_test_lanes, "PUBLIC_DOCS_ROOT", tmp_path / "docs" / "public")
