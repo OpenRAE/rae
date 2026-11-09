@@ -106,8 +106,8 @@ reusable `.github/workflows/canonical-verification.yml`. That reusable graph is
 the single exact-SHA full gate for pull requests, protected branches, and
 release verification.
 
-The reusable graph splits the default-marker tests across four deterministic shards.
-The `test-shard` indices are 0–3. Each shard owns a SHA-256
+The reusable graph splits the default-marker tests across eight deterministic shards.
+The `test-shard` indices are 0–7. Each shard owns a SHA-256
 partition of the collected pytest node ids (`tools/pytest_shard.py`); there is no
 per-module shard table. Alongside the shards, the `integration`, `checks`
 (hygiene, policy, lint, contracts, docs), and `proof` jobs run in parallel.
