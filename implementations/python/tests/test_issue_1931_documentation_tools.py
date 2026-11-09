@@ -20,16 +20,35 @@ ROOT = Path(__file__).resolve().parents[3]
 
 @pytest.fixture
 def prose_check(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    from tools.vale_tool import ensure_vale
-
     monkeypatch.setitem(sys.modules, "nox", SimpleNamespace(Session=object))
     for name in ("tools.nox_support.runner", "tools.nox_support.test_lanes"):
         monkeypatch.setitem(sys.modules, name, None)
         monkeypatch.delitem(sys.modules, name)
     lanes = importlib.import_module("tools.nox_support.test_lanes")
-    binary = ensure_vale(ROOT)
+    installed = json.loads(
+        subprocess.check_output(
+            [
+                "uv",
+                "run",
+                "--project",
+                str(ROOT / "implementations/tooling/python"),
+                "--frozen",
+                "--no-default-groups",
+                "python",
+                "-c",
+                "import json; from tools.vale_tool import ensure_vale; "
+                "from tools.documentation_tools import ensure_doc_tools, ensure_ste; "
+                "print(json.dumps([str(ensure_vale()), str(ensure_doc_tools()), str(ensure_ste())]))",
+            ],
+            cwd=ROOT,
+            text=True,
+        )
+    )
+    binary, package, ste = map(Path, installed)
     monkeypatch.setattr(lanes, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(lanes, "ensure_vale", lambda _root: binary)
+    monkeypatch.setattr(lanes, "ensure_doc_tools", lambda _root: package)
+    monkeypatch.setattr(lanes, "ensure_ste", lambda _root: ste)
     shutil.copy(ROOT / ".vale.ini", tmp_path)
     shutil.copytree(ROOT / "styles", tmp_path / "styles")
     for catalog in ("docs/decisions/adrs/adr-index.yaml", "tools/policy/historical_identity_records.json"):
@@ -112,7 +131,7 @@ def test_changed_prose_check_catches_and_clears_style_violations(prose_check, pa
     heading = "Check a file\n============\n" if path.endswith(".rst") else "# Check a file\n"
     bad = prose_check.run(path, heading + "\nUtilize the tool to check a file.\n")
     assert bad.returncode != 0, bad.stdout + bad.stderr
-    assert "RAES.PlainWords" in bad.stdout, bad.stdout + bad.stderr
+    assert "DocTools.PlainWords" in bad.stdout, bad.stdout + bad.stderr
     good = prose_check.run(path, heading + "\nUse the tool to check a file.\n")
     assert good.returncode == 0, good.stdout + good.stderr
 
@@ -129,6 +148,58 @@ def test_changed_prose_check_preserves_literal_content(prose_check) -> None:
     result = prose_check.run(
         "docs/explain/task.md", "# Check a file\n\nCheck the file.\n\n```text\nSimply utilize this tool.\n```\n"
     )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    "bad_text, rule",
+    [
+        ("Don't change the file.\n", "STE-4.2"),
+        ("This sentence has " + "one more " * 13 + "word.\n", "STE-5.1"),
+        ("Read the file. " * 7 + "\n", "STE-6.6"),
+    ],
+)
+def test_shared_ste_rules_fail_and_corrected_markdown_passes(prose_check, bad_text: str, rule: str) -> None:
+    bad = prose_check.run("docs/task.md", "# Check a file\n\n" + bad_text)
+    assert bad.returncode != 0, bad.stdout + bad.stderr
+    assert rule in bad.stdout, bad.stdout + bad.stderr
+    good = prose_check.run("docs/task.md", "# Check a file\n\nDo not change the file.\n")
+    assert good.returncode == 0, good.stdout + good.stderr
+
+
+@pytest.mark.integration
+def test_shared_checks_keep_literal_bytes_and_ignore_consumer_ste_config(prose_check) -> None:
+    text = "# Check a file\n\nKeep `don't change this` as output.\n\n```text\nDon't change this output.\n```\n"
+    result = prose_check.run("docs/task.md", text)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert (prose_check.root / "docs/task.md").read_bytes() == text.encode()
+    (prose_check.root / ".ste.yml").write_text("rules:\n  STE-4.2: off\n")
+    result = prose_check.run("docs/task.md", "# Check a file\n\nDon't change the file.\n")
+    assert result.returncode != 0
+    assert "STE-4.2" in result.stdout
+
+
+@pytest.mark.integration
+def test_restructuredtext_keeps_vale_without_ste(prose_check) -> None:
+    text = "Check a file\n============\n\nDo not change the file.\n"
+    result = prose_check.run("docs/task.rst", text)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert len(prose_check.state["calls"]) == 1
+    assert "vale" in Path(prose_check.state["calls"][0][0]).name
+
+
+@pytest.mark.integration
+def test_restructuredtext_keeps_local_sentence_length_check(prose_check) -> None:
+    text = "Check a file\n============\n\nThis file has " + "one more " * 18 + "word.\n"
+    result = prose_check.run("docs/task.rst", text)
+    assert result.returncode != 0, result.stdout + result.stderr
+    assert "RAES.SentenceLength" in result.stdout
+
+
+@pytest.mark.integration
+def test_cloud_termination_term_keeps_its_meaning(prose_check) -> None:
+    result = prose_check.run("docs/task.md", "# Stop an instance\n\nTerminate the cloud instance.\n")
     assert result.returncode == 0, result.stdout + result.stderr
 
 
@@ -157,7 +228,7 @@ def test_reference_metric_exception_keeps_other_prose_rules(prose_check) -> None
     path = "specs/formal/participant-runtime/README.md"
     result = prose_check.run(path, "# Read the relation\n\nUtilize the the tool.\n", posargs=[path])
     assert result.returncode != 0
-    assert "RAES.PlainWords" in result.stdout, result.stdout + result.stderr
+    assert "DocTools.PlainWords" in result.stdout, result.stdout + result.stderr
     assert "Vale.Repetition" in result.stdout, result.stdout + result.stderr
 
 
@@ -209,7 +280,7 @@ def test_changed_prose_check_rejects_malformed_protection_catalog(prose_check, c
 def test_changed_prose_check_accepts_explicit_paths(prose_check) -> None:
     result = prose_check.run("docs/task.md", "# Check a file\n\nUtilize the tool.\n", posargs=["docs/task.md"])
     assert result.returncode != 0
-    assert "RAES.PlainWords" in result.stdout
+    assert "DocTools.PlainWords" in result.stdout
 
 
 @pytest.mark.integration
@@ -244,7 +315,7 @@ def test_changed_prose_check_selects_staged_working_and_untracked(prose_check, p
         "docs/task.md", "# Check a file\n\nUtilize the tool.\n", posargs=posargs, commit=False, stage=stage
     )
     assert result.returncode != 0
-    assert "RAES.PlainWords" in result.stdout
+    assert "DocTools.PlainWords" in result.stdout
 
 
 @pytest.mark.integration
@@ -255,7 +326,7 @@ def test_changed_prose_check_lints_rename_destination(prose_check) -> None:
     prose_check.git("commit", "-qm", "Rename fixture")
     result = prose_check.check(["--base-rev", before])
     assert result.returncode != 0
-    assert "RAES.PlainWords" in result.stdout
+    assert "DocTools.PlainWords" in result.stdout
     assert "new.md" in result.stdout
 
 
@@ -285,7 +356,7 @@ def test_changed_prose_check_does_not_exempt_operational_bindings(prose_check) -
     catalog.write_text(json.dumps(data))
     result = prose_check.run("docs/current.md", "# Check a file\n\nUtilize the tool.\n")
     assert result.returncode != 0
-    assert "RAES.PlainWords" in result.stdout
+    assert "DocTools.PlainWords" in result.stdout
 
 
 @pytest.mark.integration
@@ -364,7 +435,7 @@ def test_changed_prose_check_reports_a_frozen_adr_for_review(prose_check, status
 def test_changed_prose_check_lints_a_proposed_adr(prose_check) -> None:
     result = prose_check.run("docs/decisions/adrs/adr-900-fixture.md", _adr_text("proposed"))
     assert result.returncode != 0
-    assert "RAES.PlainWords" in result.stdout
+    assert "DocTools.PlainWords" in result.stdout
 
 
 @pytest.mark.integration
