@@ -168,9 +168,17 @@ def _validate_current_scope(
     expected = _resources_for_domain(resources, domain)
     observed = actual.for_domain(domain)
     if expected.keys() != observed.keys() or any(
-        not _materialized_entry_matches(observed[address], resource) for address, resource in expected.items()
+        not _materialized_entry_matches(_without_runtime_evidence(observed[address]), resource)
+        for address, resource in expected.items()
     ):
         raise InvalidInputError("materialization inventory does not match the complete returned scope")
+
+
+def _without_runtime_evidence(entry: SnapshotEntry) -> SnapshotEntry:
+    """Leave out runtime-owned artifact evidence; the described SDL cannot contain it."""
+    if "artifact_satisfaction" not in entry.payload:
+        return entry
+    return replace(entry, payload={key: value for key, value in entry.payload.items() if key != "artifact_satisfaction"})
 
 
 def _resources_for_domain(resources: dict[str, PlannedResource], domain: RuntimeDomain) -> dict[str, PlannedResource]:

@@ -96,3 +96,20 @@ def test_later_phase_checks_retained_safe_inventory_without_revealing_values(pha
     else:
         admitted = admit_materialization_submission(report, request, execution.manifest, previous, previous)
         assert "value_commitment" not in admitted.sdl
+
+
+def test_runtime_artifact_evidence_is_not_compared_with_the_described_sdl():
+    execution, _ = attesting_plan("name: augmented\nrealization: {default: open}\nnodes:\n  host: {type: compute}")
+    request = replace(execution.provisioning, operation_id="reported-operation")
+    previous = RuntimeSnapshot()
+    result = ReportingProvisioner(execution.manifest, lambda document: None, realize=True).apply(request, previous)
+    entry = result.snapshot.entries["provision.node.host"]
+    evidence = {**entry.payload, "artifact_satisfaction": {"requirement_id": "runtime-owned"}}
+    actual = result.snapshot.with_entries({entry.address: replace(entry, payload=evidence)})
+    admit_materialization_submission(result.materialization_attestation, request, execution.manifest, previous, actual)
+    other = {**entry.payload, "unexpected": True}
+    actual = result.snapshot.with_entries({entry.address: replace(entry, payload=other)})
+    with pytest.raises(InvalidInputError):
+        admit_materialization_submission(
+            result.materialization_attestation, request, execution.manifest, previous, actual
+        )
