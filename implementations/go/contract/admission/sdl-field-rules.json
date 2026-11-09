@@ -25,6 +25,10 @@
     "grantee_role_ref": "nonblank",
     "object_ref": "nonblank"
   },
+  "DatabaseListener": {
+    "address": "database-listen-address",
+    "port": "nullable-integer:1:65535"
+  },
   "DatabaseRole": {
     "name": "nonblank",
     "role_id": "portable"
@@ -43,11 +47,31 @@
   "DeploymentCell": {
     "node_refs": "unique-nonblank"
   },
+  "DnsForwarder": {
+    "port": "integer:1:65535"
+  },
+  "DnsMxRdata": {
+    "preference": "integer:0:65535"
+  },
   "DnsResourceRecordSet": {
-    "rrset_id": "portable"
+    "rrset_id": "portable",
+    "ttl": "nullable-integer:0:4294967295",
+    "type_code": "nullable-integer:0:65535"
   },
   "DnsRuntimeSetting": {
     "name": "nonblank"
+  },
+  "DnsSoaRdata": {
+    "expire": "integer:0:4294967295",
+    "minimum": "integer:0:4294967295",
+    "refresh": "integer:0:4294967295",
+    "retry": "integer:0:4294967295",
+    "serial": "integer:0:4294967295"
+  },
+  "DnsSrvRdata": {
+    "port": "integer:1:65535",
+    "priority": "integer:0:65535",
+    "weight": "integer:0:65535"
   },
   "DnsZone": {
     "zone_id": "portable"
@@ -72,6 +96,9 @@
   "ImageCopiedSource": {
     "destination_path": "absolute-path",
     "source_path": "nonblank"
+  },
+  "ImageLayer": {
+    "size": "nullable-integer:0:"
   },
   "ImageSourceInput": {
     "destination_path": "optional-absolute-path",
@@ -346,6 +373,9 @@
   "RuntimeAppAuthorizationTenant": {
     "tenant_id": "portable"
   },
+  "RuntimeApplicationDisclosure": {
+    "status_code": "nullable-integer:100:599"
+  },
   "RuntimeApplicationExposedField": {
     "name": "nonblank"
   },
@@ -353,7 +383,11 @@
     "name": "nonblank"
   },
   "RuntimeApplicationRedirect": {
+    "status_code": "nullable-integer:300:399",
     "target": "nonblank"
+  },
+  "RuntimeApplicationResponse": {
+    "status_code": "integer:100:599"
   },
   "RuntimeApplicationRoute": {
     "route_id": "portable"
@@ -366,29 +400,55 @@
     "name": "nonblank",
     "unit": "nonblank"
   },
+  "RuntimeContainerConfiguration": {
+    "shm_size": "nullable-integer:1:"
+  },
   "RuntimeControlInterface": {
-    "control_interface_id": "portable"
+    "bind_source": "optional-control-path",
+    "control_interface_id": "portable",
+    "path": "control-path"
   },
   "RuntimeDatabaseService": {
     "database_service_id": "portable"
   },
   "RuntimeDatastoreCluster": {
-    "cluster_id": "portable"
+    "cluster_id": "portable",
+    "doc_count": "nullable-integer:0:",
+    "node_count": "nullable-integer:0:",
+    "shard_primaries": "nullable-integer:0:",
+    "shard_total": "nullable-integer:0:",
+    "store_size_bytes": "nullable-integer:0:"
   },
   "RuntimeDatastoreEnginePlugin": {
+    "name": "optional-nonblank",
     "plugin_id": "portable"
   },
   "RuntimeDatastoreMapping": {
-    "mapping_id": "portable"
+    "dynamic_template_count": "nullable-integer:0:",
+    "field_type_census": "map-integer:0:",
+    "leaf_field_count": "nullable-integer:0:",
+    "mapping_id": "portable",
+    "top_level_field_count": "nullable-integer:0:"
   },
   "RuntimeDatastoreNode": {
+    "heap_init_bytes": "nullable-integer:1:",
+    "heap_max_bytes": "nullable-integer:1:",
     "node_id": "portable"
   },
   "RuntimeDatastoreNodeEndpoint": {
-    "endpoint_id": "portable"
+    "endpoint_id": "portable",
+    "port": "nullable-integer:1:65535"
   },
   "RuntimeDatastorePartition": {
-    "partition_id": "portable"
+    "datatype_census": "map-integer:0:",
+    "doc_count": "nullable-integer:0:",
+    "doc_count_deleted": "nullable-integer:0:",
+    "partition_id": "portable",
+    "per_dc_factor_map": "map-integer:0:",
+    "replica_count": "nullable-integer:0:",
+    "replication_factor": "nullable-integer:0:",
+    "shard_count": "nullable-integer:0:",
+    "store_size_bytes": "nullable-integer:0:"
   },
   "RuntimeDatastorePersistence": {
     "persistence_id": "portable"
@@ -397,6 +457,7 @@
     "datastore_service_id": "portable"
   },
   "RuntimeDatastoreSetting": {
+    "name": "optional-nonblank",
     "setting_id": "portable"
   },
   "RuntimeDatastoreTemplate": {
@@ -440,17 +501,24 @@
     "principal_id": "portable"
   },
   "RuntimeFileServiceShare": {
+    "backing_path": "optional-absolute-path",
     "name": "nonblank",
     "share_id": "portable"
   },
   "RuntimeFilesystemEntry": {
-    "path": "absolute-path"
+    "gid": "nullable-integer:0:",
+    "path": "absolute-path",
+    "size": "nullable-integer:0:",
+    "uid": "nullable-integer:0:"
   },
   "RuntimeForwardingAgent": {
     "forwarding_agent_id": "qualified"
   },
   "RuntimeForwardingBufferPolicy": {
-    "buffer_policy_id": "portable"
+    "buffer_policy_id": "portable",
+    "eps": "nullable-integer:0:",
+    "queue_capacity": "nullable-integer:0:",
+    "reconnect_seconds": "nullable-integer:0:"
   },
   "RuntimeForwardingReloadChannel": {
     "reload_channel_id": "portable"
@@ -459,6 +527,8 @@
     "setting_id": "portable"
   },
   "RuntimeForwardingShipTarget": {
+    "enrollment_port": "nullable-integer:0:65535",
+    "ingestion_port": "nullable-integer:0:65535",
     "target_id": "portable"
   },
   "RuntimeForwardingSource": {
@@ -483,6 +553,7 @@
     "identity_authority_id": "portable"
   },
   "RuntimeIdentityAuthorityService": {
+    "port": "nullable-integer:1:65535",
     "service_id": "portable"
   },
   "RuntimeIdentityPermissionBinding": {
@@ -520,18 +591,25 @@
     "use_id": "portable",
     "workload_ref": "nonblank"
   },
+  "RuntimeInitProcess": {
+    "executable_path": "optional-absolute-path"
+  },
   "RuntimeInventoryAlternative": {
     "references": "list-qualified"
   },
   "RuntimeLocalGroup": {
+    "gid": "nullable-integer:0:",
     "name": "nonblank"
   },
   "RuntimeLocalUser": {
     "home": "optional-absolute-path",
+    "primary_gid": "nullable-integer:0:",
     "shell": "optional-absolute-path",
+    "uid": "nullable-integer:0:",
     "username": "nonblank"
   },
   "RuntimeMailAlias": {
+    "address": "optional-mail-address",
     "alias_id": "portable"
   },
   "RuntimeMailComponent": {
@@ -539,18 +617,22 @@
     "name": "nonblank"
   },
   "RuntimeMailDomain": {
-    "domain_id": "portable"
+    "domain_id": "portable",
+    "name": "domain-name"
   },
   "RuntimeMailListener": {
     "listener_id": "portable"
   },
   "RuntimeMailMailbox": {
+    "address": "mail-address",
     "mailbox_id": "portable"
   },
   "RuntimeMailMailboxStore": {
+    "path": "optional-absolute-path",
     "store_id": "portable"
   },
   "RuntimeMailQueue": {
+    "message_count": "nullable-integer:0:",
     "queue_id": "portable"
   },
   "RuntimeMailRoutingRule": {
@@ -561,13 +643,15 @@
   },
   "RuntimeMailSetting": {
     "name": "nonblank",
-    "setting_id": "portable"
+    "setting_id": "portable",
+    "source_path": "optional-absolute-path"
   },
   "RuntimeMount": {
     "target": "absolute-path"
   },
   "RuntimeNetworkDetectionControlChannel": {
-    "channel_id": "portable"
+    "channel_id": "portable",
+    "path": "optional-control-path"
   },
   "RuntimeNetworkDetectionEngine": {
     "network_detection_engine_id": "portable"
@@ -580,9 +664,11 @@
     "stream_id": "portable"
   },
   "RuntimeNetworkDetectionRuleSource": {
+    "rule_count": "nullable-integer:0:",
     "source_id": "portable"
   },
   "RuntimeNetworkEndpoint": {
+    "ip_prefix_length": "nullable-integer:0:128",
     "network": "nonblank"
   },
   "RuntimeNetworkNamespace": {
@@ -595,6 +681,7 @@
     "orchestration_authority_id": "portable"
   },
   "RuntimeOrchestrationRealizedChild": {
+    "count": "nullable-integer:0:",
     "workload_id": "portable"
   },
   "RuntimeOrchestrationSpawnTemplate": {
@@ -613,6 +700,7 @@
     "content_object_id": "portable"
   },
   "RuntimePlatformApplicationExecutionPolicy": {
+    "max_concurrent_jobs": "nullable-integer:0:",
     "policy_id": "optional-portable"
   },
   "RuntimePlatformApplicationMarking": {
@@ -631,7 +719,23 @@
     "binding_id": "portable"
   },
   "RuntimeProcessIdentity": {
+    "parent_pid": "nullable-integer:1:",
+    "pid": "nullable-integer:1:",
     "working_directory": "optional-absolute-path"
+  },
+  "RuntimePublishedPort": {
+    "container_port": "integer:1:65535",
+    "host_port": "nullable-integer:1:65535"
+  },
+  "RuntimePublishedPortRef": {
+    "container_port": "integer:1:65535",
+    "host_port": "nullable-integer:1:65535"
+  },
+  "RuntimeResourceLimits": {
+    "cpu": "nullable-number:0:",
+    "memory": "nullable-integer:1:",
+    "memory_swap": "nullable-integer:1:",
+    "pids": "nullable-integer:1:"
   },
   "RuntimeScheduledJob": {
     "scheduled_job_id": "portable"
@@ -660,11 +764,17 @@
     "name": "nonblank"
   },
   "RuntimeSecurityMonitoringContentSet": {
-    "content_id": "portable"
+    "content_id": "portable",
+    "file_count": "nullable-integer:0:"
   },
   "RuntimeSecurityMonitoringDetectionDefinition": {
     "definition_id": "portable",
-    "source_file_ref": "optional-absolute-path"
+    "frequency": "nullable-integer:0:",
+    "level": "nullable-integer:0:",
+    "source_end_line": "nullable-integer:1:",
+    "source_file_ref": "optional-absolute-path",
+    "source_start_line": "nullable-integer:1:",
+    "timeframe_seconds": "nullable-integer:0:"
   },
   "RuntimeSecurityMonitoringFieldPredicate": {
     "field": "nonblank"
@@ -681,6 +791,7 @@
     "source_path": "optional-absolute-path"
   },
   "RuntimeServiceListener": {
+    "port": "nullable-integer:1:65535",
     "service_listener_id": "portable"
   },
   "RuntimeServiceSecret": {
@@ -726,6 +837,8 @@
     "point": "qualified"
   },
   "ServiceManagerUnit": {
+    "exit_code": "nullable-integer:0:255",
+    "main_pid": "nullable-integer:1:",
     "unit_file_path": "optional-absolute-path",
     "unit_id": "portable"
   },

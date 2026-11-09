@@ -85,7 +85,7 @@ func runtimeFilesystemModel(v any) error {
 	if !strings.HasPrefix(path, "/") && !variableRef(path) {
 		return invalid()
 	}
-	return require((stringAt(v, "content_digest") == "") == (stringAt(v, "digest_algorithm") == ""))
+	return require((stringAt(v, "content_digest") == "") == (stringAt(v, "digest_algorithm") == "") && sdlFilesystemMode(at(v, "mode")))
 }
 func sdlWhitespace(r rune) bool { return unicode.IsSpace(r) || r >= 0x1c && r <= 0x1f }
 func sdlBlank(value string) bool {

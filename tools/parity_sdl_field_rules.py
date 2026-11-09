@@ -19,25 +19,43 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
 
 from parity_sdl_constructors import model_fields_schema, reference_definitions  # noqa: E402
+from parity_authoring_layout import scalar_plan  # noqa: E402
 from raes._identifiers import (  # noqa: E402
     require_portable_identifier,
     require_qualified_identifier,
 )
 from raes.materialization import MaterializedScenario  # noqa: E402
-from raes.runtime_database import _require_object_name  # noqa: E402
-from raes.runtime_values import absolute_path_or_var, require_non_empty, require_symbol  # noqa: E402
+from raes.runtime_database import _db_listen_address_or_var, _require_object_name  # noqa: E402
+from raes._runtime_datastore_support import (  # noqa: E402
+    _require_object_name as datastore_object_name,
+)
+from raes.runtime_mail_service._elements import (  # noqa: E402
+    _domain_name_or_var,
+    _mail_address_or_var,
+)
+from raes.runtime_values import (  # noqa: E402
+    absolute_path_or_var,
+    control_interface_path_or_var,
+    require_non_empty,
+    require_symbol,
+)
 from raes.scenario import Scenario  # noqa: E402
 from raes.stateful_resources import _validate_relative_path, validate_mount_destination  # noqa: E402
 
 HELPERS = {
     require_non_empty: "nonblank",
     _require_object_name: "nonblank",
+    datastore_object_name: "nonblank",
     absolute_path_or_var: "absolute-path",
     require_symbol: "portable",
     require_portable_identifier: "portable",
     require_qualified_identifier: "qualified",
     _validate_relative_path: "contained-relative",
     validate_mount_destination: "contained-mount",
+    _db_listen_address_or_var: "database-listen-address",
+    _domain_name_or_var: "domain-name",
+    _mail_address_or_var: "mail-address",
+    control_interface_path_or_var: "control-path",
 }
 
 
@@ -76,7 +94,11 @@ def expand_list_guards(body: list[ast.stmt], argument: str) -> list[ast.stmt]:
             args=[
                 ast.GeneratorExp(
                     elt=guard.test,
-                    generators=[ast.comprehension(target=loop.target, iter=loop.iter, ifs=[], is_async=0)],
+                    generators=[
+                        ast.comprehension(
+                            target=loop.target, iter=loop.iter, ifs=[], is_async=0
+                        )
+                    ],
                 )
             ],
             keywords=[],
@@ -89,12 +111,19 @@ def expand_list_guards(body: list[ast.stmt], argument: str) -> list[ast.stmt]:
             and isinstance(combined.test.op, ast.Or)
             and len(combined.test.values) == 2
         ):
-            body = [ast.If(test=test, body=combined.body, orelse=[]) for test in combined.test.values] + [body[1]]
+            body = [
+                ast.If(test=test, body=combined.body, orelse=[])
+                for test in combined.test.values
+            ] + [body[1]]
     return body
 
 
 def returns_argument(node: ast.stmt, argument: str) -> bool:
-    return isinstance(node, ast.Return) and isinstance(node.value, ast.Name) and node.value.id == argument
+    return (
+        isinstance(node, ast.Return)
+        and isinstance(node.value, ast.Name)
+        and node.value.id == argument
+    )
 
 
 def any_generator(call: ast.expr) -> ast.GeneratorExp | None:
@@ -123,8 +152,13 @@ def nonblank_generator(expression: ast.GeneratorExp, argument: str) -> bool:
     ):
         return False
     item = loop.target.id
-    predicates = [f"not {item}.strip()", f"not isinstance({item}, str) or not {item}.strip()"]
-    return ast.dump(expression.elt) in {ast.dump(ast.parse(text, mode="eval").body) for text in predicates}
+    predicates = [
+        f"not {item}.strip()",
+        f"not isinstance({item}, str) or not {item}.strip()",
+    ]
+    return ast.dump(expression.elt) in {
+        ast.dump(ast.parse(text, mode="eval").body) for text in predicates
+    }
 
 
 def reference_list_guard(body: list[ast.stmt], argument: str) -> str | None:
@@ -138,9 +172,14 @@ def reference_list_guard(body: list[ast.stmt], argument: str) -> str | None:
     expression = any_generator(body[0].test)
     if expression is None or not nonblank_generator(expression, argument):
         return None
-    comparisons = [f"len({argument}) != len(set({argument}))", f"len(set({argument})) != len({argument})"]
+    comparisons = [
+        f"len({argument}) != len(set({argument}))",
+        f"len(set({argument})) != len({argument})",
+    ]
     result = None
-    if ast.dump(body[1].test) in {ast.dump(ast.parse(text, mode="eval").body) for text in comparisons}:
+    if ast.dump(body[1].test) in {
+        ast.dump(ast.parse(text, mode="eval").body) for text in comparisons
+    }:
         result = "unique-nonblank"
     return result
 
@@ -150,9 +189,16 @@ def scalar_nonblank_guard(guard: ast.stmt, argument: str, operation: str) -> str
     if refusal_guard(guard):
         predicates = {f"not {argument}.strip()": operation}
         if operation == "nonblank":
-            predicates[f"not isinstance({argument}, str) or not {argument}.strip()"] = operation
-            predicates[f"{argument} is not None and not {argument}.strip()"] = "nullable-nonblank"
-        known = {ast.dump(ast.parse(text, mode="eval").body): value for text, value in predicates.items()}
+            predicates[f"not isinstance({argument}, str) or not {argument}.strip()"] = (
+                operation
+            )
+            predicates[f"{argument} is not None and not {argument}.strip()"] = (
+                "nullable-nonblank"
+            )
+        known = {
+            ast.dump(ast.parse(text, mode="eval").body): value
+            for text, value in predicates.items()
+        }
         result = known.get(ast.dump(guard.test))
     return result
 
@@ -183,7 +229,8 @@ def function_declaration(function: FunctionType) -> ast.FunctionDef | ast.Lambda
         candidates = [
             node
             for node in ast.walk(tree)
-            if isinstance(node, ast.Lambda) and first_line + node.lineno - 1 == function.__code__.co_firstlineno
+            if isinstance(node, ast.Lambda)
+            and first_line + node.lineno - 1 == function.__code__.co_firstlineno
         ]
         if len(candidates) != 1:
             return None
@@ -205,10 +252,16 @@ def argument_helper(value: ast.expr | None, argument: str) -> ast.Name | None:
     return None
 
 
-def returned_helper(value: ast.expr | None, argument: str, namespace: dict[str, Any]) -> str | None:
+def returned_helper(
+    value: ast.expr | None, argument: str, namespace: dict[str, Any]
+) -> str | None:
     optional = isinstance(value, ast.IfExp) and isinstance(value.test, ast.Name)
     if optional:
-        if value.test.id != argument or not isinstance(value.orelse, ast.Name) or value.orelse.id != argument:
+        if (
+            value.test.id != argument
+            or not isinstance(value.orelse, ast.Name)
+            or value.orelse.id != argument
+        ):
             return None
         value = value.body
     if (helper := argument_helper(value, argument)) is None:
@@ -219,14 +272,43 @@ def returned_helper(value: ast.expr | None, argument: str, namespace: dict[str, 
     return operation
 
 
-def declaration_rule(declaration: ast.FunctionDef | ast.Lambda, namespace: dict[str, Any]) -> str | None:
-    parameters = [arg.arg for arg in declaration.args.args if arg.arg not in {"cls", "self"}]
+def declaration_rule(
+    declaration: ast.FunctionDef | ast.Lambda, namespace: dict[str, Any]
+) -> str | None:
+    parameters = [
+        arg.arg for arg in declaration.args.args if arg.arg not in {"cls", "self"}
+    ]
     if not parameters:
         return None
     argument = parameters[0]
-    body = [ast.Return(value=declaration.body)] if isinstance(declaration, ast.Lambda) else declaration.body
-    if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant):
+    body = (
+        [ast.Return(value=declaration.body)]
+        if isinstance(declaration, ast.Lambda)
+        else declaration.body
+    )
+    if (
+        body
+        and isinstance(body[0], ast.Expr)
+        and isinstance(body[0].value, ast.Constant)
+    ):
         body = body[1:]
+    if (
+        len(body) == 2
+        and isinstance(body[0], ast.If)
+        and isinstance(body[1], ast.Return)
+    ):
+        guard = body[0]
+        if (
+            isinstance(guard.test, ast.UnaryOp)
+            and isinstance(guard.test.op, ast.Not)
+            and isinstance(guard.test.operand, ast.Name)
+            and guard.test.operand.id == argument
+            and not guard.orelse
+            and len(guard.body) == 1
+            and returns_argument(guard.body[0], argument)
+            and (operation := returned_helper(body[1].value, argument, namespace))
+        ):
+            return "optional-" + operation
     if len(body) == 1 and isinstance(body[0], ast.Return):
         return returned_helper(body[0].value, argument, namespace)
     return nonblank_guard(body, argument)
@@ -237,7 +319,10 @@ def direct_rule(function: object) -> str | None:
     if function in HELPERS:
         return HELPERS[function]
     result = None
-    if inspect.isfunction(function) and (declaration := function_declaration(function)) is not None:
+    if (
+        inspect.isfunction(function)
+        and (declaration := function_declaration(function)) is not None
+    ):
         result = declaration_rule(declaration, function.__globals__)
     return result
 
@@ -254,7 +339,9 @@ def annotated_rule(schema: dict[str, Any]) -> str | None:
     elif kind in {"default", "function-before"}:
         operation = annotated_rule(schema["schema"])
     elif kind in {"nullable", "list"}:
-        nested = schema["schema"] if kind == "nullable" else schema.get("items_schema", {})
+        nested = (
+            schema["schema"] if kind == "nullable" else schema.get("items_schema", {})
+        )
         if inner := annotated_rule(nested):
             operation = kind + "-" + inner
     return operation
@@ -262,7 +349,11 @@ def annotated_rule(schema: dict[str, Any]) -> str | None:
 
 def annotated_fields(cls: type[BaseModel]) -> dict[str, str]:
     fields = model_fields_schema(cls)
-    return {name: operation for name, field in fields.items() if (operation := annotated_rule(field["schema"]))}
+    return {
+        name: operation
+        for name, field in fields.items()
+        if (operation := annotated_rule(field["schema"]))
+    }
 
 
 def field_alias(cls: type[BaseModel], field: str) -> str:
@@ -270,7 +361,9 @@ def field_alias(cls: type[BaseModel], field: str) -> str:
     return info.serialization_alias or info.alias or field
 
 
-def definition_rules(cls: type[BaseModel], properties: dict[str, Any], name: str) -> dict[str, str]:
+def definition_rules(
+    cls: type[BaseModel], properties: dict[str, Any], name: str
+) -> dict[str, str]:
     result = {
         field_alias(cls, field): operation
         for field, operation in annotated_fields(cls).items()
@@ -279,7 +372,30 @@ def definition_rules(cls: type[BaseModel], properties: dict[str, Any], name: str
     for validator in cls.__pydantic_decorators__.field_validators.values():
         operation = direct_rule(validator.func)
         if operation is not None:
-            merge_validator(result, cls, properties, validator.info.fields, operation, name)
+            merge_validator(
+                result, cls, properties, validator.info.fields, operation, name
+            )
+    if (
+        cls.__module__.startswith(("raes.runtime_", "raes.image_provenance"))
+        and name != "RuntimeProcessResourceLimit"
+    ):
+        for field, core in model_fields_schema(cls).items():
+            alias = field_alias(cls, field)
+            plan = scalar_plan(core["schema"])
+            if alias not in properties or alias in result or plan.get("items"):
+                continue
+            minimum = plan.get(
+                "minimum", "1" if "ram" in plan.get("convert", []) else ""
+            )
+            maximum = plan.get("maximum", "")
+            if minimum or maximum:
+                kind = "number" if "number" in plan.get("shapes", []) else "integer"
+                operation = f"{kind}:{minimum}:{maximum}"
+                if plan.get("values"):
+                    operation = "map-" + operation
+                if "null" in plan.get("shapes", []):
+                    operation = "nullable-" + operation
+                result[alias] = operation
     return result
 
 
@@ -296,13 +412,20 @@ def merge_validator(
         if alias in properties:
             previous = result.setdefault(alias, operation)
             if previous != operation:
-                raise ValueError(f"conflicting SDL field predicates: {name}.{alias}: {previous}, {operation}")
+                raise ValueError(
+                    f"conflicting SDL field predicates: {name}.{alias}: {previous}, {operation}"
+                )
 
 
 def records() -> dict[str, Any]:
     result = {}
-    for model, contract in ((Scenario, "sdl-authoring-input-v1"), (MaterializedScenario, "materialized-scenario-v1")):
-        published = json.loads((ROOT / "contracts/schemas/sdl" / (contract + ".json")).read_bytes())
+    for model, contract in (
+        (Scenario, "sdl-authoring-input-v1"),
+        (MaterializedScenario, "materialized-scenario-v1"),
+    ):
+        published = json.loads(
+            (ROOT / "contracts/schemas/sdl" / (contract + ".json")).read_bytes()
+        )
         for pointer, cls in reference_definitions(model).items():
             if pointer == "#":
                 continue
@@ -311,7 +434,9 @@ def records() -> dict[str, Any]:
             for alias, operation in definition_rules(cls, properties, name).items():
                 previous = result.setdefault(name, {}).setdefault(alias, operation)
                 if previous != operation:
-                    raise ValueError(f"conflicting SDL field predicates: {name}.{alias}: {previous}, {operation}")
+                    raise ValueError(
+                        f"conflicting SDL field predicates: {name}.{alias}: {previous}, {operation}"
+                    )
     return result
 
 

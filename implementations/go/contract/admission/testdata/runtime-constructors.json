@@ -1,0 +1,2380 @@
+{
+  "reference": "17bf4515bf12747af69c8598a2fc82d73e9651b9",
+  "case_count": 4406,
+  "models": {
+    "#/$defs/ContainerImageBuildProvenance": "raes.image_provenance.ContainerImageBuildProvenance",
+    "#/$defs/Database": "raes.runtime_database.Database",
+    "#/$defs/DatabaseGrant": "raes.runtime_database.DatabaseGrant",
+    "#/$defs/DatabaseListener": "raes.runtime_database.DatabaseListener",
+    "#/$defs/DatabaseRole": "raes.runtime_database.DatabaseRole",
+    "#/$defs/DatabaseSchema": "raes.runtime_database.DatabaseSchema",
+    "#/$defs/DatabaseSetting": "raes.runtime_database.DatabaseSetting",
+    "#/$defs/DatabaseTable": "raes.runtime_database.DatabaseTable",
+    "#/$defs/DnsDynamicUpdatePolicy": "raes.runtime_dns.DnsDynamicUpdatePolicy",
+    "#/$defs/DnsForwarder": "raes.runtime_dns.DnsForwarder",
+    "#/$defs/DnsMxRdata": "raes.runtime_dns_records.DnsMxRdata",
+    "#/$defs/DnsResolverPolicy": "raes.runtime_dns.DnsResolverPolicy",
+    "#/$defs/DnsResourceRecord": "raes.runtime_dns_records.DnsResourceRecord",
+    "#/$defs/DnsResourceRecordSet": "raes.runtime_dns_records.DnsResourceRecordSet",
+    "#/$defs/DnsRuntimeSetting": "raes.runtime_dns.DnsRuntimeSetting",
+    "#/$defs/DnsSoaRdata": "raes.runtime_dns_records.DnsSoaRdata",
+    "#/$defs/DnsSrvRdata": "raes.runtime_dns_records.DnsSrvRdata",
+    "#/$defs/DnsZone": "raes.runtime_dns.DnsZone",
+    "#/$defs/DnsZoneTransferPolicy": "raes.runtime_dns.DnsZoneTransferPolicy",
+    "#/$defs/DockerfileInstruction": "raes.image_provenance.DockerfileInstruction",
+    "#/$defs/GeneratedArtifactValueSource": "raes.runtime_generated_value.GeneratedArtifactValueSource",
+    "#/$defs/ImageAttestation": "raes.image_provenance.ImageAttestation",
+    "#/$defs/ImageBuildArg": "raes.image_provenance.ImageBuildArg",
+    "#/$defs/ImageConfig": "raes.image_provenance.ImageConfig",
+    "#/$defs/ImageCopiedSource": "raes.image_provenance.ImageCopiedSource",
+    "#/$defs/ImageEnvironmentDefault": "raes.image_provenance.ImageEnvironmentDefault",
+    "#/$defs/ImageLayer": "raes.image_provenance.ImageLayer",
+    "#/$defs/ImageSourceInput": "raes.image_provenance.ImageSourceInput",
+    "#/$defs/RelationshipDatabaseAccess": "raes.runtime_database.RelationshipDatabaseAccess",
+    "#/$defs/RelationshipForwardingEdge": "raes.runtime_forwarding_agent.RelationshipForwardingEdge",
+    "#/$defs/RelationshipMailAccess": "raes.runtime_mail_service._service.RelationshipMailAccess",
+    "#/$defs/RelationshipProxyUpstream": "raes.runtime_application.RelationshipProxyUpstream",
+    "#/$defs/RelationshipServiceIntegration": "raes.runtime_platform_application.RelationshipServiceIntegration",
+    "#/$defs/RuntimeAppAuthorization": "raes.runtime_app_authorization.RuntimeAppAuthorization",
+    "#/$defs/RuntimeAppAuthorizationGrant": "raes.runtime_app_authorization.RuntimeAppAuthorizationGrant",
+    "#/$defs/RuntimeAppAuthorizationPrincipal": "raes.runtime_app_authorization.RuntimeAppAuthorizationPrincipal",
+    "#/$defs/RuntimeAppAuthorizationRole": "raes.runtime_app_authorization.RuntimeAppAuthorizationRole",
+    "#/$defs/RuntimeAppAuthorizationRoleMapping": "raes.runtime_app_authorization.RuntimeAppAuthorizationRoleMapping",
+    "#/$defs/RuntimeAppAuthorizationTenant": "raes.runtime_app_authorization.RuntimeAppAuthorizationTenant",
+    "#/$defs/RuntimeApplicationDisclosure": "raes.runtime_application.RuntimeApplicationDisclosure",
+    "#/$defs/RuntimeApplicationExposedField": "raes.runtime_application_values.RuntimeApplicationExposedField",
+    "#/$defs/RuntimeApplicationParameter": "raes.runtime_application.RuntimeApplicationParameter",
+    "#/$defs/RuntimeApplicationRedirect": "raes.runtime_application.RuntimeApplicationRedirect",
+    "#/$defs/RuntimeApplicationResponse": "raes.runtime_application.RuntimeApplicationResponse",
+    "#/$defs/RuntimeApplicationRoute": "raes.runtime_application.RuntimeApplicationRoute",
+    "#/$defs/RuntimeApplicationRouteUpstreamTarget": "raes.runtime_application.RuntimeApplicationRouteUpstreamTarget",
+    "#/$defs/RuntimeApplicationSurface": "raes.runtime_application.RuntimeApplicationSurface",
+    "#/$defs/RuntimeAptPackageRepository": "raes.runtime_packages.RuntimeAptPackageRepository",
+    "#/$defs/RuntimeCapabilityPolicy": "raes.runtime_capabilities.RuntimeCapabilityPolicy",
+    "#/$defs/RuntimeCloudServiceLimit": "raes.runtime_secret_service.RuntimeCloudServiceLimit",
+    "#/$defs/RuntimeConfiguration": "raes.runtime_configuration.RuntimeConfiguration",
+    "#/$defs/RuntimeContainerConfiguration": "raes.runtime_container.RuntimeContainerConfiguration",
+    "#/$defs/RuntimeControlInterface": "raes.runtime_mounts.RuntimeControlInterface",
+    "#/$defs/RuntimeDatabaseService": "raes.runtime_database.RuntimeDatabaseService",
+    "#/$defs/RuntimeDatastoreCluster": "raes.runtime_datastore_partitions.RuntimeDatastoreCluster",
+    "#/$defs/RuntimeDatastoreEnginePlugin": "raes.runtime_datastore_nodes.RuntimeDatastoreEnginePlugin",
+    "#/$defs/RuntimeDatastoreMapping": "raes.runtime_datastore_partitions.RuntimeDatastoreMapping",
+    "#/$defs/RuntimeDatastoreNode": "raes.runtime_datastore_nodes.RuntimeDatastoreNode",
+    "#/$defs/RuntimeDatastoreNodeEndpoint": "raes.runtime_datastore_nodes.RuntimeDatastoreNodeEndpoint",
+    "#/$defs/RuntimeDatastorePartition": "raes.runtime_datastore_partitions.RuntimeDatastorePartition",
+    "#/$defs/RuntimeDatastorePersistence": "raes.runtime_datastore_partitions.RuntimeDatastorePersistence",
+    "#/$defs/RuntimeDatastoreService": "raes.runtime_datastore.RuntimeDatastoreService",
+    "#/$defs/RuntimeDatastoreSetting": "raes.runtime_datastore_partitions.RuntimeDatastoreSetting",
+    "#/$defs/RuntimeDatastoreTemplate": "raes.runtime_datastore_partitions.RuntimeDatastoreTemplate",
+    "#/$defs/RuntimeDatastoreTransportSecurity": "raes.runtime_datastore_partitions.RuntimeDatastoreTransportSecurity",
+    "#/$defs/RuntimeDependencyManifest": "raes.runtime_configuration.RuntimeDependencyManifest",
+    "#/$defs/RuntimeDeviceMapping": "raes.runtime_container.RuntimeDeviceMapping",
+    "#/$defs/RuntimeDnsService": "raes.runtime_dns.RuntimeDnsService",
+    "#/$defs/RuntimeEnvironmentFile": "raes.runtime_generated_value.RuntimeEnvironmentFile",
+    "#/$defs/RuntimeEnvironmentVariable": "raes.runtime_environment.RuntimeEnvironmentVariable",
+    "#/$defs/RuntimeExtraHost": "raes.runtime_container.RuntimeExtraHost",
+    "#/$defs/RuntimeFileService": "raes.runtime_file_service.RuntimeFileService",
+    "#/$defs/RuntimeFileServiceAccessObservation": "raes.runtime_file_service.RuntimeFileServiceAccessObservation",
+    "#/$defs/RuntimeFileServiceAccessRule": "raes.runtime_file_service.RuntimeFileServiceAccessRule",
+    "#/$defs/RuntimeFileServicePrincipal": "raes.runtime_file_service.RuntimeFileServicePrincipal",
+    "#/$defs/RuntimeFileServiceShare": "raes.runtime_file_service.RuntimeFileServiceShare",
+    "#/$defs/RuntimeFilesystemEntry": "raes.runtime_filesystem.RuntimeFilesystemEntry",
+    "#/$defs/RuntimeForwardingAgent": "raes.runtime_forwarding_agent.RuntimeForwardingAgent",
+    "#/$defs/RuntimeForwardingBufferPolicy": "raes.runtime_forwarding_buffer.RuntimeForwardingBufferPolicy",
+    "#/$defs/RuntimeForwardingReloadChannel": "raes.runtime_forwarding_agent.RuntimeForwardingReloadChannel",
+    "#/$defs/RuntimeForwardingSetting": "raes.runtime_forwarding_agent.RuntimeForwardingSetting",
+    "#/$defs/RuntimeForwardingShipTarget": "raes.runtime_forwarding_agent.RuntimeForwardingShipTarget",
+    "#/$defs/RuntimeForwardingSource": "raes.runtime_forwarding_agent.RuntimeForwardingSource",
+    "#/$defs/RuntimeForwardingTransform": "raes.runtime_forwarding_agent.RuntimeForwardingTransform",
+    "#/$defs/RuntimeIdentityAccessObservation": "raes.runtime_identity_resources.RuntimeIdentityAccessObservation",
+    "#/$defs/RuntimeIdentityAttribute": "raes.runtime_directory_identity.RuntimeIdentityAttribute",
+    "#/$defs/RuntimeIdentityAuthority": "raes.runtime_directory_identity.RuntimeIdentityAuthority",
+    "#/$defs/RuntimeIdentityAuthorityService": "raes.runtime_directory_identity.RuntimeIdentityAuthorityService",
+    "#/$defs/RuntimeIdentityPermissionBinding": "raes.runtime_identity_resources.RuntimeIdentityPermissionBinding",
+    "#/$defs/RuntimeIdentityPolicy": "raes.runtime_directory_identity.RuntimeIdentityPolicy",
+    "#/$defs/RuntimeIdentityPolicyCondition": "raes.runtime_identity_resources.RuntimeIdentityPolicyCondition",
+    "#/$defs/RuntimeIdentityRelationship": "raes.runtime_directory_identity.RuntimeIdentityRelationship",
+    "#/$defs/RuntimeIdentityResourceAccess": "raes.runtime_identity_resources.RuntimeIdentityResourceAccess",
+    "#/$defs/RuntimeIdentityResourceScope": "raes.runtime_identity_resources.RuntimeIdentityResourceScope",
+    "#/$defs/RuntimeIdentitySubject": "raes.runtime_directory_identity.RuntimeIdentitySubject",
+    "#/$defs/RuntimeIdentityUse": "raes.runtime_identity_resources.RuntimeIdentityUse",
+    "#/$defs/RuntimeInitProcess": "raes.runtime_container.RuntimeInitProcess",
+    "#/$defs/RuntimeListenerReadiness": "raes.runtime_listeners.RuntimeListenerReadiness",
+    "#/$defs/RuntimeLocalGroup": "raes.runtime_identity.RuntimeLocalGroup",
+    "#/$defs/RuntimeLocalIdentityInventory": "raes.runtime_identity.RuntimeLocalIdentityInventory",
+    "#/$defs/RuntimeLocalUser": "raes.runtime_identity.RuntimeLocalUser",
+    "#/$defs/RuntimeMailAlias": "raes.runtime_mail_service._elements.RuntimeMailAlias",
+    "#/$defs/RuntimeMailComponent": "raes.runtime_mail_service._elements.RuntimeMailComponent",
+    "#/$defs/RuntimeMailDomain": "raes.runtime_mail_service._elements.RuntimeMailDomain",
+    "#/$defs/RuntimeMailListener": "raes.runtime_mail_service._elements.RuntimeMailListener",
+    "#/$defs/RuntimeMailMailbox": "raes.runtime_mail_service._elements.RuntimeMailMailbox",
+    "#/$defs/RuntimeMailMailboxStore": "raes.runtime_mail_service._elements.RuntimeMailMailboxStore",
+    "#/$defs/RuntimeMailQueue": "raes.runtime_mail_service._elements.RuntimeMailQueue",
+    "#/$defs/RuntimeMailRoutingRule": "raes.runtime_mail_service._elements.RuntimeMailRoutingRule",
+    "#/$defs/RuntimeMailService": "raes.runtime_mail_service._service.RuntimeMailService",
+    "#/$defs/RuntimeMailSetting": "raes.runtime_mail_service._elements.RuntimeMailSetting",
+    "#/$defs/RuntimeMount": "raes.runtime_mounts.RuntimeMount",
+    "#/$defs/RuntimeNamespaceConfiguration": "raes.runtime_container.RuntimeNamespaceConfiguration",
+    "#/$defs/RuntimeNetworkBackendDetail": "raes.runtime_network.RuntimeNetworkBackendDetail",
+    "#/$defs/RuntimeNetworkDetectionControlChannel": "raes.runtime_network_detection.RuntimeNetworkDetectionControlChannel",
+    "#/$defs/RuntimeNetworkDetectionEngine": "raes.runtime_network_detection.RuntimeNetworkDetectionEngine",
+    "#/$defs/RuntimeNetworkDetectionNetworkSet": "raes.runtime_network_detection.RuntimeNetworkDetectionNetworkSet",
+    "#/$defs/RuntimeNetworkDetectionOutputStream": "raes.runtime_network_detection.RuntimeNetworkDetectionOutputStream",
+    "#/$defs/RuntimeNetworkDetectionRuleSource": "raes.runtime_network_detection.RuntimeNetworkDetectionRuleSource",
+    "#/$defs/RuntimeNetworkEndpoint": "raes.runtime_network.RuntimeNetworkEndpoint",
+    "#/$defs/RuntimeNetworkNamespace": "raes.runtime_container.RuntimeNetworkNamespace",
+    "#/$defs/RuntimeNetworkRealization": "raes.runtime_network.RuntimeNetworkRealization",
+    "#/$defs/RuntimeNetworkSensor": "raes.runtime_network_sensor.RuntimeNetworkSensor",
+    "#/$defs/RuntimeOperationalPolicy": "raes.runtime_configuration.RuntimeOperationalPolicy",
+    "#/$defs/RuntimeOrchestrationAuthority": "raes.runtime_orchestration.RuntimeOrchestrationAuthority",
+    "#/$defs/RuntimeOrchestrationLifecyclePolicy": "raes.runtime_orchestration.RuntimeOrchestrationLifecyclePolicy",
+    "#/$defs/RuntimeOrchestrationRealizedChild": "raes.runtime_orchestration.RuntimeOrchestrationRealizedChild",
+    "#/$defs/RuntimeOrchestrationScope": "raes.runtime_orchestration.RuntimeOrchestrationScope",
+    "#/$defs/RuntimeOrchestrationSpawnTemplate": "raes.runtime_orchestration.RuntimeOrchestrationSpawnTemplate",
+    "#/$defs/RuntimePackage": "raes.runtime_packages.RuntimePackage",
+    "#/$defs/RuntimePackageRepositorySigningKey": "raes.runtime_packages.RuntimePackageRepositorySigningKey",
+    "#/$defs/RuntimePlatformApplication": "raes.runtime_platform_application.RuntimePlatformApplication",
+    "#/$defs/RuntimePlatformApplicationCapability": "raes.runtime_platform_application_content.RuntimePlatformApplicationCapability",
+    "#/$defs/RuntimePlatformApplicationConnector": "raes.runtime_platform_application_content.RuntimePlatformApplicationConnector",
+    "#/$defs/RuntimePlatformApplicationContentObject": "raes.runtime_platform_application_content.RuntimePlatformApplicationContentObject",
+    "#/$defs/RuntimePlatformApplicationExecutionPolicy": "raes.runtime_platform_application_content.RuntimePlatformApplicationExecutionPolicy",
+    "#/$defs/RuntimePlatformApplicationMarking": "raes.runtime_platform_application_content.RuntimePlatformApplicationMarking",
+    "#/$defs/RuntimePlatformApplicationOrganization": "raes.runtime_platform_application_content.RuntimePlatformApplicationOrganization",
+    "#/$defs/RuntimePlatformApplicationSetting": "raes.runtime_platform_application_content.RuntimePlatformApplicationSetting",
+    "#/$defs/RuntimePlatformApplicationTenant": "raes.runtime_platform_application_content.RuntimePlatformApplicationTenant",
+    "#/$defs/RuntimePlatformApplicationUpstreamBinding": "raes.runtime_platform_application_content.RuntimePlatformApplicationUpstreamBinding",
+    "#/$defs/RuntimeProcessCapabilityOverride": "raes.runtime_capabilities.RuntimeProcessCapabilityOverride",
+    "#/$defs/RuntimeProcessIdentity": "raes.runtime_capabilities.RuntimeProcessIdentity",
+    "#/$defs/RuntimeProcessResourceLimit": "raes.runtime_resource_limits.RuntimeProcessResourceLimit",
+    "#/$defs/RuntimePublishedPort": "raes.runtime_network.RuntimePublishedPort",
+    "#/$defs/RuntimePublishedPortRef": "raes.runtime_listeners.RuntimePublishedPortRef",
+    "#/$defs/RuntimeResourceLimits": "raes.runtime_configuration.RuntimeResourceLimits",
+    "#/$defs/RuntimeScheduledJob": "raes.runtime_scheduled_job.RuntimeScheduledJob",
+    "#/$defs/RuntimeScheduledJobRunState": "raes.runtime_scheduled_job.RuntimeScheduledJobRunState",
+    "#/$defs/RuntimeScheduledJobSchedule": "raes.runtime_scheduled_job.RuntimeScheduledJobSchedule",
+    "#/$defs/RuntimeSecretConsumer": "raes.runtime_secret_service.RuntimeSecretConsumer",
+    "#/$defs/RuntimeSecretSelector": "raes.runtime_secret_service.RuntimeSecretSelector",
+    "#/$defs/RuntimeSecretVersion": "raes.runtime_secret_service.RuntimeSecretVersion",
+    "#/$defs/RuntimeSecurityMonitoringAgent": "raes.runtime_security_monitoring._models.RuntimeSecurityMonitoringAgent",
+    "#/$defs/RuntimeSecurityMonitoringAgentGroup": "raes.runtime_security_monitoring._models.RuntimeSecurityMonitoringAgentGroup",
+    "#/$defs/RuntimeSecurityMonitoringComponent": "raes.runtime_security_monitoring._models.RuntimeSecurityMonitoringComponent",
+    "#/$defs/RuntimeSecurityMonitoringContentSet": "raes.runtime_security_monitoring._models.RuntimeSecurityMonitoringContentSet",
+    "#/$defs/RuntimeSecurityMonitoringDetectionDefinition": "raes.runtime_security_monitoring_definitions.RuntimeSecurityMonitoringDetectionDefinition",
+    "#/$defs/RuntimeSecurityMonitoringFieldPredicate": "raes.runtime_security_monitoring_definitions.RuntimeSecurityMonitoringFieldPredicate",
+    "#/$defs/RuntimeSecurityMonitoringListener": "raes.runtime_security_monitoring._models.RuntimeSecurityMonitoringListener",
+    "#/$defs/RuntimeSecurityMonitoringManager": "raes.runtime_security_monitoring._models.RuntimeSecurityMonitoringManager",
+    "#/$defs/RuntimeSecurityMonitoringSetting": "raes.runtime_security_monitoring._models.RuntimeSecurityMonitoringSetting",
+    "#/$defs/RuntimeServiceListener": "raes.runtime_listeners.RuntimeServiceListener",
+    "#/$defs/RuntimeServiceSecret": "raes.runtime_secret_service.RuntimeServiceSecret",
+    "#/$defs/RuntimeSoftwareComponent": "raes.runtime_software.RuntimeSoftwareComponent",
+    "#/$defs/RuntimeSoftwareComponentHash": "raes.runtime_software.RuntimeSoftwareComponentHash",
+    "#/$defs/RuntimeSoftwareComponentRefinement": "raes.runtime_software_profiles.RuntimeSoftwareComponentRefinement",
+    "#/$defs/RuntimeSoftwarePackageReference": "raes.runtime_software_profiles.RuntimeSoftwarePackageReference",
+    "#/$defs/RuntimeSoftwareRepository": "raes.runtime_software_repositories.RuntimeSoftwareRepository",
+    "#/$defs/RuntimeSoftwareRepositoryRefinement": "raes.runtime_software_profiles.RuntimeSoftwareRepositoryRefinement",
+    "#/$defs/RuntimeSoftwareRepositoryState": "raes.runtime_software_repositories.RuntimeSoftwareRepositoryState",
+    "#/$defs/RuntimeSoftwareTrustBinding": "raes.runtime_software_repositories.RuntimeSoftwareTrustBinding",
+    "#/$defs/RuntimeSoftwareTrustRefinement": "raes.runtime_software_profiles.RuntimeSoftwareTrustRefinement",
+    "#/$defs/RuntimeSshServer": "raes.runtime_ssh_server.RuntimeSshServer",
+    "#/$defs/RuntimeSudoRule": "raes.runtime_identity.RuntimeSudoRule",
+    "#/$defs/ServiceManagerUnit": "raes.runtime_service_units.ServiceManagerUnit",
+    "#/$defs/ServiceUnitExecStart": "raes.runtime_service_units.ServiceUnitExecStart",
+    "#/$defs/SshForcedCommand": "raes.runtime_ssh_server.SshForcedCommand",
+    "#/$defs/SshMatchCriterion": "raes.runtime_ssh_server.SshMatchCriterion",
+    "#/$defs/SshMatchRule": "raes.runtime_ssh_server.SshMatchRule"
+  },
+  "case_files": [
+    "runtime-constructors-000.json",
+    "runtime-constructors-001.json",
+    "runtime-constructors-002.json"
+  ],
+  "baselines": {
+    "#/$defs/ContainerImageBuildProvenance": {
+      "base_image": "",
+      "base_image_digest": "",
+      "dockerfile_path": "",
+      "instructions": [
+        {
+          "instruction": "from",
+          "arguments": [
+            "python:3.12-slim"
+          ],
+          "description": ""
+        }
+      ],
+      "layers": [],
+      "build_args": [],
+      "copied_sources": [],
+      "config": null,
+      "source_inputs": [],
+      "attestation": null,
+      "description": ""
+    },
+    "#/$defs/DockerfileInstruction": {
+      "instruction": "from",
+      "arguments": [
+        "python:3.12-slim"
+      ],
+      "description": ""
+    },
+    "#/$defs/ImageLayer": {
+      "digest": "sha256:11ab22cd33ef44ab55cd66ef77ab88cd99ef00ab11cd22ef33ab44cd55ef66ab",
+      "created_by": "FROM python:3.12-slim",
+      "size": 122683392,
+      "empty": null,
+      "description": ""
+    },
+    "#/$defs/ImageCopiedSource": {
+      "source_path": "webapp/requirements.txt",
+      "destination_path": "/app/requirements.txt",
+      "from_stage": "",
+      "description": ""
+    },
+    "#/$defs/ImageConfig": {
+      "entrypoint": [
+        "/entrypoint.sh"
+      ],
+      "command": [],
+      "working_directory": "",
+      "exposed_ports": [],
+      "labels": {},
+      "default_environment": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeApplicationRoute": {
+      "route_id": "login",
+      "path": "/login",
+      "methods": [
+        "GET"
+      ],
+      "name": "",
+      "description": "",
+      "auth_required": null,
+      "auth_scheme": "",
+      "session_required": null,
+      "parameters": [],
+      "responses": [],
+      "templates": [],
+      "static_assets": [],
+      "redirects": [],
+      "disclosures": [],
+      "exposed_fields": [],
+      "upstream_target": null
+    },
+    "#/$defs/RuntimeApplicationResponse": {
+      "status_code": 200,
+      "content_type": "text/html",
+      "description": "Login form, or form re-rendered with an error."
+    },
+    "#/$defs/RuntimeApplicationRedirect": {
+      "target": "/dashboard",
+      "status_code": 302,
+      "condition": "valid credentials accepted",
+      "description": ""
+    },
+    "#/$defs/RuntimeApplicationSurface": {
+      "application_id": "techvault-webapp",
+      "service": "",
+      "protocol": "http",
+      "name": "",
+      "base_path": "",
+      "framework": "",
+      "description": "",
+      "routes": [
+        {
+          "route_id": "index",
+          "path": "/",
+          "methods": [
+            "GET"
+          ],
+          "name": "index",
+          "description": "Landing page rendered from the index template.",
+          "auth_required": false,
+          "auth_scheme": "",
+          "session_required": false,
+          "parameters": [],
+          "responses": [
+            {
+              "status_code": 200,
+              "content_type": "text/html",
+              "description": ""
+            }
+          ],
+          "templates": [
+            "/app/templates/index.html"
+          ],
+          "static_assets": [
+            "/app/static/style.css"
+          ],
+          "redirects": [],
+          "disclosures": [],
+          "exposed_fields": [],
+          "upstream_target": null
+        }
+      ]
+    },
+    "#/$defs/RuntimeCapabilityPolicy": {
+      "required": [
+        "CAP_NET_BIND_SERVICE"
+      ],
+      "effective": [],
+      "add": [],
+      "drop": [],
+      "process_overrides": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeProcessCapabilityOverride": {
+      "subject": {
+        "name": "gunicorn",
+        "pid": null,
+        "parent_pid": 1,
+        "command": [],
+        "command_redacted": false,
+        "role": "other",
+        "user": "",
+        "group": "",
+        "working_directory": "",
+        "description": ""
+      },
+      "scope": "process",
+      "effective": [],
+      "add": [],
+      "drop": [
+        "CAP_CHOWN"
+      ],
+      "description": ""
+    },
+    "#/$defs/RuntimeProcessIdentity": {
+      "name": "gunicorn",
+      "pid": null,
+      "parent_pid": 1,
+      "command": [],
+      "command_redacted": false,
+      "role": "other",
+      "user": "",
+      "group": "",
+      "working_directory": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeConfiguration": {
+      "mounts": [
+        {
+          "target": "/var/log/gunicorn",
+          "source": "techvault_gunicorn_logs",
+          "source_sensitivity": "unknown",
+          "source_kind": "volume",
+          "filesystem_type": "ext4",
+          "read_only": false,
+          "options": [
+            "rw",
+            "nosuid"
+          ],
+          "options_sensitivity": "unknown",
+          "propagation": "rprivate",
+          "stability": "volume_backed",
+          "backend_generated": true,
+          "description": "Runtime volume state for Gunicorn logs."
+        }
+      ],
+      "filesystem_inventory": [],
+      "local_control_interfaces": [],
+      "processes": [],
+      "environment": [],
+      "environment_files": [],
+      "linux_capabilities": null,
+      "operational_policy": null,
+      "container": null,
+      "local_identity": null,
+      "identity_authorities": [],
+      "file_services": [],
+      "mail_services": [],
+      "network": null,
+      "service_listeners": [],
+      "applications": [],
+      "database_services": [],
+      "dns_services": [],
+      "network_sensors": [],
+      "network_detection_engines": [],
+      "security_monitoring_managers": [],
+      "ssh_servers": [],
+      "datastore_services": [],
+      "platform_applications": [],
+      "forwarding_agents": [],
+      "orchestration_authorities": [],
+      "app_authorizations": [],
+      "scheduled_jobs": [],
+      "service_manager_units": [],
+      "packages": [],
+      "software_components": [],
+      "repository_state": null,
+      "dependency_manifests": []
+    },
+    "#/$defs/RuntimeMount": {
+      "target": "/var/log/gunicorn",
+      "source": "techvault_gunicorn_logs",
+      "source_sensitivity": "unknown",
+      "source_kind": "volume",
+      "filesystem_type": "ext4",
+      "read_only": false,
+      "options": [
+        "rw",
+        "nosuid"
+      ],
+      "options_sensitivity": "unknown",
+      "propagation": "rprivate",
+      "stability": "volume_backed",
+      "backend_generated": true,
+      "description": "Runtime volume state for Gunicorn logs."
+    },
+    "#/$defs/RuntimeContainerConfiguration": {
+      "entrypoint": [
+        "/entrypoint.sh"
+      ],
+      "command": [],
+      "log_driver": "",
+      "log_options": {},
+      "namespaces": null,
+      "privileged": null,
+      "read_only_rootfs": null,
+      "publish_all_ports": null,
+      "autoremove": null,
+      "shm_size": null,
+      "masked_paths": [],
+      "read_only_paths": [],
+      "cgroup_parent": "",
+      "runtime_name": "",
+      "init_process": null,
+      "devices": [],
+      "device_cgroup_rules": [],
+      "seccomp_profile": "",
+      "security_opt": [],
+      "extra_hosts": [],
+      "dns": [],
+      "dns_options": [],
+      "dns_search": [],
+      "group_add": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeLocalGroup": {
+      "name": "root",
+      "gid": null,
+      "members": [
+        "root"
+      ],
+      "provenance": "unknown",
+      "description": ""
+    },
+    "#/$defs/RuntimeLocalIdentityInventory": {
+      "users": [
+        {
+          "username": "root",
+          "uid": 0,
+          "primary_gid": 0,
+          "primary_group": "root",
+          "gecos": "root",
+          "home": "/root",
+          "shell": "/bin/bash",
+          "supplemental_groups": [],
+          "disabled": false,
+          "locked": false,
+          "no_login": false,
+          "provenance": "image",
+          "stability": "stable",
+          "description": ""
+        }
+      ],
+      "groups": [],
+      "sudo_rules": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeLocalUser": {
+      "username": "root",
+      "uid": 0,
+      "primary_gid": 0,
+      "primary_group": "root",
+      "gecos": "root",
+      "home": "/root",
+      "shell": "/bin/bash",
+      "supplemental_groups": [],
+      "disabled": false,
+      "locked": false,
+      "no_login": false,
+      "provenance": "image",
+      "stability": "stable",
+      "description": ""
+    },
+    "#/$defs/RuntimeSudoRule": {
+      "principal": "sudo",
+      "principal_kind": "user",
+      "run_as_users": [
+        "ALL"
+      ],
+      "run_as_groups": [],
+      "commands": [],
+      "host_scope": "",
+      "nopasswd": false,
+      "command_redacted": false,
+      "raw_entry": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeNetworkEndpoint": {
+      "network": "aptl-dmz",
+      "ip_address": "",
+      "ip_prefix_length": null,
+      "gateway": "",
+      "mac_address": "",
+      "aliases": [
+        "aptl-webapp"
+      ],
+      "dns_names": [],
+      "backend": null,
+      "description": ""
+    },
+    "#/$defs/RuntimeNetworkRealization": {
+      "hostname": "",
+      "domainname": "",
+      "endpoints": [
+        {
+          "network": "aptl-dmz",
+          "ip_address": "172.20.0.20",
+          "ip_prefix_length": 24,
+          "gateway": "172.20.0.1",
+          "mac_address": "02:42:ac:14:00:14",
+          "aliases": [
+            "aptl-webapp",
+            "webapp"
+          ],
+          "dns_names": [
+            "aptl-webapp",
+            "webapp"
+          ],
+          "backend": {
+            "driver": "bridge",
+            "ipam_driver": "default",
+            "driver_options": {
+              "com.docker.network.bridge.name": "br-aptl-dmz"
+            },
+            "ipam_options": {
+              "com.docker.network.driver.mtu": "1500"
+            },
+            "description": "Docker bridge network backing the TechVault DMZ."
+          },
+          "description": ""
+        }
+      ],
+      "published_ports": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeNetworkBackendDetail": {
+      "driver": "bridge",
+      "ipam_driver": "default",
+      "driver_options": {
+        "com.docker.network.bridge.name": "br-aptl-dmz"
+      },
+      "ipam_options": {
+        "com.docker.network.driver.mtu": "1500"
+      },
+      "description": "Docker bridge network backing the TechVault DMZ."
+    },
+    "#/$defs/RuntimeNetworkSensor": {
+      "network_sensor_id": "n",
+      "implementation": "unknown",
+      "sensor_kind": "unknown",
+      "monitoring_posture": "unknown",
+      "capture_mode": "unknown",
+      "capture_interfaces": [],
+      "monitored_network_refs": [],
+      "process_ref": "",
+      "version": "",
+      "revision": "",
+      "name": "",
+      "configuration_file_refs": [],
+      "log_file_refs": [],
+      "evidence_refs": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeNetworkDetectionEngine": {
+      "network_detection_engine_id": "n",
+      "implementation": "unknown",
+      "engine_kind": "unknown",
+      "version": "",
+      "revision": "",
+      "name": "",
+      "process_ref": "",
+      "sensor_ref": "",
+      "configuration_file_refs": [],
+      "log_file_refs": [],
+      "evidence_refs": [],
+      "app_layer_protocols": [],
+      "rule_sources": [],
+      "network_sets": [],
+      "output_streams": [],
+      "control_channels": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeNetworkDetectionNetworkSet": {
+      "set_id": "n",
+      "kind": "unknown",
+      "name": "",
+      "selector_values": [],
+      "network_refs": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeNetworkDetectionControlChannel": {
+      "channel_id": "n",
+      "kind": "unknown",
+      "path": "",
+      "service": "",
+      "capabilities": [],
+      "auth_required": null,
+      "description": ""
+    },
+    "#/$defs/RuntimeNetworkDetectionOutputStream": {
+      "stream_id": "n",
+      "format": "unknown",
+      "path": "",
+      "event_types": [],
+      "enabled": null,
+      "description": ""
+    },
+    "#/$defs/SshForcedCommand": {
+      "command_kind": "absolute_path",
+      "command": "/bin/run",
+      "command_redacted": false,
+      "description": ""
+    },
+    "#/$defs/ServiceUnitExecStart": {
+      "command_kind": "absolute_path",
+      "command": "/bin/run",
+      "command_redacted": false,
+      "description": ""
+    },
+    "#/$defs/ServiceManagerUnit": {
+      "unit_id": "u",
+      "unit_name": "run"
+    },
+    "#/$defs/SshMatchRule": {
+      "forced_command": null,
+      "accept_env": [],
+      "allow_users": [],
+      "deny_users": [],
+      "allow_groups": [],
+      "deny_groups": [],
+      "authentication_methods": [],
+      "password_authentication": null,
+      "pubkey_authentication": null,
+      "permit_tty": null,
+      "chroot_directory": "",
+      "authorized_keys_file": "",
+      "description": "",
+      "match_id": "m",
+      "criteria": [
+        {
+          "kind": "local_user",
+          "pattern": "alice"
+        }
+      ]
+    },
+    "#/$defs/SshMatchCriterion": {
+      "kind": "local_user",
+      "pattern": "alice"
+    },
+    "#/$defs/RuntimeProcessResourceLimit": {
+      "resource": "open_file_descriptors",
+      "soft": 1,
+      "hard": 2,
+      "subject": {
+        "name": "worker",
+        "pid": null,
+        "parent_pid": null,
+        "command": [],
+        "command_redacted": false,
+        "role": "other",
+        "user": "",
+        "group": "",
+        "working_directory": "",
+        "description": ""
+      },
+      "scope": "process",
+      "description": ""
+    },
+    "#/$defs/RuntimeResourceLimits": {
+      "memory": null,
+      "memory_swap": null,
+      "cpu": null,
+      "pids": null,
+      "process_limits": [
+        {
+          "resource": "open_file_descriptors",
+          "soft": 1,
+          "hard": 2,
+          "subject": {
+            "name": "worker",
+            "pid": null,
+            "parent_pid": null,
+            "command": [],
+            "command_redacted": false,
+            "role": "other",
+            "user": "",
+            "group": "",
+            "working_directory": "",
+            "description": ""
+          },
+          "scope": "process",
+          "description": ""
+        },
+        {
+          "resource": "locked_memory_bytes",
+          "soft": 1,
+          "hard": 2,
+          "subject": {
+            "name": "worker",
+            "pid": null,
+            "parent_pid": null,
+            "command": [],
+            "command_redacted": false,
+            "role": "other",
+            "user": "",
+            "group": "",
+            "working_directory": "",
+            "description": ""
+          },
+          "scope": "process",
+          "description": ""
+        }
+      ],
+      "description": ""
+    },
+    "#/$defs/RuntimeEnvironmentVariable": {
+      "name": "VAR",
+      "value": "",
+      "value_classification": "unknown",
+      "provenance": "unknown",
+      "source": "",
+      "description": ""
+    },
+    "#/$defs/GeneratedArtifactValueSource": {
+      "generated_artifact": "g",
+      "output": "o"
+    },
+    "#/$defs/RuntimeControlInterface": {
+      "control_interface_id": "c",
+      "path": "/run/x",
+      "kind": "unix_socket",
+      "protocol": "",
+      "bind_source": "",
+      "bind_source_sensitivity": "unknown",
+      "access": "unknown",
+      "description": ""
+    },
+    "#/$defs/DnsResourceRecordSet": {
+      "rrset_id": "r",
+      "owner": "example.org",
+      "record_type": "a",
+      "zone_class": "in",
+      "ttl": null,
+      "type_code": null,
+      "records": [
+        {
+          "rdata": "",
+          "address": "1.2.3.4",
+          "target": "",
+          "text": [],
+          "soa": null,
+          "mx": null,
+          "srv": null,
+          "description": ""
+        }
+      ],
+      "provenance": "unknown",
+      "description": ""
+    },
+    "#/$defs/DnsResourceRecord": {
+      "rdata": "",
+      "address": "1.2.3.4",
+      "target": "",
+      "text": [],
+      "soa": null,
+      "mx": null,
+      "srv": null,
+      "description": ""
+    },
+    "#/$defs/RuntimeDatabaseService": {
+      "database_service_id": "db",
+      "service": "",
+      "engine": "postgresql",
+      "protocol": "unknown",
+      "version": "",
+      "name": "",
+      "description": "",
+      "listeners": [],
+      "databases": [],
+      "roles": [],
+      "grants": [],
+      "settings": []
+    },
+    "#/$defs/Database": {
+      "database_id": "a",
+      "name": "a",
+      "origin": "unknown",
+      "schemas": [
+        {
+          "schema_id": "s1",
+          "name": "public",
+          "origin": "unknown",
+          "tables": [],
+          "description": ""
+        }
+      ],
+      "description": ""
+    },
+    "#/$defs/DatabaseSchema": {
+      "schema_id": "s1",
+      "name": "public",
+      "origin": "unknown",
+      "tables": [],
+      "description": ""
+    },
+    "#/$defs/DatabaseGrant": {
+      "grantee_role_ref": "r",
+      "object_type": "database",
+      "object_ref": "db",
+      "privileges": [
+        "SELECT"
+      ],
+      "with_grant_option": false,
+      "description": ""
+    },
+    "#/$defs/RuntimeDatastoreService": {
+      "datastore_service_id": "d",
+      "service": "",
+      "engine": "unknown",
+      "data_model": "unknown",
+      "protocol": "",
+      "version": "",
+      "name": "",
+      "cluster": null,
+      "nodes": [],
+      "partitions": [],
+      "templates": [],
+      "aliases": [],
+      "mappings": [],
+      "lifecycle_policies": [],
+      "ingest_pipelines": [],
+      "persistence": null,
+      "pubsub_channels": [],
+      "queues_streams": [],
+      "transport_security": null,
+      "backup_targets": [],
+      "settings": [],
+      "authorization_ref": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeDatastorePartition": {
+      "partition_id": "p",
+      "kind": "unknown",
+      "name": "",
+      "uuid": "",
+      "shard_count": null,
+      "replica_count": null,
+      "doc_count": null,
+      "doc_count_deleted": null,
+      "store_size_bytes": null,
+      "creation_timestamp": "",
+      "open_closed_status": "",
+      "replication_strategy": "unknown",
+      "replication_factor": null,
+      "per_dc_factor_map": {},
+      "durable_writes": null,
+      "datatype_census": {},
+      "health": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeDatastoreTemplate": {
+      "template_id": "t",
+      "name": "",
+      "index_patterns": [],
+      "settings_summary": {},
+      "mapping_ref": "m",
+      "template_digest": "",
+      "evidence_refs": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeDatastoreMapping": {
+      "mapping_id": "m",
+      "name": "",
+      "partition_ref": "p",
+      "top_level_field_count": null,
+      "leaf_field_count": null,
+      "field_type_census": {},
+      "dynamic_policy": "",
+      "dynamic_template_count": null,
+      "date_detection": null,
+      "schema_digest": "",
+      "evidence_refs": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeDatastoreNode": {
+      "node_id": "n",
+      "name": "",
+      "roles": [],
+      "is_coordinator": null,
+      "engine_version": "",
+      "build_hash": "",
+      "build_type": "",
+      "heap_init_bytes": 1,
+      "heap_max_bytes": 2,
+      "memory_locked": null,
+      "endpoints": [],
+      "plugins": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeSoftwareComponent": {
+      "component_id": "c",
+      "name": "app",
+      "presence": "required",
+      "version": "",
+      "version_constraint": null,
+      "component_type": "unknown",
+      "provenance": "unknown",
+      "ecosystem": "",
+      "purl": "",
+      "cpe": "",
+      "package_manager": "",
+      "package_name": "",
+      "package_version": "",
+      "package_version_constraint": null,
+      "package_ref": null,
+      "package": null,
+      "repository_refs": [],
+      "refinements": [],
+      "manifest_path": "",
+      "installed_paths": [
+        "/x"
+      ],
+      "hashes": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeDeviceMapping": {
+      "host_path": "/x",
+      "container_path": "/dev/x",
+      "permissions": "",
+      "description": ""
+    },
+    "#/$defs/RuntimePublishedPort": {
+      "container_port": 80,
+      "protocol": "tcp",
+      "host_ip": "",
+      "host_port": 80,
+      "description": ""
+    },
+    "#/$defs/RuntimePackage": {
+      "manager": "apt",
+      "name": "pkg",
+      "version": "1",
+      "architecture": "",
+      "source": "",
+      "purl": "",
+      "repository": {
+        "repository_profile": "apt",
+        "profile_version": "1",
+        "uri": "https://example.org/repo",
+        "suite": "stable",
+        "components": [
+          "a",
+          "z"
+        ],
+        "signing_key": {
+          "uri": "https://example.org/key",
+          "format": "openpgp-binary",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      }
+    },
+    "#/$defs/RuntimeAptPackageRepository": {
+      "repository_profile": "apt",
+      "profile_version": "1",
+      "uri": "https://example.org/repo",
+      "suite": "stable",
+      "components": [
+        "a",
+        "z"
+      ],
+      "signing_key": {
+        "uri": "https://example.org/key",
+        "format": "openpgp-binary",
+        "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    "#/$defs/RuntimePackageRepositorySigningKey": {
+      "uri": "https://example.org/key",
+      "format": "openpgp-binary",
+      "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "#/$defs/RuntimeNetworkNamespace": {
+      "target_node_ref": "m"
+    },
+    "#/$defs/RuntimeFilesystemEntry": {
+      "path": "/known",
+      "entry_type": "other",
+      "presence": "present",
+      "owner_user": "",
+      "owner_group": "",
+      "uid": null,
+      "gid": null,
+      "mode": "",
+      "size": null,
+      "content_digest": "",
+      "digest_algorithm": "",
+      "source_path": "",
+      "provenance": "",
+      "stability": "unknown",
+      "sensitivity": "unknown",
+      "description": ""
+    },
+    "#/$defs/ImageBuildArg": {
+      "name": "APP_VERSION",
+      "value": "2.4.0",
+      "value_classification": "plain",
+      "description": "Build-time application version stamped into the image."
+    },
+    "#/$defs/ImageEnvironmentDefault": {
+      "name": "APP_HOME",
+      "value": "/app",
+      "value_classification": "plain",
+      "description": ""
+    },
+    "#/$defs/ImageSourceInput": {
+      "identifier": "webapp-app",
+      "source_path": "webapp/app.py",
+      "destination_path": "/app/app.py",
+      "checksum": "${app_py_sha256}",
+      "checksum_algorithm": "sha256",
+      "description": ""
+    },
+    "#/$defs/ImageAttestation": {
+      "status": "absent",
+      "verification": "not_applicable",
+      "attestation_type": "none",
+      "predicate_type": "",
+      "evidence_reference": "",
+      "description": "The mutable local image tag has no registry-visible OCI, in-toto, or SLSA attestation; absence of attestation is recorded as a distinct fact from a failed verification."
+    },
+    "#/$defs/RuntimeExtraHost": {
+      "hostname": "wazuh-manager",
+      "address": "172.20.0.10",
+      "description": ""
+    },
+    "#/$defs/DnsForwarder": {
+      "address": "8.8.8.8",
+      "port": 53,
+      "transport": "udp",
+      "tls_server_name": "",
+      "description": ""
+    },
+    "#/$defs/DnsMxRdata": {
+      "preference": 0,
+      "exchange": "mail.example"
+    },
+    "#/$defs/DnsResolverPolicy": {
+      "recursion_enabled": null,
+      "allow_recursion": [],
+      "forwarders": [],
+      "forwarding_policy": "unknown",
+      "dnssec_validation": "unknown",
+      "query_logging": null,
+      "default_logging": null,
+      "description": ""
+    },
+    "#/$defs/DnsSoaRdata": {
+      "mname": "ns.example",
+      "rname": "admin.example",
+      "serial": 1,
+      "refresh": 1,
+      "retry": 1,
+      "expire": 1,
+      "minimum": 1
+    },
+    "#/$defs/DnsSrvRdata": {
+      "priority": 0,
+      "weight": 0,
+      "port": 80,
+      "target": "server.example"
+    },
+    "#/$defs/DnsZone": {
+      "zone_id": "z",
+      "name": "example.org",
+      "kind": "unknown",
+      "purpose": "unknown",
+      "zone_class": "in",
+      "provenance": "unknown",
+      "zone_file_refs": [],
+      "transfer": null,
+      "rrsets": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeAppAuthorizationGrant": {
+      "grant_id": "g",
+      "role_ref": "",
+      "resource_kind": "unknown",
+      "actions": [],
+      "resource_patterns": [],
+      "effect": "allow",
+      "description": ""
+    },
+    "#/$defs/RuntimeAppAuthorizationPrincipal": {
+      "principal_id": "p",
+      "kind": "unknown",
+      "name": "",
+      "reserved": null,
+      "hidden": null,
+      "credential_classification": "none",
+      "backend_roles": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeAppAuthorizationRoleMapping": {
+      "mapping_id": "m",
+      "role_ref": "",
+      "backend_roles": [],
+      "users": [],
+      "hosts": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeDnsService": {
+      "dns_service_id": "d",
+      "service": "",
+      "implementation": "unknown",
+      "version": "",
+      "name": "",
+      "roles": [],
+      "configuration_file_refs": [],
+      "log_file_refs": [],
+      "resolver_policy": null,
+      "dynamic_update": null,
+      "zones": [],
+      "settings": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeIdentityPolicy": {
+      "policy_id": "p",
+      "policy_kind": "other",
+      "name": "",
+      "applies_to_refs": [],
+      "settings": [],
+      "resource_access": null,
+      "description": ""
+    },
+    "#/$defs/RuntimeIdentityRelationship": {
+      "relationship_id": "r",
+      "relationship_type": "other",
+      "source_ref": "s",
+      "target_ref": "t",
+      "external_target": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeIdentitySubject": {
+      "subject_id": "s",
+      "kind": "other",
+      "name": "user",
+      "display_name": "",
+      "principal_name": "",
+      "distinguished_name": "",
+      "domain": "",
+      "enabled": null,
+      "origin": "unknown",
+      "service_principal_names": [],
+      "resource_scope_ref": "",
+      "attributes": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeInitProcess": {
+      "enabled": null,
+      "implementation": "",
+      "executable_path": "",
+      "reaps_children": null,
+      "argv": [],
+      "argv_redacted": false,
+      "description": ""
+    },
+    "#/$defs/RuntimeSoftwareComponentHash": {
+      "algorithm": "sha256",
+      "value": "a"
+    },
+    "#/$defs/RuntimeSoftwareRepository": {
+      "repository_id": "r",
+      "presence": "required",
+      "trust_ref": null,
+      "refinements": []
+    },
+    "#/$defs/RuntimeSoftwareRepositoryState": {
+      "repositories": [],
+      "trust_bindings": []
+    },
+    "#/$defs/RuntimeSoftwareTrustBinding": {
+      "trust_id": "t",
+      "presence": "required",
+      "refinements": []
+    },
+    "#/$defs/RuntimeFileService": {
+      "file_service_id": "x",
+      "service": "svc",
+      "protocol": "other",
+      "backend": "",
+      "description": "",
+      "shares": [],
+      "principals": [],
+      "access_rules": [],
+      "access_observations": []
+    },
+    "#/$defs/RuntimeMailService": {
+      "mail_service_id": "x",
+      "service": "svc",
+      "engine": "",
+      "version": "",
+      "name": "",
+      "description": "",
+      "components": [],
+      "listeners": [],
+      "domains": [],
+      "mailbox_stores": [],
+      "mailboxes": [],
+      "aliases": [],
+      "routing_rules": [],
+      "queues": [],
+      "settings": []
+    },
+    "#/$defs/RuntimeOrchestrationAuthority": {
+      "orchestration_authority_id": "o",
+      "control_interface_ref": "c",
+      "engine": "unknown",
+      "engine_api_version": "",
+      "name": "",
+      "scope": null,
+      "spawn_templates": [],
+      "lifecycle_policy": null,
+      "realized_children": [],
+      "privilege_class": "unknown",
+      "description": ""
+    },
+    "#/$defs/RuntimeForwardingAgent": {
+      "forwarding_agent_id": "a",
+      "implementation": "unknown",
+      "agent_kind": "unknown",
+      "ownership_role": "system_under_test",
+      "version": "",
+      "name": "",
+      "sources": [],
+      "transforms": [],
+      "ship_targets": [],
+      "buffer_policy": null,
+      "reload_channels": [],
+      "settings": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeIdentityAccessObservation": {
+      "observation_id": "o",
+      "principal_ref": "p",
+      "action": "read",
+      "resource_ref": "r",
+      "outcome": "allowed",
+      "evidence_refs": [
+        "e"
+      ],
+      "context_refs": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeIdentityPermissionBinding": {
+      "binding_id": "b",
+      "principal_refs": [
+        "p"
+      ],
+      "resource_refs": [
+        "r"
+      ],
+      "actions": [
+        "read"
+      ],
+      "role_ref": "",
+      "effect": "allow",
+      "condition": null,
+      "description": ""
+    },
+    "#/$defs/RuntimeIdentityResourceAccess": {
+      "attachment_ref": "r",
+      "bindings": [],
+      "inherited_from_ref": ""
+    },
+    "#/$defs/RuntimePlatformApplication": {
+      "platform_application_id": "p",
+      "service": "",
+      "platform_kind": "unknown",
+      "product": "",
+      "version": "",
+      "name": "",
+      "capabilities": [],
+      "organizations": [],
+      "tenants": [],
+      "content_objects": [],
+      "markings": [],
+      "upstream_bindings": [],
+      "connectors": [],
+      "execution_policy": null,
+      "settings": [],
+      "authorization_ref": "",
+      "resource_scope_ref": "",
+      "secrets": [],
+      "cloud_limits": [],
+      "description": ""
+    },
+    "#/$defs/RuntimePlatformApplicationCapability": {
+      "capability_id": "c",
+      "kind": "unknown",
+      "evidence_refs": [],
+      "description": ""
+    },
+    "#/$defs/RuntimePlatformApplicationContentObject": {
+      "content_object_id": "c",
+      "kind": "unknown",
+      "name": "",
+      "attributes": {},
+      "references": [],
+      "marking_refs": [],
+      "evidence_refs": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeSecretConsumer": {
+      "selection_id": "s",
+      "consumer_ref": "c",
+      "version_ref": "v",
+      "selector": null,
+      "resolved_version_ref": "",
+      "resolution_basis": null,
+      "resolution_evidence_refs": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeSecretVersion": {
+      "version_id": "v",
+      "native_id": "",
+      "state": null,
+      "native_state": "",
+      "payload_content_ref": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeSecurityMonitoringDetectionDefinition": {
+      "definition_id": "d",
+      "engine": "unknown",
+      "definition_kind": "other",
+      "native_id": "",
+      "name": "",
+      "content_set_ref": "",
+      "source_artifact_ref": "",
+      "source_file_ref": "",
+      "source_start_line": null,
+      "source_end_line": null,
+      "digest_algorithm": "",
+      "canonical_digest": "",
+      "enabled": null,
+      "loaded": null,
+      "parser_accepted": null,
+      "level": null,
+      "severity": "",
+      "description": "",
+      "match_strings": [],
+      "regex_patterns": [],
+      "field_predicates": [],
+      "decoded_as": [],
+      "decoder_names": [],
+      "decoder_fields": [],
+      "if_sid_refs": [],
+      "if_matched_sid_refs": [],
+      "parent_definition_refs": [],
+      "frequency": null,
+      "timeframe_seconds": null,
+      "same_source_constraints": [],
+      "groups": [],
+      "mitre_attack_ids": [],
+      "compliance_tags": [],
+      "tactic_labels": [],
+      "technique_labels": [],
+      "tags": [],
+      "target_refs": [],
+      "evidence_refs": []
+    },
+    "#/$defs/RuntimeSecurityMonitoringManager": {
+      "security_monitoring_manager_id": "s",
+      "service": "",
+      "implementation": "unknown",
+      "manager_kind": "unknown",
+      "version": "",
+      "revision": "",
+      "name": "",
+      "configuration_file_refs": [],
+      "log_file_refs": [],
+      "evidence_refs": [],
+      "listeners": [],
+      "components": [],
+      "agents": [],
+      "agent_groups": [],
+      "content_sets": [],
+      "detection_definitions": [],
+      "settings": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeServiceSecret": {
+      "secret_id": "s",
+      "resource_scope_ref": "",
+      "native_id": "",
+      "versions": [],
+      "consumers": [],
+      "location": "",
+      "replica_locations": [],
+      "encryption_key_ref": "",
+      "reset_owner_ref": "",
+      "deletion_owner_ref": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeIdentityAttribute": {
+      "name": "display",
+      "values": [
+        "value"
+      ],
+      "value_classification": "unknown",
+      "origin": "directory",
+      "provenance": "directory",
+      "description": ""
+    },
+    "#/$defs/RuntimeServiceListener": {
+      "service_listener_id": "l",
+      "service": "",
+      "address": "",
+      "port": null,
+      "protocol": "tcp",
+      "address_family": "unspecified",
+      "scope": "unknown",
+      "bind_interface": "",
+      "socket_path": "",
+      "process_ref": "",
+      "process_name": "",
+      "published_port_refs": [],
+      "readiness": null,
+      "provenance": "unknown",
+      "evidence_refs": [],
+      "description": ""
+    },
+    "#/$defs/RelationshipForwardingEdge": {
+      "forwarder_ref": "f",
+      "target_listener_role": "other",
+      "enrollment_identity_ref": "",
+      "enrollment_identity_classification": "none",
+      "protocol": "",
+      "crypto_method": "",
+      "parse_format": "unknown",
+      "description": ""
+    },
+    "#/$defs/RuntimeIdentityResourceScope": {
+      "scope_id": "s",
+      "provider": "gcp",
+      "scope_kind": "project",
+      "name": "",
+      "native_id": "",
+      "incarnation_id": "",
+      "parent_ref": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeIdentityUse": {
+      "use_id": "u",
+      "workload_ref": "nodes.n",
+      "principal_ref": "p",
+      "mode": "attached",
+      "source_principal_ref": "",
+      "description": ""
+    },
+    "#/$defs/RelationshipProxyUpstream": {
+      "route_ref": "r",
+      "upstream_node_ref": "",
+      "upstream_service_ref": "",
+      "client_tls_terminated": null,
+      "origin_plaintext": null,
+      "body_limit": "",
+      "description": ""
+    },
+    "#/$defs/RuntimePublishedPortRef": {
+      "container_port": 80,
+      "protocol": "tcp",
+      "host_ip": "",
+      "host_port": null
+    },
+    "#/$defs/RuntimeSoftwarePackageReference": {
+      "manager": "apt",
+      "name": "pkg",
+      "architecture": ""
+    },
+    "#/$defs/RuntimeNamespaceConfiguration": {
+      "cgroup": "",
+      "ipc": "",
+      "network": {
+        "target_node_ref": "owner"
+      },
+      "pid": "private",
+      "userns": "",
+      "uts": ""
+    },
+    "#/$defs/RuntimeNetworkDetectionRuleSource": {
+      "source_id": "suricata-update",
+      "kind": "managed",
+      "format": "suricata_rule",
+      "name": "suricata.rules",
+      "rule_count": 65814,
+      "file_refs": [
+        "/var/lib/suricata/rules/suricata.rules"
+      ],
+      "generated_by": "",
+      "loaded": true,
+      "description": ""
+    },
+    "#/$defs/RuntimeOperationalPolicy": {
+      "restart": "unknown",
+      "resource_limits": {
+        "memory": null,
+        "memory_swap": null,
+        "cpu": null,
+        "pids": null,
+        "process_limits": [
+          {
+            "resource": "open_file_descriptors",
+            "soft": 65536,
+            "hard": 65536,
+            "subject": {
+              "name": "search",
+              "pid": null,
+              "parent_pid": null,
+              "command": [],
+              "command_redacted": false,
+              "role": "primary",
+              "user": "",
+              "group": "",
+              "working_directory": "",
+              "description": ""
+            },
+            "scope": "subtree",
+            "description": ""
+          }
+        ],
+        "description": ""
+      },
+      "description": ""
+    },
+    "#/$defs/RuntimeListenerReadiness": {
+      "probe": "GET /",
+      "criteria": "HTTP 200",
+      "evidence_refs": [
+        "curl /"
+      ],
+      "description": ""
+    },
+    "#/$defs/RuntimeApplicationRouteUpstreamTarget": {
+      "target_node_ref": "backend",
+      "target_service": "app",
+      "scheme": "http",
+      "tls_terminated_here": true
+    },
+    "#/$defs/DatabaseTable": {
+      "table_id": "users",
+      "name": "users",
+      "description": ""
+    },
+    "#/$defs/DatabaseRole": {
+      "role_id": "app",
+      "name": "techvault",
+      "role_type": "application",
+      "origin": "unknown",
+      "can_login": null,
+      "description": ""
+    },
+    "#/$defs/RuntimeSshServer": {
+      "forced_command": null,
+      "accept_env": [],
+      "allow_users": [],
+      "deny_users": [],
+      "allow_groups": [],
+      "deny_groups": [],
+      "authentication_methods": [],
+      "password_authentication": null,
+      "pubkey_authentication": null,
+      "permit_tty": null,
+      "chroot_directory": "",
+      "authorized_keys_file": "",
+      "description": "",
+      "ssh_server_id": "sshd",
+      "service": "ssh",
+      "match_rules": [
+        {
+          "forced_command": null,
+          "accept_env": [],
+          "allow_users": [],
+          "deny_users": [],
+          "allow_groups": [],
+          "deny_groups": [],
+          "authentication_methods": [],
+          "password_authentication": null,
+          "pubkey_authentication": null,
+          "permit_tty": null,
+          "chroot_directory": "",
+          "authorized_keys_file": "",
+          "description": "",
+          "match_id": "users",
+          "criteria": [
+            {
+              "kind": "local_user",
+              "pattern": "known"
+            }
+          ]
+        }
+      ]
+    },
+    "#/$defs/RuntimeAppAuthorization": {
+      "app_authorization_id": "auth",
+      "resource_vocabulary": "unknown",
+      "auth_enabled": null,
+      "name": "",
+      "principals": [],
+      "roles": [
+        {
+          "role_id": "role",
+          "name": "",
+          "description": ""
+        }
+      ],
+      "permission_grants": [
+        {
+          "grant_id": "grant",
+          "role_ref": "role",
+          "resource_kind": "unknown",
+          "actions": [],
+          "resource_patterns": [],
+          "effect": "allow",
+          "description": ""
+        }
+      ],
+      "role_mappings": [
+        {
+          "mapping_id": "mapping",
+          "role_ref": "role",
+          "backend_roles": [],
+          "users": [],
+          "hosts": [],
+          "description": ""
+        }
+      ],
+      "tenants": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeAppAuthorizationRole": {
+      "role_id": "role",
+      "name": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeFileServiceShare": {
+      "share_id": "public",
+      "name": "public",
+      "kind": "disk",
+      "backing_path": "",
+      "comment": "",
+      "read_only": null,
+      "browseable": null,
+      "guest_ok": null,
+      "valid_users": [],
+      "valid_groups": [],
+      "invalid_users": [],
+      "write_users": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeFileServicePrincipal": {
+      "principal_id": "nobody",
+      "kind": "guest",
+      "name": "nobody",
+      "external_id": "",
+      "status": "unknown",
+      "credential_classification": "unknown",
+      "origin": "unknown",
+      "local_user_ref": "",
+      "directory_subject_ref": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeFileServiceAccessRule": {
+      "rule_id": "rule",
+      "subject_ref": "nobody",
+      "resource_ref": "public",
+      "action": "read",
+      "effect": "allow",
+      "basis": "share_config",
+      "description": ""
+    },
+    "#/$defs/RuntimeFileServiceAccessObservation": {
+      "observation_id": "probe",
+      "subject_ref": "anonymous",
+      "resource_ref": "public:path",
+      "action": "browse",
+      "outcome": "allowed",
+      "basis": "observed_probe",
+      "sensitivity": "unknown",
+      "description": ""
+    },
+    "#/$defs/RuntimeIdentityAuthority": {
+      "identity_authority_id": "techvault-domain",
+      "kind": "domain",
+      "name": "TechVault Domain",
+      "namespace": "",
+      "domain_name": "",
+      "realm": "",
+      "issuer": "",
+      "tenant_id": "",
+      "base_dn": "",
+      "description": "",
+      "services": [
+        {
+          "service_id": "ldap-endpoint",
+          "service": "ldap",
+          "protocol": "ldap",
+          "address": "",
+          "port": null,
+          "description": ""
+        }
+      ],
+      "subjects": [
+        {
+          "subject_id": "alice",
+          "kind": "user",
+          "name": "alice",
+          "display_name": "",
+          "principal_name": "",
+          "distinguished_name": "",
+          "domain": "",
+          "enabled": null,
+          "origin": "unknown",
+          "service_principal_names": [],
+          "resource_scope_ref": "",
+          "attributes": [],
+          "description": ""
+        }
+      ],
+      "policies": [],
+      "relationships": [],
+      "resource_scopes": [],
+      "identity_uses": [],
+      "access_observations": []
+    },
+    "#/$defs/RuntimeIdentityAuthorityService": {
+      "service_id": "ldap-endpoint",
+      "service": "ldap",
+      "protocol": "ldap",
+      "address": "",
+      "port": null,
+      "description": ""
+    },
+    "#/$defs/RuntimeSecurityMonitoringListener": {
+      "listener_id": "agent-events",
+      "service": "wazuh-agent-events",
+      "role": "agent_event_ingestion",
+      "protocol": "",
+      "auth_required": true,
+      "tls_enabled": true,
+      "description": ""
+    },
+    "#/$defs/RuntimeSecurityMonitoringComponent": {
+      "component_id": "analysisd",
+      "kind": "analysis_engine",
+      "name": "wazuh-analysisd",
+      "status": "running",
+      "enabled": null,
+      "process_ref": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeSecurityMonitoringAgent": {
+      "agent_id": "001",
+      "name": "aptl-dns-agent",
+      "status": "available",
+      "address": "",
+      "version": "",
+      "os": "",
+      "node_ref": "",
+      "group_refs": [
+        "default"
+      ],
+      "description": ""
+    },
+    "#/$defs/RuntimeSecurityMonitoringAgentGroup": {
+      "group_id": "default",
+      "name": "default",
+      "member_refs": [
+        "001",
+        "002",
+        "003"
+      ],
+      "configuration_file_refs": [
+        "/var/ossec/etc/shared/default/agent.conf"
+      ],
+      "description": ""
+    },
+    "#/$defs/RuntimeSecurityMonitoringContentSet": {
+      "content_id": "wazuh-ruleset",
+      "kind": "rule_corpus",
+      "format": "wazuh_rule_xml",
+      "name": "",
+      "file_count": 173,
+      "file_refs": [
+        "/var/ossec/ruleset/rules"
+      ],
+      "loaded": true,
+      "description": ""
+    },
+    "#/$defs/RuntimeSecurityMonitoringFieldPredicate": {
+      "field": "win.system.eventID",
+      "operator": "equals",
+      "value": "4769",
+      "description": ""
+    },
+    "#/$defs/RuntimeSecurityMonitoringSetting": {
+      "setting_id": "json-output",
+      "component_ref": "",
+      "name": "jsonout_output",
+      "value": "yes",
+      "value_classification": "unknown",
+      "provenance": "configuration_file",
+      "source_path": "/var/ossec/etc/ossec.conf",
+      "description": ""
+    },
+    "#/$defs/RuntimePlatformApplicationOrganization": {
+      "organization_id": "org-aptl",
+      "name": "APTL",
+      "description": ""
+    },
+    "#/$defs/RuntimePlatformApplicationMarking": {
+      "marking_id": "tlp-red",
+      "scheme": "tlp",
+      "level": "red",
+      "value": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeMailComponent": {
+      "component_id": "postfix",
+      "kind": "mta",
+      "name": "Postfix",
+      "version": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeMailListener": {
+      "listener_id": "smtp-listener",
+      "service": "smtp",
+      "protocol": "smtp",
+      "role": "inbound_mx",
+      "component_ref": "postfix",
+      "banner": "mail.techvault.local ESMTP",
+      "advertised_identity": "mail.techvault.local",
+      "capabilities": [
+        "PIPELINING",
+        "STARTTLS",
+        "AUTH PLAIN LOGIN"
+      ],
+      "auth_mechanisms": [
+        "plain",
+        "login"
+      ],
+      "tls_mode": "starttls_available",
+      "tls_versions": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeMailDomain": {
+      "domain_id": "techvault-domain",
+      "name": "techvault.local",
+      "role": "local_delivery",
+      "description": ""
+    },
+    "#/$defs/RuntimeMailMailboxStore": {
+      "store_id": "vmail-store",
+      "kind": "maildir",
+      "path": "/var/mail/vhosts/techvault.local",
+      "description": ""
+    },
+    "#/$defs/RuntimeMailMailbox": {
+      "mailbox_id": "admin-mailbox",
+      "address": "admin@techvault.local",
+      "local_part": "",
+      "domain_ref": "techvault-domain",
+      "role": "admin",
+      "status": "enabled",
+      "auth_mechanisms": [
+        "plain",
+        "login"
+      ],
+      "credential_classification": "fixture",
+      "store_ref": "vmail-store",
+      "account_ref": "",
+      "local_user_ref": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeMailAlias": {
+      "alias_id": "postmaster-alias",
+      "address": "postmaster@techvault.local",
+      "domain_ref": "",
+      "target_refs": [
+        "admin-mailbox"
+      ],
+      "external_targets": [],
+      "description": ""
+    },
+    "#/$defs/RuntimeMailRoutingRule": {
+      "rule_id": "local-postmaster",
+      "kind": "local_delivery",
+      "source_ref": "postmaster-alias",
+      "target_ref": "admin-mailbox",
+      "relay_host": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeMailQueue": {
+      "queue_id": "deferred-queue",
+      "kind": "deferred",
+      "name": "deferred",
+      "message_count": 0,
+      "stability": "dynamic",
+      "description": ""
+    },
+    "#/$defs/RuntimeMailSetting": {
+      "setting_id": "postfix-hostname",
+      "component_ref": "postfix",
+      "name": "myhostname",
+      "value": "mail.techvault.local",
+      "value_classification": "unknown",
+      "provenance": "configuration_file",
+      "source_path": "/etc/postfix/main.cf",
+      "description": ""
+    },
+    "#/$defs/RuntimeForwardingShipTarget": {
+      "target_id": "sink",
+      "target_node_ref": "",
+      "target_service_ref": "sink",
+      "ingestion_port": null,
+      "enrollment_port": null,
+      "protocol": "tcp",
+      "enrollment_identity_classification": "none",
+      "description": ""
+    },
+    "#/$defs/RuntimeCloudServiceLimit": {
+      "limit_id": "limit",
+      "name": "limit",
+      "maximum": 1,
+      "unit": "requests",
+      "resource_scope_ref": "nodes.iam.runtime.identity_authorities.cloud.subjects.worker",
+      "description": ""
+    },
+    "#/$defs/DatabaseListener": {
+      "address": "sample",
+      "port": null,
+      "description": ""
+    },
+    "#/$defs/DatabaseSetting": {
+      "name": "sample",
+      "value": "",
+      "value_classification": "unknown",
+      "provenance": "unknown",
+      "description": ""
+    },
+    "#/$defs/DnsDynamicUpdatePolicy": {
+      "enabled": null,
+      "allowed_clients": [],
+      "key_names": [],
+      "policy": "",
+      "description": ""
+    },
+    "#/$defs/DnsRuntimeSetting": {
+      "name": "sample",
+      "value": "",
+      "value_classification": "unknown",
+      "provenance": "unknown",
+      "description": ""
+    },
+    "#/$defs/DnsZoneTransferPolicy": {
+      "axfr_enabled": null,
+      "ixfr_enabled": null,
+      "allowed_clients": [],
+      "primary_servers": [],
+      "secondary_servers": [],
+      "description": ""
+    },
+    "#/$defs/RelationshipDatabaseAccess": {
+      "role_ref": "",
+      "auth_method": "other",
+      "description": ""
+    },
+    "#/$defs/RelationshipMailAccess": {
+      "protocol": "other",
+      "auth_mechanism": "other",
+      "tls_mode": "unknown",
+      "listener_ref": "",
+      "mailbox_ref": "",
+      "domain_ref": "",
+      "description": ""
+    },
+    "#/$defs/RelationshipServiceIntegration": {
+      "consumer_ref": "",
+      "engine_ref": "",
+      "integration_kind": "unknown",
+      "auth_principal_ref": "",
+      "enabled": null,
+      "direction": "bidirectional",
+      "description": ""
+    },
+    "#/$defs/RuntimeAppAuthorizationTenant": {
+      "tenant_id": "sample",
+      "name": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeApplicationDisclosure": {
+      "trigger": "",
+      "status_code": null,
+      "disclosure": "",
+      "sensitivity": "unknown",
+      "description": ""
+    },
+    "#/$defs/RuntimeApplicationExposedField": {
+      "name": "sample",
+      "sensitivity": "unknown",
+      "value": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeApplicationParameter": {
+      "name": "sample",
+      "location": "other",
+      "required": null,
+      "data_type": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeDatastoreCluster": {
+      "cluster_id": "sample",
+      "uuid": "",
+      "name": "",
+      "health": "",
+      "discovery_mode": "",
+      "partitioner": "",
+      "native_protocol_version": "",
+      "node_count": null,
+      "shard_total": null,
+      "shard_primaries": null,
+      "doc_count": null,
+      "store_size_bytes": null,
+      "description": ""
+    },
+    "#/$defs/RuntimeDatastoreEnginePlugin": {
+      "plugin_id": "sample",
+      "name": "",
+      "version": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeDatastoreNodeEndpoint": {
+      "endpoint_id": "sample",
+      "role": "unknown",
+      "protocol": "",
+      "address": "",
+      "port": null,
+      "description": ""
+    },
+    "#/$defs/RuntimeDatastorePersistence": {
+      "persistence_id": "sample",
+      "rdb_save_points": [],
+      "aof": null,
+      "eviction": "unknown",
+      "maxmemory": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeDatastoreSetting": {
+      "setting_id": "sample",
+      "scope": "engine",
+      "provenance": "unknown",
+      "classification": "unknown",
+      "name": "",
+      "value": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeDatastoreTransportSecurity": {
+      "transport_security_id": "sample",
+      "mode": "none",
+      "client_verification": null,
+      "node_verification": null,
+      "description": ""
+    },
+    "#/$defs/RuntimeDependencyManifest": {
+      "ecosystem": "sample",
+      "path": "/sample",
+      "format": "",
+      "name": "",
+      "version": ""
+    },
+    "#/$defs/RuntimeEnvironmentFile": {
+      "name": "sample",
+      "value_from": {
+        "generated_artifact": "sample",
+        "output": "sample"
+      },
+      "description": ""
+    },
+    "#/$defs/RuntimeForwardingBufferPolicy": {
+      "buffer_policy_id": "sample",
+      "queue_capacity": null,
+      "eps": null,
+      "crypto": "unknown",
+      "reconnect_seconds": null,
+      "description": ""
+    },
+    "#/$defs/RuntimeForwardingReloadChannel": {
+      "reload_channel_id": "sample",
+      "target_ref": "",
+      "kind": "unknown",
+      "description": ""
+    },
+    "#/$defs/RuntimeForwardingSetting": {
+      "setting_id": "sample",
+      "name": "",
+      "value": "",
+      "provenance": "unknown",
+      "classification": "plain",
+      "description": ""
+    },
+    "#/$defs/RuntimeForwardingSource": {
+      "source_id": "sample",
+      "kind": "unknown",
+      "location": "",
+      "parse_format": "unknown",
+      "selector": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeForwardingTransform": {
+      "transform_id": "sample",
+      "kind": "unknown",
+      "sid_namespace": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeIdentityPolicyCondition": {
+      "language": "sample",
+      "expression": "sample"
+    },
+    "#/$defs/RuntimeOrchestrationLifecyclePolicy": {
+      "timeout": "",
+      "cleanup": "",
+      "execution_timeout": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeOrchestrationRealizedChild": {
+      "workload_id": "sample",
+      "image_ref": "",
+      "count": null,
+      "evidence_ref": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeOrchestrationScope": {
+      "organization_ref": "",
+      "environment_name": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeOrchestrationSpawnTemplate": {
+      "template_id": "sample",
+      "image_ref": "",
+      "purpose": "",
+      "description": ""
+    },
+    "#/$defs/RuntimePlatformApplicationConnector": {
+      "connector_id": "sample",
+      "kind": "unknown",
+      "name": "",
+      "enabled": null,
+      "credential_classification": "plain",
+      "description": ""
+    },
+    "#/$defs/RuntimePlatformApplicationExecutionPolicy": {
+      "policy_id": "",
+      "runner": "",
+      "max_concurrent_jobs": null,
+      "job_timeout": "",
+      "rate_limit": "",
+      "description": ""
+    },
+    "#/$defs/RuntimePlatformApplicationSetting": {
+      "setting_id": "sample",
+      "name": "",
+      "value": "",
+      "provenance": "unknown",
+      "classification": "plain",
+      "redaction": "",
+      "description": ""
+    },
+    "#/$defs/RuntimePlatformApplicationTenant": {
+      "tenant_id": "sample",
+      "name": "",
+      "description": ""
+    },
+    "#/$defs/RuntimePlatformApplicationUpstreamBinding": {
+      "binding_id": "sample",
+      "role": "unknown",
+      "target_node_ref": "",
+      "target_service_ref": "",
+      "description": ""
+    },
+    "#/$defs/RuntimeScheduledJob": {
+      "scheduled_job_id": "sample",
+      "name": "",
+      "command_ref": "",
+      "enabled": null,
+      "schedule": null,
+      "run_state": null,
+      "description": ""
+    },
+    "#/$defs/RuntimeScheduledJobRunState": {
+      "last_run": "",
+      "next_run": "",
+      "last_result": "unknown"
+    },
+    "#/$defs/RuntimeScheduledJobSchedule": {
+      "kind": "interval",
+      "spec": "",
+      "enabled": null
+    },
+    "#/$defs/RuntimeSecretSelector": {
+      "kind": "sample",
+      "value": "sample"
+    },
+    "#/$defs/RuntimeSoftwareComponentRefinement": {
+      "refinement_id": "example",
+      "purpose": "acquisition",
+      "definition": {
+        "schema_version": "domain-profile-definition/v1",
+        "coordinate": {
+          "namespace": "org.openrae.standard",
+          "authority": "https://openrae.org/profiles",
+          "profile_id": "repository",
+          "revision": "1.0.0",
+          "definition_digest": "sha256:aab59f13afb071f88828242ca97ed2359551ff651853369d935418d07d3be35d"
+        },
+        "profile_schema": {
+          "dialect": "https://json-schema.org/draft/2020-12/schema",
+          "schema_id": "urn:example:schema:repository",
+          "revision": "1.0.0",
+          "schema_digest": "sha256:6a68b701e172337e7afaa58d25e42852ee73074de8605b854b6505251faaaa81",
+          "required_vocabularies": [],
+          "schema_document": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$id": "urn:example:schema:repository",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "semantic_contract": {
+          "authority": "https://openrae.org/profiles",
+          "contract_id": "repository-semantics",
+          "revision": "1.0.0",
+          "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "allowed_contexts": [
+          "artifact-acquisition"
+        ]
+      },
+      "profile_value": {}
+    },
+    "#/$defs/RuntimeSoftwareRepositoryRefinement": {
+      "refinement_id": "example",
+      "purpose": "repository-state",
+      "definition": {
+        "schema_version": "domain-profile-definition/v1",
+        "coordinate": {
+          "namespace": "org.openrae.standard",
+          "authority": "https://openrae.org/profiles",
+          "profile_id": "repository",
+          "revision": "1.0.0",
+          "definition_digest": "sha256:aab59f13afb071f88828242ca97ed2359551ff651853369d935418d07d3be35d"
+        },
+        "profile_schema": {
+          "dialect": "https://json-schema.org/draft/2020-12/schema",
+          "schema_id": "urn:example:schema:repository",
+          "revision": "1.0.0",
+          "schema_digest": "sha256:6a68b701e172337e7afaa58d25e42852ee73074de8605b854b6505251faaaa81",
+          "required_vocabularies": [],
+          "schema_document": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$id": "urn:example:schema:repository",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "semantic_contract": {
+          "authority": "https://openrae.org/profiles",
+          "contract_id": "repository-semantics",
+          "revision": "1.0.0",
+          "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "allowed_contexts": [
+          "artifact-acquisition"
+        ]
+      },
+      "profile_value": {}
+    },
+    "#/$defs/RuntimeSoftwareTrustRefinement": {
+      "refinement_id": "example",
+      "purpose": "repository-trust",
+      "definition": {
+        "schema_version": "domain-profile-definition/v1",
+        "coordinate": {
+          "namespace": "org.openrae.standard",
+          "authority": "https://openrae.org/profiles",
+          "profile_id": "repository",
+          "revision": "1.0.0",
+          "definition_digest": "sha256:aab59f13afb071f88828242ca97ed2359551ff651853369d935418d07d3be35d"
+        },
+        "profile_schema": {
+          "dialect": "https://json-schema.org/draft/2020-12/schema",
+          "schema_id": "urn:example:schema:repository",
+          "revision": "1.0.0",
+          "schema_digest": "sha256:6a68b701e172337e7afaa58d25e42852ee73074de8605b854b6505251faaaa81",
+          "required_vocabularies": [],
+          "schema_document": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$id": "urn:example:schema:repository",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "semantic_contract": {
+          "authority": "https://openrae.org/profiles",
+          "contract_id": "repository-semantics",
+          "revision": "1.0.0",
+          "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        },
+        "allowed_contexts": [
+          "artifact-acquisition"
+        ]
+      },
+      "profile_value": {}
+    }
+  }
+}

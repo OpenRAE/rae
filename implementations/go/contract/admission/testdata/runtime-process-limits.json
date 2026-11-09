@@ -1,0 +1,1199 @@
+{
+  "reference": "17bf4515bf12747af69c8598a2fc82d73e9651b9",
+  "Cases": [
+    {
+      "Name": "default-scope",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": true
+    },
+    {
+      "Name": "values-and-description-excluded",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 30,
+        "hard": 40,
+        "description": "different"
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 30,
+        "hard": 40
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": true
+    },
+    {
+      "Name": "selector-pid",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": 1
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": 1,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:4818e82ecc0aa0a3b9c71461a49aa01e20f18fcbd617b3e6f05e9e757902e6f8",
+      "Admitted": true
+    },
+    {
+      "Name": "selector-parent_pid",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "parent_pid": 42
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": 42,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:2683ba3b7113f90074a0e9c10c84aeb441ad3a6bd38d30cacf64e48a4a342b9b",
+      "Admitted": true
+    },
+    {
+      "Name": "selector-user",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "user": "alice"
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "alice",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:f3595a35502b9b584c27687bb0e5a7cf1b783789fca9c9223bfa3668db55e348",
+      "Admitted": true
+    },
+    {
+      "Name": "selector-group",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "group": "staff"
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "staff",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:5b086741e150d038109cadd71e77d4b67c8620d173f4fb3b2a67b3bb39db8205",
+      "Admitted": true
+    },
+    {
+      "Name": "selector-working_directory",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "working_directory": "/work"
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": "/work"
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:9ef315a6fcfa6fae0233494990f12bb4f5431cdd1e5ed669d37e0b873278864f",
+      "Admitted": true
+    },
+    {
+      "Name": "selector-role",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "role": "primary"
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "primary",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:bce47d7a69b2d32c87315c95dff5d574230c217048cec093b4dabd67cc31ba77",
+      "Admitted": true
+    },
+    {
+      "Name": "selector-command",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "command": [
+            "run",
+            "--flag"
+          ]
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [
+            "run",
+            "--flag"
+          ],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:b07cc78ca65974b7d8ecf515b732ba6c9f2e25701a04ca52e7e8e45388bdf0c0",
+      "Admitted": true
+    },
+    {
+      "Name": "selector-command_redacted",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "command_redacted": true
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": true,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:b1c36e084d4447e07796e16519aee6c76188ddbaf924ed7b9413dacdffa822bb",
+      "Admitted": true
+    },
+    {
+      "Name": "unicode-selector",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "caf\u00e9-\ud83d\udd12"
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "caf\u00e9-\ud83d\udd12",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:9a699978d79df1f5e1339d712d5571b1c1d7a67bc5f9f41ce022cc742abb6189",
+      "Admitted": true
+    },
+    {
+      "Name": "minimum",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 5,
+        "hard": 5
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 5,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 5,
+        "hard": 5
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": true
+    },
+    {
+      "Name": "below-minimum",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 4,
+        "hard": 5
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 5,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 4,
+        "hard": 5
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": false
+    },
+    {
+      "Name": "maximum",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 100,
+        "hard": 100
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 100,
+        "hard": 100
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": true
+    },
+    {
+      "Name": "above-maximum",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 100,
+        "hard": 101
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 100,
+        "hard": 101
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": false
+    },
+    {
+      "Name": "unbounded-maximum",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 1000,
+        "hard": 2000
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": null,
+        "supports_unlimited": false
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 1000,
+        "hard": 2000
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": true
+    },
+    {
+      "Name": "unlimited-refused",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 10,
+        "hard": "unlimited"
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": "unlimited"
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": false
+    },
+    {
+      "Name": "unlimited-supported",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 10,
+        "hard": "unlimited"
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": true
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": "unlimited"
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": true
+    },
+    {
+      "Name": "resource-mismatch",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "locked_memory_bytes",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": false
+    },
+    {
+      "Name": "scope-mismatch",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "subtree"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": null,
+      "Hard": null,
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": false
+    },
+    {
+      "Name": "finite-domain",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": [
+        0,
+        10,
+        100
+      ],
+      "Hard": [
+        100
+      ],
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": true
+    },
+    {
+      "Name": "finite-domain-member-refused",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": [
+        0,
+        101
+      ],
+      "Hard": [
+        100
+      ],
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": false
+    },
+    {
+      "Name": "variable-refused",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": [
+        "${bound}"
+      ],
+      "Hard": [
+        100
+      ],
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": false
+    },
+    {
+      "Name": "boolean-refused",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": [
+        true
+      ],
+      "Hard": [
+        100
+      ],
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": false
+    },
+    {
+      "Name": "fraction-refused",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": [
+        1.5
+      ],
+      "Hard": [
+        100
+      ],
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": false
+    },
+    {
+      "Name": "negative-refused",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": [
+        -1
+      ],
+      "Hard": [
+        100
+      ],
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": false
+    },
+    {
+      "Name": "string-number-refused",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": [
+        "10"
+      ],
+      "Hard": [
+        100
+      ],
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": false
+    },
+    {
+      "Name": "empty-domain",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": [],
+      "Hard": [],
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": true
+    }
+  ]
+}
