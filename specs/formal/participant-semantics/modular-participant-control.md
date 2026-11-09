@@ -1,4 +1,4 @@
-# Modular Participant Control and Extensible Dynamic IFC
+# Modular participant control and extensible dynamic IFC
 
 Issue #1354 and ADR-114 publish [IFC profile variability and publication](ifc-profile-variability.md).
 The amendment separates authored requirements, exact profile expressibility
@@ -25,7 +25,8 @@ clarifying MPC-01–03 and MPC-05–11. Use its CA-01–CA-09 relations for the 
 interpretation. The clauses below retain the original `sem-235/rev1` publication
 and evidence scope; historical evaluations are not reinterpreted by this link.
 
-## MPC-01 — Selection and identity
+<!-- vale RAES.HeadingCase = NO -->
+## MPC-01 — selection and identity
 
 An admitted composition B is a finite set of profile-instance bindings and a
 finite set S of typed result slots. A binding pins profile id, revision and
@@ -35,6 +36,8 @@ applicability; state/memory scope; limitations; evidence; and finite bounds.
 A profile selects mechanisms; a mechanism resolves results; an IFC domain
 defines labels; a policy relates results to a sink. These identities MUST NOT
 substitute for one another.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Applicability is a closed relation over admitted participant, episode,
 direction, crossing/subject kind, sink and phase references. Unresolved
@@ -50,7 +53,8 @@ transition, effective-support validation and disclosed weakening. No transition
 edits historical bindings, removes another profile's mandatory obligation by
 implication, or upgrades earlier evidence.
 
-## MPC-02 — Resolution boundary
+<!-- vale RAES.HeadingCase = NO -->
+## MPC-02 — resolution boundary
 
 Resolution is a relation from an immutable admitted context and pinned inputs
 to typed results and, where needed, a proposed next provider-state reference.
@@ -59,20 +63,28 @@ decision's atomic commit; conflict discards it. Independent providers cannot
 mutate each other's inputs. A monitor's external computation is itself an
 admitted apparatus operation with disclosure and resource controls.
 
+<!-- vale RAES.HeadingCase = YES -->
+
 Backend/operator construction binds installed providers. Scenario or
 participant content cannot name imports, paths, URLs, commands or configuration
 expressions that install or execute code. A digest establishes identity, not
 trust. Coverage of explicit, implicit/control, native and external flows is
 declared and evidenced independently of interface presence.
 
-## MPC-03 — Exact context and typed satisfaction
+<!-- vale RAES.HeadingCase = NO -->
+## MPC-03 — exact context and typed satisfaction
 
-Let K contain run, apparatus binding, participant, episode, subject, crossing,
-direction, sink/audience/destination, controller, authority, policy revisions,
-state cut, expected history heads, provider-state references, trigger root,
-predecessor references, memory scope and governed time/order point.
-Equality of K means equality of every applicable coordinate, including pinned
-revisions and digests; a timestamp or participant id alone is insufficient.
+Let K contain these coordinates:
+
+- Run, apparatus binding, participant, episode, subject, crossing, and direction.
+- Sink/audience/destination, controller, authority, and policy revisions.
+- State cut, expected history heads, and provider-state references.
+- Trigger root, predecessor references, memory scope, and governed time/order point.
+
+Equality of K means equality of every applicable coordinate, including pinned revisions and digests.
+A timestamp or participant id alone is insufficient.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Each slot s has an instance, kind, mandatory/advisory role and typed dependency
 references. Kinds are IFC fact, deterministic decision, advisory assessment
@@ -88,7 +100,8 @@ and satisfies its owning payload relation. Fact validity is not permission.
 Decision satisfaction additionally requires permit. Request validity does not
 mean that its operation has been authorized or applied.
 
-## MPC-04 — Dynamic IFC and the first non-security domain
+<!-- vale RAES.HeadingCase = NO -->
+## MPC-04 — dynamic IFC and the first non-security domain
 
 A domain D publishes a closed carrier L, canonical encoding, partial order
 ≤, total conservative join ⊔, source/default relation, propagation relation,
@@ -98,6 +111,8 @@ and a ≤ a⊔b and b ≤ a⊔b. The general contract requires an upper bound, n
 an additional least-upper-bound theorem. A failure is outside L. An unknown
 token or revision cannot extend L; comparison across domains/revisions is
 unsupported without a published mapping carrying authority, provenance and loss.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 For every derived value v, let Inputs(v,K) contain every possible data, retained
 memory, context, argument-selection and declared control dependency. Unless an
@@ -159,7 +174,8 @@ Teaching tokens are not a third security coordinate or a relabeling of history.
 Known attacker influence may satisfy an intentionally permissive observation
 sink without endorsement. The same label can fail a later action sink.
 
-## MPC-05 — Dependency and conjunction relation
+<!-- vale RAES.HeadingCase = NO -->
+## MPC-05 — dependency and conjunction relation
 
 The slot/rule dependency graph is finite and acyclic. Every edge names a
 declared output kind and required input slot. Undeclared edges, type mismatch,
@@ -167,6 +183,8 @@ ambiguous bindings, cycles and later facts are inadmissible. Independent
 results bind one K; deterministic rules consume pinned predecessor results.
 Recorded stochastic assessments are inputs: composition determinism does not
 imply repeatability of provider sampling.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Let G(K) conjoin incumbent authentication, authorization, action admission,
 capability, crossing, projection and final-sink predicates. Then:
@@ -185,7 +203,8 @@ requires permit, not a fact. Mandatory abstain is unsatisfied. Every blocker
 is retained in canonical instance/slot order. Sorting is serialization only.
 Empty mandatory decision sets cannot overcome false G(K).
 
-## MPC-06 — Failure and advisory interpretation
+<!-- vale RAES.HeadingCase = NO -->
+## MPC-06 — failure and advisory interpretation
 
 | State | Required consequence |
 | --- | --- |
@@ -198,18 +217,23 @@ Empty mandatory decision sets cannot overcome false G(K).
 | Resolved advisory permit, deny or score | Evidence without direct grant or veto. Only an admitted rule can request an independently gated effect. |
 | Malformed/mismatched optional result | Discard its contribution, record failure; dependent mandatory obligations remain unsatisfied. |
 
+<!-- vale RAES.HeadingCase = YES -->
+
 A claimed guarantee that needs an assessment must make the needed input slot
 mandatory, even if the assessment is heuristic. Marking it advisory cannot
 hide that dependency. An admitted review rule specifies its threshold revision,
 authority, visibility, missing-state behavior and expiry.
 
-## MPC-07 — Effect compatibility
+<!-- vale RAES.HeadingCase = NO -->
+## MPC-07 — effect compatibility
 
 A request names one closed effect kind, subject/result type, target/sink,
 rule revision, authority, phase (required predecessor or subsequent), causal
 references and bounded parameters/artifact references. Complete equal
 canonical content under one logical key deduplicates. Different content under
 that key conflicts; different rule identities remain separate requests.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 All mandatory rules conjoin. Permit cannot override deny or withhold.
 Different replacements of the same proposal, routes to different destinations,
@@ -228,7 +252,8 @@ may be unordered only with declared and evidenced independence. Shutdown
 cannot precede an operation requiring that target to remain live. No lexical,
 specificity or provider-arrival winner is selected.
 
-## MPC-08 — Authority and participant visibility
+<!-- vale RAES.HeadingCase = NO -->
+## MPC-08 — authority and participant visibility
 
 Effect authority is the intersection of current controller/principal authority,
 admitted rule scope, target capability and ordinary operation/sink policy.
@@ -236,6 +261,8 @@ Authentication, authorization, admission, approval, declassification,
 endorsement, transformation, handoff and execution remain distinct. No result
 widens that intersection. A separately authorized audit/review may be requested
 for a denied parent only when its admitted rule allows that disposition.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Use SEM-230 participant/audience projection for sources, derived values,
 decisions, reasons, control transitions, audit and receipts. Existence and timing
@@ -245,7 +272,8 @@ digest-bound references and closed coarse reasons, never raw rejected values,
 hidden objectives, prompts, credentials or backend-private state. Digesting
 sensitive low-entropy content is not sufficient redaction.
 
-## MPC-09 — Typed effects and existing owners
+<!-- vale RAES.HeadingCase = NO -->
+## MPC-09 — typed effects and existing owners
 
 | Effect | Binding and semantic owner |
 | --- | --- |
@@ -261,12 +289,15 @@ sensitive low-entropy content is not sufficient redaction.
 | request review | API-409 supervisory obligation, approval/denial references and expiry; approval does not execute the parent. |
 | interrupt / shutdown | RUN-310/API-409 authorized lifecycle scope; distinguish participant, episode and run targets, pause, cancellation and termination. |
 
+<!-- vale RAES.HeadingCase = YES -->
+
 API-424/#1072 owns closed trigger-to-incumbent contract bindings, including
 review/expiry/lifecycle alternatives absent from incumbent DTOs. Publication of
 this table does not advertise those contracts or installed effect support.
 Unsupported effects stay unsupported; no callbacks or open effect maps fill gaps.
 
-## MPC-10 — Commit and final invocation
+<!-- vale RAES.HeadingCase = NO -->
+## MPC-10 — commit and final invocation
 
 The abstract progression is received → resolved → composed → admitted →
 committed → dispatched → applied/failed/indeterminate. Refusal, unsupported
@@ -274,6 +305,8 @@ state, stale cut and conflict stop before dispatch. Decision, provider next-stat
 effect claim, consumed budgets and authorized intent commit atomically against
 expected operation/participant history heads using the ADR-104 store authority.
 Failed commit produces no prohibited backend call or participant disclosure.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Immediately before invocation, authority, capability, policy, target and history
 still bind the current admitted K. A commit-bound generation fence or exclusive
@@ -283,7 +316,8 @@ Unsupported fencing cannot be claimed as implemented. Serialization, streams,
 errors and evidence export are sinks. Commit, delivery and observation are
 distinct; append-only realization evidence never rewrites a prior decision.
 
-## MPC-11 — Fresh identity, phases and recovery
+<!-- vale RAES.HeadingCase = NO -->
+## MPC-11 — fresh identity, phases and recovery
 
 The logical effect key is (run, trigger root, rule id/revision, effect slot,
 admitted firing epoch). A governed new trigger event establishes the epoch;
@@ -291,6 +325,8 @@ retry count, current K, transport identity, handoff and episode changes do not.
 Allocate a fresh result/occurrence identity once per logical key and retain it
 across replay. Attempts have fresh cut/evidence bindings, not fresh effect keys.
 Complete changed canonical intent under a claimed key conflicts.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Required predecessors cause a committed parent withhold and separately admitted
 operations. Realization/approval satisfies only that obligation; the parent
@@ -306,7 +342,8 @@ repeat a non-idempotent external operation. A local commit is neither external
 success nor distributed exactly-once delivery. In-memory evidence supports only
 its process lifetime; restart claims require durable storage and backend proof.
 
-## MPC-12 — Finite causal closure
+<!-- vale RAES.HeadingCase = NO -->
+## MPC-12 — finite causal closure
 
 Every admitted root has finite nonnegative depth, total-effect, per-rule firing,
 resolution/retry and expiry bounds, plus finite fan-out. A new effect claim
@@ -316,19 +353,24 @@ inherits its root. Reset, restart, route, transform, retry and handoff cannot
 reset it. Independent inputs obtain fresh roots only through ordinary input
 admission and run resource limits.
 
+<!-- vale RAES.HeadingCase = YES -->
+
 Exhaustion records a bounded reason. Required effects leave the parent
 withheld/refused; optional subsequent effects remain unapplied. Expiry uses the
 declared clock/order authority. Diagnostics cannot recursively trigger themselves.
 These bounds establish finite admitted causal work, not fairness, progress or
 unbounded liveness.
 
-## MPC-13 — Evidence and claim boundary
+<!-- vale RAES.HeadingCase = NO -->
+## MPC-13 — evidence and claim boundary
 
 Evidence pins requested/effective profiles, mechanism/protocol/implementation
 revisions and digests, configuration, authority, domain/policy/rule revisions,
 world coverage, memory, clock/order, backend artifact, support strength, loss,
 provenance and limitations. Reuse existing apparatus, claim and evidence refs.
 Private mechanism state is not portable evidence.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Semantic publication, contract validity, runtime orchestration, installed
 provider, backend declaration, observed realization, bounded conformance,
@@ -337,7 +379,8 @@ SEM-230's noninterference relations retain their exact observer, strategy,
 memory, policy and quantifier scope. IFC labels, a successful inject, equal
 outputs or a finite witness do not establish those relations.
 
-## MPC-14 — Declared world and backend independence
+<!-- vale RAES.HeadingCase = NO -->
+## MPC-14 — declared world and Backend independence
 
 A live source/sink belongs to the RAES world only through admitted identity,
 authority, crossing, coverage and limitations. Intentional adversarial in-world
@@ -347,12 +390,15 @@ process, tenant or network invalidates/fails backend realization. Record that
 in apparatus validity evidence rather than inventing an in-world attack.
 Protection of that backend boundary remains the realization's responsibility.
 
+<!-- vale RAES.HeadingCase = YES -->
+
 Backends may independently implement different declared subsets with different
 engines. Shared terms prove neither parity nor equivalence. Cross-backend
 claims require their exact SEM-234/ASR-537 relation and evidence. Coverage ends
 at the last enforced and observed boundary, including disclosed live variability.
 
-## MPC-15 — Publication and bounded witnesses
+<!-- vale RAES.HeadingCase = NO -->
+## MPC-15 — publication and bounded witnesses
 
 [Concept placement](../../concept-authority/participant-control.md) maps these
 terms to incumbent owners without a new universal ontology.
@@ -361,8 +407,13 @@ maps MPC clauses to worked cases, counterexamples and finite tests. The accepted
 [cases A–G](https://github.com/OpenRAE/rae/blob/ebb70a34b8e7d1cc8964c443841ae57e12ed1014/docs/research/modular-participant-control/cases.md)
 remain the case lineage; the verification record supplies the publication cut.
 
-This publication supplies no production provider, backend instrumentation,
-runtime orchestrator, plugin host, universal policy language, new wire schema,
-external attack model, general safety/robustness result, backend equivalence,
-universal noninterference, covert-channel protection or control of opaque
-internals. API-424, RUN-320 and ASR-538 retain their separate delivery boundaries.
+<!-- vale RAES.HeadingCase = YES -->
+
+This publication supplies none of these components or guarantees:
+
+- Production provider, backend instrumentation, runtime orchestrator, or plugin host.
+- Universal policy language, new wire schema, or external attack model.
+- General safety/robustness result or backend equivalence.
+- Universal noninterference, covert-channel protection, or control of opaque internals.
+
+API-424, RUN-320, and ASR-538 retain their separate delivery boundaries.

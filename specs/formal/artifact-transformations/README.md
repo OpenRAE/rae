@@ -38,16 +38,15 @@ The following invariants hold for both outcomes:
   the exact source digest. A rename retargets every supplied subject digest and
   the changed canonical reference atomically; stale documents cause refusal.
 
-For declaration rename, let (f) map the selected address to its replacement,
-map every canonical address derived under the selected declaration (ADR-076
-§3; for example its services, runtime-family records, content items or child
-entity paths) to the same path under the replacement, and act as identity on
-every other address, including a namespaced declaration whose key starts with
-the selected key. The report's `identity_map` lists only the selected
-declaration. A supplied external-concept binding whose subject is a derived
-address causes refusal (`artifact-transformation.linked-artifact-stale`);
-issue #1586 tracks retargeting it. The
-`sdl-declaration-identity-transport/v1` check requires:
+For declaration rename, let (f) map the selected address to its replacement.
+It also maps each canonical address derived under that declaration to the same path under the replacement (ADR-076 §3).
+Examples include services, runtime-family records, content items, and child entity paths.
+It acts as identity on every other address, including a namespaced declaration whose key starts with the selected key.
+
+The report's `identity_map` lists only the selected declaration.
+A supplied external-concept binding with a derived-address subject causes refusal (`artifact-transformation.linked-artifact-stale`).
+Issue #1586 tracks retargeting that subject.
+The `sdl-declaration-identity-transport/v1` check requires:
 
 - (f) is injective over the declaration index;
 - the declaration kind and declaration count are unchanged;
@@ -55,10 +54,11 @@ issue #1586 tracks retargeting it. The
 - applying (f^{-1}) to the admitted target restores the source's canonical
   SDL bytes.
 
-The implementation evaluates the last condition with the inverse rename, which
-shares the forward rewrite, so it does not detect a rewrite of a
-section-qualified reference to a namespaced sibling (for example
-`nodes.shared.web` when root node `shared` is renamed); issue #1585 tracks it.
+The implementation evaluates the last condition with the inverse rename.
+That operation shares the forward rewrite.
+It therefore misses a rewrite of a section-qualified reference to a namespaced sibling.
+An example is `nodes.shared.web` when root node `shared` is renamed.
+Issue #1585 tracks this limitation.
 
 This is finite verification over the supplied artifacts. It does not prove
 behavioral, observational, epistemic, strategic, backend, or scientific

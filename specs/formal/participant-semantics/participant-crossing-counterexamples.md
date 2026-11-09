@@ -1,4 +1,4 @@
-# Participant-Crossing Counterexample Corpus
+# Participant-crossing counterexample corpus
 
 Requirements: SEM-232, ASR-535, SEM-230, GOV-913. Classification: FM3.
 

@@ -5,7 +5,7 @@ Status: **normative**.
 Requirements: SCE-002
 
 Decisions: [ADR-084](../../docs/decisions/adrs/adr-084-scenario-variation-and-deterministic-trial-realization.md)
-and accepted [ADR-070](../../docs/decisions/adrs/adr-070-realization-envelope-domain-witness-algebra.md)
+and accepted [ADR-070](../../docs/decisions/adrs/adr-070-realization-envelope-semantics.md)
 
 ## 1. Scope and authority
 

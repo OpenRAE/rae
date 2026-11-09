@@ -1,28 +1,23 @@
-# Ecosystem Deprecation Records (GOV-902)
+# Ecosystem deprecation records (GOV-902)
 #
-# Canonical, reviewable record surface for repository-governed deprecation and
-# removal notices across ecosystem surfaces. Required reading:
-#
+# This reference records deprecation and removal notices for repository-owned surfaces.
+# Read the complete-record rules in:
 #   specs/evolution/versioning-deprecation-and-migration.md
-#     -- the normative operational policy (Deprecation / Removal sections);
-#        each record below satisfies the complete-record contract it defines
+# Read the governing decision in:
 #   docs/decisions/adrs/adr-075-ecosystem-versioning-deprecation-and-migration-governance.md
-#     -- the architectural decision that mandates explicit deprecation records
 #
-# This file is a CI-time GOVERNANCE record surface, not a runtime lifecycle
-# registry, migration service, persistence layer, or endpoint (ADR-075 forbids
-# those). tools/check_deprecation_lifecycle.py validates every record against
-# the 7-field contract and fails closed on an incomplete record, so
-# supersession and removal stay predictable and reviewable (GOV-902). Each
-# record points back to its owning surface's existing authority; it does not
-# replace that authority. A deprecation is a lifecycle notice for a
-# still-supported surface (status: deprecated); removal (status: removed) is
-# allowed only after a record reaches its removal-eligibility rule, and for a
-# published-json-schema surface it references the ADR-061 removed_schemas
-# tombstone rather than duplicating it.
+# This is a CI governance record, not a runtime lifecycle registry or service.
+# It adds no persistence layer or endpoint.
+# tools/check_deprecation_lifecycle.py checks the seven required fields.
+# An incomplete record fails closed.
+# Each record refers to its existing authority and does not replace it.
+# Deprecated means the surface remains supported.
+# Removal requires the record's removal-eligibility condition.
+# Published-schema removal refers to the ADR-061 tombstone, without duplicating it.
 #
-# Adding the next deprecation is one record here plus, when it is a new surface
-# family, a row in the surface-class matrix — never a central runtime service.
+# Add each new notice here.
+# A new surface family also needs a row in the existing surface-class matrix.
+# Keep captured lifecycle notices below unchanged.
 
 policy: ecosystem-deprecation-records
 

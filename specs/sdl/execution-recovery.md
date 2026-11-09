@@ -60,16 +60,19 @@ across workflow, operation, transport and recovery layers.
 | `on_exhausted` | `terminate` by default, or `new-trial` for bounded retry. |
 | `fresh_trial_limit` | Separate positive allocation limit, required exactly when response/exhaustion requests a new trial. |
 
-`retry` response requires more than one total attempt, a positive budget,
-nonempty effect classes and evidence references, and delay strictly below the
-budget. Other responses permit exactly one invocation and forbid repetition
-conditions. Applied/partial repetition requires an explicit after-effect
-posture other than `disallow`. Reset/compensation references follow the existing
-execution-retry-policy consistency rules. Recovery responses other than
-`terminate` require explicit evidence. Class/reference lists MUST be unique.
-Limits are strict integers bounded by 2^53−1; policy identifiers/references are
-bounded by 256 characters, evidence/cleanup references by 64 entries, semantic
-pointers by 4096 characters and namespace depth by 31.
+`retry` response requires more than one total attempt and a positive budget.
+It also requires nonempty effect classes and evidence references, with delay strictly below the budget.
+Other responses permit exactly one invocation and forbid repetition conditions.
+Applied/partial repetition requires an explicit after-effect posture other than `disallow`.
+Reset/compensation references follow the existing execution-retry-policy consistency rules.
+Recovery responses other than `terminate` require explicit evidence.
+
+Class/reference lists MUST be unique.
+Limits are strict integers bounded by 2^53−1.
+Policy identifiers/references are bounded by 256 characters.
+Evidence/cleanup references are bounded by 64 entries.
+Semantic pointers are bounded by 4096 characters.
+Namespace depth is bounded by 31.
 
 `continue` proceeds after qualifying the selected failure without replaying the
 failed invocation. `hold` preserves the context pending evidence/authority;
@@ -113,10 +116,9 @@ NOT advertise general continuation in this profile. Supporting another choice
 requires current contextual willingness, remaining budgets and required
 evidence; a static capability declaration alone does not establish these.
 
-For the optional backend operation protocol, resolve the command through its
-native authority, verify its native contract/kind/identity/content digest and
-policy support, and require the exact request-bound, capability-bound willing
-admission response. Refusal blocks admission even when support was declared.
-This check does not replace authentication, authorization, reservation,
-one-use effect claims, cleanup proof or terminal publication. The optional
-protocol does not enable supervision on legacy runtime targets.
+For the optional backend operation protocol, resolve the command through its native authority.
+Check its native contract, kind, identity, content digest, and policy support.
+Require the exact request-bound, capability-bound willing admission response.
+Refusal blocks admission even when support was declared.
+This check does not replace authentication, authorization, reservation, one-use effect claims, cleanup proof, or terminal publication.
+The optional protocol does not enable supervision on legacy runtime targets.

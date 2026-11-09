@@ -166,6 +166,7 @@ Descriptive sentences contain at most 25 words.
 The document describes contracts and boundaries.
 Implementation tasks remain in the issue plan.
 
+<!-- vale RAES.HeadingCase = NO -->
 ## Authored decision exposure (DSL-125)
 
 The existing observation boundary declares asset visibility.
@@ -175,6 +176,8 @@ These declarations have different purposes.
 A visible source without an authorized result remains unavailable.
 A selected source can remain absent from a decision surface.
 A withheld source cannot enter a surface through another result reference.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 `raes_processor.models.AuthoredParticipantExposureV2` joins compiled slots to ACT-620 records.
 Its `records` map uses selection slot keys.

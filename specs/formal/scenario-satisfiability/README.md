@@ -1,10 +1,10 @@
-# Scenario Satisfiability
+# Scenario satisfiability
 
 This specification defines the normative v1 whole-scenario satisfiability
 boundary adopted by ADR-086. The keywords MUST, MUST NOT, SHALL, and SHOULD are
 normative.
 
-## Profile Identity And Phase
+## Profile identity and phase
 
 The analysis profile `raes-finite-domain-satisfiability-v1` SHALL mean exactly:
 
@@ -20,7 +20,7 @@ backend realization. The root source SHALL be read with `SDLParserLimits` before
 UTF-8 decoding. The analyzer SHALL bind both exact source bytes and canonical
 authored semantics.
 
-## Finite-Domain Model
+## Finite-domain model
 
 Let `S` be a finite, canonically ordered set of symbols. Each symbol `s` has one
 sort in `{string, integer, boolean}` and a finite domain `D(s)`.
@@ -44,7 +44,7 @@ Symbols, clauses, domains, and clause values MUST be unique and use canonical
 RFC 8785 scalar order. Bounds are 128 symbols, 256 domain members per symbol,
 and 512 clauses.
 
-## Translation Coverage
+## Translation coverage
 
 Required or referenced string and integer variables MUST declare finite
 `allowed_values`. A Boolean variable MAY omit `allowed_values`, in which case
@@ -66,7 +66,7 @@ unbounded domain, unrecognized address, missing symbol, or exceeded resource
 bound SHALL produce a stable `unsupported` diagnostic. No occurrence may be
 silently dropped.
 
-## Solver Semantics
+## Solver semantics
 
 The v1 adapter SHALL use Z3 package `4.16.0.0`, engine `4.16.0`, `QF_LIA`, seed
 zero, operation timeout 5000 ms, one thread, automatic configuration disabled, and model
@@ -115,7 +115,7 @@ globally minimum core.
 Solver `unknown`, timeout, package/profile mismatch, and internal failure SHALL
 be operational failures. They MUST NOT be labelled `unsupported`.
 
-## Evidence And Replay
+## Evidence and replay
 
 The published `scenario-satisfiability-evidence-v1` contract SHALL bind:
 
@@ -131,7 +131,7 @@ evidence envelope with the evidence's analysis profile. Any mismatch SHALL
 fail. Evidence models SHALL reject unknown fields and inconsistent cross-object
 joins.
 
-## Claims And Nonclaims
+## Claims and nonclaims
 
 The executable corpus contains satisfiable, unsatisfiable, and unsupported
 controls. Passing replay demonstrates the implementation's result for this

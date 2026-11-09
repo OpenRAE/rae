@@ -1,4 +1,4 @@
-# Participant-Crossing Bisimulation
+# Participant-crossing bisimulation
 
 Requirement: SEM-232.
 
@@ -24,7 +24,7 @@ The [executable rev2 refinement](participant-crossing-models.md) records #971's
 approved single-operation interpretation and independently generated models.
 The rev1 design below remains the historical theorem sketch.
 
-## Theorem Target
+## Theorem target
 
 Let:
 
@@ -50,7 +50,7 @@ This obligation is final for the selected finite profile only when `S_A` and
 depth bound, sampled schedule, timeout-truncated exploration, fixture set, or
 matching trace set is not the theorem.
 
-## Closed Carrier
+## Closed carrier
 
 The following domains are complete:
 
@@ -82,7 +82,7 @@ reverse cut transition. Controller handoff is excluded by the singleton
 controller domain. The environment supplies only the declared request and cut
 advance actions.
 
-## Abstract States
+## Abstract states
 
 The abstract carrier is the reachable subset of:
 
@@ -103,7 +103,7 @@ Reachability enforces:
 - `delivery-pending` is possible only for `permit`, `transform`, or
   `declassify`;
 - `terminal` has a completed or refused decision recorded in `Last`;
-- `deny` and `unsupported` terminate with delivery `withheld`; and
+- `deny` and `unsupported` reach `terminal` with delivery `withheld`; and
 - a delivered observation records delivery `delivered`.
 
 The initial state is:
@@ -112,7 +112,7 @@ The initial state is:
 a0 = (idle, p0, none, none, none, none)
 ```
 
-## Concrete States
+## Concrete states
 
 The concrete formal carrier is the reachable subset of:
 
@@ -147,7 +147,7 @@ The abstract and concrete state definitions have different transition
 authorities. A downstream exporter MUST NOT build both from one transition
 table.
 
-## Visible And Hidden Alphabets
+## Visible and hidden alphabets
 
 The closed visible alphabet is:
 
@@ -182,7 +182,7 @@ remains visible even when the payload is redacted. Denial, unsupported status,
 replay rejection, omission at a declared opportunity, sanitized errors,
 deadlock, and termination are never hidden merely because content is absent.
 
-## Abstract Transition Schemas
+## Abstract transition schemas
 
 The abstract transition relation is the least relation closed under these
 schemas:
@@ -195,8 +195,8 @@ schemas:
    `declassify` emits `crossing.declassify`. Each then enables delivery.
 4. **Delivery.** Decisions `permit`, `transform`, and `declassify` emit
    `crossing.delivery`, enter `delivery-pending`, then emit
-   `crossing.observation` and terminate with delivery `delivered`.
-5. **Refusal.** Decisions `deny` and `unsupported` terminate after their
+   `crossing.observation` and reach `terminal` with delivery `delivered`.
+5. **Refusal.** Decisions `deny` and `unsupported` reach `terminal` after their
    visible decision with delivery `withheld`.
 6. **Same-cut replay.** Repeating the recorded request at the same current cut
    emits `crossing.request`, then the same visible decision/change/delivery
@@ -209,7 +209,7 @@ schemas:
 
 No abstract transition is hidden.
 
-## Concrete Transition Schemas
+## Concrete transition schemas
 
 The concrete transition relation is independently closed under:
 
@@ -246,7 +246,7 @@ strictly decreases on an internal transition. Therefore the declared concrete
 model has no internal divergence. A mutation that adds an infinite
 `internal` loop must fail divergence-preserving comparison.
 
-## Branching And Divergence Relation
+## Branching and divergence relation
 
 Write `q => q'` for zero or more `tau` transitions. A symmetric relation
 `B subseteq (S_A union S_C)^2` satisfies the branching transfer clauses when, for every
@@ -278,7 +278,7 @@ The initial relation contains `(a0, c0)`. Its witness family is induced by the
 abstraction map below; the downstream model child must enumerate and validate
 the greatest fixed point rather than assuming every mapped pair belongs to it.
 
-## Abstraction And Runtime Mapping
+## Abstraction and runtime mapping
 
 The candidate abstraction `alpha : S_C -> S_A` maps:
 
@@ -308,7 +308,7 @@ facts, and unchanged-state refusal into `S_C`. UUIDs, wall-clock timestamps,
 host paths, and audit-only details may be projected away only after the
 mapping demonstrates that they cannot alter an enabled visible transition.
 
-## Preserved Properties And Nonclaims
+## Preserved properties and nonclaims
 
 A positive result preserves, for this profile:
 
@@ -326,7 +326,7 @@ It does not establish live-runtime realization, backend conformance, whole
 runtime equivalence, time, probability, fairness, concurrency, partial order,
 policy behavior outside `{p0,p1}`, or controller handoff.
 
-## Machine-Check Contract
+## Machine-check contract
 
 The downstream fixed command is:
 
@@ -335,11 +335,15 @@ ltscompare --equivalence=dpbranching-bisim --tau=internal \
   abstract.aut concrete.aut
 ```
 
-Inputs are repository-relative, generated independently, canonical, and
-digest-bound. Verification is noninteractive, offline, non-shell, and bounded
-for CPU, memory, and output. Evidence records tool version and verified
-archive checksum or immutable container digest, both input and source digests,
-profile and projection revisions, complete domain and state/transition counts,
-result, mutation outcomes, artifact digests, limitations, and nonclaims.
+Inputs are repository-relative, independently generated, canonical, and digest-bound.
+Verification is noninteractive, offline, and non-shell, with CPU, memory, and output bounds.
+Evidence records:
+
+- Tool version and verified archive checksum or immutable container digest.
+- Both input and source digests.
+- Profile and projection revisions.
+- Complete domain and state/transition counts.
+- Result and mutation outcomes.
+- Artifact digests, limitations, and nonclaims.
 
 Public scientific-completeness claims wait for clean independent reproduction.

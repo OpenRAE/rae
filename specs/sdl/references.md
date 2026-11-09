@@ -1,9 +1,11 @@
-# Catalog 2 — Reference-Resolution Catalog
+<!-- vale RAES.HeadingCase = NO -->
+# Catalog 2 — reference-resolution catalog
 
-This catalog defines how one SDL element names another: the reference forms, the
-resolution algorithm, the fail-closed ambiguity rule, the treatment of
-unresolved variable placeholders, and the catalog of cross-section reference
-edges with their failure semantics.
+This reference defines how one SDL element names another.
+It covers reference forms, resolution, fail-closed ambiguity, and unresolved variable placeholders.
+Its cross-section edge catalog gives the failure semantics for each reference.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 References are resolved during **semantic validation**, after structural parsing
 and module expansion ([document-model.md §7](document-model.md)). Reference
@@ -554,17 +556,17 @@ gate; a matching row count cannot hide a different edge.
 
 ## 7. Reference purposes and eligibility
 
-Each purpose-bearing reference field declares one purpose. Most purposes admit
-declarations by category; operating scope and the typed relationship endpoint
-purposes admit explicit declaration kinds; a typed relationship endpoint must
-satisfy every applicable endpoint purpose. Eligibility is never inferred by
-excluding sections. Every indexed declaration kind has exactly one category or is
-explicitly unreferenceable: the scenario identity, node roles, workflow steps,
-and `outcome_interpretation_rules` entries are indexed to detect canonical
-address collisions, and fields that name them use their own domains. A kind
-without a decision is eligible for no purpose, and the declaration index
-refuses to register it, so a new referenceable kind needs an explicit category
-before any field can name it.
+Each purpose-bearing reference field declares one purpose.
+Most purposes admit declarations by category.
+Operating scope and typed relationship endpoint purposes admit explicit declaration kinds.
+A typed relationship endpoint must satisfy every applicable endpoint purpose.
+Eligibility is never inferred by excluding sections.
+
+Every indexed declaration kind has exactly one category or is explicitly unreferenceable.
+The index detects canonical address collisions for scenario identity, node roles, workflow steps, and `outcome_interpretation_rules` entries.
+Fields that name those declarations use their own domains.
+A kind without a decision is eligible for no purpose, and the declaration index refuses to register it.
+Before any field can name a new referenceable kind, that kind needs an explicit category.
 
 Every runtime family and child registration **MUST** explicitly select its
 reviewed reference policy. The current `world-resource` decision assigns the

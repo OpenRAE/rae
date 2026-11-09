@@ -1,4 +1,4 @@
-# SDL Specification
+# SDL specification
 
 The [cloud resource and secret-service contract](cloud-resource-access.md)
 extends existing identity and application descriptions with resource scopes,
@@ -12,14 +12,13 @@ the ecosystem independent of any reference implementation or code-generation
 pipeline, per [ADR-009](../../docs/decisions/adrs/adr-009-normative-artifact-authority-and-repository-structure.md)
 and the [authority boundary manifest](../authority/authority-boundary.yaml).
 
-The SDL itself is established by
-[ADR-001 (Scenario Description Language)](../../docs/decisions/adrs/adr-001-scenario-description-language.md):
-a backend-agnostic, declarative language for specifying security experiment
-scenarios. This specification states the **authoring model** — the structure of
-an SDL document, how its parts reference one another, how it is parameterised
-and instantiated, and how it is diagnosed — in SDL terms, so that an independent
-implementation can answer structural questions without reading the reference
-Python.
+[ADR-001 (Scenario Description Language)](../../docs/decisions/adrs/adr-001-scenario-description-language.md)
+establishes SDL as a declarative language for security experiment scenarios, independent of a backend.
+This reference defines the **authoring model** in SDL terms.
+It covers document structure, references, parameters, instantiation, and diagnostics.
+An independent implementation can use it without reading the reference Python code.
+For operating steps, use the [authoring guide](../../docs/public/sdl/index.md).
+For reasons behind the split, read the [authority explanation](../../docs/explain/reference/normative-artifact-authority.md).
 
 ## Authority relationship
 
@@ -57,21 +56,21 @@ source.
 
 ## Conventions
 
-The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**,
-**SHOULD**, **SHOULD NOT**, **MAY**, and **OPTIONAL** in this specification are
-to be interpreted as described in RFC 2119 and RFC 8174 when, and only when,
-they appear in all capitals.
+RFC 2119 and RFC 8174 define the interpretation of these key words:
+**MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**,
+**SHOULD**, **SHOULD NOT**, **MAY**, and **OPTIONAL**.
+That interpretation applies when, and only when, the words appear in all capitals.
 
-Throughout, *section* means a top-level authoring surface of an SDL document;
-*identifier* means an author-chosen key that names an element; *reference*
-means one element naming another by identifier; and *instantiation* means the
-phase that resolves a parameterised authoring document into a concrete one.
+*Section* means a top-level authoring surface of an SDL document.
+*Identifier* means an author-chosen key that names an element.
+*Reference* means one element naming another by identifier.
+*Instantiation* means the phase that resolves a parameterized authoring document into a concrete one.
 
 ## Document set
 
-The specification is organised as a small set of normative **catalogs** so that
-adding a future SDL section or runtime family is a new row plus its schema and
-tests, rather than a prose rewrite. The catalogs are:
+The specification uses normative **catalogs**.
+A new SDL section or runtime family needs a catalog row, its schema, and its tests.
+The catalogs are:
 
 | File | Catalog | Covers |
 |------|---------|--------|
@@ -132,10 +131,9 @@ An implementer can answer each structural question from the named file alone:
 
 ## Scope
 
-In scope: the SDL authoring model and portable derived phase contracts —
-document structure, references, variables, instantiation/provenance,
-scenario-family variation declarations, canonical snapshots, the runtime-inventory index, observability/evidence plane
-rules, authored identity-domain topology, and the diagnostic boundary.
+This reference covers the SDL authoring model and portable derived phase contracts.
+These include document structure, references, variables, instantiation/provenance, scenario-family variation declarations, and canonical snapshots.
+They also include the runtime-inventory index, observability/evidence plane rules, authored identity-domain topology, and the diagnostic boundary.
 
 Out of scope: delivery-level concerns (container, infrastructure-as-code, and
 cloud-API mechanics), processor and backend execution contracts, and the

@@ -1,4 +1,4 @@
-# Participant Semantic Coverage Matrix
+# Participant semantic coverage matrix
 
 Issue #219 and ASR-506. This matrix is a coverage index, not a focused
 specification. It adds no semantics. The normative text stays in the
@@ -6,14 +6,14 @@ specification. It adds no semantics. The normative text stays in the
 [participant behavior model](../participant-behavior-model/README.md), and the
 [participant runtime design](../participant-runtime/README.md).
 
-For each row the matrix records the requirement, the normative location, the
-contract, the implementation, the tests, the class of that evidence, the
-resulting coverage, and, for every row that is not `covered`, the open issue
-that owns the gap and the test that would close it. When an owner lands, its PR
-updates the row. ADR-022's "Cross-Issue Boundaries And Evidence Ownership"
-owner table is acceptance-time text pinned under ADR-059 §1 (any edit needs an
-ADR-059 §3 amendment record), so it keeps the owners named at acceptance. This
-matrix, not that table, records the current open owner of each gap.
+Each matrix row records the requirement, normative location, contract, implementation, tests, evidence class, and resulting coverage.
+Each row that is not `covered` also names the open gap owner and the test that would close it.
+When an owner lands, its PR updates the row.
+
+ADR-022's "Cross-Issue Boundaries And Evidence Ownership" table is acceptance-time text pinned under ADR-059 §1.
+An edit to that table needs an ADR-059 §3 amendment record.
+It keeps the owners named at acceptance.
+This matrix records the current open owner of each gap.
 
 ## Parts
 
@@ -60,10 +60,13 @@ judgment.
   design's "V1 Traceability Criteria Matrix" (visibility, shared state, and
   concurrency/time), with that design's declared scope as requirements.
 
-Requirement cells come from existing sources only: a README heading's own UIDs,
-each focused specification's own requirement line or requirement headings, the
-invariant oracle's slice references for I-rows, the "Primary clauses" cell for
-PBM rows, and the runtime design's scope list for PRT rows.
+Requirement cells use only these existing sources:
+
+- The README heading's own UIDs.
+- Each focused specification's own requirement line or requirement headings.
+- The invariant oracle's slice references for I-rows.
+- The "Primary clauses" cell for PBM rows.
+- The runtime design's scope list for PRT rows.
 
 ## Columns and conventions
 
@@ -99,18 +102,20 @@ hyperproperty (ADR-081 Decision 5). A row is an **unproved claim** exactly when
 its evidence class cell contains no `proof`. Being unproved is not being
 uncovered, so unproved rows need no owner.
 
-Crosswalk to the ADR-081 axes in `specs/formal/behavioral-relations/README.md`:
-"bounded model checks" are the model-check axis ("Was a pinned finite model
-exhaustively explored within declared bounds?"); "runtime tests" are the
-runtime-enforcement and backend-conformance axes ("Does the reference runtime
-mediate every declared observation channel?", "Did the named realization pass
-bounded adversarial cases?") plus any other test of shipped code; "unproved
-claims" are rows without `proof` evidence (the proof axis, "Is a universal
-obligation independently proved?", answered per row). Checker and bounded-test
-evidence is finite executable evidence whose class depends on the code it
-drives. Relation-bound family rows name the catalog relation and restate no
-axis status: `contracts/concept-authority/behavioral-relations-v1.json` remains
-the only record of those axes.
+The ADR-081 axes are defined in `specs/formal/behavioral-relations/README.md`.
+This crosswalk keeps their distinct questions:
+
+| Matrix term | Axis and question |
+| --- | --- |
+| "bounded model checks" | Model-check: "Was a pinned finite model exhaustively explored within declared bounds?" |
+| "runtime tests" | Runtime-enforcement: "Does the reference runtime mediate every declared observation channel?" |
+| "runtime tests" | Backend-conformance: "Did the named realization pass bounded adversarial cases?" |
+| "unproved claims" | Rows without `proof` evidence. Proof asks: "Is a universal obligation independently proved?" The answer applies per row. |
+
+"runtime tests" also includes other tests of shipped code.
+Checker and bounded-test evidence is finite executable evidence, classified by the code it drives.
+Relation-bound family rows name the catalog relation and restate no axis status.
+`contracts/concept-authority/behavioral-relations-v1.json` remains the sole record of those axes.
 
 ## Coverage rule
 
@@ -127,11 +132,11 @@ focused specification's verification record plus the #219 audit. Every
 `partial` or `uncovered` row names an open owner issue and a target acceptance
 test with the behavior it must assert; that test need not exist yet.
 
-A `partial` or `uncovered` row counts against every
+A `partial` or `uncovered` row counts against each
 [family status row](../../../docs/explain/reference/shared-semantic-integrity.md)
-whose owning requirements include one of its requirements, unless the README
-itself assigns the missing part to another owner (the "Cross-Issue Coverage And
-Deferrals" table outside its duty cell, or a section's own deferral sentence).
+whose owning requirements include one of its requirements.
+An exception applies only when the README assigns the missing part to another owner.
+That assignment appears outside its duty cell in "Cross-Issue Coverage And Deferrals", or in the section's own deferral sentence.
 Such a row says "deferred" and quotes the assignment.
 
 ## Current decision and implementation crosswalk

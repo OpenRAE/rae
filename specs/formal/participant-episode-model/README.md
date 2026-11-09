@@ -1,4 +1,4 @@
-# Participant Episode And Budget Model Formal Design
+# Participant episode and budget model formal design
 
 This document is the issue #122 formal design artifact for:
 
@@ -30,11 +30,11 @@ ACT = model / first-class support) form one coherent model along two domains:
 | DSL (authored surface) | DSL-120 | DSL-121 |
 | ACT (model / first-class support) | ACT-623 | ACT-624 |
 
-They interlock: an authored episode may declare interaction budgets whose
-exhaustion is an authored terminal/truncation condition; a budget's reset scope
-is defined relative to the episode reset boundary; both are evaluated over the
-same participant identity, generation, order, clock, and evidence coordinates.
-Designing them apart would fork those shared coordinates.
+The episode and budget boundaries depend on each other.
+An authored episode may declare interaction budgets whose exhaustion is an authored terminal/truncation condition.
+A budget's reset scope is relative to the episode reset boundary.
+Both use the same participant identity, generation, order, clock, and evidence coordinates.
+Separate designs would duplicate those shared coordinates.
 
 ## Current coverage and the gap this design fills
 
@@ -108,9 +108,12 @@ interchangeable (mirroring the ADR-067 behavior model):
 
 ## Episode domain
 
-### SEM-222 - Episode Boundary And Termination Semantics
+<!-- vale RAES.HeadingCase = NO -->
+### SEM-222 - episode boundary and termination semantics
 
 Design commitments:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 - **Identity and generation.** Episode identity, generation, and cross-reset
   lineage are ADR-013's (`participant_address` stable; a new distinguishable
@@ -147,9 +150,12 @@ Design commitments:
   progress reset to zero, while already-delivered observations and evidence are
   not retroactively erased.
 
-### DSL-120 - Authored Episode Structure And Termination Surface
+<!-- vale RAES.HeadingCase = NO -->
+### DSL-120 - authored episode structure and termination surface
 
 Design commitments:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 - **A typed, versioned authored episode-policy record** attaches to the existing
   participant behavior specification (ACT-606), parameterized by
@@ -169,9 +175,12 @@ Design commitments:
   `ParticipantEpisode*` addresses; it does not publish a parallel episode schema
   family or backend DTO.
 
-### ACT-623 - Participant Episode Structure As A First-Class Concern
+<!-- vale RAES.HeadingCase = NO -->
+### ACT-623 - participant episode structure as A first-class concern
 
 Design commitments:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 - Episode structure is a **named, versioned, traceable, reviewable** member of
   the participant model aggregate - not a backend-local convention and not only a
@@ -186,9 +195,12 @@ Design commitments:
 
 ## Budget domain
 
-### SEM-223 - Budget, Quota, Consumption, And Exhaustion Semantics
+<!-- vale RAES.HeadingCase = NO -->
+### SEM-223 - budget, quota, consumption, and exhaustion semantics
 
 Design commitments:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 - **One budget family (ADR-097 v3), four separated authorities.** Authored/
   admitted demand (`ParticipantResourceBudgetPolicy`), configured pool capacity
@@ -222,9 +234,12 @@ Design commitments:
   owner; an episode reset never zeroes aggregate use or releases active leases
   without that owner's rule.
 
-### DSL-121 - Authored Interaction Budget Surface
+<!-- vale RAES.HeadingCase = NO -->
+### DSL-121 - authored interaction budget surface
 
 Design commitments:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 - **Interaction budgets are authored allowances that project into the ADR-097
   canonical demand**, mirroring how V1/V2 autonomous limits project with
@@ -248,9 +263,12 @@ Design commitments:
   contract, compiler, schema-publication, fixture, and conformance updates ADR-097
   requires - not an optional side field.
 
-### ACT-624 - Participant Interaction Budgets And Quotas As First-Class Support
+<!-- vale RAES.HeadingCase = NO -->
+### ACT-624 - participant interaction budgets and quotas as first-class support
 
 Design commitments:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 - Interaction budgets/quotas attach to the **participant/behavior-specification
   aggregate itself**, so they apply across participant implementation kinds
@@ -264,11 +282,14 @@ Design commitments:
   realization *evidence*, not portable proof; support ≠ configured capacity ≠
   current availability ≠ measured use.
 
+<!-- vale RAES.HeadingCase = NO -->
 ## Abstract state machine (FM3)
 
 This design is **FM3 (stateful / control semantics)** per ADR-018/ASR-505. The
 authored/semantic layer's abstract state machine, over one participant
 `(participant_address, episode_generation)`:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 Episode states:      DECLARED_INITIALIZED
@@ -303,14 +324,15 @@ Transitions (fail-closed; unknown/stale/future/cross-generation input rejected):
                                                                              [typed disposition; T5/T6 only via T3-style map]
 ```
 
-Fail-closed obligations: exhaustion is derived from remaining capacity `rem(d)`
-across repeated reserve->commit cycles, never a one-shot flag; T2 must not zero
-aggregate/tenant/fleet/persistent budget; T7 admits only when `q <= rem(d)` and
-is atomic across the full resource vector against one pool ledger; T8 records an
-exact measured vector `m <= q` with matching operation/generation/meter/evidence
-and leaves the dimension open while `rem(d) > 0`; T9 settles each outstanding
-reservation exactly once; T11 never reaches a terminal reason except through the
-explicit T3-style evidence-bearing transition.
+The following fail-closed obligations apply:
+
+- Exhaustion is derived from remaining capacity `rem(d)` across repeated reserve->commit cycles, never a one-shot flag.
+- T2 must not zero aggregate/tenant/fleet/persistent budget.
+- T7 admits only when `q <= rem(d)` and is atomic across the full resource vector against one pool ledger.
+- T8 records an exact measured vector `m <= q` with matching operation/generation/meter/evidence.
+  It leaves the dimension open while `rem(d) > 0`.
+- T9 settles each outstanding reservation exactly once.
+- T11 reaches a terminal reason only through the explicit T3-style transition with evidence.
 
 ## Cross-clause invariants
 
@@ -329,13 +351,16 @@ explicit T3-style evidence-bearing transition.
 
 ## Source-to-contract-to-test matrix (the issue #122 readiness bar)
 
-Each obligation maps to an existing typed contract/helper, a lifecycle
-enforcement point, a positive fixture, and a negative fixture. Fixtures and
-enforcement code are **named here but delivered by the deferred owner** (design
-run). The mandated negative fixtures (cross-episode budget leakage; a global
-counter treated as participant-local state; stale/future consumption events;
-hidden quota state exposed without a view rule; exhaustion bypassing controlled
-failure/outcome semantics) are called out explicitly.
+Each obligation maps to an existing typed contract/helper, a lifecycle enforcement point, a positive fixture, and a negative fixture.
+This design **names** the fixtures and enforcement code.
+Their deferred owner delivers them.
+The required negative fixtures cover these cases:
+
+- Cross-episode budget leakage.
+- A global counter treated as participant-local state.
+- Stale/future consumption events.
+- Hidden quota state exposed without a view rule.
+- Exhaustion bypassing controlled failure/outcome semantics.
 
 | Obligation | Typed contract / helper (incumbent) | Enforcement point | Positive fixture | Negative fixture | Deferred owner |
 | --- | --- | --- | --- | --- | --- |
