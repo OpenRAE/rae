@@ -92,3 +92,20 @@ def test_prepared_delivery_preserves_sequence_order_with_overlapping_position_do
         assert result.details == {}
         assert result.diagnostics[0].code == "runtime.backend-contract-invalid"
         assert result.diagnostics[0].message == "Backend did not deliver its admitted realization completion."
+
+
+def test_prepared_delivery_matches_keyed_collection_members_by_identity():
+    from raes_processor.planner import prepared_delivery_violation
+
+    runtime = {
+        "packages": [
+            {"name": "zsh", "version": "5.9", "manager": "apt"},
+            {"name": "curl", "version": "8.5", "manager": "apt"},
+        ]
+    }
+    _, request, _ = _fixture(runtime, scope="/nodes/host/runtime/packages")
+    reordered = deepcopy(runtime)
+    reordered["packages"].reverse()
+    assert prepared_delivery_violation(request, _returned(request, reordered)) is None
+    reordered["packages"][0]["version"] = "8.6"
+    assert prepared_delivery_violation(request, _returned(request, reordered)) is not None

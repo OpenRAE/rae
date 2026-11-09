@@ -21,6 +21,12 @@ from raes_contracts.planning import (
 from raes_contracts.realization_authority import planned_realization_selection_diagnostics
 from raes_contracts.realization_structure import (
     ExactRealizationValue,
+    RealizationAllOf,
+    RealizationConstraintDocument,
+    RealizationDefinitionReference,
+    RealizationKeyedCollectionConstraint,
+    RealizationRecordConstraint,
+    RealizationSequenceConstraint,
     evaluate_realization_constraint,
     structure_matches,
 )
@@ -252,6 +258,45 @@ def _delivered_value(authority: ResolvedRealizationAuthority, entry: object, sna
     return getattr(observation.operating_system, _OPERATING_SYSTEM_ATTRIBUTES[authority.requirement_kind])
 
 
+def _identity_order(value: object, structure: object, document: RealizationConstraintDocument, depth: int = 0) -> object:
+    """Order keyed-collection members by semantic identity; sequences keep their positions."""
+
+    if depth > 64:
+        return value
+    if isinstance(structure, RealizationDefinitionReference):
+        target = document.definitions.get(structure.target)
+        return value if target is None else _identity_order(value, target, document, depth + 1)
+    if isinstance(structure, RealizationAllOf):
+        for constraint in structure.constraints:
+            value = _identity_order(value, constraint, document, depth + 1)
+        return value
+    if isinstance(structure, RealizationRecordConstraint) and isinstance(value, dict):
+        return {
+            key: _identity_order(item, structure.fields[key], document, depth + 1) if key in structure.fields else item
+            for key, item in value.items()
+        }
+    if isinstance(structure, RealizationSequenceConstraint) and isinstance(value, list):
+        return [
+            _identity_order(item, structure.items[index], document, depth + 1) if index < len(structure.items) else item
+            for index, item in enumerate(value)
+        ]
+    if (
+        isinstance(structure, RealizationKeyedCollectionConstraint)
+        and isinstance(value, list)
+        and all(isinstance(item, dict) for item in value)
+    ):
+        members = {canonical_json_digest(list(member.identity)): member.constraint for member in structure.members}
+
+        def identity(item: dict[str, object]) -> str:
+            return canonical_json_digest([item.get(field) for field in structure.identity_fields])
+
+        return [
+            _identity_order(item, members[identity(item)], document, depth + 1) if identity(item) in members else item
+            for item in sorted(value, key=identity)
+        ]
+    return value
+
+
 def _delivery_violation(
     authority: ResolvedRealizationAuthority, operation: object, entry: object, snapshot: RuntimeSnapshot
 ) -> str | None:
@@ -265,13 +310,17 @@ def _delivery_violation(
         return None
     if actual is _MISSING:
         return "Backend did not deliver its admitted realization completion."
-    recursive = authority.constraint_document is not None
+    document = authority.constraint_document
+    recursive = document is not None
     expected = portable_realization_value(
         project_realization_concern(authority.requirement_kind, expected, recursive=recursive)
     )
     actual = portable_realization_value(
         project_realization_concern(authority.requirement_kind, actual, observed=True, recursive=recursive)
     )
+    if document is not None:
+        expected = _identity_order(expected, document.root, document)
+        actual = _identity_order(actual, document.root, document)
     exact = structure_matches(ExactRealizationValue(kind="exact"), expected, actual)
     return None if exact else "Backend did not deliver its admitted realization completion."
 
