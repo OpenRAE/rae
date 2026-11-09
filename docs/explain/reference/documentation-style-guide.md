@@ -83,9 +83,12 @@ Keep the outcome with the command:
 
 ### Vale enforcement
 
-Vale uses the RAES rules in `styles/RAES/` through `.vale.ini`.
-It checks plain words, dismissive words, promotional claims, heading case,
-heading punctuation, repeated words, sentence length, and a reading score.
+Vale uses the shared `DocTools` rules and local `styles/RAES/` through `.vale.ini`.
+The shared rules check plain words, dismissive words, promotional claims, and heading punctuation.
+Local rules keep RAE vocabulary, heading case, repeated words, and a reading score.
+Shared ste-cli checks Markdown sentence length, paragraph length, and contractions.
+Vale retains the local sentence-length check for reStructuredText.
+
 Vale is a style linter. It does not check code accuracy, page purpose, or full
 ASD-STE100 conformance. A reading score does not replace technical review.
 
@@ -119,6 +122,7 @@ vale_bin="$(uv run --project implementations/tooling/python --frozen --no-defaul
 export PATH="$PWD/implementations/python/.venv/bin:$PATH"
 "$vale_bin" --version
 rst2html --version
+uv run --project implementations/tooling/python --frozen --no-default-groups python -c 'from pathlib import Path; from tools.documentation_tools import ensure_doc_tools, ensure_ste, sync_doc_tools_styles; from tools.vale_tool import ensure_vale; sync_doc_tools_styles(Path.cwd(), ensure_vale(), ensure_doc_tools()); print(ensure_ste())'
 ```
 
 `ensure_vale()` uses the reviewed artifact lock and checks the downloaded bytes.
@@ -128,20 +132,50 @@ Do not replace it with an unpinned download or a personal installation.
 | Component | Source and version | License and installation route |
 | --- | --- | --- |
 | Vale | [vale-cli/vale v3.15.2](https://github.com/vale-cli/vale/tree/v3.15.2) | MIT. Use `tools/vale_tool.py` and `implementations/tooling/artifacts.lock.json`. |
-| RAES styles | `styles/RAES/` and `.vale.ini` at the checked-out revision | Repository MIT license. The checkout includes the styles. |
+| Shared package | [doc-tools v0.1.0](https://github.com/OpenRAE/doc-tools/tree/v0.1.0) | MIT. The artifact lock pins the archive and installed assets. |
+| STE checker | [ste-cli v0.10.1](https://github.com/TudorAndrei/ste-cli/tree/v0.10.1) | MIT. The artifact lock pins each supported platform. |
+| RAES styles | `styles/RAES/` and `.vale.ini` at the checked-out revision | Repository MIT license. The checkout includes local rules and vocabulary. |
 | docutils | 0.22.4 in `implementations/python/uv.lock` | Public domain with file-specific exceptions in `COPYING.rst`. Use the frozen docs environment. |
 | Sphinx and MyST | 9.1.0 and 5.0.0 in the same lock | BSD-2-Clause and MIT. Use the frozen docs environment. |
 
-The setup review included the existing local `documentation` skill.
-Its `SKILL.md` digest is
-`f2f56b93723c273fccea271e2622d292f5622ea2e9af23c00e2bfaa3eb4cfa8e`.
-Its local license file gives MIT-licensed upstream guidance. It does not
-give a public source for the complete skill. Do not copy a personal skill.
-The public [ste-review v0.10.1](https://github.com/TudorAndrei/ste-cli/tree/v0.10.1/skill/ste-review)
-has an MIT license, but its procedure needs a separate `ste` command.
-This setup uses the existing tools and this maintained guide, as #1931 specifies.
-It installs neither that analyzer nor a replacement skill.
-Agents start with [AGENTS.md](../../../AGENTS.md).
+The package source commit is `97866fad14d7fbb0d6752788ebdc5ae4f235573a`.
+The release archive SHA-256 is
+`125104c0cc535698d1cc9bba3e57883bdf9d87db6da346ff583967c4ce42de6c`.
+The existing acquisition and installation helpers check archive and installed-file digests.
+They keep the unchanged skill and license notices in the private package directory.
+
+Vale installs its four shared rules through its local package interface.
+`styles/DocTools/` is ignored installation output. Do not edit it.
+
+The shared `.ste.yml` disables dictionary and analyzer features.
+Checks run on the host. Documentation does not go to a remote analyzer.
+The integration invokes the verified binary with the shared wrapper's checking arguments.
+It does not use the wrapper's download path, which trusts an existing binary without another digest check.
+
+The [released documentation skill](https://github.com/OpenRAE/doc-tools/tree/v0.1.0/skills/documentation)
+is the shared authoring guidance. Its MIT notices remain with the package.
+The checks need no personal skill installation.
+
+For normal agent discovery, use the pinned
+[Codex or Claude Code installation instructions](https://github.com/OpenRAE/doc-tools/blob/v0.1.0/docs/how-to-install.md#install-the-skill).
+Do not install another skill with the same name over an existing personal skill.
+Review that installation separately. Do not copy or rewrite the skill in RAE.
+Agents start with [AGENTS.md](../../../AGENTS.md) and this guide for local rules.
+
+#### Upgrade or roll back
+
+Update `doc-tools` and `ste-cli` records in `implementations/tooling/artifacts.lock.json` through a reviewed PR.
+Compare the release source, notices, archive digests, installed-file digests, and supported platforms.
+Update affected host profiles, selector bindings, and `tools/tool_versions.py` together.
+Use the upstream release notes and the existing artifact admission checks.
+Keep one active owner for each style check.
+Run explicit-path checks and negative samples before merge.
+
+For rollback, restore the previous reviewed pins and compatible Vale configuration through a PR.
+Run the same checks. The private installation identities keep different releases separate.
+The next Vale sync replaces installed shared rules from the selected verified package.
+If the skill was installed separately, restore its release tag through the same agent installer.
+Do not change product locks, publication settings, or historical evidence for a tool upgrade.
 
 #### Check explicit changed paths
 
@@ -164,9 +198,13 @@ With no arguments, the stage selects working-tree and untracked files.
 Use `--staged` for staged files. It keeps spaces and newlines in filenames.
 It refuses paths outside the repository and malformed protection catalogs.
 
-Exit code `0` means that Vale found no enabled style errors.
+Exit code `0` means Vale and the applicable shared STE checks found no enabled errors.
 If the result is nonzero, find the cause. Correct real prose errors.
 Then run the same command again. If a proposed change changes the meaning, keep the accurate technical term. Record a narrow exception and its reason in the PR.
+
+Shared ste-cli does not parse reStructuredText markup.
+The stage sends `.rst` files only to Vale and Docutils.
+Review their STE meaning manually.
 
 Vale 3.15.2 needs `rst2html` on `PATH` for `.rst` files.
 The [Vale reStructuredText reference](https://docs.vale.sh/formats/restructuredtext)
@@ -221,8 +259,9 @@ technical term. Use one name for each thing. Give each paragraph one topic.
 
 For procedures, put prerequisites and conditions before the affected action.
 Use the imperative. Give one instruction per sentence. Use at most 20 words per
-instruction and 25 words per descriptive sentence. Keep paragraphs to six
-sentences. Use the active voice when the source gives the actor.
+instruction and 25 words per descriptive sentence.
+
+Keep paragraphs to six sentences. Use the active voice when the source gives the actor.
 Do not invent an actor to remove passive voice.
 
 ## Compare each section with sources
@@ -291,7 +330,9 @@ PR. Do not rewrite or annotate pinned historical text to clear a style finding.
 Render public pages with the existing build. Examine repository-only prose in
 a local Markdown view. Check heading order, descriptive link text, and text
 alternatives for diagrams. Test keyboard access when navigation or controls
-change. Do not use color alone to convey meaning. Keep commands copyable and
+change. Do not use color alone to convey meaning.
+
+Keep commands copyable and
 explain placeholders beside their first use. Record the view and results in
 the PR. A source-only review does not show rendered accessibility.
 
@@ -319,7 +360,7 @@ Do not add:
 - unsupported maturity claims
 
 Do not use promotional adjectives unless the sentence gives a measurable
-property and cites evidence. The rule tokens are in `styles/RAES/AvoidHype.yml`.
+property and cites evidence. The rule tokens are in the installed `styles/DocTools/AvoidHype.yml`.
 
 ## Current-state claims
 

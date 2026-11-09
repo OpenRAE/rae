@@ -1,6 +1,0 @@
-extends: existence
-message: "Remove dismissive wording ('%s') and state the action directly."
-level: error
-ignorecase: true
-tokens:
-  - '\b(?:simply|just|obviously|trivial(?:ly)?|easily|easy|straightforward)\b'

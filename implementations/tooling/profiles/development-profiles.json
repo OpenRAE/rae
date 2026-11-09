@@ -44,14 +44,16 @@
         "cpython-3.14",
         "cpython-3.14t",
         "devcontainer-base-image",
+        "doc-tools",
         "gitleaks",
         "osv-scanner",
+        "postgresql-runtime-test",
         "scorecard-action-image",
         "sonar-scanner-cli",
+        "ste-cli",
+        "temporal-cli-runtime-test",
         "uv",
-        "vale",
-        "postgresql-runtime-test",
-        "temporal-cli-runtime-test"
+        "vale"
       ]
     },
     {
@@ -79,8 +81,10 @@
       "supported_artifact_ids": [
         "conftest",
         "cpython-3.14",
+        "doc-tools",
         "gitleaks",
         "osv-scanner",
+        "ste-cli",
         "uv",
         "vale"
       ]
@@ -110,8 +114,10 @@
       "supported_artifact_ids": [
         "conftest",
         "cpython-3.14",
+        "doc-tools",
         "gitleaks",
         "osv-scanner",
+        "ste-cli",
         "uv",
         "vale"
       ]
