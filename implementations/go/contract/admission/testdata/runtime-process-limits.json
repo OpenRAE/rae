@@ -1194,6 +1194,96 @@
       },
       "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
       "Admitted": true
+    },
+    {
+      "Name": "integral-float-soft-refused",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": [
+        1.0
+      ],
+      "Hard": [
+        100
+      ],
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": false
+    },
+    {
+      "Name": "integral-float-hard-refused",
+      "Value": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker"
+        },
+        "soft": 10,
+        "hard": 20
+      },
+      "Capability": {
+        "resource": "open_file_descriptors",
+        "scopes": [
+          "process"
+        ],
+        "minimum": 0,
+        "maximum": 100,
+        "supports_unlimited": false
+      },
+      "Soft": [
+        10
+      ],
+      "Hard": [
+        1.0
+      ],
+      "Projection": {
+        "resource": "open_file_descriptors",
+        "subject": {
+          "name": "worker",
+          "pid": null,
+          "parent_pid": null,
+          "command": [],
+          "command_redacted": false,
+          "role": "other",
+          "user": "",
+          "group": "",
+          "working_directory": ""
+        },
+        "scope": "process",
+        "soft": 10,
+        "hard": 20
+      },
+      "Digest": "sha256:7d0fc54d680bf6b030084e2547527821e0cd1a11eea1a52675ddfa90f7804087",
+      "Admitted": false
     }
   ]
 }

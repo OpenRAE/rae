@@ -121,7 +121,7 @@ func sdlProcessLimitValueAdmitted(capability, value any) bool {
 	}
 	actual, valid := number(value)
 	minimum, minOK := defaultNumber(capability, "minimum", 0)
-	if !valid || !actual.IsInt() || !minOK || actual.Cmp(minimum) < 0 {
+	if !valid || !sdlNumberField(value, "integer:0:") || !minOK || actual.Cmp(minimum) < 0 {
 		return false
 	}
 	if at(capability, "maximum") == nil {
