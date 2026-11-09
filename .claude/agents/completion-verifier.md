@@ -60,4 +60,4 @@ If any required check fails:
 {"ok": false, "reason": "The selected requirement-governance check failed; include its rule and path."}
 ```
 
-Be specific about what's missing so Claude can fix it.
+Be specific about what is missing so Claude can fix it.

@@ -42,12 +42,17 @@ uv run --project implementations/python --frozen python -m tools.research_captur
 
 The command prints a new manifest path.
 It copies the snapshot without changing observation labels.
-It derives the directory from the document pins. If the analysis references the prepared
+It derives the directory from the document pins.
+
+If the analysis references the prepared
 snapshot path, the recorder replaces that reference with `@snapshot`.
 During formal validation, this token resolves to the manifest-pinned snapshot.
-Thus the directory name has no self-reference. Other evidence
+Thus the directory name has no self-reference.
+
+Other evidence
 references remain unchanged and their referenced files must be committed.
 Keep the resulting capture directory and its `capture-records` receipt; prepared input copies need not be committed.
+
 For an unchanged historical capture, omit `--snapshot` and `--analysis` to wrap
 its existing exact bytes. Repeating the same capture is idempotent. A different capture creates another directory.
 Thus parallel branches do not overwrite each other's evidence files.
@@ -85,6 +90,7 @@ previous publication receipts. The receipt pins the capture manifest's path and
 SHA-256; the capture identity, observation bytes and baseline links stay unchanged.
 Commit that receipt through the integration workflow before publishing the other
 family. Repeating publication of a committed receipt returns the existing path.
+
 The command refuses feature branches, detached checkouts, `main`, and dirty
 integration checkouts. It does not merge a PR or change any branch itself.
 

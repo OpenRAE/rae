@@ -70,10 +70,9 @@ Report vulnerabilities privately through [SECURITY.md](../SECURITY.md).
 
 `tools/policy/adr_policy.yaml` defines the public import facades allowed across
 RAES packages. Adapters import owning domain APIs only through those listed
-facades and never through private modules. For example, the semantic CLI calls
-SDL compilation through `raes_processor.compiler`; adding another CLI/compiler
-interaction extends that public facade instead of importing compiler internals
-or duplicating compiler behavior in `raes_cli`.
+facades and never through private modules. The semantic CLI calls SDL compilation through `raes_processor.compiler`.
+Extend that public facade for another CLI/compiler interaction.
+Do not import compiler internals or duplicate compiler behavior in `raes_cli`.
 
 After a cross-package import change, run the relevant structural check:
 
@@ -111,10 +110,13 @@ The reusable graph splits the default-marker tests across four deterministic sha
 The `test-shard` indices are 0–3. Each shard owns a SHA-256
 partition of the collected pytest node ids (`tools/pytest_shard.py`); there is no
 per-module shard table. Alongside the shards, the `integration`, `checks`
-(hygiene, policy, lint, contracts, docs), and `proof` jobs run in parallel. The
-`coverage-reduce` job then proves the shard manifests form a complete, disjoint
-partition of a freshly collected suite, combines shard and integration coverage,
-and enforces the 90% line floor (ADR-103). SonarCloud runs inside the same graph
+(hygiene, policy, lint, contracts, docs), and `proof` jobs run in parallel.
+
+The `coverage-reduce` job proves the shard manifests form a complete, disjoint partition of a freshly collected suite.
+It combines shard and integration coverage.
+It enforces the 90% line floor (ADR-103).
+
+SonarCloud runs inside the same graph
 as soon as the combined coverage is ready. The caller preserves the required
 `verify` and `sonar` check contexts as decoupled joins: a red quality gate no
 longer blocks the test gate, and vice versa.

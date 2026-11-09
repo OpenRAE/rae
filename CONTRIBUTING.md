@@ -14,9 +14,9 @@ These instructions do not qualify a Go release or a live backend.
 - For a small docs fix, typo fix, or narrow test improvement, a pull request
   is enough. Use `No issue: <brief reason>` in its Related Issues section.
 - For SDL language changes, contract changes, processor behavior changes, or
-  backend conformance changes, open an issue first and reference it with a
-  standalone `Refs #N` line when the issue's Requirements section declares
-  requirement UIDs, or `Closes #N` otherwise. Those changes can affect authored scenario
+  backend conformance changes, open an issue first.
+  Use a standalone `Refs #N` line when its Requirements section declares UIDs.
+  Use `Closes #N` otherwise. Those changes can affect authored scenario
   meaning and generated artifacts.
 - Keep unrelated work in separate pull requests.
 - Base pull requests on `dev`, not `main`. `main` is the stable release line;
@@ -31,8 +31,8 @@ Pull request bodies use the section structure that the Ground Control delivery
 workflow renders, so a rendered body passes the body guard unmodified. The
 [pull request template](.github/PULL_REQUEST_TEMPLATE.md) lists the sections:
 Summary, Requirement UIDs, Related Issues, ADR Impact, Changes, Test Plan,
-Ground Control Checks, Traceability, and Checklist, plus an optional
-Documentation section. Each required section appears exactly once and has
+Ground Control Checks, Traceability, and Checklist.
+Documentation is an optional section. Each required section appears exactly once and has
 content. The guard also enforces the following rules:
 
 - The Summary describes the change in non-placeholder prose.
@@ -66,9 +66,11 @@ Prerequisites:
   [development profile](implementations/tooling/README.md); 3.14t is preview-only
 - the exact uv payload selected by the development artifact lock
 
-The host profile also requires Git, trusted CA roots, SHA-256 tooling, GH CLI
-when GitHub operations are used, and curl 8.4.0 or newer with verified
-unknown-length size enforcement. An older client is a hard failure for generic
+The host profile also requires Git, trusted CA roots, and SHA-256 tooling.
+GitHub operations require GH CLI.
+Generic acquisition requires curl 8.4.0 or newer with verified unknown-length size enforcement.
+
+An older client is a hard failure for generic
 artifact acquisition. Provision native prerequisites from the reviewed host
 image or signed package repositories. Connected setup acquires exact Python,
 uv and generic-tool inputs against their reviewed identities. Do not pipe

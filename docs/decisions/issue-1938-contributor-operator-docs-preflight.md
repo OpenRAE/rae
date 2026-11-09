@@ -20,6 +20,7 @@ It must expose supported setup, a targeted check, and the pull request route.
 `SUPPORT.md` owns ordinary support; public support and contribution pages link
 to these root sources with absolute repository URLs.
 Do not make governance history a prerequisite for these tasks.
+
 Keep conduct reporting distinct from vulnerability reporting, even where contacts match.
 Keep existing response limits; do not introduce a service commitment.
 
@@ -60,6 +61,7 @@ Preserve adopted community rules, quotations, license terms, and third-party not
 Improve their entry guidance without changing obligations or enforcement powers.
 `CHANGELOG.md` is release-please output. Repository policy prohibits hand edits.
 Meet its reader-route obligation through maintained entry pages, not generated entries.
+
 Keep `LICENSE` text unchanged. Preserve legal text in `THIRD_PARTY_NOTICES.md`.
 Edit generated prose at its maintained source when such a source exists.
 Explain every exclusion in the PR; a lint exemption does not omit review.
@@ -123,6 +125,7 @@ The diagram shows source, diagnostics, and rendered HTML flows across local and 
 This rewrite changes prose before the existing review boundary.
 It does not invoke the publisher or change its permissions.
 Local artifacts stay on this host.
+
 Private credentials must never enter source, diagnostic attachments, or rendered output.
 Existing secret checks and publication containment checks protect these boundaries.
 No application component, executable policy, or architecture model changes.
@@ -164,11 +167,14 @@ One later implementation PR delivers #1938.
 File-local repository policy passed before this note was added and after the edit.
 `git diff --check` passed. Direct Vale checking used `tools.vale_tool.ensure_vale`
 with `.vale.ini`; the corrected note passed.
-The `docs-prose` session could not complete frozen environment setup.
+
+The initial `docs-prose` session could not complete frozen environment setup.
 It could not download pinned `rpds-py==2026.9.1` because DNS resolution failed.
 No prose stage ran in that session.
+
 Local MyST/docutils HTML inspection checked heading order and table structure.
-No diagrams, navigation controls, or links were added.
+The initial preflight added no diagrams, navigation controls, or links.
 Browser visual and keyboard review were not performed.
+
 No behavioral code changed; test suites and mutation testing do not apply.
 No full suite, release, or publication ran.
