@@ -10,13 +10,14 @@ audience, controller or operation-actor policy after this admission.
 from __future__ import annotations
 
 import hmac
-import logging
 from collections.abc import Callable, Mapping
 from types import MappingProxyType
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.routing import APIRoute
+from raes_contracts.errors import AuthorizationError, OperationalError
+from raes_contracts.operational_logging import get_logger
 from starlette.routing import Route
 
 from ..control_plane import RuntimeControlPlane
@@ -29,13 +30,14 @@ from ..control_plane_security import (
     ControlPlaneSecurityConfig,
 )
 from ._offload import _control_plane_calls
+from ._responses import _refusal
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_logger(__name__)
 _UNAUTHORIZED_DETAIL = "unauthorized"
 _FORBIDDEN_DETAIL = "forbidden"
 
 
-class _AdmissionRejected(Exception):
+class _AdmissionRejected(AuthorizationError):
     """An admission refusal whose specific reason is audited, never returned."""
 
     def __init__(self, status_code: int, reason: str) -> None:
@@ -109,7 +111,13 @@ class _ControlPlaneApiAuth:
     def _require_target_binding(self, identity: ControlPlaneIdentity) -> ControlPlaneIdentity:
         """Require an identity scoped exactly to this control-plane target."""
 
-        if identity.target_name != self._control_plane.target_name:
+        try:
+            target_name = self._control_plane.target_name
+        except OperationalError as exc:
+            # A closed runtime, or one that requires restart, refuses every call. Admission answers
+            # with the unavailable status of that category, as a route does.
+            raise _refusal(exc) from exc
+        if identity.target_name != target_name:
             raise _AdmissionRejected(403, "identity is not authorized for this target")
         return identity
 
@@ -139,13 +147,14 @@ class _ControlPlaneApiAuth:
         )
 
     def _record_audit_safely(self, **fields: object) -> None:
+        # Isolation: a failed denial audit must not replace the selected refusal.
         try:
             self._control_plane.record_audit(
                 **fields,
                 target=self._control_plane._target_scope,
             )
         except Exception:
-            _LOGGER.error("control-plane-auth-audit-failed")
+            _LOGGER.exception("control-plane-auth-audit-failed")
 
 
 def _public_probe_dependency() -> None:

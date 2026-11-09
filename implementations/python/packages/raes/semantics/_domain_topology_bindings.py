@@ -44,6 +44,7 @@ def missing_controller_issues(
                 topology_issue(
                     "domain.controller.missing",
                     f"Identity domain '{domain_name}' has no controller relationship",
+                    ("identity_domains", domain_name),
                 )
             )
     return issues
@@ -66,6 +67,7 @@ def join_controller_issues(
                             "domain.join.controller-wrong-domain",
                             f"Relationship '{relationship_name}' controller_ref '{controller_name}' does not "
                             f"control the same domain '{domain_name}'",
+                            ("relationships", relationship_name),
                         )
                     )
     return issues
@@ -114,6 +116,7 @@ def _redundant_join_issues(
                     "domain.node.redundant-join",
                     f"Node '{node_name}' is a controller for domain '{domain_name}' and must not declare "
                     "a redundant join",
+                    ("nodes", node_name),
                 )
             )
     return issues
@@ -137,6 +140,7 @@ def _multiple_active_directory_issues(
                 "domain.node.multiple-active-directory-domains",
                 f"Node '{node_name}' belongs to multiple active_directory domains: "
                 f"{', '.join(sorted(active_directory_domains))}",
+                ("nodes", node_name),
             )
         )
     return issues
@@ -169,6 +173,7 @@ def _account_domain(
             topology_issue(
                 "domain.account.spn-without-domain",
                 f"Account '{account_name}' declares an SPN and requires explicit domain_ref",
+                ("accounts", account_name),
             )
         )
     if domain_ref and not is_unresolved(domain_ref):
@@ -178,6 +183,7 @@ def _account_domain(
                 topology_issue(
                     "domain.account.domain-unbound",
                     f"Account '{account_name}' domain_ref '{domain_ref}' does not resolve to an identity domain",
+                    ("accounts", account_name),
                 )
             )
     return domain_name, issues
@@ -219,6 +225,7 @@ def _account_binding(
                         "domain.account.node-outside-domain",
                         f"Account '{account_name}' is placed on node '{node_name}', which does not belong to "
                         f"domain '{domain_name}'",
+                        ("accounts", account_name),
                     )
                 )
     return binding, issues
@@ -266,6 +273,7 @@ def _authority_account(
                 topology_issue(
                     "domain.authority.account-unbound",
                     f"Identity domain '{domain_name}' authority account '{authority_ref}' is not declared",
+                    ("identity_domains", domain_name),
                 )
             )
     return authority_name, issues
@@ -289,6 +297,7 @@ def _authority_binding(
                 "domain.authority.not-on-controller",
                 f"Identity domain '{domain_name}' authority account '{authority_name}' must be placed on "
                 "one of its controller nodes",
+                ("identity_domains", domain_name),
             )
         )
     else:
@@ -299,6 +308,7 @@ def _authority_binding(
                     "domain.authority.domain-conflict",
                     f"Identity domain '{domain_name}' authority account '{authority_name}' is already bound to "
                     f"domain '{existing_binding.domain_name}'",
+                    ("identity_domains", domain_name),
                 )
             )
         else:

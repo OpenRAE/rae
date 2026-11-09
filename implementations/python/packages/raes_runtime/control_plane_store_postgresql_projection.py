@@ -12,14 +12,37 @@ if TYPE_CHECKING:
     from .control_plane_store_postgresql import PostgreSQLControlPlaneStore
 
 
+from raes_contracts.errors import EvidenceIntegrityError
+
 from .control_plane_store_changes import OperationChanges, require_change_cursor
+from .control_plane_store_claim_columns import ledger_operation_claim_columns, require_claim_columns
 from .control_plane_store_history_rows import persist_history_rows, restore_history_rows
-from .control_plane_store_local_codec import decode_payload, encode_payload
+from .control_plane_store_local_codec import decode_contract, decode_payload, encode_payload
 from .control_plane_store_records import _record_from_payload
-from .control_plane_store_revision import SnapshotState
-from .control_plane_store_snapshots import _canonical_snapshot, _snapshot_from_payload, _snapshot_payload
+from .control_plane_store_revision import SnapshotState, require_stored_snapshot_revision
+from .control_plane_store_snapshots import _canonical_snapshot, _snapshot_payload, durable_snapshot_state
 
 _OPERATION_RECORD_KIND = "operation record"
+_RECORD_IDENTITY_MISMATCH = "operation record does not match its durable identity"
+# Each operation query reads the durable key, the claim columns in `ledger_operation_claim_columns` order,
+# and the record.
+SELECT_LEDGER_OPERATIONS = (
+    "SELECT operation_id, actor_id, operation_kind, idempotency_key, payload, digest FROM raes_ledger_operations "
+)
+
+
+def ledger_operation_from_row(row: tuple[object, ...]) -> ControlPlaneOperationRecord:
+    """Decode one `SELECT_LEDGER_OPERATIONS` row.
+
+    Refuse a row whose key or claim columns do not match its record.
+    """
+
+    operation_id, *claim_columns, payload, digest = row
+    record = decode_contract(payload, digest, kind=_OPERATION_RECORD_KIND, rebuild=_record_from_payload)
+    if record.receipt.operation_id != operation_id:
+        raise EvidenceIntegrityError(_RECORD_IDENTITY_MISMATCH)
+    require_claim_columns(ledger_operation_claim_columns(record), claim_columns)
+    return record
 
 
 class HistoryConnection:
@@ -42,13 +65,13 @@ def generation(connection: Connection[tuple[object, ...]]) -> int:
         "SELECT value FROM raes_ledger_metadata WHERE key='snapshot-history-generation'"
     ).fetchone()
     if row is None:
-        raise ValueError("PostgreSQL snapshot generation is invalid")
+        raise EvidenceIntegrityError("PostgreSQL snapshot generation is invalid")
     return LocalInvocationStoreMixin._generation(row[0])
 
 
 def load_snapshot(store: PostgreSQLControlPlaneStore, connection: Connection[tuple[object, ...]]) -> SnapshotState:
-    from raes_contracts.immutable_history import snapshot_history_roots, snapshot_history_roots_match
     from raes_contracts.runtime_state import RuntimeSnapshot
+    from raes_contracts.snapshot_histories import snapshot_history_roots, snapshot_history_roots_match
 
     row = connection.execute(
         "SELECT payload, digest, revision FROM raes_ledger_state WHERE key='runtime-snapshot'"
@@ -59,14 +82,15 @@ def load_snapshot(store: PostgreSQLControlPlaneStore, connection: Connection[tup
         require_empty_history_without_snapshot(HistoryConnection(connection))
         return SnapshotState(RuntimeSnapshot(), 0)
     header = decode_payload(row[0], row[1], kind="runtime snapshot")
-    identity = (generation(connection), row[2], row[1])
+    revision = require_stored_snapshot_revision(row[2])
+    identity = (generation(connection), revision, row[1])
     cached = store._pending_snapshots.get(id(connection)) or store._snapshot_cache
     if cached is not None and cached[0] == identity and snapshot_history_roots_match(cached[1].snapshot, cached[2]):
         _, digest = encode_payload(_snapshot_payload(cached[1].snapshot, include_histories=False))
         if digest == row[1]:
             return cached[1]
     payload = restore_history_rows(HistoryConnection(connection), header)
-    state = SnapshotState(_snapshot_from_payload(payload), row[2])
+    state = durable_snapshot_state(payload, revision)
     store._pending_snapshots[id(connection)] = (identity, state, snapshot_history_roots(state.snapshot))
     return state
 
@@ -77,7 +101,7 @@ def save_history(
     snapshot: RuntimeSnapshot,
     revision: int,
 ) -> SnapshotState:
-    from raes_contracts.immutable_history import snapshot_history_roots
+    from raes_contracts.snapshot_histories import snapshot_history_roots
 
     snapshot = _canonical_snapshot(snapshot)
     adapted = HistoryConnection(connection)
@@ -118,28 +142,16 @@ def operation_changes(
         return OperationChanges(latest, store._load_records(connection), True)
     records = {}
     for identity in dict.fromkeys(identity for identity, _ in rows):
-        row = connection.execute(
-            "SELECT payload, digest FROM raes_ledger_operations WHERE operation_id=%s", (identity,)
-        ).fetchone()
-        if row is None:
+        record = stored_record(connection, identity)
+        if record is None:
             return OperationChanges(latest, store._load_records(connection), True)
-        record = _record_from_payload(decode_payload(row[0], row[1], kind=_OPERATION_RECORD_KIND))
-        if record.receipt.operation_id != identity:
-            raise ValueError("operation record does not match its durable identity")
         records[identity] = record
     return OperationChanges(latest, records)
 
 
 def stored_record(connection: Connection[tuple[object, ...]], identity: str) -> ControlPlaneOperationRecord | None:
-    row = connection.execute(
-        "SELECT payload, digest FROM raes_ledger_operations WHERE operation_id=%s", (identity,)
-    ).fetchone()
-    if row is None:
-        return None
-    record = _record_from_payload(decode_payload(row[0], row[1], kind=_OPERATION_RECORD_KIND))
-    if record.receipt.operation_id != identity:
-        raise ValueError("operation record does not match its durable identity")
-    return record
+    row = connection.execute(SELECT_LEDGER_OPERATIONS + "WHERE operation_id=%s", (identity,)).fetchone()
+    return None if row is None else ledger_operation_from_row(row)
 
 
 def claim_guard_records(connection: Connection[tuple[object, ...]]) -> tuple[ControlPlaneOperationRecord, ...]:
@@ -153,5 +165,6 @@ def claim_guard_records(connection: Connection[tuple[object, ...]]) -> tuple[Con
         "WHERE jsonb_typeof(child.payload::jsonb->'reconciliation')='object'"
     ).fetchall()
     return tuple(
-        _record_from_payload(decode_payload(content, digest, kind=_OPERATION_RECORD_KIND)) for content, digest in rows
+        decode_contract(content, digest, kind=_OPERATION_RECORD_KIND, rebuild=_record_from_payload)
+        for content, digest in rows
     )

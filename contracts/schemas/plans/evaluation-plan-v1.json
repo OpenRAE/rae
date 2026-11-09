@@ -1071,6 +1071,13 @@
       "type": "object"
     },
     "JsonValue": {},
+    "MaterializationReportingScope": {
+      "enum": [
+        "all-phases",
+        "provisioning"
+      ],
+      "type": "string"
+    },
     "MaterializationSource": {
       "additionalProperties": false,
       "description": "Trusted full source context sealed into the exact operation plan.",
@@ -1091,6 +1098,10 @@
           "title": "Instantiated Digest",
           "type": "string"
         },
+        "reporting_scope": {
+          "$ref": "#/$defs/MaterializationReportingScope",
+          "default": "all-phases"
+        },
         "run_id": {
           "maxLength": 128,
           "minLength": 1,
@@ -1099,7 +1110,7 @@
           "type": "string"
         },
         "snapshot": {
-          "maxLength": 1048576,
+          "maxLength": 4194304,
           "minLength": 1,
           "title": "Snapshot",
           "type": "string"

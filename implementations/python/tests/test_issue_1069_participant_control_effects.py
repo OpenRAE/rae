@@ -29,6 +29,7 @@ from participant_crossing_fixtures import (
     policy_capable_target,
 )
 from raes_contracts.contracts.participant_control_composition import ParticipantControlEvaluationModel
+from raes_contracts.errors import AuthorizationError, ConflictError
 from raes_contracts.runtime_state import OperationKind, OperationState
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_mutation import control_plane_mutation
@@ -519,7 +520,7 @@ def test_a_required_predecessor_is_admitted_while_its_parent_stays_withheld():
 
 def test_dispatch_requires_a_bound_participant_control_configuration():
     plane = action_plane(StaticCrossingResolver(), target=_target())
-    with pytest.raises(ValueError, match="participant control"):
+    with pytest.raises(ConflictError, match="participant control"):
         _dispatch(plane)
 
 
@@ -660,7 +661,7 @@ def test_an_owner_refusal_before_its_claim_fails_on_the_effects_own_claim():
 
     def refusing(*args: object, **kwargs: object):
         del args, kwargs
-        raise ValueError("owner refused before claiming")
+        raise ConflictError("owner refused before claiming")
 
     plane.deliver_participant_directed_view = refusing  # type: ignore[method-assign]
     try:
@@ -778,7 +779,7 @@ def test_an_interrupted_outcome_commit_is_never_repeated_or_lost(tmp_path):
 
     # While the recovery barrier stands, a drain never reports the outcome as
     # recorded: the incumbent refusal propagates instead.
-    with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
+    with pytest.raises(ConflictError, match="indeterminate operation requires resolution"):
         _dispatch(restarted)
     assert [item for item in _history(restarted) if ":realization:" in item["evaluation_id"]] == []
 
@@ -910,7 +911,7 @@ def test_an_unauthorized_drain_is_refused_before_reading_committed_state(caller)
         "other-participant": _principal("operator.green", participant="participant.behavior.blue-agent"),
     }[caller]
 
-    with pytest.raises(PermissionError, match="participant control effect dispatch"):
+    with pytest.raises(AuthorizationError, match="participant control effect dispatch"):
         plane.dispatch_participant_control_effects(PARTICIPANT, identity=identity_value)
 
     assert _history(plane) == before
@@ -926,7 +927,7 @@ def test_a_refused_drain_cannot_suppress_the_effect_for_an_authorized_one():
     plane = _plane(control_binding())
     admit(plane, control_identity=_origin(), idempotency_key="effect-poison-attempt")
     outsider = _principal("operator.green", participant="participant.behavior.blue-agent")
-    with pytest.raises(PermissionError):
+    with pytest.raises(AuthorizationError):
         plane.dispatch_participant_control_effects(PARTICIPANT, identity=outsider)
 
     realizations = _dispatch(plane)
@@ -1014,7 +1015,8 @@ def test_concurrent_drains_never_both_observe_an_effect_as_unrealized():
         try:
             barrier.wait()
             results.append(plane.dispatch_participant_control_effects(PARTICIPANT, identity=_principal(name)))
-        except BaseException as error:  # pragma: no cover - surfaced below
+        # The finding is false: the worker hands the exception to the test thread, which asserts it below.
+        except BaseException as error:  # noqa: BLE001  # pragma: no cover - surfaced below
             errors.append(error)
 
     threads = [threading.Thread(target=drain, args=(name,)) for name in ("operator.left", "operator.right")]
@@ -1043,7 +1045,7 @@ def test_a_read_only_role_cannot_drain_effects():
     admit(plane, control_identity=_origin(), idempotency_key="effect-auditor-drain")
     auditor = _replace(_principal("auditor.one"), roles=frozenset({ControlPlaneRole.AUDITOR}))
 
-    with pytest.raises(PermissionError, match="caller-forbidden"):
+    with pytest.raises(AuthorizationError, match="caller-forbidden"):
         plane.dispatch_participant_control_effects(PARTICIPANT, identity=auditor)
 
     assert _effect_claims(plane) == []

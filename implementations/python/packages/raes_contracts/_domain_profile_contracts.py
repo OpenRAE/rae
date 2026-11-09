@@ -17,6 +17,7 @@ from pydantic import JsonValue as PydanticJsonValue
 
 from ._base import ContractModel, NonEmptyString, PrefixedDigestString
 from ._domain_profile_schema_identity import _validate_inert_uri, _validate_schema_vocabularies
+from ._sealing import sealing_active
 from .canonical import JsonValue, canonical_json_digest
 from .versions import (
     DOMAIN_PROFILE_ADMISSION_POLICY_SCHEMA_VERSION,
@@ -101,7 +102,7 @@ class DomainProfileSchemaModel(_FrozenContractModel):
             raise ValueError("domain profile schema document must declare the selected dialect")
         if self.schema_document.get("$id") != self.schema_id:
             raise ValueError("domain profile schema document id must match schema_id")
-        if self.schema_digest != canonical_json_digest(self.schema_document):
+        if not sealing_active() and self.schema_digest != canonical_json_digest(self.schema_document):
             raise ValueError("domain profile schema digest does not match the schema document")
         _validate_schema_vocabularies(self.schema_document, self.required_vocabularies)
         return self
@@ -135,7 +136,9 @@ class DomainProfileDefinitionModel(_FrozenContractModel):
     def _validate_definition(self) -> DomainProfileDefinitionModel:
         if self.allowed_contexts != tuple(sorted(set(self.allowed_contexts))):
             raise ValueError("domain profile allowed contexts must be sorted and unique")
-        if self.coordinate.definition_digest != canonical_domain_profile_definition_digest(self):
+        if not sealing_active() and self.coordinate.definition_digest != canonical_domain_profile_definition_digest(
+            self
+        ):
             raise ValueError("domain profile definition digest does not match its semantic projection")
         return self
 
@@ -161,7 +164,7 @@ class AdmittedDomainProfileDefinitionModel(_FrozenContractModel):
 
     @model_validator(mode="after")
     def _validate_source_digest(self) -> AdmittedDomainProfileDefinitionModel:
-        if self.provenance.source_digest != self.definition.coordinate.definition_digest:
+        if not sealing_active() and self.provenance.source_digest != self.definition.coordinate.definition_digest:
             raise ValueError("admitted domain profile source digest must match the definition digest")
         return self
 

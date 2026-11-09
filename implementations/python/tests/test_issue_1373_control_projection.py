@@ -9,7 +9,7 @@ from raes_runtime.participant_control_causal_state import causal_state_from_hist
 
 
 def test_causal_projection_matches_full_fold_after_every_append_and_replacement():
-    from raes_contracts.immutable_history import append_history
+    from raes_contracts.snapshot_histories import append_history
     from raes_runtime.participant_control_projection import ControlStateProjection
 
     snapshot = RuntimeSnapshot()

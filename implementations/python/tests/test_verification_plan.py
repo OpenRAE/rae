@@ -14,6 +14,8 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from raes_contracts.errors import OperationalError  # noqa: E402
+from tools import verification_plan  # noqa: E402
 from tools.verification_plan import (  # noqa: E402
     ChangeRecord,
     collect_git_changes,
@@ -153,8 +155,41 @@ def test_git_collection_preserves_deletions_renames_and_untracked_paths(tmp_path
 def test_git_collection_fails_closed_when_base_revision_is_invalid(tmp_path: Path) -> None:
     _git(tmp_path, "init", "-q")
 
-    with pytest.raises(RuntimeError, match="git diff"):
+    with pytest.raises(OperationalError, match="git diff") as raised:
         collect_git_changes(tmp_path, "does-not-exist")
+    assert "does-not-exist" not in str(raised.value)
+
+
+def _git_result(*, returncode: int = 0, stdout: bytes = b"", stderr: bytes = b"") -> subprocess.CompletedProcess:
+    return subprocess.CompletedProcess(["git"], returncode, stdout=stdout, stderr=stderr)
+
+
+def test_git_failure_message_omits_git_output_and_command_line(monkeypatch: pytest.MonkeyPatch) -> None:
+    sentinel = b"fatal: unable to access https://user:secret-sentinel@example.invalid/repo"
+    monkeypatch.setattr(
+        verification_plan.subprocess, "run", lambda *_args, **_kwargs: _git_result(returncode=128, stderr=sentinel)
+    )
+
+    with pytest.raises(OperationalError) as raised:
+        collect_git_changes(Path("."), "base-sentinel")
+
+    assert str(raised.value) == "git diff failed with exit code 128"
+
+
+@pytest.mark.parametrize(
+    ("stdout", "message"),
+    [
+        (b"R100\x00only-one-path\x00", "incomplete change record"),
+        (b"M\x00\xff\xfe\x00", "not UTF-8"),
+    ],
+)
+def test_malformed_git_output_is_an_operational_failure(
+    monkeypatch: pytest.MonkeyPatch, stdout: bytes, message: str
+) -> None:
+    monkeypatch.setattr(verification_plan.subprocess, "run", lambda *_args, **_kwargs: _git_result(stdout=stdout))
+
+    with pytest.raises(OperationalError, match=message):
+        collect_git_changes(Path("."), "HEAD")
 
 
 @pytest.mark.integration

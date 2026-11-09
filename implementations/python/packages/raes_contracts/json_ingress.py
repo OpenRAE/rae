@@ -6,6 +6,8 @@ import json
 import math
 from typing import Literal
 
+from .errors import InvalidInputError
+
 JSONValue = None | bool | int | float | str | list["JSONValue"] | dict[str, "JSONValue"]
 _BACKSLASH_BYTE = 0x5C
 _DOUBLE_QUOTE_BYTE = 0x22
@@ -13,7 +15,7 @@ _CONTAINER_START_BYTES = (0x5B, 0x7B)
 _CONTAINER_END_BYTES = (0x5D, 0x7D)
 
 
-class StrictJsonIngressError(ValueError):
+class StrictJsonIngressError(InvalidInputError):
     """A JSON document failed a safe pre-contract ingress check."""
 
     def __init__(self, code: str, message: str) -> None:
@@ -41,6 +43,14 @@ def _finite_float(value: str) -> float:
     if not math.isfinite(parsed):
         return _reject_non_finite_number(value)
     return parsed
+
+
+def _bounded_int(value: str) -> int:
+    # The decoder passes only JSON integer literals, so int() fails only beyond the interpreter digit limit.
+    try:
+        return int(value)
+    except ValueError as exc:
+        raise StrictJsonIngressError("integer-too-long", "JSON contains an integer beyond the digit limit") from exc
 
 
 def _advance_quoted_state(byte: int, escaped: bool) -> tuple[bool, bool]:
@@ -87,7 +97,14 @@ def parse_bounded_json(
 
     if max_bytes < 1:
         raise ValueError("max_bytes must be positive")
-    encoded = source.encode("utf-8") if isinstance(source, str) else bytes(source)
+    if isinstance(source, str):
+        try:
+            encoded = source.encode("utf-8")
+        except UnicodeEncodeError as exc:
+            # An unpaired surrogate has no UTF-8 form, so the text is not a JSON text.
+            raise StrictJsonIngressError("invalid-json", "JSON input is invalid") from exc
+    else:
+        encoded = bytes(source)
     if len(encoded) > max_bytes:
         raise StrictJsonIngressError("input-too-large", "JSON input exceeds the configured byte limit")
     if not encoded.strip():
@@ -100,11 +117,13 @@ def parse_bounded_json(
             object_pairs_hook=_duplicate_rejecting_object,
             parse_constant=_reject_non_finite_number,
             parse_float=_finite_float,
+            parse_int=_bounded_int,
         )
-    except StrictJsonIngressError:
-        raise
     except (UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise StrictJsonIngressError("invalid-json", "JSON input is invalid") from exc
+    except RecursionError as exc:
+        # Without a depth limit, the recursive decoder stops at the interpreter recursion limit.
+        raise StrictJsonIngressError("input-too-deep", "JSON input exceeds the decoder depth limit") from exc
     expected_type = dict if root == "object" else list
     if not isinstance(payload, expected_type):
         raise StrictJsonIngressError("invalid-root", f"JSON input must be an {root}")
@@ -120,9 +139,9 @@ def parse_bounded_json_object(
     """Parse one bounded JSON object without duplicate members or non-finite numbers."""
 
     payload = parse_bounded_json(source, max_bytes=max_bytes, root="object", max_depth=max_depth)
-    # The shared parser establishes the selected root type.
+    # The shared parser establishes the selected root type; only a defect breaks it.
     if not isinstance(payload, dict):
-        raise AssertionError("object-root parser returned a non-object")
+        raise RuntimeError("object-root parser returned a non-object")
     return payload
 
 

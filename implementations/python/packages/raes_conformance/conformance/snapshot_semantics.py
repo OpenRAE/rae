@@ -16,8 +16,8 @@ from raes_contracts.participant_autonomous_state import (
     iter_participant_autonomous_state_snapshot_violations,
 )
 from raes_contracts.participant_concurrency import iter_participant_concurrency_snapshot_violations
-from raes_contracts.participant_episode import iter_participant_episode_snapshot_violations
 from raes_contracts.participant_episode_closure import iter_participant_episode_closure_violations
+from raes_contracts.participant_episode_snapshot import iter_participant_episode_snapshot_violations
 from raes_contracts.participant_information_state_history import (
     iter_participant_information_state_snapshot_violations,
 )

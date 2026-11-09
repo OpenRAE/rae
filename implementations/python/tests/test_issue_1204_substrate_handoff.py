@@ -6,7 +6,7 @@ import pytest
 from raes import parse_sdl
 from raes_backend_stubs.stubs import StubProvisioner, create_stub_target
 from raes_contracts.contracts import ProvisioningPlanModel
-from raes_contracts.plan_projection import provisioning_plan_model
+from raes_contracts.contracts.plan_projection import provisioning_plan_model
 from raes_contracts.runtime_state import OperationState
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_api_models import _provisioning_plan

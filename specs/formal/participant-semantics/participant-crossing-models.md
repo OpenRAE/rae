@@ -1,4 +1,4 @@
-# Executable Participant-Crossing Models
+# Executable participant-crossing models
 
 Requirement: SEM-232. Construction package: #971. Classification: FM3.
 
@@ -18,15 +18,20 @@ no runtime changes, mandatory author annotations, or request-time proof work.
 
 ## Complete environment
 
-The published profile declares every domain from the rev1 design, including
-the singleton participant, audience, controller, episode and request identity;
-cuts p0 and p1; all five input classes; all decision, replay and delivery
-values; and history heads h0 through h3. A fresh request is admitted only while
-no result has been recorded. It chooses one of the five input classes. The
-original input is retained in the terminal state's intent. Identity recycling
-and changed-input reuse are excluded environment actions, not unexamined input
-samples. Every declared request/cut choice is explored to a reachable fixed
-point. There is no depth or schedule bound.
+The published profile declares every domain from the rev1 design:
+
+- Singleton participant, audience, controller, episode, and request identity.
+- Cuts p0 and p1.
+- All five input classes.
+- All decision, replay, and delivery values.
+- History heads h0 through h3.
+
+A fresh request is admitted only while no result has been recorded.
+It chooses one of the five input classes.
+The original input remains in the terminal state's intent.
+Identity recycling and changed-input reuse are excluded environment actions, not unexamined input samples.
+Every declared request/cut choice is explored to a reachable fixed point.
+There is no depth or schedule bound.
 
 Policy advancement is enabled only at idle or terminal and changes p0 to p1
 once. At terminal the only request is a retry of the retained input. A retry

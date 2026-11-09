@@ -139,9 +139,6 @@ Each property #8 names is checked on every profile that guarantees it:
   (`test_issue_1187_control_plane_lifecycle_properties.py::test_each_operation_kind_commits_one_immutable_actor_bound_terminal_cut`),
   and so does an HTTP submission on P2
   (`test_issue_1187_control_plane_profiles.py::test_profile_scoped_retry_status_audit_and_cache_coherence`).
-  With the PostgreSQL ledger, an operation delivered through the HTTP server
-  keeps exactly one terminal audit after a duplicate delivery
-  (`test_issue_1362_distributed_integration.py::test_real_delivery_control_and_reopening_preserve_the_consumed_fence`).
 - **Retained idempotency.** P1 and P2 with the SQLite store keep receipts and
   claims across restore
   (`test_issue_1187_control_plane_profiles.py::test_profile_lease_scope_and_restore_keep_receipts_and_claims`).

@@ -157,8 +157,7 @@ it does not edit rev2 or inherit a result from these cases.
 ## Evidence and review
 
 Evidence binds source, profile, model, mapping, test, and artifact digests.
-Read-only drift checks compare exact consumed source and artifact identities with retained pins.
-Historical model bundles remain immutable.
+Each run builds the model bundle and the mapping artifacts from the current sources; no bundle or capture is committed.
 The evidence names its tested cases and unsupported dimensions.
 It makes no complete-runtime or complete-carrier exploration claim.
 Formal equivalence, runtime realization, backend conformance, noninterference,
@@ -187,12 +186,11 @@ RAES_REQUIREMENT_UID=SEM-232 implementations/python/.venv/bin/python -m pytest \
   implementations/python/tests/test_issue_972_mapping_ownership.py -q
 ```
 
-The current bundle is `runtime-mapping/capture-<source-digest>` beside this document.
-The directory identity is the JCS/SHA-256 digest of the exact source inventory.
-Each source identity selects a separate capture.
-The original `runtime-mapping/rev1` bundle and earlier captures remain unchanged.
-Its manifest binds the source inventory, profile, historical model artifacts, and observed cases.
+The exporter builds the mapping bundle on each run and commits nothing.
+Its manifest binds the source inventory, profile, model artifacts, and observed cases.
 The source inventory includes runtime packages, contracts, test drivers, formal code, configuration, and the Python lockfile.
+The test drivers are the mapping test modules and the local test modules that they import.
+Other tests do not produce the observed cases.
 It excludes historical schema tombstones, which the live mapping does not consume.
 The manifest reports that exclusion; the active schema publication manifest remains pinned.
 The read-only command rejects source or artifact drift.

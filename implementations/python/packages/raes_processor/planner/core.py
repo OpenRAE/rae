@@ -16,7 +16,9 @@ from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.contracts import ProcessorManifestV2Model
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
-from raes_contracts.planning import EvaluationPlan, PlanScope, ProvisioningPlan, RuntimeDomain
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.materialization import MaterializationReportingScope
+from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, PlanScope, ProvisioningPlan, RuntimeDomain
 from raes_contracts.vocabulary import Closure, GeneratedArtifactKind, GeneratedArtifactRegenerationScope
 
 from ..capture_admission import capture_admission_diagnostics
@@ -38,6 +40,7 @@ from ..semantics.realization import (
     realization_support_diagnostics,
     resolve_apparatus_realization_defaults,
 )
+from .descriptor_profiles import descriptor_profile_diagnostics
 from .execution_policy import attach_execution_policies
 from .interaction_context import fresh_evaluation_actions, retained_planning_context
 from .manifest_validation import _validate_manifest
@@ -288,10 +291,8 @@ def _augment_provisioning(
     extra: list[Diagnostic] = []
     if preparation is not None:
         try:
-            preparation = preparation.model_copy(
-                update={"node_collection": planned_node_collection(effective_model, provisioning)}
-            )
-        except TypeError, ValueError:
+            node_collection = planned_node_collection(effective_model, provisioning)
+        except InvalidInputError:
             extra.append(
                 Diagnostic(
                     code="realization.invalid-node-collection",
@@ -300,6 +301,8 @@ def _augment_provisioning(
                     message="Portable node membership cannot be represented by a bounded collection authority.",
                 )
             )
+        else:
+            preparation = preparation.model_copy(update={"node_collection": node_collection})
     provisioning = retain_open_collection_nodes(
         cast(
             "ProvisioningPlan",
@@ -333,6 +336,23 @@ def _augment_provisioning(
     return provisioning, extra
 
 
+def _attach_phase_policies(
+    model: RuntimeModel,
+    manifest: BackendManifest,
+    phases: tuple[ProvisioningPlan, OrchestrationPlan, EvaluationPlan],
+) -> tuple[tuple[ProvisioningPlan, OrchestrationPlan, EvaluationPlan], list[Diagnostic]]:
+    """Attach the effective execution policies to each phase plan, in phase order."""
+
+    provisioning, provisioning_diagnostics = attach_execution_policies(model, manifest, phases[0])
+    orchestration, orchestration_diagnostics = attach_execution_policies(model, manifest, phases[1])
+    evaluation, evaluation_diagnostics = attach_execution_policies(model, manifest, phases[2])
+    return (provisioning, orchestration, evaluation), [
+        *provisioning_diagnostics,
+        *orchestration_diagnostics,
+        *evaluation_diagnostics,
+    ]
+
+
 class PlanningOptions(TypedDict, total=False):
     """Typed keyword-only planning controls, retaining the established call surface."""
 
@@ -343,6 +363,7 @@ class PlanningOptions(TypedDict, total=False):
     mixed_control_admission: MixedControlPlanningAdmission | None
     refresh_evaluation: bool
     processor_manifest: ProcessorManifestV2Model | None
+    materialization_reporting: MaterializationReportingScope
 
 
 def plan(
@@ -354,6 +375,7 @@ def plan(
     """Reconcile a compiled runtime model against the current snapshot."""
 
     scope = options.pop("scope", None)
+    materialization_reporting = options.pop("materialization_reporting", "all-phases")
     apparatus_realization_default = options.pop("apparatus_realization_default", None)
     artifact_availability = options.pop("artifact_availability", None)
     profile_context = options.pop("profile_context", None)
@@ -382,6 +404,7 @@ def plan(
         *profile_diagnostics,
         *regeneration_diagnostics,
         *participant_tool_support_diagnostics(effective_model, manifest, processor_manifest),
+        *descriptor_profile_diagnostics(effective_model, manifest, profile_context),
         *_admission_diagnostics(
             effective_model,
             manifest,
@@ -420,24 +443,20 @@ def plan(
     )
     diagnostics.extend(provisioning_diagnostics)
     orchestration = _build_orchestration_plan(resources, actions, deleted_entries, effective_model.observation_demands)
-    evaluation = cast(
-        "EvaluationPlan",
-        replace(
-            _build_evaluation_plan(resources, actions, deleted_entries, effective_model.observation_demands),
-            run_id=run_id,
-            instantiation_id=instantiation_id,
-        ),
-    )
+    evaluation = _build_evaluation_plan(resources, actions, deleted_entries, effective_model.observation_demands)
+    evaluation = replace(evaluation, run_id=run_id, instantiation_id=instantiation_id)
 
-    provisioning, policy_diagnostics = attach_execution_policies(effective_model, manifest, provisioning)
-    diagnostics.extend(policy_diagnostics)
-    orchestration, policy_diagnostics = attach_execution_policies(effective_model, manifest, orchestration)
-    diagnostics.extend(policy_diagnostics)
-    evaluation, policy_diagnostics = attach_execution_policies(effective_model, manifest, evaluation)
+    (provisioning, orchestration, evaluation), policy_diagnostics = _attach_phase_policies(
+        effective_model, manifest, (provisioning, orchestration, evaluation)
+    )
     diagnostics.extend(policy_diagnostics)
 
     (provisioning, orchestration, evaluation), source_diagnostics = attach_materialization_sources(
-        (provisioning, orchestration, evaluation), model, manifest, scope
+        (provisioning, orchestration, evaluation),
+        model,
+        manifest,
+        scope,
+        reporting_scope=materialization_reporting,
     )
     diagnostics.extend(source_diagnostics)
 

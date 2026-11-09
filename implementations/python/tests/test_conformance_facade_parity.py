@@ -17,14 +17,19 @@ from raes_conformance.conformance import (
     mixed_backend_types,
     modular_control,
     observability,
+    processor,
     profiles,
     report,
+    report_text,
     semantics,
     target,
     validators,
 )
 
 _PUBLIC_EXPORTS = {
+    "ProcessorConformanceProbe",
+    "run_processor_conformance",
+    "backend_conformance_report_text",
     "MIXED_BACKEND_CASES",
     "MixedBackendCase",
     "MixedBackendCaseBinding",
@@ -57,6 +62,9 @@ _PUBLIC_EXPORTS = {
 
 # Each re-exported public name mapped to the subdomain module that defines it.
 _PUBLIC_ORIGINS = {
+    "ProcessorConformanceProbe": processor,
+    "run_processor_conformance": processor,
+    "backend_conformance_report_text": report_text,
     "MIXED_BACKEND_CASES": mixed_backend_cases,
     "MixedBackendCase": mixed_backend_cases,
     "MixedBackendCaseBinding": mixed_backend_types,

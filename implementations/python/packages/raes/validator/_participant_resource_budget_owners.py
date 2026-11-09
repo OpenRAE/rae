@@ -3,6 +3,8 @@
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
+from .._errors import SDLValidationFinding
+
 _NODE_PREFIX = "nodes."
 _TENANT_PREFIX = "deployment_tenants."
 
@@ -107,10 +109,10 @@ def participant_resource_budget_owner_errors(
     deployment_cells: Mapping[str, object],
     relationships: Mapping[str, object],
     split_node_service_ref: Callable[[str], object | None],
-) -> tuple[str, ...]:
-    """Return errors for resource owners outside their declared SDL scope."""
+) -> tuple[SDLValidationFinding, ...]:
+    """Return errors for resource owners outside their declared SDL scope, owned by their behavior specification."""
 
-    errors: list[str] = []
+    errors: list[SDLValidationFinding] = []
     for spec_name, behavior_spec in behavior_specifications.items():
         policy = getattr(behavior_spec, "autonomous_execution", None)
         budget = getattr(policy, "resource_budget", None)
@@ -143,7 +145,7 @@ def participant_resource_budget_owner_errors(
                 split_node_service_ref=split_node_service_ref,
             )
             if error is not None:
-                errors.append(error)
+                errors.append(SDLValidationFinding(error, ("behavior_specifications", spec_name)))
     return tuple(errors)
 
 

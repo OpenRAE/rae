@@ -47,7 +47,9 @@ def _binding_failures(
             )
         if isinstance(binding_id, str):
             seen_bindings.add(binding_id)
-        selector = versions.get(binding.get("artifact_id"))
+        artifact_id = binding.get("artifact_id")
+        # The locked versions are keyed by text, and a binding can name a list or an object, which has no hash.
+        selector = versions.get(artifact_id) if isinstance(artifact_id, str) else None
         if not isinstance(selector, str):
             failures.append(
                 failure(

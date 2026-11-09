@@ -20,6 +20,7 @@ CLOUD_RESOURCE_EXPECTATIONS: dict[str, tuple[str, str, str, str]] = {
         _CLOUD_RESOURCE_VALIDATOR,
     )
     for path, target in (
+        (f"{_CLOUD_IDENTITY}.resource_scopes[].audit_logs[].exempted_principal_refs[]", _SUBJECT_TARGET),
         (
             f"{_CLOUD_IDENTITY}.resource_scopes[].parent_ref",
             _SCOPE_TARGET,

@@ -18,6 +18,7 @@ from typing import Protocol
 from pydantic_core import to_jsonable_python
 from raes_contracts.canonical import jsonable_fallback
 from raes_contracts.contracts.time_model import TimeRuntimeStateModel
+from raes_contracts.errors import InvalidInputError
 from raes_runtime.registry import RuntimeTarget
 
 _DIGEST = re.compile(r"sha256:[0-9a-f]{64}")
@@ -205,7 +206,7 @@ def require_environment_digest(value: object) -> str:
     """Return a harness environment digest, or refuse a malformed one."""
 
     if not isinstance(value, str) or _DIGEST.fullmatch(value) is None:
-        raise ValueError("mixed probe harness environment digest must be a sha256 digest")
+        raise InvalidInputError("mixed probe harness environment digest must be a sha256 digest")
     return value
 
 

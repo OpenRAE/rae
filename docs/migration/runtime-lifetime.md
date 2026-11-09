@@ -1,4 +1,20 @@
-# One runtime owner for an interaction
+<a id="one-runtime-owner-for-an-interaction"></a>
+
+# Keep one runtime owner across an interaction
+
+## Versions and purpose
+
+Source: `Single-run calls or stores before scoped engine admission`.
+Target: `RAES 11.0.2 scoped runtime; local schema 12 and PostgreSQL schema 5`.
+
+## Before you start
+
+Retain the original plans, run IDs, snapshots, operation stores, and backend claims.
+The runtime operator needs authority to change ownership and migrate a durable store.
+Back up the stopped owner's store through the existing maintenance procedure before upgrade.
+Do not open the same backend components under a second owner.
+Calls to `apply()`, `evaluate()`, and `destroy()` can invoke native effects.
+The example below requires an already installed `target` and validated `scenario`.
 
 Issue #1629 separates engine lifetime from fixed run contexts.
 See the [shared-runtime design](../decisions/issue-1629-shared-runtime-design.md) for ownership and data flows.
@@ -161,3 +177,13 @@ No published DTO or schema discriminator changes.
 Targeted tests check these rules.
 They cover the manager, stored state, materialization, participants, and linked recovery.
 Stub tests do not prove that a native backend works with this release.
+
+## Check the result and recover
+
+Success keeps each run's records separate while one engine retains the target claim.
+Check terminal operation outcomes before dependent work.
+Closing drains ownership; `destroy()` is the separate native teardown action.
+If cessation or cleanup is unknown, preserve exclusion and use linked resolution.
+Do not reopen a store to obtain new dispatch permission.
+Read the [runtime API reference](../public/api/runtime.rst)
+and [shared-runtime design](../decisions/issue-1629-shared-runtime-design.md).

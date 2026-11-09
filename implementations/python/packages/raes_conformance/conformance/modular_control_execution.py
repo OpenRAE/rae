@@ -13,6 +13,15 @@ from typing import cast
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import RuntimeSnapshotEnvelopeModel
 from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
+from raes_contracts.errors import (
+    AuthorizationError,
+    ConflictError,
+    EvidenceIntegrityError,
+    InvalidInputError,
+    NotFoundError,
+    RaesError,
+)
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import OperationReceipt, OperationState
 from raes_runtime.control_plane import LocalControlPlaneStore, ParticipantControlEffectRealization, RuntimeControlPlane
 from raes_runtime.registry import RuntimeTarget
@@ -27,6 +36,7 @@ from .modular_control_types import (
     ModularOwnerObservation,
 )
 
+_LOGGER = get_logger(__name__)
 _METHODS = {
     ModularControlOperation.ACTION: "admit_participant_action",
     ModularControlOperation.SELECTION_V2: "admit_participant_decision_surface_selection_v2",
@@ -148,20 +158,22 @@ def _drive(
 ) -> None:
     arguments = step.arguments(plane, tuple(measured.outputs)) if callable(step.arguments) else step.arguments
     if not isinstance(arguments, Mapping):
-        raise TypeError("modular probe inputs must be a keyword mapping")
+        raise InvalidInputError("modular probe inputs must be a keyword mapping")
     replay_key = replay_input(step.operation, arguments)
     _capture(plane, store, measured)
     before = ledger_digest(measured)
     try:
         output = getattr(plane, _METHODS[step.operation])(**dict(arguments))
-    except PermissionError, ValueError:
+    except AuthorizationError, ConflictError, EvidenceIntegrityError, InvalidInputError, NotFoundError:
+        # These are the fail-closed refusal categories of the runtime. An OperationalError is a failed
+        # dependency, not a refusal, so it stays a probe failure.
         if not step.expect_refusal:
             raise
         measured.refusals += 1
         measured.outputs.append(None)
         return
     if step.expect_refusal:
-        raise ValueError("modular probe expected an explicit refusal")
+        raise EvidenceIntegrityError("modular probe expected an explicit refusal")
     measured.outputs.append(output)
     _capture(plane, store, measured)
     record_replay(measured, replay_key, output, before)
@@ -179,7 +191,7 @@ def _record_output(
         receipt = cast(OperationReceipt, output)
         status = plane.get_operation(receipt.operation_id)
         if status is None:
-            raise ValueError("modular parent has no recorded status")
+            raise EvidenceIntegrityError("modular parent has no recorded status")
         measured.parent_states.append(status.state)
         if receipt.operation_id not in measured.parent_operation_ids:
             measured.parent_operation_ids.append(receipt.operation_id)
@@ -189,6 +201,16 @@ def _record_output(
             if prior is not None and prior != item.disposition:
                 measured.duplicate_stable = False
             measured.outcomes[item.effect_id] = item.disposition
+
+
+def _open_plane(
+    target: RuntimeTarget, store: LocalControlPlaneStore, options: dict[str, object]
+) -> RuntimeControlPlane:
+    try:
+        return RuntimeControlPlane(target, store=store, **options)
+    # The runtime configuration validator refuses harness case options with TypeError or ValueError (rule E3).
+    except (TypeError, ValueError) as exc:
+        raise InvalidInputError("modular case options do not configure the runtime") from exc
 
 
 def _run_steps(
@@ -201,9 +223,9 @@ def _run_steps(
     if options.get("participant_control") is not None:
         options["participant_control"] = observed_binding(options["participant_control"], measured)
     if "store" in options:
-        raise ValueError("modular probes own their isolated durable store")
+        raise InvalidInputError("modular probes own their isolated durable store")
     if options.get("enforce_final_sink_flow_control", True) is not True:
-        raise ValueError("modular probes require final-sink enforcement")
+        raise InvalidInputError("modular probes require final-sink enforcement")
     store = LocalControlPlaneStore(directory)
     initial = options.pop("initial_snapshot", None)
     if initial is not None:
@@ -214,7 +236,7 @@ def _run_steps(
             store.save_snapshot(initial, expected_revision=store.load_snapshot_state().revision)
         finally:
             lease.close()
-    plane = RuntimeControlPlane(target, store=store, **options)
+    plane = _open_plane(target, store, options)
     try:
         plane.initialize_participant_episode(
             case.participant_address, episode_id=case.episode_id, identity=case.identity
@@ -226,7 +248,7 @@ def _run_steps(
                 before = ledger_digest(measured)
                 plane.close()
                 store = LocalControlPlaneStore(directory)
-                plane = RuntimeControlPlane(target, store=store, **options)
+                plane = _open_plane(target, store, options)
                 _capture(plane, store, measured)
                 after = ledger_digest(measured)
                 measured.duplicate_stable &= before == after
@@ -239,7 +261,7 @@ def _run_steps(
         if case.observe is not None:
             observed = case.observe(plane)
             if not isinstance(observed, tuple) or any(type(item) is not ModularOwnerObservation for item in observed):
-                raise TypeError("modular owner observations require typed records")
+                raise InvalidInputError("modular owner observations require typed records")
             measured.observations = observed
     finally:
         plane.close()
@@ -261,9 +283,12 @@ def execute_case(
             try:
                 residual = case.cleanup()
                 if not isinstance(residual, tuple) or any(not isinstance(item, str) for item in residual):
-                    raise TypeError("cleanup requires bounded residual references")
+                    raise InvalidInputError("cleanup requires bounded residual references")
                 measured.residual_state = tuple(canonical_json_digest(item) for item in residual)
                 measured.cleanup_verified = not residual
-            except Exception:
+            except Exception as exc:
+                if not isinstance(exc, RaesError):
+                    # Isolation of the harness cleanup hook: a refusal category needs no record.
+                    _LOGGER.exception("modular-control cleanup hook failed", exc_info=foreign_failure_record(exc))
                 measured.residual_state = ("cleanup-unverified",)
                 measured.cleanup_verified = False

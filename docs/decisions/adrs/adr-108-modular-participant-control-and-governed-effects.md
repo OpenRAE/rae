@@ -211,8 +211,8 @@ hidden effects while resolving a result.
 ### 7. Create authority before releasing design dependencies
 
 Create DRAFT SEM-235, API-424, RUN-320, and ASR-538. Amend DRAFT ASR-536 to
-consume exact modular realization evidence while retaining its adversarial
-scope. Existing ACTIVE authorities and their positive evidence remain intact.
+consume exact modular harness compositions for RAE evaluation while retaining
+its adversarial scope. Concrete backend claims require separate realization evidence. Existing ACTIVE authorities and their positive evidence remain intact.
 Requirement existence authorizes bounded future work; DRAFT is not fulfillment.
 
 Merge this design and requirement set before #1070, #1072, #1069, or #1071
@@ -220,8 +220,8 @@ begins its dependent implementation. Backend design may then select mechanisms
 independently; its implementation waits for the released RAES prerequisites
 and its own accepted requirement-backed design. The
 [delivery graph](../../research/modular-participant-control/delivery.md) includes
-conditional evaluation dependencies: one evidenced backend is enough for one
-backend's result; each additional backend claim needs its own evidence.
+independent RAE harness evaluation and publication dependencies. Concrete
+backend consumer claims retain their own exact realization evidence gates.
 
 ### 8. Explicitly amend ADR-101's scope
 
@@ -273,3 +273,4 @@ backend equivalence, or protection of opaque internals and undeclared channels.
 | 2026-09-22 | #1352 | Clarify apparatus versus applicability, obligation coverage, typed dependency invocation, optional failure, required strength, atomic state and phase-independent parent decisions through ADR-111. |
 | 2026-09-23 | #1354 | Define IFC profile variability, requirement-relative support, per-obligation release and immutable migration under ADR-114. |
 | 2026-09-24 | #1383 | Rebind the #1354 publication reference to ADR-114 after ADR-113 was assigned to #1350; semantics are unchanged. |
+| 2026-10-29 | #1008 | Separate backend-neutral RAE harness evaluation and publication from concrete backend realization claims. |

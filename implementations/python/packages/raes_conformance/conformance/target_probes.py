@@ -5,11 +5,11 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import RaesError
 from raes_contracts.manifest_authority import PARTICIPANT_RUNTIME_POLICY_FEATURES
-from raes_contracts.participant_episode import (
-    ParticipantEpisodeTerminalReason,
-    iter_participant_episode_snapshot_violations,
-)
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
+from raes_contracts.participant_episode import ParticipantEpisodeTerminalReason
+from raes_contracts.participant_episode_snapshot import iter_participant_episode_snapshot_violations
 from raes_contracts.planning import PlanScope, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
@@ -45,6 +45,8 @@ from raes_conformance.conformance.target_planning import (
 )
 from raes_conformance.conformance.validators import _validate_payload
 
+_LOGGER = get_logger(__name__)
+
 
 class _UnavailableConformanceCrossingPolicyResolver:
     """Explicitly fail closed if an unrelated adapter probe reaches crossing policy."""
@@ -55,6 +57,7 @@ class _UnavailableConformanceCrossingPolicyResolver:
         snapshot: RuntimeSnapshot,
     ) -> object:
         del intent, snapshot
+        # The resolver protocol refuses an unresolvable policy with ValueError (rule E4).
         raise ValueError("target adapter conformance does not supply a crossing policy")
 
     @staticmethod
@@ -177,6 +180,9 @@ def _drive_participant_episode_probe(
             receipt = invoke()
         except Exception as exc:
             # Defensive: a well-behaved backend does not raise here; surface it as a diagnostic.
+            if not isinstance(exc, RaesError):
+                # Isolation of the participant runtime: a refusal category needs no record.
+                _LOGGER.exception("participant episode probe action failed", exc_info=foreign_failure_record(exc))
             cases.append(
                 ConformanceCaseResult(
                     name=case_name,

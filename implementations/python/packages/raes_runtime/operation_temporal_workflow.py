@@ -12,6 +12,9 @@ with workflow.unsafe.imports_passed_through():
     from .operation_temporal import EngineOperationReference
     from .operation_transcript_policy import automatic_poll_interval_ms
 
+# Workflow code logs only through the replay-aware SDK logger (L9).
+_WORKFLOW_LOGGER = workflow.logger
+
 
 # Keep SDK JSON decoding separate from strict EngineOperationReference validation.
 @workflow.defn(name="raes.operation")
@@ -56,7 +59,9 @@ class RaeOperationWorkflow:
             if state not in {"accepted", "running"}:
                 return state
         except Exception:
-            workflow.logger.warning("RAE operation delivery or observation could not be established")
+            # Isolation of the activities: mark the operation indeterminate. The activity
+            # failure chain carries only the fixed, value-free activity messages.
+            _WORKFLOW_LOGGER.exception("RAE operation delivery or observation could not be established")
         return await workflow.execute_activity(
             "raes.indeterminate",
             self._reference,

@@ -5,6 +5,7 @@ from dataclasses import replace
 import pytest
 from issue_1629_trial_fixture import TrialServices, factorial_inputs
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.errors import ConflictError
 from raes_processor.trial_compiler import compile_admitted_trial_plan
 from raes_processor.trial_realization import realize_admitted_trial_entry
 from raes_runtime import RuntimeControlPlane
@@ -72,11 +73,11 @@ def test_failed_cleanup_retains_reservation_even_after_native_resources_are_dele
         run_id = services.observed[0][0]
         run = runtime.get_run("run:" + run_id)
         assert not run.snapshot.entries
-        with pytest.raises(RuntimeError, match="cleanup evidence"):
+        with pytest.raises(ConflictError, match="cleanup evidence"):
             runtime.retire_run(run._run_scope)
         other = runtime.open_run(run_scope="run:unrelated")
         other_plan = other.plan(__import__("test_runtime_manager")._full_scenario())
-        with pytest.raises(RuntimeError, match="reserved"):
+        with pytest.raises(ConflictError, match="reserved"):
             other.apply(other_plan)
         (terminal,) = (
             record for record in runtime._store.load_runtime_decisions() if isinstance(record, TrialTerminalDecision)
@@ -133,7 +134,7 @@ def test_invalid_later_realization_is_refused_before_any_configuration(monkeypat
 
     monkeypatch.setattr(module, "realize_admitted_trial_entry", realize)
     with RuntimeControlPlane(target) as runtime:
-        with pytest.raises(ValueError, match="trial plan cannot be admitted"):
+        with pytest.raises(ConflictError, match="trial plan cannot be admitted"):
             runtime.admit_experiment(inputs, services=services)
         assert len(calls) == 2
         assert not services.events

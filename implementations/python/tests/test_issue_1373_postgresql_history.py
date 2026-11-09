@@ -19,8 +19,8 @@ def test_postgresql_history_reopens_and_operation_only_changes_are_visible():
 def _exercise_history_reopening(database):
     from participant_control_contract_fixtures import evaluation_payload
     from postgresql_ledger_fixtures import ledger_configuration
-    from raes_contracts.immutable_history import append_history
     from raes_contracts.runtime_state import RuntimeSnapshot
+    from raes_contracts.snapshot_histories import append_history
     from raes_runtime.control_plane_store_postgresql import PostgreSQLControlPlaneStore
     from test_issue_1181_unified_control_plane_mutations import _context, _running_record
 

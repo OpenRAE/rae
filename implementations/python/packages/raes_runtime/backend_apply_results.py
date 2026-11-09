@@ -8,6 +8,7 @@ from typing import cast
 
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.planning import ChangeAction
 from raes_contracts.runtime_state import ApplyResult, RealizationProvenanceEntry, RuntimeSnapshot
 from raes_processor.models import CompiledRealizationRequirement
@@ -15,6 +16,7 @@ from raes_processor.planner import (
     prepared_delivery_violation,
     prepared_node_disclosure,
     realization_authority_disclosure,
+    realization_cleanup_diagnostics,
     realization_disclosure,
     sanitize_plan_realization_snapshot,
     sanitize_prepared_node_snapshot,
@@ -211,29 +213,33 @@ def _realization_disclosure_result(
 ) -> tuple[list[Diagnostic], tuple[RealizationProvenanceEntry, ...]]:
     """Disclose plan and supplemental realization authority over one result."""
 
-    # Failed apply results are cleanup inventory, not observation-success claims.
-    # Still check materialization authority and sanitize the snapshot; requiring
-    # the failed readback here would erase recoverable resources.
     plan = realization.plan
-    validation_plan = plan if result.success else replace(plan, observation_demands=())
+    supplemental = _supplemental_realization_requirements(realization)
+    if not result.success:
+        return realization_cleanup_diagnostics(
+            plan,
+            result.snapshot,
+            manifest=realization.manifest,
+            requirements=supplemental,
+            artifact_availability=realization.artifact_availability,
+        ), ()
     diagnostics, provenance = realization_authority_disclosure(
-        validation_plan,
+        plan,
         result.snapshot,
         manifest=realization.manifest,
     )
-    supplemental = _supplemental_realization_requirements(realization)
     if diagnostics:
         return diagnostics, provenance
     supplemental_diagnostics, supplemental_provenance = realization_disclosure(
         supplemental,
-        validation_plan,
+        plan,
         result.snapshot,
         manifest=realization.manifest,
         artifact_availability=realization.artifact_availability,
     )
     diagnostics.extend(supplemental_diagnostics)
     prepared_provenance = ()
-    if result.success and not diagnostics and realization.completion_plan is not None:
+    if not diagnostics and realization.completion_plan is not None:
         prepared_diagnostics, prepared_provenance = prepared_node_disclosure(
             realization.completion_plan,
             result.snapshot,
@@ -286,7 +292,7 @@ def _sanitize_backend_realization(
                 baseline_snapshot,
                 requirements=_supplemental_realization_requirements(realization),
             )
-        except ValueError:
+        except InvalidInputError:
             return _failed_apply_result(
                 baseline_snapshot,
                 _backend_contract_invalid(

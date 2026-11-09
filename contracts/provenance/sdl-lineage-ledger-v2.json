@@ -5173,6 +5173,37 @@
           "compatibility_direction": "not_applicable"
         }
       ]
+    },
+    {
+      "subject_id": "sdl-field:trial_parallelism",
+      "subject_kind": "top_level_field",
+      "disposition": "current",
+      "authority": {
+        "artifact": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
+        "pointer": "#/properties/trial_parallelism",
+        "contract_id": "sdl-authoring-input-v1"
+      },
+      "claims": [
+        {
+          "plane": "semantics",
+          "classification": "raes_native",
+          "source_refs": [],
+          "raes_boundaries": [
+            {
+              "artifact": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
+              "symbol_or_pointer": "#/properties/trial_parallelism"
+            }
+          ],
+          "source_boundaries": [],
+          "divergence": "RAES-native experiment capacity constrains an allocator without granting isolation or live resource leases.",
+          "compatibility": "not_applicable",
+          "citation_refs": [],
+          "internal_authority_refs": [
+            "specs/formal/scenario-variation-trial-realization/README.md"
+          ],
+          "compatibility_direction": "not_applicable"
+        }
+      ]
     }
   ],
   "third_party_dispositions": [

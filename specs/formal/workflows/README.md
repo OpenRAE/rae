@@ -1,4 +1,4 @@
-# Workflow Semantics
+# Workflow semantics
 
 This directory holds the repo-native formal artifacts for SDL workflow control semantics.
 
@@ -26,14 +26,14 @@ This directory holds the repo-native formal artifacts for SDL workflow control s
 - goal-oriented success requires evidence-bearing assertion truth and cannot be
   established by participant self-report
 
-## Implementation Mapping
+## Implementation mapping
 
-- shared rules: `implementations/python/packages/raes_processor/semantics/workflow.py`
+- shared rules: `implementations/python/packages/raes_contracts/workflow/semantics.py`
 - validator enforcement: `implementations/python/packages/raes/validator/`
 - compiled contracts: `implementations/python/packages/raes_processor/compiler/`
 - typed runtime results and contract checks:
   - `implementations/python/packages/raes_processor/models/`
-  - `implementations/python/packages/raes_processor/manager.py`
+  - `implementations/python/packages/raes_runtime/manager.py`
 - smoke/regression coverage:
   - `implementations/python/tests/test_sdl_validator.py`
   - `implementations/python/tests/test_runtime_models.py`

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
+from typing import cast
 
 from pydantic import TypeAdapter
 from raes.realization_envelope import member_projection
@@ -10,16 +10,24 @@ from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_protocols.manifest import backend_manifest_v2_model
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.planning import ProvisioningPlan, RealizationAuthorityMode, ResolvedRealizationAuthority
+from raes_contracts.json_pointer import pointer_tokens
+from raes_contracts.planning import (
+    BACKEND_PREPARATION_CONTRACT,
+    ProvisioningPlan,
+    RealizationAuthorityMode,
+    RealizationPreparationAuthority,
+    ResolvedRealizationAuthority,
+)
 from raes_contracts.realization_authority import planned_realization_selection_diagnostics
-from raes_contracts.realization_preparation import BACKEND_PREPARATION_CONTRACT, RealizationPreparationAuthority
 from raes_contracts.realization_structure import (
     ExactRealizationValue,
     evaluate_realization_constraint,
     structure_matches,
 )
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.runtime_value_limits import PLAN_AUTHORITY_LIMITS
 
+from ..semantics.realization_comparison import portable_realization_value
 from ..semantics.realization_concern_observations import typed_runtime_observation_shape
 from ..semantics.realization_concerns import project_realization_concern, realization_concern_descriptor
 from ..semantics.realization_requirement import CompiledRealizationRequirement
@@ -69,13 +77,9 @@ def preparation_member_diagnostics(
     ]
 
 
-def _tokens(pointer: str) -> tuple[str, ...]:
-    return tuple(token.replace("~1", "/").replace("~0", "~") for token in pointer.split("/")[1:])
-
-
 def _value(payload: object, pointer: str) -> object:
     current = payload
-    for token in _tokens(pointer):
+    for token in pointer_tokens(pointer):
         if not isinstance(current, dict) or token not in current:
             return _MISSING
         current = current[token]
@@ -84,7 +88,7 @@ def _value(payload: object, pointer: str) -> object:
 
 def _remove(payload: dict[str, object], pointer: str) -> None:
     current = payload
-    tokens = _tokens(pointer)
+    tokens = pointer_tokens(pointer)
     for token in tokens[:-1]:
         if not isinstance(current.get(token), dict):
             return
@@ -104,13 +108,16 @@ def _authority_index(plan: ProvisioningPlan) -> dict[str, list[ResolvedRealizati
 def _authority_value_valid(authority: ResolvedRealizationAuthority, expected: object, actual: object) -> bool:
     """Check one chosen value against the authority that admitted it."""
 
+    actual = portable_realization_value(actual)
     if authority.constraint_document is not None:
-        return evaluate_realization_constraint(authority.constraint_document, actual).conformant
+        return evaluate_realization_constraint(
+            authority.constraint_document, actual, limits=PLAN_AUTHORITY_LIMITS
+        ).conformant
     if authority.mode in _OPEN_AUTHORITY_MODES and authority.structure is None:
         # The incumbent selection gate above has already checked all finite
         # bounds. The template is one member, not a fixed choice.
         return True
-    projected = project_realization_concern(authority.requirement_kind, expected)
+    projected = portable_realization_value(project_realization_concern(authority.requirement_kind, expected))
     return structure_matches(authority.structure or ExactRealizationValue(kind="exact"), projected, actual)
 
 
@@ -142,7 +149,8 @@ def _residual_payload_violation(
 ) -> str | None:
     """Compare every authority on one operation, then compare the residual payload."""
 
-    before, after = deepcopy(operation.payload), deepcopy(candidate.payload)
+    before = cast("dict[str, object]", portable_realization_value(operation.payload))
+    after = cast("dict[str, object]", portable_realization_value(candidate.payload))
     for authority in authorities:
         if authority.mode is RealizationAuthorityMode.CLOSED:
             continue
@@ -178,6 +186,9 @@ def _unsupported_operating_system(operation: object, manifest: BackendManifest) 
     """Report whether one node's joint operating-system identity is unsupported."""
 
     choice = tuple(operation.payload.get(key, "") for key in _OPERATING_SYSTEM_KEYS)
+    if choice[1] is None:
+        # The offer checker uses an empty comparison string for an absent distribution.
+        choice = (choice[0], "", choice[2])
     if not any(choice):
         return False
     return not all(isinstance(value, str) for value in choice) or not operating_system_choice_supported(
@@ -253,8 +264,12 @@ def _delivery_violation(
     if expected is _MISSING or actual is _MISSING:
         return "Backend did not deliver its admitted realization completion."
     recursive = authority.constraint_document is not None
-    expected = project_realization_concern(authority.requirement_kind, expected, recursive=recursive)
-    actual = project_realization_concern(authority.requirement_kind, actual, observed=True, recursive=recursive)
+    expected = portable_realization_value(
+        project_realization_concern(authority.requirement_kind, expected, recursive=recursive)
+    )
+    actual = portable_realization_value(
+        project_realization_concern(authority.requirement_kind, actual, observed=True, recursive=recursive)
+    )
     exact = structure_matches(ExactRealizationValue(kind="exact"), expected, actual)
     return None if exact else "Backend did not deliver its admitted realization completion."
 

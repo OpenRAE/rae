@@ -7,10 +7,12 @@ from time import monotonic
 from typing import TYPE_CHECKING
 from weakref import ref
 
+from raes_contracts.errors import ConflictError, NotFoundError, OperationalError
 from raes_contracts.runtime_state import OperationState
 
 from .control_plane_recovery import unresolved_indeterminate_operation_ids_from_records
 from .control_plane_store import NewClaimRejected
+from .errors import RuntimeBudgetExhaustedError
 from .operation_execution_adapter import LocalExecutionAdapter
 from .runtime_decisions import RunContextDecision, runtime_store_digest
 from .runtime_resource_ownership import RuntimeResourceClaim, ledger_identity
@@ -51,7 +53,7 @@ class RuntimeEngineResources:
     def bind(self, context: RuntimeRunContext) -> None:
         with self._lock:
             if self.closing or self.closed:
-                raise RuntimeError(_ENGINE_CLOSED)
+                raise OperationalError(_ENGINE_CLOSED)
             if self.claim is None:
                 self.claim = RuntimeResourceClaim(self.owner, self.target, ledger=ledger_identity(context._store))
             if self.adapter is None:
@@ -72,7 +74,7 @@ class RuntimeEngineResources:
         with self._lock:
             prior = self._operation_contexts.get(operation_id)
             if prior is not None and prior is not context:
-                raise ValueError("operation identity already belongs to another run context")
+                raise ConflictError("operation identity already belongs to another run context")
             self._operation_contexts[operation_id] = context
 
     def operation_context(self, operation_id: str) -> RuntimeRunContext:
@@ -91,7 +93,7 @@ class RuntimeEngineResources:
                     and record.status == "retired"
                 ):
                     if record.store_digest != runtime_store_digest(context._store):
-                        raise ValueError("retired run store identity conflicts with its retained binding")
+                        raise ConflictError("retired run store identity conflicts with its retained binding")
                     context._retired = True
                     context._effect_admission_stopped = True
 
@@ -102,16 +104,16 @@ class RuntimeEngineResources:
             try:
                 return self._runs[run_scope]
             except KeyError:
-                raise ValueError("run scope is not owned by this engine") from None
+                raise NotFoundError("run scope is not owned by this engine") from None
 
     def open_run(self, configuration: ControlPlaneConfiguration) -> RuntimeRunContext:
         from .runtime_run_context import RuntimeRunContext
 
         with self._lock:
             if self.closed or self.closing:
-                raise RuntimeError(_ENGINE_CLOSED)
+                raise OperationalError(_ENGINE_CLOSED)
             if configuration.run_scope == self.owner._run_scope or configuration.run_scope in self._runs:
-                raise ValueError("run scope already belongs to this engine")
+                raise ConflictError("run scope already belongs to this engine")
             from dataclasses import replace
 
             from .control_plane_store import InMemoryControlPlaneStore
@@ -141,13 +143,13 @@ class RuntimeEngineResources:
         """Retain target exclusion until verified run retirement, including unknown effects."""
         with self._lock:
             if self.closed or self.closing:
-                raise RuntimeError(_ENGINE_CLOSED)
+                raise OperationalError(_ENGINE_CLOSED)
             if context._retired:
-                raise RuntimeError("runtime run is retired")
+                raise ConflictError("runtime run is retired")
             if self.owner._store.effect_admission_stopped():
                 raise NewClaimRejected("runtime engine effect admission is closed")
             if self._reserved_run is not None and self._reserved_run is not context:
-                raise RuntimeError("target resources are reserved by another run")
+                raise ConflictError("target resources are reserved by another run")
             self._require_restored_contexts(context)
             self._require_other_runs_idle(context)
             self._reserved_run = context
@@ -160,7 +162,7 @@ class RuntimeEngineResources:
             retired = {record.run_scope for record in decisions if record.status == "retired"}
             unrestored = opened - retired - set(self._runs)
             if unrestored - {context._run_scope}:
-                raise RuntimeError("reserved run contexts must be restored before effects")
+                raise ConflictError("reserved run contexts must be restored before effects")
 
     def _require_other_runs_idle(self, context: RuntimeRunContext) -> None:
         # Restored run state retains exclusion even before a fresh command.
@@ -168,7 +170,7 @@ class RuntimeEngineResources:
             if other is context or getattr(other, "_retired", False):
                 continue
             if self._context_has_reservation(other):
-                raise RuntimeError("target resources are reserved by another run")
+                raise ConflictError("target resources are reserved by another run")
 
     def _context_has_reservation(self, context: RuntimeRunContext) -> bool:
         return getattr(context, "_durability_poisoned", False) or (
@@ -220,7 +222,7 @@ class RuntimeEngineResources:
             attempt.execution_attempt_id not in terminals or not terminals[attempt.execution_attempt_id].reusable
             for attempt in attempts
         ):
-            raise RuntimeError("trial cleanup evidence does not permit target reuse")
+            raise ConflictError("trial cleanup evidence does not permit target reuse")
         self._require_retry_completion(context, {attempt.execution_attempt_id for attempt in attempts})
 
     def _require_retry_completion(self, context: RuntimeRunContext, attempt_ids: set[str]) -> None:
@@ -237,7 +239,7 @@ class RuntimeEngineResources:
             and record.observation.ready
         }
         if retry_started - (retry_finished & retry_ready):
-            raise RuntimeError("retry preparation has not restored verified reusable state")
+            raise ConflictError("retry preparation has not restored verified reusable state")
 
     @staticmethod
     def _retry_phases(records: tuple[RuntimeDecision, ...], attempt_ids: set[str], state: str) -> set[str]:
@@ -255,14 +257,14 @@ class RuntimeEngineResources:
     def _require_idle_context(self, context: RuntimeRunContext) -> None:
         own_depth = getattr(context._lifecycle_local, "depth", 0)
         if context._active_runtime_calls > own_depth or (self.adapter is not None and self.adapter.pending_calls):
-            raise RuntimeError("runtime callbacks remain active")
+            raise ConflictError("runtime callbacks remain active")
         context._reload_derived_state()
         if self.unresolved(context):
-            raise RuntimeError("run has unresolved effects; target remains reserved")
+            raise ConflictError("run has unresolved effects; target remains reserved")
         if context._snapshot.entries:
-            raise RuntimeError("run requires verified cleanup before target reuse")
+            raise ConflictError("run requires verified cleanup before target reuse")
         if not context._stop_participant_clock_driver():
-            raise RuntimeError("runtime clock callbacks remain active")
+            raise ConflictError("runtime clock callbacks remain active")
 
     def close(self) -> None:
         """Close all contexts before releasing shared capacity or backend ownership."""
@@ -270,7 +272,7 @@ class RuntimeEngineResources:
             if self.closed:
                 return
             if self.claim is not None and self.claim.active_calls:
-                raise RuntimeError("runtime callbacks remain active")
+                raise ConflictError("runtime callbacks remain active")
         owner = self.owner
         bounds = self.configuration.supervision
         budget = bounds.drain_ms / 1000
@@ -295,7 +297,7 @@ class RuntimeEngineResources:
 
     def _release_capacity(self, unresolved: bool, deadline: float) -> None:
         if self.adapter is not None and not self.adapter.close(timeout_ms=self._remaining(deadline)):
-            raise TimeoutError("runtime drain has unresolved external calls")
+            raise RuntimeBudgetExhaustedError("runtime drain has unresolved external calls")
         if self.claim is not None:
             self.claim.release(unresolved=unresolved)
 
@@ -303,10 +305,10 @@ class RuntimeEngineResources:
         for context in contexts:
             if context is self.owner or context._begin_runtime_close(context._lifecycle_condition, budget):
                 if not context._stop_participant_clock_driver():
-                    raise TimeoutError("runtime clock driver remains active")
+                    raise RuntimeBudgetExhaustedError("runtime clock driver remains active")
                 context._drain_runtime_calls(context._lifecycle_condition, None, deadline)
         if self.adapter is not None and not self.adapter.drain(timeout_ms=self._remaining(deadline)):
-            raise TimeoutError("runtime drain has unresolved external calls")
+            raise RuntimeBudgetExhaustedError("runtime drain has unresolved external calls")
 
     def _settle_dispatcher(self, contexts: tuple[RuntimeRunContext, ...], deadline: float) -> None:
         for context in contexts:

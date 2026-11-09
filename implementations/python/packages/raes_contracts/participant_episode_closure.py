@@ -27,6 +27,7 @@ from raes_contracts._validation import (
     enum_value,
     require_non_empty_string,
     require_non_negative_int,
+    text_value,
 )
 from raes_contracts.participant_episode import (
     PARTICIPANT_EPISODE_TERMINAL_EVENTS,
@@ -110,16 +111,17 @@ class ParticipantEpisodeClosureRecord:
         if isinstance(sequence_number_raw, bool) or not isinstance(sequence_number_raw, int):
             raise TypeError("participant episode closure record sequence_number must be an int")
         return cls(
-            participant_address=str(payload["participant_address"]),
-            episode_id=str(payload["episode_id"]),
+            participant_address=text_value(payload["participant_address"], "participant_address"),
+            episode_id=text_value(payload["episode_id"], "episode_id"),
             sequence_number=sequence_number_raw,
             source_signal=enum_value(ParticipantEpisodeClosureSignal, payload["source_signal"]),
             mapped_terminal_reason=enum_value(ParticipantEpisodeTerminalReason, payload["mapped_terminal_reason"]),
-            deriving_authority=str(payload["deriving_authority"]),
+            deriving_authority=text_value(payload["deriving_authority"], "deriving_authority"),
             evidence_refs=_normalize_evidence_refs(payload["evidence_refs"]),
-            derived_at=str(payload["derived_at"]),
-            record_schema_version=str(
-                payload.get("record_schema_version", PARTICIPANT_EPISODE_CLOSURE_RECORD_SCHEMA_VERSION)
+            derived_at=text_value(payload["derived_at"], "derived_at"),
+            record_schema_version=text_value(
+                payload.get("record_schema_version", PARTICIPANT_EPISODE_CLOSURE_RECORD_SCHEMA_VERSION),
+                "record_schema_version",
             ),
         )
 

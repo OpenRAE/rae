@@ -1,9 +1,7 @@
-# SDL Document Model
+# SDL document model
 
-This file defines how an SDL document is encoded, how its top-level surfaces are
-organised, what is required, how user-defined identifiers are formed, how the
-document is structurally closed, and the phases a document passes through from
-authoring to instantiation.
+This reference defines SDL encoding, top-level structure, required fields, identifiers, and structural closure.
+It also defines the document phases from authoring to instantiation.
 
 See [`sections.md`](sections.md) for the per-section catalog,
 [`references.md`](references.md) for reference resolution, and
@@ -45,10 +43,17 @@ construction:
 8. No Unicode normalization is performed. Code-point sequences remain as
    authored after YAML escape processing.
 
-Each source document has fixed denial-of-service bounds: at most 8 MiB of UTF-8 source,
-1 MiB in one scalar, depth 128, 100,000 unique representation nodes, 256 alias
-occurrences, and 250,000 nodes of alias-expanded traversal work. Exceeding any
-bound is a source error. A future syntax, scalar policy, or incompatible limit
+Each source document has these fixed denial-of-service bounds:
+
+- at most 8 MiB of UTF-8 source;
+- 1 MiB in one scalar;
+- depth 128;
+- 100,000 unique representation nodes;
+- 256 alias occurrences;
+- 250,000 nodes of alias-expanded traversal work.
+
+Exceeding any bound is a source error.
+A future syntax, scalar policy, or incompatible limit
 set requires a new source-profile identifier.
 
 A file-backed composition request additionally carries one aggregate budget
@@ -59,9 +64,10 @@ conservative declaration bound because every declaration consumes at least one
 counted node. Exceeding any aggregate bound is a source error; recursively
 starting a fresh per-file budget is non-conforming.
 
-This uniqueness rule follows the YAML 1.2.2 representation model, in which a
-mapping is an unordered association of unique keys and non-unique keys are a
-loading failure ([YAML 1.2.2 §§3.2.1.1, 3.3](https://yaml.org/spec/1.2.2/)).
+This uniqueness rule follows the YAML 1.2.2 representation model.
+A mapping is an unordered association of unique keys.
+Non-unique keys are a loading failure
+([YAML 1.2.2 §§3.2.1.1, 3.3](https://yaml.org/spec/1.2.2/)).
 
 ## 2. Top-level organisation
 
@@ -179,10 +185,16 @@ line terminator. The spelling is exact: an implementation **MUST NOT** trim,
 case-fold, Unicode-normalize, escape, sanitize, or repair it. Uppercase,
 non-ASCII, whitespace, controls, `.`, `/`, `:`, and `${…}` are invalid.
 
-The rule applies by semantic role, not field spelling. It covers `Scenario.name`;
-map-valued section and variable keys; nested entity, role, and workflow-step
-keys; named services, ACLs, and content items; scenario-level forwarding-agent
-ids; and every RAES-local primary or child id in the runtime-family registry.
+The rule applies by semantic role, not field spelling.
+It covers these identities:
+
+- `Scenario.name`.
+- Map-valued section and variable keys.
+- Nested entity, role, and workflow-step keys.
+- Named services, ACLs, and content items.
+- Scenario-level forwarding-agent ids.
+- Every RAES-local primary or child id in the runtime-family registry.
+
 It does **not** apply merely because a field is called `name` or ends in `_id`.
 Display labels, usernames, DNS names, URLs, paths, LDAP DNs, environment names,
 versions, external/native/provider ids, and opaque evidence refs retain their
@@ -264,9 +276,9 @@ authoring/instantiation model of
 [ADR-001](../../docs/decisions/adrs/adr-001-scenario-description-language.md) and
 the runtime-layering boundary of
 [ADR-004](../../docs/decisions/adrs/adr-004-sdl-runtime-layer.md) and
-[ADR-036](../../docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md):
-delivery-level realisation remains downstream of the author-facing realization
-designation and is out of scope for the authoring model.
+[ADR-036](../../docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md).
+Delivery-level realization remains downstream of the author-facing realization designation.
+It is outside the authoring model's scope.
 
 The **materialized description** reports the full world after backend hooks,
 including in-world additions and changes. It uses ordinary SDL parsing,

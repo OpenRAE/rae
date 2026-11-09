@@ -2,6 +2,7 @@
 
 import pytest
 from inject_execution_fixtures import ExecutingFixture, fixture_plan, fixture_target, trigger_request
+from raes_contracts.errors import AuthorizationError
 from raes_contracts.runtime_state import OperationState
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_security import ControlPlaneIdentity, ControlPlaneRole
@@ -40,7 +41,7 @@ def test_an_auditor_cannot_trigger_and_other_actors_cannot_read_the_occurrence(t
     operator = ControlPlaneIdentity("operator", frozenset({ControlPlaneRole.OPERATOR}), "stub")
     auditor = ControlPlaneIdentity("auditor", frozenset({ControlPlaneRole.AUDITOR}), "stub")
     try:
-        with pytest.raises(PermissionError):
+        with pytest.raises(AuthorizationError):
             plane.submit_inject(request, identity=auditor)
         assert backend.starts == 0
         assert plane._store.load_records() == {}
@@ -200,7 +201,7 @@ def test_selected_binding_must_resolve_in_the_exact_pinned_plan(tmp_path):
 def test_artifact_only_inject_cannot_omit_native_augmentation_obligations(tmp_path):
     from dataclasses import replace
 
-    from raes_contracts.plan_projection import runtime_plan_digest
+    from raes_contracts.contracts.plan_projection import runtime_plan_digest
 
     plane, backend, request = configured_plane(tmp_path)
     backend.plan = replace(

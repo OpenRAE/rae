@@ -11,7 +11,7 @@ The plan reuses owning contracts (``TrialCoordinateModel``,
 ``ExperimentSelectionOutcomeModel``, ``ExperimentBindingDescriptorModel``,
 ``ExperimentStochasticControlModel``, ``RandomStreamDrawRecordModel``,
 ``TrialCleanupPlanModel``, ``ExecutionRetryPolicyModel``,
-``SchedulerIsolationProofModel``, ``ExperimentManifestReferenceModel``,
+``ExperimentManifestReferenceModel``,
 ``RealizationEnvelopeIdentityModel``, and the typed experiment references)
 rather than duplicating their meaning, and pins exact refs/digests instead of
 copying declarations. Every entry commits explicit resolved outcomes and
@@ -38,6 +38,8 @@ from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
 from .._canonical import canonical_json_digest
+from .._sealing import sealing_active
+from ..trial_parallelism import TrialParallelismModel, parallelism_bounds
 from ..versions import ADMITTED_TRIAL_PLAN_SCHEMA_VERSION
 from .admitted_trial_plan_components import (
     AdmittedApparatusBindingModel,
@@ -57,13 +59,18 @@ from .admitted_trial_plan_components import (
     validate_entry_participant_configurations,
 )
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
-from .experiment_allocation import AdmittedExperimentAllocationModel, compile_experiment_allocation
+from .experiment_allocation import (
+    RECORDED_ALLOCATION_POLICY_ID,
+    AdmittedExperimentAllocationModel,
+    compile_experiment_allocation,
+)
 from .experiment_apparatus import ExperimentStochasticControlModel
 from .experiment_bindings import ParticipantConfigurationResultModel
 from .experiment_treatments import validate_plan_treatments
 from .random_stream import RandomStreamDrawRecordModel, TrialCoordinateModel
-from .schema_invariants import _add_raes_invariant
-from .trial_cleanup import SchedulerIsolationProofModel, TrialCleanupPlanModel
+from .schema_invariants import add_raes_invariant
+from .trial_cleanup import TrialCleanupPlanModel
+from .trial_coordinate_order import CANONICAL_ORDER_POLICY_ID, canonical_coordinate_sort_key
 from .trial_replacement import TrialReplacementOriginModel, TrialReplacementPolicyModel
 
 #: Canonical-shape placeholder used only while sealing; replaced by the real digest.
@@ -81,6 +88,8 @@ def _canonical_content(model: ContractModel, digest_field: str) -> dict[str, obj
 def _verify_self_digest(model: ContractModel, digest_field: str) -> None:
     """Fail closed unless ``digest_field`` equals the JCS digest of the remaining content."""
 
+    if sealing_active():
+        return
     declared = getattr(model, digest_field)
     expected = canonical_json_digest(_canonical_content(model, digest_field))
     if declared != expected:
@@ -103,41 +112,6 @@ def _seal(model_cls: type, digest_field: str, fields: dict[str, object]) -> obje
 def _require_unique(field_name: str, values: list[str]) -> None:
     if len(values) != len(set(values)):
         raise ValueError(f"{field_name} must not contain duplicates")
-
-
-def entry_owned_resource_refs(plan: AdmittedTrialPlanModel, plan_entry_id: str) -> set[str]:
-    """Return the resource identities one entry owns via its referenced cleanup plan.
-
-    Resource ownership is the union of the ``resource_refs`` declared by every
-    boundary of the entry's referenced cleanup plan. Bounded parallelism must
-    never authorize two entries that share any owned resource (one trial, or its
-    cleanup, could otherwise read, mutate, or destroy another's state). This is
-    the single owning definition reused by both the plan's embedded
-    isolation check and the standalone plan-to-schedule join validator so the two
-    surfaces cannot drift.
-    """
-
-    entry = plan.entries.get(plan_entry_id)
-    if entry is None:
-        raise ValueError(f"plan_entry_id {plan_entry_id!r} does not resolve inside the admitted plan")
-    cleanup_plan = plan.cleanup_plans.get(entry.execution_controls.cleanup_plan_ref)
-    refs: set[str] = set()
-    if cleanup_plan is not None:
-        for boundary in cleanup_plan.resource_boundaries.values():
-            refs.update(boundary.resource_refs)
-    return refs
-
-
-def isolation_resource_overlaps(plan: AdmittedTrialPlanModel, plan_entry_ids: list[str]) -> list[str]:
-    """Return the resource identities shared by any pair of the given entries."""
-
-    owned = {entry_id: entry_owned_resource_refs(plan, entry_id) for entry_id in plan_entry_ids}
-    covered = list(owned)
-    shared: set[str] = set()
-    for first_index in range(len(covered)):
-        for second_index in range(first_index + 1, len(covered)):
-            shared.update(owned[covered[first_index]] & owned[covered[second_index]])
-    return sorted(shared)
 
 
 class AdmittedTrialEntryModel(ContractModel):
@@ -183,7 +157,7 @@ class AdmittedTrialEntryModel(ContractModel):
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
         json_schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "admitted-trial-entry-resolved-and-integrity-bound",
             "An admitted trial entry keeps run_id distinct from plan_entry_id, records unique resolved variation "
@@ -204,13 +178,17 @@ class AdmittedTrialPlanModel(ContractModel):
     input_refs: AdmittedTrialPlanInputRefsModel
     stochastic_controls: dict[NonEmptyString, ExperimentStochasticControlModel] = Field(default_factory=dict)
     cleanup_plans: dict[NonEmptyString, TrialCleanupPlanModel] = Field(min_length=1)
-    isolation_proof: SchedulerIsolationProofModel | None = None
+    trial_parallelism: TrialParallelismModel | None = Field(default=None, exclude_if=lambda value: value is None)
     replacement_policy: TrialReplacementPolicyModel | None = None
     replacement_origin: TrialReplacementOriginModel | None = None
     allocation: AdmittedExperimentAllocationModel | None = None
     entries: dict[NonEmptyString, AdmittedTrialEntryModel] = Field(min_length=1)
     admission: AdmittedTrialPlanAdmissionModel
     plan_digest: PrefixedDigestString
+
+    def parallelism_bounds(self) -> tuple[int, int]:
+        """Return the authored parallel-trial bounds (one when ``trial_parallelism`` is absent)."""
+        return parallelism_bounds(self.trial_parallelism, len(self.entries))
 
     @model_serializer(mode="wrap")
     def _serialize_replacement(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
@@ -227,7 +205,6 @@ class AdmittedTrialPlanModel(ContractModel):
         self._validate_identity_graph()
         self._validate_joins()
         self._validate_authority_agreement()
-        self._validate_isolation()
         self._validate_allocation()
         if self.admission.entry_count != len(self.entries):
             raise ValueError("admission entry_count must equal the number of admitted entries")
@@ -251,8 +228,6 @@ class AdmittedTrialPlanModel(ContractModel):
         if (self.profiles.allocation_profile != "none") != (self.allocation is not None):
             raise ValueError("allocation profile and recorded allocation must agree")
         if self.allocation is not None:
-            from .trial_coordinate_order import canonical_coordinate_sort_key
-
             if "designed" not in self.profiles.compiler_profile:
                 raise ValueError("recorded allocation requires a designed compiler profile")
             domain = [
@@ -406,35 +381,18 @@ class AdmittedTrialPlanModel(ContractModel):
                     "entry stochastic draw address trial_coordinate must equal the enclosing entry coordinate"
                 )
 
-    def _validate_isolation(self) -> None:
-        if self.isolation_proof is None:
-            return
-        proof = self.isolation_proof
-        unknown = sorted(set(proof.plan_entry_ids) - set(self.entries))
-        if unknown:
-            raise ValueError(f"isolation proof references unknown plan entries: {', '.join(unknown)}")
-        if proof.requested_parallelism <= 1:
-            return
-        # Bounded parallelism must not authorize entries that own the same
-        # resource: a proof cannot claim independence for trials whose cleanup
-        # boundaries overlap, or one trial (or its cleanup) could read, mutate,
-        # or destroy another's state.
-        overlap = isolation_resource_overlaps(self, list(proof.plan_entry_ids))
-        if overlap:
-            raise ValueError("isolation proof authorizes parallel entries that share resources: " + ", ".join(overlap))
-
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
         json_schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "admitted-trial-plan-identity-joins-and-integrity",
             "An admitted trial plan keeps map keys equal to embedded ids, keeps plan/entry/run identities distinct, "
             "gives every entry a unique logical coordinate and archival run_id, resolves cleanup and "
             "stochastic-control joins (with each draw addressed to its entry coordinate), exact mixed-composition "
-            "profile inputs, and isolation-proof entries within the sealed plan, requires values duplicated from "
+            "profile inputs within the sealed plan, requires values duplicated from "
             "incumbent authorities (random-stream profile, "
-            "binding condition/family) to agree, forbids bounded-parallel entries from sharing resources, matches "
+            "binding condition/family) to agree, matches "
             "admission cardinality, binds a replacement profile to a distinct single-entry child within the "
             "original replacement budget, and binds the complete plan with a recomputed plan_digest "
             "over the entry set.",
@@ -468,6 +426,19 @@ def seal_admitted_trial_plan(**fields: object) -> AdmittedTrialPlanModel:
     return _seal(AdmittedTrialPlanModel, "plan_digest", fields)  # type: ignore[return-value]
 
 
+def canonical_entry_order(plan: AdmittedTrialPlanModel) -> tuple[str, ...]:
+    """Return the plan's admitted entry ids in canonical dispatch order."""
+
+    if plan.allocation is not None:
+        return tuple(plan.allocation.entry_order)
+    ordered = sorted(plan.entries.values(), key=lambda entry: canonical_coordinate_sort_key(entry.coordinate))
+    return tuple(entry.plan_entry_id for entry in ordered)
+
+
+def scheduling_policy_id(plan: AdmittedTrialPlanModel) -> str:
+    return RECORDED_ALLOCATION_POLICY_ID if plan.allocation is not None else CANONICAL_ORDER_POLICY_ID
+
+
 __all__ = [
     "AdmittedApparatusBindingModel",
     "AdmittedBindingModel",
@@ -485,8 +456,8 @@ __all__ = [
     "BindingOrigin",
     "ExperimentScenarioFamilyReferenceModel",
     "SelectionPolicyKind",
-    "entry_owned_resource_refs",
-    "isolation_resource_overlaps",
+    "canonical_entry_order",
+    "scheduling_policy_id",
     "seal_admitted_trial_entry",
     "seal_admitted_trial_plan",
 ]

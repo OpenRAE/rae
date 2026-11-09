@@ -1,8 +1,10 @@
-# One reusable tool unit imported under two namespaces, plus local participants
-# whose own observation boundary shows a local tool affordance over an imported
-# action and tool (DSL-117). The local scanner-package is a different tool that
-# the imported affordances must not bind. The auditor sees the affordance but
-# does not hold the action, so the display grants it nothing.
+# Import one tool unit under two namespaces.
+# Local participants use a local affordance over an imported action and tool.
+# Their own boundary classifies the affordance under DSL-117.
+# The local scanner-package is distinct from the imported tool.
+# Imported affordances must retain their original binding.
+# The auditor sees the affordance but holds no action.
+# Visibility grants no invocation authority.
 name: operator-console
 imports:
   - source: local:tool-kit.sdl.yaml

@@ -4,6 +4,7 @@ import json
 from dataclasses import replace
 
 import pytest
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_operations.run_artifacts import RunMaterializationArchive
 from raes_runtime.backend_calls import _BackendCallContext, _call_backend_apply, _RealizationApplyContext
@@ -114,8 +115,9 @@ def test_source_policy_cannot_be_removed_without_invalidating_its_bound_identity
 def test_advisory_preparation_does_not_fail_whole_run_or_emit_duplicates(tmp_path, severity):
     from raes_backend_protocols.manifest import backend_manifest_v2_model
     from raes_contracts.canonical import canonical_json_digest
+    from raes_contracts.contracts.realization_preparation import RealizationPreparation
     from raes_contracts.diagnostics import Diagnostic, Severity
-    from raes_contracts.realization_preparation import RealizationPreparation, RealizationPreparationAuthority
+    from raes_contracts.planning import RealizationPreparationAuthority
     from raes_runtime import RuntimeManager
     from raes_runtime.registry import RuntimeTarget
 
@@ -205,7 +207,7 @@ def test_later_phase_preserves_prior_additions_without_claiming_their_effects(tm
 
 @pytest.mark.parametrize("phase", ["provisioning", "evaluation", "orchestration"])
 def test_required_scope_fact_survives_wire_roundtrip_and_binds_authorization(phase):
-    from raes_contracts import plan_projection
+    from raes_contracts.contracts import plan_projection
     from raes_contracts.plan_effects import plan_can_mutate
     from raes_runtime import control_plane_api_models
 
@@ -235,10 +237,10 @@ def test_composition_uses_native_member_identity_and_rejects_overlapping_ownersh
     local = content([{"name": "listener", "port": 9090}, {"name": "original", "port": 80}])
     combined = compose_materialization_content(base, prior, local)
     assert {service.name for service in combined.nodes["host"].services} == {"original", "collector", "listener"}
-    with pytest.raises(ValueError, match="overlap"):
+    with pytest.raises(InvalidInputError, match="overlap"):
         compose_materialization_content(base, prior, prior)
     removed = admit_prospective_content({"name": "scope", "nodes": {}})
-    with pytest.raises(ValueError, match="overlap"):
+    with pytest.raises(InvalidInputError, match="overlap"):
         compose_materialization_content(base, prior, removed)
 
 
@@ -255,7 +257,10 @@ def test_manager_composes_all_phases_before_mutation_and_preserves_cumulative_wo
     from test_runtime_manager import RecordingEvaluator, RecordingOrchestrator, _full_scenario
 
     source = _full_scenario().model_dump(mode="json", exclude_unset=True)
-    source["realization"] = {"default": "open"}
+    source["realization"] = {
+        "default": "open",
+        "scopes": [{"field_pointer": "/nodes/host/runtime", "posture": "closed"}],
+    }
     source["nodes"]["host"] = source["nodes"].pop("vm")
     source["propositions"]["health"]["subjects"] = ["nodes.host"]
     execution = scoped_plan({"default": "open"}, content=source)
@@ -338,5 +343,6 @@ def test_prior_attestation_read_refuses_corruption_and_unsafe_paths(tmp_path, da
             update={"reference": record.reference.model_copy(update={"ref_path": "/tmp/foreign.sdl"})}
         )
     archive = RunMaterializationArchive(tmp_path)
-    with pytest.raises((ValueError, OSError)):
+    with pytest.raises(EvidenceIntegrityError) as caught:
         archive.read(record)
+    assert type(caught.value) is EvidenceIntegrityError

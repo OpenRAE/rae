@@ -25,6 +25,7 @@ Requirement inventory expansion. Observation support must be declared explicitly
 - IMPLEMENTS → GITHUB_ISSUE `1237` (Centralize capture admission and evidence proof authority)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/capture_dimensions.py` (Governed capture projection, representation, comparison, and diagnostic definitions)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/evidence_output_validation.py` (Capture offers require a complete evidence output owner)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/evidence_output_contracts.py` (Capture offers require a complete evidence output owner)
 - TESTS → TEST `implementations/python/tests/test_issue_1237_capture_dimensions.py` (Closed-field parity, projection oracles, round trips, and every dimension's diagnostics)
 - TESTS → TEST `implementations/python/tests/test_issue_1237_capture_ingress.py` (Shared planner, trial compiler, realization, and runtime admission vectors)
 - TESTS → TEST `implementations/python/tests/test_issue_1237_output_registry.py` (Offer eligibility fails closed without schema or semantic validation)

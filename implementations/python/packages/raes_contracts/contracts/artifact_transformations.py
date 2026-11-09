@@ -12,7 +12,7 @@ from pydantic_core import CoreSchema
 from ..diagnostics import DiagnosticModel
 from ..versions import ARTIFACT_TRANSFORMATION_REPORT_SCHEMA_VERSION
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 _REPORT_VALIDATOR = "raes_contracts.contracts.ArtifactTransformationReportModel.model_validate"
 OperationProfile = str
@@ -199,14 +199,14 @@ class ArtifactTransformationReportModel(ContractModel):
                 },
             ]
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "artifact-transformation-all-or-none",
             "Success carries a complete target digest; refusal carries no target and at least one bounded diagnostic.",
             validator=_REPORT_VALIDATOR,
             inputs=[{"contract_id": "artifact-transformation-report-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "artifact-transformation-deterministic-order",
             "Checks, identities, mappings, losses, diagnostics, and evidence use stable closed ordering.",

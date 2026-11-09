@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from dataclasses import dataclass
 
+from pydantic import ValidationError
 from raes.realization_envelope import (
     NegativeProbe,
     PositiveProbe,
@@ -14,6 +13,8 @@ from raes.realization_envelope import (
 )
 from raes.scenario import Scenario
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.json_serialization import sorted_json_digest
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 from raes_processor.reference import run_reference_processor
 from raes_runtime.registry import RuntimeTarget
@@ -60,14 +61,9 @@ class _CaseContext:
     target_binding: str
 
 
-def _payload_digest(payload: dict[str, object]) -> str:
-    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
-    return "sha256:" + hashlib.sha256(canonical).hexdigest()
-
-
 def _probe_set_digest(positives: tuple[PositiveProbe, ...], negatives: tuple[NegativeProbe, ...]) -> str:
-    material = [probe.digest for probe in positives] + [_payload_digest(probe.payload) for probe in negatives]
-    return _payload_digest({"probe_digests": material})
+    material = [probe.digest for probe in positives] + [sorted_json_digest(probe.payload) for probe in negatives]
+    return sorted_json_digest({"probe_digests": material})
 
 
 def _execute(context: _CaseContext, request: RealizationProbeRequest) -> RealizationProbeEvidence:
@@ -177,7 +173,8 @@ def _positive_case(
             context.target.manifest,
             scope=materialization_probe_scope(context.target),
         ).execution_plan
-    except Exception:
+    # The SDL model, the processor or the planner refused the generated probe.
+    except InvalidInputError, ValidationError:
         execution_plan = None
     # A plan with error diagnostics is not an executable probe; never hand it to the harness.
     if execution_plan is None or any(diagnostic.is_error for diagnostic in execution_plan.diagnostics):
@@ -276,7 +273,7 @@ def _negative_case(
     probe: NegativeProbe,
     context: _CaseContext,
 ) -> RealizationProbeCase:
-    digest = _payload_digest(probe.payload)
+    digest = sorted_json_digest(probe.payload)
     request = RealizationProbeRequest(
         probe_digest=digest,
         probe_kind="negative",

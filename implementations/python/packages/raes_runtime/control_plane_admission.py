@@ -4,15 +4,17 @@ from __future__ import annotations
 
 from uuid import uuid4
 
+from pydantic import ValidationError
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError, InvalidInputError, OperationalError
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
     OperationAdmissionContext,
     OperationKind,
     OperationReceipt,
 )
+from raes_contracts.timestamps import isoformat_z
 
-from .control_plane_execution import _utc_now
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_store import (
@@ -34,7 +36,7 @@ def _require_sensitive_retry_proof(
     competing_claim: bool,
 ) -> None:
     if supplied is not None and ((competing_claim and known != supplied) or (known is not None and known != supplied)):
-        raise ValueError(_SENSITIVE_RETRY_CONFLICT)
+        raise ConflictError(_SENSITIVE_RETRY_CONFLICT)
 
 
 class RuntimeAdmissionMixin:
@@ -55,7 +57,7 @@ class RuntimeAdmissionMixin:
         self._assert_runtime_owner()
         self._store.append_audit(
             AuditEvent(
-                timestamp=_utc_now(),
+                timestamp=isoformat_z(self.wall_clock()),
                 action=action,
                 identity=identity,
                 allowed=allowed,
@@ -106,7 +108,7 @@ class RuntimeAdmissionMixin:
     ) -> OperationReceipt:
         del idempotency_key, request_fingerprint
         operation_id = str(uuid4())
-        submitted_at = _utc_now()
+        submitted_at = isoformat_z(self.wall_clock())
         operation_context = context or operation_admission_context(
             self,
             kind={
@@ -122,14 +124,19 @@ class RuntimeAdmissionMixin:
             ),
             identity=identity,
         )
-        receipt = OperationReceipt(
-            operation_id=operation_id,
-            domain=domain,
-            submitted_at=submitted_at,
-            accepted=False,
-            context=operation_context,
-            diagnostics=list(diagnostics),
-        )
+        try:
+            receipt = OperationReceipt(
+                operation_id=operation_id,
+                domain=domain,
+                submitted_at=submitted_at,
+                accepted=False,
+                context=operation_context,
+                diagnostics=list(diagnostics),
+            )
+        except ValidationError as exc:
+            # The portable diagnostic contract bounds each message, so a refusal that names an oversized
+            # request value, such as a long workflow address, has no portable receipt.
+            raise InvalidInputError("operation refusal diagnostics exceed the portable diagnostic contract") from exc
         diagnostic_codes = sorted({diagnostic.code for diagnostic in receipt.diagnostics})
         audit_details: dict[str, object] = {"diagnostic_codes": diagnostic_codes[:32]}
         if len(diagnostic_codes) > 32:
@@ -153,6 +160,9 @@ class RuntimeAdmissionMixin:
         legacy_request_fingerprint: str = "",
         new_claim_blocked: NewClaimBlock = None,
     ) -> ControlPlaneOperationRecord:
+        authority = getattr(self, "_mutation_authority", None)
+        if authority is not None:
+            authority.require_live_child_scope()
         self._assert_runtime_owner()
         require_idempotency_key(record.idempotency_key)
         new_claim_blocked, reservation_error = self._effect_claim_block(record, new_claim_blocked)
@@ -184,7 +194,7 @@ class RuntimeAdmissionMixin:
 
     def _effect_claim_block(
         self, record: ControlPlaneOperationRecord, blocked: NewClaimBlock
-    ) -> tuple[NewClaimBlock, RuntimeError | None]:
+    ) -> tuple[NewClaimBlock, ConflictError | OperationalError | None]:
         from .control_plane_recovery import unresolved_indeterminate_operation_ids
         from .operation_invocation_ledger import control_record_is_supervisory
 
@@ -198,7 +208,8 @@ class RuntimeAdmissionMixin:
         if engine is not None:
             try:
                 engine.reserve(self)
-            except RuntimeError as error:
+            # NewClaimRejected is a ConflictError, so closed effect admission also takes this path.
+            except (ConflictError, OperationalError) as error:
                 # Preserve exact readback after admission closes or a run retires.
                 reservation_error = error
                 blocked = "current-state"

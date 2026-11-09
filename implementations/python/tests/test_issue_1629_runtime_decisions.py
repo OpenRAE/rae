@@ -2,6 +2,7 @@
 
 import pytest
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.errors import ConflictError
 from raes_runtime import RuntimeControlPlane
 from raes_runtime.control_plane_store import InMemoryControlPlaneStore
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
@@ -17,7 +18,7 @@ def test_decision_claim_replays_exactly_and_rejects_changed_store_identity(tmp_p
         assert engine._store.claim_runtime_decision(decision)
         assert not engine._store.claim_runtime_decision(decision)
         changed = decision.model_copy(update={"store_digest": "sha256:" + "b" * 64})
-        with pytest.raises(ValueError, match="conflict"):
+        with pytest.raises(ConflictError, match="conflict"):
             engine._store.claim_runtime_decision(changed)
         assert engine._store.load_runtime_decisions() == (decision,)
 

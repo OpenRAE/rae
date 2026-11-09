@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import logging
-
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -16,6 +14,8 @@ from raes_contracts.contracts import (
     ProvisioningPlanModel,
     RuntimeSnapshotEnvelopeModel,
 )
+from raes_contracts.errors import AuthorizationError, NotFoundError, RaesError
+from raes_contracts.operational_logging import get_logger
 
 from ..control_plane import RuntimeControlPlane
 from ..control_plane_api_guards import (
@@ -43,12 +43,12 @@ from ._offload import _control_plane_calls
 from ._responses import (
     _CONFLICT_RESPONSES,
     _NOT_FOUND_RESPONSES,
-    _conflict_detail,
     _receipt_response,
+    _refusal,
     _set_snapshot_revision_header,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_logger(__name__)
 
 
 class _IndeterminateResolutionRequest(BaseModel):
@@ -70,9 +70,9 @@ async def _record_admission_denial_best_effort(
     A failed secondary audit must never escape and replace the already-selected
     stable 4xx/5xx envelope (ADR-104 §7; issue-1188 preflight: the request-size
     middleware and global exception handlers need the same best-effort audit
-    rule). Any audit or offload failure is swallowed after a stable log label,
-    and ``reason`` is always a stable code — never exception text or a provider
-    class name.
+    rule). Any audit or offload failure is isolated after one value-free log
+    record, and ``reason`` is always a stable code — never exception text or a
+    provider class name.
     """
 
     try:
@@ -85,7 +85,7 @@ async def _record_admission_denial_best_effort(
             reason=reason,
         )
     except Exception:
-        _LOGGER.error("control-plane redacted-error audit persistence failed")
+        _LOGGER.exception("control-plane redacted-error audit persistence failed")
 
 
 def _install_request_guards(
@@ -183,11 +183,12 @@ def _register_indeterminate_resolution_route(
                 idempotency_key=request.headers.get("idempotency-key", ""),
                 identity=identity,
             )
-        except (KeyError, PermissionError) as exc:
+        except (NotFoundError, AuthorizationError) as exc:
             # The core audits a forbidden resolution; the response matches an unknown
             # operation so an operator cannot probe which operation ids exist.
             raise HTTPException(status_code=404, detail="indeterminate operation not found") from exc
-        except (TypeError, ValueError, RuntimeError) as exc:
+        except RaesError as exc:
+            # This route documents 409 for every other refusal, an unavailable runtime included.
             raise HTTPException(status_code=409, detail="indeterminate resolution conflict") from exc
         return _receipt_response(receipt)
 
@@ -224,8 +225,8 @@ def _register_provisioning_submission_route(
                 idempotency_key=request.headers.get("idempotency-key", ""),
                 identity=identity,
             )
-        except ValueError as exc:
-            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
+        except RaesError as exc:
+            raise _refusal(exc) from exc
         return _receipt_response(receipt)
 
 
@@ -260,8 +261,8 @@ def _register_orchestration_submission_route(
                 idempotency_key=request.headers.get("idempotency-key", ""),
                 identity=identity,
             )
-        except ValueError as exc:
-            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
+        except RaesError as exc:
+            raise _refusal(exc) from exc
         return _receipt_response(receipt)
 
 
@@ -296,8 +297,8 @@ def _register_evaluation_submission_route(
                 idempotency_key=request.headers.get("idempotency-key", ""),
                 identity=identity,
             )
-        except ValueError as exc:
-            raise HTTPException(status_code=409, detail=_conflict_detail(exc)) from exc
+        except RaesError as exc:
+            raise _refusal(exc) from exc
         return _receipt_response(receipt)
 
 

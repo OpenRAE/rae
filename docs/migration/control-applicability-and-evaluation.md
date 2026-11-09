@@ -1,210 +1,336 @@
-# Control applicability and evaluation migration
+<a id="control-applicability-and-evaluation-migration"></a>
 
-This is the adoption contract for [ADR-111](../decisions/adrs/adr-111-control-applicability-and-effect-decisions.md)
-and [CA-01–CA-09](../../specs/formal/participant-semantics/control-applicability-and-evaluation.md).
-It defines producer/reader obligations, not a working migrator. Issue #1365
-publishes the v2 contract representation described below. The reference-runtime
-evaluation/history adoption is described in the
-[contract reference](../explain/reference/modular-participant-control-contracts.md#reference-runtime-v2-evaluation).
+# Control applicability and evaluation
 
-## Explicit interpretation boundary
+## Versions and purpose
 
-`participant-control-applicability/rev1` identifies the amendment. It is distinct
-from `sem-235/rev1`, profile revisions, wire `participant-control-selection/v1`
-and `participant-control-evaluation/v1`, and `participant-control-provider/v1`.
-Issue #1365 publishes `participant-control-selection/v2`,
-`participant-control-evaluation/v2` and `participant-control-provider/v2` as
-separately negotiated contracts for the amendment.
-New invocation semantics must not be inferred from a `resolve` method or the
-presence/absence of optional fields. Retain separate semantic, profile,
-protocol, schema-content, implementation and storage pins.
+Source: original selection/evaluation and provider/v1 contracts.
+Target: v2 contracts negotiated separately under `participant-control-applicability/rev1`.
+This reference applies to Python RAES 11.0.2.
+Each contract keeps its own identity and obligations.
+This page supplies no converter. It installs nothing.
 
-The current selection/evaluation schemas have draft stability under ADR-061.
-Their publication process may permit recorded changes in place; that does not
-make old and new meanings interchangeable. Adoption must introduce an explicit
-interpretation discriminator or new contract lineage, and negotiate exact
-schema content and protocol support at apparatus admission. Stable breaking
-contracts require a new contract ID under ADR-061. The #1352 design delivery
-published no schema or protocol; #1365 uses new contract IDs and does not open
-a deprecation or removal window for v1.
+[ADR-111](../decisions/adrs/adr-111-control-applicability-and-effect-decisions.md)
+and [CA-01–CA-09](../../specs/formal/participant-semantics/control-applicability-and-evaluation.md) own the adoption rules.
+This page gives producer/reader obligations. It supplies no working migrator.
+Issue #1365 publishes the v2 form described below.
+The [contract reference](../explain/reference/modular-participant-control-contracts.md#reference-runtime-v2-evaluation)
+describes reference-runtime evaluation/history adoption.
 
-## Published v2 representation and negotiation (#1365)
+<a id="explicit-interpretation-boundary"></a>
 
-The v2 selection preserves the complete admitted apparatus, exact profile
-obligations, binding configuration/authority/provenance and slot support pins.
-An evaluation embeds that selection and records total obligation coverage and
-the applicable slot subset at its exact context cut. Coverage is independently
-resolved from the profile: an absent record, empty applicable discharge or
-provider-returned `None` cannot prove inapplicability. Required-input closure
-is explicit and a required advisory input must be available even though its
-opinion does not decide the parent. V2 invocations bind requested slots,
-content-bound predecessor results, an authorized projection and committed or
-declared tentative state inputs; result digests bind back to the complete
-invocation. Invalid optional output is reduced at that invocation boundary to
-a value-independent lost-advice record. The accepted parent decision is an
-unscheduled permit, deny or withhold. Effects have their own closed target,
-origin, phase and outcome prerequisite, and only an independently authorized
-consequence may follow denial or withhold. Decision-local runnable effects are
-provisional: `admitted_control_effect_ids_v2` joins them with mandatory
-composition before any intent or dispatch enters the commit envelope. Parent
-release receipts and release-conditioned state cannot survive failed required
-composition. The expected-head commit envelope binds
-coverage, results, decision, state proposals, effect intents and consumption;
-it is a contract for the incumbent store, not proof of a commit or dispatch.
-An explicit required decision to deny or withhold is a complete parent outcome;
-it does not count as a failed mandatory slot. Independent consequences may be
-admitted for that exact outcome only when no unrelated mandatory blocker
-remains. Duplicate effect IDs across provider results are rejected before
-effect planning, so result order cannot suppress a request.
+## Version boundaries
 
-The selection/evaluation schemas, public `ParticipantControlProviderV2`
-protocol, corpus examples, publication entries and conformance registry are
-published. The v2 conformance entry reports `structural-context-required` and
-requires an operator supplied resolver for admitted coverage, installation,
-effective API-407 support, exact results, incumbent crossing and IFC fact
-owners, safe references and effect authority.
-Coverage must discharge an obligation through a slot whose binding selects
-that obligation's profile. Lifecycle effects require explicit ordering after
-overlapping live-target operations. A realized effect must match a retained
-full-payload claim and an operator-resolved earlier committed evaluation that
-authorized its phase, parent outcome and effect predecessors, plus its exact
-applied owner outcome. The resolver must also supply the authorized state
-proposal for each write, including its commit timing; `commit_on` in a provider
-record does not authorize itself.
-An exact/bounded compatibility claim still needs independently resolved
-constraint evidence; the wire relation alone is not proof. A backend's v1
-`participant_modular_control` declaration continues to require the original
-v1 contracts. The v2 IDs are available for exact contract declarations, but
-neither those declarations nor protocol method presence prove installed v2
-capability. Producers must negotiate the v2 IDs, their content hashes, the
-semantic interpretation and provider/v2 before emitting v2 records. Readers
-must route by the recorded contract ID; there is no global reducer switch.
+`participant-control-applicability/rev1` names the amendment.
+It is distinct from `sem-235/rev1` and profile revisions.
+It is also distinct from the following wire and protocol versions:
 
-The #1365 publication itself does not change `RuntimeSnapshot`, scheduling,
-store/history folds or dispatch. The #1069 consumer explicitly admits v2
-binding/content pins, supervised dependency evaluation and scope-bound state
-through the existing atomic evaluation-history carrier. Readers select the
-recorded discriminator; SQLite reader version 8 excludes v1-only readers.
-Providers return prepared transaction content. Issue #1369 seals newly appended
-v2 evaluations with the actual operation receipt and committed dispatchable IDs
-inside the incumbent atomic transaction. A failed commit publishes neither.
-Historical prepared evaluations remain unchanged and cannot dispatch. Legacy
-claims and budgets remain intact; v2 intents are never interpreted through v1.
-The optional v2 `continuation` field pins an immutable source evaluation,
-source commit receipt and exact realized claims. Dependency advancement and
-parent-receipt promotion require separate trusted-context admission; fresh
-evaluation validation rejects a continuation without its source. Historical
-records omit an absent continuation field, preserving their canonical bytes.
+- `participant-control-selection/v1`.
+- `participant-control-evaluation/v1`.
+- `participant-control-provider/v1`.
+
+Issue #1365 publishes separate v2 contracts for selection, evaluation, and the provider.
+Their IDs are `participant-control-selection/v2`, `participant-control-evaluation/v2`, and `participant-control-provider/v2`.
+Negotiate each separately for this amendment.
+A `resolve` method does not establish new invocation semantics.
+Neither does the presence or absence of optional fields.
+Keep separate semantic, profile, protocol, schema-content, implementation, and storage pins.
+
+Selection/evaluation schemas currently have draft stability under ADR-061.
+Their process may permit recorded changes in place.
+That permission does not make old and new meanings interchangeable.
+Adoption must introduce an explicit interpretation discriminator or new contract lineage.
+At apparatus admission, negotiate exact schema content and protocol support.
+Stable breaking contracts need a new contract ID under ADR-061.
+The #1352 design delivery published no schema or protocol.
+Issue #1365 uses new contract IDs.
+It opens no deprecation or removal window for v1.
+
+<a id="published-v2-representation-and-negotiation-1365"></a>
+
+## Published v2 contracts (#1365)
+
+The v2 selection retains the complete admitted apparatus.
+It pins profile obligations and binding configuration.
+It also pins authority, provenance, and slot support.
+Each evaluation embeds that selection.
+It records total obligation coverage and the applicable slots at its exact context cut.
+
+Use the profile to resolve coverage independently.
+An absent record cannot prove inapplicability.
+Neither can an empty applicable discharge.
+A provider-returned `None` cannot prove it either.
+
+Required-input closure is explicit.
+A required advisory input must be available.
+This holds even when its opinion cannot decide the parent.
+
+Each v2 invocation binds the requested slots.
+It also binds content-bound predecessor results.
+It binds an authorized projection.
+
+State inputs must be committed or declared tentative.
+The invocation binds those inputs too.
+
+Result digests bind the complete invocation.
+Reduce invalid optional output to a lost-advice record at that invocation boundary.
+The record must be value-independent.
+The accepted parent outcome is an unscheduled permit, deny, or withhold.
+
+Each effect has its own closed target.
+It has separate origin, phase, and outcome prerequisites.
+Only an independently authorized consequence may follow denial or withholding.
+Decision-local runnable effects remain provisional.
+
+`admitted_control_effect_ids_v2` joins them with mandatory composition before commit admits intent or dispatch.
+If required composition fails, parent release receipts cannot survive.
+Release-conditioned state cannot survive either.
+
+The expected-head commit envelope binds coverage, results, and decision.
+It also binds state proposals, effect intents, and consumption.
+It specifies the incumbent store transaction. It does not prove commit or dispatch.
+
+An explicit required deny or withhold is a complete parent outcome.
+It is not a failed mandatory slot.
+
+Independent consequences may follow that exact outcome.
+They may do so only when no unrelated mandatory blocker remains.
+Reject duplicate effect IDs across provider results before planning effects.
+Result order cannot suppress a request.
+
+The published set includes selection/evaluation schemas and `ParticipantControlProviderV2`.
+It includes corpus examples, publication entries, and the conformance registry too.
+The v2 conformance entry reports `structural-context-required`.
+The operator must supply its resolver.
+That resolver must resolve admitted coverage and installation.
+It must resolve effective API-407 support and exact results.
+It must resolve incumbent crossing and IFC fact owners.
+It must also resolve safe references and effect authority.
+
+A discharge slot must select the obligation's profile.
+Lifecycle effects need an explicit order.
+They must follow live-target operations that overlap them.
+A realized effect must match a retained full-payload claim.
+It also needs an operator-resolved earlier committed evaluation.
+That evaluation must authorize the exact phase, parent outcome, and effect predecessors.
+The realized effect must match its exact applied owner outcome.
+
+The resolver must supply the authorized proposal for each state write, including commit timing.
+A provider's `commit_on` record cannot authorize itself.
+An exact/bounded compatibility claim needs constraint evidence.
+That evidence must be independently resolved.
+The wire relation alone is not proof.
+
+A backend's v1 `participant_modular_control` declaration still requires the original v1 contracts.
+The v2 IDs support exact contract declarations.
+Neither a declaration nor a method proves installed v2 capability.
+
+Before emitting v2 records, negotiate their IDs and content hashes.
+Also negotiate their semantic meaning and provider/v2 support first.
+Route each record by its recorded contract ID. There is no global reducer switch.
+
+Issue #1365 left `RuntimeSnapshot` unchanged.
+It left scheduling, store/history folds, and dispatch unchanged too.
+
+The #1069 consumer explicitly admits v2 binding/content pins.
+It also explicitly admits supervised dependency evaluation.
+It admits scope-bound state through the existing atomic evaluation-history carrier.
+Readers select the recorded discriminator. SQLite reader version 8 excludes v1-only readers.
+
+Providers return prepared transaction content.
+
+The runtime seals each new v2 evaluation, as specified in #1369.
+It does so inside the existing atomic transaction.
+The seal includes the actual operation receipt.
+It also includes the committed dispatchable IDs.
+A failed commit publishes neither.
+
+Historical prepared evaluations stay unchanged and cannot dispatch.
+Legacy claims and budgets remain intact. Never interpret v2 intents through v1.
+
+
+The optional v2 `continuation` pins an immutable source evaluation.
+It also pins the source commit receipt and exact realized claims.
+A dependency cannot advance without separate trusted-context admission.
+A parent receipt cannot be promoted without that admission either.
+Fresh evaluation validation rejects a continuation when its source is missing.
+Historical records omit an absent continuation field and retain their canonical bytes.
 Negotiate the updated v2 schema content pin before consuming these records.
-The v2 drain admits only installed, exactly bound effect owners. Supported paths
-are compiled handoff, fresh world inject execution, and execution-attempt
-cancellation with independently observed outcomes. Other required combinations
-refuse at admission; unsupported optional contributions remain isolated advice.
-No production provider or distributed atomicity claim follows from these
-synthetic reference-runtime witnesses.
 
-| Artifact | Legacy reader | Amendment-aware reader |
-| --- | --- | --- |
-| Original selection/evaluation and provider/v1 | Retain original interpretation and constraints. | Select a retained legacy reader, without claiming CA-01–CA-09 satisfaction. |
-| Revised coverage/invocation/effect record | Reject unsupported interpretation. | Resolve its exact semantic/protocol/schema pins, then validate closed data and independently trusted context. |
-| Historical record missing an unambiguous interpretation pin | Preserve bytes; report the bounded legacy interpretation actually supported. | Use an explicit archive migration disposition backed by original content/release evidence; otherwise report unsupported/unverifiable, never guess new semantics. |
-| Archive with both interpretations | Refuse unsupported reconstruction; preserve records. | Route each record through its exact reader; preserve history order, identities and evidence. |
-| New live apparatus needing revised semantics | Refuse unsupported admission. | Require support across producer, provider, composition, runtime, store/history and selected downstream consumers. |
+The v2 drain admits only installed, exactly bound effect owners.
+Supported paths include compiled handoff and fresh world inject execution.
+They also include execution-attempt cancellation with independently observed outcomes.
+Other required combinations refuse at admission.
+An optional contribution that is unsupported stays isolated advice.
+These synthetic reference-runtime witnesses establish no production provider or distributed atomicity.
 
-An older reader must never silently ignore new coverage or prerequisite
-fields. A new reader must not globally apply the new composition reducer to
-all old records. Schema validity alone does not establish compatibility.
+### Original v1 records
 
-## Conversion of apparatus and requests
+Legacy readers keep the original selection/evaluation and provider/v1 meaning and constraints.
+Readers that implement the amendment must select the retained legacy reader for those records.
+They cannot claim CA-01–CA-09 satisfaction from that legacy path.
 
-An explicit conversion starts from pinned B and the published profile
-obligations. Record source identity/digest, conversion identity, selected
-semantic/protocol versions, author decisions and effective limitations.
+### Revised records
 
-1. Preserve the complete apparatus and derive obligation coverage separately.
-   Do not infer obligations from the slots or results that happen to exist.
-   Reconstruct inapplicability only from trusted profile/context evidence;
-   absence and `None` cannot be upgraded into proof.
+Legacy readers reject unsupported meanings in revised coverage, invocation, or effect records.
+Readers that implement the amendment resolve exact semantic, protocol, and schema pins.
+They validate closed data against independently trusted context.
+
+### Historical records without clear pins
+
+Both reader types must preserve the bytes.
+A legacy reader reports only its supported bounded legacy meaning.
+A reader that implements the amendment needs an explicit archive migration disposition.
+Original content and release evidence must support that disposition.
+Otherwise it reports unsupported/unverifiable. It must never infer new semantics.
+
+### Mixed archives and new apparatus
+
+Legacy readers refuse unsupported archive reconstruction and keep the records.
+Readers that implement the amendment route each record through its exact reader.
+They keep history order, identities, and evidence.
+
+Legacy readers refuse new live apparatus needing revised semantics.
+Readers that implement the amendment require support across producer, provider, composition, runtime, and store/history.
+That requirement also covers selected downstream consumers.
+
+Older readers must not silently ignore new coverage or prerequisite fields.
+New readers must not apply the new composition reducer to all old records.
+Schema validity alone does not establish compatibility.
+
+<a id="conversion-of-apparatus-and-requests"></a>
+
+## Conversion rules
+
+Explicit conversion starts from pinned apparatus B and published profile obligations.
+Record the source identity/digest and conversion identity.
+Record selected semantic/protocol versions, author decisions, and effective limitations too.
+
+1. Preserve the complete apparatus.
+   Derive obligation coverage separately.
+   Existing slots or results cannot define the obligations.
+   Only trusted profile/context evidence can establish inapplicability.
+   Absence and `None` are not proof.
 2. Bind each dependency to its typed predecessor output and consumer input.
-   A provider/v1 adapter is admissible only for an independently verified
-   dependency-free supported fragment with exactly the required input/state
-   semantics. Method wrapping cannot fabricate predecessor consumption.
-3. Declare mandatory input closure and support constraints. Previously
-   advisory availability needed by a mandatory consumer is an explicit author
-   requirement, while advice content retains no direct veto. Removing a
-   required dependency or weakening a support threshold is not equivalent
-   conversion.
-4. Convert parent-targeted permit/deny/withhold to unscheduled decisions before
-   composition. Preserve their target and authority; reject contradictions or
-   an intent that requires denying an already released parent. Do not change
-   historical decisions. Other effects bind their own target and exact
-   execution prerequisites, including parent outcome/disposition conditions.
-5. Pin shared-state scope and read versions, permitted writers, state-commit
-   conditions and the combined parent/effect graph. Missing evidence, ambiguous
-   sharing, cycles and absent outcome bindings stop conversion. Do not infer
-   ordering from old array order or supply an invented owner receipt.
+   A provider/v1 adapter needs an independently verified, dependency-free supported fragment.
+   Its input/state semantics must match exactly.
+   Wrapping a method cannot prove predecessor consumption.
+3. Declare mandatory input closure and support constraints.
+   Advice needed by a mandatory consumer becomes an explicit author requirement for availability.
+   Its content still has no direct veto.
+   Removing a required dependency is not equivalent conversion.
+   Neither is weakening a support threshold.
+4. Convert parent-targeted permit/deny/withhold to unscheduled decisions before composition.
+   Keep the target and authority.
+   Reject contradictions and intents that require denying an already released parent.
+   Do not change historical decisions.
+   Other effects bind their own targets and exact execution prerequisites.
+   These include parent outcome/disposition conditions.
+5. Pin shared-state scope, read versions, and permitted writers.
+   Pin state-commit conditions and the combined parent/effect graph too.
+   Missing evidence, ambiguous sharing, cycles, or absent outcome bindings stop conversion.
+   Do not infer order from old array order.
+   Do not invent an owner receipt.
 
-When information is insufficient, an author may make a new explicit design
-and admission decision. Preserve the source and record the semantic change;
-do not label it a lossless conversion. Exact support requirements cannot become
-bounded merely because a provider advertises bounded support.
+When information is insufficient, an author may explicitly choose a new design and admission decision.
+Keep the source and record the semantic change.
+Do not call it lossless conversion.
+A provider may declare bounded support.
+That cannot turn an exact support requirement into a bounded one.
 
 ## Retained history, state and recovery
 
-Persisted decisions, parent dispositions, result identities, effect keys,
-allocated occurrences, receipts and budgets are immutable. In particular,
-`RuntimeSnapshot.__post_init__`, evaluation-history validation,
-`causal_state_from_history` and effect dispatch must select the historical
-interpretation when loading/folding a legacy record. They must not derive new
-executable effects or recalculate old consumption with the amended reducer.
+Persisted decisions and parent dispositions are immutable.
+Result identities and effect keys are immutable too.
+So are allocated occurrences, receipts, and budgets.
+For legacy records, the following consumers must select historical meaning.
+This holds when loading or folding those records:
 
-A legacy record that marked a parent eligible despite a subsequent denial
-remains evidence of that recorded legacy decision, with its limitation
-disclosed. It is not a valid amended evaluation, and retaining it is not
-authority for a new dispatch. Pending legacy work requiring unavailable or
-unsafe interpretation is withheld for explicit owner reconciliation; no
-provider re-run or manufactured revised record can repair its history.
+- `RuntimeSnapshot.__post_init__`.
+- Evaluation-history validation.
+- `causal_state_from_history`.
+- Effect dispatch.
 
-Live interpretation/protocol replacement within an active evaluation is
-unsupported. Quiesce admission, finish or explicitly reconcile pending claims
-through the existing operation lifecycle, then admit a new apparatus binding
-at a new cut with supported consumers. Do not assume durability authorizes
-resumption, retry or a new trial. Indeterminate effects retain their state
-until exact backend idempotency/readback and the authored recovery policy
-authorize a conclusion. Changing binding, participant or episode cannot reset
-a surviving causal root's consumed budget or turn an old key into a new effect.
+They must not derive new executable effects from old records.
+They must not recalculate old consumption with the amended reducer.
 
-Provider-state migration needs an explicit old/new scope/version mapping and
-authority; an implementation rename is insufficient. Cross-scope migration
-must retain isolation and atomicity or refuse. Append migration evidence;
-never mutate old state/evaluation records to appear newly conforming.
+A legacy record may mark a parent eligible despite later denial.
+Keep it as evidence of that legacy decision and disclose the limitation.
+It is not a valid amended evaluation.
+Retaining it grants no authority for new dispatch.
+Withhold pending legacy work if its meaning is unavailable or unsafe.
+The owner must reconcile it explicitly.
+Rerunning a provider or manufacturing a revised record cannot repair that history.
 
-## Coordinated publication and verification
+The meaning or protocol cannot be replaced inside a live evaluation.
+Stop new admission first.
+Finish or explicitly reconcile pending claims through the existing operation lifecycle.
+Then admit a new apparatus binding at a new cut with supported consumers.
+Durability does not authorize resumption, retry, or a new trial.
+Indeterminate effects keep their state.
+Exact backend idempotency/readback and authored recovery policy must authorize their resolution.
+Changing binding, participant, or episode cannot reset a surviving causal root's consumed budget.
+It cannot turn an old key into a new effect.
 
-Adoption uses the existing API-424 family and its owners:
+Provider-state migration needs explicit old/new scope/version mapping.
+It also needs authority.
+Renaming an implementation is insufficient.
+Cross-scope migration must keep isolation and atomicity.
+Otherwise, it must refuse.
+Append migration evidence.
+Never mutate old state/evaluation records to claim new conformance.
 
-- Closed selection/context/result/effect models and bounded ingress under
-  `raes_contracts`; normative schemas, publication entries, fixtures, exports,
-  `schema_bundle()` and packaged corpus remain identical representations.
-- Typed protocol inputs under `raes_backend_protocols`, importing neutral
-  contract DTOs, with no open kwargs or runtime/backend dependency.
-- API-407 support negotiation and independently trusted context validation;
-  one `derive_control_composition` authority for live and recorded decisions.
-- RUN-320 slot/stage invocation, scoped state, ordinary crossings/effect owners,
-  atomic commit, final-invocation fences and version-aware retained history.
-- Conformance consumers and documentation, with explicit distinctions between
-  declarations, installation, bounded contract evidence and realization.
+<a id="coordinated-publication-and-verification"></a>
 
-Use publication `last_change` summaries/content hashes, removed-schema
-tombstones when needed, explicit contract routing and package resources under
-ADR-009/061. Do not manufacture a second publication ledger or new state store.
+## Publication and checks
 
-Required consumer evidence includes disjoint sinks under one B; zero-slot and
-unknown-coverage rejection; A → B → A with exact predecessor binding; optional
-malformed/support failures versus mandatory dependency loss; bounded-support
-acceptance/refusal against admitted constraints; false-trigger records;
-parent deny/withhold in all legacy-shaped phases; independently authorized
-audit; phase-cycle rejection; shared-state conflict/failed commit; and old/new
-snapshot replay preserving keys, budgets and no-new-dispatch behavior. The
-bounded design witnesses in this delivery do not substitute for those real
-consumer and backend checks.
+Adoption uses the existing API-424 family and its owners.
+`raes_contracts` owns closed selection/context/result/effect models and bounded ingress.
+Normative schemas and publication entries must remain identical representations.
+Fixtures and exports must do so too.
+So must `schema_bundle()` and the packaged corpus.
+
+`raes_backend_protocols` owns typed protocol inputs.
+It imports neutral contract DTOs.
+There are no open kwargs or runtime/backend dependencies.
+API-407 owns support negotiation.
+Context validation requires independently trusted inputs.
+`derive_control_composition` remains the sole authority for live and recorded decisions.
+
+RUN-320 owns slot/stage invocation.
+It owns scoped state and ordinary crossings/effect owners too.
+It owns atomic commit and final-invocation fences.
+It owns version-aware retained history too.
+Conformance readers must distinguish what is declared from what is installed.
+Documentation must make the same distinction.
+They must distinguish bounded contract evidence from realization too.
+
+Publication records give contract identity, schema path, and stability.
+They hold no content hash or change summary.
+Use exact schemas from a pinned release or Git revision for required runtime content pins.
+Apply the owning protocol's digest rule to those artifacts.
+Git records schema changes.
+Use removed-schema tombstones when needed.
+Keep explicit contract routing and package resources under ADR-009/061.
+Do not create a second publication ledger or state store.
+
+Required consumer evidence covers these cases:
+
+- Disjoint sinks under one apparatus B.
+- Zero-slot and unknown-coverage rejection.
+- A → B → A with exact predecessor binding.
+- Optional malformed/support failures versus mandatory dependency loss.
+- Bounded-support acceptance and refusal against admitted constraints.
+- False-trigger records.
+- Parent deny/withhold in all legacy-shaped phases.
+- Independently authorized audit.
+- Phase-cycle rejection.
+- Shared-state conflict and failed commit.
+- Old/new snapshot replay that preserves keys, budgets, and no-new-dispatch behavior.
+
+The bounded design witnesses do not replace real consumer and backend checks.
+
+## Continue
+
+Use [revised-control migration](revised-control.md) for the task.
+Read [modular control contracts](../explain/reference/modular-participant-control-contracts.md) for installed runtime behavior.

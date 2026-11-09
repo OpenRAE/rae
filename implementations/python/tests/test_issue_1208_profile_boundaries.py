@@ -9,10 +9,25 @@ from raes_processor.compiler import compile_runtime_model
 from test_issue_1208_profile_selections import _account_profile, _mailbox_case
 
 
+def _channel_owned(binding, access_id):
+    """Give a typed channel the owner of its own field (ADR-120)."""
+
+    owner = binding.owner.model_copy(
+        update={
+            "owning_contract_id": "sdl-authoring-input-v1",
+            "canonical_address": f"#/agents/blue-participant/interactive_access/{access_id}/channel",
+            "concept_family": "relationships",
+            "lifecycle_phase": "authoring",
+        }
+    )
+    return binding.model_copy(update={"owner": owner})
+
+
 def test_private_access_preserves_typing_and_cannot_expand_account_authority():
     from test_participant_interactive_access import _scenario
 
-    binding, _ = _account_profile()
+    binding, _ = _account_profile(profile_context="participant-interactive-access-channel")
+    binding = _channel_owned(binding, "console")
     source = yaml.safe_load(_scenario())
     agent = source["agents"]["blue-participant"]
     agent["interactive_access"] = {
@@ -27,7 +42,10 @@ def test_private_access_preserves_typing_and_cannot_expand_account_authority():
     with pytest.raises(SDLValidationError, match="not in starting_accounts"):
         parse_sdl(invalid_source)
     agent["starting_accounts"] = ["operator"]
-    agent["interactive_access"]["duplicate"] = dict(agent["interactive_access"]["console"])
+    agent["interactive_access"]["duplicate"] = {
+        **agent["interactive_access"]["console"],
+        "channel": _channel_owned(binding, "duplicate").model_dump(mode="json"),
+    }
     duplicate_source = yaml.safe_dump(source)
     with pytest.raises(SDLValidationError, match="duplicates interactive_access"):
         parse_sdl(duplicate_source)

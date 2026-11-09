@@ -8,11 +8,13 @@ from pathlib import Path
 
 from pydantic import ValidationError
 from raes_contracts.backend_profiles import (
+    BackendProfileIdentityError,
     BackendProfileModel,
     backend_profile_path,
     backend_profiles_root,
     load_backend_profile_from_path,
 )
+from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.corpus import FIXTURES, corpus_family_root
 from raes_contracts.diagnostics import Diagnostic
 
@@ -129,6 +131,7 @@ def required_contracts(
     profile: BackendProfileSelector,
     *,
     profiles_root: Path | None = None,
+    evidence: dict[str, object] | None = None,
 ) -> frozenset[str]:
     """Return the contracts a backend must honor for ``profile``.
 
@@ -143,13 +146,17 @@ def required_contracts(
     structured conformance diagnostics.
     """
 
-    return frozenset(_load_backend_profile(profile, profiles_root=profiles_root).required_contracts)
+    loaded = _load_backend_profile(profile, profiles_root=profiles_root)
+    if evidence is not None:
+        evidence.update(version=loaded.schema_version, digest=canonical_json_digest(loaded.model_dump(mode="json")))
+    return frozenset(loaded.required_contracts)
 
 
 def _resolve_required_contracts(
     profile: BackendProfileSelector,
     *,
     profiles_root: Path | None = None,
+    evidence: dict[str, object] | None = None,
 ) -> tuple[frozenset[str], tuple[Diagnostic, ...]]:
     """Load the profile's contract set, converting load failures to diagnostics.
 
@@ -164,8 +171,10 @@ def _resolve_required_contracts(
 
     profile_id = _to_profile_id(profile)
     try:
-        return required_contracts(profile, profiles_root=profiles_root), ()
-    except (FileNotFoundError, ValueError) as exc:
+        return required_contracts(profile, profiles_root=profiles_root, evidence=evidence), ()
+    # The loader reads and decodes one JSON file: OSError when it cannot be read, ValueError when it does not
+    # decode or validate, RecursionError beyond the decoder nesting depth, and its own identity refusal.
+    except (OSError, ValueError, RecursionError, BackendProfileIdentityError) as exc:
         return frozenset(), (
             _diagnostic(
                 "conformance.profile-load-failed",
@@ -199,8 +208,7 @@ def _sanitize_load_error(exc: Exception) -> str:
     for kind, description in _PROFILE_LOAD_DESCRIPTIONS:
         if isinstance(exc, kind):
             return description
-    # An exact ValueError is the profile loader's own identity-mismatch error,
-    # whose text is built only from grammar-validated profile ids. Any other
-    # exception type may carry payloads, host paths, or object representations,
-    # so it is described by the shared sanitizer instead of quoted.
-    return str(exc) if type(exc) is ValueError else sanitized_failure_message(exc)
+    # The identity refusal builds its text only from grammar-validated profile ids.
+    # Any other exception may carry payloads, host paths, interpreter text or object
+    # representations, so the shared sanitizer describes it instead of quoting it.
+    return str(exc) if isinstance(exc, BackendProfileIdentityError) else sanitized_failure_message(exc)

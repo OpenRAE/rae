@@ -3,16 +3,16 @@
 from collections.abc import Sequence
 
 from pydantic import Field, field_validator, model_validator
+from raes_contracts.identifiers import PortableIdentifier
 from raes_contracts.realization_structure import RealizationPresence
+from raes_contracts.runtime_values import require_symbol
+from raes_contracts.sdl_model import SDLModel
 
-from ._base import SDLModel
-from ._identifiers import PortableIdentifier
 from .runtime_software_profiles import (
     RuntimeSoftwareRefinement,
     RuntimeSoftwareRepositoryRefinement,
     RuntimeSoftwareTrustRefinement,
 )
-from .runtime_values import require_symbol
 
 
 class RuntimeSoftwareTrustBinding(SDLModel):

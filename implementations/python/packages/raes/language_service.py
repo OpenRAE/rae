@@ -13,8 +13,10 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.json_pointer import pointer_tokens
+from raes_contracts.variable_references import is_variable_ref
 
-from ._base import is_variable_ref
 from ._composition_budget import CompositionTraversal
 from ._declarations import DeclarationIndex, preferred_spelling
 from ._errors import SDLParseError, SDLValidationError
@@ -222,11 +224,7 @@ def language_diagnostics(
             "diagnostics": [
                 exc.diagnostics[index].as_dict()
                 if index < len(exc.diagnostics) and exc.diagnostics[index] is not None
-                else _diagnostic(
-                    "semantic_validation",
-                    "sdl.semantic",
-                    message,
-                )
+                else _diagnostic("semantic_validation", "sdl.semantic", message)
                 for index, message in enumerate(exc.errors)
             ],
         }
@@ -255,7 +253,7 @@ def apply_structured_edit(
     try:
         tokens = _split_pointer(pointer)
         edited = apply_edit(data, operation=operation, tokens=tokens, value=value)
-    except ValueError as exc:
+    except InvalidInputError as exc:
         return _invalid("edit", "sdl.edit", str(exc))
 
     content = yaml.safe_dump(
@@ -470,7 +468,7 @@ def _split_pointer_or_empty(pointer: str) -> list[str]:
         return []
     try:
         return _split_pointer(pointer)
-    except ValueError:
+    except InvalidInputError:
         return []
 
 
@@ -478,12 +476,8 @@ def _split_pointer(pointer: str) -> list[str]:
     if pointer in {"", "/"}:
         return []
     if not pointer.startswith("/"):
-        raise ValueError("pointer must be empty or start with '/'")
-    return [_unescape_pointer_token(token) for token in pointer.split("/")[1:]]
-
-
-def _unescape_pointer_token(token: str) -> str:
-    return token.replace("~1", "/").replace("~0", "~")
+        raise InvalidInputError("pointer must be empty or start with '/'")
+    return list(pointer_tokens(pointer))
 
 
 def _local_traversal(path: Path | None) -> CompositionTraversal | None:

@@ -1,4 +1,18 @@
-# Participant-opacity observed evidence migration
+<a id="participant-opacity-observed-evidence-migration"></a>
+
+# Update a participant-opacity harness
+
+## Versions and purpose
+
+Source: `Backend harness with observe() and caller-supplied expected observations`.
+Target: `reported_observation(), fresh backend_readback(), and pinned probe points`.
+
+## Before you start
+
+Use RAES 11.0.2 and a backend-owned harness with original evidence access.
+The harness owner needs authority to read the selected native state and exercise the probe target.
+These probe calls can invoke runtime and backend effects.
+Use a disposable target with an established cleanup procedure.
 
 Issue #1374 changes the participant-opacity probe harness in
 `raes_conformance.conformance.participant_opacity_probes`.
@@ -29,3 +43,12 @@ That case keeps only the backend-declaration claim.
 A harness without readback cannot pass.
 A reported transcript that differs from the measured transcript fails the case.
 Final-sink flow control stays enabled unless the case disables it explicitly.
+
+## Check the result and recover
+
+Success retains matching reported and independently measured transcripts for each exact probe point.
+Missing readback or a transcript disagreement fails the case.
+Preserve the failed case and correct the harness or implementation before repeating a new authorized probe.
+Do not cache a nonce-bound readback or promote a declaration into a native claim.
+The harness owner cleans up native resources after verified cessation.
+Read [backend qualification](../public/backends.md#admit-your-own-target) and the [opacity design](../decisions/issue-1374-observed-opacity-evidence-design.md).

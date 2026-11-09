@@ -53,10 +53,12 @@ import tools.nox_support.runner as nox_runner
 import tools.nox_support.test_lanes as nox_test_lanes
 import tools.osv_scanner_tool as osv_scanner_tool
 import tools.policy.conftest_tool as conftest_tool
+import tools.policy.repo_policy as repo_policy_module
 import tools.verified_tool_installation as verified_tool_installation
 import yaml
 from packaging.requirements import Requirement
 from packaging.version import Version
+from raes_contracts.errors import InvalidInputError, OperationalError
 from tools.check_adr_immutability import (
     amendment_refs,
     canonical_content,
@@ -67,14 +69,15 @@ from tools.check_generated_schemas import _extra_published_schema_paths
 from tools.check_json_artifacts import ValidationTarget, collect_validation_targets, should_run_full_validation
 from tools.check_schema_publication import (
     load_schema_publication_catalog,
-    schema_content_hash,
     validate_schema_publication_manifest,
 )
 from tools.gitleaks_tool import gitleaks_binary_path
+from tools.maintained_client_acquisition import ArtifactAcquisitionError
 from tools.parallel_verification import VerificationLane, run_verification_lanes
 from tools.policy.common import PolicyFailure
 from tools.policy.conftest_tool import run_conftest_policy
 from tools.policy.repo_policy import evaluate_repo_policy
+from tools.tooling_policy_gate import ArtifactPolicyError
 
 NOX_SUPPORT_MODULES = (
     "config",
@@ -82,6 +85,7 @@ NOX_SUPPORT_MODULES = (
     "policy_lanes",
     "test_lanes",
     "compatibility_lanes",
+    "machine_check_lane",
     "graph",
 )
 
@@ -208,6 +212,7 @@ def test_noxfile_registers_the_exact_public_session_inventory() -> None:
         "docs",
         "docs-links",
         "docs-local",
+        "docs-prose",
         "fuzz",
         "hook-pre-commit",
         "hook-pre-push",
@@ -216,6 +221,7 @@ def test_noxfile_registers_the_exact_public_session_inventory() -> None:
         "lint",
         "local-installation-qualification",
         "osv_scan",
+        "participant-crossing-machine-check",
         "participant-opacity-proof",
         "policy",
         "proof-input-qualification",
@@ -600,7 +606,7 @@ def test_parallel_graph_executes_success_and_reports_all_failures(
         ],
     )
     failure_reporter = ImmediateReporter()
-    with pytest.raises(RuntimeError, match=r"unit-tests \(exit 2\), contracts \(exit 3\)"):
+    with pytest.raises(OperationalError, match=r"unit-tests \(exit 2\), contracts \(exit 3\)"):
         nox_graph._run_parallel_verification(session, failure_reporter, include_policy=False)
     assert any(
         "failure summary unit-tests: FAILED tests/test_runtime.py::test_atomic_commit" in message
@@ -638,9 +644,57 @@ def test_completion_uses_targeted_feedback(monkeypatch: pytest.MonkeyPatch) -> N
     assert calls == [["--base-rev", "base"]]
 
 
+def test_machine_check_session_runs_the_live_check(monkeypatch) -> None:
+    noxfile = load_noxfile_with_fake_nox(monkeypatch)
+    calls = []
+    messages = []
+    entrypoint = "check"
+    session = types.SimpleNamespace(posargs=[], run=lambda *args, **kwargs: calls.append(args), log=messages.append)
+
+    noxfile.participant_crossing_machine_check(session)
+
+    assert len(calls) == 1
+    assert calls[0][-1] == entrypoint
+    assert any("stage summary:" in message for message in messages)
+    assert any("PASS" in message for message in messages)
+
+
+@pytest.mark.parametrize("posargs", [["--unknown"], ["--publish"]])
+def test_machine_check_session_rejects_extra_arguments_before_execution(monkeypatch, posargs) -> None:
+    noxfile = load_noxfile_with_fake_nox(monkeypatch)
+    messages = []
+
+    def refuse(message):
+        raise InvalidInputError(message)
+
+    session = types.SimpleNamespace(
+        posargs=posargs,
+        run=lambda *args, **kwargs: pytest.fail("invalid arguments reached execution"),
+        error=refuse,
+        log=messages.append,
+    )
+    with pytest.raises(InvalidInputError, match="takes no arguments"):
+        noxfile.participant_crossing_machine_check(session)
+    assert any("SKIP no stages executed" in message for message in messages)
+
+
+def test_machine_check_session_reports_and_propagates_process_failure(monkeypatch) -> None:
+    noxfile = load_noxfile_with_fake_nox(monkeypatch)
+    messages = []
+
+    def fail(*args, **kwargs):
+        raise OperationalError("native replay refused")
+
+    session = types.SimpleNamespace(posargs=[], run=fail, log=messages.append)
+    with pytest.raises(OperationalError, match="native replay refused"):
+        noxfile.participant_crossing_machine_check(session)
+    assert any("stage summary:" in message for message in messages)
+    assert any("FAIL" in message for message in messages)
+
+
 def test_graph_base_revision_and_cpu_fallbacks(monkeypatch: pytest.MonkeyPatch) -> None:
     assert nox_graph._changed_base_rev(["--base-rev", "base"]) == "base"
-    with pytest.raises(ValueError, match="requires a revision"):
+    with pytest.raises(InvalidInputError, match="requires a revision"):
         nox_graph._changed_base_rev(["--base-rev"])
     monkeypatch.setattr(nox_graph, "resolve_upstream", lambda _root: "origin/dev")
     assert nox_graph._changed_base_rev([]) == "origin/dev"
@@ -824,10 +878,14 @@ def test_python_compatibility_graph_builds_and_checks_clean_distribution(
         "python compatibility / direct wheel metadata and imports",
         "python compatibility / direct wheel CLI version",
         "python compatibility / direct wheel CLI help",
+        "python compatibility / direct wheel assigned trial inputs",
+        "python compatibility / direct wheel assigned trial processes",
         "python compatibility / install sdist-built wheel",
         "python compatibility / sdist-built wheel metadata and imports",
         "python compatibility / sdist-built wheel CLI version",
         "python compatibility / sdist-built wheel CLI help",
+        "python compatibility / sdist-built wheel assigned trial inputs",
+        "python compatibility / sdist-built wheel assigned trial processes",
     ]
     assert len(sync_calls) == 1
     assert pytest_calls == [("-q",)]
@@ -848,6 +906,17 @@ def test_python_compatibility_graph_builds_and_checks_clean_distribution(
     install_command = next(command for command in commands if "tools.python_closure" in command and "smoke" in command)
     assert "--offline" in install_command
     assert "--wheelhouse" in install_command
+    assigned = [
+        command for command in commands if any(arg.endswith("installed_assigned_trial_consumer.py") for arg in command)
+    ]
+    assert len(assigned) == 2
+    assert all("-I" in command and command[-1].endswith("assigned-trial-inputs.json") for command in assigned)
+    generated = [
+        command for command in commands if any(arg.endswith("tests/assigned_trial_inputs.py") for arg in command)
+    ]
+    assert [command[0] for command in generated] == [command[0] for command in assigned]
+    assert all("-I" not in command for command in generated)
+    assert [Path(command[-1]).parent for command in assigned] == [Path(command[-1]) for command in generated]
 
 
 def test_python_compatibility_smoke_omits_redundant_hermetic_suite(
@@ -895,7 +964,7 @@ def test_python_compatibility_rejects_restored_wheelhouse_outside_smoke_executio
     monkeypatch.setenv(nox_config.PYTHON_CLOSURE_WHEELHOUSE_ENV, "/verified-wheelhouse")
     reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
 
-    with pytest.raises(RuntimeError, match="valid only for compatibility smoke execution"):
+    with pytest.raises(InvalidInputError, match="valid only for compatibility smoke execution"):
         nox_compatibility_lanes._compatibility_runtime_stages(
             reporter.session,
             reporter,
@@ -912,7 +981,7 @@ def test_python_compatibility_distribution_requires_reviewed_closure_profile(
     monkeypatch.delenv(nox_config.PYTHON_CLOSURE_PROFILE_ENV, raising=False)
     reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
 
-    with pytest.raises(RuntimeError, match="must select a reviewed closure profile"):
+    with pytest.raises(InvalidInputError, match="must select a reviewed closure profile"):
         nox_compatibility_lanes._compatibility_distribution_stages(
             reporter.session,
             reporter,
@@ -939,7 +1008,7 @@ def test_python_compatibility_rejects_unsupported_or_missing_interpreter_selecti
     monkeypatch.setenv("UV_PYTHON", selector)
     reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
 
-    with pytest.raises(RuntimeError, match=message):
+    with pytest.raises(InvalidInputError, match=message):
         nox_compatibility_lanes._run_python_compatibility(reporter.session, reporter)
 
 
@@ -952,14 +1021,14 @@ def test_python_compatibility_rejects_profile_for_another_interpreter(
     monkeypatch.setenv(nox_config.PYTHON_CLOSURE_PROFILE_ENV, "public-linux-x86_64-cp313-all-extras")
     reporter = nox_runner.SessionReporter(types.SimpleNamespace(log=lambda _message: None), "python-compatibility")
 
-    with pytest.raises(RuntimeError, match="must match the selected interpreter"):
+    with pytest.raises(InvalidInputError, match="must match the selected interpreter"):
         nox_compatibility_lanes._run_python_compatibility(reporter.session, reporter)
 
 
 def test_python_compatibility_rejects_incomplete_distribution_build(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    with pytest.raises(RuntimeError, match="must produce exactly one wheel and one source distribution"):
+    with pytest.raises(OperationalError, match="must produce exactly one wheel and one source distribution"):
         _exercise_python_compatibility(monkeypatch, build_artifacts=False)
 
 
@@ -1022,7 +1091,7 @@ def test_line_coverage_threshold_is_fixed_at_ninety_percent(
         json.dumps({"totals": {"covered_lines": 899, "num_statements": 1000}}),
         encoding="utf-8",
     )
-    with pytest.raises(RuntimeError, match="89.900% is below required 90.000%"):
+    with pytest.raises(InvalidInputError, match="89.900% is below required 90.000%"):
         nox_runner._enforce_line_coverage(report_path)
 
 
@@ -1081,16 +1150,24 @@ def test_docs_graph_uses_curated_root_and_reader_style_gate(
     fake_vale = tmp_path / "vale"
     fake_vale.write_text("", encoding="utf-8")
     monkeypatch.setattr(nox_test_lanes, "ensure_vale", lambda _repo_root: fake_vale)
+    monkeypatch.setattr(nox_test_lanes, "ensure_doc_tools", lambda _repo_root: tmp_path / "doc-tools")
+    monkeypatch.setattr(nox_test_lanes, "sync_doc_tools_styles", lambda *_args: None)
     monkeypatch.setattr(nox_test_lanes, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(nox_test_lanes, "PROJECT_ROOT", tmp_path / "implementations" / "python")
     public_root = tmp_path / "docs" / "public"
     monkeypatch.setattr(nox_test_lanes, "PUBLIC_DOCS_ROOT", public_root)
     monkeypatch.setattr(nox_test_lanes, "DOCS_BUILD_ROOT", tmp_path / "docs" / "_build")
+    monkeypatch.setattr(
+        nox_test_lanes,
+        "_run_docs_prose",
+        lambda _session, stage_reporter: stage_reporter.skip("docs / Vale changed prose", "isolated selection fixture"),
+    )
     reporter = nox_runner.SessionReporter(FakeSession(), "docs")
 
     nox_test_lanes._run_docs(reporter.session, reporter)
 
     assert [result.name for result in reporter.results] == [
+        "docs / Vale changed prose",
         "docs / public source boundary",
         "docs / Vale reader style",
         "docs / executable quickstart",
@@ -1102,17 +1179,16 @@ def test_docs_graph_uses_curated_root_and_reader_style_gate(
     assert len(sphinx_commands) == 2
     assert all(str(public_root) in command for command in sphinx_commands)
     assert all("-W" in command and "--keep-going" in command for command in sphinx_commands)
-    vale_command = next(command for command in commands if command and command[0] == str(fake_vale))
+    vale_command = next(command for command in commands if str(fake_vale) in command)
+    assert vale_command[:6] == ("uv", "run", "--project", str(nox_test_lanes.PROJECT_ROOT), "--frozen", str(fake_vale))
     assert "--config=.vale.ini" in vale_command
+    assert "--glob=*.{md,rst}" in vale_command
     assert "README.md" in vale_command
     assert str(public_root) in vale_command
     pytest_command = next(command for command in commands if "pytest" in command)
+    assert "implementations/python/tests/test_public_guide_examples.py" in pytest_command
     assert (
         "implementations/python/tests/test_public_docs_policy.py::test_checked_in_quickstart_scenario_parses"
-        in pytest_command
-    )
-    assert (
-        "implementations/python/tests/test_public_docs_policy.py::test_readme_quickstart_matches_checked_in_scenario"
         in pytest_command
     )
 
@@ -1133,18 +1209,32 @@ def test_local_docs_graph_excludes_external_link_check(
     fake_vale = tmp_path / "vale"
     fake_vale.write_text("", encoding="utf-8")
     monkeypatch.setattr(nox_test_lanes, "ensure_vale", lambda _repo_root: fake_vale)
+    monkeypatch.setattr(nox_test_lanes, "ensure_doc_tools", lambda _repo_root: tmp_path / "doc-tools")
+    monkeypatch.setattr(nox_test_lanes, "sync_doc_tools_styles", lambda *_args: None)
     monkeypatch.setattr(nox_test_lanes, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(nox_test_lanes, "PROJECT_ROOT", tmp_path / "implementations" / "python")
     monkeypatch.setattr(nox_test_lanes, "PUBLIC_DOCS_ROOT", tmp_path / "docs" / "public")
     monkeypatch.setattr(nox_test_lanes, "DOCS_BUILD_ROOT", tmp_path / "docs" / "_build")
+    monkeypatch.setattr(
+        nox_test_lanes,
+        "_run_docs_prose",
+        lambda _session, stage_reporter: stage_reporter.skip("docs / Vale changed prose", "isolated selection fixture"),
+    )
     reporter = nox_runner.SessionReporter(FakeSession(), "docs-local")
 
     nox_test_lanes._run_docs(reporter.session, reporter, include_external_links=False)
 
+    assert "docs / Vale changed prose" in [result.name for result in reporter.results]
     assert "docs / Sphinx link check" not in [result.name for result in reporter.results]
     sphinx_commands = [command for command in commands if "sphinx-build" in command]
     assert len(sphinx_commands) == 1
     assert "html" in sphinx_commands[0]
+
+
+@pytest.fixture(autouse=True)
+def _without_structural_ratchet(monkeypatch: pytest.MonkeyPatch) -> None:
+    """These fixture repositories hold no ADR-117 baselines; test_issue_1734_* tests the ratchet."""
+    monkeypatch.setattr(repo_policy_module, "evaluate_structural_ratchet", lambda *_args, **_kwargs: [])
 
 
 def write_text(path: Path, content: str) -> None:
@@ -1201,6 +1291,7 @@ def setup_policy_repo(tmp_path: Path) -> Path:
         "raes_cli",
         "raes_mcp",
         "raes_contracts",
+        "raes_schemas",
     ):
         write_text(
             tmp_path / "implementations" / "python" / "packages" / package / "__init__.py",
@@ -1264,9 +1355,9 @@ def test_policy_arg_parsers_reject_missing_option_values(
 ) -> None:
     args = [option, *trailing]
 
-    with pytest.raises(ValueError, match=rf"^{option} requires a value$"):
+    with pytest.raises(InvalidInputError, match=rf"^{option} requires a value$"):
         nox_runner._split_policy_session_args(args)
-    with pytest.raises(ValueError, match=rf"^{option} requires a value$"):
+    with pytest.raises(InvalidInputError, match=rf"^{option} requires a value$"):
         nox_runner._parse_hygiene_posargs(args, default_all_files=False)
 
 
@@ -1286,7 +1377,7 @@ def test_structural_policy_runner_receives_policy_input(tmp_path: Path) -> None:
 
     assert captured["changed"] == ["contracts/schemas/backend-manifest/schema.json"]
     assert captured["check_set"] == "full"
-    assert "generated_contracts" in captured["policy"]
+    assert "concept_authority" in captured["policy"]
     assert [failure.rule_id for failure in failures] == ["structural-check"]
 
 
@@ -1735,28 +1826,34 @@ def test_module_boundaries_reject_runtime_importing_sdl_semantics(tmp_path: Path
     assert [f.rule_id for f in failures] == ["module-boundary-import"]
 
 
-# ── ADR-015: 500-line source-file cap ───────────────────────────────────
+# ── ADR-015: 1,000-line source-file cap ───────────────────────────────────
 
-# A path that is in _ADR015_INITIAL_OVERSIZED_FILES (the code constant in
-# tools/policy/repo_policy.py), so the allowlist-subset (drain) check passes
-# when we put it in the allowlist.
+# The ADR-015 reference set is empty since the 1,000-line cap (#1734). Tests of the
+# drain mechanism put this path in the reference set with the fixture below, so the
+# allowlist-subset (drain) check passes when we put it in the allowlist.
 _LOCKED_PATH = "implementations/python/packages/raes_processor/models.py"
+
+
+@pytest.fixture
+def adr015_reference_set(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(repo_policy_module, "_ADR015_INITIAL_OVERSIZED_FILES", frozenset({_LOCKED_PATH}))
 
 
 def test_oversized_source_file_over_cap_is_rejected(tmp_path: Path) -> None:
     repo_root = setup_policy_repo(tmp_path)
     rel = "implementations/python/packages/raes_processor/big_new_file.py"
-    write_text(repo_root / rel, "x = 1\n" * 700)
+    write_text(repo_root / rel, "x = 1\n" * 1100)
 
     failures = evaluate_repo_policy(repo_root, [rel], check_set="file-local", structural_runner=structural_runner_stub)
 
     assert [f.rule_id for f in failures] == ["oversized-source-file"]
 
 
+@pytest.mark.usefixtures("adr015_reference_set")
 def test_oversized_source_file_in_allowlist_passes(tmp_path: Path) -> None:
     repo_root = setup_policy_repo(tmp_path)
     write_text(repo_root / "tools" / "policy" / "oversized_allowlist.yaml", f"files:\n  - {_LOCKED_PATH}\n")
-    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 700)
+    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 1100)
 
     failures = evaluate_repo_policy(
         repo_root, [_LOCKED_PATH], check_set="file-local", structural_runner=structural_runner_stub
@@ -1778,7 +1875,7 @@ def test_oversized_source_file_under_cap_passes(tmp_path: Path) -> None:
 def test_oversized_cap_excludes_test_files(tmp_path: Path) -> None:
     repo_root = setup_policy_repo(tmp_path)
     rel = "implementations/python/tests/test_huge.py"
-    write_text(repo_root / rel, "x = 1\n" * 700)
+    write_text(repo_root / rel, "x = 1\n" * 1100)
 
     failures = evaluate_repo_policy(repo_root, [rel], check_set="file-local", structural_runner=structural_runner_stub)
 
@@ -1788,7 +1885,7 @@ def test_oversized_cap_excludes_test_files(tmp_path: Path) -> None:
 def test_oversized_cap_only_checks_python_files(tmp_path: Path) -> None:
     repo_root = setup_policy_repo(tmp_path)
     rel = "implementations/python/packages/raes_processor/data.txt"
-    write_text(repo_root / rel, "line\n" * 700)
+    write_text(repo_root / rel, "line\n" * 1100)
 
     failures = evaluate_repo_policy(repo_root, [rel], check_set="file-local", structural_runner=structural_runner_stub)
 
@@ -1813,11 +1910,12 @@ def test_allowlist_entry_not_in_locked_set_is_rejected(tmp_path: Path) -> None:
     assert [f.rule_id for f in failures] == ["oversized-allowlist-locked"]
 
 
+@pytest.mark.usefixtures("adr015_reference_set")
 def test_allowlist_subset_of_locked_set_passes(tmp_path: Path) -> None:
     repo_root = setup_policy_repo(tmp_path)
     # A strict subset of the initial oversized entries — the drained state.
     write_text(repo_root / "tools" / "policy" / "oversized_allowlist.yaml", f"files:\n  - {_LOCKED_PATH}\n")
-    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 700)
+    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 1100)
 
     failures = evaluate_repo_policy(
         repo_root,
@@ -1837,7 +1935,7 @@ def test_growing_locked_set_via_config_does_not_relax_drain_check(tmp_path: Path
     repo_root = setup_policy_repo(tmp_path)
     sneaky = "implementations/python/packages/raes_processor/sneaky_new_big_file.py"
     write_text(repo_root / "tools" / "policy" / "oversized_allowlist.yaml", f"files:\n  - {sneaky}\n")
-    write_text(repo_root / sneaky, "x = 1\n" * 700)
+    write_text(repo_root / sneaky, "x = 1\n" * 1100)
     # Re-add a config-level locked_initial_files block listing the sneaky file.
     config = (repo_root / "tools" / "policy" / "adr_policy.yaml").read_text()
     config += f"  locked_initial_files:\n    - {sneaky}\n"
@@ -1853,6 +1951,7 @@ def test_growing_locked_set_via_config_does_not_relax_drain_check(tmp_path: Path
     assert "oversized-allowlist-locked" in [f.rule_id for f in failures], [f.message for f in failures]
 
 
+@pytest.mark.usefixtures("adr015_reference_set")
 def test_unsafe_locked_allowlist_entry_is_rejected(tmp_path: Path) -> None:
     """An allowlisted (and locked) path that has been replaced by a symlink
     pointing out of the tree is reported as policy-path-unsafe rather than
@@ -1860,7 +1959,7 @@ def test_unsafe_locked_allowlist_entry_is_rejected(tmp_path: Path) -> None:
     repo_root = setup_policy_repo(tmp_path)
     write_text(repo_root / "tools" / "policy" / "oversized_allowlist.yaml", f"files:\n  - {_LOCKED_PATH}\n")
     outside = tmp_path.parent / "outside_big.py"
-    write_text(outside, "x = 1\n" * 700)
+    write_text(outside, "x = 1\n" * 1100)
     target = repo_root / _LOCKED_PATH
     target.parent.mkdir(parents=True, exist_ok=True)
     target.symlink_to(outside)
@@ -1891,7 +1990,7 @@ def test_malformed_policy_config_produces_structured_failure(tmp_path: Path, mut
     repo_root = setup_policy_repo(tmp_path)
     # Replace the whole adr_policy.yaml with a minimal-but-malformed config.
     # Keep the keys other parts of the policy need (adr_index, source_roots,
-    # generated_contracts, concept_authority) by
+    # concept_authority) by
     # appending the mutation onto the real config.
     base = (REPO_ROOT / "tools" / "policy" / "adr_policy.yaml").read_text()
     # Drop the real layering_rules / oversized_source_files blocks so the
@@ -1932,13 +2031,14 @@ def test_missing_allowlist_file_produces_structured_failure(tmp_path: Path) -> N
 # ── ADR-015: stale allowlist entry (file no longer over the cap) ─────────
 
 
+@pytest.mark.usefixtures("adr015_reference_set")
 def test_stale_allowlist_entry_below_cap_is_rejected(tmp_path: Path) -> None:
     """An allowlist entry that was split (so the file is now small) but
     whose entry the split PR forgot to drain is flagged on the next run,
     even though the file's deletion/shrink isn't in the changed set."""
     repo_root = setup_policy_repo(tmp_path)
     write_text(repo_root / "tools" / "policy" / "oversized_allowlist.yaml", f"files:\n  - {_LOCKED_PATH}\n")
-    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 100)  # well under the 500-line cap
+    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 100)  # well under the 1,000-line cap
 
     failures = evaluate_repo_policy(
         repo_root,
@@ -1951,6 +2051,7 @@ def test_stale_allowlist_entry_below_cap_is_rejected(tmp_path: Path) -> None:
     assert "100 lines" in failures[0].message
 
 
+@pytest.mark.usefixtures("adr015_reference_set")
 def test_stale_allowlist_entry_missing_file_is_rejected(tmp_path: Path) -> None:
     repo_root = setup_policy_repo(tmp_path)
     write_text(repo_root / "tools" / "policy" / "oversized_allowlist.yaml", f"files:\n  - {_LOCKED_PATH}\n")
@@ -1967,10 +2068,11 @@ def test_stale_allowlist_entry_missing_file_is_rejected(tmp_path: Path) -> None:
     assert "no regular file exists" in failures[0].message
 
 
+@pytest.mark.usefixtures("adr015_reference_set")
 def test_allowlist_entry_still_over_cap_passes(tmp_path: Path) -> None:
     repo_root = setup_policy_repo(tmp_path)
     write_text(repo_root / "tools" / "policy" / "oversized_allowlist.yaml", f"files:\n  - {_LOCKED_PATH}\n")
-    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 700)  # still over the cap → legitimate debt
+    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 1100)  # still over the cap → legitimate debt
 
     failures = evaluate_repo_policy(
         repo_root,
@@ -2092,6 +2194,7 @@ def test_unsafe_changed_path_is_rejected(tmp_path: Path) -> None:
 # ── ADR-015: drain requires the file to actually have been split ────────
 
 
+@pytest.mark.usefixtures("adr015_reference_set")
 def test_premature_drain_is_rejected(tmp_path: Path) -> None:
     """Removing an initial oversized file from the allowlist while the file
     itself is unchanged (still over the cap) is a premature drain — the
@@ -2099,7 +2202,7 @@ def test_premature_drain_is_rejected(tmp_path: Path) -> None:
     though the (unchanged, undeleted) file is not in the changed set."""
     repo_root = setup_policy_repo(tmp_path)
     # Default allowlist is empty -> _LOCKED_PATH is "claimed drained".
-    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 700)  # but the file is still over cap
+    write_text(repo_root / _LOCKED_PATH, "x = 1\n" * 1100)  # but the file is still over cap
 
     failures = evaluate_repo_policy(
         repo_root,
@@ -2109,9 +2212,11 @@ def test_premature_drain_is_rejected(tmp_path: Path) -> None:
     )
 
     assert [f.rule_id for f in failures] == ["oversized-source-file"], [f.message for f in failures]
-    assert "removed from" in failures[0].message and "700" in failures[0].message
+    assert "removed from" in failures[0].message
+    assert "1100" in failures[0].message
 
 
+@pytest.mark.usefixtures("adr015_reference_set")
 def test_legitimate_drain_passes(tmp_path: Path) -> None:
     """An initial oversized file that has been removed from the allowlist
     AND actually split below the cap passes."""
@@ -2131,6 +2236,7 @@ def test_legitimate_drain_passes(tmp_path: Path) -> None:
 # ── ADR-015: config-wide checks run even when nothing changed ────────────
 
 
+@pytest.mark.usefixtures("adr015_reference_set")
 def test_empty_changed_still_runs_config_wide_adr015_checks(tmp_path: Path) -> None:
     """A deletion-only PR (the repo's changed-paths helper excludes
     deletions) can hand an empty changed list to the policy. The ADR-015
@@ -2200,15 +2306,10 @@ def write_schema_publication_manifest(
         normalized_entry = dict(entry)
         if fill_defaults:
             normalized_entry.setdefault("stability", "draft")
-            schema_path = normalized_entry.get("schema_path")
-            if "content_hash" not in normalized_entry and isinstance(schema_path, str):
-                path = repo_root / schema_path
-                normalized_entry["content_hash"] = schema_content_hash(path) if path.is_file() else "0" * 64
         normalized.append(normalized_entry)
 
     document: dict[str, Any] = {
         "schema_version": "schema-publication-manifest/v1",
-        "hash_algorithm": "sha256",
         "schemas": normalized,
     }
     if removed_schemas is not None:
@@ -2263,7 +2364,7 @@ def test_schema_publication_manifest_accepts_complete_current_schema_inventory(t
     assert validate_schema_publication_manifest(repo_root) == []
 
 
-def test_schema_publication_manifest_requires_stability_and_content_hash(tmp_path: Path) -> None:
+def test_schema_publication_manifest_requires_stability(tmp_path: Path) -> None:
     repo_root = tmp_path
     write_text(repo_root / "contracts" / "schemas" / "sdl" / "sdl-authoring-input-v1.json", "{}\n")
     write_schema_publication_manifest(
@@ -2279,7 +2380,6 @@ def test_schema_publication_manifest_requires_stability_and_content_hash(tmp_pat
 
     assert validate_schema_publication_manifest(repo_root) == [
         "schema manifest entry sdl-authoring-input-v1 stability must be one of: draft, stable",
-        "schema manifest entry sdl-authoring-input-v1 content_hash must be a 64-character sha256 hex digest",
     ]
 
 
@@ -2338,7 +2438,7 @@ def test_schema_publication_manifest_rejects_resolved_schema_path_escape(tmp_pat
     ]
 
 
-def test_schema_publication_manifest_allows_recorded_draft_schema_churn(tmp_path: Path) -> None:
+def test_schema_publication_manifest_allows_draft_schema_churn_without_a_record_edit(tmp_path: Path) -> None:
     repo_root = tmp_path
     schema_path = repo_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
     write_text(schema_path, _published_schema({"name": {"type": "string"}}))
@@ -2363,10 +2463,6 @@ def test_schema_publication_manifest_allows_recorded_draft_schema_churn(tmp_path
                 "contract_id": "draft-contract-v1",
                 "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
                 "stability": "draft",
-                "last_change": {
-                    "summary": "Retype name to integer for the draft contract.",
-                    "content_hash": schema_content_hash(schema_path),
-                },
             },
         ],
     )
@@ -2402,10 +2498,6 @@ def test_schema_publication_manifest_allows_stable_additive_schema_change(tmp_pa
                 "contract_id": "stable-contract-v1",
                 "schema_path": "contracts/schemas/sdl/stable-contract-v1.json",
                 "stability": "stable",
-                "last_change": {
-                    "summary": "Add optional display_name property.",
-                    "content_hash": schema_content_hash(schema_path),
-                },
             },
         ],
     )
@@ -2441,10 +2533,6 @@ def test_schema_publication_manifest_allows_stable_enum_addition(tmp_path: Path)
                 "contract_id": "stable-contract-v1",
                 "schema_path": "contracts/schemas/sdl/stable-contract-v1.json",
                 "stability": "stable",
-                "last_change": {
-                    "summary": "Add enum value beta to kind.",
-                    "content_hash": schema_content_hash(schema_path),
-                },
             },
         ],
     )
@@ -2485,10 +2573,6 @@ def test_schema_publication_manifest_rejects_stable_default_change_without_versi
                 "contract_id": "stable-contract-v1",
                 "schema_path": "contracts/schemas/sdl/stable-contract-v1.json",
                 "stability": "stable",
-                "last_change": {
-                    "summary": "Change default value of name.",
-                    "content_hash": schema_content_hash(schema_path),
-                },
             },
         ],
     )
@@ -2525,10 +2609,6 @@ def test_schema_publication_manifest_rejects_stable_breaking_schema_change_witho
                 "contract_id": "stable-contract-v1",
                 "schema_path": "contracts/schemas/sdl/stable-contract-v1.json",
                 "stability": "stable",
-                "last_change": {
-                    "summary": "Retype name to integer.",
-                    "content_hash": schema_content_hash(schema_path),
-                },
             },
         ],
     )
@@ -2575,7 +2655,6 @@ def test_schema_publication_manifest_rejects_missing_base_schema_for_stable_sche
                 "contract_id": "stable-contract-v1",
                 "schema_path": "contracts/schemas/sdl/stable-contract-v1.json",
                 "stability": "stable",
-                "content_hash": "0" * 64,
             },
         ],
         fill_defaults=False,
@@ -2592,10 +2671,6 @@ def test_schema_publication_manifest_rejects_missing_base_schema_for_stable_sche
                 "contract_id": "stable-contract-v1",
                 "schema_path": "contracts/schemas/sdl/stable-contract-v1.json",
                 "stability": "stable",
-                "last_change": {
-                    "summary": "Publish the stable contract.",
-                    "content_hash": schema_content_hash(schema_path),
-                },
             },
         ],
     )
@@ -2605,7 +2680,14 @@ def test_schema_publication_manifest_rejects_missing_base_schema_for_stable_sche
     ]
 
 
-def test_schema_publication_manifest_accepts_valid_last_change_ledger(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "retired",
+    [
+        {"content_hash": "0" * 64},
+        {"last_change": {"summary": "Initial draft.", "content_hash": "0" * 64}},
+    ],
+)
+def test_schema_publication_manifest_rejects_retired_record_keys(tmp_path: Path, retired: dict[str, Any]) -> None:
     repo_root = tmp_path
     schema_path = repo_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
     write_text(schema_path, _published_schema({"name": {"type": "string"}}))
@@ -2616,15 +2698,15 @@ def test_schema_publication_manifest_accepts_valid_last_change_ledger(tmp_path: 
                 "contract_id": "draft-contract-v1",
                 "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
                 "stability": "draft",
-                "last_change": {
-                    "summary": "Initial draft of the authoring contract.",
-                    "content_hash": schema_content_hash(schema_path),
-                },
+                **retired,
             },
         ],
     )
 
-    assert validate_schema_publication_manifest(repo_root) == []
+    key = next(iter(retired))
+    assert validate_schema_publication_manifest(repo_root) == [
+        f"schema manifest entry draft-contract-v1 must not record {key}; git holds schema history"
+    ]
 
 
 def test_schema_publication_manifest_accepts_independent_v2_records(tmp_path: Path) -> None:
@@ -2633,13 +2715,11 @@ def test_schema_publication_manifest_accepts_independent_v2_records(tmp_path: Pa
     repo_root = tmp_path
     schema_path = repo_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
     write_text(schema_path, _published_schema({"name": {"type": "string"}}))
-    digest = schema_content_hash(schema_path)
     write_text(
         repo_root / "contracts" / "schema-publication-manifest.json",
         json.dumps(
             {
                 "schema_version": "schema-publication-manifest/v2",
-                "hash_algorithm": "sha256",
                 "entries_directory": "contracts/schema-publication/entries",
                 "tombstones_directory": "contracts/schema-publication/tombstones",
             }
@@ -2653,8 +2733,6 @@ def test_schema_publication_manifest_accepts_independent_v2_records(tmp_path: Pa
                 "contract_id": "draft-contract-v1",
                 "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
                 "stability": "draft",
-                "content_hash": digest,
-                "last_change": {"summary": "Initial publication.", "content_hash": digest},
             }
         )
         + "\n",
@@ -2704,13 +2782,11 @@ def test_schema_publication_manifest_accepts_coverage_metadata_in_both_storage_f
     sharded_root = tmp_path / "sharded"
     sharded_schema = sharded_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
     write_text(sharded_schema, _published_schema({"name": {"type": "string"}}))
-    digest = schema_content_hash(sharded_schema)
     write_text(
         sharded_root / "contracts" / "schema-publication-manifest.json",
         json.dumps(
             {
                 "schema_version": "schema-publication-manifest/v2",
-                "hash_algorithm": "sha256",
                 "entries_directory": "contracts/schema-publication/entries",
                 "tombstones_directory": "contracts/schema-publication/tombstones",
             }
@@ -2724,7 +2800,6 @@ def test_schema_publication_manifest_accepts_coverage_metadata_in_both_storage_f
                 "contract_id": "draft-contract-v1",
                 "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
                 "stability": "draft",
-                "content_hash": digest,
                 "coverage": coverage,
             }
         )
@@ -2736,108 +2811,43 @@ def test_schema_publication_manifest_accepts_coverage_metadata_in_both_storage_f
     assert load_schema_publication_catalog(sharded_root)["schemas"][0]["coverage"] == coverage
 
 
-def test_schema_publication_manifest_rejects_last_change_without_summary(tmp_path: Path) -> None:
+def test_schema_publication_manifest_rejects_a_retired_manifest_hash_algorithm(tmp_path: Path) -> None:
+    import json
+
     repo_root = tmp_path
-    schema_path = repo_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
-    write_text(schema_path, _published_schema({"name": {"type": "string"}}))
+    write_text(repo_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json", "{}\n")
     write_schema_publication_manifest(
         repo_root,
-        [
-            {
-                "contract_id": "draft-contract-v1",
-                "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
-                "stability": "draft",
-                "last_change": {"content_hash": schema_content_hash(schema_path)},
-            },
-        ],
+        [{"contract_id": "draft-contract-v1", "schema_path": "contracts/schemas/sdl/draft-contract-v1.json"}],
     )
+    manifest = repo_root / "contracts" / "schema-publication-manifest.json"
+    manifest.write_text(json.dumps({**json.loads(manifest.read_text()), "hash_algorithm": "sha256"}) + "\n")
 
-    failures = validate_schema_publication_manifest(repo_root)
-    assert any("last_change.summary" in failure for failure in failures)
-
-
-def test_schema_publication_manifest_rejects_last_change_hash_mismatch(tmp_path: Path) -> None:
-    repo_root = tmp_path
-    schema_path = repo_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
-    write_text(schema_path, _published_schema({"name": {"type": "string"}}))
-    write_schema_publication_manifest(
-        repo_root,
-        [
-            {
-                "contract_id": "draft-contract-v1",
-                "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
-                "stability": "draft",
-                "last_change": {"summary": "stale ledger entry", "content_hash": "0" * 64},
-            },
-        ],
-    )
-
-    failures = validate_schema_publication_manifest(repo_root)
-    assert any("last_change.content_hash" in failure and "does not match" in failure for failure in failures)
+    assert validate_schema_publication_manifest(repo_root) == [
+        "schema manifest must not record hash_algorithm; git holds schema history"
+    ]
 
 
-def test_schema_publication_manifest_requires_ledger_when_schema_changes(tmp_path: Path) -> None:
-    repo_root = tmp_path
-    schema_path = repo_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
-    write_text(schema_path, _published_schema({"name": {"type": "string"}}))
-    write_schema_publication_manifest(
-        repo_root,
-        [
-            {
-                "contract_id": "draft-contract-v1",
-                "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
-                "stability": "draft",
-            },
-        ],
-    )
-    _init_git_repo(repo_root)
-    _git_commit_all(repo_root, "base")
-
-    # Schema content changes vs base, manifest hash bumps, but no contract-facing
-    # ledger entry records why — the process gate must reject this.
-    write_text(schema_path, _published_schema({"name": {"type": "integer"}}))
-    write_schema_publication_manifest(
-        repo_root,
-        [
-            {
-                "contract_id": "draft-contract-v1",
-                "schema_path": "contracts/schemas/sdl/draft-contract-v1.json",
-                "stability": "draft",
-            },
-        ],
-    )
-
-    failures = validate_schema_publication_manifest(repo_root, base_rev="HEAD")
-    assert any("contract-facing change description" in failure for failure in failures)
-
-
-def test_schema_publication_manifest_requires_ledger_for_new_schema(tmp_path: Path) -> None:
+def test_schema_publication_manifest_accepts_a_new_schema_with_only_its_record(tmp_path: Path) -> None:
     repo_root = tmp_path
     existing = repo_root / "contracts" / "schemas" / "sdl" / "existing-contract-v1.json"
     write_text(existing, _published_schema({"name": {"type": "string"}}))
-    write_schema_publication_manifest(
-        repo_root,
-        [
-            {
-                "contract_id": "existing-contract-v1",
-                "schema_path": "contracts/schemas/sdl/existing-contract-v1.json",
-                "stability": "draft",
-            },
-        ],
-    )
+    entries = [
+        {
+            "contract_id": "existing-contract-v1",
+            "schema_path": "contracts/schemas/sdl/existing-contract-v1.json",
+            "stability": "draft",
+        },
+    ]
+    write_schema_publication_manifest(repo_root, entries)
     _init_git_repo(repo_root)
     _git_commit_all(repo_root, "base")
 
-    new_schema = repo_root / "contracts" / "schemas" / "sdl" / "new-contract-v1.json"
-    write_text(new_schema, _published_schema({"id": {"type": "string"}}))
+    write_text(repo_root / "contracts" / "schemas" / "sdl" / "new-contract-v1.json", _published_schema({}))
     write_schema_publication_manifest(
         repo_root,
         [
-            {
-                "contract_id": "existing-contract-v1",
-                "schema_path": "contracts/schemas/sdl/existing-contract-v1.json",
-                "stability": "draft",
-            },
+            *entries,
             {
                 "contract_id": "new-contract-v1",
                 "schema_path": "contracts/schemas/sdl/new-contract-v1.json",
@@ -2846,11 +2856,10 @@ def test_schema_publication_manifest_requires_ledger_for_new_schema(tmp_path: Pa
         ],
     )
 
-    failures = validate_schema_publication_manifest(repo_root, base_rev="HEAD")
-    assert any("new-contract-v1" in failure and "contract-facing change description" in failure for failure in failures)
+    assert validate_schema_publication_manifest(repo_root, base_rev="HEAD") == []
 
 
-def test_schema_publication_manifest_unchanged_schema_needs_no_ledger(tmp_path: Path) -> None:
+def test_schema_publication_manifest_unchanged_schema_passes_against_base(tmp_path: Path) -> None:
     repo_root = tmp_path
     schema_path = repo_root / "contracts" / "schemas" / "sdl" / "draft-contract-v1.json"
     write_text(schema_path, _published_schema({"name": {"type": "string"}}))
@@ -2867,8 +2876,6 @@ def test_schema_publication_manifest_unchanged_schema_needs_no_ledger(tmp_path: 
     _init_git_repo(repo_root)
     _git_commit_all(repo_root, "base")
 
-    # No schema change vs base: an existing entry without a ledger stays valid,
-    # so the gate never forces backfilling ledgers onto unchanged schemas.
     assert validate_schema_publication_manifest(repo_root, base_rev="HEAD") == []
 
 
@@ -2912,8 +2919,8 @@ def test_schema_publication_manifest_requires_tombstone_for_removed_schema(tmp_p
     repo_root = tmp_path
     _seed_two_schema_repo(repo_root)
 
-    # Removing the file and its manifest entry without a tombstone bypasses the
-    # contract-facing ledger the gate requires for every other schema change.
+    # Removing the file and its manifest entry without a tombstone leaves no
+    # recorded reason for the removal.
     failures = validate_schema_publication_manifest(repo_root, base_rev="HEAD")
     assert any(
         "drop-contract-v1.json" in failure and "removed without a contract-facing removal description" in failure
@@ -3091,7 +3098,7 @@ def _pin_fake_osv_download(monkeypatch: pytest.MonkeyPatch, payload: bytes) -> N
 
     def selection(**kwargs: object) -> object:
         if kwargs.get("version") != "2.4.0":
-            raise RuntimeError("no reviewed lock selection")
+            raise ArtifactPolicyError("no reviewed lock selection")
         return types.SimpleNamespace(
             artifact_id="osv-scanner",
             artifact_class="generic-cli",
@@ -3166,7 +3173,7 @@ def test_osv_scanner_invalid_legacy_cache_is_terminal(
         lambda **_kwargs: pytest.fail("integrity failure triggered acquisition"),
     )
 
-    with pytest.raises(RuntimeError, match="legacy-integrity-failure"):
+    with pytest.raises(verified_tool_installation.ToolInstallationError, match="legacy-integrity-failure"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
 
     assert not binary.exists()
@@ -3179,14 +3186,14 @@ def test_osv_scanner_unsafe_cache_shapes_fail_closed(monkeypatch: pytest.MonkeyP
     binary = osv_scanner_tool.osv_scanner_binary_path(tmp_path)
     binary.mkdir(parents=True)
 
-    with pytest.raises(RuntimeError, match="legacy-integrity-failure"):
+    with pytest.raises(verified_tool_installation.ToolInstallationError, match="legacy-integrity-failure"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
 
     shutil.rmtree(tmp_path / ".cache")
     outside = tmp_path / "outside-cache"
     outside.mkdir()
     (tmp_path / ".cache").symlink_to(outside, target_is_directory=True)
-    with pytest.raises(RuntimeError, match="unsafe-private-root"):
+    with pytest.raises(verified_tool_installation.ToolInstallationError, match="unsafe-private-root"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
 
 
@@ -3218,7 +3225,7 @@ def test_osv_scanner_policy_rejection_prevents_an_untrusted_release_url(
     tmp_path: Path,
 ) -> None:
     def reject_selection(**_kwargs: object) -> object:
-        raise RuntimeError("policy rejected unsafe source URL")
+        raise ArtifactPolicyError("policy rejected unsafe source URL")
 
     monkeypatch.setattr("tools.tooling_policy_gate.load_tooling_artifact_selection", reject_selection)
     monkeypatch.setattr(
@@ -3227,7 +3234,7 @@ def test_osv_scanner_policy_rejection_prevents_an_untrusted_release_url(
         lambda **_kwargs: pytest.fail("unsafe URL reached the acquisition boundary"),
     )
 
-    with pytest.raises(RuntimeError, match="policy rejected unsafe source URL"):
+    with pytest.raises(ArtifactPolicyError, match="policy rejected unsafe source URL"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
 
 
@@ -3236,11 +3243,11 @@ def test_osv_scanner_acquisition_failure_is_terminal(monkeypatch: pytest.MonkeyP
     _pin_fake_osv_download(monkeypatch, payload)
 
     def timeout(**_kwargs: object) -> bytes:
-        raise RuntimeError("osv-scanner acquisition failed: curl-wall-deadline")
+        raise ArtifactAcquisitionError("osv-scanner acquisition failed: curl-wall-deadline")
 
     monkeypatch.setattr(osv_scanner_tool, "acquire_locked_bytes", timeout)
 
-    with pytest.raises(RuntimeError, match="curl-wall-deadline"):
+    with pytest.raises(ArtifactAcquisitionError, match="curl-wall-deadline"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
 
 
@@ -3250,11 +3257,11 @@ def test_osv_scanner_unpinned_version_and_download_mismatch_fail_closed(
 ) -> None:
     payload = b"reviewed-scanner"
     _pin_fake_osv_download(monkeypatch, payload)
-    with pytest.raises(RuntimeError, match="no reviewed lock selection"):
+    with pytest.raises(ArtifactPolicyError, match="no reviewed lock selection"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path, version="9.9.9")
 
     monkeypatch.setattr(osv_scanner_tool, "acquire_locked_bytes", lambda **_kwargs: b"different")
-    with pytest.raises(RuntimeError, match="raw-manifest-mismatch"):
+    with pytest.raises(verified_tool_installation.ToolInstallationError, match="raw-manifest-mismatch"):
         osv_scanner_tool.ensure_osv_scanner(tmp_path)
     assert not osv_scanner_tool.osv_scanner_binary_path(tmp_path).exists()
 
@@ -3311,15 +3318,20 @@ def _run_nox_osv_scan(
     lockfile.parent.mkdir(parents=True)
     lockfile.write_text("", encoding="utf-8")
     report = lockfile.with_name("osv-scanner-report.json")
+    tooling_lockfile = tmp_path / "implementations" / "tooling" / "python" / "uv.lock"
+    tooling_lockfile.parent.mkdir(parents=True)
+    tooling_lockfile.write_text("", encoding="utf-8")
+    tooling_report = lockfile.with_name("osv-scanner-tooling-report.json")
     scanner_binary = tmp_path / "osv-scanner"
     monkeypatch.setattr(nox_test_lanes, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(nox_test_lanes, "OSV_LOCKFILE_PATH", lockfile)
     monkeypatch.setattr(nox_test_lanes, "OSV_REPORT_PATH", report)
+    monkeypatch.setattr(nox_test_lanes, "OSV_TOOLING_LOCKFILE_PATH", tooling_lockfile)
+    monkeypatch.setattr(nox_test_lanes, "OSV_TOOLING_REPORT_PATH", tooling_report)
     monkeypatch.setattr(nox_test_lanes, "ensure_osv_scanner", lambda _repo_root: scanner_binary)
 
     def fake_run_osv_scanner(actual_lockfile: Path, actual_report: Path, *, binary: Path) -> int:
-        assert actual_lockfile == lockfile
-        assert actual_report == report
+        assert (actual_lockfile, actual_report) in {(lockfile, report), (tooling_lockfile, tooling_report)}
         assert binary == scanner_binary
         return exit_code
 
@@ -3336,14 +3348,14 @@ def test_nox_osv_scan_accepts_only_a_clean_result(
 ) -> None:
     reporter = _run_nox_osv_scan(monkeypatch, tmp_path, exit_code=0)
 
-    assert [result.name for result in reporter.results] == ["osv-scan / uv.lock"]
+    assert [result.name for result in reporter.results] == ["osv-scan / uv.lock", "osv-scan / tooling uv.lock"]
 
 
 def test_nox_osv_scan_gates_vulnerability_findings(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    with pytest.raises(RuntimeError, match=r"reported vulnerabilities \(exit code 1\)"):
+    with pytest.raises(InvalidInputError, match=r"reported vulnerabilities \(exit code 1\)"):
         _run_nox_osv_scan(monkeypatch, tmp_path, exit_code=1)
 
 
@@ -3351,7 +3363,7 @@ def test_nox_osv_scan_surfaces_scanner_errors_distinctly(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    with pytest.raises(RuntimeError, match="scanner/setup error exit code 127"):
+    with pytest.raises(OperationalError, match="scanner/setup error exit code 127"):
         _run_nox_osv_scan(monkeypatch, tmp_path, exit_code=127)
 
 
@@ -3523,23 +3535,19 @@ def _make_adr(
     return text
 
 
-def _write_manifest(adr_dir: Path, entries: list[dict], *, algorithm: str = "sha256") -> None:
-    write_text(
-        adr_dir / "adr-index.yaml",
-        yaml.safe_dump({"hash_algorithm": algorithm, "adrs": entries}, sort_keys=False),
-    )
+def _write_manifest(adr_dir: Path, entries: list[dict], *, algorithm: str | None = None) -> None:
+    document: dict = {"adrs": entries}
+    if algorithm is not None:
+        document["hash_algorithm"] = algorithm
+    write_text(adr_dir / "adr-index.yaml", yaml.safe_dump(document, sort_keys=False))
 
 
 def _entry(number: str, text: str, *, pin_text: str | None = None, amendments: list[dict] | None = None) -> dict:
-    # ``pin_text`` lets a caller pin over content that is NOT byte-identical to the
-    # on-disk ADR (``text``). Recorded-amendment tests rely on this to pin over the
-    # *unamended* body so the gate only stays green if ``canonical_content`` truly
-    # strips the ``## Amendments`` section — pinning over the amended text would be
-    # tautological (both sides hashed from the same amended bytes).
+    # The manifest stores no content pin (issue #1929); ``text`` and ``pin_text`` stay for call-site stability.
+    del text, pin_text
     entry = {
         "id": f"ADR-{number}",
         "path": f"docs/decisions/adrs/adr-{number}-example.md",
-        "pin": content_hash(pin_text if pin_text is not None else text),
     }
     if amendments is not None:
         entry["amendments"] = amendments
@@ -3582,25 +3590,19 @@ def test_adr_pin_gate_passes_on_pinned_accepted_corpus(tmp_path: Path) -> None:
     assert evaluate_adr_immutability(tmp_path) == []
 
 
-def test_adr_pin_gate_flags_unrecorded_edit(tmp_path: Path) -> None:
+def test_adr_pin_gate_rejects_a_retired_content_pin(tmp_path: Path) -> None:
+    # The base-revision check detects an unrecorded edit, so a stored pin is a retired key (issue #1929).
     adr_dir = _adr_dir(tmp_path)
     original = _make_adr(adr_dir, "001")
-    _write_manifest(adr_dir, [_entry("001", original)])
-    # Edit the ADR body without updating the pin.
-    _make_adr(adr_dir, "001", body="\n## Context\n\nA substantively different body.\n")
+    _write_manifest(adr_dir, [{**_entry("001", original), "pin": content_hash(original)}])
 
     failures = evaluate_adr_immutability(tmp_path)
-    assert "adr-pin-stale" in _rule_ids(failures)
+    assert _rule_ids(failures) == ["adr-manifest-malformed"]
 
 
 def test_adr_pin_gate_accepts_recorded_amendment(tmp_path: Path) -> None:
     adr_dir = _adr_dir(tmp_path)
     text = _make_adr(adr_dir, "001", amendment_rows=[("2026-06-07", "abc1234", "added a field")])
-    # Pin over the *unamended* body. If canonical_content stops stripping the
-    # ## Amendments section, the on-disk (amended) hash diverges from this pin and
-    # the gate fires adr-pin-stale — so this assertion genuinely verifies the
-    # "amendment records never change the pin" invariant rather than tautologically
-    # hashing the same amended bytes on both sides.
     _write_manifest(
         adr_dir,
         [
@@ -3613,8 +3615,7 @@ def test_adr_pin_gate_accepts_recorded_amendment(tmp_path: Path) -> None:
         ],
     )
 
-    # The pin is over canonical content (amendments excluded), so the recorded
-    # amendment does not perturb it, and the manifest refs match the table 1:1.
+    # The manifest refs match the table 1:1.
     assert evaluate_adr_immutability(tmp_path) == []
 
 
@@ -3668,7 +3669,7 @@ def test_adr_pin_gate_rejects_unsafe_path(tmp_path: Path) -> None:
     adr_dir = _adr_dir(tmp_path)
     _write_manifest(
         adr_dir,
-        [{"id": "ADR-001", "path": "../outside-the-repo.md", "pin": "0" * 64}],
+        [{"id": "ADR-001", "path": "../outside-the-repo.md"}],
     )
 
     failures = evaluate_adr_immutability(tmp_path)
@@ -3888,3 +3889,89 @@ def test_adr_pin_gate_base_rev_flags_boundary_blank_line_edit(tmp_path: Path) ->
 
     failures = evaluate_adr_immutability(tmp_path, base_rev="HEAD")
     assert _rule_ids(failures) == ["adr-amendment-unrecorded"]
+
+
+def test_a_defect_while_loading_the_policy_config_is_not_reported_as_malformed_yaml(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import tools.policy.repo_policy as repo_policy_module
+
+    def defective(_repo_root: Path) -> dict:
+        raise TypeError("policy loader defect")
+
+    monkeypatch.setattr(repo_policy_module, "load_policy", defective)
+    with pytest.raises(TypeError, match="policy loader defect"):
+        evaluate_repo_policy(tmp_path, [], structural_runner=lambda _document: [])
+
+
+def test_a_defect_while_loading_the_allowlist_is_not_reported_as_malformed_yaml(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import tools.policy.repo_policy as repo_policy_module
+
+    (tmp_path / "allowlist.yaml").write_text("files: []\n", encoding="utf-8")
+
+    def defective(_path: Path) -> dict:
+        raise TypeError("allowlist loader defect")
+
+    monkeypatch.setattr(repo_policy_module, "load_yaml", defective)
+    with pytest.raises(TypeError, match="allowlist loader defect"):
+        repo_policy_module._validate_allowlist(tmp_path, "allowlist.yaml")
+
+
+def test_a_defect_while_loading_the_adr_manifest_is_not_reported_as_invalid_yaml(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import tools.check_adr_immutability as adr_gate
+
+    manifest = tmp_path / adr_gate.MANIFEST_PATH
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text("adrs: []\n", encoding="utf-8")
+
+    def defective(_path: Path) -> dict:
+        raise TypeError("manifest loader defect")
+
+    monkeypatch.setattr(adr_gate, "load_yaml", defective)
+    with pytest.raises(TypeError, match="manifest loader defect"):
+        evaluate_adr_immutability(tmp_path)
+
+
+def test_adr_parsing_refuses_a_missing_header_or_an_empty_section(tmp_path: Path) -> None:
+    from raes_contracts.errors import InvalidInputError
+    from tools.policy.adr import parse_adr_file
+
+    headerless = tmp_path / "adr-001-headerless.md"
+    headerless.write_text("## Status\n\naccepted\n\n## Date\n\n2026-01-01\n", encoding="utf-8")
+    with pytest.raises(InvalidInputError, match="missing ADR header"):
+        parse_adr_file(headerless)
+    empty_date = tmp_path / "adr-002-empty-date.md"
+    empty_date.write_text("# ADR-002: Empty date\n\n## Status\n\naccepted\n\n## Date\n\n", encoding="utf-8")
+    with pytest.raises(InvalidInputError, match="missing Date section"):
+        parse_adr_file(empty_date)
+
+
+def test_the_adr_pin_gate_skips_unparseable_adr_files(tmp_path: Path) -> None:
+    import tools.check_adr_immutability as adr_gate
+
+    adr_dir = tmp_path / adr_gate.ADR_DIR
+    adr_dir.mkdir(parents=True)
+    (adr_dir / "adr-001-headerless.md").write_text("## Status\n\naccepted\n", encoding="utf-8")
+    (adr_dir / "adr-002-binary.md").write_bytes(b"\xff\xfe")
+
+    assert adr_gate._accepted_adrs(tmp_path) == {}
+
+
+@pytest.mark.parametrize("category", ["InvalidInputError", "OperationalError"])
+def test_repo_policy_main_reports_domain_failures_as_messages(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], category: str
+) -> None:
+    import raes_contracts.errors as errors
+
+    def failing(*_args, **_kwargs):
+        raise getattr(errors, category)("conftest repo policy evaluation failed: rego error")
+
+    monkeypatch.setattr(check_repo_policy, "evaluate_repo_policy", failing)
+    monkeypatch.setattr(check_repo_policy.sys, "argv", ["check_repo_policy.py", "README.md"])
+
+    assert check_repo_policy.main() == 1
+    assert "repo-policy: conftest repo policy evaluation failed: rego error" in capsys.readouterr().err

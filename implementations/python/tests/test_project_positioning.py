@@ -216,3 +216,18 @@ def test_positioning_check_reports_invalid_mcp_metadata(
 def test_positioning_check_is_registered_in_canonical_policy_graph() -> None:
     policy_lane_source = (REPO_ROOT / "tools" / "nox_support" / "policy_lanes.py").read_text(encoding="utf-8")
     assert '"tools/check_project_positioning.py"' in policy_lane_source
+
+
+def test_a_defect_while_reading_package_metadata_is_not_reported_as_a_metadata_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import tools.check_project_positioning as gate
+
+    _seed_positioning_surfaces(tmp_path)
+
+    def defective(_text: str) -> dict[str, object]:
+        raise TypeError("toml reader defect")
+
+    monkeypatch.setattr(gate.tomllib, "loads", defective)
+    with pytest.raises(TypeError, match="toml reader defect"):
+        validate_project_positioning(tmp_path)

@@ -3,15 +3,17 @@
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import replace
 from pathlib import Path
 
 import pytest
+from contract_fixtures import load_contract_fixture
 from jsonschema import Draft202012Validator
 from raes_conformance.conformance import _fixture_case_diagnostics
 from raes_conformance.conformance.validators import validate_contract_payload
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.participant_control_context import load_control_context_json
+from raes_schemas import schema_bundle
 from test_act_620_control_context_assets import _asset, _change, _context, _exposed, _record
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -21,18 +23,18 @@ KINDS = ("asset", "change", "record")
 @pytest.mark.parametrize("kind", KINDS)
 def test_published_contract_matches_bundle_and_exercises_conformance_corpus(kind):
     contract = f"participant-control-context-{kind}-v1"
-    schema = json.loads((ROOT / f"contracts/schemas/participant-runtime/{contract}.json").read_text())
+    schema = json.loads((ROOT / f"contracts/schemas/participant-runtime/{contract}.json").read_text(encoding="utf-8"))
     assert schema == schema_bundle()[contract]
     fixtures = ROOT / f"contracts/fixtures/participant-runtime/{contract}"
     for path in sorted((fixtures / "valid").glob("*.json")):
-        payload = json.loads(path.read_text())
+        payload = load_contract_fixture(path)
         Draft202012Validator(schema).validate(payload)
         assert [item.code for item in _fixture_case_diagnostics(contract, payload)] == [
             "conformance.semantic-context-required"
         ]
     assert list((fixtures / "valid").glob("*.json"))
     for path in sorted((fixtures / "invalid").glob("*.json")):
-        assert [item.code for item in _fixture_case_diagnostics(contract, json.loads(path.read_text()))] == [
+        assert [item.code for item in _fixture_case_diagnostics(contract, load_contract_fixture(path))] == [
             "conformance.schema-invalid"
         ]
     assert list((fixtures / "invalid").glob("*.json"))
@@ -49,13 +51,14 @@ def test_run_manifest_retains_selections_and_delivery_as_distinct_artifacts():
     from io import BytesIO
 
     from raes_contracts.associated_artifacts import (
+        ExperimentArtifactParent,
         associated_artifact_set_digest,
         validate_associated_artifact_manifest,
     )
     from raes_contracts.contracts import AssociatedArtifactManifestModel, ExperimentRunModel
 
-    run_payload = json.loads(
-        (ROOT / "contracts/fixtures/experiment-core/experiment-run-v1/valid/reference.json").read_text()
+    run_payload = load_contract_fixture(
+        ROOT / "contracts/fixtures/experiment-core/experiment-run-v1/valid/reference.json"
     )
     run = ExperimentRunModel.model_validate(run_payload)
     records = {"selection": _record(run_id=run.run_id), "delivery": _exposed(run_id=run.run_id)}
@@ -88,7 +91,9 @@ def test_run_manifest_retains_selections_and_delivery_as_distinct_artifacts():
     recovered = type(manifest).model_validate_json(manifest.model_dump_json())
     assert (
         validate_associated_artifact_manifest(
-            recovered, parent=run, artifact_readers={key: BytesIO(data) for key, data in encoded.items()}
+            recovered,
+            parent=ExperimentArtifactParent(run),
+            artifact_readers={key: BytesIO(data) for key, data in encoded.items()},
         )
         == ()
     )
@@ -101,17 +106,24 @@ def test_run_manifest_retains_selections_and_delivery_as_distinct_artifacts():
     assert delivered.delivery_ref is not None
 
 
-def test_public_diagnostics_omit_private_resolver_exceptions():
+def test_public_diagnostics_omit_private_resolver_exceptions(caplog: pytest.LogCaptureFixture):
     def fail(_request):
         raise RuntimeError("private instruction and credentials must not escape")
 
-    diagnostics = validate_contract_payload(
-        "participant-control-context-record-v1",
-        _record().model_dump(),
-        control_context_asset_context=replace(_context(), authorize=fail),
-    )
+    with caplog.at_level(logging.ERROR, logger="raes_conformance"):
+        diagnostics = validate_contract_payload(
+            "participant-control-context-record-v1",
+            _record().model_dump(),
+            control_context_asset_context=replace(_context(), authorize=fail),
+        )
     assert diagnostics[0].code == "conformance.context-resolution-failed"
     assert "private instruction" not in str(diagnostics)
+    # The host failure is not suppressed silently: one value-free record keeps only the RAES frames.
+    records = [record for record in caplog.records if record.name.endswith("control_context_assets")]
+    assert len(records) == 1
+    assert "private instruction" not in records[0].getMessage()
+    assert "private instruction" not in (records[0].exc_text or "")
+    assert "ForeignCodeFailure" in (records[0].exc_text or "")
 
 
 @pytest.mark.parametrize(
@@ -123,7 +135,7 @@ def test_public_diagnostics_omit_private_resolver_exceptions():
 )
 def test_other_context_required_contracts_return_a_diagnostic_instead_of_crashing(family, contract):
     fixture = next((ROOT / f"contracts/fixtures/{family}/{contract}/valid").glob("*.json"))
-    diagnostics = _fixture_case_diagnostics(contract, json.loads(fixture.read_text()))
+    diagnostics = _fixture_case_diagnostics(contract, load_contract_fixture(fixture))
     assert [item.code for item in diagnostics] == ["conformance.semantic-context-required"]
 
 

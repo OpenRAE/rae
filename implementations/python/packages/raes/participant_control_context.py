@@ -6,10 +6,12 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
+import rfc8785
 from pydantic import Field, field_validator
 from raes_contracts.contracts.participant_control_context import ParticipantControlContextAssetReferenceModel
-
-from ._base import SDLModel, is_variable_ref
+from raes_contracts.participant_control_context import control_context_asset_reference
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import is_variable_ref
 
 if TYPE_CHECKING:
     from raes_contracts.contracts.experiment_bindings import (
@@ -19,6 +21,9 @@ if TYPE_CHECKING:
 
     from ._declarations import Declaration, DeclarationIndex
     from .scenario import ScenarioContent
+
+# An authored integer outside the I-JSON range gives an asset descriptor no canonical digest.
+_DESCRIPTOR_NOT_CANONICAL = "control-context.descriptor-not-canonical"
 
 
 class ParticipantControlContextReference(SDLModel):
@@ -74,13 +79,16 @@ def resolve_control_context_reference(
     allow_unresolved: bool = True,
 ) -> str:
     """Resolve through the existing index, then check immutable pin and scope."""
-    from raes_contracts.participant_control_context import control_context_asset_reference
 
     from .entities import flatten_entities
 
     declaration = _control_context_declaration(index, reference)
     asset = scenario.control_context_assets[declaration.model_tokens[1]]
-    if control_context_asset_reference(asset) != expected:
+    try:
+        pin = control_context_asset_reference(asset)
+    except rfc8785.CanonicalizationError as exc:
+        raise ValueError(_DESCRIPTOR_NOT_CANONICAL) from exc
+    if pin != expected:
         raise ValueError("control-context.reference-stale")
     agent = scenario.agents.get(participant_name)
     if agent is None:
@@ -117,13 +125,16 @@ def resolve_authored_control_context(
     scenario: ScenarioContent, index: DeclarationIndex
 ) -> tuple[tuple[ResolvedControlContextSelection, ...], tuple[str, ...]]:
     """Collect bounded failures without disclosing descriptor or reference values."""
-    from raes_contracts.participant_control_context import control_context_asset_reference
 
     errors: list[str] = []
     versions: dict[tuple[str, str], ParticipantControlContextAssetReferenceModel] = {}
     for asset in scenario.control_context_assets.values():
         key = asset.asset_id, asset.asset_version
-        pin = control_context_asset_reference(asset)
+        try:
+            pin = control_context_asset_reference(asset)
+        except rfc8785.CanonicalizationError:
+            errors.append(_DESCRIPTOR_NOT_CANONICAL)
+            continue
         if key in versions and versions[key] != pin:
             errors.append("control-context.descriptor-conflict")
         versions[key] = pin

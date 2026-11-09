@@ -9,8 +9,9 @@ import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes_backend_stubs.stubs import create_stub_target
-from raes_contracts.contracts import OperationReceiptModel, OperationStatusModel, schema_bundle
+from raes_contracts.contracts import OperationReceiptModel, OperationStatusModel
 from raes_contracts.diagnostics import Diagnostic, DiagnosticModel, portable_diagnostic_payload
+from raes_contracts.errors import ConflictError
 from raes_contracts.planning import (
     ChangeAction,
     EvaluationPlan,
@@ -39,6 +40,7 @@ from raes_runtime.control_plane_security import ControlPlaneIdentity, ControlPla
 from raes_runtime.control_plane_store import ControlPlaneOperationRecord, InMemoryControlPlaneStore
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
 from raes_runtime.control_plane_store_records import _record_from_payload, _record_payload
+from raes_schemas import schema_bundle
 
 pytestmark = pytest.mark.control_plane_conformance
 
@@ -411,7 +413,7 @@ def test_idempotency_binds_semantic_commitment_not_transport_fingerprint() -> No
 
     assert representation_retry == first
     changed_plan = ProvisioningPlan(operation_id="semantic-two")
-    with pytest.raises(ValueError, match="idempotency claim conflicts with the original request"):
+    with pytest.raises(ConflictError, match="idempotency claim conflicts with the original request"):
         control_plane.submit_provisioning(
             changed_plan,
             idempotency_key="semantic-1182",
@@ -449,7 +451,7 @@ def test_plan_idempotency_binds_explicit_base_snapshot(method_name: str, plan: o
     exact_retry = submit(plan, base_snapshot=first_snapshot, idempotency_key="snapshot-key")
 
     assert exact_retry == first
-    with pytest.raises(ValueError, match="idempotency claim conflicts with the original request"):
+    with pytest.raises(ConflictError, match="idempotency claim conflicts with the original request"):
         submit(plan, base_snapshot=changed_snapshot, idempotency_key="snapshot-key")
     control_plane.close()
 
@@ -521,7 +523,7 @@ def test_private_idempotency_fingerprint_distinguishes_credential_changes(
     assert persisted.request_fingerprint == first_context.request_commitment
     assert persisted.request_fingerprint != first_exact
     assert control_plane._claim_record(record, exact_retry_fingerprint=first_exact) == record
-    with pytest.raises(ValueError, match="sensitive retry proof"):
+    with pytest.raises(ConflictError, match="sensitive retry proof"):
         control_plane._claim_record(record, exact_retry_fingerprint=second_exact)
     control_plane.close()
 
@@ -579,6 +581,6 @@ def test_sensitive_retry_proof_is_not_persisted_and_fails_closed_after_restart(t
         receipt=replace(record.receipt, operation_id="restart-sensitive-retry"),
         status=replace(record.status, operation_id="restart-sensitive-retry"),
     )
-    with pytest.raises(ValueError, match="sensitive retry proof"):
+    with pytest.raises(ConflictError, match="sensitive retry proof"):
         restarted._claim_record(retry, exact_retry_fingerprint=exact)
     restarted.close()

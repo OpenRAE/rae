@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Protocol
 from raes_contracts.contracts import (
     ParticipantTemporalRuntimeContextModel,
 )
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_control_composition import ParticipantControlRequestModel
 from raes_contracts.contracts.participant_control_invocation import (
     ControlInvocationV2Model,
@@ -17,9 +18,10 @@ from raes_contracts.contracts.participant_execution import (
     ParticipantExecutionControlRequestModel,
     ParticipantExecutionServiceStateModel,
 )
+from raes_contracts.contracts.realization_preparation import RealizationPreparation
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest, ParticipantActionApplyResult
+from raes_contracts.participant_binding import ParticipantActionApplyResult
 from raes_contracts.participant_episode import (
     ParticipantEpisodeInitializeRequest,
     ParticipantEpisodeResetRequest,
@@ -27,7 +29,6 @@ from raes_contracts.participant_episode import (
     ParticipantEpisodeTerminateRequest,
 )
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
-from raes_contracts.realization_preparation import RealizationPreparation
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 if TYPE_CHECKING:
@@ -267,7 +268,11 @@ class ControlledAutonomousParticipantRuntime(AutonomousParticipantRuntime, Proto
         execution_scope_ref: str,
         snapshot: RuntimeSnapshot,
     ) -> ParticipantExecutionServiceStateModel:
-        """Return typed execution-service health and readiness."""
+        """Return typed execution-service health and readiness.
+
+        Raise ``raes_contracts.errors.NotFoundError`` when the scope is not configured.
+        Raise ``raes_contracts.errors.EvidenceIntegrityError`` when the stored state does not satisfy its contract.
+        """
         ...
 
     def admit_actions_concurrently(

@@ -35,12 +35,14 @@ class _ExecutionPolicyMixin:
             self._err("Execution policy scope has no native execution owner")
         if rule.namespace and not any(ns[: len(rule.namespace)] == rule.namespace for ns in namespaces):
             self._err("Execution policy lexical namespace does not resolve")
-        if (
-            len(rule.scope.split("/")) >= 3
-            and rule.namespace
-            and semantic_scope_namespace(payload, rule.scope)[: len(rule.namespace)] != rule.namespace
-        ):
-            self._err("Execution policy scope escapes its lexical namespace")
+        if len(rule.scope.split("/")) >= 3 and rule.namespace:
+            try:
+                owner = semantic_scope_namespace(payload, rule.scope)
+            except ValueError:
+                # An unresolved forwarding-agent scope has no owner; it is reported above.
+                owner = ()
+            if owner[: len(rule.namespace)] != rule.namespace:
+                self._err("Execution policy scope escapes its lexical namespace")
 
     def _verify_policy_references(self) -> bool:
         document = self._s.execution_policy

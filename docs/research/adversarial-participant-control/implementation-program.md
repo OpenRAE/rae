@@ -74,9 +74,11 @@ usefulness, cost, uncertainty, limitations, and nonclaims separately.
 
 ### #1008: Documentation and claims
 
-Only after #1003, #1004, and #1007 reconcile their evidence, update scientific
-completeness, assurance status, lineage, and public guidance with the exact
-implemented and evaluated profiles.
+Issue #1008 amends this program on 2026-10-29.
+After RAE runtime, fixture apparatus, and #1007 harness evidence are reconciled,
+publish exact evaluated profiles, assurance limits, lineage, and public guidance.
+Concrete backend realization is not a prerequisite for RAE evaluation or publication.
+Backend claims require separate exact realization evidence from their owner.
 
 ## Program invariants
 

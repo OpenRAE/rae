@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from raes_contracts.json_pointer import pointer_from_tokens, unescape_token
 from raes_contracts.realization_structure import (
     RealizationClosure,
     RealizationCollectionProfile,
@@ -46,7 +47,7 @@ def observation_reference_scope(
         tokens = tokens[:-1]
         if not any(item.field_pointer == profile.field_pointer for item in collection_profiles):
             collection_profiles = (*collection_profiles, profile)
-    source_pointer = "/" + "/".join(_encode(token) for token in tokens)
+    source_pointer = pointer_from_tokens(tokens)
     return canonical_semantic_address(source_pointer, root, collection_profiles=collection_profiles)
 
 
@@ -80,7 +81,7 @@ def semantic_scope_namespace(root: dict[str, object], pointer: str) -> tuple[str
     tokens = pointer.split("/")
     if len(tokens) < 3:
         return ()
-    identity = tokens[2].replace("~1", "/").replace("~0", "~")
+    identity = unescape_token(tokens[2])
     if tokens[1] == "forwarding_agents":
         for index, agent in enumerate(root.get("forwarding_agents", ())):
             found, candidate = resolve_observation_scope(root, f"/forwarding_agents/{index}")
@@ -95,7 +96,7 @@ def semantic_scope_namespace(root: dict[str, object], pointer: str) -> tuple[str
 def _declaration_collection_profile(tokens: list[str]) -> RealizationCollectionProfile | None:
     if len(tokens) < 3 or not tokens[-2].isdigit():
         return None
-    parent = "/" + "/".join(_encode(token) for token in tokens[:-2])
+    parent = pointer_from_tokens(tokens[:-2])
     return RealizationCollectionProfile(
         field_pointer=parent,
         collection_kind="sdl-declaration",
@@ -106,10 +107,6 @@ def _declaration_collection_profile(tokens: list[str]) -> RealizationCollectionP
             profile="recursive-realization-constraint/v1",
         ),
     )
-
-
-def _encode(value: str) -> str:
-    return value.replace("~", "~0").replace("/", "~1")
 
 
 __all__ = ["canonical_observation_reference", "observation_reference_scope", "resolve_observation_scope"]
