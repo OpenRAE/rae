@@ -51,12 +51,16 @@ These pages give reasons and relationships:
 ## Inspect working records
 
 - [Decision and preflight notes](decisions/index.md)
-- [Research records](research/)
+- [Research records and current questions](research/index.md)
 - [Modular participant-control architecture and delivery graph](research/modular-participant-control/index.md)
 - [Issue 1198 language extensibility design review](research/language-extensibility/design-review.md)
 - [Issue 215 participant identity and actor/target audit](research/participant-identity/audit.md)
 - [Clarified design intent: open scopes and backend responsibility](research/language-extensibility/design-intent.md)
 - [Migration records](migration/README.md)
+- [Requirement reference](requirements/README.md)
+- [Governance records](governance/README.md)
+- [Asset inventory methodology and evidence](raes/inventory/index.md)
+- [Formal specification introduction](specs/formal.md)
 - [Lessons](lessons/README.md)
 - [Commit authorship anomaly](development/authorship-anomaly-2026-07.md)
 
