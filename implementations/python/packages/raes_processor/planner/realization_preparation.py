@@ -258,7 +258,9 @@ def _delivered_value(authority: ResolvedRealizationAuthority, entry: object, sna
     return getattr(observation.operating_system, _OPERATING_SYSTEM_ATTRIBUTES[authority.requirement_kind])
 
 
-def _identity_order(value: object, structure: object, document: RealizationConstraintDocument, depth: int = 0) -> object:
+def _identity_order(
+    value: object, structure: object, document: RealizationConstraintDocument, depth: int = 0
+) -> object:
     """Order keyed-collection members by semantic identity; sequences keep their positions."""
 
     if depth > 64:
