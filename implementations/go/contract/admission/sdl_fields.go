@@ -111,21 +111,25 @@ func sdlWrappedField(value any, wrapper, operation string) bool {
 		return true
 	}
 	if wrapper == "map-" {
-		values, ok := value.(map[string]any)
-		if !ok {
-			return false
-		}
-		for _, item := range values {
-			if !sdlFieldValue(item, operation) {
-				return false
-			}
-		}
-		return true
+		return sdlMapField(value, operation)
 	}
 	if wrapper != "list-" {
 		return sdlFieldValue(value, operation)
 	}
 	values, ok := value.([]any)
+	if !ok {
+		return false
+	}
+	for _, item := range values {
+		if !sdlFieldValue(item, operation) {
+			return false
+		}
+	}
+	return true
+}
+
+func sdlMapField(value any, operation string) bool {
+	values, ok := value.(map[string]any)
 	if !ok {
 		return false
 	}

@@ -47,7 +47,10 @@ func sdlProcessLimit(v any) error {
 	if !stable && len(command) == 0 || projection["command_redacted"] == true && (len(command) > 0 || !stable) || materializedToken.MatchString(stringAt(v, termDescription)) {
 		return invalid()
 	}
-	soft, hard := at(v, "soft"), at(v, "hard")
+	return sdlProcessLimitBounds(at(v, "soft"), at(v, "hard"))
+}
+
+func sdlProcessLimitBounds(soft, hard any) error {
 	for _, value := range []any{soft, hard} {
 		if value != termUnlimited && !sdlNumberField(value, "integer:0:") {
 			return invalid()

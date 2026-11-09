@@ -90,14 +90,10 @@ def record(document: dict[str, Any]) -> str:
         (MaterializedScenario, "materialized-scenario-v1"),
     ):
         definitions[contract] = reference_definitions(model)
-    definitions["instantiated-scenario-v1"] = {
-        "#/$defs/ResolvedImportProvenance": ResolvedImportProvenance
-    }
+    definitions["instantiated-scenario-v1"] = {"#/$defs/ResolvedImportProvenance": ResolvedImportProvenance}
     for row in document["cases"]:
         try:
-            definitions[row.get("contract", "sdl-authoring-input-v1")][
-                row["pointer"]
-            ].model_validate(row["data"])
+            definitions[row.get("contract", "sdl-authoring-input-v1")][row["pointer"]].model_validate(row["data"])
             row["accepted"] = True
         except ValidationError:
             row["accepted"] = False
@@ -175,17 +171,8 @@ def record_runtime_constructors(check: bool) -> int:
 
 
 def runtime_constructor_shard(document: dict[str, Any]) -> str:
-    rows = ",\n".join(
-        "    " + json.dumps(row, separators=(",", ":"), ensure_ascii=True)
-        for row in document["cases"]
-    )
-    return (
-        '{\n  "reference": '
-        + json.dumps(document["reference"])
-        + ',\n  "cases": [\n'
-        + rows
-        + "\n  ]\n}\n"
-    )
+    rows = ",\n".join("    " + json.dumps(row, separators=(",", ":"), ensure_ascii=True) for row in document["cases"])
+    return '{\n  "reference": ' + json.dumps(document["reference"]) + ',\n  "cases": [\n' + rows + "\n  ]\n}\n"
 
 
 def record_runtime_helpers(check: bool) -> int:
@@ -208,10 +195,8 @@ def record_runtime_helpers(check: bool) -> int:
         }
 
     paths = (
-        ROOT
-        / "implementations/go/internal/contract/sdlrules/testdata/runtime-inventory.json",
-        ROOT
-        / "implementations/go/contract/admission/testdata/runtime-process-limits.json",
+        ROOT / "implementations/go/internal/contract/sdlrules/testdata/runtime-inventory.json",
+        ROOT / "implementations/go/contract/admission/testdata/runtime-process-limits.json",
     )
     documents = [json.loads(path.read_bytes()) for path in paths]
     reference = subprocess.check_output(
@@ -230,9 +215,7 @@ def record_runtime_helpers(check: bool) -> int:
         if document["reference"] != reference:
             raise ValueError("runtime helper reference commit differs from the fixture")
     inventory, limits = documents
-    inventory["Collections"] = [
-        collection(family) for family in RUNTIME_SERVICE_FAMILIES
-    ]
+    inventory["Collections"] = [collection(family) for family in RUNTIME_SERVICE_FAMILIES]
     for row in inventory["Lookups"]:
         fields = runtime_inventory_collection_identity(row["Family"], row["Pointer"])
         row["Identity"] = fields[0] if fields else ""
