@@ -1,17 +1,26 @@
-# Releasing RAES via raes
+<a id="releasing-raes-via-raes"></a>
+
+# Releasing RAES
+
+Use this guide to understand release authorization, artifact checks, and recovery.
+The maintainer approves promotion from `dev` to `main` and the Release Please PR.
+Do not execute a release or deployment to test documentation.
+For generated release entries, read [CHANGELOG.md](../../CHANGELOG.md).
+For license boundaries, read [LICENSE](../../LICENSE) and [component notices](../../THIRD_PARTY_NOTICES.md).
 
 `raes` is published to **PyPI**, and releases are automated with
 [release-please](https://github.com/googleapis/release-please) (#684). You never
 hand-edit the version or `CHANGELOG.md`: release-please derives both from the
 Conventional Commit history on `main`.
 
-`raes` also ships the published contract corpus as package data, so
-`raes conformance backend` and SDL semantic validation work from an installed
-wheel. Every release binds the code and the corpus in one versioned artifact
+`raes` ships the published contract corpus as package data.
+Thus an installed wheel supports `raes conformance backend` and SDL semantic validation. Every release binds the code and the corpus in one versioned artifact
 (#537). PyPI publication additionally requires the repository's canonical
 verification graph to pass for the exact commit named by the release (GOV-928).
 
-## How a release happens
+<a id="how-a-release-happens"></a>
+
+## Release sequence
 
 1. Feature PRs **squash-merge** (into `dev`, then promoted to `main`) with a
    Conventional Commit **PR title** — the squashed commit is what release-please
@@ -26,9 +35,9 @@ verification graph to pass for the exact commit named by the release (GOV-928).
    keeps draft releases discoverable by Release Please. The release workflow
    requires that tag and SHA to match and that the commit belong to `main`.
 4. The workflow invokes `.github/workflows/canonical-verification.yml` for that
-   exact SHA. This is the same proof-bearing, exact-commit verification graph
-   used by CI: the same nox test, coverage, policy, contract, and proof lanes,
-   now distributed across concurrent jobs, with the same 90% coverage floor. The
+   exact SHA. CI uses this same verification graph for the exact commit.
+   It runs the nox test, coverage, policy, contract, and proof lanes in concurrent jobs.
+   The coverage floor remains 90%. The
    release caller leaves the SonarCloud quality gate disabled. It does not poll
    branch status or accept a check from another commit.
 5. A read-only job checks out the verified SHA, builds the corpus-bundled wheel
@@ -37,14 +46,12 @@ verification graph to pass for the exact commit named by the release (GOV-928).
    provisioning-only` outside the checkout.
 6. An admission job downloads those distributions and their evidence, runs the
    full evidence admission, and checks that the admitted wheel and sdist
-   filenames correspond to the resolved tag version. Because it is the last job
-   permitted to run repository code, it is the trust bridge: on success it
-   exports only four validated scalars — the wheel and sdist basenames and
-   their SHA-256 digests — as job outputs. A refused release exports nothing.
-7. Only those tested distributions cross into the `pypi` environment. Each
-   publisher independently downloads the artifact, requires exactly the two
-   admitted filenames, and rehashes the bytes against the admitted digests
-   immediately before its destination operation. Neither publisher checks out
+   filenames correspond to the resolved tag version. This is the last job permitted to run repository code.
+   On success it exports four validated scalars as job outputs.
+   These are the wheel and sdist basenames and their SHA-256 digests. A refused release exports nothing.
+7. Only those tested distributions cross into the `pypi` environment. Each publisher downloads the artifact.
+   It requires exactly the two admitted filenames.
+   It rehashes the bytes against the admitted digests immediately before the destination operation. Neither publisher checks out
    or executes repository source, so publication credentials never coexist
    with candidate code in the same job; the identity checks they need are made
    over the API.
@@ -235,10 +242,9 @@ cancelled, or failed job is never sufficient.
 ## External tag-protection control
 
 Configure a GitHub tag ruleset for `v*` that prevents tag deletion and updates
-outside the explicitly approved release authority. The repository workflow
-revalidates mutable GitHub state at both publication boundaries, but it cannot
-make a tag immutable after PyPI accepts an artifact, and repository-owned code
-must not grant itself permission to rewrite live organization rulesets. This
+outside the explicitly approved release authority. The workflow revalidates mutable GitHub state at both publication boundaries.
+It cannot make a tag immutable after PyPI accepts an artifact.
+Repository code must not grant itself permission to rewrite live organization rulesets. This
 ruleset remains a maintainer-owned external control and a release-readiness
 requirement.
 
@@ -293,16 +299,13 @@ where the divergent bytes came from, then publish a new version.
 ### Dispatching the workflow for an existing tag
 
 `workflow_dispatch` accepts an existing stable-SemVer tag (`vX.Y.Z`) that
-resolves to a commit reachable from `main` and has a policy base. The workflow
-resolves it once to a full SHA and runs the whole graph — canonical
-verification, the required real-container lane, build, corpus checks, the exact
-wheel and sdist installation/conformance smokes, evidence admission, and the
-OIDC publication chain.
+resolves to a commit reachable from `main` and has a policy base. The workflow resolves the tag once to a full SHA.
+It runs canonical verification, the required real-container lane, build, and corpus checks.
+It also runs exact wheel and sdist installation smokes, conformance, evidence admission, and OIDC publication.
 
-Use this for a draft created by an older run that failed **before** PyPI
-publication: it preserves the bound tag, commit, and numeric Release identity
-while applying the current publication gates, rather than re-running a stale
-workflow definition. Never use manual dispatch for a version already on PyPI:
+Use this for a draft from an older run that failed **before** PyPI publication.
+It preserves the bound tag, commit, and numeric Release identity.
+It applies current publication gates instead of the old workflow definition. Never use manual dispatch for a version already on PyPI:
 it rebuilds instead of reusing the original admitted artifacts, even if the
 resulting bytes happen to match. Re-run failed jobs on the original run while
 its artifacts remain available and its workflow can complete publication;

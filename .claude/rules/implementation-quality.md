@@ -5,12 +5,13 @@ paths:
   - "frontend/src/**/*.tsx"
 ---
 
-## Implementation Standards
+## Implementation standards
+
+The path filter above does not select the current Python source tree.
+Use root `AGENTS.md` and the repository coding standards for current Python work.
 
 - Never take shortcuts. Implement features properly and completely.
-  You are not under time pressure. You operate at 200x human coding
-  speed. There is no reason to cut corners, use placeholder
-  implementations, or defer work.
+  Use complete implementations and verify their behavior.
 
 - Never recommend deferring a fix or improvement "for later" or
   "in a follow-up". If something is broken or missing, fix it now.

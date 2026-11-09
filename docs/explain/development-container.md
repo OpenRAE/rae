@@ -65,9 +65,12 @@ its path, alongside `git`, `gh`, `ssh`, `gpg`, `make`, `jq`, `less`, and `nano`.
 ```shell
 nox -l                      # list every check
 nox -s verify-changed       # optional change-aware local gate
-nox -s tests                # unit tests
-make policy                 # repository policy
+uv run --project implementations/python --frozen pytest implementations/python/tests/test_runtime_models.py -q
 ```
+
+Select the module or case that covers your change.
+Full test, integration, fuzz, and completion suites run in CI/CD.
+Historical verification results below describe their recorded revision only.
 
 Committing runs file-scoped hygiene and secrets checks, as on a native setup.
 There is no configured pre-push hook. CI/CD runs the full validation and test
@@ -178,7 +181,9 @@ don't share one checkout between the container and a native setup: each would
 rebuild the other's environment for its own platform. Use a separate clone for
 each.
 
-## Use Docker or Podman without a dev-container client
+<a id="use-docker-or-podman-without-a-dev-container-client"></a>
+
+## Use a container engine without a development client
 
 From the repository root:
 
@@ -208,17 +213,14 @@ instead.
 ## Limitations
 
 **No proof support.** The container profiles declare
-`proof_support: unsupported`. Bubblewrap needs namespace privileges that an
-unprivileged container does not grant, so `nox -s participant-opacity-proof`
-stops with `bubblewrap is required to enforce offline proof replay` and never
-skips the proof or relaxes its isolation. The full `nox -s verify` gate includes
-that lane and fails in the container for the same reason; use `verify-changed`
-while working and let continuous integration, or a native Linux x86_64 proof
-host, run the full gate.
+`proof_support: unsupported`. Bubblewrap needs namespace privileges that an unprivileged container does not grant.
+Thus `nox -s participant-opacity-proof` stops with `bubblewrap is required to enforce offline proof replay`.
+It never skips the proof or relaxes its isolation. The full `nox -s verify` gate includes that lane and fails in the container.
+Use `verify-changed` while working.
+CI runs the full gate on its configured host.
 
 **No container daemon.** The image supplies development tools, not a Docker or
-Podman daemon, and mounts no daemon socket. No repository lane needs a
-container daemon.
+Podman daemon, and mounts no daemon socket. Release verification uses a container daemon on its configured CI runner.
 
 **Not a production runtime.** The image exists to develop and verify the
 repository.
