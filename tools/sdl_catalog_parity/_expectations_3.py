@@ -21,7 +21,9 @@ from tools.sdl_catalog_parity._paths import (
     _WRONG_SLOT_CANDIDATE,
 )
 
-_EXECUTION_POLICY_VALIDATOR = "[execution-policy validator](../../implementations/python/packages/raes/validator/_execution_policy.py)"
+_EXECUTION_POLICY_VALIDATOR = (
+    "[execution-policy validator](../../implementations/python/packages/raes/validator/_execution_policy.py)"
+)
 _FATAL_DANGLING = "fatal dangling"
 
 EXPECTATIONS_PART_3: dict[str, tuple[str, str, str, str]] = {
