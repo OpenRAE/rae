@@ -21,6 +21,12 @@ from raes_contracts.planning import (
 from raes_contracts.realization_authority import planned_realization_selection_diagnostics
 from raes_contracts.realization_structure import (
     ExactRealizationValue,
+    RealizationAllOf,
+    RealizationConstraintDocument,
+    RealizationDefinitionReference,
+    RealizationKeyedCollectionConstraint,
+    RealizationRecordConstraint,
+    RealizationSequenceConstraint,
     evaluate_realization_constraint,
     structure_matches,
 )
@@ -252,6 +258,80 @@ def _delivered_value(authority: ResolvedRealizationAuthority, entry: object, sna
     return getattr(observation.operating_system, _OPERATING_SYSTEM_ATTRIBUTES[authority.requirement_kind])
 
 
+def _identity_order(
+    value: object, structure: object, document: RealizationConstraintDocument, depth: int = 0
+) -> object:
+    """Order keyed-collection members by semantic identity; sequences keep their positions."""
+
+    orderer = _IDENTITY_ORDERERS.get(type(structure))
+    return value if orderer is None or depth > 64 else orderer(value, structure, document, depth + 1)
+
+
+def _order_reference(
+    value: object, structure: RealizationDefinitionReference, document: RealizationConstraintDocument, depth: int
+) -> object:
+    target = document.definitions.get(structure.target)
+    return value if target is None else _identity_order(value, target, document, depth)
+
+
+def _order_all_of(
+    value: object, structure: RealizationAllOf, document: RealizationConstraintDocument, depth: int
+) -> object:
+    for constraint in structure.constraints:
+        value = _identity_order(value, constraint, document, depth)
+    return value
+
+
+def _order_record(
+    value: object, structure: RealizationRecordConstraint, document: RealizationConstraintDocument, depth: int
+) -> object:
+    if not isinstance(value, dict):
+        return value
+    fields = structure.fields
+    return {
+        key: _identity_order(item, fields[key], document, depth) if key in fields else item
+        for key, item in value.items()
+    }
+
+
+def _order_sequence(
+    value: object, structure: RealizationSequenceConstraint, document: RealizationConstraintDocument, depth: int
+) -> object:
+    if not isinstance(value, list):
+        return value
+    items = structure.items
+    return [
+        _identity_order(item, items[index], document, depth) if index < len(items) else item
+        for index, item in enumerate(value)
+    ]
+
+
+def _order_keyed(
+    value: object, structure: RealizationKeyedCollectionConstraint, document: RealizationConstraintDocument, depth: int
+) -> object:
+    if not isinstance(value, list) or not all(isinstance(item, dict) for item in value):
+        return value
+    members = {canonical_json_digest(list(member.identity)): member.constraint for member in structure.members}
+
+    def identity(item: dict[str, object]) -> str:
+        return canonical_json_digest([item.get(field) for field in structure.identity_fields])
+
+    ordered = sorted(value, key=identity)
+    return [
+        _identity_order(item, members[identity(item)], document, depth) if identity(item) in members else item
+        for item in ordered
+    ]
+
+
+_IDENTITY_ORDERERS = {
+    RealizationDefinitionReference: _order_reference,
+    RealizationAllOf: _order_all_of,
+    RealizationRecordConstraint: _order_record,
+    RealizationSequenceConstraint: _order_sequence,
+    RealizationKeyedCollectionConstraint: _order_keyed,
+}
+
+
 def _delivery_violation(
     authority: ResolvedRealizationAuthority, operation: object, entry: object, snapshot: RuntimeSnapshot
 ) -> str | None:
@@ -265,13 +345,17 @@ def _delivery_violation(
         return None
     if actual is _MISSING:
         return "Backend did not deliver its admitted realization completion."
-    recursive = authority.constraint_document is not None
+    document = authority.constraint_document
+    recursive = document is not None
     expected = portable_realization_value(
         project_realization_concern(authority.requirement_kind, expected, recursive=recursive)
     )
     actual = portable_realization_value(
         project_realization_concern(authority.requirement_kind, actual, observed=True, recursive=recursive)
     )
+    if document is not None:
+        expected = _identity_order(expected, document.root, document)
+        actual = _identity_order(actual, document.root, document)
     exact = structure_matches(ExactRealizationValue(kind="exact"), expected, actual)
     return None if exact else "Backend did not deliver its admitted realization completion."
 
