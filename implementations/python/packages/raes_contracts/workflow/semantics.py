@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 
+from raes_contracts.graphs import has_cycle, stable_topological_order
+
 _OBSERVABLE_OUTCOMES_BY_STEP_TYPE: dict[str, tuple[str, ...]] = {
     "objective": ("succeeded", "failed"),
     "retry": ("succeeded", "exhausted"),
@@ -80,6 +82,38 @@ def branch_closure(
             if successor != join_step:
                 stack.append(successor)
     return frozenset(closure)
+
+
+def workflow_join_states(
+    graph: Mapping[str, Iterable[str]],
+    *,
+    join_step: str,
+    observable_steps: Iterable[str],
+) -> dict[str, frozenset[str]]:
+    """Return guaranteed state for nodes whose every path reaches ``join_step``.
+
+    The graph maps named steps to successors. The join is a boundary, so its
+    continuation contributes no state. Cyclic graphs are refused before analysis.
+    Shared graph mechanics provide successor-first ordering; intersection keeps
+    only observable steps present on every path to the join.
+    """
+
+    successors = {node: tuple(targets) for node, targets in graph.items()}
+    if join_step not in successors:
+        raise ValueError("Workflow join must name a graph step")
+    if has_cycle(successors):
+        raise ValueError("Workflow join analysis requires an acyclic graph")
+    dependencies = {node: () if node == join_step else targets for node, targets in successors.items()}
+    observed = frozenset(observable_steps)
+    states: dict[str, frozenset[str]] = {join_step: frozenset()}
+    for node in stable_topological_order(dependencies, key=str):
+        if node == join_step:
+            continue
+        targets = successors.get(node, ())
+        if targets and all(target in states for target in targets):
+            guaranteed = frozenset.intersection(*(states[target] for target in targets))
+            states[node] = guaranteed | {node} if node in observed else guaranteed
+    return states
 
 
 def validate_workflow_step_result(

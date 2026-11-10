@@ -8,7 +8,7 @@ from raes_contracts.controlled_vocabularies import (
     validate_controlled_vocabulary_value,
 )
 from raes_contracts.graphs import has_cycle
-from raes_contracts.workflow.semantics import branch_closure
+from raes_contracts.workflow.semantics import branch_closure, workflow_join_states
 
 from ..orchestration import WorkflowStepType
 from ..participant_behavior import ParticipantActionGranularity, ParticipantInformationBoundaryClass
@@ -36,14 +36,21 @@ class _WorkflowVerifyMixin:
         self._verify_workflow_unreferenced_joins(workflow_name, workflow, build.join_targets)
         if build.graph and has_cycle(build.graph):
             self._err(f"Workflow '{workflow_name}' graph contains a cycle")
+            return
         if self._is_unresolved_var(workflow.start) or workflow.start not in workflow.steps:
             return
         reachable = self._reachable_steps(workflow, build.graph)
         self._verify_workflow_reachability(workflow_name, workflow, reachable)
         predecessors = self._build_predecessors(build.graph, reachable)
         self._verify_parallel_join_closures(workflow_name, workflow, build.graph, predecessors, reachable)
-        self._verify_predicate_available_state(workflow_name, workflow, build, predecessors, reachable)
-        self._verify_parallel_branch_convergence(workflow_name, workflow, build.graph)
+        observable_steps = {name for name, step in workflow.steps.items() if self._is_executable_workflow_step(step)}
+        join_states = {
+            join: workflow_join_states(build.graph, join_step=join, observable_steps=observable_steps)
+            for join in build.join_targets
+            if join in workflow.steps
+        }
+        self._verify_predicate_available_state(workflow_name, workflow, build, predecessors, reachable, join_states)
+        self._verify_parallel_branch_convergence(workflow_name, workflow, join_states)
 
     # ------------------------------------------------------------------
     # Per-step edge collection
@@ -418,19 +425,20 @@ class _WorkflowVerifyMixin:
         build: _WorkflowBuildState,
         predecessors: dict[str, set[str]],
         reachable: set[str],
+        join_states: dict[str, dict[str, frozenset[str]]],
     ) -> None:
         ctx = _AvailableStateContext(
             workflow_steps=workflow.steps,
-            graph=build.graph,
             predecessors=predecessors,
             start=workflow.start,
             join_targets=build.join_targets,
+            join_states=join_states,
         )
+        self._compute_available_step_states(ctx)
         for step_name, refs in build.predicate_step_refs.items():
             if step_name not in reachable:
                 continue
-            ctx.visiting = set()
-            available_before = self._available_step_state_before(step_name, ctx)
+            available_before = ctx.available_memo[step_name]
             self._verify_predicate_refs_available(workflow_name, step_name, refs, available_before)
 
     def _verify_predicate_refs_available(
@@ -447,7 +455,7 @@ class _WorkflowVerifyMixin:
                 )
 
     def _verify_parallel_branch_convergence(
-        self, workflow_name: str, workflow: object, graph: dict[str, list[str]]
+        self, workflow_name: str, workflow: object, join_states: dict[str, dict[str, frozenset[str]]]
     ) -> None:
         for step_name, step in workflow.steps.items():
             if step.type != WorkflowStepType.PARALLEL:
@@ -457,7 +465,7 @@ class _WorkflowVerifyMixin:
             for branch_ref in step.branches:
                 if self._is_unresolved_var(branch_ref) or branch_ref not in workflow.steps:
                     continue
-                if not self._all_paths_reach_join(branch_ref, step.join, graph, memo={}, visiting=set()):
+                if branch_ref not in join_states[step.join]:
                     self._err(
                         f"Workflow '{workflow_name}' parallel step "
                         f"'{step_name}' requires every explicit branch path "
