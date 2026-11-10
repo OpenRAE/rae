@@ -696,6 +696,10 @@ jobs:
           uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_sdl_constructors.py --check
           uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_sdl_constructors.py --runtime-helpers --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_sdl_constructors.py --runtime-constructors --check
+          uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_authoring_vectors.py --check
           uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_authoring_vectors.py --semantic --check

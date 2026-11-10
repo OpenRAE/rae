@@ -18,26 +18,44 @@ from pydantic import BaseModel
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
 
+from parity_authoring_layout import scalar_plan  # noqa: E402
 from parity_sdl_constructors import model_fields_schema, reference_definitions  # noqa: E402
 from raes._identifiers import (  # noqa: E402
     require_portable_identifier,
     require_qualified_identifier,
 )
+from raes._runtime_datastore_support import (  # noqa: E402
+    _require_object_name as datastore_object_name,
+)
 from raes.materialization import MaterializedScenario  # noqa: E402
-from raes.runtime_database import _require_object_name  # noqa: E402
-from raes.runtime_values import absolute_path_or_var, require_non_empty, require_symbol  # noqa: E402
+from raes.runtime_database import _db_listen_address_or_var, _require_object_name  # noqa: E402
+from raes.runtime_mail_service._elements import (  # noqa: E402
+    _domain_name_or_var,
+    _mail_address_or_var,
+)
+from raes.runtime_values import (  # noqa: E402
+    absolute_path_or_var,
+    control_interface_path_or_var,
+    require_non_empty,
+    require_symbol,
+)
 from raes.scenario import Scenario  # noqa: E402
 from raes.stateful_resources import _validate_relative_path, validate_mount_destination  # noqa: E402
 
 HELPERS = {
     require_non_empty: "nonblank",
     _require_object_name: "nonblank",
+    datastore_object_name: "nonblank",
     absolute_path_or_var: "absolute-path",
     require_symbol: "portable",
     require_portable_identifier: "portable",
     require_qualified_identifier: "qualified",
     _validate_relative_path: "contained-relative",
     validate_mount_destination: "contained-mount",
+    _db_listen_address_or_var: "database-listen-address",
+    _domain_name_or_var: "domain-name",
+    _mail_address_or_var: "mail-address",
+    control_interface_path_or_var: "control-path",
 }
 
 
@@ -123,7 +141,10 @@ def nonblank_generator(expression: ast.GeneratorExp, argument: str) -> bool:
     ):
         return False
     item = loop.target.id
-    predicates = [f"not {item}.strip()", f"not isinstance({item}, str) or not {item}.strip()"]
+    predicates = [
+        f"not {item}.strip()",
+        f"not isinstance({item}, str) or not {item}.strip()",
+    ]
     return ast.dump(expression.elt) in {ast.dump(ast.parse(text, mode="eval").body) for text in predicates}
 
 
@@ -138,7 +159,10 @@ def reference_list_guard(body: list[ast.stmt], argument: str) -> str | None:
     expression = any_generator(body[0].test)
     if expression is None or not nonblank_generator(expression, argument):
         return None
-    comparisons = [f"len({argument}) != len(set({argument}))", f"len(set({argument})) != len({argument})"]
+    comparisons = [
+        f"len({argument}) != len(set({argument}))",
+        f"len(set({argument})) != len({argument})",
+    ]
     result = None
     if ast.dump(body[1].test) in {ast.dump(ast.parse(text, mode="eval").body) for text in comparisons}:
         result = "unique-nonblank"
@@ -227,9 +251,22 @@ def declaration_rule(declaration: ast.FunctionDef | ast.Lambda, namespace: dict[
     body = [ast.Return(value=declaration.body)] if isinstance(declaration, ast.Lambda) else declaration.body
     if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant):
         body = body[1:]
-    if len(body) == 1 and isinstance(body[0], ast.Return):
-        return returned_helper(body[0].value, argument, namespace)
-    return nonblank_guard(body, argument)
+    if operation := optional_helper_rule(body, argument, namespace):
+        result = "optional-" + operation
+    elif len(body) == 1 and isinstance(body[0], ast.Return):
+        result = returned_helper(body[0].value, argument, namespace)
+    else:
+        result = nonblank_guard(body, argument)
+    return result
+
+
+def optional_helper_rule(body: list[ast.stmt], argument: str, namespace: dict[str, Any]) -> str | None:
+    if len(body) != 2 or not isinstance(body[0], ast.If) or not isinstance(body[1], ast.Return):
+        return None
+    expected = ast.parse(f"if not {argument}: return {argument}").body[0]
+    if ast.dump(body[0]) != ast.dump(expected):
+        return None
+    return returned_helper(body[1].value, argument, namespace)
 
 
 def direct_rule(function: object) -> str | None:
@@ -280,7 +317,37 @@ def definition_rules(cls: type[BaseModel], properties: dict[str, Any], name: str
         operation = direct_rule(validator.func)
         if operation is not None:
             merge_validator(result, cls, properties, validator.info.fields, operation, name)
+    bounded_runtime_fields(cls, properties, name, result)
     return result
+
+
+def bounded_runtime_fields(cls: type[BaseModel], properties: dict[str, Any], name: str, result: dict[str, str]) -> None:
+    if (
+        not cls.__module__.startswith(("raes.runtime_", "raes.image_provenance"))
+        or name == "RuntimeProcessResourceLimit"
+    ):
+        return
+    for field, core in model_fields_schema(cls).items():
+        alias = field_alias(cls, field)
+        plan = scalar_plan(core["schema"])
+        if alias not in properties or alias in result or plan.get("items"):
+            continue
+        if operation := numeric_field_rule(plan):
+            result[alias] = operation
+
+
+def numeric_field_rule(plan: dict[str, Any]) -> str | None:
+    minimum = plan.get("minimum", "1" if "ram" in plan.get("convert", []) else "")
+    maximum = plan.get("maximum", "")
+    operation = None
+    if minimum or maximum:
+        kind = "number" if "number" in plan.get("shapes", []) else "integer"
+        operation = f"{kind}:{minimum}:{maximum}"
+        if plan.get("values"):
+            operation = "map-" + operation
+        if "null" in plan.get("shapes", []):
+            operation = "nullable-" + operation
+    return operation
 
 
 def merge_validator(
@@ -301,7 +368,10 @@ def merge_validator(
 
 def records() -> dict[str, Any]:
     result = {}
-    for model, contract in ((Scenario, "sdl-authoring-input-v1"), (MaterializedScenario, "materialized-scenario-v1")):
+    for model, contract in (
+        (Scenario, "sdl-authoring-input-v1"),
+        (MaterializedScenario, "materialized-scenario-v1"),
+    ):
         published = json.loads((ROOT / "contracts/schemas/sdl" / (contract + ".json")).read_bytes())
         for pointer, cls in reference_definitions(model).items():
             if pointer == "#":

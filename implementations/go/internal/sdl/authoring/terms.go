@@ -125,8 +125,6 @@ const (
 	otherTerm    = "other"
 )
 
-const accessObservationsField = "access_observations"
-
 const unknownTerm = "unknown"
 
 const tcpProtocol = "tcp"
@@ -143,12 +141,6 @@ const (
 
 const (
 	switchType = "switch"
-)
-
-const (
-	observationIDField     = "observation_id"
-	detectionDefinitionIDs = "detection_definitions.*.definition_id"
-	runtimeComponentIDs    = "components.*.component_id"
 )
 
 const (

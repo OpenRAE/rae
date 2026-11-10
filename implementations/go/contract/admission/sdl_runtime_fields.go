@@ -1,6 +1,7 @@
 package admission
 
 import (
+	"math/big"
 	"net/netip"
 	"regexp"
 	"strings"
@@ -8,6 +9,23 @@ import (
 
 var sdlSymbol = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,63}\z`)
 var sdlMAC = regexp.MustCompile(`^[0-9A-Fa-f]{2}(:[0-9A-Fa-f]{2}){5}\z`)
+var sdlMailAddress = regexp.MustCompile(`^[^@\s]+@[^@\s]+$`)
+var sdlPermissionMode = regexp.MustCompile(`^(0o)?[0-7]{3,4}$`)
+
+func sdlDatabaseListenAddress(value string) bool {
+	return sdlDNSName(value) && (strings.HasPrefix(value, "/") || sdlListenerAddress(value))
+}
+
+func sdlFilesystemMode(value any) bool {
+	if value == nil || value == "" || variableRef(text(value)) {
+		return true
+	}
+	if mode, ok := value.(string); ok {
+		return sdlPermissionMode.MatchString(strings.TrimFunc(mode, sdlWhitespace))
+	}
+	n, valid := number(value)
+	return valid && n.IsInt() && n.Sign() >= 0 && n.Cmp(big.NewRat(4095, 1)) <= 0
+}
 
 func sdlSymbolField(v any, field string) bool { return sdlSymbol.MatchString(stringAt(v, field)) }
 func sdlAbsoluteFields(v any, optional bool, fields ...string) bool {
