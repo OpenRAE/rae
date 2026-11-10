@@ -27,9 +27,7 @@ def signed_graph() -> str:
         entry: 'name: shared\nmodule: {id: example/shared, version: 1.0.0, exports: {nodes: [host]}}\nnodes: {host: {type: compute}}\nimports: [{path: "children:files/child.yaml", namespace: child}]\n',
         "children:files/child.yaml": "name: child\nmodule: {id: example/child, version: 1.0.0, exports: {nodes: [worker]}}\nnodes: {worker: {type: compute}}\n",
     }
-    key = Ed25519PrivateKey.from_private_bytes(
-        hashlib.sha256(b"public-module-graph-fixture").digest()
-    )
+    key = Ed25519PrivateKey.from_private_bytes(hashlib.sha256(b"public-module-graph-fixture").digest())
     with tempfile.TemporaryDirectory(prefix="module-graph-profile-") as directory:
         source = Path(directory) / "source"
         for name, content in files.items():
@@ -53,9 +51,7 @@ def signed_graph() -> str:
         layout = Path(result["layout_dir"])
 
         def blob(identity):
-            return (
-                layout / "blobs/sha256" / identity.removeprefix("sha256:")
-            ).read_bytes()
+            return (layout / "blobs/sha256" / identity.removeprefix("sha256:")).read_bytes()
 
         manifest = blob(result["manifest_digest"])
         descriptor = json.loads(manifest)
@@ -64,18 +60,13 @@ def signed_graph() -> str:
             config=base64.b64encode(blob(descriptor["config"]["digest"])).decode(),
             bundle=base64.b64encode(blob(descriptor["layers"][0]["digest"])).decode(),
         )
-    public = key.public_key().public_bytes(
-        serialization.Encoding.Raw, serialization.PublicFormat.Raw
-    )
+    public = key.public_key().public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw)
     return (
         json.dumps(
             dict(
                 root=entry,
                 public_key=base64.b64encode(public).decode(),
-                sources={
-                    name: base64.b64encode(content.encode()).decode()
-                    for name, content in files.items()
-                },
+                sources={name: base64.b64encode(content.encode()).decode() for name, content in files.items()},
                 artifact=artifact,
             ),
             indent=2,
@@ -114,24 +105,16 @@ def main() -> int:
         cases.append(
             dict(
                 name=name,
-                files={
-                    path: base64.b64encode(content.encode()).decode()
-                    for path, content in files.items()
-                },
+                files={path: base64.b64encode(content.encode()).decode() for path, content in files.items()},
                 bundle=base64.b64encode(bundle).decode(),
             )
         )
     encoded = json.dumps(dict(cases=cases), indent=2, ensure_ascii=True) + "\n"
     target = ROOT / "implementations/go/sdl/module/testdata/python-bundles.json.gz"
-    graph_target = (
-        ROOT / "implementations/go/sdl/module/testdata/python-signed-graph.json"
-    )
+    graph_target = ROOT / "implementations/go/sdl/module/testdata/python-signed-graph.json"
     graph = signed_graph()
     if arguments.check:
-        return int(
-            gzip.decompress(target.read_bytes()).decode() != encoded
-            or graph_target.read_text() != graph
-        )
+        return int(gzip.decompress(target.read_bytes()).decode() != encoded or graph_target.read_text() != graph)
     target.write_bytes(gzip.compress(encoded.encode(), mtime=0))
     graph_target.write_text(graph)
     return 0

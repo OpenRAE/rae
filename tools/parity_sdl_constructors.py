@@ -96,9 +96,7 @@ def verify_reference_tree(reference: str) -> None:
         text=True,
     ).strip()
     if not all(
-        isinstance(value, str)
-        and len(value) == 40
-        and set(value) <= set("0123456789abcdef")
+        isinstance(value, str) and len(value) == 40 and set(value) <= set("0123456789abcdef")
         for value in (actual, reference)
     ):
         raise ValueError("SDL constructor reference commit differs from the fixture")
@@ -134,14 +132,10 @@ def record(document: dict[str, Any]) -> str:
         (MaterializedScenario, "materialized-scenario-v1"),
     ):
         definitions[contract] = reference_definitions(model)
-    definitions["instantiated-scenario-v1"] = {
-        "#/$defs/ResolvedImportProvenance": ResolvedImportProvenance
-    }
+    definitions["instantiated-scenario-v1"] = {"#/$defs/ResolvedImportProvenance": ResolvedImportProvenance}
     for row in document["cases"]:
         try:
-            definitions[row.get("contract", "sdl-authoring-input-v1")][
-                row["pointer"]
-            ].model_validate(row["data"])
+            definitions[row.get("contract", "sdl-authoring-input-v1")][row["pointer"]].model_validate(row["data"])
             row["accepted"] = True
         except ValidationError:
             row["accepted"] = False
@@ -168,9 +162,7 @@ def record_default_constructors(check: bool) -> int:
     path = ROOT / "implementations/go/contract/admission/testdata/sdl-constructors.json"
     expected = path.read_text()
     actual = record(json.loads(expected))
-    valid = write_recorded_file(
-        path, actual, check, "SDL constructor reference verdicts differ"
-    )
+    valid = write_recorded_file(path, actual, check, "SDL constructor reference verdicts differ")
     return 0 if valid else 1
 
 
@@ -185,19 +177,12 @@ def record_runtime_constructors(check: bool) -> int:
     count = 0
     covered = set()
     for index, name in enumerate(manifest["case_files"]):
-        document = read_runtime_constructor_shard(
-            root, index, name, manifest["reference"]
-        )
+        document = read_runtime_constructor_shard(root, index, name, manifest["reference"])
         covered.update(runtime_constructor_verdicts(document, manifest["baselines"]))
         count += len(document["cases"])
         path = root / name
         actual = runtime_constructor_shard(document)
-        valid = (
-            write_recorded_file(
-                path, actual, check, f"runtime constructor results differ: {name}"
-            )
-            and valid
-        )
+        valid = write_recorded_file(path, actual, check, f"runtime constructor results differ: {name}") and valid
     if count != manifest["case_count"] or covered != models.keys():
         raise ValueError("incomplete runtime constructor cases")
     return 0 if valid else 1
@@ -211,9 +196,7 @@ def runtime_constructor_models() -> dict[str, str]:
     }
 
 
-def read_runtime_constructor_shard(
-    root: Path, index: int, name: str, reference: str
-) -> dict[str, Any]:
+def read_runtime_constructor_shard(root: Path, index: int, name: str, reference: str) -> dict[str, Any]:
     if name != f"runtime-constructors-{index:03d}.json":
         raise ValueError("unsafe runtime constructor shard path")
     document = json.loads((root / name).read_bytes())
@@ -222,9 +205,7 @@ def read_runtime_constructor_shard(
     return document
 
 
-def expand_runtime_constructors(
-    document: dict[str, Any], baselines: dict[str, Any]
-) -> dict[str, Any]:
+def expand_runtime_constructors(document: dict[str, Any], baselines: dict[str, Any]) -> dict[str, Any]:
     expanded = copy.deepcopy(document)
     for row in expanded["cases"]:
         if "data" not in row:
@@ -236,9 +217,7 @@ def expand_runtime_constructors(
     return expanded
 
 
-def runtime_constructor_verdicts(
-    document: dict[str, Any], baselines: dict[str, Any]
-) -> set[str]:
+def runtime_constructor_verdicts(document: dict[str, Any], baselines: dict[str, Any]) -> set[str]:
     recorded = json.loads(record(expand_runtime_constructors(document, baselines)))
     for original, result in zip(document["cases"], recorded["cases"], strict=True):
         original["accepted"] = result["accepted"]
@@ -246,26 +225,15 @@ def runtime_constructor_verdicts(
 
 
 def runtime_constructor_shard(document: dict[str, Any]) -> str:
-    rows = ",\n".join(
-        "    " + json.dumps(row, separators=(",", ":"), ensure_ascii=True)
-        for row in document["cases"]
-    )
-    return (
-        '{\n  "reference": '
-        + json.dumps(document["reference"])
-        + ',\n  "cases": [\n'
-        + rows
-        + "\n  ]\n}\n"
-    )
+    rows = ",\n".join("    " + json.dumps(row, separators=(",", ":"), ensure_ascii=True) for row in document["cases"])
+    return '{\n  "reference": ' + json.dumps(document["reference"]) + ',\n  "cases": [\n' + rows + "\n  ]\n}\n"
 
 
 def record_runtime_helpers(check: bool) -> int:
     """Refresh pure runtime helper results with the unchanged reference."""
     paths = (
-        ROOT
-        / "implementations/go/internal/contract/sdlrules/testdata/runtime-inventory.json",
-        ROOT
-        / "implementations/go/contract/admission/testdata/runtime-process-limits.json",
+        ROOT / "implementations/go/internal/contract/sdlrules/testdata/runtime-inventory.json",
+        ROOT / "implementations/go/contract/admission/testdata/runtime-process-limits.json",
     )
     documents = [json.loads(path.read_bytes()) for path in paths]
     reference = reference_revision()
@@ -294,20 +262,14 @@ def record_runtime_inventory(inventory: dict[str, Any]) -> None:
     def collection(
         value: RuntimeServiceFamily | RuntimeReferenceChild,
     ) -> dict[str, Any]:
-        children = (
-            value.child_refs
-            if isinstance(value, RuntimeServiceFamily)
-            else value.children
-        )
+        children = value.child_refs if isinstance(value, RuntimeServiceFamily) else value.children
         return {
             "Collection": value.collection_name,
             "Identity": value.id_field,
             "Children": [collection(child) for child in children] or None,
         }
 
-    inventory["Collections"] = [
-        collection(family) for family in RUNTIME_SERVICE_FAMILIES
-    ]
+    inventory["Collections"] = [collection(family) for family in RUNTIME_SERVICE_FAMILIES]
     for row in inventory["Lookups"]:
         fields = runtime_inventory_collection_identity(row["Family"], row["Pointer"])
         row["Identity"] = fields[0] if fields else ""

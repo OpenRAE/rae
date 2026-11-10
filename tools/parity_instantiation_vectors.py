@@ -60,27 +60,15 @@ def record(row: dict) -> dict:
                 "subset": ExperimentSelectionSubsetOutcomeModel,
                 "order": ExperimentSelectionOrderOutcomeModel,
             }
-            outcomes = {
-                key: variants[value["kind"]].model_validate(value)
-                for key, value in row["outcomes"].items()
-            }
+            outcomes = {key: variants[value["kind"]].model_validate(value) for key, value in row["outcomes"].items()}
             parsed = source_family(row)
-            family = (
-                parsed
-                if isinstance(parsed, ExpandedScenario)
-                else admit_scenario_family(parsed)
-            )
+            family = parsed if isinstance(parsed, ExpandedScenario) else admit_scenario_family(parsed)
             concrete = select_scenario_family(family, outcomes)
         else:
             family = source_family(row)
-            concrete = instantiate_scenario(
-                family, row.get("parameters"), profile=row.get("profile")
-            )
+            concrete = instantiate_scenario(family, row.get("parameters"), profile=row.get("profile"))
         result.update(accepted=True, output=concrete.model_dump(mode="json"))
-        result["snapshot_digest"] = (
-            "sha256:"
-            + hashlib.sha256(canonical_instantiated_sdl_bytes(concrete)).hexdigest()
-        )
+        result["snapshot_digest"] = "sha256:" + hashlib.sha256(canonical_instantiated_sdl_bytes(concrete)).hexdigest()
     except (SDLError, ValidationError) as error:
         result.update(accepted=False, findings=list(getattr(error, "errors", ())))
     return result
@@ -90,9 +78,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true")
     arguments = parser.parse_args()
-    inputs = json.loads(
-        gzip.decompress((DIRECTORY / "instantiation-inputs.json.gz").read_bytes())
-    )
+    inputs = json.loads(gzip.decompress((DIRECTORY / "instantiation-inputs.json.gz").read_bytes()))
     encoded = (
         json.dumps(
             {"cases": [record(row) for row in inputs["cases"]]},

@@ -30,17 +30,13 @@ def main() -> int:
     arguments = parser.parse_args()
     directory = ROOT / "contracts/fixtures"
     rows = []
-    for path in sorted(
-        (directory / "artifact-transformations-v1/cases").glob("*.json")
-    ):
+    for path in sorted((directory / "artifact-transformations-v1/cases").glob("*.json")):
         case = json.loads(path.read_bytes())
         if case["operation"] == "canonicalize-portable-contract/v1":
             continue
         source_path = directory / case["source_path"]
         source = parse_sdl_file(source_path)
-        files = {
-            file.name: file.read_text() for file in source_path.parent.glob("*.yaml")
-        }
+        files = {file.name: file.read_text() for file in source_path.parent.glob("*.yaml")}
         if source_path.name not in files:
             files[source_path.name] = source_path.read_text()
         rows.append(
@@ -145,9 +141,9 @@ def main() -> int:
         )
     )
     stale = binding.model_copy(deep=True)
-    stale.bindings["attack-execution"].subject = stale.bindings[
-        "attack-execution"
-    ].subject.model_copy(update=dict(artifact_digest="sha256:" + "a" * 64))
+    stale.bindings["attack-execution"].subject = stale.bindings["attack-execution"].subject.model_copy(
+        update=dict(artifact_digest="sha256:" + "a" * 64)
+    )
     rows.append(
         (
             "stale-binding",
@@ -182,10 +178,7 @@ def main() -> int:
             )
         else:
             resolved_policy = ArtifactTransformationPolicy(
-                tuple(
-                    ArtifactTransformationLossKind(value)
-                    for value in policy.get("allowed_loss_kinds", [])
-                )
+                tuple(ArtifactTransformationLossKind(value) for value in policy.get("allowed_loss_kinds", []))
             )
             result = remove_sdl_declaration(
                 source,
@@ -202,26 +195,17 @@ def main() -> int:
                     operation_profile=operation,
                     request=request,
                     policy=policy,
-                    binding_documents=[
-                        value.model_dump(mode="json") for value in bindings
-                    ],
+                    binding_documents=[value.model_dump(mode="json") for value in bindings],
                 ),
-                output=result.output.model_dump(mode="json", exclude_unset=True)
-                if result.output
-                else None,
+                output=result.output.model_dump(mode="json", exclude_unset=True) if result.output else None,
                 result=dict(
                     report=result.report.model_dump(mode="json"),
-                    binding_documents=[
-                        value.model_dump(mode="json")
-                        for value in result.binding_documents
-                    ],
+                    binding_documents=[value.model_dump(mode="json") for value in result.binding_documents],
                 ),
             )
         )
     encoded = json.dumps(dict(cases=cases), indent=2, ensure_ascii=True) + "\n"
-    target = (
-        ROOT / "implementations/go/internal/sdl/authoring/testdata/transformations.json"
-    )
+    target = ROOT / "implementations/go/internal/sdl/authoring/testdata/transformations.json"
     if arguments.check:
         return int(target.read_text() != encoded)
     target.write_text(encoded)

@@ -32,9 +32,7 @@ def changes(before: object, after: object, prefix: tuple[str, ...] = ()) -> set[
             result.update(changes(left, right, (*prefix, token)))
         return result
     if isinstance(before, list) and isinstance(after, list):
-        return set().union(
-            *(changes(a, b, (*prefix, "*")) for a, b in zip(before, after, strict=True))
-        )
+        return set().union(*(changes(a, b, (*prefix, "*")) for a, b in zip(before, after, strict=True)))
     return {"/".join(prefix)} if before != after else set()
 
 
@@ -72,22 +70,16 @@ def main() -> int:
         if payload.get("expansion_provenance"):
             continue
         exports = {
-            name: list(payload.get(name, {}))[::2]
-            for name in HASHMAP_SECTIONS
-            if isinstance(payload.get(name), dict)
+            name: list(payload.get(name, {}))[::2] for name in HASHMAP_SECTIONS if isinstance(payload.get(name), dict)
         }
-        descriptor = ModuleDescriptor(
-            id="test/rewrite", version="1.0.0", exports=exports
-        )
+        descriptor = ModuleDescriptor(id="test/rewrite", version="1.0.0", exports=exports)
         symbols = symbol_index(
             scenario,
             namespace="lib",
             descriptor=descriptor,
             restrict_to_descriptor=True,
         )
-        rewritten = _rewrite_payload_with_symbols(
-            copy.deepcopy(payload), symbols=symbols, namespace="lib"
-        )
+        rewritten = _rewrite_payload_with_symbols(copy.deepcopy(payload), symbols=symbols, namespace="lib")
         output = _preserve_explicit_shape(payload, rewritten)
         collect_fields(payload)
         candidates.append(

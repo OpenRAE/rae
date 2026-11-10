@@ -64,15 +64,10 @@ def main() -> int:
                 name=name,
                 source=source,
                 context=author.model_dump(mode="json") if author else None,
-                output=result.output.model_dump(mode="json", exclude_unset=True)
-                if result.output
-                else None,
+                output=result.output.model_dump(mode="json", exclude_unset=True) if result.output else None,
                 result=dict(
                     report=result.report.model_dump(mode="json"),
-                    binding_documents=[
-                        value.model_dump(mode="json")
-                        for value in result.binding_documents
-                    ],
+                    binding_documents=[value.model_dump(mode="json") for value in result.binding_documents],
                 ),
             )
         )
@@ -179,12 +174,8 @@ def main() -> int:
                     operation_profile="adopt-participant-identity/v1",
                     context=author.model_dump(mode="json") if author else None,
                 ),
-                output=result.output.model_dump(mode="json", exclude_unset=True)
-                if result.output
-                else None,
-                result=dict(
-                    report=result.report.model_dump(mode="json"), binding_documents=[]
-                ),
+                output=result.output.model_dump(mode="json", exclude_unset=True) if result.output else None,
+                result=dict(report=result.report.model_dump(mode="json"), binding_documents=[]),
             )
         )
 
@@ -193,9 +184,7 @@ def main() -> int:
     participant("owner-and-participant", _legacy(), {"/objectives/goal": "one"})
     participant("decision-required", _legacy())
     participant("empty-decisions", _legacy(), {})
-    participant(
-        "stale-source", _legacy(), {"/objectives/goal": None}, "sha256:" + "0" * 64
-    )
+    participant("stale-source", _legacy(), {"/objectives/goal": None}, "sha256:" + "0" * 64)
     participant(
         "extra-decision",
         _legacy(),
@@ -256,15 +245,9 @@ def main() -> int:
             dict(
                 name="mixed-" + name,
                 source=source,
-                context=dict(
-                    operation_profile="convert-mixed-control-finite-script/v1"
-                ),
-                output=result.output.model_dump(mode="json", exclude_unset=True)
-                if result.output
-                else None,
-                result=dict(
-                    report=result.report.model_dump(mode="json"), binding_documents=[]
-                ),
+                context=dict(operation_profile="convert-mixed-control-finite-script/v1"),
+                output=result.output.model_dump(mode="json", exclude_unset=True) if result.output else None,
+                result=dict(report=result.report.model_dump(mode="json"), binding_documents=[]),
             )
         )
 
@@ -280,9 +263,9 @@ def main() -> int:
     for name, build, _ in REFUSALS:
         mixed(name, build())
     invalid = copy.deepcopy(HANDOFF_CHAIN)
-    invalid["behavior_specifications"]["controlled-red"]["mixed_control"][
-        "transitions"
-    ]["return"].update(expected_state_revision=7, resulting_state_revision=8)
+    invalid["behavior_specifications"]["controlled-red"]["mixed_control"]["transitions"]["return"].update(
+        expected_state_revision=7, resulting_state_revision=8
+    )
     mixed("invalid-revision", invalid)
     same_controller = _legacy_control(
         {"autonomous": _state("self"), "supervised": _state("self")},
@@ -294,25 +277,19 @@ def main() -> int:
     specs["transition-red"] = specs.pop("controlled-red")
     mixed("issue-1678-owner-name", renamed)
     imitated = copy.deepcopy(HANDOFF_CHAIN)
-    imitated["behavior_specifications"]["controlled-red"]["mixed_control"][
-        "controller_states"
-    ]["autonomous"]["evidence_refs"] = [
-        "Behavior specification 'controlled-red' mixed_control transition 'take'"
-    ]
+    imitated["behavior_specifications"]["controlled-red"]["mixed_control"]["controller_states"]["autonomous"][
+        "evidence_refs"
+    ] = ["Behavior specification 'controlled-red' mixed_control transition 'take'"]
     mixed("issue-1678-imitated-label", imitated)
     revoked = rev1_scenario()
-    revoked["behavior_specifications"]["controlled-red"]["mixed_control"][
-        "controller_states"
-    ]["supervised"]["authority_status"] = "revoked"
+    revoked["behavior_specifications"]["controlled-red"]["mixed_control"]["controller_states"]["supervised"][
+        "authority_status"
+    ] = "revoked"
     mixed("issue-1678-rev1-pointer", revoked)
 
-    def classification(
-        name, source, bindings=None, snapshots=(), existing=(), losses=()
-    ):
+    def classification(name, source, bindings=None, snapshots=(), existing=(), losses=()):
         policy = ArtifactTransformationPolicy(
-            allowed_loss_kinds=tuple(
-                ArtifactTransformationLossKind(value) for value in losses
-            )
+            allowed_loss_kinds=tuple(ArtifactTransformationLossKind(value) for value in losses)
         )
         result = migrate_sdl_classifications(
             source,
@@ -335,15 +312,10 @@ def main() -> int:
                     operation_profile="externalize-sdl-classifications/v1",
                     context=author,
                 ),
-                output=result.output.model_dump(mode="json", exclude_unset=True)
-                if result.output
-                else None,
+                output=result.output.model_dump(mode="json", exclude_unset=True) if result.output else None,
                 result=dict(
                     report=result.report.model_dump(mode="json"),
-                    binding_documents=[
-                        value.model_dump(mode="json")
-                        for value in result.binding_documents
-                    ],
+                    binding_documents=[value.model_dump(mode="json") for value in result.binding_documents],
                 ),
             )
         )
@@ -377,13 +349,7 @@ def main() -> int:
         elif mutation == "unknown-concept":
             snapshots = (
                 snapshot.model_copy(
-                    update=dict(
-                        concepts=[
-                            snapshot.concepts[0].model_copy(
-                                update=dict(concept_id="another-concept")
-                            )
-                        ]
-                    )
+                    update=dict(concepts=[snapshot.concepts[0].model_copy(update=dict(concept_id="another-concept"))])
                 ),
             )
         elif mutation == "duplicate-snapshot":
@@ -393,9 +359,7 @@ def main() -> int:
         elif mutation == "wrong-subject":
             binding["subject"]["canonical_ref"] = "nodes.other"
         elif mutation == "missing-pointer":
-            binding["provenance"]["source_refs"][0]["ref_path"] = (
-                "/nodes/other/vulnerabilities/0"
-            )
+            binding["provenance"]["source_refs"][0]["ref_path"] = "/nodes/other/vulnerabilities/0"
         else:
             losses = ()
         classification(
@@ -412,23 +376,15 @@ def main() -> int:
         source = (
             LEGACY_SOURCE + suffix
             if suffix
-            else LEGACY_SOURCE.replace(
-                "type: compute", "type: compute\n    resources: {ram: 1 GiB, cpu: 1}"
-            )
+            else LEGACY_SOURCE.replace("type: compute", "type: compute\n    resources: {ram: 1 GiB, cpu: 1}")
         )
         binding, scheme = _migration_inputs(source)
-        classification(
-            name, source, binding, (scheme,), losses=("declaration-removed",)
-        )
+        classification(name, source, binding, (scheme,), losses=("declaration-removed",))
     classification("native", "name: native\nnodes: {web: {type: compute}}\n")
-    for index, losses in enumerate(
-        ((), ("declaration-removed",), ("declaration-removed", "semantic-omission"))
-    ):
+    for index, losses in enumerate(((), ("declaration-removed",), ("declaration-removed", "semantic-omission"))):
         classification(
             "unreferenced-" + str(index),
-            LEGACY_SOURCE.replace(
-                "vulnerabilities: [injection]", "vulnerabilities: []"
-            ),
+            LEGACY_SOURCE.replace("vulnerabilities: [injection]", "vulnerabilities: []"),
             losses=losses,
         )
     for index, source in enumerate(
@@ -515,9 +471,7 @@ def main() -> int:
             s for s in external_concept_subjects(native) if s.canonical_ref == subject
         ).model_dump(mode="json")
         assertion["subject"]["artifact_digest"] = identity
-        assertion["provenance"]["source_refs"][0]["ref_path"] = "/" + "/".join(
-            map(str, (*path, field, 0))
-        )
+        assertion["provenance"]["source_refs"][0]["ref_path"] = "/" + "/".join(map(str, (*path, field, 0)))
         classification(
             "surface-" + str(index),
             source,
@@ -527,9 +481,7 @@ def main() -> int:
         )
     existing = document.model_dump(mode="json")
     existing["binding_set_id"] = "existing-interpretation"
-    existing["bindings"]["attack-execution"]["provenance"]["source_refs"][0][
-        "ref_path"
-    ] = "/nodes/web"
+    existing["bindings"]["attack-execution"]["provenance"]["source_refs"][0]["ref_path"] = "/nodes/web"
     classification(
         "existing",
         LEGACY_SOURCE,
@@ -542,21 +494,15 @@ def main() -> int:
         LEGACY_SOURCE,
         bindings=document,
         scheme_snapshots=(snapshot,),
-        policy=ArtifactTransformationPolicy(
-            allowed_loss_kinds=(ArtifactTransformationLossKind.DECLARATION_REMOVED,)
-        ),
+        policy=ArtifactTransformationPolicy(allowed_loss_kinds=(ArtifactTransformationLossKind.DECLARATION_REMOVED,)),
     )
-    source = yaml.safe_dump(
-        classified.output.model_dump(mode="json", exclude_unset=True), sort_keys=False
-    )
+    source = yaml.safe_dump(classified.output.model_dump(mode="json", exclude_unset=True), sort_keys=False)
     for name in ("complete", "missing-snapshot", "stale-subject", "current-noop"):
         bindings = classified.binding_documents
         snapshots = () if name == "missing-snapshot" else (snapshot,)
         if name == "stale-subject":
             payload = bindings[0].model_dump(mode="json")
-            payload["bindings"]["attack-execution"]["subject"]["artifact_digest"] = (
-                "sha256:" + "f" * 64
-            )
+            payload["bindings"]["attack-execution"]["subject"]["artifact_digest"] = "sha256:" + "f" * 64
             bindings = (ExternalConceptBindingDocumentModel.model_validate(payload),)
         author, linked_source = context(source), source
         if name == "current-noop":
@@ -590,15 +536,10 @@ def main() -> int:
                     operation_profile="adopt-progressive-sdl-semantics/v1",
                     context=author_payload,
                 ),
-                output=result.output.model_dump(mode="json", exclude_unset=True)
-                if result.output
-                else None,
+                output=result.output.model_dump(mode="json", exclude_unset=True) if result.output else None,
                 result=dict(
                     report=result.report.model_dump(mode="json"),
-                    binding_documents=[
-                        value.model_dump(mode="json")
-                        for value in result.binding_documents
-                    ],
+                    binding_documents=[value.model_dump(mode="json") for value in result.binding_documents],
                 ),
             )
         )
@@ -638,26 +579,16 @@ def main() -> int:
             ),
             ("externalize-sdl-classifications/v1", migrate_sdl_classifications),
         ):
-            author = (
-                context(source)
-                if operation == "adopt-progressive-sdl-semantics/v1"
-                else None
-            )
+            author = context(source) if operation == "adopt-progressive-sdl-semantics/v1" else None
             result = migrate(source, context=author) if author else migrate(source)
             author_payload = author.model_dump(mode="json") if author else None
             rows.append(
                 dict(
                     name="issue-1678-" + operation.split("/")[0] + "-" + name,
                     source="",
-                    source_bytes=base64.b64encode(
-                        source.encode("utf-8", errors="surrogatepass")
-                    ).decode("ascii"),
-                    context=author_payload
-                    if author
-                    else dict(operation_profile=operation),
-                    output=result.output.model_dump(mode="json", exclude_unset=True)
-                    if result.output
-                    else None,
+                    source_bytes=base64.b64encode(source.encode("utf-8", errors="surrogatepass")).decode("ascii"),
+                    context=author_payload if author else dict(operation_profile=operation),
+                    output=result.output.model_dump(mode="json", exclude_unset=True) if result.output else None,
                     result=dict(
                         report=result.report.model_dump(mode="json"),
                         binding_documents=[],
@@ -665,9 +596,7 @@ def main() -> int:
                 )
             )
     encoded = json.dumps(dict(cases=rows), indent=2, ensure_ascii=True) + "\n"
-    target = (
-        ROOT / "implementations/go/internal/sdl/authoring/testdata/migrations.json.gz"
-    )
+    target = ROOT / "implementations/go/internal/sdl/authoring/testdata/migrations.json.gz"
     if arguments.check:
         return int(gzip.decompress(target.read_bytes()).decode() != encoded)
     target.write_bytes(gzip.compress(encoded.encode(), mtime=0))

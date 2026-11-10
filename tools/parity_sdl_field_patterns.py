@@ -30,9 +30,7 @@ COMBINED_URI_FIELDS = {
 }
 
 
-def field_patterns(
-    schema: dict[str, Any], path: tuple[str, ...] = ()
-) -> list[dict[str, Any]]:
+def field_patterns(schema: dict[str, Any], path: tuple[str, ...] = ()) -> list[dict[str, Any]]:
     kind = schema.get("type")
     result = []
     if kind == "str" and isinstance(schema.get("pattern"), str):
@@ -49,9 +47,7 @@ def field_patterns(
         result = [
             fact
             for choice in schema["choices"]
-            for fact in field_patterns(
-                choice[0] if isinstance(choice, tuple) else choice, path
-            )
+            for fact in field_patterns(choice[0] if isinstance(choice, tuple) else choice, path)
         ]
     return result
 
@@ -59,15 +55,11 @@ def field_patterns(
 def combined_pattern(facts: list[dict[str, Any]], schema: dict[str, Any]) -> None:
     if len(facts) != 1 or facts[0]["path"]:
         raise ValueError("combined URI field pattern changed shape")
-    encoded = json.dumps(
-        schema, sort_keys=True, ensure_ascii=True, separators=(",", ":")
-    ).encode()
+    encoded = json.dumps(schema, sort_keys=True, ensure_ascii=True, separators=(",", ":")).encode()
     facts[0]["schema_sha256"] = hashlib.sha256(encoded).hexdigest()
 
 
-def definition_patterns(
-    cls: type[BaseModel], properties: dict[str, Any], name: str
-) -> dict[str, Any]:
+def definition_patterns(cls: type[BaseModel], properties: dict[str, Any], name: str) -> dict[str, Any]:
     if cls.model_config.get("regex_engine", "rust-regex") != "rust-regex":
         raise ValueError("an SDL field pattern selects an unreviewed engine")
     result = {}
@@ -83,12 +75,9 @@ def definition_patterns(
 
 
 def records() -> dict[str, Any]:
-    reference = json.loads(
-        (
-            ROOT
-            / "implementations/go/contract/admission/testdata/sdl-constructors.json"
-        ).read_text()
-    )["reference"]
+    reference = json.loads((ROOT / "implementations/go/contract/admission/testdata/sdl-constructors.json").read_text())[
+        "reference"
+    ]
     verify_reference_tree(reference)
     contracts = {}
     for model, contract in (
@@ -96,9 +85,7 @@ def records() -> dict[str, Any]:
         (MaterializedScenario, "materialized-scenario-v1"),
         (InstantiatedScenario, "instantiated-scenario-v1"),
     ):
-        published = json.loads(
-            (ROOT / "contracts/schemas/sdl" / (contract + ".json")).read_bytes()
-        )
+        published = json.loads((ROOT / "contracts/schemas/sdl" / (contract + ".json")).read_bytes())
         definitions = {}
         for pointer, cls in reference_definitions(model).items():
             if pointer == "#":
