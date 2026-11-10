@@ -22,6 +22,7 @@ clock/evidence references and semantic declaration pointers are rewritten by
 the ordinary composition machinery, including nested binding keys and private
 declaration renames. A namespace-wide policy spanning exported and private
 descendants MUST retain its complete value for every resulting lexical owner.
+
 A workflow call retains the callee's
 definition policy. A node feature, condition or inject binding retains its
 template's definition policy unless an explicit node/application scope supplies
@@ -39,9 +40,8 @@ until their owning native execution contract carries these requirements.
 Omission supplies no permission for a second effect. Existing authored workflow
 retry graphs, participant episodes and trial cleanup contracts retain their
 own semantics. A workflow's one-invocation policy does not erase its internal
-retry steps. An explicit policy on an existing retry step MUST agree with that
-step's authored `max_attempts`; implementations MUST NOT multiply attempts
-across workflow, operation, transport and recovery layers.
+retry steps. An explicit policy on an existing retry step MUST agree with that step's authored `max_attempts`.
+Implementations MUST NOT multiply attempts across workflow, operation, transport and recovery layers.
 
 ## Policy fields and consistency
 
@@ -122,3 +122,8 @@ Require the exact request-bound, capability-bound willing admission response.
 Refusal blocks admission even when support was declared.
 This check does not replace authentication, authorization, reservation, one-use effect claims, cleanup proof, or terminal publication.
 The optional protocol does not enable supervision on legacy runtime targets.
+
+## Desired safe state
+
+[Safe-state declarations](safe-state.md) specify a desired node or service state and its observed proof.
+They remain separate from failure responses and retry permission.

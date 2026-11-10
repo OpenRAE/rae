@@ -7,6 +7,7 @@ from dataclasses import replace
 
 from pydantic import ValidationError
 from raes import SDLSelectionError, validate_experiment_selection_against_family
+from raes.observation_scope import resolve_safe_states
 from raes_backend_protocols.backend_manifest import BackendManifest
 from raes_backend_protocols.capabilities import ObservationCapabilities
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope
@@ -164,6 +165,7 @@ def _compile_entry(
         )
     apparatus = canonical_realization_binding(realization) if realization is not None else request.apparatus
     entry = seal_admitted_trial_entry(
+        safe_states=resolve_safe_states(selected),
         plan_entry_id=entry_id,
         coordinate=coordinate,
         run_id=run_id,
@@ -249,6 +251,7 @@ def _compile_entries(
     resolved_signatures: dict[str, str] = {}
     canonical_failure: CompilationFailure | None = None
     capture_failures: dict[tuple[str, str, str], Diagnostic] = {}
+    retained_bytes = 0
     for coordinate_index in visit_indices:
         coordinate = coordinates[coordinate_index]
         row = rows[coordinate_index]
@@ -274,6 +277,18 @@ def _compile_entries(
             )
             candidate_failure.__cause__ = exc
         else:
+            retained_bytes += len(canonical_json_bytes(entry.model_dump(mode="json")))
+            retained_bytes += len(canonical_json_bytes(cleanup.model_dump(mode="json")))
+            if retained_bytes > request.limits.max_plan_bytes:
+                # Retain no oversized aggregate, but preserve canonical refusal order.
+                entries.clear()
+                cleanup_plans.clear()
+                resolved_signatures.clear()
+                canonical_failure = _earliest_failure(
+                    canonical_failure,
+                    _fail("plan-byte-limit-exceeded", "", "canonical admitted plan bytes exceed the compilation limit"),
+                )
+                continue
             used_control_ids.update(draw.control_id for draw in row.draws)
             entries[entry_id] = entry
             cleanup_plans[cleanup_id] = cleanup

@@ -21,6 +21,8 @@ from raes_contracts.execution_policy import OptionalExecutionPolicy
 from raes_contracts.identifiers import PortableIdentifier, QualifiedName, require_portable_identifier
 from raes_contracts.json_pointer import unescape_token
 from raes_contracts.participant_outcome_semantics import OutcomeInterpretationRule
+from raes_contracts.propositions import Assertion, Proposition
+from raes_contracts.safe_state import SafeStateDocument
 from raes_contracts.trial_parallelism import TrialParallelismModel
 
 from ._classification_guard import LegacyClassificationGuard
@@ -58,7 +60,6 @@ from .phase_contracts import (
     ExpansionProvenance,
     InstantiationProvenance,
 )
-from .propositions import Assertion, Proposition
 from .realization_designation import RealizationDesignation
 from .relationships import Relationship
 from .runtime_forwarding_agent import RuntimeForwardingAgent
@@ -257,6 +258,9 @@ class ScenarioContent(LegacyClassificationGuard):
     outcome_interpretation_rules: dict[str, OutcomeInterpretationRule] = Field(default_factory=dict)
     behavior_specifications: dict[str, ParticipantBehaviorSpecification] = Field(default_factory=dict)
     evidence_requirements: dict[str, EvidenceRequirement] = Field(default_factory=dict)
+    safe_state: SafeStateDocument | None = Field(
+        default=None, exclude_if=lambda value: value is None, json_schema_extra={"x-raes-realization-dimension": False}
+    )
     execution_policy: OptionalExecutionPolicy = None
     augmentation_scope: OptionalAugmentationScope = None
     time_domains: dict[str, TimeDomain] = Field(default_factory=dict)

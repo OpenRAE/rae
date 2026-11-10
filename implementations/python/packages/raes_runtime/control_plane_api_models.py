@@ -73,6 +73,7 @@ def _provisioning_plan(model: ProvisioningPlanModel) -> ProvisioningPlan:
     from raes_contracts.planning import PlannedRealizationConstraint
 
     return ProvisioningPlan(
+        safe_states=model.safe_states,
         inventory_attempt_id=model.inventory_attempt_id,
         inventory_refresh=model.inventory_refresh,
         materialization_source=model.materialization_source,
@@ -144,6 +145,7 @@ def _provisioning_plan(model: ProvisioningPlanModel) -> ProvisioningPlan:
 
 def _orchestration_plan(model: OrchestrationPlanModel) -> OrchestrationPlan:
     return OrchestrationPlan(
+        safe_states=model.safe_states,
         operation_id=model.operation_id,
         materialization_source=model.materialization_source,
         augmentation_scope_required=model.augmentation_scope_required,
@@ -169,6 +171,7 @@ def _orchestration_plan(model: OrchestrationPlanModel) -> OrchestrationPlan:
 
 def _evaluation_plan(model: EvaluationPlanModel) -> EvaluationPlan:
     return EvaluationPlan(
+        safe_states=model.safe_states,
         operation_id=model.operation_id,
         materialization_source=model.materialization_source,
         augmentation_scope_required=model.augmentation_scope_required,

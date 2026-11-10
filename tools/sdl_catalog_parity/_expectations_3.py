@@ -21,12 +21,22 @@ from tools.sdl_catalog_parity._paths import (
     _WRONG_SLOT_CANDIDATE,
 )
 
-_EXECUTION_POLICY_VALIDATOR = (
-    "[execution-policy validator](../../implementations/python/packages/raes/validator/_execution_policy.py)"
-)
+_EXECUTION_POLICY_VALIDATOR = "[execution-policy validator](../../implementations/python/packages/raes/validator/_execution_policy.py)"
 _FATAL_DANGLING = "fatal dangling"
 
 EXPECTATIONS_PART_3: dict[str, tuple[str, str, str, str]] = {
+    **{
+        source: (
+            "assertions",
+            _SEMANTIC,
+            "fatal unless observed positive postconditions cover each exact target",
+            "[safe-state resolution](../../implementations/python/packages/raes/observation_scope.py)",
+        )
+        for source in (
+            "safe_state.default.assertion_refs[]",
+            "safe_state.scopes[].state.assertion_refs[]",
+        )
+    },
     "execution_policy.default.clock_ref": (
         "clocks",
         _SEMANTIC,

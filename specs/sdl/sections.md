@@ -1,11 +1,10 @@
 <!-- vale RAES.HeadingCase = NO -->
 # Catalog 1 — section catalog
 
-This catalog enumerates every top-level field of an SDL document: its kind, its
-value shape, whether it is required, the shape of its keys, and the sections it
-references. It is the normative section enumeration and is written to match the
-published `contracts/schemas/sdl/sdl-authoring-input-v1.json` schema; where this
-table and that schema diverge, the divergence is a defect to reconcile
+This catalog enumerates every top-level SDL field.
+It gives each field's kind, value shape, requirement, key shape, and referenced sections.
+This normative section list matches the published `contracts/schemas/sdl/sdl-authoring-input-v1.json` schema.
+A difference between this table and that schema is a defect to reconcile
 ([README](README.md)).
 
 <!-- vale RAES.HeadingCase = YES -->
@@ -74,6 +73,7 @@ machinery is not retained as an empty compatibility field. "References" is
 | `behavior_specifications` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [behavior specifications](../formal/participant-behavior-model/README.md) |
 | `evidence_requirements` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [observability and evidence](observability-and-evidence.md) |
 | `execution_policy` | section | mapping | normalized, expanded, instantiated | optional; default null | none | catalogued | [execution and recovery](execution-recovery.md) |
+| `safe_state` | section | mapping | normalized, expanded, instantiated | optional; default null | none | catalogued | [safe state](safe-state.md) |
 | `augmentation_scope` | section | mapping | normalized, expanded, instantiated | optional; default null | none | none | [augmentation scope](augmentation-scope.md) |
 | `time_domains` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | none | [shared time model](../formal/time-model/README.md) |
 | `clocks` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [shared time model](../formal/time-model/README.md) |
@@ -91,7 +91,7 @@ addition would impose a large, unexpected authoring burden. The policy also
 survives into materialized descriptions, where its addresses retain their
 original-source meaning. See [augmentation scope](augmentation-scope.md).
 
-<!-- sdl-catalog-summary top-level=48 metadata-composition=7 sections=41 maps=37 lists=1 -->
+<!-- sdl-catalog-summary top-level=49 metadata-composition=7 sections=42 maps=37 lists=1 -->
 
 The section set therefore has two authoring shapes: maps keyed by stable
 user-defined identifiers and the scenario-level `forwarding_agents` list, whose
@@ -105,10 +105,10 @@ list carries addressed concern-specific mechanism intent. A compute-substrate
 constraint uses a `namespace`, a `field_pointer` addressing one compute node, the
 literal concern `compute-substrate`, an `open`, `constrained`, or `exact`
 posture, and a compatible domain when bounded. Equal
-`(namespace, field_pointer, concern)` identities are invalid. Expansion and
-instantiation remove the block from executable `ScenarioContent` and carry typed
-designation and constraint records in phase provenance so compilation can
-resolve them without turning authoring machinery into runtime scenario content.
+`(namespace, field_pointer, concern)` identities are invalid. Expansion and instantiation remove the block from executable `ScenarioContent`.
+
+They carry typed designation and constraint records in phase provenance.
+Compilation resolves those records without turning authoring machinery into runtime scenario content.
 
 `nodes.*.type` is a structural resource kind, not a deployment mechanism. Its
 canonical values are `compute` and `switch`. A `compute` node is portable and
@@ -117,6 +117,7 @@ emulator. Authors who require or bound a mechanism use
 `realization.constraints`; an omitted compute-substrate constraint deliberately
 leaves that registered concern open. A switch remains a strict connectivity
 resource and cannot carry compute-substrate constraints or compute-only fields.
+
 A switch can state a compute-only field only with its empty value: `null`, an
 empty string, or an empty collection. That value has the same meaning as an
 omitted field, and realization authority treats it as omitted.
@@ -124,8 +125,8 @@ omitted field, and realization authority treats it as omitted.
 `forwarding_agents` is the **scenario-level** forwarding-agent inventory. It is
 distinct from the node-scoped `forwarding_agents` runtime-family collection that
 lives under `nodes.<id>.runtime` ([runtime-inventory.md](runtime-inventory.md));
-both carry `forwarding_agent_id` identity and the same family invariants, but
-they occupy different positions in the document.
+both carry `forwarding_agent_id` identity and the same family invariants.
+They occupy different positions in the document.
 
 ## Narrative chain
 
@@ -173,24 +174,29 @@ required `form` of `reusable-policy` or `finite-script`. Its
 or proposal identity ([MC-01](../formal/participant-semantics/reusable-mixed-control.md#mc-01--policy-permissions-and-occurrence-facts)).
 A finite script adds ordered `script_steps` that may only narrow their edges
 ([MC-02](../formal/participant-semantics/reusable-mixed-control.md#mc-02--reusable-policies-and-finite-scripts)).
+
 Each application is one API-409 `participant-control-occurrence-v2` occurrence.
-It has a fresh identity, its exact edge ref, exact prior and resulting states,
-a resulting revision of expected + 1 for every accepted kind
+It has a fresh identity, its exact edge ref, and exact prior and resulting states.
+Each accepted kind has a resulting revision of expected + 1
 ([MC-03](../formal/participant-semantics/reusable-mixed-control.md#mc-03--exact-state-relation-and-repeated-cycles)),
 and a participant-wide `occurrence_revision`. It carries the acting source
 controller, grant and scope
 ([MC-04](../formal/participant-semantics/reusable-mixed-control.md#mc-04--acting-controller-authority-and-handoff)).
+
 An accepted occurrence records its admitted order and inclusive evaluated
 bounds; a rejected one keeps attempted and observed values apart and asserts
 no validity. Under that form a directed delivery carries a nested `control`
 block that names one permission and joins one exact accepted occurrence
 ([MC-09](../formal/participant-semantics/reusable-mixed-control.md#mc-09--participant-directed-injects)).
-The block pins the control policy apart from the delivery policy, uses the
-source-state controller and a non-widening scope, and compares no order with
-shared time. Ordinary injects and disclosure-only bindings are unchanged. The
-rev1 form validates and compiles, but planning refuses it for every backend,
-the reference runtime refuses its execution admission and control-plane
-construction, and no runtime executes it. The
+
+The block pins the control policy apart from the delivery policy.
+It uses the source-state controller and a non-widening scope.
+It compares no order with shared time. Ordinary injects and disclosure-only bindings are unchanged. The rev1 form validates and compiles.
+
+Planning refuses it for every backend.
+The reference runtime refuses its execution admission and control-plane construction.
+
+No runtime executes it. The
 [migration contract](../../docs/migration/reusable-mixed-control.md) retains
 the old form's historical interpretation, and the
 [finite-script conversion record](../../docs/migration/mixed-control-finite-script-conversion.md)

@@ -71,6 +71,7 @@ from ._import_admission import admit_import_source
 from ._profiles import rewrite_profile_selections
 from ._provenance import import_provenance_additions as _import_provenance_additions
 from ._references import _rewrite_variable_tokens
+from ._safe_state import merge_safe_state, rewrite_safe_state
 from ._sections import (
     _rewrite_account_and_domain_sections,
     _rewrite_content_sections,
@@ -123,6 +124,7 @@ def _rewrite_payload_with_symbols(
     _rewrite_terminal_sections(namespaced, symbols, tool_affordance_refs)
     rewrite_augmentation_scope(namespaced, symbols, namespace)
     rewrite_execution_policy(namespaced, symbols, namespace)
+    rewrite_safe_state(namespaced, symbols, namespace)
 
     pinned_assets = namespaced.pop("control_context_assets", None)
     rewritten = _rewrite_variable_tokens(namespaced, symbols["variables"])
@@ -168,6 +170,7 @@ def _merge_sections(
     merged = dict(root)
     merge_augmentation_scope(merged, incoming)
     merge_execution_policy(merged, incoming)
+    merge_safe_state(merged, incoming)
     for section_name in _HASHMAP_SECTIONS:
         current = dict(merged.get(section_name, {}))
         additions = dict(incoming.get(section_name, {}))

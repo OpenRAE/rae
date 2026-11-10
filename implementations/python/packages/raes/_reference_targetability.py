@@ -60,6 +60,7 @@ class ReferencePurpose(str, Enum):
     AUTHORITY_ANCHOR = "authority_anchor"
     AUTHORITY_SCOPE = "authority_scope"
     OPERATING_SCOPE = "operating_scope"
+    SAFE_STATE_TARGET = "safe_state_target"
 
 
 _C = DeclarationCategory
@@ -228,6 +229,17 @@ OPERATING_SCOPE_KINDS = frozenset({"node", "infrastructure", "service", "content
 # owning check states: the semantics modules for identity, topology and tenancy
 # (parity-tested there), and the validator's runtime resolvers, which read these sets.
 ENDPOINT_KINDS: Mapping[ReferencePurpose, frozenset[str]] = {
+    _P.SAFE_STATE_TARGET: frozenset(
+        {
+            "node",
+            "service",
+            "runtime-database_services",
+            "runtime-dns_services",
+            "runtime-file_services",
+            "runtime-mail_services",
+            "runtime-datastore_services",
+        }
+    ),
     _P.NODE_ENDPOINT: frozenset({"node"}),
     _P.IDENTITY_DOMAIN_ENDPOINT: frozenset({"identity_domains"}),
     _P.IDENTITY_FOREST_ENDPOINT: frozenset({"identity_forests"}),
@@ -251,6 +263,7 @@ ELIGIBLE_KINDS: Mapping[ReferencePurpose, frozenset[str]] = {
 }
 
 PURPOSE_LABELS: Mapping[ReferencePurpose, str] = {
+    _P.SAFE_STATE_TARGET: "a safe-state target",
     _P.DECLARED: "a reference",
     _P.TARGETABLE: "a target",
     _P.OBJECTIVE_SUBJECT: "an objective subject",

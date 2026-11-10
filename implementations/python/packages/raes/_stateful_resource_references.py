@@ -2,12 +2,13 @@
 
 from collections.abc import Iterable, Mapping
 
+from raes_contracts.generated_artifact_value import GeneratedArtifactValueSource
+from raes_contracts.propositions import Proposition, PropositionBasis, StringPredicate
+
 from ._errors import SDLValidationFinding
 from .content import Content
 from .nodes import Node, OSFamily
-from .propositions import Proposition, PropositionBasis, StringPredicate
 from .runtime_generated_value import (
-    GeneratedArtifactValueSource,
     resolve_consumable_generated_artifact_output,
 )
 from .stateful_resources import GeneratedArtifact, PersistentVolume, ResourceSensitivity

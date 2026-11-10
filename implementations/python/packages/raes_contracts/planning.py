@@ -23,6 +23,7 @@ from raes_contracts.planned_realization_constraint import PlannedRealizationCons
 from raes_contracts.realization_collections import PreparedNodeCollectionAuthority
 from raes_contracts.realization_structure import RealizationConstraintDocument, RealizationStructure
 from raes_contracts.run_scope import PlanScope, _validate_optional_run_id
+from raes_contracts.safe_state import ResolvedSafeState, validate_safe_states
 from raes_contracts.vocabulary import ObservationStrength, RealizationVerificationScope
 
 from .execution_policy import validate_effective_execution_policies
@@ -359,6 +360,7 @@ class RealizationPreparationAuthority(ContractModel):
 class ProvisioningPlan:
     """Provisioning plan over canonical deployment resources."""
 
+    safe_states: tuple[ResolvedSafeState, ...] = field(default=(), kw_only=True)
     resources: dict[str, PlannedResource] = field(default_factory=dict)
     operations: list[ProvisionOp] = field(default_factory=list)
     diagnostics: list[Diagnostic] = field(default_factory=list)
@@ -382,6 +384,7 @@ class ProvisioningPlan:
     inventory_refresh: bool = False
 
     def __post_init__(self) -> None:
+        validate_safe_states(self.safe_states)
         if self.purpose not in {"execution", "inspection"}:
             raise ValueError(_INVALID_PLAN_PURPOSE)
         if type(self.inventory_refresh) is not bool:
@@ -406,6 +409,7 @@ class ProvisioningPlan:
 class OrchestrationPlan:
     """Resolved orchestration graph and reconciliation actions."""
 
+    safe_states: tuple[ResolvedSafeState, ...] = field(default=(), kw_only=True)
     resources: dict[str, PlannedResource] = field(default_factory=dict)
     operations: list[OrchestrationOp] = field(default_factory=list)
     startup_order: list[str] = field(default_factory=list)
@@ -417,6 +421,7 @@ class OrchestrationPlan:
     operation_id: str | None = None
 
     def __post_init__(self) -> None:
+        validate_safe_states(self.safe_states)
         if self.operation_id is not None and not self.operation_id.strip():
             raise ValueError("operation_id must be non-empty when present")
         if self.purpose not in {"execution", "inspection"}:
@@ -437,6 +442,7 @@ class OrchestrationPlan:
 class EvaluationPlan:
     """Resolved evaluation graph and reconciliation actions."""
 
+    safe_states: tuple[ResolvedSafeState, ...] = field(default=(), kw_only=True)
     resources: dict[str, PlannedResource] = field(default_factory=dict)
     operations: list[EvaluationOp] = field(default_factory=list)
     startup_order: list[str] = field(default_factory=list)
@@ -452,6 +458,7 @@ class EvaluationPlan:
     operation_id: str | None = None
 
     def __post_init__(self) -> None:
+        validate_safe_states(self.safe_states)
         if self.operation_id is not None and not self.operation_id.strip():
             raise ValueError("operation_id must be non-empty when present")
         if self.purpose not in {"execution", "inspection"}:

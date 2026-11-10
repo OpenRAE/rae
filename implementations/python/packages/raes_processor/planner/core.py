@@ -450,6 +450,9 @@ def plan(
         effective_model, manifest, (provisioning, orchestration, evaluation)
     )
     diagnostics.extend(policy_diagnostics)
+    provisioning = replace(provisioning, safe_states=effective_model.safe_states)
+    orchestration = replace(orchestration, safe_states=effective_model.safe_states)
+    evaluation = replace(evaluation, safe_states=effective_model.safe_states)
 
     (provisioning, orchestration, evaluation), source_diagnostics = attach_materialization_sources(
         (provisioning, orchestration, evaluation),

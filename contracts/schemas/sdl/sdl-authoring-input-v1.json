@@ -27400,6 +27400,191 @@
       "title": "RuntimeSudoRule",
       "type": "object"
     },
+    "SafeState": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "continuing_mode": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "continue"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "continuing_mode": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "continuing_mode"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "assertion_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Assertion Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "continuing_mode": {
+          "anyOf": [
+            {
+              "maxLength": 2048,
+              "minLength": 1,
+              "pattern": "^\\S+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Continuing Mode"
+        },
+        "kind": {
+          "enum": [
+            "safe-hold",
+            "controlled-stop",
+            "continue"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "safe-state/v1",
+          "default": "safe-state/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "assertion_refs"
+      ],
+      "title": "SafeState",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Safe states are complete lexical values with unique scopes and assertions. Resolved values bind exact observed postconditions and target-specific evidence. Resolved collections obey aggregate PLAN_VALUE_LIMITS before proof copying. See specs/sdl/safe-state.md.",
+          "id": "safe-state-safestate",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#/safe_state"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.safe_state.SafeState.model_validate"
+        }
+      ]
+    },
+    "SafeStateDocument": {
+      "additionalProperties": false,
+      "properties": {
+        "default": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SafeState"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scopes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SafeStateScope"
+          },
+          "maxItems": 256,
+          "title": "Scopes",
+          "type": "array"
+        }
+      },
+      "title": "SafeStateDocument",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Safe states are complete lexical values with unique scopes and assertions. Resolved values bind exact observed postconditions and target-specific evidence. Resolved collections obey aggregate PLAN_VALUE_LIMITS before proof copying. See specs/sdl/safe-state.md.",
+          "id": "safe-state-safestatedocument",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#/safe_state"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.safe_state.SafeStateDocument.model_validate"
+        }
+      ]
+    },
+    "SafeStateScope": {
+      "additionalProperties": false,
+      "properties": {
+        "namespace": {
+          "default": [],
+          "items": {
+            "maxLength": 64,
+            "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)$",
+            "type": "string"
+          },
+          "maxItems": 31,
+          "title": "Namespace",
+          "type": "array"
+        },
+        "scope": {
+          "default": "",
+          "maxLength": 4096,
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Scope",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/SafeState"
+        }
+      },
+      "required": [
+        "state"
+      ],
+      "title": "SafeStateScope",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Safe states are complete lexical values with unique scopes and assertions. Resolved values bind exact observed postconditions and target-specific evidence. Resolved collections obey aggregate PLAN_VALUE_LIMITS before proof copying. See specs/sdl/safe-state.md.",
+          "id": "safe-state-safestatescope",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#/safe_state"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.safe_state.SafeStateScope.model_validate"
+        }
+      ]
+    },
     "Script": {
       "additionalProperties": false,
       "description": "A timed sequence of human-readable durations parsed to seconds.",
@@ -30534,6 +30719,18 @@
       },
       "title": "Relationships",
       "type": "object"
+    },
+    "safe_state": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SafeStateDocument"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "x-raes-realization-dimension": false
     },
     "scripts": {
       "additionalProperties": {
