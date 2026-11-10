@@ -1,34 +1,26 @@
-# RAES Asset Inventory Methodology
+# RAES asset inventory methodology
 
-RAES owns the participant-discoverable asset inventory methodology. Downstream
-projects can implement capture tooling and evidence ledgers, but the inclusion
-rule, semantic gates, and capture-to-specification workflow live here.
+Use this entry to select the capture procedure or inspect its supporting evidence.
+RAES owns the participant-discoverable asset inventory methodology.
+Downstream backends own their capture tools and original proof bundles.
+The methodology defines inclusion rules, semantic gates, and capture-to-specification steps.
 
-Use these documents as the RAES authority:
+## Complete a capture task
 
-- [Participant-discoverable asset inventory methodology](asset-inventory-methodology.md)
-  defines the canonical capture workflow, evidence boundary, RAES mapping
-  dispositions, and gap-handling rules.
-- [Methodology assurance report](methodology-assurance-report.md) records the
-  DevOps, supply-chain, reproducible-research, and verification/validation
-  basis for the method.
-- [Reference asset-inventory issue template](asset-inventory-issue-template.md)
-  is the vendorable GitHub issue skeleton downstream backends can copy into
-  their own `.github/ISSUE_TEMPLATE/` trees.
-- [SCN-010 expressivity gap analysis](scn010-expressivity-gap-analysis.md)
-  is the peer-review-grade analysis of the RAES SDL runtime-surface
-  expressivity gaps found while holding the 16 remaining APTL TechVault
-  SCN-010 SOC-stack containers to the wazuh.manager parity depth bar, and
-  the cohesive whole-SDL architecture that resolves them (requirements
-  DSL-132 through DSL-139).
-- The preflight notes are imported validation records from the APTL TechVault
-  proof work. They are useful implementation examples for downstream asset
-  captures, but they do not replace the methodology.
+- [Asset inventory methodology](asset-inventory-methodology.md) gives the canonical workflow, evidence boundary, mapping dispositions, and gap rules.
+- [Reference issue template](asset-inventory-issue-template.md) gives the issue structure that a backend can copy into its own repository.
 
-The original TechVault proof bundles remain in APTL as downstream evidence
-artifacts. RAES keeps the methodology and reusable agent entry points so later
-range implementations can consume the same rules without making APTL the
-methodology owner.
+## Inspect the reasoning and evidence
+
+- [Methodology assurance report](methodology-assurance-report.md) gives the verification, supply-chain, and research basis for the method.
+- [SCN-010 gap analysis](scn010-expressivity-gap-analysis.md) records the APTL TechVault investigation and requirements DSL-132 through DSL-139.
+- The preflight links below preserve imported validation records from that investigation.
+  They illustrate earlier captures; they do not replace the maintained methodology.
+
+The original TechVault proof bundles remain in APTL.
+Their recorded source revisions and observations define their applicability.
+A methodology document does not establish that a later backend capture passed its checks.
+Use the [research entry](../../research/index.md) for other bounded results and current questions.
 
 ```{toctree}
 :maxdepth: 1
