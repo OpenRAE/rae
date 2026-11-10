@@ -135,5 +135,6 @@ consumer that evaluates that relation; SDL carries the checked derivation record
 
 Regression tests use APIs that exist at the delivery base.
 They cover the sibling enum default, typed mixed-control location, and root policy scope.
-CI proves the baseline failures and the fixed-head successes.
+CI runs these regression tests against the feature head.
+It does not replay them against the delivery base.
 No full regression or mutation lane runs locally.
