@@ -4,8 +4,8 @@
 from __future__ import annotations
 
 import argparse
-import gzip
 import copy
+import gzip
 import json
 import sys
 from pathlib import Path
@@ -13,6 +13,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
 
+from pydantic import ValidationError  # noqa: E402
+from raes._errors import SDLError  # noqa: E402
 from raes._module_symbols import HASHMAP_SECTIONS, symbol_index  # noqa: E402
 from raes._transformation_rename import _preserve_explicit_shape  # noqa: E402
 from raes.composition import _rewrite_payload_with_symbols  # noqa: E402
@@ -64,7 +66,8 @@ def main() -> int:
             continue
         try:
             scenario = parse_sdl(row["source"], skip_semantic_validation=True)
-        except Exception:
+        except (SDLError, ValidationError) as error:
+            print(f"Skipping unconstructed source: {type(error).__name__}", file=sys.stderr)
             continue  # This owner operates only on constructed source documents.
         payload = scenario.model_dump(mode="json", by_alias=True, exclude_unset=True)
         if payload.get("expansion_provenance"):

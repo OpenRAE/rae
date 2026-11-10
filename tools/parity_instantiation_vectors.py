@@ -17,11 +17,11 @@ sys.path.insert(0, str(ROOT / "implementations/python/packages"))
 from pydantic import ValidationError  # noqa: E402
 from raes._errors import SDLError  # noqa: E402
 from raes.canonical import canonical_instantiated_sdl_bytes  # noqa: E402
-from raes.instantiate import admit_instantiated_scenario, instantiate_scenario  # noqa: E402
 from raes.family_admission import admit_scenario_family  # noqa: E402
+from raes.instantiate import admit_instantiated_scenario, instantiate_scenario  # noqa: E402
 from raes.parser import parse_sdl, parse_sdl_file  # noqa: E402
-from raes.selected_scenario import select_scenario_family  # noqa: E402
 from raes.scenario import ExpandedScenario  # noqa: E402
+from raes.selected_scenario import select_scenario_family  # noqa: E402
 from raes_contracts.contracts import (  # noqa: E402
     ExperimentSelectionMemberOutcomeModel,
     ExperimentSelectionOrderOutcomeModel,

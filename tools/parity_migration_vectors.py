@@ -4,9 +4,9 @@
 from __future__ import annotations
 
 import argparse
-import gzip
 import base64
 import copy
+import gzip
 import json
 import sys
 from pathlib import Path
@@ -15,27 +15,19 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
 sys.path.insert(0, str(ROOT / "implementations/python/tests"))
 
+import test_issue_1678_sweep_s as refusal_sources  # noqa: E402
 import yaml  # noqa: E402
-from raes.semantic_migration import migrate_sdl_semantics  # noqa: E402
-from raes.semantic_revisions import PROGRESSIVE_SDL_REVISION  # noqa: E402
+from mixed_control_rev1_scenarios import rev1_scenario  # noqa: E402
+from raes import parse_sdl  # noqa: E402
+from raes.classification_migration import migrate_sdl_classifications  # noqa: E402
+from raes.external_concept_subjects import external_concept_subjects  # noqa: E402
+from raes.mixed_control_migration import migrate_mixed_control_to_finite_script  # noqa: E402
 from raes.participant_migration import (  # noqa: E402
     ParticipantIdentityMigrationContext,
     migrate_participant_identity,
 )
-from test_issue_1338_identity_migration import _legacy  # noqa: E402
-from test_issue_1210_semantic_migration import context  # noqa: E402
-from test_issue_847_runtime_package_repositories import _package  # noqa: E402
-from raes.mixed_control_migration import migrate_mixed_control_to_finite_script  # noqa: E402
-from mixed_control_rev1_scenarios import rev1_scenario  # noqa: E402
-from test_issue_1363_mixed_control_migration import (  # noqa: E402
-    HANDOFF_CHAIN,
-    DECISION_CHAIN,
-    CANCEL_CHAIN,
-    REFUSALS,
-    _legacy as _legacy_control,
-    _state,
-)
-from raes.classification_migration import migrate_sdl_classifications  # noqa: E402
+from raes.semantic_migration import migrate_sdl_semantics  # noqa: E402
+from raes.semantic_revisions import PROGRESSIVE_SDL_REVISION  # noqa: E402
 from raes.transformations import ArtifactTransformationPolicy  # noqa: E402
 from raes_contracts.contracts import (  # noqa: E402
     ArtifactTransformationLossKind,
@@ -46,9 +38,19 @@ from test_classification_migration import (  # noqa: E402
     NATIVE_MIGRATION_SOURCE,
     _migration_inputs,
 )
-from raes import parse_sdl  # noqa: E402
-from raes.external_concept_subjects import external_concept_subjects  # noqa: E402
-import test_issue_1678_sweep_s as refusal_sources  # noqa: E402
+from test_issue_847_runtime_package_repositories import _package  # noqa: E402
+from test_issue_1210_semantic_migration import context  # noqa: E402
+from test_issue_1338_identity_migration import _legacy  # noqa: E402
+from test_issue_1363_mixed_control_migration import (  # noqa: E402
+    CANCEL_CHAIN,
+    DECISION_CHAIN,
+    HANDOFF_CHAIN,
+    REFUSALS,
+    _state,
+)
+from test_issue_1363_mixed_control_migration import (  # noqa: E402
+    _legacy as _legacy_control,
+)
 
 
 def main() -> int:

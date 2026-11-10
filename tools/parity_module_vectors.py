@@ -4,8 +4,8 @@
 from __future__ import annotations
 
 import argparse
-import gzip
 import base64
+import gzip
 import hashlib
 import json
 import sys
@@ -15,10 +15,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
 
-from raes.module_registry.publishing import _build_module_bundle  # noqa: E402
-from raes.module_registry import publish_module_to_oci_layout  # noqa: E402
 from cryptography.hazmat.primitives import serialization  # noqa: E402
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey  # noqa: E402
+from raes.module_registry import publish_module_to_oci_layout  # noqa: E402
+from raes.module_registry.publishing import _build_module_bundle  # noqa: E402
 
 
 def signed_graph() -> str:
