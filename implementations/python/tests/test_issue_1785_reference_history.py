@@ -10,6 +10,14 @@ from pathlib import Path
 import pytest
 
 
+def test_module_policy_vectors_match_the_pinned_reference(monkeypatch):
+    root = Path(__file__).resolve().parents[3]
+    monkeypatch.syspath_prepend(str(root / "tools"))
+    recorder = importlib.import_module("tools.parity_module_policy_vectors")
+    expected = json.loads((root / "implementations/go/sdl/module/testdata/policy-versions.json").read_text())
+    assert recorder.record() == expected
+
+
 @pytest.mark.parametrize("name", ["sdl_constructors", "sdl_field_patterns"])
 def test_reference_recording_keeps_exact_tree_identity_after_history_change(monkeypatch, name):
     root = Path(__file__).resolve().parents[3]

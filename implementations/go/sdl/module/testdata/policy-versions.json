@@ -1,0 +1,5504 @@
+{
+  "policies": [
+    {
+      "source": "",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "# empty\n",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "{}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "[]",
+      "accepted": false
+    },
+    {
+      "source": "null",
+      "accepted": false
+    },
+    {
+      "source": "unknown: true",
+      "accepted": false
+    },
+    {
+      "source": "schema_version: 1",
+      "accepted": false
+    },
+    {
+      "source": "schema_version: 'custom'",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "custom",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "registries: []",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: null}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {unknown: false}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {trusted_signers: []}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {trusted_signers: {test: 12}}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {trusted_signers: {test: 'public-test-key'}}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": true,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {
+              "test": "public-test-key"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: yes",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: NO",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": false,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: on",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: Off",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": false,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: true",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: FALSE",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": false,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: 0",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": false,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: 1",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: -1",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: 2",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: 0x1",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: 0b0",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": false,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: 01",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: 00",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": false,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: 1_0",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: 1:00",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: 0.0",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": false,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: 1.0",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: 2.5",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: 0:01.0",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: -0.0",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": false,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: .inf",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: .NaN",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: null",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: ~",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: =",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: 'yes'",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: 'f'",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": false,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: 'n'",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": false,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: 'Y'",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: '0'",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": false,
+        "Registries": {}
+      }
+    },
+    {
+      "source": "allow_unsigned_local_sources: 'bad'",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: 2001-12-15",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: 2001-12-15T02:59:43Z",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: 2001-12-15 2:59:43.1 -5:30",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: 2001-02-30",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: 2001-12-15T25:00:00Z",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: 2001-12-15T02:00:00+24:00",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: [true]",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: {}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {require_signatures: yes, allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": true,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: NO, allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": false,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: on, allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": true,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: Off, allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": false,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: true, allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": true,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: FALSE, allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": false,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: 0, allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": false,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: 1, allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": true,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: -1, allow_insecure_http: false}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {require_signatures: 2, allow_insecure_http: false}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {require_signatures: 0x1, allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": true,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: 0b0, allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": false,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: 01, allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": true,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: 00, allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": false,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: 1_0, allow_insecure_http: false}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {require_signatures: 1:00, allow_insecure_http: false}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {require_signatures: 0.0, allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": false,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: 1.0, allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": true,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: 2.5, allow_insecure_http: false}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {require_signatures: 0:01.0, allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": true,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: -0.0, allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": false,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: .inf, allow_insecure_http: false}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {require_signatures: .NaN, allow_insecure_http: false}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {require_signatures: null, allow_insecure_http: false}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {require_signatures: ~, allow_insecure_http: false}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {require_signatures: =, allow_insecure_http: false}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {require_signatures: 'yes', allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": true,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: 'f', allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": false,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: 'n', allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": false,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: 'Y', allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": true,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: '0', allow_insecure_http: false}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": false,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {require_signatures: 'bad', allow_insecure_http: false}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {require_signatures: 2001-12-15, allow_insecure_http: false}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {require_signatures: 2001-12-15T02:59:43Z, allow_insecure_http: false}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {require_signatures: 2001-12-15 2:59:43.1 -5:30, allow_insecure_http: false}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {require_signatures: 2001-02-30, allow_insecure_http: false}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {require_signatures: 2001-12-15T25:00:00Z, allow_insecure_http: false}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {require_signatures: 2001-12-15T02:00:00+24:00, allow_insecure_http: false}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {require_signatures: [true], allow_insecure_http: false}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {require_signatures: {}, allow_insecure_http: false}}",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: &flag false\nregistries: {example: {require_signatures: *flag, allow_insecure_http: on}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": false,
+        "Registries": {
+          "example": {
+            "RequireSignatures": false,
+            "AllowInsecureHTTP": true,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "registries:\n  example:\n    <<: [{require_signatures: false}, {allow_insecure_http: true}]\n    trusted_signers: {test: key}\n",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": false,
+            "AllowInsecureHTTP": true,
+            "TrustedSigners": {
+              "test": "key"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": "registries: {example: {<<: 7}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: {<<: [7]}}",
+      "accepted": false
+    },
+    {
+      "source": "registries: {example: &self {<<: *self, require_signatures: true}}",
+      "accepted": true,
+      "expected": {
+        "SchemaVersion": "raes-trust/v1",
+        "AllowUnsignedLocalSources": true,
+        "Registries": {
+          "example": {
+            "RequireSignatures": true,
+            "AllowInsecureHTTP": false,
+            "TrustedSigners": {}
+          }
+        }
+      }
+    },
+    {
+      "source": "{1: true}",
+      "accepted": false
+    },
+    {
+      "source": "{[a, b]: true}",
+      "accepted": false
+    },
+    {
+      "source": "{'<<': true}",
+      "accepted": false
+    },
+    {
+      "source": "allow_unsigned_local_sources: [*missing]",
+      "accepted": false
+    }
+  ],
+  "versions": [
+    {
+      "request": "",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "*",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "1.0",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "1.0",
+      "actual": "0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "1.0",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "1.0",
+      "actual": "1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "1.0",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "1.0",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "1.0",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "1.0",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "1.0",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "1.0",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "1.0",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "1.0",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.0",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.0",
+      "actual": "0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.0",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.0",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.0",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.0",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.0",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.0",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.0",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.*",
+      "actual": "0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.*",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.*",
+      "actual": "1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.*",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.*",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.*",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.*",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.*",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.*",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.*",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.*",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "!=1.*",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "!=1.*",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0",
+      "actual": "0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<=1.0",
+      "actual": "0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<=1.0",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<=1.0",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<=1.0",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<=1.0",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=1.0",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">1.0",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">1.0",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">1.0",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">1.0",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<1.0",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<1.0",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<1.0",
+      "actual": "1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<1.0",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0",
+      "actual": "0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1.0.0",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0a1",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<1.0rc2",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">1.0.post1",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1.0.dev0",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0+abc",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1!1.0",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1!1.0",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "===1.0+ABC",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0.*,!=1.0.post1",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": ">=1,<2",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "~=1",
+      "valid": false
+    },
+    {
+      "request": ">=1.*",
+      "valid": false
+    },
+    {
+      "request": "==1.0a1.*",
+      "valid": false
+    },
+    {
+      "request": ">=1+abc",
+      "valid": false
+    },
+    {
+      "request": "invalid",
+      "valid": false
+    },
+    {
+      "request": "===bad value",
+      "valid": false
+    },
+    {
+      "request": ",",
+      "valid": false
+    },
+    {
+      "request": "==",
+      "valid": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "==1.0,",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "invalid",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "0.9",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0.0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0a1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0b2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0rc1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0.dev1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0.post1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0.post2.dev3",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0+abc",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0+abc.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0+abc.2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0+1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0+2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0+01.a",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0+1.b",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0+abc.def",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "2.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "2!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1!1.0",
+      "valid": true,
+      "accepted": false
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "v01.02-alpha_2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0preview",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0rev",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0-2",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "1.0.dev0",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "0.1dev1",
+      "valid": true,
+      "accepted": true
+    },
+    {
+      "request": "<=2.0rc1",
+      "actual": "2.0rc1",
+      "valid": true,
+      "accepted": true
+    }
+  ]
+}

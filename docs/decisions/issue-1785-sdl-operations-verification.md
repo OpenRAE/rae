@@ -85,6 +85,24 @@ It compares the report and every other reference field unchanged.
 The separate transformation and instantiation regression checks the corrected
 provenance behavior.
 
+## Coverage evidence
+
+`parity_module_policy_vectors.py` records 103 trust-policy inputs and 783 version
+requests and results from the pinned Python owner.
+It supports `--check`; a Python test also checks the frozen results.
+`TestWorkspacePolicyReference` and `TestVersionRequestReference` compare native
+admission and complete policy values with those results.
+The cases include YAML aliases and merges, scalar types, closed keys, registry
+flags, signer maps, and version ordering and constraints.
+
+`TestSharedReferenceRulesOnConstructedDocuments` checks that shared temporal,
+stateful-resource, and service-content findings agree with the frozen Python
+messages and owners for constructed documents.
+Additional tests check lockfile fields, optional and absent locks, explicit
+workspace authority, atomic publication refusals, and version-tag selection.
+Targeted coverage profiles extend the hosted report.
+The hosted coverage gate remains authoritative.
+
 ## Defect evidence and design differences
 
 The Python test names below identify behavior, rather than a Python class layout.
