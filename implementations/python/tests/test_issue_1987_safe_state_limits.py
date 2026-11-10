@@ -119,7 +119,6 @@ def test_portable_plan_checks_aggregate_before_nested_revalidation(monkeypatch):
 
 def test_replay_fingerprint_distinguishes_resolved_safe_state(monkeypatch, tmp_path):
     import raes_processor.compiler as compiler
-
     from tools.formal_semantic_validation._replay import _compiled_case_digest
 
     compiled = compiler.compile_runtime_model(scenario(payload()))
