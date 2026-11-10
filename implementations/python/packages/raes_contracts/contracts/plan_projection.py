@@ -110,6 +110,7 @@ def provisioning_plan_model(plan: ProvisioningPlan) -> ProvisioningPlanModel:
     """Project a provisioning plan into its published contract model."""
 
     return ProvisioningPlanModel(
+        safe_states=plan.safe_states,
         inventory_attempt_id=plan.inventory_attempt_id,
         inventory_refresh=plan.inventory_refresh,
         materialization_source=plan.materialization_source,
@@ -197,6 +198,7 @@ def orchestration_plan_model(plan: OrchestrationPlan) -> OrchestrationPlanModel:
     """Project an orchestration plan into its published contract model."""
 
     return OrchestrationPlanModel(
+        safe_states=plan.safe_states,
         operation_id=plan.operation_id,
         materialization_source=plan.materialization_source,
         augmentation_scope_required=plan.augmentation_scope_required,
@@ -212,6 +214,7 @@ def evaluation_plan_model(plan: EvaluationPlan) -> EvaluationPlanModel:
     """Project an evaluation plan into its published contract model."""
 
     return EvaluationPlanModel(
+        safe_states=plan.safe_states,
         operation_id=plan.operation_id,
         materialization_source=plan.materialization_source,
         augmentation_scope_required=plan.augmentation_scope_required,

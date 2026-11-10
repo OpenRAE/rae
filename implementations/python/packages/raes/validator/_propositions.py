@@ -1,7 +1,8 @@
 """Semantic validation for proposition, assertion, and probe references."""
 
+from raes_contracts.propositions import AssertionRole
+
 from .._reference_targetability import ReferencePurpose
-from ..propositions import AssertionRole
 
 
 class _PropositionsMixin:

@@ -82,6 +82,7 @@ VALIDATION_PASSES = (
     "_verify_evidence_requirements",
     "_verify_augmentation_scope",
     "_verify_execution_policy",
+    "_verify_safe_state",
     "_verify_time_model",
     "_verify_variables",
     "_verify_variation_points",

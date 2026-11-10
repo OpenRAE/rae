@@ -12,6 +12,7 @@ from raes_contracts.evidence_requirements import EvidenceRequirement
 from ._base import ContractModel
 from .execution_policy_schema import execution_policy_schema
 from .execution_retry import ExecutionRetryPolicyModel
+from .lexical_scope import select_lexical_scope
 from .observation_demand import SemanticScope
 from .realization_structure import semantic_address_contains
 
@@ -219,13 +220,9 @@ def _retry_unit(scope: str) -> Literal["workflow-step", "native-operation"]:
 def _selected_rule(
     document: ExecutionPolicyDocument, scope: str, namespace: tuple[str, ...]
 ) -> ExecutionPolicyScope | None:
-    matches = [
-        rule
-        for rule in document.scopes
-        if namespace[: len(rule.namespace)] == rule.namespace and semantic_address_contains(rule.scope, scope)
-    ]
-    if matches:
-        return max(matches, key=lambda item: (len(item.namespace), len(item.scope.split("/"))))
+    selected = select_lexical_scope(document.scopes, scope, namespace)
+    if selected is not None:
+        return selected
     return ExecutionPolicyScope(policy=document.default) if document.default is not None else None
 
 

@@ -92,6 +92,9 @@ def _compiled_case_digest(repo_root: Path, case: Mapping[str, object], path: Pat
     )
     instantiated = instantiate_scenario(scenario, parameters={})
     compiled = dataclasses.asdict(compile_runtime_model(instantiated))
+    # Absence adds no semantic value to retained fingerprints. Authored proofs stay bound.
+    if compiled["safe_states"] == ():
+        compiled.pop("safe_states")
     return _digest(compiled)
 
 

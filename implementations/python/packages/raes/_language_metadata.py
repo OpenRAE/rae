@@ -61,6 +61,7 @@ VARIATION_SLOT_TARGETS = {
 }
 
 REFERENCE_COMPLETION_TARGETS = {
+    ("safe_state", "assertion_refs"): "assertions",
     **{
         ("relationships", field): section
         for field, section in PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS.items()

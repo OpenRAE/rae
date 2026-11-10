@@ -21,10 +21,8 @@ For imported modules, use [file parsing from Python](../guides/python.md#read-an
 
 The [quickstart](../quickstart.md) shows all four parts. Larger scenarios can
 add services, identities, participants, behaviors, objectives, workflows,
-variation, and evidence requirements. To add a condition, evidence, attacker
-behavior, participants, and objectives one at a time, then compile the scenario
-and read its plan, follow
-[validate, compile, and inspect a scenario plan](validate-compile-plan.md).
+variation, and evidence requirements. Follow [validate, compile, and inspect a scenario plan](validate-compile-plan.md) to add a condition, evidence, attacker behavior, participants, and objectives one at a time.
+Then compile the scenario and read its plan.
 
 ## Read the exact reference
 
@@ -37,6 +35,9 @@ accepted fields and meaning:
 - [Reference resolution rules](https://github.com/OpenRAE/rae/blob/v11.0.2/specs/sdl/references.md)
 - [Normative SDL specification index](https://github.com/OpenRAE/rae/tree/v11.0.2/specs/sdl)
 - [Worked examples](https://github.com/OpenRAE/rae/tree/main/examples/scenarios)
+
+The development specification defines [safe-state declarations](https://github.com/OpenRAE/rae/blob/dev/specs/sdl/safe-state.md).
+It describes desired states, observed proof, and the backend execution boundary.
 
 ## Finish
 

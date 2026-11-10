@@ -60,6 +60,7 @@ class ReferencePurpose(str, Enum):
     AUTHORITY_ANCHOR = "authority_anchor"
     AUTHORITY_SCOPE = "authority_scope"
     OPERATING_SCOPE = "operating_scope"
+    SAFE_STATE_TARGET = "safe_state_target"
 
 
 _C = DeclarationCategory
@@ -248,9 +249,22 @@ ELIGIBLE_KINDS: Mapping[ReferencePurpose, frozenset[str]] = {
     },
     **ENDPOINT_KINDS,
     _P.OPERATING_SCOPE: OPERATING_SCOPE_KINDS,
+    # Safe-state scopes select eligible declarations independently of relationship endpoints.
+    _P.SAFE_STATE_TARGET: frozenset(
+        {
+            "node",
+            "service",
+            "runtime-database_services",
+            "runtime-dns_services",
+            "runtime-file_services",
+            "runtime-mail_services",
+            "runtime-datastore_services",
+        }
+    ),
 }
 
 PURPOSE_LABELS: Mapping[ReferencePurpose, str] = {
+    _P.SAFE_STATE_TARGET: "a safe-state target",
     _P.DECLARED: "a reference",
     _P.TARGETABLE: "a target",
     _P.OBJECTIVE_SUBJECT: "an objective subject",

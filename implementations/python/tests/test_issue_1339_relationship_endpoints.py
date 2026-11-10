@@ -662,6 +662,7 @@ def test_endpoint_kind_sets_name_decided_kinds_inside_their_resolution_domain() 
         P.OBSERVATION_SUBJECT,
         P.AUTHORITY_ANCHOR,
         P.OPERATING_SCOPE,
+        P.SAFE_STATE_TARGET,
     }
     assert {purpose for purpose in P if policy.resolution_domain(purpose) is P.OPERATING_SCOPE} == {P.OPERATING_SCOPE}
 
@@ -723,8 +724,8 @@ def test_rule_two_states_when_a_refusal_names_its_purpose() -> None:
     text = " ".join(REFERENCES.read_text(encoding="utf-8").split())
 
     assert (
-        "a purpose whose eligible declarations equal neither every declaration (`declared`) nor every targetable "
-        "declaration (`targetable`) also names itself"
+        "If the purpose admits neither every declaration (`declared`) nor every targetable declaration "
+        "(`targetable`), the diagnostic also names the purpose."
     ) in text
     general = {
         frozenset(policy.ELIGIBLE_KINDS[P.DECLARED]): "element",
@@ -902,7 +903,7 @@ def _import_twice(directory: Path, module: dict):
     return parse_sdl_file(directory / "root.yaml")
 
 
-# The purposes that the stage matrix in test_issue_1339_reference_eligibility.py already drives.
+# Purposes covered by the reference-eligibility matrix and the dedicated safe-state scope tests.
 REFERENCE_MATRIX_PURPOSES = {
     P.OBJECTIVE_SUBJECT,
     P.ACTION_TARGET,
@@ -913,6 +914,7 @@ REFERENCE_MATRIX_PURPOSES = {
     P.OBSERVATION_SUBJECT,
     P.AUTHORITY_ANCHOR,
     P.OPERATING_SCOPE,
+    P.SAFE_STATE_TARGET,
 }
 
 
