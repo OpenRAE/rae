@@ -69,6 +69,9 @@ def test_full_size_authority_retains_transport_integrity(full_inventory, transpo
     assert realization_authority_diagnostics(request, manifest) == []
 
 
+# This 2,048-object case repeats authority checks under coverage and parallel
+# integration-worker contention. Keep the full fixture and every assertion.
+@pytest.mark.timeout(300)
 def test_full_size_authority_survives_transport_preparation_and_delivery(transported_inventory):
     request, manifest = transported_inventory
     backend = CloudPreparingProvisioner()

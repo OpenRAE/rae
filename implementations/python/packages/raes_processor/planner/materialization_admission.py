@@ -175,6 +175,14 @@ def _validate_current_scope(
         raise InvalidInputError("materialization inventory does not match the complete returned scope")
 
 
+def _without_runtime_evidence[E: (SnapshotEntry, PlannedResource)](entry: E) -> E:
+    """Leave out runtime-owned artifact evidence; the described SDL cannot contain it."""
+    if "artifact_satisfaction" not in entry.payload:
+        return entry
+    payload = {key: value for key, value in entry.payload.items() if key != "artifact_satisfaction"}
+    return cast(E, replace(entry, payload=payload))
+
+
 def _value_free_resource(resource: PlannedResource) -> PlannedResource:
     """Describe account material value-free, as the runtime stores it."""
     if resource.resource_type != "account-placement":
@@ -250,6 +258,7 @@ def _materialized_entry_matches(
     resource: PlannedResource,
     requirements: tuple[CompiledRealizationRequirement, ...] = (),
 ) -> bool:
+    entry = _without_runtime_evidence(entry)
     resource = _value_free_resource(resource)
     if resource.resource_type in {"node", "network"}:
         expected_spec, observed_spec = resource.payload.get("spec"), entry.payload.get("spec")

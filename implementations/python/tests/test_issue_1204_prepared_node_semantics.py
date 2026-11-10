@@ -149,3 +149,38 @@ nodes:
     assert backend.applies == int(accepted)
     if not accepted:
         assert result.snapshot == previous
+
+
+def test_value_free_account_material_passes_the_typed_inventory_context():
+    from types import SimpleNamespace
+
+    from raes_contracts.account_credentials import value_free_account_placement_payload
+    from raes_processor.planner.prepared_node_semantics import validate_prepared_node_semantics
+
+    node = SimpleNamespace(
+        address="provision.node.host",
+        resource_type="node",
+        payload={"name": "host", "spec": {"node": {"type": "compute", "os": "linux"}, "infrastructure": {}}},
+    )
+    authored = {
+        "username": "admin",
+        "node": "host",
+        "auth_method": "password",
+        "credential_bindings": [
+            {
+                "credential_id": "admin-password",
+                "purpose": "primary_authentication",
+                "auth_method": "password",
+                "material": {"classification": "secret_fixture", "value": "fixture"},
+            }
+        ],
+    }
+    account = SimpleNamespace(
+        address="provision.account-placement.admin",
+        resource_type="account-placement",
+        payload=value_free_account_placement_payload({"name": "admin", "spec": authored}),
+    )
+    validate_prepared_node_semantics({node.address: node, account.address: account})
+    malformed = SimpleNamespace(**{**vars(account), "payload": {"name": "admin", "spec": {"node": "host"}}})
+    with pytest.raises(InvalidInputError):
+        validate_prepared_node_semantics({node.address: node, malformed.address: malformed})

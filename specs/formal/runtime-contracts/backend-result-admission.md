@@ -44,6 +44,7 @@ For a successful plan result:
 Status annotations alone are not resource-semantic changes. The result MUST also report actual changes to addressed carriers.
 Each reported address MUST resolve to a permitted transition. Linked disclosure-record IDs keep their own reference and history rules.
 They MUST NOT be reported as invented resource change addresses.
+
 Cleanup after partial failure still needs identity, ownership and accounting checks.
 It cannot claim successful conformance.
 
@@ -51,7 +52,8 @@ It cannot claim successful conformance.
 
 The runtime MUST check actual declared values and the members of each collection against the original nested constraints.
 The overall explicitness level does not replace these checks.
-Prepared delivery MUST also match the admitted completion.
+Prepared delivery MUST also match each value that the admitted completion contains.
+A field that the completion leaves absent carries no delivery obligation.
 Its own canonical comparison defines a match. Typed JSON equality distinguishes `true` from `1`,
 including inside profile bindings and unchanged resources.
 
@@ -65,6 +67,7 @@ Results with credentials MUST satisfy their closed egress contract.
 It checks them against the admitted operation values. Admitted realization concerns MAY contain
 observed values that differ from those operation values, including OPEN choices.
 This permission applies only to registered concern paths.
+
 Each path must have an admitted requirement that applies and a safe observation projection. All other payload values MUST keep typed exact equality with the admitted operation.
 Separately permitted evidence, such as `artifact_satisfaction`, is an exception.
 
@@ -72,6 +75,7 @@ The owning concern validator MUST check observed values before projection.
 Credential closure MUST preserve their safe observation projection.
 It MUST NOT restore plan values over those observations.
 Canonical account material remains presence-only.
+
 Comparison and publication MUST preserve the same permitted meaning.
 The runtime MUST check safe projected state again before it adds provenance and commits the state.
 This second check may reuse admitted transient observations.
@@ -90,9 +94,11 @@ Inventory refresh is an explicit provisioning mutation with read-only backend be
 Other phases MUST NOT carry the runtime inventory report.
 Its committed discriminator selects inventory reporting rather than apply.
 The planner must still authorize the plan.
+
 Target and run identities remain bound. Each new request gets a fresh operation attempt.
 Saved retries, supervision and the terminal snapshot commit still apply.
 The collector returns an unchanged predecessor and a separate SDL report.
 Incomplete or invalid reports preserve the trusted predecessor.
+
 The native artifact digest binds the original backend proposal before and after the checks.
 The terminal accepted-state commitment separately binds the runtime-derived snapshot.
