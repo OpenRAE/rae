@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 import tempfile
@@ -12,7 +13,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
 from packaging.specifiers import InvalidSpecifier  # noqa: E402
-from parity_sdl_constructors import verify_reference_tree  # noqa: E402
 from raes._errors import SDLError  # noqa: E402
 from raes.module_registry._digests import _normalize_exact_or_range, _satisfies_version  # noqa: E402
 from raes.module_registry.models import load_trust_policy  # noqa: E402
@@ -96,7 +96,13 @@ def policy_inputs() -> list[str]:
 
 
 def record() -> dict:
-    verify_reference_tree("17bf4515bf12747af69c8598a2fc82d73e9651b9")
+    reference_sources = {
+        "implementations/python/packages/raes/module_registry/_digests.py": "9ceeddbda9f288695a588a0c86b9061bd4578a45e097d5c454af85a926bdedb2",
+        "implementations/python/packages/raes/module_registry/models.py": "6afcd65ef2ea5be50017f0412aa6a83d6b48726d02d2553d0b00ac74df451218",
+    }
+    for source, expected in reference_sources.items():
+        if hashlib.sha256((ROOT / source).read_bytes()).hexdigest() != expected:
+            raise ValueError("Module policy reference source differs from its pinned contents")
     policies = []
     with tempfile.TemporaryDirectory() as directory:
         path = Path(directory) / "raes-trust.yaml"
