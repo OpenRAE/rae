@@ -248,7 +248,7 @@ def _compile_entries(
     entries: dict[str, AdmittedTrialEntryModel] = {}
     cleanup_plans: dict[str, TrialCleanupPlanModel] = {}
     used_control_ids: set[str] = set()
-    resolved_signatures: dict[str, str] = {}
+    resolved_signatures: dict[str, str | None] = {}
     canonical_failure: CompilationFailure | None = None
     capture_failures: dict[tuple[str, str, str], Diagnostic] = {}
     retained_bytes = 0
@@ -292,8 +292,7 @@ def _compile_entries(
             used_control_ids.update(draw.control_id for draw in row.draws)
             entries[entry_id] = entry
             cleanup_plans[cleanup_id] = cleanup
-            if signature is not None:
-                resolved_signatures[entry_id] = signature
+            resolved_signatures[entry_id] = signature
             continue
         canonical_failure = _earliest_failure(canonical_failure, candidate_failure)
     if capture_failures:

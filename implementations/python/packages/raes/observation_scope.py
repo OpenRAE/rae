@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypedDict
 
 from raes_contracts.errors import InvalidInputError
+from raes_contracts.evidence_requirements import EvidenceRequirement
 from raes_contracts.json_pointer import pointer_from_tokens, unescape_token
 from raes_contracts.lexical_scope import select_lexical_scope
+from raes_contracts.propositions import Assertion, Proposition
 from raes_contracts.realization_structure import (
     RealizationClosure,
     RealizationCollectionProfile,
@@ -17,7 +19,7 @@ from raes_contracts.realization_structure import (
 from raes_contracts.runtime_value_limits import PLAN_VALUE_LIMITS
 from raes_contracts.safe_state import ResolvedSafeState, SafeStateDocument, SafeStateProof, SafeStateScope
 
-from ._declarations import DeclarationIndex, build_declaration_index
+from ._declarations import Declaration, DeclarationIndex, build_declaration_index
 from ._reference_targetability import ReferencePurpose, declaration_eligible
 
 if TYPE_CHECKING:
@@ -146,9 +148,15 @@ def _canonical_safe_state_refs(index: DeclarationIndex, refs: list[str]) -> list
     return canonical
 
 
-def _safe_state_proof_inputs(scenario: ScenarioContent, refs: set[str]) -> dict:
-    proofs = {}
-    propositions = {}
+class _SafeStateProofInputs(TypedDict):
+    assertion: Assertion
+    proposition: Proposition
+    evidence_requirements: dict[str, EvidenceRequirement]
+
+
+def _safe_state_proof_inputs(scenario: ScenarioContent, refs: set[str]) -> dict[str, _SafeStateProofInputs]:
+    proofs: dict[str, _SafeStateProofInputs] = {}
+    propositions: dict[str, tuple[Proposition, dict[str, EvidenceRequirement]]] = {}
     for ref in sorted(refs):
         assertion = scenario.assertions.get(ref)
         if assertion is None:
@@ -164,12 +172,13 @@ def _safe_state_proof_inputs(scenario: ScenarioContent, refs: set[str]) -> dict:
                     raise ValueError("Safe-state evidence reference does not resolve")
                 evidence[name] = requirement
             # Share source objects; do not clone a proposition for each assertion.
-            propositions[assertion.proposition] = {"proposition": proposition, "evidence_requirements": evidence}
-        proofs[ref] = {"assertion": assertion, **propositions[assertion.proposition]}
+            propositions[assertion.proposition] = (proposition, evidence)
+        proposition, evidence = propositions[assertion.proposition]
+        proofs[ref] = {"assertion": assertion, "proposition": proposition, "evidence_requirements": evidence}
     return proofs
 
 
-def _safe_state_proof(index: DeclarationIndex, inputs: dict) -> SafeStateProof:
+def _safe_state_proof(index: DeclarationIndex, inputs: _SafeStateProofInputs) -> SafeStateProof:
     proposition = inputs["proposition"]
     value = proposition.model_dump(mode="json")
     value["subjects"] = _canonical_safe_state_refs(index, proposition.subjects)
@@ -182,6 +191,24 @@ def _safe_state_proof(index: DeclarationIndex, inputs: dict) -> SafeStateProof:
     return SafeStateProof(
         assertion=inputs["assertion"].model_dump(mode="json"), proposition=value, evidence_requirements=evidence
     )
+
+
+def _safe_state_rules(
+    document: SafeStateDocument, targets: list[Declaration], scopes: dict[str, str], payload: dict[str, object]
+) -> list[SafeStateScope]:
+    rules = list(document.scopes)
+    if document.default is not None:
+        rules.append(SafeStateScope(state=document.default))
+    for rule in rules:
+        matches = any(
+            semantic_address_contains(rule.scope, scopes[target.address])
+            and semantic_scope_namespace(payload, scopes[target.address])[: len(rule.namespace)] == rule.namespace
+            for target in targets
+        )
+        # A defining scope must be a real ancestor, never a field or positional alias.
+        if not matches:
+            raise ValueError("Safe-state scope or namespace does not resolve to eligible targets")
+    return rules
 
 
 def resolve_safe_states(scenario: ScenarioContent) -> tuple[ResolvedSafeState, ...]:
@@ -197,19 +224,7 @@ def resolve_safe_states(scenario: ScenarioContent) -> tuple[ResolvedSafeState, .
         if declaration_eligible(declaration, ReferencePurpose.SAFE_STATE_TARGET)
     ]
     scopes = {target.address: observation_reference_scope(index, target.address, payload) for target in targets}
-    rules = list(document.scopes)
-    if document.default is not None:
-        rules.append(SafeStateScope(state=document.default))
-    for rule in rules:
-        matches = [
-            target
-            for target in targets
-            if semantic_address_contains(rule.scope, scopes[target.address])
-            and semantic_scope_namespace(payload, scopes[target.address])[: len(rule.namespace)] == rule.namespace
-        ]
-        # A defining scope must be a real ancestor, never a field or positional alias.
-        if not matches:
-            raise ValueError("Safe-state scope or namespace does not resolve to eligible targets")
+    rules = _safe_state_rules(document, targets, scopes, payload)
     inputs = _safe_state_proof_inputs(scenario, {ref for rule in rules for ref in rule.state.assertion_refs})
     bindings = []
     for target in sorted(targets, key=lambda target: target.address):
