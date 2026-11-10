@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import cast
 
 from raes import (
     MaterializedScenario,
@@ -178,7 +179,7 @@ def _value_free_resource(resource: PlannedResource) -> PlannedResource:
     """Describe account material value-free, as the runtime stores it."""
     if resource.resource_type != "account-placement":
         return resource
-    return replace(resource, payload=value_free_account_placement_payload(resource.payload))
+    return cast(PlannedResource, replace(resource, payload=value_free_account_placement_payload(resource.payload)))
 
 
 def _resources_for_domain(resources: dict[str, PlannedResource], domain: RuntimeDomain) -> dict[str, PlannedResource]:

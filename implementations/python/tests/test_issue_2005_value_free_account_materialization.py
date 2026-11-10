@@ -39,9 +39,10 @@ def test_described_account_matches_its_value_free_runtime_entry():
     )
     stored = value_free_account_placement_payload(PAYLOAD)
     _validate_current_scope({ADDRESS: resource}, _scope(stored), RuntimeDomain.PROVISIONING)
-    changed = {**stored, "spec": {**stored["spec"], "username": "root"}}
+    changed = _scope({**stored, "spec": {**stored["spec"], "username": "root"}})
+    resources = {ADDRESS: resource}
     with pytest.raises(InvalidInputError):
-        _validate_current_scope({ADDRESS: resource}, _scope(changed), RuntimeDomain.PROVISIONING)
+        _validate_current_scope(resources, changed, RuntimeDomain.PROVISIONING)
 
 
 def test_value_free_account_matches_in_every_compared_scope():
