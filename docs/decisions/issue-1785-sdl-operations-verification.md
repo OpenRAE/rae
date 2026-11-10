@@ -98,6 +98,9 @@ flags, signer maps, and version ordering and constraints.
 `TestSharedReferenceRulesOnConstructedDocuments` checks that shared temporal,
 stateful-resource, and service-content findings agree with the frozen Python
 messages and owners for constructed documents.
+It runs in the shared-rule package against 60 Python-constructed inputs.
+`parity_shared_rule_vectors.py` records these inputs and the reference package
+content hash; its replay test also works in shallow checkouts.
 Additional tests check lockfile fields, optional and absent locks, explicit
 workspace authority, atomic publication refusals, and version-tag selection.
 Targeted coverage profiles extend the hosted report.
