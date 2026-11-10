@@ -341,7 +341,7 @@ func (a *keyAnalysis) identifiers(key, value *node, name string, parent, child [
 	if len(child) == 1 && child[0] == "name" || scalarIdentifier(child) {
 		text, ok := value.value.(string)
 		valid := portable(text)
-		if a.materialized && len(child) == 3 && child[0] == forwardingSection && child[2] == "forwarding_agent_id" {
+		if a.materialized && hasField(a.document.root, "instantiation_provenance") && len(child) == 3 && child[0] == forwardingSection && child[2] == "forwarding_agent_id" {
 			valid = qualified(text)
 		}
 		if value.kind != 'v' || !ok || !valid {

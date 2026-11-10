@@ -223,7 +223,7 @@ func objectMatches(schema, value map[string]any) bool {
 }
 func (w *normalizer) mapping(schema map[string]any, pointer string, value map[string]any, path []string, policy scalarPolicy, view source.View) (any, error) {
 	value = w.contentConstructorInput(pointer, value)
-	if pointer == "#/$defs/DomainProfileSchemaModel" && value["schema_digest"] == nil {
+	if pointer == domainProfileSchemaPointer && value["schema_digest"] == nil {
 		value = maps.Clone(value)
 		delete(value, "schema_digest")
 	}
@@ -233,6 +233,9 @@ func (w *normalizer) mapping(schema map[string]any, pointer string, value map[st
 	failures := []error{}
 	for _, required := range array(schema["required"]) {
 		name := text(required)
+		if pointer == domainProfileSchemaPointer && name == "schema_digest" {
+			continue // The native output constructor computes a missing digest below.
+		}
 		if _, present := value[name]; !present {
 			failures = append(failures, locatedModelError(invalid(), appendPath(path, name)))
 		}
