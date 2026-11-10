@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any
@@ -16,15 +15,24 @@ from pydantic import BaseModel
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
 
-from parity_sdl_constructors import model_fields_schema, reference_definitions  # noqa: E402
+from parity_sdl_constructors import (  # noqa: E402
+    model_fields_schema,
+    reference_definitions,
+    verify_reference_tree,
+)
 from raes.materialization import MaterializedScenario  # noqa: E402
-from raes.scenario import Scenario  # noqa: E402
+from raes.scenario import InstantiatedScenario, Scenario  # noqa: E402
 
 NATIVE_FIELDS = {("ExperimentArtifactRefModel", "created_at")}
-COMBINED_URI_FIELDS = {("RuntimeAptPackageRepository", "uri"), ("RuntimePackageRepositorySigningKey", "uri")}
+COMBINED_URI_FIELDS = {
+    ("RuntimeAptPackageRepository", "uri"),
+    ("RuntimePackageRepositorySigningKey", "uri"),
+}
 
 
-def field_patterns(schema: dict[str, Any], path: tuple[str, ...] = ()) -> list[dict[str, Any]]:
+def field_patterns(
+    schema: dict[str, Any], path: tuple[str, ...] = ()
+) -> list[dict[str, Any]]:
     kind = schema.get("type")
     result = []
     if kind == "str" and isinstance(schema.get("pattern"), str):
@@ -41,7 +49,9 @@ def field_patterns(schema: dict[str, Any], path: tuple[str, ...] = ()) -> list[d
         result = [
             fact
             for choice in schema["choices"]
-            for fact in field_patterns(choice[0] if isinstance(choice, tuple) else choice, path)
+            for fact in field_patterns(
+                choice[0] if isinstance(choice, tuple) else choice, path
+            )
         ]
     return result
 
@@ -49,11 +59,15 @@ def field_patterns(schema: dict[str, Any], path: tuple[str, ...] = ()) -> list[d
 def combined_pattern(facts: list[dict[str, Any]], schema: dict[str, Any]) -> None:
     if len(facts) != 1 or facts[0]["path"]:
         raise ValueError("combined URI field pattern changed shape")
-    encoded = json.dumps(schema, sort_keys=True, ensure_ascii=True, separators=(",", ":")).encode()
+    encoded = json.dumps(
+        schema, sort_keys=True, ensure_ascii=True, separators=(",", ":")
+    ).encode()
     facts[0]["schema_sha256"] = hashlib.sha256(encoded).hexdigest()
 
 
-def definition_patterns(cls: type[BaseModel], properties: dict[str, Any], name: str) -> dict[str, Any]:
+def definition_patterns(
+    cls: type[BaseModel], properties: dict[str, Any], name: str
+) -> dict[str, Any]:
     if cls.model_config.get("regex_engine", "rust-regex") != "rust-regex":
         raise ValueError("an SDL field pattern selects an unreviewed engine")
     result = {}
@@ -69,19 +83,22 @@ def definition_patterns(cls: type[BaseModel], properties: dict[str, Any], name: 
 
 
 def records() -> dict[str, Any]:
-    reference = json.loads((ROOT / "implementations/go/contract/admission/testdata/sdl-constructors.json").read_text())[
-        "reference"
-    ]
-    actual = subprocess.check_output(
-        ["git", "log", "-1", "--format=%H", "--", "implementations/python/packages/raes"],
-        cwd=ROOT,
-        text=True,
-    ).strip()
-    if actual != reference:
-        raise ValueError("SDL pattern reference commit differs from the constructor fixture")
+    reference = json.loads(
+        (
+            ROOT
+            / "implementations/go/contract/admission/testdata/sdl-constructors.json"
+        ).read_text()
+    )["reference"]
+    verify_reference_tree(reference)
     contracts = {}
-    for model, contract in ((Scenario, "sdl-authoring-input-v1"), (MaterializedScenario, "materialized-scenario-v1")):
-        published = json.loads((ROOT / "contracts/schemas/sdl" / (contract + ".json")).read_bytes())
+    for model, contract in (
+        (Scenario, "sdl-authoring-input-v1"),
+        (MaterializedScenario, "materialized-scenario-v1"),
+        (InstantiatedScenario, "instantiated-scenario-v1"),
+    ):
+        published = json.loads(
+            (ROOT / "contracts/schemas/sdl" / (contract + ".json")).read_bytes()
+        )
         definitions = {}
         for pointer, cls in reference_definitions(model).items():
             if pointer == "#":

@@ -65,8 +65,9 @@ def model_fields_schema(cls: type[BaseModel]) -> dict[str, Any]:
     return core.get("fields", {})
 
 
-def record(document: dict[str, Any]) -> str:
-    reference = subprocess.check_output(
+def verify_reference_tree(reference: str) -> None:
+    """Keep the pinned code identity when merge or revert history moves."""
+    actual = subprocess.check_output(
         [
             "git",
             "log",
@@ -78,8 +79,36 @@ def record(document: dict[str, Any]) -> str:
         cwd=ROOT,
         text=True,
     ).strip()
-    if reference != document["reference"]:
+    if not all(
+        isinstance(value, str)
+        and len(value) == 40
+        and set(value) <= set("0123456789abcdef")
+        for value in (actual, reference)
+    ):
         raise ValueError("SDL constructor reference commit differs from the fixture")
+    if (
+        actual != reference
+        and subprocess.run(
+            [
+                "git",
+                "diff",
+                "--quiet",
+                reference,
+                "--",
+                "implementations/python/packages/raes",
+            ],
+            cwd=ROOT,
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ).returncode
+        != 0
+    ):
+        raise ValueError("SDL constructor reference commit differs from the fixture")
+
+
+def record(document: dict[str, Any]) -> str:
+    verify_reference_tree(document["reference"])
     names = [row["name"] for row in document["cases"]]
     if len(names) != len(set(names)):
         raise ValueError("SDL constructor case names must be unique")
@@ -89,10 +118,14 @@ def record(document: dict[str, Any]) -> str:
         (MaterializedScenario, "materialized-scenario-v1"),
     ):
         definitions[contract] = reference_definitions(model)
-    definitions["instantiated-scenario-v1"] = {"#/$defs/ResolvedImportProvenance": ResolvedImportProvenance}
+    definitions["instantiated-scenario-v1"] = {
+        "#/$defs/ResolvedImportProvenance": ResolvedImportProvenance
+    }
     for row in document["cases"]:
         try:
-            definitions[row.get("contract", "sdl-authoring-input-v1")][row["pointer"]].model_validate(row["data"])
+            definitions[row.get("contract", "sdl-authoring-input-v1")][
+                row["pointer"]
+            ].model_validate(row["data"])
             row["accepted"] = True
         except ValidationError:
             row["accepted"] = False

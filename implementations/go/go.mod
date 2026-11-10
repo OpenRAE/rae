@@ -3,6 +3,7 @@ module github.com/OpenRAE/rae/implementations/go
 go 1.27.3
 
 require (
+	github.com/autonubil/go-wazuh v1.4.0
 	github.com/goccy/go-yaml v1.19.2
 	github.com/google/go-cmp v0.7.0
 	github.com/gowebpki/jcs v1.0.2
@@ -13,4 +14,7 @@ require (
 	golang.org/x/text v0.43.0
 )
 
-require github.com/klauspost/cpuid/v2 v2.0.12 // indirect
+require (
+	github.com/klauspost/cpuid/v2 v2.2.4 // indirect
+	golang.org/x/sys v0.47.0 // indirect
+)

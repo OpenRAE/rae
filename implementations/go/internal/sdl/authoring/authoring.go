@@ -5,6 +5,7 @@ package authoring
 
 import (
 	"bytes"
+	"context"
 	"embed"
 	"encoding/json"
 	"io/fs"
@@ -20,6 +21,7 @@ import (
 	"github.com/OpenRAE/rae/implementations/go/contract/validation"
 	"github.com/OpenRAE/rae/implementations/go/internal/contract/corpus"
 	"github.com/OpenRAE/rae/implementations/go/internal/sdl/source"
+	"github.com/OpenRAE/rae/implementations/go/sdl/module"
 )
 
 // The embedded presentation metadata is immutable and has no validation authority.
@@ -34,9 +36,10 @@ type Request struct {
 	Name   string
 	// RootDir identifies the canonical absolute directory represented by FS.
 	// It grants no read authority and is ignored when Sources is supplied.
-	RootDir string
-	FS      fs.FS
-	Sources map[string][]byte
+	RootDir  string
+	FS       fs.FS
+	Sources  map[string][]byte
+	Registry *module.Registry
 }
 
 // Result contains strict authored YAML and migration advisories.
@@ -143,6 +146,14 @@ func (d *Document) JSON() []byte { return slices.Clone(d.data) }
 
 // Decode checks strict source and the structural model, including imports.
 func (p *Parser) Decode(request Request) (*Document, error) {
+	return p.DecodeContext(context.Background(), request)
+}
+
+// DecodeContext checks source and composition using caller cancellation.
+func (p *Parser) DecodeContext(ctx context.Context, request Request) (*Document, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fault.New(fault.Operational, "sdl-operation-canceled", err)
+	}
 	captured, err := captureRequest(request)
 	if err != nil {
 		return nil, err
@@ -151,7 +162,7 @@ func (p *Parser) Decode(request Request) (*Document, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = p.checkImports(document, request, captured); err != nil {
+	if err = p.checkImports(ctx, document, request, captured); err != nil {
 		return nil, err
 	}
 	return document, nil
@@ -160,6 +171,14 @@ func (p *Parser) Decode(request Request) (*Document, error) {
 // Format migrates supported syntax, emits model field order, and strictly
 // re-admits the resulting source and import graph before returning bytes.
 func (p *Parser) Format(request Request) (Result, error) {
+	return p.FormatContext(context.Background(), request)
+}
+
+// FormatContext formats and re-admits source using caller cancellation.
+func (p *Parser) FormatContext(ctx context.Context, request Request) (Result, error) {
+	if err := ctx.Err(); err != nil {
+		return Result{}, fault.New(fault.Operational, "sdl-operation-canceled", err)
+	}
 	captured, err := captureRequest(request)
 	if err != nil {
 		return Result{}, err
@@ -189,7 +208,7 @@ func (p *Parser) Format(request Request) (Result, error) {
 	if err != nil {
 		return Result{}, err
 	}
-	if err = p.checkImports(strict, request, captured); err != nil {
+	if err = p.checkImports(ctx, strict, request, captured); err != nil {
 		return Result{}, err
 	}
 	if err = p.checkFormatPhase(strict); err != nil {
@@ -269,7 +288,8 @@ func (p *Parser) construct(value map[string]any, id string, hints map[string][]s
 	if err != nil {
 		return nil, nil, err
 	}
-	if err = p.models.CheckSDLConstruction(id, "#", encoded, modelLimits(encoded)); err != nil {
+	err = p.models.CheckSDLConstruction(id, "#", encoded, modelLimits(encoded))
+	if err != nil {
 		return nil, nil, &modelError{path: "", cause: err}
 	}
 	serialized, err := encode(normalized, limit, true)
@@ -341,10 +361,17 @@ func requestPaths(request Request) error {
 func (p *Parser) layoutRecords(id string) map[string]layout {
 	result := make(map[string]layout, len(p.layouts[sharedLayoutKey])+len(p.layouts[id]))
 	maps.Copy(result, p.layouts[sharedLayoutKey])
-	if id == expandedContract {
+	if id == expandedContract || id == instantiatedContract {
 		maps.Copy(result, p.layouts[authoringContract])
 	}
 	maps.Copy(result, p.layouts[id])
+	if id == instantiatedContract {
+		for pointer := range result {
+			if resolve(p.schemas[id], pointer) == nil {
+				delete(result, pointer)
+			}
+		}
+	}
 	return result
 }
 func (p *Parser) layoutFor(id, pointer string) layout {
@@ -355,7 +382,7 @@ func (p *Parser) lookupLayout(id, pointer string) (layout, bool) {
 	if row, present := p.layouts[id][pointer]; present {
 		return row, true
 	}
-	if id == expandedContract {
+	if id == expandedContract || id == instantiatedContract {
 		if row, present := p.layouts[authoringContract][pointer]; present {
 			return row, true
 		}

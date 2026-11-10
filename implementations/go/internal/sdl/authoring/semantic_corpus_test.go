@@ -81,7 +81,7 @@ func checkSemanticCorpusVector(t *testing.T, parser *Parser, row semanticCorpusV
 	request := Request{Source: []byte(row.semanticVector.Source), Name: "main.yaml", FS: fstest.MapFS{}}
 	document, err := parser.decode(request.Source, request.Name, policy)
 	if err == nil {
-		err = parser.checkImports(document, request, nil)
+		err = parser.checkImports(t.Context(), document, request, nil)
 	}
 	if (err == nil) != row.Constructed {
 		t.Logf("construction diagnostics: %+v", source.Diagnostics(err))

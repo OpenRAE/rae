@@ -41,7 +41,7 @@ func structuredInput(model, name string, value any) (any, error) {
 		if target := object(value); target != nil {
 			if _, present := target[kindField]; !present {
 				inferred := maps.Clone(target)
-				inferred[kindField] = "reference"
+				inferred[kindField] = termReference
 				return inferred, nil
 			}
 		}

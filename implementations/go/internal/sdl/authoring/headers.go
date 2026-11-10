@@ -19,9 +19,17 @@ func (c *composition) addImportRecords(importer, name string, requested, descrip
 	namespace := text(requested[namespaceField])
 	header := map[string]any{
 		namespaceField: []any{namespace}, "requested_source": importSource(requested), requestedVersionField: text(requested["version"]), "requested_digest": normalizedDigest(text(requested["digest"])),
+		manifestDigestField: "", signerIDField: "",
 		moduleIDField: descriptor["id"], moduleVersionField: descriptor["version"], resolvedSourceField: relativeSource(path.Dir(importer), name), contentDigestField: digest.SHA256(raw), exportHashField: exports,
 	}
-	header["bindings"] = c.facts[name].bindings
+	header[termBindings] = c.facts[name].bindings
+	if facts, verified := c.remoteFacts[name]; verified {
+		header[resolvedSourceField] = facts.ResolvedSource
+		header[contentDigestField] = facts.ContentDigest
+		header[exportHashField] = normalizedDigest(facts.ExportHash)
+		header[manifestDigestField] = facts.ManifestDigest
+		header[signerIDField] = facts.SignerID
+	}
 	// ImportDecl's absent version has a model default; explicit empty remains empty.
 	if _, present := requested["version"]; !present {
 		header[requestedVersionField] = "*"

@@ -24,18 +24,23 @@ type semanticPolicies struct {
 		Scopes      []semanticPolicyRecord `json:"scopes"`
 		Constraints []semanticPolicyRecord `json:"constraints"`
 	} `json:"realization"`
-	Expansion *struct {
-		Imports []struct {
-			Namespace []string `json:"namespace"`
-		} `json:"imports"`
-		Designations []semanticPolicyRecord `json:"realization_designations"`
-		Constraints  []semanticPolicyRecord `json:"realization_constraints"`
-	} `json:"expansion_provenance"`
+	Expansion     *semanticExpansionPolicies `json:"expansion_provenance"`
+	Instantiation *semanticExpansionPolicies `json:"instantiation_provenance"`
+}
+type semanticExpansionPolicies struct {
+	Imports []struct {
+		Namespace []string `json:"namespace"`
+	} `json:"imports"`
+	Designations []semanticPolicyRecord `json:"realization_designations"`
+	Constraints  []semanticPolicyRecord `json:"realization_constraints"`
 }
 
 func (m *semanticModel) policyFacts() error {
 	if json.Unmarshal(m.document.modelBytes(), &m.policies) != nil {
 		return invalid()
+	}
+	if m.document.contract == instantiatedContract {
+		m.policies.Expansion = m.policies.Instantiation
 	}
 	return nil
 }

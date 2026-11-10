@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
+
+	"github.com/OpenRAE/rae/implementations/go/internal/base/jsonpointer"
 )
 
 const reusableMixedSemantics = "mixed-control-policy-occurrence/rev1"
@@ -54,16 +56,27 @@ type semanticMixedCheck struct {
 	collector *semanticCollector
 	row       semanticBehavior
 	policy    *semanticMixed
+	pointer   string
 }
 
 func (s semanticMixedCheck) label() string {
 	return "Behavior specification '" + s.row.name + "' mixed_control"
 }
 func (s semanticMixedCheck) report(label, message string) {
-	s.collector.report(semanticOwner{behaviorSection, s.row.name}, label+" "+message)
+	finding := s.collector.finding(semanticOwner{behaviorSection, s.row.name}, label+" "+message, termError)
+	if s.pointer != "" {
+		finding.Pointer = s.pointer
+	}
+	s.collector.errors = append(s.collector.errors, finding)
 }
 func (s semanticMixedCheck) reference(label, field, ref string, purpose semanticPurpose) {
+	start := len(s.collector.errors)
 	s.model.requireNamedReference(s.collector, semanticOwner{behaviorSection, s.row.name}, label, field, ref, purpose)
+	if s.pointer != "" {
+		for i := start; i < len(s.collector.errors); i++ {
+			s.collector.errors[i].Pointer = s.pointer
+		}
+	}
 }
 func (m *semanticModel) checkMixedControl(c *semanticCollector) {
 	for _, row := range m.behaviors {
@@ -77,7 +90,7 @@ func (m *semanticModel) checkMixedControl(c *semanticCollector) {
 		if row.mode != "mixed-control" {
 			c.report(owner, fmt.Sprintf("Behavior specification '%s' mixed_control requires behavior_mode mixed-control", row.name))
 		}
-		check := semanticMixedCheck{m, c, row, row.mixed}
+		check := semanticMixedCheck{model: m, collector: c, row: row, policy: row.mixed}
 		check.policyChecks()
 	}
 }
@@ -90,22 +103,28 @@ func (s semanticMixedCheck) policyChecks() {
 		s.report(label, "policy_revision must match the behavior specification semantic_version")
 	}
 	scope := s.model.purposeReferences(s.row.authority, referenceAuthorityScope)
-	for _, id := range s.model.keys(behaviorSection, s.row.name, "mixed_control", "controller_states") {
+	for _, id := range s.model.keys(behaviorSection, s.row.name, termMixedControl, "controller_states") {
 		s.state(id, s.policy.States[id], scope)
 	}
 	if s.policy.States[s.policy.Initial].Status == revokedTerm {
 		s.report(label, "initial state cannot use revoked authority")
 	}
 	if s.policy.Semantics == reusableMixedSemantics {
-		for _, id := range s.model.keys(behaviorSection, s.row.name, "mixed_control", "permitted_transitions") {
-			s.permittedTransition(id, s.policy.Permitted[id])
+		for _, id := range s.model.keys(behaviorSection, s.row.name, termMixedControl, "permitted_transitions") {
+			transition := s.transitionLocation("permitted_transitions", id)
+			transition.permittedTransition(id, s.policy.Permitted[id])
 		}
 		s.script()
 	} else {
-		for _, id := range s.model.keys(behaviorSection, s.row.name, "mixed_control", "transitions") {
-			s.legacyTransition(id, s.policy.Transitions[id])
+		for _, id := range s.model.keys(behaviorSection, s.row.name, termMixedControl, "transitions") {
+			transition := s.transitionLocation("transitions", id)
+			transition.legacyTransition(id, s.policy.Transitions[id])
 		}
 	}
+}
+func (s semanticMixedCheck) transitionLocation(collection, id string) semanticMixedCheck {
+	s.pointer = jsonpointer.FromTokens([]string{behaviorSection, s.row.name, termMixedControl, collection, id})
+	return s
 }
 func (s semanticMixedCheck) controller(state semanticMixedState) string {
 	return resolvedControllerReference(state.Controller, s.policy.Participant)

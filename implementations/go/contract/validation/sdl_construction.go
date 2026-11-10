@@ -25,7 +25,7 @@ const nodeSemanticClauses = "3778bdc61d14bbcb0626bf210050815770870a81d2c19a742c0
 
 func (v *Validator) loadSDLConstruction() error {
 	v.construction = map[string]contract{}
-	for _, id := range []string{"sdl-authoring-input-v1", sdlMaterializedContract} {
+	for _, id := range []string{"sdl-authoring-input-v1", sdlMaterializedContract, "instantiated-scenario-v1"} {
 		published, present := v.contracts[id]
 		if !present {
 			continue // Small isolated schema fixtures need not contain SDL.

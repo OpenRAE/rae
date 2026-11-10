@@ -19,6 +19,12 @@ import (
 func runners() map[string]Runner {
 	return map[string]Runner{
 		"cli sdl format":              formatRunner(),
+		"cli sdl resolve":             moduleOperationRunner(),
+		"cli sdl verify-imports":      moduleOperationRunner(),
+		"cli sdl publish":             moduleOperationRunner(),
+		"cli semantic resolve":        semanticOperationRunner(),
+		"cli semantic normalize":      semanticOperationRunner(),
+		"cli semantic transform":      semanticOperationRunner(),
 		"schema validate":             schemaRunner(),
 		"shared timestamp":            shared,
 		"shared version":              shared,

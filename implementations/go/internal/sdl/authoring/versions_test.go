@@ -39,7 +39,7 @@ func checkVersionVector(t *testing.T, row versionVector) {
 		if want == nil {
 			continue
 		}
-		if got := spec.accepts(actual); got != *want {
+		if got := spec.Accepts(actual); got != *want {
 			t.Errorf("accepts(%q)=%v, want %v", actual, got, *want)
 		}
 	}

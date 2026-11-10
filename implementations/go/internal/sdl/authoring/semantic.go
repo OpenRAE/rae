@@ -60,7 +60,10 @@ func (d *Document) CanonicalBytes() ([]byte, error) {
 	if !d.Validated() {
 		return nil, semanticInvalid()
 	}
-	if d.expanded != nil {
+	if d.contract == instantiatedContract {
+		return d.Snapshot()
+	}
+	if d.expanded != nil || d.contract == expandedContract {
 		return d.canonicalExpanded()
 	}
 	if d.contract == materializedContract {
@@ -165,7 +168,7 @@ func newSemanticCollector(document *Document) semanticCollector {
 
 func (c *semanticCollector) forwarderLocations(view source.View, node string, tokens []string) {
 	for i, row := range view.Elements() {
-		field := row.Child("forwarding_agent_id")
+		field := row.Child(termForwardingAgentID)
 		id, _ := field.Scalar()
 		owner := semanticOwner{forwardingSection, id}
 		if node != "" {
@@ -174,12 +177,12 @@ func (c *semanticCollector) forwarderLocations(view source.View, node string, to
 		if location, present := field.Range(); present {
 			c.locations[owner] = location
 		}
-		c.pointers[owner] = jsonpointer.FromTokens(appendPath(appendPath(tokens, strconv.Itoa(i)), "forwarding_agent_id"))
+		c.pointers[owner] = jsonpointer.FromTokens(appendPath(appendPath(tokens, strconv.Itoa(i)), termForwardingAgentID))
 	}
 }
 
 func (c *semanticCollector) report(owner semanticOwner, message string) {
-	c.errors = append(c.errors, c.finding(owner, message, "error"))
+	c.errors = append(c.errors, c.finding(owner, message, termError))
 }
 func (c *semanticCollector) finding(owner semanticOwner, message, severity string) diagnostic.Diagnostic {
 	result := diagnostic.Diagnostic{Code: "sdl.semantic", Severity: severity, Stage: "semantic_validation", Message: message}

@@ -33,12 +33,12 @@ func (v semanticVariationCheck) checkPoint() error {
 	switch v.point.Kind {
 	case variationParameterKind:
 		v.parameter()
-	case "governed-reference":
+	case termGovernedReference:
 		if err := v.references(v.point.Domain.Allowed, false); err != nil {
 			return err
 		}
 	case variationAlternativeKind:
-		if v.point.Target.Kind == "structural" {
+		if v.point.Target.Kind == termStructural {
 			v.structural()
 		} else {
 			if err := v.references(v.memberReferences(), false); err != nil {
@@ -46,12 +46,12 @@ func (v semanticVariationCheck) checkPoint() error {
 			}
 		}
 		v.relations()
-	case "subset", "order":
+	case termSubset, termOrder:
 		if err := v.references(v.memberReferences(), true); err != nil {
 			return err
 		}
 		v.relations()
-	case "logical-timing":
+	case termLogicalTiming:
 		v.timing()
 	}
 	return nil
@@ -76,9 +76,9 @@ func (v semanticVariationCheck) parameter() {
 	}
 }
 func (v semanticVariationCheck) members() (map[string]semanticVariationMember, []string) {
-	field, members := "members", v.point.Members
+	field, members := termMembers, v.point.Members
 	if v.point.Kind == variationAlternativeKind {
-		field, members = "alternatives", v.point.Alternatives
+		field, members = termAlternatives, v.point.Alternatives
 	}
 	return members, v.model.keys(variationPointsField, v.point.name, field)
 }

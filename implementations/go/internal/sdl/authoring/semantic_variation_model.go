@@ -25,8 +25,15 @@ type semanticVariation struct {
 	Minimum      int                                `json:"minimum"`
 	Maximum      *int                               `json:"maximum"`
 	Unit         string                             `json:"unit"`
+	Precedence   []struct {
+		Before string `json:"before"`
+		After  string `json:"after"`
+	} `json:"precedence"`
+	FixedPositions map[string]int `json:"fixed_positions"`
 }
 type semanticVariationMember struct {
+	Kind       string                      `json:"kind"`
+	Present    *bool                       `json:"present"`
 	Inventory  map[string][]string         `json:"inventory"`
 	References []string                    `json:"references"`
 	Consumers  []semanticConsumerSelector  `json:"consumers"`

@@ -80,11 +80,15 @@ func (w *normalizer) intersectionModel(schema map[string]any) (map[string]any, s
 	return selected, pointer
 }
 func (w *normalizer) walk(schema map[string]any, pointer string, value any, path []string, policy scalarPolicy, view source.View) (result any, failure error) {
+	discriminator := modelDiscriminator(schema, value)
 	defer func() {
 		if failure == nil {
 			result, failure = w.shareScalar(result)
 		}
 		failure = locatedModelError(failure, path)
+		if failure != nil && discriminator != "" {
+			failure = &modelError{cause: failure, causes: []error{failure}, discriminator: discriminator, discriminatorPath: jsonpointer.FromTokens(path)}
+		}
 	}()
 	schema, pointer = w.dereference(schema, pointer)
 	if schema == nil {
@@ -201,7 +205,7 @@ func schemaMatches(schema map[string]any, value any) bool {
 	}
 }
 func objectMatches(schema, value map[string]any) bool {
-	if text(schema["type"]) != "object" && schema["properties"] == nil {
+	if text(schema["type"]) != termObject && schema["properties"] == nil {
 		return false
 	}
 	for _, required := range array(schema["required"]) {
@@ -226,29 +230,23 @@ func (w *normalizer) mapping(schema map[string]any, pointer string, value map[st
 	presentation := w.parser.layoutFor(w.id, pointer)
 	keys := fieldOrder(w.keys(value, path, view), presentation.Fields)
 	result := make(ordered, 0, len(value))
+	failures := []error{}
+	for _, required := range array(schema["required"]) {
+		name := text(required)
+		if _, present := value[name]; !present {
+			failures = append(failures, locatedModelError(invalid(), appendPath(path, name)))
+		}
+	}
 	for _, name := range keys {
-		child, err := w.propertySchema(schema, name)
+		normalized, err := w.mappingField(schema, pointer, value, name, path, policy, view, presentation)
 		if err != nil {
-			return nil, err
+			failures = append(failures, err)
+			continue
 		}
-		raw, err := w.memoField(pointer, name, value[name])
-		if err != nil {
-			return nil, err
-		}
-		fieldPolicy, present := presentation.Scalar[name]
-		if !present {
-			fieldPolicy = childPolicy(policy.Values)
-		}
-		childPointer := pointer + "/additionalProperties"
-		if _, known := object(schema["properties"])[name]; known {
-			childPointer = pointer + "/properties/" + jsonpointer.EscapeToken(name)
-		}
-		normalized, err := w.walk(child, childPointer, raw, appendPath(path, name), fieldPolicy, view.Child(name))
-		if err != nil {
-			return nil, err
-		}
-		normalized = omitInferredTarget(pointer, name, value[name], normalized)
-		result = append(result, field{name: name, value: normalized, omit: omitted(normalized, presentation.Omit[name])})
+		result = append(result, normalized)
+	}
+	if len(failures) > 0 {
+		return nil, &modelError{causes: failures, cause: invalid()}
 	}
 	result = modelOutput(pointer, result, presentation.Fields)
 	result, err := w.profileSchemaOutput(pointer, result, presentation.Fields)
@@ -259,6 +257,31 @@ func (w *normalizer) mapping(schema map[string]any, pointer string, value map[st
 		return nil, err
 	}
 	return result, nil
+}
+
+func (w *normalizer) mappingField(schema map[string]any, pointer string, value map[string]any, name string, path []string, policy scalarPolicy, view source.View, presentation layout) (field, error) {
+	child, err := w.propertySchema(schema, name)
+	if err != nil {
+		return field{}, locatedModelError(err, appendPath(path, name))
+	}
+	raw, err := w.memoField(pointer, name, value[name])
+	if err != nil {
+		return field{}, locatedModelError(err, appendPath(path, name))
+	}
+	fieldPolicy, present := presentation.Scalar[name]
+	if !present {
+		fieldPolicy = childPolicy(policy.Values)
+	}
+	childPointer := pointer + "/additionalProperties"
+	if _, known := object(schema["properties"])[name]; known {
+		childPointer = pointer + "/properties/" + jsonpointer.EscapeToken(name)
+	}
+	normalized, err := w.walk(child, childPointer, raw, appendPath(path, name), fieldPolicy, view.Child(name))
+	if err != nil {
+		return field{}, err
+	}
+	normalized = omitInferredTarget(pointer, name, value[name], normalized)
+	return field{name: name, value: normalized, omit: omitted(normalized, presentation.Omit[name])}, nil
 }
 
 // The legacy service discriminator is supplied by the Content constructor,
@@ -402,9 +425,47 @@ func omitValue(value any, policy string) bool {
 }
 
 type modelError struct {
-	path  string
-	cause error
+	path                             string
+	cause                            error
+	causes                           []error
+	discriminator, discriminatorPath string
 }
 
 func (e *modelError) Error() string { return "sdl model rejected" }
 func (e *modelError) Unwrap() error { return e.cause }
+
+func (e *modelError) SourceDiagnostics() []source.Diagnostic {
+	result := []source.Diagnostic{}
+	for _, err := range e.causes {
+		result = append(result, source.Diagnostics(err)...)
+		if len(result) >= 20 {
+			return result[:20]
+		}
+	}
+	if len(result) == 0 {
+		result = append(result, source.Diagnostic{Code: "sdl.model.invalid", Pointer: e.path, Severity: termError})
+	}
+	if e.discriminator != "" {
+		for i := range result {
+			prefix := e.discriminatorPath
+			if result[i].Pointer == prefix || strings.HasPrefix(result[i].Pointer, prefix+"/") {
+				result[i].Pointer = prefix + "/" + jsonpointer.EscapeToken(e.discriminator) + strings.TrimPrefix(result[i].Pointer, prefix)
+			}
+		}
+	}
+	return result
+}
+
+func modelDiscriminator(schema map[string]any, value any) string {
+	selector := object(schema["discriminator"])
+	property := text(selector["propertyName"])
+	if tag, ok := object(value)[property].(string); ok && object(selector["mapping"])[tag] != nil {
+		return tag
+	}
+	for _, raw := range alternatives(schema) {
+		if tag := modelDiscriminator(object(raw), value); tag != "" {
+			return tag
+		}
+	}
+	return ""
+}

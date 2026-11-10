@@ -61,7 +61,7 @@ func checkCases(t *testing.T, run Runner, cases []Case) {
 			if err != nil {
 				t.Fatalf("run(%s) error = %v", c.Name, err)
 			}
-			diff, err := compareResults(expectedResult(t, c), got)
+			diff, err := compareCaseResults(c, expectedResult(t, c), got)
 			if err != nil {
 				t.Fatalf("compareResults() error = %v", err)
 			}

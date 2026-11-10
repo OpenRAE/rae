@@ -28,6 +28,22 @@ func (d *Document) Explicitness() map[string]ExplicitnessRecord {
 	if !d.Validated() || d.semantic.intent == nil {
 		return result
 	}
+	if d.Instantiated() {
+		var phase struct {
+			Provenance concreteProvenance `json:"instantiation_provenance"`
+		}
+		if json.Unmarshal(d.data, &phase) != nil {
+			return result
+		}
+		for _, record := range phase.Provenance.Explicitness {
+			variables := make([]string, len(record.Parameters))
+			for i, parameter := range record.Parameters {
+				variables[i] = strings.Join(parameter, ".")
+			}
+			result[record.Path] = ExplicitnessRecord{Path: record.Path, Classification: record.Classification, Provenance: record.Provenance, Reason: record.Reason, Variables: variables}
+		}
+		return result
+	}
 	for path, record := range d.semantic.intent.records {
 		record.Variables = slices.Clone(record.Variables)
 		result[path] = record
@@ -46,15 +62,17 @@ type semanticIntentFrame struct {
 type semanticIntentVisitor struct {
 	model      *semanticModel
 	records    map[string]ExplicitnessRecord
+	paths      []string
 	errors     []string
 	references []semanticString
+	sentinels  map[string]bool
 }
 
 func (m *semanticModel) loadIntent() error {
 	if m.intent != nil {
 		return nil
 	}
-	visitor := &semanticIntentVisitor{model: m, records: map[string]ExplicitnessRecord{}}
+	visitor := &semanticIntentVisitor{model: m, records: map[string]ExplicitnessRecord{}, sentinels: map[string]bool{}}
 	root := semanticIntentFrame{data: m.root, schema: m.parser.schemas[m.document.contract], pointer: "#"}
 	if _, err := visitor.visit(root); err != nil {
 		return err
@@ -103,7 +121,7 @@ func (v *semanticIntentVisitor) mapping(frame semanticIntentFrame, data map[stri
 			if exactExtension && field == "record_type" && len(record.Variables) == 0 {
 				record.Classification = exactTerm
 				record.Reason = "owning model supplies exact extension identity"
-				v.records[record.Path] = *record
+				v.record(*record)
 			}
 			children = append(children, *record)
 		}
@@ -180,7 +198,7 @@ func (v *semanticIntentVisitor) container(path string, children []ExplicitnessRe
 		record.Variables = append(record.Variables, name)
 	}
 	slices.Sort(record.Variables)
-	v.records[path] = record
+	v.record(record)
 	return &record
 }
 func intentRank(classification string) int {
@@ -202,12 +220,22 @@ func (v *semanticIntentVisitor) scalar(frame semanticIntentFrame) *ExplicitnessR
 			record.Classification = "constrained"
 			record.Reason = v.variableReason(frame.path, record.Variables)
 		} else if slices.Contains(frame.policy.ExplicitnessEnums, text) {
+			if text == "unknown" || text == "other" {
+				v.sentinels[jsonpointer.FromTokens(frame.tokens)] = true
+			}
 			record.Classification = openTerm
 			record.Reason = "open taxonomy sentinel"
 		}
 	}
-	v.records[frame.path] = record
+	v.record(record)
 	return &record
+}
+
+func (v *semanticIntentVisitor) record(record ExplicitnessRecord) {
+	if _, present := v.records[record.Path]; !present {
+		v.paths = append(v.paths, record.Path)
+	}
+	v.records[record.Path] = record
 }
 func (v *semanticIntentVisitor) variableReason(path string, names []string) string {
 	var parts, missing []string

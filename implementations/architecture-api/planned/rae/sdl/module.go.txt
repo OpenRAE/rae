@@ -21,7 +21,7 @@ type VerificationFacts struct {
 	LocalSource, SignatureVerified, ManifestVerified, ContentVerified, ExportsVerified bool
 }
 type TrustPolicy interface {
-	AdmitModule(context.Context, VerificationFacts) error
+	AdmitModule(ctx context.Context, facts VerificationFacts) error
 }
 type RegistryTrust struct {
 	RequireSignatures, AllowInsecureHTTP bool
@@ -34,7 +34,45 @@ type Policy struct {
 }
 
 func DefaultPolicy() Policy
-func (policy Policy) AdmitModule(context.Context, VerificationFacts) error
+func (policy Policy) AdmitModule(ctx context.Context, facts VerificationFacts) error
 
+func DecodeLockfile(raw []byte) (Lockfile, error)
 func LoadLockfile(source fs.FS, directory string) (Lockfile, error)
-func ResolveLock(context.Context, fs.FS, string, TrustPolicy) (Lockfile, error)
+func ResolveLock(ctx context.Context, source fs.FS, root string, trust TrustPolicy, admitters ...SourceAdmitter) (Lockfile, error)
+
+// Registry is the explicit transport, trust and cache capability.
+type Registry struct { opaque []byte }
+type Bundle struct { opaque []byte }
+type Artifact struct { Manifest, Config, Bundle []byte }
+type Publication struct {
+	LayoutDir string `json:"layout_dir"`
+	ModuleID string `json:"module_id"`
+	ModuleVersion string `json:"module_version"`
+	ManifestDigest string `json:"manifest_digest"`
+	ContentDigest string `json:"content_digest"`
+	ExportHash string `json:"export_hash"`
+	SignerID string `json:"signer_id"`
+}
+type VersionRequirement struct { opaque []byte }
+
+func DecodePolicy(raw []byte) (Policy, error)
+func NewRegistry(cacheDirectory string, policy Policy, trust TrustPolicy) (*Registry, error)
+func (r *Registry) Close() error
+func (r *Registry) AdmitModule(ctx context.Context, facts VerificationFacts) error
+func (r *Registry) Resolve(ctx context.Context, source, version, pin string) (*Bundle, error)
+func (r *Registry) ResolveLocked(ctx context.Context, record LockRecord) (*Bundle, error)
+func (r *Registry) Verify(ctx context.Context, registry string, artifact Artifact) (*Bundle, error)
+func (r *Registry) ResolveLock(ctx context.Context, source fs.FS, root string, admitters ...SourceAdmitter) (Lockfile, error)
+func (r *Registry) Publish(ctx context.Context, source fs.FS, root, outputDirectory, signerID string, privateKey []byte, admitter PublicationAdmitter) (Publication, error)
+func (b *Bundle) RootFile() string
+func (b *Bundle) RootPath() string
+func (b *Bundle) Sources() map[string][]byte
+func (b *Bundle) Record() LockRecord
+func ParseVersionRequirement(requested string) (VersionRequirement, error)
+func (r VersionRequirement) Accepts(actual string) bool
+
+// PublicationAdmitter supplies native source and composition admission.
+type PublicationAdmitter interface { AdmitModuleSources(ctx context.Context, source fs.FS, root string) (string, map[string][]byte, error) }
+
+// SourceAdmitter admits one imported authoring source without expanding imports.
+type SourceAdmitter interface { AdmitModuleSource(raw []byte) error }

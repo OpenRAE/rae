@@ -46,7 +46,7 @@ func (m *semanticModel) resourceScope(row semanticBehavior) semanticResourceScop
 		}
 	}
 	for _, owner := range row.autonomous.Budget.Owners {
-		if owner.Kind == "deployment_tenant" {
+		if owner.Kind == termDeploymentTenant {
 			scope.declaredTenants[strings.TrimPrefix(owner.Ref, deploymentTenantPrefix)] = true
 		}
 	}
@@ -86,7 +86,7 @@ func (s *semanticResourceScope) ownerIssue(owner semanticResourceOwner) string {
 		if !s.participants[strings.TrimPrefix(ref, "agents.")] {
 			return fmt.Sprintf("participant ref '%s' is outside the policy participant scope", ref)
 		}
-	case "deployment_tenant":
+	case termDeploymentTenant:
 		tenant := strings.TrimPrefix(ref, deploymentTenantPrefix)
 		if !s.model.definitions[deploymentTenantsField][tenant] {
 			return fmt.Sprintf("deployment tenant ref '%s' is undefined", ref)

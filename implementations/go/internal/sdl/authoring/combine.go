@@ -28,7 +28,7 @@ func exportNames(value map[string]any, section string) map[string]bool {
 	names := map[string]bool{}
 	if section == forwardingSection {
 		for _, agent := range array(value[section]) {
-			names[text(object(agent)["forwarding_agent_id"])] = true
+			names[text(object(agent)[termForwardingAgentID])] = true
 		}
 		return names
 	}
@@ -52,9 +52,7 @@ func (c *composition) combine(parent, incoming map[string]any, namespace string,
 		return err
 	}
 	exports := object(descriptor["exports"])
-	var err error
-	incoming, err = c.namespaceVariables(incoming, namespace, array(exports[variablesSection]))
-	if err != nil {
+	if err := rewriteOwnedReferencesWithBudget(incoming, symbolsFor(incoming, namespace, descriptor), &c.copies); err != nil {
 		return err
 	}
 	if err := c.composePolicies(parent, incoming, namespace, descriptor); err != nil {
@@ -95,11 +93,11 @@ func (c *composition) combineAgents(parent map[string]any, incoming []any, names
 	current := append([]any{}, array(parent[forwardingSection])...)
 	identities := map[string]bool{}
 	for _, agent := range current {
-		identities[text(object(agent)["forwarding_agent_id"])] = true
+		identities[text(object(agent)[termForwardingAgentID])] = true
 	}
 	for _, raw := range incoming {
 		agent := object(raw)
-		qualified := qualifiedImport(namespace, text(agent["forwarding_agent_id"]), exports)
+		qualified := qualifiedImport(namespace, text(agent[termForwardingAgentID]), exports)
 		if err := c.budget.CheckNamespace(qualified); err != nil {
 			return err
 		}
@@ -107,7 +105,7 @@ func (c *composition) combineAgents(parent map[string]any, incoming []any, names
 			return importError("collision")
 		}
 		identities[qualified] = true
-		agent["forwarding_agent_id"] = qualified
+		agent[termForwardingAgentID] = qualified
 		current = append(current, agent)
 	}
 	parent[forwardingSection] = current

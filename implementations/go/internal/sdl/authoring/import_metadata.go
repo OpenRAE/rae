@@ -13,6 +13,7 @@ import (
 
 func newImportFacts(document *Document, value map[string]any) (*importFacts, error) {
 	result := &importFacts{origins: map[semanticOwner]importOrigin{}, constraints: []importConstraint{}, bindings: []any{}, designation: []any{}, realization: []any{}}
+	result.document = document
 	var err error
 	result.order, err = semanticOrder(document.modelBytes())
 	if err != nil {
@@ -20,14 +21,14 @@ func newImportFacts(document *Document, value map[string]any) (*importFacts, err
 	}
 	collector := newSemanticCollector(document)
 	for owner, position := range collector.locations {
-		finding := collector.finding(owner, "", "error")
+		finding := collector.finding(owner, "", termError)
 		result.origins[owner] = importOrigin{source: document.sourceName, pointer: finding.Pointer, canonical: finding.Pointer, position: position, located: true}
 	}
 	captureEntityOrigins(result.origins, document.source.View().Child(entitiesField), "", []string{entitiesField}, document.sourceName)
 	if realization := object(value["realization"]); realization != nil {
 		posture := realization[defaultField]
 		if posture == nil {
-			posture = "unspecified"
+			posture = termUnspecified
 		}
 		root := map[string]any{namespaceField: []any{}, fieldPointerField: "", "posture": posture}
 		result.designation = append(result.designation, root)
@@ -57,6 +58,7 @@ func (c *composition) inheritImportFacts(parent, child, namespace string, symbol
 		into.constraints = append(into.constraints, constraint)
 	}
 	into.derivations = append(into.derivations, qualifyDerivations(from.derivations, namespace, symbols)...)
+	into.explicitness = append(into.explicitness, qualifyExplicitness(from.explicitness, namespace, symbols)...)
 	for owner, origin := range from.origins {
 		owner = namespaceOriginOwner(owner, origin, symbols)
 		origin.canonical = symbols.pointer(origin.canonical)
@@ -125,8 +127,12 @@ func qualifyRealization(records []any, namespace string, symbols importSymbols) 
 }
 
 func (d *Document) canonicalExpanded() ([]byte, error) {
+	input := d
+	if d.expanded != nil {
+		input = d.expanded
+	}
 	var scenario map[string]json.RawMessage
-	if err := json.Unmarshal(d.expanded.data, &scenario); err != nil {
+	if err := json.Unmarshal(input.data, &scenario); err != nil {
 		return nil, fault.New(fault.Operational, "sdl-canonical-model", nil)
 	}
 	var provenance struct {
@@ -160,5 +166,5 @@ func (d *Document) canonicalExpanded() ([]byte, error) {
 			nodes[tokens[1]][tokens[2]] = &name
 		}
 	}
-	return canonicalSemanticJSON(json.Marshal(map[string]any{"profile": semanticProfile, "scenario": scenario, "module_variable_specs": variables, "module_node_variable_refs": nodes}))
+	return canonicalSemanticJSON(json.Marshal(map[string]any{termProfile: semanticProfile, termScenario: scenario, "module_variable_specs": variables, "module_node_variable_refs": nodes}))
 }

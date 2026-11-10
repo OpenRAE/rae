@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/OpenRAE/rae/implementations/go/base/digest"
-	"github.com/OpenRAE/rae/implementations/go/base/ingress"
 	"github.com/OpenRAE/rae/implementations/go/internal/sdl/source"
+	"github.com/OpenRAE/rae/implementations/go/sdl/module"
 )
 
 type lockfile struct{ records []map[string]any }
@@ -21,6 +21,10 @@ func pinMatches(raw []byte, pin string) bool {
 	return pin == "" || strings.TrimPrefix(pin, sha256Prefix) == strings.TrimPrefix(digest.SHA256(raw), sha256Prefix)
 }
 func (c *composition) optional(name string) ([]byte, bool, error) {
+	if scope, logical := c.verifiedScope(name); scope != nil {
+		raw, present := scope.sources[logical]
+		return raw, present, nil
+	}
 	if c.supplied != nil {
 		raw, err := c.supplied.Bytes(name)
 		if code, ok := errors.AsType[interface {
@@ -71,47 +75,23 @@ func (c *composition) lock(importer string, needed bool) (*lockfile, error) {
 	return decodeLock(raw, limit)
 }
 func decodeLock(raw []byte, limit int64) (*lockfile, error) {
-	decoded, err := ingress.Parse(raw, ingress.Limits{MaxBytes: int(limit), MaxDepth: 8}, ingress.Object)
+	if int64(len(raw)) > limit {
+		return nil, importError(lockInvalidCode)
+	}
+	decoded, err := module.DecodeLockfile(raw)
 	if err != nil {
 		return nil, importError(lockInvalidCode)
 	}
-	value := object(decoded)
-	if !closed(value, nil, []string{"schema_version", importsField}) {
-		return nil, importError(lockInvalidCode)
+	result := &lockfile{}
+	for _, row := range decoded.Imports {
+		result.records = append(result.records, map[string]any{
+			sourceField: row.Source, namespaceField: row.Namespace, requestedVersionField: row.RequestedVersion,
+			resolvedSourceField: row.ResolvedSource, moduleIDField: row.ModuleID, moduleVersionField: row.ModuleVersion,
+			manifestDigestField: row.ManifestDigest, contentDigestField: row.ContentDigest,
+			exportHashField: row.ExportHash, signerIDField: row.SignerID,
+		})
 	}
-	if version, ok := value["schema_version"]; ok && version != "raes-lock/v1" {
-		return nil, importError(lockInvalidCode)
-	}
-	rows, ok := value[importsField].([]any)
-	if _, present := value[importsField]; present && !ok {
-		return nil, importError(lockInvalidCode)
-	}
-	lock := &lockfile{}
-	for _, raw := range rows {
-		record, err := decodeLockRecord(object(raw))
-		if err != nil {
-			return nil, err
-		}
-		lock.records = append(lock.records, record)
-	}
-	return lock, nil
-}
-func decodeLockRecord(record map[string]any) (map[string]any, error) {
-	if !closed(record, []string{sourceField, namespaceField, resolvedSourceField, moduleIDField, moduleVersionField, manifestDigestField, contentDigestField, exportHashField}, []string{requestedVersionField, signerIDField}) {
-		return nil, importError(lockInvalidCode)
-	}
-	for _, value := range record {
-		if _, ok := value.(string); !ok {
-			return nil, importError(lockInvalidCode)
-		}
-	}
-	if _, present := record[requestedVersionField]; !present {
-		record[requestedVersionField] = "*"
-	}
-	if _, present := record[signerIDField]; !present {
-		record[signerIDField] = ""
-	}
-	return record, nil
+	return result, nil
 }
 func closed(value map[string]any, required, optional []string) bool {
 	if value == nil {
@@ -181,93 +161,28 @@ func matchingLockRecord(lock *lockfile, decl map[string]any, requested string, r
 	return matches[0], true, nil
 }
 func (c *composition) trust(importer string) error {
+	if scope, _ := c.verifiedScope(importer); scope != nil {
+		return nil
+	}
 	name := path.Join(path.Dir(importer), "raes-trust.yaml")
 	raw, present, err := c.optional(name)
 	if err != nil || !present {
 		return err
 	}
-	if emptyPolicy(raw) {
-		return nil
-	}
-	value, err := workspacePolicy(raw, name)
+	policy, err := module.DecodePolicy(raw)
 	if err != nil {
 		return workspaceFailure(name, err)
 	}
-	if !validTrustPolicy(value) {
-		return workspaceFailure(name, invalid())
-	}
-	if allowed, ok := value["allow_unsigned_local_sources"]; ok {
-		normalized, err := normalizeBoolean(allowed, false)
-		if err != nil {
-			return workspaceFailure(name, err)
-		}
-		c.localDenied[importer] = normalized == false
-	}
+	c.localDenied[importer] = !policy.AllowUnsignedLocalSources
 	return nil
 }
 
-func emptyPolicy(raw []byte) bool {
-	for line := range strings.SplitSeq(string(raw), "\n") {
-		line = strings.TrimSpace(line)
-		if line != "" && !strings.HasPrefix(line, "#") {
-			return false
-		}
-	}
-	return true
-}
-func validTrustPolicy(value map[string]any) bool {
-	if !closed(value, nil, []string{"schema_version", "allow_unsigned_local_sources", "registries"}) {
-		return false
-	}
-	if version, present := value["schema_version"]; present {
-		if _, ok := version.(string); !ok {
-			return false
-		}
-	}
-	raw, present := value["registries"]
-	if !present {
-		return true
-	}
-	registries := object(raw)
-	if registries == nil {
-		return false
-	}
-	for _, raw := range registries {
-		if !validRegistryTrust(object(raw)) {
-			return false
-		}
-	}
-	return true
-}
-func validRegistryTrust(value map[string]any) bool {
-	if !closed(value, nil, []string{"require_signatures", "trusted_signers", "allow_insecure_http"}) {
-		return false
-	}
-	for _, key := range []string{"require_signatures", "allow_insecure_http"} {
-		if raw, present := value[key]; present {
-			if _, err := normalizeBoolean(raw, false); err != nil {
-				return false
-			}
-		}
-	}
-	raw, present := value["trusted_signers"]
-	if !present {
-		return true
-	}
-	signers := object(raw)
-	if signers == nil {
-		return false
-	}
-	for _, raw := range signers {
-		if _, ok := raw.(string); !ok {
-			return false
-		}
-	}
-	return true
-}
+func (c *composition) localSourcesOnly() bool { return c.supplied != nil || c.snapshot != nil }
+
 func (c *composition) resolveLocked(decl map[string]any, lock *lockfile) (map[string]any, error) {
 	requested := text(decl[sourceField])
-	if c.supplied != nil && !strings.HasPrefix(requested, localImportPrefix) && requested != "" {
+	// Supplied graphs and publication snapshots grant no workspace alias authority.
+	if c.localSourcesOnly() && !strings.HasPrefix(requested, localImportPrefix) && requested != "" {
 		return nil, importError("source-refused")
 	}
 	seen := map[string]bool{}

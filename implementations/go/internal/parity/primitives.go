@@ -85,7 +85,7 @@ func primitiveIngress(request primitiveRequest) (json.RawMessage, error) {
 		return nil, err
 	}
 	root := ingress.Array
-	if request.Root == "object" {
+	if request.Root == termObject {
 		root = ingress.Object
 	}
 	value, err := ingress.Parse(data, ingress.Limits{MaxBytes: request.MaxBytes, MaxDepth: request.MaxDepth}, root)

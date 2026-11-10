@@ -114,8 +114,11 @@ func (q *scopeQueries) step(current any, schema map[string]any, pointer, token, 
 func (q *scopeQueries) defaultValue(pointer, field string, schema map[string]any) (any, bool, error) {
 	raw, found := q.w.parser.layoutFor(q.w.id, pointer).FactoryDefaults[field]
 	if !found {
-		schema, _ = q.w.dereference(schema, "")
 		value, present := schema[defaultField]
+		if !present {
+			schema, _ = q.w.dereference(schema, "")
+			value, present = schema[defaultField]
+		}
 		if !present {
 			return nil, false, nil
 		}

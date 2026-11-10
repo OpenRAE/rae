@@ -6,7 +6,7 @@ func artifactModel(model string, value map[string]any) error {
 		return artifactRequirement(value)
 	case "Source":
 		requirement := object(value["artifact_requirement"])
-		if requirement["explicitness"] == exactTerm {
+		if requirement[termExplicitness] == exactTerm {
 			identity := object(requirement["exact_artifact"])
 			version, present := value["version"]
 			if !present {
@@ -43,7 +43,7 @@ func artifactRoutes(routes []any) error {
 	for _, raw := range routes {
 		route := object(raw)
 		mechanism := object(route["mechanism"])
-		identity := [5]string{text(mechanism["mechanism"]), text(mechanism["profile"]), text(mechanism["version"]), text(route["acquisition"]), text(route["timing"])}
+		identity := [5]string{text(mechanism["mechanism"]), text(mechanism[termProfile]), text(mechanism["version"]), text(route["acquisition"]), text(route["timing"])}
 		if seen[identity] {
 			return invalid()
 		}

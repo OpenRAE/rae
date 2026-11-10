@@ -102,7 +102,7 @@ func analyze(d *Document, options Options) error {
 		return err
 	}
 	a := keyAnalysis{options: options, document: d, seen: map[diagnosticIdentity]bool{}, walked: map[walkKey]bool{}, cache: map[walkKey]effective{}, built: map[*node][]member{}}
-	a.materialized = options.BasePointer == "" && options.KeyScope == structuralScope && hasField(d.root, "materialization_provenance")
+	a.materialized = options.BasePointer == "" && options.KeyScope == structuralScope && (hasField(d.root, "materialization_provenance") || hasField(d.root, "instantiation_provenance"))
 	d.baseTokens = tokens
 	a.walk(d.root, options.KeyScope, tokens, map[*node]bool{}, rootPath(tokens))
 	slices.SortFunc(a.items, func(x, y pendingDiagnostic) int {
@@ -340,7 +340,11 @@ func (a *keyAnalysis) identifiers(key, value *node, name string, parent, child [
 	}
 	if len(child) == 1 && child[0] == "name" || scalarIdentifier(child) {
 		text, ok := value.value.(string)
-		if value.kind != 'v' || !ok || !portable(text) {
+		valid := portable(text)
+		if a.materialized && len(child) == 3 && child[0] == forwardingSection && child[2] == "forwarding_agent_id" {
+			valid = qualified(text)
+		}
+		if value.kind != 'v' || !ok || !valid {
 			a.add(identifierInvalidCode, value, path, nil, nil)
 		}
 	}

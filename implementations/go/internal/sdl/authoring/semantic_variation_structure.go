@@ -111,7 +111,7 @@ func (v semanticVariationCheck) childInventory(refs []string) bool {
 	owner := ""
 	count := 0
 	for address, entry := range v.model.index.aliases[v.point.Target.Owner] {
-		if len(entry.tokens) == 6 && entry.tokens[0] == nodesSection && entry.tokens[2] == runtimeField && entry.tokens[3] == "network_detection_engines" {
+		if len(entry.tokens) == 6 && entry.tokens[0] == nodesSection && entry.tokens[2] == runtimeField && entry.tokens[3] == termNetworkDetectionEngines {
 			owner = address
 			count++
 		}
