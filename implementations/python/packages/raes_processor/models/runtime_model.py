@@ -115,7 +115,7 @@ class RuntimeModel:
     """
 
     scenario_name: str
-    safe_states: tuple[ResolvedSafeState, ...] = ()
+    safe_states: tuple[ResolvedSafeState, ...] = field(default=(), kw_only=True)
     execution_policies: dict[str, tuple[EffectiveExecutionPolicy, ...]] = field(default_factory=dict)
     feature_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)
     condition_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)

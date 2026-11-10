@@ -75,6 +75,15 @@ def test_native_budget_precedes_serialization(monkeypatch):
         contracts.validate_safe_states(states)
 
 
+def test_runtime_model_keeps_its_existing_positional_policy_argument():
+    from raes_processor.models import RuntimeModel
+
+    policies = {"orchestration.script.control": ()}
+    model = RuntimeModel("legacy-constructor", policies)
+    assert model.execution_policies == policies
+    assert model.safe_states == ()
+
+
 def test_trial_byte_limit_precedes_sealing_and_preserves_partition_result(monkeypatch):
     import raes_processor.trial_compiler.compiler as compiler
     from raes_contracts.canonical import canonical_json_bytes

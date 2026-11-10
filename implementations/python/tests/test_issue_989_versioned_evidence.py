@@ -170,6 +170,8 @@ def test_current_compile_replay_hashes_complete_capture_dimension():
     scenario = parse_sdl_file(path, migration_policy=_migration_policy_for_case(ROOT, case, path))
     compiled = dataclasses.asdict(compile_runtime_model(instantiate_scenario(scenario, parameters={})))
     assert "capture_demands" in compiled
+    # The retained fixture has no safe-state intent; its optional empty value is omitted.
+    assert compiled.pop("safe_states") == ()
     assert _compiled_case_digest(ROOT, case, path) == _digest(compiled)
 
 

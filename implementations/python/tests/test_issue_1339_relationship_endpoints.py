@@ -662,6 +662,7 @@ def test_endpoint_kind_sets_name_decided_kinds_inside_their_resolution_domain() 
         P.OBSERVATION_SUBJECT,
         P.AUTHORITY_ANCHOR,
         P.OPERATING_SCOPE,
+        P.SAFE_STATE_TARGET,
     }
     assert {purpose for purpose in P if policy.resolution_domain(purpose) is P.OPERATING_SCOPE} == {P.OPERATING_SCOPE}
 
