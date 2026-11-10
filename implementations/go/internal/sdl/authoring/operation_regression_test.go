@@ -1,13 +1,36 @@
 package authoring
 
 import (
+	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"errors"
+	"io"
+	"os"
 	"testing"
 
 	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
 	"github.com/OpenRAE/rae/implementations/go/internal/sdl/source"
 )
+
+// Keep this fixture reader in the regression replay file so it is available on the base revision.
+func readCompressedFixture(name string) ([]byte, error) {
+	root, err := os.OpenRoot(".")
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = root.Close() }()
+	raw, err := root.ReadFile(name)
+	if err != nil {
+		return nil, err
+	}
+	reader, err := gzip.NewReader(bytes.NewReader(raw))
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = reader.Close() }()
+	return io.ReadAll(reader)
+}
 
 func TestRegressionSiblingEnumDefaultSurvivesReference(t *testing.T) {
 	parser, err := New(source.DefaultLimits())
