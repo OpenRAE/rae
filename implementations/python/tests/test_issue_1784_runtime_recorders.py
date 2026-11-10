@@ -23,19 +23,19 @@ def recorder(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> tuple[ModuleTyp
     monkeypatch.syspath_prepend(str(ROOT / "tools"))
     module = importlib.import_module("tools.parity_sdl_constructors")
     monkeypatch.setattr(module, "ROOT", tmp_path)
-    monkeypatch.setattr(module, "reference_revision", lambda: "pinned")
+    monkeypatch.setattr(module, "reference_revision", lambda: "a" * 40)
     monkeypatch.setattr(module, "reference_definitions", lambda _model: {POINTER: RuntimeProcessIdentity})
     directory = tmp_path / "implementations/go/contract/admission/testdata"
     directory.mkdir(parents=True)
     manifest = {
-        "reference": "pinned",
+        "reference": "a" * 40,
         "models": {POINTER: RuntimeProcessIdentity.__module__ + "." + RuntimeProcessIdentity.__name__},
         "baselines": {POINTER: {"name": "worker"}},
         "case_files": ["runtime-constructors-000.json"],
         "case_count": 3,
     }
     document = {
-        "reference": "pinned",
+        "reference": "a" * 40,
         "cases": [
             {"name": "default-selector", "pointer": POINTER, "accepted": True},
             {"name": "explicit-selector", "pointer": POINTER, "accepted": True, "data": {"pid": 2}},

@@ -83,18 +83,7 @@ def reference_revision() -> str:
 
 def verify_reference_tree(reference: str) -> None:
     """Keep the pinned code identity when merge or revert history moves."""
-    actual = subprocess.check_output(
-        [
-            "git",
-            "log",
-            "-1",
-            "--format=%H",
-            "--",
-            "implementations/python/packages/raes",
-        ],
-        cwd=ROOT,
-        text=True,
-    ).strip()
+    actual = reference_revision()
     if not all(
         isinstance(value, str) and len(value) == 40 and set(value) <= set("0123456789abcdef")
         for value in (actual, reference)
