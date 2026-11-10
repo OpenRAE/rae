@@ -8,7 +8,12 @@ import (
 )
 
 func readCompressedFixture(name string) ([]byte, error) {
-	raw, err := os.ReadFile(name)
+	root, err := os.OpenRoot(".")
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = root.Close() }()
+	raw, err := root.ReadFile(name)
 	if err != nil {
 		return nil, err
 	}

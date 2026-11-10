@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/OpenRAE/rae/implementations/go/internal/base/jsonpointer"
+	"github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules"
 )
 
 // Declaration enumeration is shared by formatting, semantic reference policy,
@@ -95,7 +96,7 @@ func (d *declarationIndex) children(section, name, address string, value map[str
 		}
 		d.namedItems(array(value[servicesField]), address+".services.", false, servicesField, "service", appendPath(path, servicesField))
 		if runtime := object(value["runtime"]); runtime != nil {
-			d.runtime(runtime, runtimeDeclarationContext{prefix: address + ".runtime.", node: name, tokens: appendPath(path, "runtime")}, runtimeDeclarationSpecs())
+			d.runtime(runtime, runtimeDeclarationContext{prefix: address + ".runtime.", node: name, tokens: appendPath(path, "runtime")}, sdlrules.RuntimeFamilies())
 		}
 	case infrastructureField:
 		d.namedItems(array(value["acls"]), address+".acls.", false, "acls", "infrastructure-acl", appendPath(path, "acls"))
@@ -143,35 +144,31 @@ func (d *declarationIndex) namedItems(items []any, prefix string, aliases bool, 
 	}
 }
 
-type runtimeDeclaration struct {
-	collection, identity string
-	children             []runtimeDeclaration
-}
 type runtimeDeclarationContext struct {
 	prefix, parentKind, node, parent string
 	owner                            map[string]any
 	tokens                           []string
 }
 
-func (d *declarationIndex) runtime(value map[string]any, context runtimeDeclarationContext, specs []runtimeDeclaration) {
+func (d *declarationIndex) runtime(value map[string]any, context runtimeDeclarationContext, specs []sdlrules.RuntimeCollection) {
 	for _, spec := range specs {
 		d.runtimeCollection(value, context, spec)
 	}
 }
-func (d *declarationIndex) runtimeCollection(value map[string]any, context runtimeDeclarationContext, spec runtimeDeclaration) {
-	kind := spec.collection
+func (d *declarationIndex) runtimeCollection(value map[string]any, context runtimeDeclarationContext, spec sdlrules.RuntimeCollection) {
+	kind := spec.Collection
 	if context.parentKind != "" {
 		kind = context.parentKind + "." + kind
 	}
-	for i, raw := range array(value[spec.collection]) {
+	for i, raw := range array(value[spec.Collection]) {
 		item := object(raw)
-		address := context.prefix + spec.collection + "." + text(item[spec.identity])
+		address := context.prefix + spec.Collection + "." + text(item[spec.Identity])
 		root := context.owner
 		if root == nil {
 			root = item
 		}
-		path := appendPath(appendPath(context.tokens, spec.collection), strconv.Itoa(i))
-		d.add(address, "", declaration{target: true, authority: true, action: true, kind: kind, node: context.node, parent: context.parent, value: item, owner: root, tokens: appendPath(path, spec.identity), collisionKind: "runtime-" + spec.collection})
-		d.runtime(item, runtimeDeclarationContext{address + ".", kind, context.node, address, root, path}, spec.children)
+		path := appendPath(appendPath(context.tokens, spec.Collection), strconv.Itoa(i))
+		d.add(address, "", declaration{target: true, authority: true, action: true, kind: kind, node: context.node, parent: context.parent, value: item, owner: root, tokens: appendPath(path, spec.Identity), collisionKind: "runtime-" + spec.Collection})
+		d.runtime(item, runtimeDeclarationContext{address + ".", kind, context.node, address, root, path}, spec.Children)
 	}
 }

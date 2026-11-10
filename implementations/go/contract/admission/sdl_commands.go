@@ -1,6 +1,9 @@
 package admission
 
-import "strings"
+import (
+	"strings"
+	"unicode/utf8"
+)
 
 func sdlCommand(v any, ssh bool) error {
 	kind := text(defaultMember(v, "command_kind", "absolute_path"))
@@ -22,6 +25,9 @@ func sdlCommand(v any, ssh bool) error {
 	return nil
 }
 func sdlServiceManagerUnit(v any) error {
+	if utf8.RuneCountInString(stringAt(v, "sub_state")) > 64 || utf8.RuneCountInString(stringAt(v, "status_text")) > 256 {
+		return invalid()
+	}
 	result := text(defaultMember(v, termResult, statusUnknown))
 	if at(v, "exit_code") != nil && !variableRef(result) && result != "exit_code" {
 		return invalid()

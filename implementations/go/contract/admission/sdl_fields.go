@@ -40,15 +40,15 @@ func sdlFieldOperation(operation string) bool {
 		operation = inner
 	}
 	switch operation {
-	case "portable", "qualified", "nonblank", "absolute-path", "contained-relative", "contained-mount", "unique-nonblank":
+	case "portable", "qualified", "nonblank", "absolute-path", "contained-relative", "contained-mount", "unique-nonblank", "domain-name", "mail-address", "database-listen-address", "control-path":
 		return true
 	default:
-		return false
+		return sdlNumberOperation(operation)
 	}
 }
 
 func sdlFieldWrapper(operation string) (string, string, bool) {
-	for _, wrapper := range []string{"optional-", "nullable-", "list-"} {
+	for _, wrapper := range []string{"optional-", "nullable-", "list-", "map-"} {
 		if inner, found := strings.CutPrefix(operation, wrapper); found {
 			return wrapper, inner, true
 		}
@@ -93,8 +93,16 @@ func sdlFieldValue(value any, operation string) bool {
 		return containedPath(text(value), false)
 	case "contained-mount":
 		return containedPath(text(value), true)
+	case "domain-name":
+		return sdlDNSName(text(value))
+	case "mail-address":
+		return variableRef(text(value)) || sdlMailAddress.MatchString(text(value)) && strings.IndexFunc(text(value), sdlWhitespace) < 0
+	case "database-listen-address":
+		return sdlDatabaseListenAddress(text(value))
+	case "control-path":
+		return sdlControlPath(text(value), false)
 	default:
-		return false
+		return sdlNumberField(value, operation)
 	}
 }
 
@@ -102,10 +110,26 @@ func sdlWrappedField(value any, wrapper, operation string) bool {
 	if wrapper == "nullable-" && value == nil || wrapper == "optional-" && (value == nil || value == "") {
 		return true
 	}
+	if wrapper == "map-" {
+		return sdlMapField(value, operation)
+	}
 	if wrapper != "list-" {
 		return sdlFieldValue(value, operation)
 	}
 	values, ok := value.([]any)
+	if !ok {
+		return false
+	}
+	for _, item := range values {
+		if !sdlFieldValue(item, operation) {
+			return false
+		}
+	}
+	return true
+}
+
+func sdlMapField(value any, operation string) bool {
+	values, ok := value.(map[string]any)
 	if !ok {
 		return false
 	}

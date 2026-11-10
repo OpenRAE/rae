@@ -7364,9 +7364,11 @@
         "implementations/go/contract/binding",
         "implementations/go/internal/base/jsonpointer"
       ],
-      "design": "docs/decisions/issue-1783-sdl-semantics-design.md",
+      "design": "docs/decisions/issue-1784-runtime-inventory-design.md",
       "api": {
         "linux-amd64": [
+          "func github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.RuntimeCollectionIdentity(family string, pointer string) string",
+          "func github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.RuntimeFamilies() []github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.RuntimeCollection",
           "func github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.ServiceMaterialization(data []byte, order map[string][]string) ([]github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.Finding, error)",
           "func github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.StatefulReferences(data []byte, order map[string][]string) ([]github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.Finding, error)",
           "func github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.TemporalBindings(data []byte, order map[string][]string) ([]github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.Finding, error)",
@@ -7374,7 +7376,8 @@
           "package sdlrules",
           "type error constraints[] interface{Error() string} comparable=true",
           "type github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.Finding constraints[] struct{Owner github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.Owner \"\" embedded=false; Message string \"\" embedded=false} unexported-fields=false comparable=true",
-          "type github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.Owner constraints[] struct{Section string \"\" embedded=false; Name string \"\" embedded=false} unexported-fields=false comparable=true"
+          "type github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.Owner constraints[] struct{Section string \"\" embedded=false; Name string \"\" embedded=false} unexported-fields=false comparable=true",
+          "type github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.RuntimeCollection constraints[] struct{Collection string \"\" embedded=false; Identity string \"\" embedded=false; Children []github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules.RuntimeCollection \"\" embedded=false} unexported-fields=false comparable=false"
         ]
       }
     },
@@ -7624,7 +7627,8 @@
     "docs/decisions/adrs/adr-119-consumer-parse-of-supplied-sdl-sources.md": "b29df4c1c6dcb690d540532011f498a0a1afbe794877ec38e5b80d8cb66b5442",
     "docs/decisions/issue-1799-go-governance-design.md": "abcc366a9fba4afcd8a9e0e42af3907f5cd858249152b8eacad25b85fb91e6e7",
     "docs/decisions/issue-1783-sdl-semantics-design.md": "fd11370fc74df070907fffc80e5ee400e14e2ca0585edfa29f75c6921b37c084",
-    "docs/decisions/issue-1785-sdl-operations-design.md": "41bdc60d1661d71a3b8e9d3077c79501aac38edba76ffee60032e88bdf2818e0"
+    "docs/decisions/issue-1785-sdl-operations-design.md": "41bdc60d1661d71a3b8e9d3077c79501aac38edba76ffee60032e88bdf2818e0",
+    "docs/decisions/issue-1784-runtime-inventory-design.md": "58b113c6cbb591035e86d1745870478fbf8aea190cac760dc4c329f813c0ee36"
   },
   "consumer_api": {
     "design": "docs/decisions/issue-1825-public-go-api.md",

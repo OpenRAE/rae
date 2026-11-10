@@ -8,6 +8,7 @@ import (
 
 	"github.com/OpenRAE/rae/implementations/go/base/canonjson"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/jsonpointer"
+	"github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules"
 )
 
 type selectedWrite struct {
@@ -167,9 +168,9 @@ func (m *semanticModel) inventoryWrite(payload map[string]any, owner, slot strin
 	}
 	rows := array(object(object(object(payload[nodesSection])[owner])[runtimeField])[collection])
 	identity := ""
-	for _, spec := range runtimeDeclarationSpecs() {
-		if spec.collection == collection {
-			identity = spec.identity
+	for _, spec := range sdlrules.RuntimeFamilies() {
+		if spec.Collection == collection {
+			identity = spec.Identity
 			break
 		}
 	}
