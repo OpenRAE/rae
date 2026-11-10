@@ -106,6 +106,12 @@ Product Go never invokes Python.
 The field-predicate recorder reuses existing scalar-plan analysis.
 It retains integer and fractional-number bounds as separate operations.
 
+Focused recorder tests check provenance and shard paths.
+They check model coverage and copied inputs.
+They also check that comparison leaves files unchanged.
+Repair mode must restore recorded results.
+These tests are in `implementations/python/tests/test_issue_1784_runtime_recorders.py`.
+
 Local evidence includes focused red and green cases, targeted native oracles, architecture checks, lint, file-local policy, and changed-path prose checks.
 The PR records exact commands and observed hosted results.
 A passing style linter does not establish technical accuracy or complete STE conformance.

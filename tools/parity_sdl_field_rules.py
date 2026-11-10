@@ -251,22 +251,22 @@ def declaration_rule(declaration: ast.FunctionDef | ast.Lambda, namespace: dict[
     body = [ast.Return(value=declaration.body)] if isinstance(declaration, ast.Lambda) else declaration.body
     if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant):
         body = body[1:]
-    if len(body) == 2 and isinstance(body[0], ast.If) and isinstance(body[1], ast.Return):
-        guard = body[0]
-        if (
-            isinstance(guard.test, ast.UnaryOp)
-            and isinstance(guard.test.op, ast.Not)
-            and isinstance(guard.test.operand, ast.Name)
-            and guard.test.operand.id == argument
-            and not guard.orelse
-            and len(guard.body) == 1
-            and returns_argument(guard.body[0], argument)
-            and (operation := returned_helper(body[1].value, argument, namespace))
-        ):
-            return "optional-" + operation
-    if len(body) == 1 and isinstance(body[0], ast.Return):
-        return returned_helper(body[0].value, argument, namespace)
-    return nonblank_guard(body, argument)
+    if operation := optional_helper_rule(body, argument, namespace):
+        result = "optional-" + operation
+    elif len(body) == 1 and isinstance(body[0], ast.Return):
+        result = returned_helper(body[0].value, argument, namespace)
+    else:
+        result = nonblank_guard(body, argument)
+    return result
+
+
+def optional_helper_rule(body: list[ast.stmt], argument: str, namespace: dict[str, Any]) -> str | None:
+    if len(body) != 2 or not isinstance(body[0], ast.If) or not isinstance(body[1], ast.Return):
+        return None
+    expected = ast.parse(f"if not {argument}: return {argument}").body[0]
+    if ast.dump(body[0]) != ast.dump(expected):
+        return None
+    return returned_helper(body[1].value, argument, namespace)
 
 
 def direct_rule(function: object) -> str | None:
@@ -317,23 +317,37 @@ def definition_rules(cls: type[BaseModel], properties: dict[str, Any], name: str
         operation = direct_rule(validator.func)
         if operation is not None:
             merge_validator(result, cls, properties, validator.info.fields, operation, name)
-    if cls.__module__.startswith(("raes.runtime_", "raes.image_provenance")) and name != "RuntimeProcessResourceLimit":
-        for field, core in model_fields_schema(cls).items():
-            alias = field_alias(cls, field)
-            plan = scalar_plan(core["schema"])
-            if alias not in properties or alias in result or plan.get("items"):
-                continue
-            minimum = plan.get("minimum", "1" if "ram" in plan.get("convert", []) else "")
-            maximum = plan.get("maximum", "")
-            if minimum or maximum:
-                kind = "number" if "number" in plan.get("shapes", []) else "integer"
-                operation = f"{kind}:{minimum}:{maximum}"
-                if plan.get("values"):
-                    operation = "map-" + operation
-                if "null" in plan.get("shapes", []):
-                    operation = "nullable-" + operation
-                result[alias] = operation
+    bounded_runtime_fields(cls, properties, name, result)
     return result
+
+
+def bounded_runtime_fields(cls: type[BaseModel], properties: dict[str, Any], name: str, result: dict[str, str]) -> None:
+    if (
+        not cls.__module__.startswith(("raes.runtime_", "raes.image_provenance"))
+        or name == "RuntimeProcessResourceLimit"
+    ):
+        return
+    for field, core in model_fields_schema(cls).items():
+        alias = field_alias(cls, field)
+        plan = scalar_plan(core["schema"])
+        if alias not in properties or alias in result or plan.get("items"):
+            continue
+        if operation := numeric_field_rule(plan):
+            result[alias] = operation
+
+
+def numeric_field_rule(plan: dict[str, Any]) -> str | None:
+    minimum = plan.get("minimum", "1" if "ram" in plan.get("convert", []) else "")
+    maximum = plan.get("maximum", "")
+    operation = None
+    if minimum or maximum:
+        kind = "number" if "number" in plan.get("shapes", []) else "integer"
+        operation = f"{kind}:{minimum}:{maximum}"
+        if plan.get("values"):
+            operation = "map-" + operation
+        if "null" in plan.get("shapes", []):
+            operation = "nullable-" + operation
+    return operation
 
 
 def merge_validator(
