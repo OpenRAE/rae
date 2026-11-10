@@ -34,13 +34,11 @@ Three artifact classes describe the SDL, with distinct authority:
    machine-readable normative companion. They are the hand-governed schema
    authority under [ADR-009 §7](../../docs/decisions/adrs/adr-009-normative-artifact-authority-and-repository-structure.md)
    and the [schema publication manifest](../../contracts/schema-publication-manifest.json).
-   The prose and the schemas describe the same language and **MUST** agree; a
-   divergence between them is a defect to be reconciled, not a license for
-   either to override the other. Where this prose states a structural fact
-   (a section's presence, requiredness, or value shape), the applicable
-   `sdl-authoring-input-v1`, `instantiated-scenario-v1`, or
-   `instantiated-scenario-snapshot-v1` or `materialized-scenario-v1` schema is the authoritative enumeration
-   the prose is written to match. The authoring schema validates the normalized
+   The prose and the schemas describe the same language and **MUST** agree.
+   A divergence is a defect to reconcile; neither can override the other.
+   The applicable schema authoritatively enumerates structural facts: section presence, requiredness, and value shape.
+   The schemas are `sdl-authoring-input-v1`, `instantiated-scenario-v1`, `instantiated-scenario-snapshot-v1`, and `materialized-scenario-v1`.
+   This prose is written to match them. The authoring schema validates the normalized
    object, not raw YAML presentation; `document-model.md` §1 and the
    `contracts/fixtures/sdl/sdl-yaml-v1/` corpus define the raw source profile.
 3. **Reference implementations (`implementations/`)** consume both. No Python
@@ -74,13 +72,13 @@ The catalogs are:
 
 | File | Catalog | Covers |
 |------|---------|--------|
-| [`document-model.md`](document-model.md) | — | Document encoding, the metadata/composition vs. authoring-section split, requiredness, identifier rules, structural closure, and the normalized -> expanded -> instantiated -> snapshot phases. |
+| [`document-model.md`](document-model.md) | — | Encoding, structure, requiredness, identifiers, closure, document phases, infrastructure, features, and duration values. |
 | [`execution-recovery.md`](execution-recovery.md) | — | Complete lexical execution policies, bounded retry, recovery selection, native plan preservation and explicit admission refusal. |
 | [`sections.md`](sections.md) | **1. Section catalog** | Every top-level field: kind, value shape (map-keyed vs. list-valued vs. scalar), requiredness, key shape, and the sections it references. |
 | [`references.md`](references.md) | **2. Reference-resolution catalog** | Reference forms (bare, qualified, nested runtime-family, workflow-step, module-composed), the resolution algorithm, the fail-closed ambiguity rule, and the cross-section reference-edge catalog. |
 | [`variables-and-instantiation.md`](variables-and-instantiation.md) | **3. Variable / instantiation catalog** | Variable types, defaults, `allowed_values`, `${…}` substitution, the instantiation algorithm, and post-instantiation exclusions. |
 | [`variation-points.md`](variation-points.md) | — | Closed scenario-family variation kinds, bounded domains, typed target slots, structural constraints, composition, and phase behavior. |
-| [`runtime-inventory.md`](runtime-inventory.md) | **4. Runtime-family index** | The node-scoped runtime-inventory index — family key, collection name, primary `<noun>_id`, child-ref collections, owning ADR — and the shared invariants stated once, delegating per-field semantics to the family ADRs. |
+| [`runtime-inventory.md`](runtime-inventory.md) | **4. Runtime-family index** | Node-scoped runtime families: keys, collections, primary `<noun>_id`, child refs, owning ADRs, and shared invariants. Family ADRs own per-field semantics. |
 | [`software-requirements.md`](software-requirements.md) | — | Component outcomes, independent versions, exact-package compatibility, typed acquisition refinements, shared final repository/trust state and separate reporting. |
 | [`recursive-realization-constraints.md`](recursive-realization-constraints.md) | — | The versioned recursive constraint normal form: independent presence, knowledge, closure, identity, sequence/reference, provenance, composition, and bounded relation semantics. |
 | [`authored-domain-topology.md`](authored-domain-topology.md) | — | Authored identity domains, controller/member topology, account domain bindings, compiled ordering, provisioner capability, admission, and readback invariants. |
@@ -105,6 +103,8 @@ An implementer can answer each structural question from the named file alone:
   semantic digest?* → [`document-model.md`](document-model.md) §§1, 5, 7-9.
 - *What is a valid identifier for a user-defined key?* →
   [`document-model.md`](document-model.md).
+- *What do infrastructure and features declare, and which duration values are valid?* →
+  [`document-model.md`](document-model.md) §§10–12.
 - *How does a reference resolve, and what happens when it is dangling or
   ambiguous?* → [`references.md`](references.md), including its checked
   editor-visible edge index and distinct candidate-domain classifications.
