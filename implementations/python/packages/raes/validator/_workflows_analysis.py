@@ -122,7 +122,8 @@ class _WorkflowAnalysisMixin:
                 result = self._incoming_available_state(step_name, ctx)
             ctx.available_memo[step_name] = result
 
-    def _edge_available_state(self, step_name: str, successor: str, ctx: _AvailableStateContext) -> set[str]:
+    @staticmethod
+    def _edge_available_state(step_name: str, successor: str, ctx: _AvailableStateContext) -> set[str]:
         available = set(ctx.available_memo.get(step_name, ()))
         step = ctx.workflow_steps[step_name]
         if step.type in {
@@ -133,7 +134,8 @@ class _WorkflowAnalysisMixin:
             available.add(step_name)
         return available
 
-    def _join_available_state(self, step_name: str, ctx: _AvailableStateContext) -> set[str]:
+    @staticmethod
+    def _join_available_state(step_name: str, ctx: _AvailableStateContext) -> set[str]:
         owner = ctx.join_targets[step_name][0]
         result = set(ctx.available_memo.get(owner, ()))
         result.add(owner)
