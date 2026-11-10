@@ -6,7 +6,14 @@ import pytest
 from pydantic import ValidationError
 from raes._errors import SDLParseError, SDLValidationError
 from raes.parser import parse_sdl
-from raes.propositions import (
+from raes.semantics.propositions import (
+    TruthValue,
+    compose_truth,
+    evaluate_assertion_polarity,
+    negate_truth,
+    quantify_subject_truth,
+)
+from raes_contracts.propositions import (
     Assertion,
     AssertionPolarity,
     AssertionRole,
@@ -17,13 +24,6 @@ from raes.propositions import (
     StringPredicate,
     SubjectQuantifier,
     TruthCompositionMode,
-)
-from raes.semantics.propositions import (
-    TruthValue,
-    compose_truth,
-    evaluate_assertion_polarity,
-    negate_truth,
-    quantify_subject_truth,
 )
 from raes_processor.compiler import compile_runtime_model
 

@@ -160,7 +160,7 @@ def _substitute_value(
             )
             for key, nested_value in value.items()
         }
-    if isinstance(value, list):
+    if isinstance(value, (list, tuple)):
         return [
             _substitute_value(
                 nested_value,

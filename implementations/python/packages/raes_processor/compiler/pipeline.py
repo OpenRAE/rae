@@ -6,6 +6,7 @@ from raes import build_declaration_index
 from raes.descriptor_profiles import authored_descriptor_profiles
 from raes.instantiate import admit_instantiated_scenario, instantiate_scenario
 from raes.materialization import MaterializedScenario, admit_materialized_scenario
+from raes.observation_scope import resolve_safe_states
 from raes.scenario import ExpandedScenario, InstantiatedScenario, Scenario
 from raes.semantics.domain_topology import (
     analyze_domain_topology,
@@ -209,6 +210,7 @@ def compile_runtime_model(
     )
     return RuntimeModel(
         scenario_name=scenario.name,
+        safe_states=resolve_safe_states(scenario),
         execution_policies=compile_execution_policies(scenario, {**structure, **behavior}),
         profile_authority=authority,
         descriptor_profile_bindings=authored_descriptor_profiles(scenario),

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Literal, Protocol
 
-from pydantic import Field, model_validator
+from pydantic import Field, field_validator, model_validator
 
 from raes_contracts.materialization import (
     MATERIALIZATION_MAX_BYTES,
@@ -16,6 +16,7 @@ from raes_contracts.realization_structure import validate_realization_value
 from raes_contracts.runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
 
 from .._sealing import sealing_active
+from ..safe_state import SafeStates, validate_safe_states
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
 from .experiment_artifacts import ExperimentArtifactRefModel
 from .experiment_references import ExperimentReferenceModel
@@ -27,6 +28,14 @@ if TYPE_CHECKING:
 
 class MaterializationPlanModel(ContractModel):
     """Phase-independent descriptive purpose and authenticated source context."""
+
+    safe_states: SafeStates = ()
+
+    @field_validator("safe_states")
+    @classmethod
+    def _resolved_safe_states(cls, value: SafeStates) -> SafeStates:
+        validate_safe_states(value)
+        return value
 
     purpose: Literal["execution", "inspection"] = Field(
         default="execution", exclude_if=lambda value: value == "execution"

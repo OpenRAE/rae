@@ -17,10 +17,9 @@ A reference is a string that names a target element. Five forms exist:
 
 1. **Bare** — a single identifier, e.g. `web_db`. Resolved within the section(s)
    the referencing field expects.
-2. **Qualified** — a dotted path that names the section and identifier
-   explicitly, e.g. `conditions.system_online`, or a deeper path that addresses
-   a nested element, e.g. `nodes.web1.services.httpd`. Used to address an element
-   unambiguously, or to address an element that has no bare form.
+2. **Qualified** — a dotted path names the section and identifier explicitly, for example `conditions.system_online`.
+   A deeper path names a nested element, for example `nodes.web1.services.httpd`.
+   This form identifies an element unambiguously or names one with no bare form.
 3. **Nested runtime-family** — a qualified path into a node's runtime inventory:
    `nodes.<node>.runtime.<collection>.<id>` and, for child collections,
    `…<collection>.<id>.<child-collection>.<child-id>` to any depth the family
@@ -29,17 +28,15 @@ A reference is a string that names a target element. Five forms exist:
    Used by objective windows. The workflow portion may be a composition-generated
    qualified name and the step is exactly one portable local-id segment
    ([document-model.md §6](document-model.md)).
-5. **Module-composed (namespaced)** — after a module import is expanded, imported
-   elements are addressed under their import namespace, and node segments are
-   rewritten to their namespaced form. Module-composed references resolve against
-   the expanded document
+5. **Module-composed (namespaced)** — after expansion, imported elements use their import namespace.
+   Node segments use their namespaced form.
+   Module-composed references resolve against the expanded document
    ([ADR-053](../../docs/decisions/adrs/adr-053-sdl-module-composition-for-inventory-backed-scenarios.md)).
 
 Dots are path syntax, never authored identifier content. A dotted node key in a
-raw or normalized authoring object is invalid. A dotted node segment seen after
-composition is a validated namespace path and is carried structurally until the
-canonical renderer produces the external string; it is not recovered with a
-longest-match rule.
+raw or normalized authoring object is invalid. A dotted node segment after composition is a validated namespace path.
+It stays structural until the canonical renderer produces the external string.
+A longest-match rule does not recover it.
 
 ## 2. Resolution algorithm
 
@@ -57,25 +54,22 @@ longest-match rule.
    `split`, `partition`, `rsplit`, longest-prefix guessing, declaration order,
    or first match. Compact aliases such as `<qualified-workflow>.<step>` are
    constructed and resolved from declared workflow/step pairs.
-4. Purpose candidate sets are deliberately restricted (§7). For example,
-   objective `targets` admit participants, organizations, resources,
-   relationships, propositions, and assertions; action targets exclude
-   propositions and assertions; an agent `operating_scope` is restricted to
-   compute nodes, switch-backed infrastructure, services, and content. A
+4. Purpose candidate sets are deliberately restricted (§7). Objective `targets` admit participants, organizations, resources, relationships, propositions, and assertions.
+   Action targets exclude propositions and assertions.
+   An agent `operating_scope` admits only compute nodes, switch-backed infrastructure, services, and content. A
    reference outside its field's candidate set does not resolve and fails as
    dangling (§4).
 5. Resolution is **declaration-based**: only declared elements are resolution
    targets. There is no implicit creation of a target by referencing it.
-6. Alias lookup occurs only after the canonical declaration index has retained
-   kind and provenance for every declaration and rejected address collisions.
+6. The canonical declaration index first retains each declaration's kind and provenance and rejects address collisions.
+   Alias lookup occurs only after these checks.
    A set or map that has already erased a duplicate rendering is not evidence of
    uniqueness.
 
 ## 3. Unresolved variable placeholders
 
-1. A field whose value is a variable placeholder (`${name}`) is **not** resolved
-   as a reference during authoring-time semantic validation; the placeholder
-   stands for a value not yet bound.
+1. During authoring-time semantic validation, a variable placeholder (`${name}`) is **not** resolved as a reference.
+   It stands for a value not yet bound.
 2. The only requirement on an unresolved placeholder at authoring time is that
    `name` **MUST** be a declared variable
    ([variables-and-instantiation.md](variables-and-instantiation.md)). A
@@ -244,9 +238,8 @@ any role-bearing refs
 | `uses_shared_service` | `source` → a `deployment_tenants` entry; `target` → a named node service, `nodes.<node>.services.<name>` | `deployment_tenant_endpoint` / `node_service_endpoint` |
 
 A relationship's endpoints must satisfy the endpoint purposes of its type and of
-every typed detail it carries (§7). The purposes check declaration kinds only;
-attribute rules such as a compute node, the carrier persona, distinct forests,
-or a shared deployment cell stay with each subtype's own validator.
+every typed detail it carries (§7). The purposes check declaration kinds only.
+Each subtype's validator retains attribute rules for compute nodes, carrier personas, distinct forests, and shared deployment cells.
 
 ### Variables
 
@@ -293,10 +286,8 @@ edge. The [producer/reader boundary](../../docs/migration/reusable-mixed-control
 keeps the two forms apart.
 
 This index gives every cross-section or cross-declaration authoring reference a
-stable candidate-domain token. Registered node-runtime inventories and their
-local child edges remain governed by the family index in
-[`runtime-inventory.md`](runtime-inventory.md); relationship fields that cross
-from a top-level section into those inventories are listed here. `declared`,
+stable candidate-domain token. The family index in [`runtime-inventory.md`](runtime-inventory.md) governs registered node-runtime inventories and their local child edges.
+This page lists relationship fields that cross from top-level sections into those inventories. `declared`,
 `targetable`, and each `eligible:<purpose>` token name a reference purpose
 whose eligible declaration kinds §7 defines; `targetable` is not a synonym for
 every named object. `declared`, `derived:*`, `runtime:*`, `vocabulary:*`,
@@ -441,6 +432,8 @@ the source of the row's normative meaning.
 | `behavior_specifications.*.mixed_control.participant_ref` | `agents` | semantic validation | fatal unless owned by the enclosing behavior specification | [behavior model](../formal/participant-behavior-model/README.md) | [behavior validator](../../implementations/python/packages/raes/validator/_mixed_control.py) |
 | `behavior_specifications.*.mixed_control.controller_states.*.controller_ref` | `agents-or-self` | semantic validation | fatal operator/role/identity impersonation or dangling agent | [behavior model](../formal/participant-behavior-model/README.md) | [behavior validator](../../implementations/python/packages/raes/validator/_mixed_control.py) |
 | `behavior_specifications.*.mixed_control.controller_states.*.authority_basis_refs[]` | `derived:controller_authority_anchors` | semantic validation | fatal dangling, ambiguous, or authority widening | [behavior model](../formal/participant-behavior-model/README.md) | [behavior validator](../../implementations/python/packages/raes/validator/_mixed_control.py) |
+| `safe_state.default.assertion_refs[]` | `assertions` | semantic validation | fatal unless observed positive postconditions cover each exact target | [safe state](safe-state.md) | [safe-state resolution](../../implementations/python/packages/raes/observation_scope.py) |
+| `safe_state.scopes[].state.assertion_refs[]` | `assertions` | semantic validation | fatal unless observed positive postconditions cover each exact target | [safe state](safe-state.md) | [safe-state resolution](../../implementations/python/packages/raes/observation_scope.py) |
 | `execution_policy.default.clock_ref` | `clocks` | semantic validation | fatal dangling | [execution and recovery](execution-recovery.md) | [execution-policy validator](../../implementations/python/packages/raes/validator/_execution_policy.py) |
 | `execution_policy.default.evidence_refs[]` | `evidence_requirements` | semantic validation | fatal dangling | [execution and recovery](execution-recovery.md) | [execution-policy validator](../../implementations/python/packages/raes/validator/_execution_policy.py) |
 | `execution_policy.scopes[].policy.clock_ref` | `clocks` | semantic validation | fatal dangling | [execution and recovery](execution-recovery.md) | [execution-policy validator](../../implementations/python/packages/raes/validator/_execution_policy.py) |
@@ -548,9 +541,8 @@ the source of the row's normative meaning.
 | `nodes.*.runtime.platform_applications[].secrets[].consumers[].version_ref` | `runtime:versions` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) | [cloud resource validator](../../implementations/python/packages/raes/validator/_cloud_resources.py) |
 | `nodes.*.runtime.platform_applications[].secrets[].consumers[].resolved_version_ref` | `runtime:versions` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) | [cloud resource validator](../../implementations/python/packages/raes/validator/_cloud_resources.py) |
 
-The index is compared by exact source path, domain, phase, failure semantics,
-and implementation evidence against the checked reference contract, and its
-completion-aware subset is compared with language-service metadata. Adding,
+The checked reference contract is compared with the index by exact source path, domain, phase, failure semantics, and implementation evidence.
+The completion-aware subset is compared with language-service metadata. Adding,
 removing, or renaming an edge on only one surface fails the repository contract
 gate; a matching row count cannot hide a different edge.
 
@@ -611,17 +603,17 @@ amendment.
 | `eligible:observation_subject` | proposition `subjects[]`, evidence `source_refs[]` and `scope_refs[]`, observation-demand component refs | every category except support | `eligible:observation_subject` |
 | `eligible:authority_anchor` | agent `authority_anchors[]`, participant-relationship and mixed-control `authority_basis_refs[]` | every category | `eligible:authority_anchor` |
 | `eligible:authority_scope` | behavior `authority_scope_refs[]`, mixed-control state `scope_refs[]` (which must then stay within the behavior's authority scope and the controller's operating scope, so §6 lists it as `derived:behavior-and-controller-scope`), delivery `control_authority_scope_refs[]` | participant, organization, resource, relationship, behavior | `targetable` |
+| `eligible:safe_state_target` | safe-state scope resolution | nodes, named node services, top-level database, DNS, file, mail, and datastore services | `eligible:safe_state_target` |
 | `derived:operating_scope` | agent `operating_scope[]`, participant-relationship `scope_refs[]` | compute nodes, switch-backed infrastructure, node services, content, and content items | `derived:operating_scope` |
 
 The typed relationship endpoint purposes admit declaration kinds, not
-categories. A runtime record is named by its family: the eligibility kind of a
-runtime child record is `runtime-<family>.<child path>`, for example
-`runtime-mail_services.listeners`, so a `mail_access` target admits a mail
-listener but not a security-monitoring manager listener. The published
-declaration kind (`runtime-listeners`) does not change. The `mail_access` target
-rule covers the family: a mail child registered later is admitted, while the
-application and database rules name their records, so a later child of those
-families is not.
+categories. A runtime record is named by its family.
+A runtime child's eligibility kind is `runtime-<family>.<child path>`, for example `runtime-mail_services.listeners`.
+A `mail_access` target admits a mail listener but not a security-monitoring manager listener. The published
+declaration kind (`runtime-listeners`) does not change. The `mail_access` target rule covers the family and admits a mail child registered later.
+
+The application and database rules name their records.
+They do not admit a later child of those families.
 
 Every relationship type and typed detail field has one endpoint decision:
 
@@ -654,36 +646,27 @@ Every relationship type and typed detail field has one endpoint decision:
 | `service_integration` detail | generic | — | — |
 | `proxy_upstream` detail | generic | — | — |
 
-A dash leaves that side on `relationship_endpoint`. A bound detail selects its
-type's rule, which validation already pairs with it, so a detail written before
-its `type` in an unfinished document narrows completion as the type would. A
+A dash leaves that side on `relationship_endpoint`. A bound detail selects its type's rule, which validation already pairs with it.
+In an unfinished document, a detail written before its `type` narrows completion as the type would. A
 relationship type or detail field without a decision is refused when a
 relationship is checked.
 
 Rules:
 
-1. A bare reference resolves among the declarations in its purpose's
-   "Resolves among" domain, and the single match must then be eligible for the
-   purpose (for a typed relationship endpoint, for every applicable endpoint
-   purpose). A bare name that a refused declaration in that domain shares
-   therefore stays ambiguous: narrowing only refuses references. A participant
-   endpoint, for example, resolves among relationship-endpoint candidates and
-   then requires an agent, so a bare name shared with an organization or
-   resource stays ambiguous. Qualified references resolve by exact canonical
+1. A bare reference resolves among declarations in its purpose's "Resolves among" domain.
+   The single match must be eligible for the purpose.
+   A typed relationship endpoint must satisfy every applicable endpoint purpose. A bare name that a refused declaration in that domain shares
+   therefore stays ambiguous: narrowing only refuses references. A participant endpoint resolves among relationship-endpoint candidates and then requires an agent.
+   A bare name shared with an organization or resource stays ambiguous. Qualified references resolve by exact canonical
    address (§2).
 2. A reference that names only declarations its purpose does not admit fails as
-   dangling (§4). Where semantic validation resolves the field through the
-   shared named-reference check, the diagnostic appends the declarations that
-   the reference does name, and a purpose whose eligible declarations equal
-   neither every declaration (`declared`) nor every targetable declaration
-   (`targetable`) also names itself. A typed relationship endpoint names each
+   dangling (§4). When semantic validation uses the shared named-reference check, the diagnostic appends the declarations that the reference names.
+   If the purpose admits neither every declaration (`declared`) nor every targetable declaration (`targetable`), the diagnostic also names the purpose. A typed relationship endpoint names each
    endpoint purpose that its single match fails, for example `... does not
    reference any defined element eligible as an identity forest endpoint; it
    names conditions.alive`. An ambiguous bare name lists the eligible
-   candidates, then those that the purpose refuses. Participant endpoints,
-   operating scopes, and variation candidates report their own diagnostics, and
-   an inject delivery's control scope must equal its target controller state's
-   scope.
+   candidates, then those that the purpose refuses. Participant endpoints, operating scopes, and variation candidates report their own diagnostics.
+   An inject delivery's control scope must equal its target controller state's scope.
 3. An effect `target_refs[]` entry that names no declaration is
    observation-boundary information; recorded action results check it against
    the participant's observation boundary. An entry that names a declaration
@@ -692,35 +675,25 @@ Rules:
    unreferenceable scenario, node-role, workflow-step, and outcome-rule kinds.
    Importing a module or substituting a variable cannot turn one of these
    known declarations into opaque boundary information.
-4. Eligibility decides only what a reference may name. Naming a participant as
-   an action target or objective subject does not make it act, and naming an
-   organization, proposition, or resource grants it no participation,
-   authority, visibility, or execution permission. Propositions and assertions
+4. Eligibility decides only what a reference may name. Naming a participant as an action target or objective subject does not make it act.
+   Naming an organization, proposition, or resource grants no participation, authority, visibility, or execution permission. Propositions and assertions
    are objective subjects but neither action targets, shared state, nor
    authority scopes.
 5. Composition rewrites purpose-bearing references under the import namespace,
    and instantiation rechecks substituted values against the same purpose.
    This includes infrastructure ACL networks and security-monitoring detection
    definitions' `source_artifact_ref` (`declared`). Editor completion, navigation,
-   and diagnostics consume the same purposes and resolvers. Completion offers
-   one unambiguous spelling per eligible
-   declaration, selects the endpoint purposes from the relationship type and
-   typed details, and its completion context names all of them
-   (`eligible:<p1>+<p2>` for a conjunction), and selects a variation owner's
-   section and a variation candidate's section or purpose from the point's
-   target slot, and does so in documents that do not yet validate. Completion
-   and navigation resolve against one declaration index: the semantic index of
-   a document that validates structurally, and otherwise an index that the
-   same builder makes from the top-level entries that validate on their own,
-   plus the names of the other top-level entries. Navigation reports a value as
-   an occurrence of a declaration only when the field's resolver resolves it to
-   exactly that declaration in that index, so a value that is ambiguous or
-   refused in that index is an occurrence of none. Ambiguity is judged among
-   the declarations in that index only: a declaration inside an entry that does
-   not validate on its own is not in it, so completion does not offer it,
-   navigation reports no occurrence of it, and it does not make a spelling
-   ambiguous; once the entry validates, a spelling that it shares with another
-   declaration is ambiguous. Operating scope resolves nothing until the
+   and diagnostics consume the same purposes and resolvers. Completion offers one unambiguous spelling per eligible declaration.
+   It selects endpoint purposes from the relationship type and typed details.
+   Its context names every selected purpose (`eligible:<p1>+<p2>` for a conjunction).
+   It selects a variation owner's section and a candidate's section or purpose from the point's target slot.
+   These rules also apply to documents that do not yet validate. Completion and navigation resolve against one declaration index.
+   For a structurally valid document, they use its semantic index.
+   Otherwise, the same builder indexes top-level entries that validate individually, plus the names of other top-level entries. Navigation reports a declaration occurrence only when the field's resolver resolves the value to exactly that declaration in that index.
+   An ambiguous or refused value is an occurrence of none. Only declarations in that index determine ambiguity.
+   A declaration inside an entry that fails individual validation is absent from the index.
+   Completion does not offer it, navigation reports no occurrence of it, and it does not make a spelling ambiguous.
+   Once the entry validates, a spelling shared with another declaration is ambiguous. Operating scope resolves nothing until the
    document validates.
 6. Relationship completion applies the subtype owner's attributes and known
    contextual constraints after kind filtering: distinct participants and
@@ -733,9 +706,8 @@ Rules:
 7. Navigation derives nested declaration definitions from their typed model
    paths. Composition retains original declaration provenance: fragment file,
    authored key or identifier range, original JSON pointer, module identity,
-   import namespace, and fragment content digest. Imported definitions report
-   the original location and composed model path; owner-labelled semantic
-   diagnostics retain the original location and canonical composed address.
+   import namespace, and fragment content digest. Imported definitions report the original location and composed model path.
+   Owner-labelled semantic diagnostics retain the original location and canonical composed address.
    Locations are captured during loading and expansion, never guessed by a
    separate editor import walker. This location metadata is not scenario
    authority and is not serialized into portable scenario artifacts.
@@ -768,7 +740,6 @@ ambiguous projection.
 
 A new reference edge is added by defining the field's candidate set, adding a
 row here, and enforcing it in the reference implementation and tests. A new
-declaration kind is added with an explicit category in §7. New
-runtime-family child refs require an explicit policy decision at registration
-and then follow the nested runtime-family form (§1.3) in the family index
-([runtime-inventory.md](runtime-inventory.md)); they do not need bespoke prose.
+declaration kind is added with an explicit category in §7. New runtime-family child refs require an explicit policy decision at registration.
+They then follow the nested runtime-family form (§1.3) in the family index ([runtime-inventory.md](runtime-inventory.md)).
+They do not need bespoke prose.

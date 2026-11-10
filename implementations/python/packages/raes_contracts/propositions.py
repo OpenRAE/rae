@@ -18,9 +18,9 @@ from pydantic import (
 )
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
-from raes_contracts.sdl_model import SDLModel
 
-from .runtime_generated_value import GeneratedArtifactValueSource
+from .generated_artifact_value import GeneratedArtifactValueSource
+from .sdl_model import SDLModel
 
 
 def _string_predicate_operand_exclusions() -> list[dict[str, object]]:

@@ -17,6 +17,7 @@ from raes_contracts.observation_demand import EffectiveObservationDemand
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.safe_state import ResolvedSafeState
 from raes_contracts.vocabulary import Closure
 
 from raes_processor.semantics.realization import CompiledRealizationAuthority, CompiledRealizationRequirement
@@ -114,6 +115,7 @@ class RuntimeModel:
     """
 
     scenario_name: str
+    safe_states: tuple[ResolvedSafeState, ...] = field(default=(), kw_only=True)
     execution_policies: dict[str, tuple[EffectiveExecutionPolicy, ...]] = field(default_factory=dict)
     feature_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)
     condition_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)
