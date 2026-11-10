@@ -259,7 +259,10 @@ class ScenarioContent(LegacyClassificationGuard):
     behavior_specifications: dict[str, ParticipantBehaviorSpecification] = Field(default_factory=dict)
     evidence_requirements: dict[str, EvidenceRequirement] = Field(default_factory=dict)
     safe_state: SafeStateDocument | None = Field(
-        default=None, exclude_if=lambda value: value is None, json_schema_extra={"x-raes-realization-dimension": False}
+        default=None,
+        repr=False,
+        exclude_if=lambda value: value is None,
+        json_schema_extra={"x-raes-realization-dimension": False},
     )
     execution_policy: OptionalExecutionPolicy = None
     augmentation_scope: OptionalAugmentationScope = None

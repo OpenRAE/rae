@@ -115,3 +115,50 @@ def test_portable_plan_checks_aggregate_before_nested_revalidation(monkeypatch):
     monkeypatch.setattr(contracts, "PLAN_VALUE_LIMITS", PLAN_VALUE_LIMITS.model_copy(update={"max_nodes": 200}))
     with pytest.raises(ValidationError, match="aggregate"):
         ProvisioningPlanModel(safe_states=states)
+
+
+def test_replay_fingerprint_distinguishes_resolved_safe_state(monkeypatch, tmp_path):
+    import raes_processor.compiler as compiler
+
+    from tools.formal_semantic_validation._replay import _compiled_case_digest
+
+    compiled = compiler.compile_runtime_model(scenario(payload()))
+    compiled = replace(compiled, realization_instance=None, materialization_description=None)
+    fixture = tmp_path / "replay.yaml"
+    fixture.write_text("name: replay-control\n")
+    monkeypatch.setattr(compiler, "compile_runtime_model", lambda _: compiled)
+    held = _compiled_case_digest(tmp_path, {}, fixture)
+    state = compiled.safe_states[0]
+    changed = state.model_copy(update={"state": state.state.model_copy(update={"kind": "controlled-stop"})})
+    compiled = replace(compiled, safe_states=(changed, *compiled.safe_states[1:]))
+    assert _compiled_case_digest(tmp_path, {}, fixture) != held
+
+
+def test_safe_state_scope_is_rechecked_during_composition(tmp_path):
+    import yaml
+    from raes import SDLValidationError, parse_sdl_file
+
+    module = payload()
+    module["module"] = {"id": "example/safe", "version": "1.0.0", "exports": {"nodes": ["first", "second"]}}
+    module["safe_state"] = {"scopes": [{"scope": "/nodes/first/os", "state": module["safe_state"]["default"]}]}
+    (tmp_path / "module.yaml").write_text(yaml.safe_dump(module))
+    (tmp_path / "root.yaml").write_text(
+        yaml.safe_dump(
+            {"name": "invalid-import", "imports": [{"source": "local:module.yaml", "namespace": "imported"}]}
+        )
+    )
+    with pytest.raises(SDLValidationError, match="Safe.state"):
+        parse_sdl_file(tmp_path / "root.yaml")
+
+
+def test_safe_state_proof_is_rechecked_after_instantiation():
+    from raes import SDLInstantiationError, instantiate_scenario
+
+    value = payload()
+    value["variables"] = {"subject": {"type": "string", "default": "nodes.first"}}
+    value["safe_state"] = {"scopes": [{"scope": "/nodes/first", "state": value["safe_state"]["default"]}]}
+    value["propositions"]["safe"]["subjects"] = ["${subject}", "nodes.first.services.api"]
+    authored = scenario(value)
+    assert len(instantiate_scenario(authored, parameters={}).nodes) == 2
+    with pytest.raises(SDLInstantiationError, match="Safe.state"):
+        instantiate_scenario(authored, parameters={"subject": "nodes.second"})

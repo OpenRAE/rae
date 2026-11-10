@@ -14,8 +14,9 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-import tools.check_sdl_lineage as lineage_checker  # noqa: E402
 from raes_contracts.provenance import SDLLineageLedgerModel  # noqa: E402
+
+import tools.check_sdl_lineage as lineage_checker  # noqa: E402
 from tools.check_sdl_lineage import (  # noqa: E402
     _canonical_subjects,
     _validate_authorities,
@@ -57,7 +58,7 @@ def test_real_lineage_ledger_is_valid_and_covers_exact_current_subject_set() -> 
     ledger = SDLLineageLedgerModel.model_validate(_payload())
     current = {subject.subject_id for subject in ledger.subjects if subject.disposition.value == "current"}
     assert current == _canonical_subjects(REPO_ROOT)
-    assert len(current) == 94
+    assert len(current) == 95
     assert {subject.subject_id for subject in ledger.subjects if subject.disposition.value == "removed"} == {
         "sdl-field:evaluations",
         "sdl-field:goals",

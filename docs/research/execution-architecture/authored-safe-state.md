@@ -41,6 +41,10 @@ One scope declaration can cover several targets.
 Each target needs its own proof.
 Omission introduces no declaration and changes no legacy validation result.
 
+An empty resolved collection stays absent from the formal replay fingerprint.
+Nonempty collections remain part of that fingerprint.
+The optional source field is omitted from display strings, as with trial capacity.
+
 ## Proof
 
 Each referenced assertion must be a positive postcondition.

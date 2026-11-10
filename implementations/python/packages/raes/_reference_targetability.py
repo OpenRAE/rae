@@ -229,17 +229,6 @@ OPERATING_SCOPE_KINDS = frozenset({"node", "infrastructure", "service", "content
 # owning check states: the semantics modules for identity, topology and tenancy
 # (parity-tested there), and the validator's runtime resolvers, which read these sets.
 ENDPOINT_KINDS: Mapping[ReferencePurpose, frozenset[str]] = {
-    _P.SAFE_STATE_TARGET: frozenset(
-        {
-            "node",
-            "service",
-            "runtime-database_services",
-            "runtime-dns_services",
-            "runtime-file_services",
-            "runtime-mail_services",
-            "runtime-datastore_services",
-        }
-    ),
     _P.NODE_ENDPOINT: frozenset({"node"}),
     _P.IDENTITY_DOMAIN_ENDPOINT: frozenset({"identity_domains"}),
     _P.IDENTITY_FOREST_ENDPOINT: frozenset({"identity_forests"}),
@@ -260,6 +249,18 @@ ELIGIBLE_KINDS: Mapping[ReferencePurpose, frozenset[str]] = {
     },
     **ENDPOINT_KINDS,
     _P.OPERATING_SCOPE: OPERATING_SCOPE_KINDS,
+    # Safe-state scopes select eligible declarations independently of relationship endpoints.
+    _P.SAFE_STATE_TARGET: frozenset(
+        {
+            "node",
+            "service",
+            "runtime-database_services",
+            "runtime-dns_services",
+            "runtime-file_services",
+            "runtime-mail_services",
+            "runtime-datastore_services",
+        }
+    ),
 }
 
 PURPOSE_LABELS: Mapping[ReferencePurpose, str] = {
