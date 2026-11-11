@@ -779,10 +779,8 @@ records the alternatives, the #294 reconciliation, and the unsupported cases.
 | PBM-06 | Backend support claims require governed feature terms, support levels, disclosure refs, and evidence contracts. | ACT-602, ACT-608 |
 | PBM-07 | Hidden prompts, credentials, answer keys, raw command output, backend-private objects, and adjudication assets stay out of portable behavior artifacts. | ACT-606, ACT-607 |
 | PBM-08 | Unknown, opaque, unsupported, not applicable, bounded, lossy, and exact are distinct claims. | ACT-602, ACT-603, ACT-608 |
-| PBM-09 | Offensive behavior classifications are generic concept bindings against an exact behavior specification.
-  They are not behavior-specification fields, raw action names, roles, goals, tasks, commands, or external technique labels. | ACT-609 |
-| PBM-10 | Defensive behavior classifications are generic concept bindings against an exact behavior specification.
-  They classify intent or outcome domains and do not prove incident existence, effectiveness, recovery, or CSF conformance. | ACT-610 |
+| PBM-09 | Offensive behavior classifications are generic concept bindings against an exact behavior specification, with these limits. They are not behavior-specification fields, raw action names, roles, goals, tasks, commands, or external technique labels. | ACT-609 |
+| PBM-10 | Defensive behavior classifications are generic concept bindings against an exact behavior specification; the following limits apply. They classify intent or outcome domains and do not prove incident existence, effectiveness, recovery, or CSF conformance. | ACT-610 |
 | PBM-11 | Mixed-control authority and ordered control facts are explicit, fail closed, and remain distinct from admission, execution, and observation. | ACT-617 |
 | PBM-12 | Autonomous behavior vocabulary terms are external assertions about exact behavior specifications and do not create native or executable behavior meaning. | ACT-611 |
 | PBM-13 | Tool-profile bindings only narrow their behavior specification, add up without precedence, and never grant availability, visibility, or admission by themselves. | ACT-619 |
