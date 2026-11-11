@@ -173,7 +173,8 @@ EXPECTATIONS_PART_2: dict[str, tuple[(str, str, str)]] = {
     "behavior_specifications.*.tool_affordances.*.participant_role_refs[]": (
         "derived:agent_roles",
         _SEMANTIC,
-        "fatal unless at least one participant has the role and every participant with the role is inside the owning behavior specification",
+        "fatal unless at least one participant has the role and every participant "
+        "with the role is inside the owning behavior specification",
     ),
     "behavior_specifications.*.participant_inject_deliveries.*.participant_ref": (
         "agents",
