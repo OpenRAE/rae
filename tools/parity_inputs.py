@@ -231,7 +231,11 @@ class InputCollector:
                 self.candidate_input(root)
                 if root.is_dir():
                     roots.append(root)
-                    files.extend(self.directory_inputs(root))
+                    inputs = self.directory_inputs(root)
+                    if option == "--fixtures-root":
+                        native = root / "sdl/semantic-vectors-v1"
+                        inputs = [path for path in inputs if not path.is_relative_to(native)]
+                    files.extend(inputs)
         return roots, files
 
     def input_graph(self, pending: list[Path]) -> tuple[dict[Path, bytes], dict[Path, dict[str, str]]]:
