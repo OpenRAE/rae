@@ -135,6 +135,25 @@ Measure feedback latency for a cohort of runs with
 `python tools/ci_latency_report.py` (median and p95 time to first failure and to
 final required-check completion, computed from native GitHub timestamps).
 
+## Merge queue
+
+Pull requests to `dev` merge through the GitHub merge queue (ADR-122).
+The Ground Control readiness step adds a ready pull request to the queue after it records the delivery handoff.
+Ground Control issue autarchy-ai/Ground-Control#2000 adds that step.
+Until that step is available, add the pull request to the queue after readiness.
+
+The queue builds a merge group from `dev`, the queued pull requests in front, and the pull request.
+Every required check runs again on the merge group commit, and the queue merges the pull request only when all of them pass.
+A failed check removes the pull request from the queue.
+`dev` does not require strict status checks, because the queue tests each pull request against the latest `dev`.
+Merges into `main` do not use a queue.
+
+`implementations/tooling/branch-merge-policy.json` declares the merge settings and the producer of each required context.
+The `policy / branch merge queue` stage runs `tools/check_merge_queue_policy.py`.
+It fails when a required `dev` producer does not run on every merge group.
+It also fails when a branch without the merge queue does not require strict status checks.
+[Apply the merge queue settings](develop/merge-queue.md) gives the matching repository settings.
+
 ## Release model
 
 Release Please owns `CHANGELOG.md`, package versions, GitHub releases, and the

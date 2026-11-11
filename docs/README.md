@@ -27,6 +27,7 @@ These pages help you do a task:
 
 - [Development workflow](DEVELOPMENT_WORKFLOW.md)
 - [Repository design tools](develop/ground-control-design-checks.md)
+- [Merge queue settings](develop/merge-queue.md)
 - [Development container](explain/development-container.md)
 - [Release process](explain/releasing.md)
 - [Revised control migration](migration/revised-control.md)

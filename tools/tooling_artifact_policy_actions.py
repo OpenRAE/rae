@@ -19,9 +19,16 @@ _CANONICAL = ".github/workflows/canonical-verification.yml"
 _SONAR_GUARD = """inputs.sonar-enabled
 && ((github.event_name == 'push'
 && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'))
+|| github.event_name == 'merge_group'
 || (github.event_name == 'pull_request'
 && github.event.pull_request.head.repo.full_name == github.repository
 && github.actor != 'dependabot[bot]'))"""
+_GGSHIELD_WORKFLOW = ".github/workflows/secret-scan.yml"
+_GGSHIELD_CREDENTIAL = "${{ secrets.GITGUARDIAN_API_KEY }}"
+_GGSHIELD_IMAGE = "docker://gitguardian/ggshield@"
+# Events that run code or data from an unmerged change. A merge group commit
+# contains the queued pull requests before they merge (#2026).
+_UNTRUSTED_EVENTS = frozenset({"pull_request", "pull_request_target", "workflow_call", "merge_group"})
 _CODEQL_STEPS = (
     ("actions/checkout", {"persist-credentials": False}),
     ("github/codeql-action/init", {"languages": "${{ matrix.language }}", "build-mode": "none"}),
@@ -56,6 +63,27 @@ def _sonar_boundary(path: str, name: str, job: Mapping[str, Any], workflows: Map
         and job.get("uses") == "./" + _CANONICAL
         and job.get("secrets") == {"sonar_token": "${{ secrets.SONAR_TOKEN }}"}
         and _secret_expressions(job) == {"${{ secrets.SONAR_TOKEN }}"}
+    )
+
+
+def _secret_scan_boundary(path: str, name: str, job: Mapping[str, Any]) -> bool:
+    """Admit the GitGuardian key only in the pinned ggshield step of the reviewed scan job.
+
+    The job runs no repository code: it has no ``run`` step, and only the
+    digest-pinned ggshield container step receives the key.
+    """
+
+    if (path, name) != (_GGSHIELD_WORKFLOW, "ggshield"):
+        return False
+    steps = [as_mapping(step) for step in as_list(job.get("steps"))]
+    holders = [step for step in steps if _secret_expressions(step)]
+    return bool(
+        job.get("permissions") == {"contents": "read"}
+        and _secret_expressions(job) == {_GGSHIELD_CREDENTIAL}
+        and len(holders) == 1
+        and str(holders[0].get("uses", "")).startswith(_GGSHIELD_IMAGE)
+        and _secret_expressions(holders[0].get("env")) == {_GGSHIELD_CREDENTIAL}
+        and not any("run" in step for step in steps)
     )
 
 
@@ -134,7 +162,7 @@ def _codeql_boundary(path: str, name: str, job: Mapping[str, Any], events: set[s
         return False
     steps = as_list(job.get("steps"))
     return bool(
-        events <= {"push", "pull_request", "schedule", "workflow_dispatch"}
+        events <= {"push", "pull_request", "merge_group", "schedule", "workflow_dispatch"}
         and job.get("runs-on") == "ubuntu-24.04"
         and job.get("permissions") == {"contents": "read", "security-events": "write"}
         and set(job) <= {"name", "runs-on", "if", "permissions", "strategy", "steps", "timeout-minutes"}
@@ -188,7 +216,11 @@ def _credential_failures(
 ) -> list[PolicyFailure]:
     failures = []
     workflow_secrets = _secret_expressions(workflow.get("env"))
-    exposed = workflow_secrets or (_secret_expressions(job) and not _sonar_boundary(path, name, job, workflows))
+    exposed = workflow_secrets or (
+        _secret_expressions(job)
+        and not _sonar_boundary(path, name, job, workflows)
+        and not _secret_scan_boundary(path, name, job)
+    )
     if untrusted and exposed:
         failures.append(
             failure(
@@ -250,7 +282,7 @@ def action_failures(
         # Only event names decide the boundary; an entry that is a list, a set or a mapping names no event.
         trigger_names = triggers if isinstance(triggers, (Mapping, list)) else [triggers]
         events = {name for name in trigger_names if isinstance(name, str)}
-        untrusted = bool(events & {"pull_request", "pull_request_target", "workflow_call"})
+        untrusted = bool(events & _UNTRUSTED_EVENTS)
         if not isinstance(workflow.get("permissions"), Mapping):
             failures.append(
                 failure(
