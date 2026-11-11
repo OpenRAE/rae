@@ -220,19 +220,7 @@ def participant_cases(rows: CaseRows) -> None:
         "both-legacy",
         "import",
     ):
-        payload = _legacy()
-        if change == "conflict":
-            payload["agents"]["one"]["affiliations"] = ["team"]
-        elif change == "unknown":
-            payload["agents"]["one"]["hidden_field"] = "private-value-do-not-echo"
-        elif change == "action":
-            payload["objectives"]["goal"]["actions"] = ["private-value-do-not-echo"]
-        elif change == "assignment":
-            payload["objectives"]["goal"]["actions"] = ["observe"]
-        elif change == "both-legacy":
-            payload["objectives"]["goal"]["agent"] = "one"
-        else:
-            payload["imports"] = [{"path": "external.yaml", "namespace": "other"}]
+        payload = participant_variant(change)
         participant(
             change,
             payload,
@@ -259,6 +247,23 @@ def participant_cases(rows: CaseRows) -> None:
     unresolved["variables"] = {"team": {"type": "string", "default": "team"}}
     unresolved["agents"]["one"]["entity"] = "${team}"
     participant("unresolved-affiliation", unresolved)
+
+
+def participant_variant(change: str) -> dict[str, Any]:
+    payload = _legacy()
+    if change == "conflict":
+        payload["agents"]["one"]["affiliations"] = ["team"]
+    elif change == "unknown":
+        payload["agents"]["one"]["hidden_field"] = "private-value-do-not-echo"
+    elif change == "action":
+        payload["objectives"]["goal"]["actions"] = ["private-value-do-not-echo"]
+    elif change == "assignment":
+        payload["objectives"]["goal"]["actions"] = ["observe"]
+    elif change == "both-legacy":
+        payload["objectives"]["goal"]["agent"] = "one"
+    else:
+        payload["imports"] = [{"path": "external.yaml", "namespace": "other"}]
+    return payload
 
 
 def mixed_cases(rows: CaseRows) -> None:
@@ -634,31 +639,35 @@ def boundary_cases(rows: CaseRows) -> None:
         ("unhashable-revision", "name: old\nsemantic_revision: []\n"),
     ]
     for name, source in boundary_sources:
-        for operation, migrate in (
-            (PROGRESSIVE_OPERATION, migrate_sdl_semantics),
-            ("adopt-participant-identity/v1", migrate_participant_identity),
-            (
-                "convert-mixed-control-finite-script/v1",
-                migrate_mixed_control_to_finite_script,
-            ),
-            ("externalize-sdl-classifications/v1", migrate_sdl_classifications),
-        ):
-            author = context(source) if operation == PROGRESSIVE_OPERATION else None
-            result = migrate(source, context=author) if author else migrate(source)
-            author_payload = author.model_dump(mode="json") if author else None
-            rows.append(
-                {
-                    "name": "issue-1678-" + operation.split("/")[0] + "-" + name,
-                    "source": "",
-                    "source_bytes": base64.b64encode(source.encode("utf-8", errors="surrogatepass")).decode("ascii"),
-                    "context": author_payload if author else {"operation_profile": operation},
-                    "output": result.output.model_dump(mode="json", exclude_unset=True) if result.output else None,
-                    "result": {
-                        "report": result.report.model_dump(mode="json"),
-                        "binding_documents": [],
-                    },
-                }
-            )
+        boundary_source_cases(rows, name, source)
+
+
+def boundary_source_cases(rows: CaseRows, name: str, source: str) -> None:
+    for operation, migrate in (
+        (PROGRESSIVE_OPERATION, migrate_sdl_semantics),
+        ("adopt-participant-identity/v1", migrate_participant_identity),
+        (
+            "convert-mixed-control-finite-script/v1",
+            migrate_mixed_control_to_finite_script,
+        ),
+        ("externalize-sdl-classifications/v1", migrate_sdl_classifications),
+    ):
+        author = context(source) if operation == PROGRESSIVE_OPERATION else None
+        result = migrate(source, context=author) if author else migrate(source)
+        author_payload = author.model_dump(mode="json") if author else None
+        rows.append(
+            {
+                "name": "issue-1678-" + operation.split("/")[0] + "-" + name,
+                "source": "",
+                "source_bytes": base64.b64encode(source.encode("utf-8", errors="surrogatepass")).decode("ascii"),
+                "context": author_payload if author else {"operation_profile": operation},
+                "output": result.output.model_dump(mode="json", exclude_unset=True) if result.output else None,
+                "result": {
+                    "report": result.report.model_dump(mode="json"),
+                    "binding_documents": [],
+                },
+            }
+        )
 
 
 def main() -> int:
