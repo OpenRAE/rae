@@ -24,7 +24,14 @@ The queue needs the `merge_group` triggers on `dev`.
 
 Code scanning default setup does not run on merge groups.
 Do steps 2 and 3 of the [CodeQL rollout](codeql.md#rollout).
-After the switch, `codeql.yml` produces the `CodeQL`, `Analyze (actions)`, and `Analyze (python)` contexts.
+After the switch, `codeql.yml` produces the `Analyze (actions)` and `Analyze (python)` contexts.
+
+Code scanning posts the `CodeQL` check on pull request commits only, so the queue never gets it on a merge group.
+Replace that status check on `dev` with a code scanning rule:
+
+1. In the `merge-policy-dev` ruleset, add the **Require code scanning results** rule for the **CodeQL** tool.
+2. Set the security alert threshold to **High or higher** and the alert threshold to **Errors**.
+3. Remove `CodeQL` from the required status checks of the `dev` branch protection.
 
 ## Turn on the merge queue for dev
 
