@@ -16,9 +16,11 @@ storage origin, which must not receive it.
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from contextlib import closing
 from dataclasses import dataclass, field
 from http.client import HTTPException
+from typing import Any
 from urllib.error import HTTPError
 from urllib.parse import urlencode, urlsplit, urlunsplit
 from urllib.request import (
@@ -164,10 +166,16 @@ def _challenge_for(error: HTTPError, request: Request) -> _BearerChallenge | Non
     return challenge
 
 
-def _anonymous_token(challenge: _BearerChallenge, *, url: str) -> str:
+def request_anonymous_token(
+    challenge: _BearerChallenge,
+    url: str,
+    *,
+    timeout_seconds: float,
+    max_metadata_bytes: int,
+    read_capped: Callable[..., bytes],
+    decode_json_object: Callable[..., dict[str, Any]],
+) -> str:
     """Request an anonymous token from the challenge realm over HTTPS, following no redirect."""
-
-    from . import _OCI_LIMITS, _decode_json_object, _read_capped
 
     token_url = challenge.token_url()
     # No HTTP, redirect, FTP, file or data handler: the validated HTTPS realm is the only hop.
@@ -176,12 +184,12 @@ def _anonymous_token(challenge: _BearerChallenge, *, url: str) -> str:
         opener.add_handler(handler)
     request = Request(token_url, headers={"Accept": "application/json"})  # noqa: S310 - validated https realm
     try:
-        with opener.open(request, timeout=_OCI_LIMITS.timeout_seconds) as response:
+        with opener.open(request, timeout=timeout_seconds) as response:
             # Messages name the requested URL only, never the challenge-derived token URL.
-            payload = _read_capped(response, url=url, max_bytes=_OCI_LIMITS.max_metadata_bytes)
+            payload = read_capped(response, url=url, max_bytes=max_metadata_bytes)
     except (OSError, HTTPException) as exc:
         raise OperationalError(f"Failed to obtain an anonymous OCI registry token for {url}") from exc
-    document = _decode_json_object(payload, context=f"OCI registry token response for {url}")
+    document = decode_json_object(payload, context=f"OCI registry token response for {url}")
     token = document.get("token") or document.get("access_token")
     if not isinstance(token, str) or _B64TOKEN.fullmatch(token) is None:
         raise SDLParseError(f"OCI registry token response for {url} carries no usable bearer token")
@@ -189,49 +197,43 @@ def _anonymous_token(challenge: _BearerChallenge, *, url: str) -> str:
 
 
 @dataclass
-class _RegistryTokens:
+class RegistryTokens:
     """Anonymous tokens for one import resolution, keyed by realm, service and scope."""
 
+    load_token: Callable[[_BearerChallenge, str], str]
     _tokens: dict[_BearerChallenge, str] = field(default_factory=dict)
 
     def token_for(self, challenge: _BearerChallenge, *, url: str) -> str:
         if challenge not in self._tokens:
-            self._tokens[challenge] = _anonymous_token(challenge, url=url)
+            self._tokens[challenge] = self.load_token(challenge, url)
         return self._tokens[challenge]
 
 
-def _open_capped(request: Request, *, url: str, max_bytes: int) -> bytes:
-    # ``urlopen`` and the limits resolve through the package facade, so its seams apply (issue #48).
-    from . import _OCI_LIMITS, _read_capped, urlopen
-
-    with urlopen(request, timeout=_OCI_LIMITS.timeout_seconds) as response:
-        return _read_capped(response, url=url, max_bytes=max_bytes)
-
-
-def _registry_get(
+def registry_get(
     url: str,
     *,
     headers: dict[str, str] | None,
     max_bytes: int,
-    tokens: _RegistryTokens | None,
+    tokens: RegistryTokens,
+    open_capped: Callable[[Request, str, int], bytes],
     failure: str,
 ) -> bytes:
     """GET ``url`` anonymously; answer one Bearer challenge with one token-bearing retry."""
 
     request = Request(url, headers=dict(headers or {}))  # noqa: S310 - trust-policy registry URL
     try:
-        return _open_capped(request, url=url, max_bytes=max_bytes)
+        return open_capped(request, url, max_bytes)
     except HTTPError as exc:
         challenge = _challenge_for(exc, request)
         if challenge is None:
             raise OperationalError(failure) from exc
     except (OSError, HTTPException) as exc:
         raise OperationalError(failure) from exc
-    token = (_RegistryTokens() if tokens is None else tokens).token_for(challenge, url=url)
+    token = tokens.token_for(challenge, url=url)
     retry = Request(url, headers=dict(headers or {}))  # noqa: S310 - trust-policy registry URL
     # Unredirected: urllib copies only ``Request.headers`` into a redirected request.
     retry.add_unredirected_header("Authorization", f"Bearer {token}")
     try:
-        return _open_capped(retry, url=url, max_bytes=max_bytes)
+        return open_capped(retry, url, max_bytes)
     except (OSError, HTTPException) as exc:
         raise OperationalError(failure) from exc

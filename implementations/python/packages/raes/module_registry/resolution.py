@@ -17,10 +17,10 @@ from .._supplied_sources import SuppliedSources
 from ..scenario import ImportDecl, ModuleDescriptor, Scenario
 from ._constants import LOCKFILE_NAME, OCI_BUNDLE_MEDIA_TYPE, OCI_LAYOUT_MEDIA_TYPE
 from ._digests import _descriptor_digest, _satisfies_version, _select_tag
-from ._registry_auth import _RegistryTokens
 from ._supplied_admission import require_import_pin, require_lock_record
 from ._verified_sources import _local_resolved_source, _VerifiedSourceBundle
 from .models import Lockfile, LockRecord, ResolvedModule, TrustPolicy, _scenario_module_descriptor, load_trust_policy
+from .registry_auth import RegistryTokens
 
 if TYPE_CHECKING:
     from ..parser import SDLSourceDocument
@@ -333,7 +333,7 @@ def _resolve_oci_manifest(
     import_decl: ImportDecl,
     locked: LockRecord | None,
     source: str,
-    tokens: _RegistryTokens | None = None,
+    tokens: RegistryTokens | None = None,
 ) -> tuple[str, dict[str, Any]]:
     from . import _bytes_request, _decode_json_object, _json_request
 
@@ -361,7 +361,7 @@ def _resolve_oci_manifest(
 
 
 def _resolve_oci_config(
-    *, base_url: str, repository: str, manifest: dict[str, Any], source: str, tokens: _RegistryTokens | None = None
+    *, base_url: str, repository: str, manifest: dict[str, Any], source: str, tokens: RegistryTokens | None = None
 ) -> tuple[dict[str, Any], str]:
     from . import _bytes_request, _decode_json_object
 
@@ -397,7 +397,7 @@ def _resolve_oci_config(
 
 
 def _fetch_oci_bundle(
-    *, base_url: str, repository: str, layer_digest: str, source: str, tokens: _RegistryTokens | None = None
+    *, base_url: str, repository: str, layer_digest: str, source: str, tokens: RegistryTokens | None = None
 ) -> bytes:
     from . import _OCI_LIMITS, _bytes_request
 
@@ -455,7 +455,7 @@ def _resolve_oci_import(
     trust_policy: TrustPolicy,
     source_options: SDLSourceParseOptions,
 ) -> ResolvedModule:
-    from . import _extract_bundle_to_cache, _verify_signatures
+    from . import _extract_bundle_to_cache, _verify_signatures, registry_tokens
 
     registry, repository = _parse_oci_source(source)
     registry_policy = trust_policy.registries.get(registry)
@@ -465,7 +465,7 @@ def _resolve_oci_import(
         )
     base_url = _registry_base_url(registry, allow_insecure_http=registry_policy.allow_insecure_http)
     locked = _lock_record_for(lockfile, import_decl)
-    tokens = _RegistryTokens()
+    tokens = registry_tokens()
     manifest_digest, manifest = _resolve_oci_manifest(
         base_url=base_url, repository=repository, import_decl=import_decl, locked=locked, source=source, tokens=tokens
     )

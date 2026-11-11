@@ -18,12 +18,13 @@ import tarfile
 import time
 import zlib
 from dataclasses import dataclass
+from functools import partial
 from http.client import HTTPException
 from pathlib import Path, PurePosixPath
 from typing import Any, Protocol
 
 # Registry requests resolve ``urlopen`` through this facade, the transport patch seam.
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 from raes_contracts.digests import sha256_digest
 from raes_contracts.errors import OperationalError
@@ -90,7 +91,6 @@ from ._filesystem import (
     _same_file_identity,
     _write_version_pointer,
 )
-from ._registry_auth import _registry_get, _RegistryTokens
 from ._verified_sources import _cache_source_result, _VerifiedSourceBundle
 from .models import (
     Lockfile,
@@ -104,6 +104,7 @@ from .models import (
     write_lockfile,
 )
 from .publishing import publish_module_to_oci_layout
+from .registry_auth import RegistryTokens, registry_get, request_anonymous_token
 from .resolution import resolve_import, resolve_lock_records
 from .signing import _signable_payload, _verify_signatures
 
@@ -160,16 +161,41 @@ def _read_capped(response: _CappableResponse, *, url: str, max_bytes: int) -> by
     return data
 
 
+def registry_tokens() -> RegistryTokens:
+    """Create a request-scoped token cache using the facade's current bounded transport."""
+    return RegistryTokens(
+        partial(
+            request_anonymous_token,
+            timeout_seconds=_OCI_LIMITS.timeout_seconds,
+            max_metadata_bytes=_OCI_LIMITS.max_metadata_bytes,
+            read_capped=_read_capped,
+            decode_json_object=_decode_json_object,
+        )
+    )
+
+
+def _open_registry_request(request: Request, url: str, max_bytes: int) -> bytes:
+    with urlopen(request, timeout=_OCI_LIMITS.timeout_seconds) as response:
+        return _read_capped(response, url=url, max_bytes=max_bytes)
+
+
 def _json_request(
     url: str,
     *,
     headers: dict[str, str] | None = None,
     max_bytes: int | None = None,
-    tokens: _RegistryTokens | None = None,
+    tokens: RegistryTokens | None = None,
 ) -> dict[str, Any]:
     limit = _OCI_LIMITS.max_metadata_bytes if max_bytes is None else max_bytes
     failure = f"Failed to fetch OCI metadata from {url}"
-    payload = _registry_get(url, headers=headers, max_bytes=limit, tokens=tokens, failure=failure)
+    payload = registry_get(
+        url,
+        headers=headers,
+        max_bytes=limit,
+        tokens=registry_tokens() if tokens is None else tokens,
+        open_capped=_open_registry_request,
+        failure=failure,
+    )
     return _decode_json_object(payload, context=f"OCI metadata from {url}")
 
 
@@ -190,11 +216,18 @@ def _bytes_request(
     *,
     headers: dict[str, str] | None = None,
     max_bytes: int | None = None,
-    tokens: _RegistryTokens | None = None,
+    tokens: RegistryTokens | None = None,
 ) -> bytes:
     limit = _OCI_LIMITS.max_metadata_bytes if max_bytes is None else max_bytes
     failure = f"Failed to fetch OCI blob from {url}"
-    return _registry_get(url, headers=headers, max_bytes=limit, tokens=tokens, failure=failure)
+    return registry_get(
+        url,
+        headers=headers,
+        max_bytes=limit,
+        tokens=registry_tokens() if tokens is None else tokens,
+        open_capped=_open_registry_request,
+        failure=failure,
+    )
 
 
 def _oci_cache_dir(base_dir: Path) -> Path:

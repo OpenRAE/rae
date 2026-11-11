@@ -611,13 +611,13 @@ def test_tokens_are_cached_per_challenge_for_one_resolution(
     token_server = serve(_fixed_route(_json({"token": token})), tls=https)
     registry = serve(_registry_route(layout, token=token, challenges=[_challenge(token_server)]))
     url = _url(registry, "tags/list")
-    tokens = module_registry._registry_auth._RegistryTokens()
+    tokens = module_registry.registry_tokens()
 
     module_registry._json_request(url, tokens=tokens)
     module_registry._bytes_request(url, tokens=tokens)
     assert len(token_server.seen) == 1
 
-    other_scope = module_registry._registry_auth._parse_bearer_challenge(
+    other_scope = module_registry.registry_auth._parse_bearer_challenge(
         _challenge(token_server, scope="repository:acme/other:pull")
     )
     assert tokens.token_for(other_scope, url=url) == token
@@ -655,9 +655,9 @@ def test_tokens_are_cached_per_challenge_for_one_resolution(
 def test_bearer_challenge_grammar_accepts_rfc_9110_parameters(
     header: str, expected: tuple[str, str | None, str | None]
 ) -> None:
-    challenge = module_registry._registry_auth._parse_bearer_challenge(header)
+    challenge = module_registry.registry_auth._parse_bearer_challenge(header)
 
-    assert challenge == module_registry._registry_auth._BearerChallenge(*expected)
+    assert challenge == module_registry.registry_auth._BearerChallenge(*expected)
 
 
 @pytest.mark.parametrize(
@@ -681,7 +681,7 @@ def test_bearer_challenge_grammar_accepts_rfc_9110_parameters(
 )
 def test_bearer_challenge_grammar_rejects_malformed_challenges(header: str) -> None:
     with pytest.raises(ValueError, match="malformed Bearer challenge"):
-        module_registry._registry_auth._parse_bearer_challenge(header)
+        module_registry.registry_auth._parse_bearer_challenge(header)
 
 
 @pytest.mark.parametrize(
@@ -706,11 +706,11 @@ def test_bearer_challenge_grammar_rejects_malformed_challenges(header: str) -> N
     ],
 )
 def test_token_realm_must_be_an_absolute_https_url(realm: str, accepted: bool) -> None:
-    assert module_registry._registry_auth._is_https_url(realm) is accepted
+    assert module_registry.registry_auth._is_https_url(realm) is accepted
 
 
 def test_token_url_carries_the_service_and_each_scope_entry() -> None:
-    challenge = module_registry._registry_auth._BearerChallenge(
+    challenge = module_registry.registry_auth._BearerChallenge(
         realm="https://auth.test/token?account=reader",
         service="registry.test",
         scope="repository:acme/shared:pull repository:acme/other:pull",
@@ -720,6 +720,6 @@ def test_token_url_carries_the_service_and_each_scope_entry() -> None:
         "https://auth.test/token?account=reader&service=registry.test"
         "&scope=repository%3Aacme%2Fshared%3Apull&scope=repository%3Aacme%2Fother%3Apull"
     )
-    assert module_registry._registry_auth._BearerChallenge("https://auth.test/token", None, None).token_url() == (
+    assert module_registry.registry_auth._BearerChallenge("https://auth.test/token", None, None).token_url() == (
         "https://auth.test/token"
     )
