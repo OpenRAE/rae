@@ -12,7 +12,6 @@ from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
 import pytest
-
 from tools import check_requirement_governance, check_schema_publication
 from tools.policy.common import REPO_ROOT, changed_paths, load_yaml
 from tools.policy.repo_policy import evaluate_repo_policy
