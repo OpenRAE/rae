@@ -1045,8 +1045,9 @@ const evaluate = new Function('github', 'vars', 'fromJSON', 'return (' + express
 console.log(JSON.stringify(evaluate(
   {base_ref: base, ref_name: ref}, {CODEQL_ADVANCED_ENABLED: enabled}, JSON.parse)));
 """
+    # These assertions check workflow semantics, not Node startup speed on a busy CI runner.
     return json.loads(
-        subprocess.check_output([node, "-e", script, expression, base, ref, enabled], text=True, timeout=10)
+        subprocess.check_output([node, "-e", script, expression, base, ref, enabled], text=True, timeout=30)
     )
 
 
