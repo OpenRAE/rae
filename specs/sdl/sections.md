@@ -307,6 +307,10 @@ at least one of the following:
   module composition namespaces it, and compilation records that element's
   canonical address.
 
+An episode policy may be the behavior specification's only behavior surface.
+The parser and published schemas require at least one nonempty structure element.
+Null records and empty condition maps do not satisfy this requirement.
+
 A condition holds only when every assertion it names holds. Every condition
 and the reset policy name the evidence requirements that together back the
 transition. Semantic validation requires each named requirement to be

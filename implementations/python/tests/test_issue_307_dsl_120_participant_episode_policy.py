@@ -12,9 +12,9 @@ from raes._errors import SDLInstantiationError, SDLParseError, SDLValidationErro
 from raes.instantiate import instantiate_scenario
 from raes.language_service import language_completions
 from raes.parser import parse_sdl, parse_sdl_file
-from raes_contracts.contracts import schema_bundle
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.models import ParticipantEpisodeConditionRuntime, ParticipantEpisodePolicyRuntime
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_ROOT = REPO_ROOT / "contracts" / "fixtures" / "sdl" / "participant-episode-policy-v1"
@@ -27,6 +27,13 @@ REALIZED_STATE = "declare intent only"
 CLOSED_RECORD = "Extra inputs are not permitted"
 PERSISTENT_SCOPE = "participant_memory_scope: persistent_across_episodes"
 LOCAL_RESET = "participant_memory_scope: episode_local_reset\n        memory_reset_authority_ref: {authority}"
+SCENARIO_CONTRACT_IDS = (
+    "sdl-authoring-input-v1",
+    "instantiated-scenario-v1",
+    "instantiated-scenario-snapshot-v1",
+    "materialized-scenario-v1",
+    "scenario-satisfiability-evidence-v1",
+)
 
 
 def _source() -> str:
@@ -72,6 +79,36 @@ def test_authored_policy_compiles_to_episode_refs() -> None:
     assert compiled.participant_memory_scope == "persistent_across_episodes"
     assert compiled.reset_evidence_requirement_addresses == ("sdl.evidence-requirements.reset-evidence",)
     assert {SPEC_ADDRESS, PARTICIPANT_ADDRESS, "time.constraint.shift-deadline"} <= set(compiled.refresh_dependencies)
+
+
+@pytest.mark.parametrize(
+    "structure", ["initialization", "terminal_conditions", "truncation_conditions", "reset_policy"]
+)
+def test_episode_policy_can_be_the_only_behavior_surface(structure: str) -> None:
+    policy = parse_sdl(_source()).behavior_specifications["analyst-triage"].episode_policy.model_dump(mode="json")
+    source = _replace(
+        _policy_free_source(),
+        "    action_contract_refs: [triage-alert]\n    behavior_mode: human-supervised\n",
+        "",
+    )
+    source += "    episode_policy: " + json.dumps({"profile": policy["profile"], structure: policy[structure]}) + "\n"
+
+    model = compile_runtime_model(parse_sdl(source))
+
+    compiled = model.participant_episode_policies[POLICY_ADDRESS]
+    assert compiled.participant_addresses == (PARTICIPANT_ADDRESS,)
+    assert compiled.spec[structure] == policy[structure]
+
+
+def test_behavior_specification_still_requires_a_behavior_surface() -> None:
+    source = _replace(
+        _policy_free_source(),
+        "    action_contract_refs: [triage-alert]\n    behavior_mode: human-supervised\n",
+        "",
+    )
+
+    with pytest.raises(SDLParseError, match="must aggregate at least one behavior surface reference"):
+        parse_sdl(source)
 
 
 @pytest.mark.parametrize(
@@ -688,6 +725,55 @@ def test_published_schema_states_the_parser_rules(mutate: object) -> None:
     mutate(payload["behavior_specifications"]["analyst-triage"]["episode_policy"])
 
     assert list(Draft202012Validator(_published_authoring_schema()).iter_errors(payload))
+
+
+@pytest.mark.parametrize("contract_id", SCENARIO_CONTRACT_IDS)
+@pytest.mark.parametrize(
+    "empty_structure",
+    [
+        {},
+        {"initialization": None},
+        {"interaction_structure": None},
+        {"reset_policy": None},
+        {"terminal_conditions": {}},
+        {"truncation_conditions": {}},
+        {
+            "initialization": None,
+            "interaction_structure": None,
+            "reset_policy": None,
+            "terminal_conditions": {},
+            "truncation_conditions": {},
+        },
+    ],
+    ids=[
+        "absent",
+        "null-initialization",
+        "null-interaction",
+        "null-reset",
+        "empty-terminal",
+        "empty-truncation",
+        "all-empty",
+    ],
+)
+def test_scenario_schemas_reject_empty_episode_policies(contract_id: str, empty_structure: dict[str, object]) -> None:
+    schema = schema_bundle()[contract_id]
+    validator = Draft202012Validator({"$defs": schema["$defs"], "$ref": "#/$defs/ParticipantEpisodePolicy"})
+    policy = {"profile": "participant-episode-policy/v1", **empty_structure}
+
+    assert list(validator.iter_errors(policy))
+
+
+@pytest.mark.parametrize("contract_id", SCENARIO_CONTRACT_IDS)
+@pytest.mark.parametrize(
+    "structure",
+    ["initialization", "interaction_structure", "terminal_conditions", "truncation_conditions", "reset_policy"],
+)
+def test_scenario_schemas_accept_each_episode_structure_element(contract_id: str, structure: str) -> None:
+    schema = schema_bundle()[contract_id]
+    validator = Draft202012Validator({"$defs": schema["$defs"], "$ref": "#/$defs/ParticipantEpisodePolicy"})
+    policy = parse_sdl(_source()).behavior_specifications["analyst-triage"].episode_policy.model_dump(mode="json")
+
+    validator.validate({"profile": policy["profile"], structure: policy[structure]})
 
 
 def test_published_valid_and_invalid_policy_fixtures() -> None:

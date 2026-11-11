@@ -12,18 +12,17 @@ from __future__ import annotations
 
 from dataclasses import fields
 from enum import Enum
-from typing import Annotated, Any, ClassVar, Literal, TypeVar
+from typing import Annotated, Any, ClassVar, Literal
 
 from pydantic import AfterValidator, Field, GetJsonSchemaHandler, model_validator
 from pydantic_core import CoreSchema
+from raes_contracts.identifiers import PortableIdentifier
 from raes_contracts.participant_episode import (
     ParticipantEpisodeControlAction,
     ParticipantEpisodeExecutionState,
     ParticipantEpisodeHistoryEvent,
 )
-
-from ._base import SDLModel
-from ._identifiers import PortableIdentifier
+from raes_contracts.sdl_model import SDLModel
 
 # Realized coordinates owned by the ADR-013 episode state and history contracts,
 # plus the ADR-095 decision epoch that callers never author. A policy record that
@@ -37,10 +36,8 @@ REALIZED_EPISODE_STATE_FIELDS = frozenset(
 _STRUCTURE_RECORDS = ("initialization", "interaction_structure", "reset_policy")
 _STRUCTURE_MAPS = ("terminal_conditions", "truncation_conditions")
 
-_Item = TypeVar("_Item")
 
-
-def _unique_items(values: list[_Item]) -> list[_Item]:
+def _unique_items[Item](values: list[Item]) -> list[Item]:
     if len(values) != len(set(values)):
         raise ValueError("participant episode policy lists must not repeat an item")
     return values
@@ -200,6 +197,18 @@ class ParticipantEpisodePolicy(_EpisodePolicyIntent):
         json_schema_extra={"additionalProperties": False},
     )
     reset_policy: ParticipantEpisodeResetPolicy | None = None
+
+    @classmethod
+    def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> dict[str, Any]:
+        json_schema = handler.resolve_ref_schema(handler(core_schema))
+        json_schema["anyOf"] = [
+            {
+                "properties": {name: {"type": "object", "minProperties": 1}},
+                "required": [name],
+            }
+            for name in (*_STRUCTURE_RECORDS, *_STRUCTURE_MAPS)
+        ]
+        return json_schema
 
     @model_validator(mode="after")
     def _validate_policy_shape(self) -> ParticipantEpisodePolicy:
