@@ -237,7 +237,8 @@ def test_secret_scan_uses_a_fixed_config_and_the_change_range() -> None:
         "..${{ github.event.merge_group.head_sha || github.event.pull_request.head.sha }}"
     )
     assert scan["env"]["GIT_CONFIG_VALUE_0"] == "/github/workspace"
-    assert "continue-on-error" not in scan and "continue-on-error" not in job
+    assert "continue-on-error" not in scan
+    assert "continue-on-error" not in job
 
 
 # Merge group steps resolve the queued pull request and fail closed.

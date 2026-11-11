@@ -105,6 +105,48 @@ class _Workflows:
         return self._documents[path]
 
 
+def _app_check_failures(branch: str, context: str, *, merge_queue: bool) -> list[PolicyFailure]:
+    """An external App producer cannot report on a merge group commit."""
+
+    if not merge_queue:
+        return []
+    return [
+        failure(
+            "merge-policy-merge-group",
+            f"{branch}: required context {context!r} needs a workflow producer that runs on merge groups",
+            MERGE_POLICY_PATH,
+        )
+    ]
+
+
+def _workflow_check_failures(
+    branch: str,
+    check: Mapping[str, Any],
+    *,
+    merge_queue: bool,
+    workflows: _Workflows,
+) -> list[PolicyFailure]:
+    context, path, job = check["context"], check["workflow"], check["job"]
+    workflow, failures = workflows.get(path)
+    if workflow is None:
+        return failures
+    producer = as_mapping(workflow.get("jobs")).get(job)
+    if not isinstance(producer, Mapping):
+        failures = [
+            failure("merge-policy-producer", f"{branch}: producer job {job!r} of {context!r} does not exist", path)
+        ]
+    if merge_queue and not (_runs_on_merge_group(workflow) and _job_admits_merge_group(as_mapping(producer))):
+        failures = [
+            *failures,
+            failure(
+                "merge-policy-merge-group",
+                f"{branch}: producer of required context {context!r} does not run on every merge group",
+                path,
+            ),
+        ]
+    return failures
+
+
 def _check_failures(
     branch: str,
     check: object,
@@ -113,54 +155,28 @@ def _check_failures(
     workflows: _Workflows,
 ) -> list[PolicyFailure]:
     kind = _check_shape(check)
-    if kind is None:
-        return [failure("merge-policy-shape", f"{branch}: malformed required check", MERGE_POLICY_PATH)]
     check = as_mapping(check)
-    context = check["context"]
     if kind == "app":
-        if merge_queue:
-            return [
-                failure(
-                    "merge-policy-merge-group",
-                    f"{branch}: required context {context!r} needs a workflow producer that runs on merge groups",
-                    MERGE_POLICY_PATH,
-                )
-            ]
-        return []
-    path, job = check["workflow"], check["job"]
-    workflow, load_failures = workflows.get(path)
-    if workflow is None:
-        return load_failures
-    failures: list[PolicyFailure] = []
-    producer = as_mapping(workflow.get("jobs")).get(job)
-    if not isinstance(producer, Mapping):
-        failures.append(
-            failure("merge-policy-producer", f"{branch}: producer job {job!r} of {context!r} does not exist", path)
-        )
-    if merge_queue and not (_runs_on_merge_group(workflow) and _job_admits_merge_group(as_mapping(producer))):
-        failures.append(
-            failure(
-                "merge-policy-merge-group",
-                f"{branch}: producer of required context {context!r} does not run on every merge group",
-                path,
-            )
-        )
-    return failures
+        return _app_check_failures(branch, check["context"], merge_queue=merge_queue)
+    if kind == "workflow":
+        return _workflow_check_failures(branch, check, merge_queue=merge_queue, workflows=workflows)
+    return [failure("merge-policy-shape", f"{branch}: malformed required check", MERGE_POLICY_PATH)]
 
 
-def _branch_failures(branch: str, rules: object, workflows: _Workflows) -> list[PolicyFailure]:
-    if (
-        not isinstance(rules, Mapping)
-        or set(rules) != _BRANCH_KEYS
-        or not isinstance(rules["merge_queue"], bool)
-        or not isinstance(rules["strict_status_checks"], bool)
-        or not isinstance(rules["required_checks"], list)
-        or not rules["required_checks"]
-    ):
-        return [failure("merge-policy-shape", f"{branch}: malformed branch rules", MERGE_POLICY_PATH)]
-    merge_queue = rules["merge_queue"]
+def _rules_are_well_formed(rules: object) -> bool:
+    return bool(
+        isinstance(rules, Mapping)
+        and set(rules) == _BRANCH_KEYS
+        and isinstance(rules["merge_queue"], bool)
+        and isinstance(rules["strict_status_checks"], bool)
+        and isinstance(rules["required_checks"], list)
+        and rules["required_checks"]
+    )
+
+
+def _rule_level_failures(branch: str, rules: Mapping[str, Any]) -> list[PolicyFailure]:
     failures: list[PolicyFailure] = []
-    if not merge_queue and not rules["strict_status_checks"]:
+    if not rules["merge_queue"] and not rules["strict_status_checks"]:
         failures.append(
             failure(
                 "merge-policy-strict",
@@ -168,28 +184,47 @@ def _branch_failures(branch: str, rules: object, workflows: _Workflows) -> list[
                 MERGE_POLICY_PATH,
             )
         )
-    contexts = [as_mapping(check).get("context") for check in rules["required_checks"]]
-    if len(contexts) != len(set(map(str, contexts))):
+    contexts = [str(as_mapping(check).get("context")) for check in rules["required_checks"]]
+    if len(contexts) != len(set(contexts)):
         failures.append(failure("merge-policy-shape", f"{branch}: duplicate required context", MERGE_POLICY_PATH))
-    for check in rules["required_checks"]:
-        failures.extend(_check_failures(branch, check, merge_queue=merge_queue, workflows=workflows))
     return failures
+
+
+def _branch_failures(branch: str, rules: object, workflows: _Workflows) -> list[PolicyFailure]:
+    if not _rules_are_well_formed(rules):
+        return [failure("merge-policy-shape", f"{branch}: malformed branch rules", MERGE_POLICY_PATH)]
+    rules = as_mapping(rules)
+    failures = _rule_level_failures(branch, rules)
+    for check in rules["required_checks"]:
+        failures.extend(_check_failures(branch, check, merge_queue=rules["merge_queue"], workflows=workflows))
+    return failures
+
+
+def _load_branches(repo_root: Path) -> tuple[Mapping[str, Any], list[PolicyFailure]]:
+    """Load the declared branches, or return the shape failure that refuses them."""
+
+    try:
+        policy = load_bounded_json_object(repo_root, MERGE_POLICY_PATH, max_bytes=_MAX_POLICY_BYTES)
+    except (InvalidInputError, OSError) as exc:
+        return {}, [failure("merge-policy-shape", str(exc), MERGE_POLICY_PATH)]
+    branches = policy.get("branches")
+    if set(policy) != {"schema_version", "branches"} or policy["schema_version"] != 1:
+        branches = None
+    if not branches or not isinstance(branches, Mapping):
+        return {}, [
+            failure(
+                "merge-policy-shape", "policy must declare schema_version 1 and a branch mapping", MERGE_POLICY_PATH
+            )
+        ]
+    return branches, []
 
 
 def evaluate_merge_queue_policy(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
     """Return deterministic failures of the declared branch merge policy."""
 
-    try:
-        policy = load_bounded_json_object(repo_root, MERGE_POLICY_PATH, max_bytes=_MAX_POLICY_BYTES)
-    except (InvalidInputError, OSError) as exc:
-        return [failure("merge-policy-shape", str(exc), MERGE_POLICY_PATH)]
-    branches = policy.get("branches")
-    if set(policy) != {"schema_version", "branches"} or policy["schema_version"] != 1 or not branches:
-        return [failure("merge-policy-shape", "policy must declare schema_version 1 and branches", MERGE_POLICY_PATH)]
-    if not isinstance(branches, Mapping):
-        return [failure("merge-policy-shape", "branches must be a mapping", MERGE_POLICY_PATH)]
+    branches, failures = _load_branches(repo_root)
     workflows = _Workflows(repo_root)
-    failures = [item for branch, rules in branches.items() for item in _branch_failures(branch, rules, workflows)]
+    failures += [item for branch, rules in branches.items() for item in _branch_failures(branch, rules, workflows)]
     return sorted(set(failures), key=lambda item: (item.path or "", item.rule_id, item.message))
 
 
