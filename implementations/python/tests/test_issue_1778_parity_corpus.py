@@ -252,6 +252,8 @@ def test_native_semantic_vectors_do_not_require_python_canonical_recording(repo:
 
     (repo / family / "linked.json").symlink_to(repo / "contracts/fixtures/family/demo-v1/valid/one.json")
     with pytest.raises(ValueError, match="symbolic links"):
+        data_inputs(repo)
+    with pytest.raises(ValueError, match="symbolic links"):
         list(reference_cli_cases(repo))
 
 

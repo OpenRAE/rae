@@ -24,8 +24,9 @@ def vector(name: str) -> dict:
 
 
 def test_published_semantic_expectations_have_no_recorder_mode(recorder) -> None:
+    parser = recorder.argument_parser()
     with pytest.raises(SystemExit) as failure:
-        recorder.argument_parser().parse_args(["--semantic"])
+        parser.parse_args(["--semantic"])
     assert failure.value.code == 2
 
 

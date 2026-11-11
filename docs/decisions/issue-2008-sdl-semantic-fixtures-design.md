@@ -32,7 +32,8 @@ The selection, formatter, import, and temporary corpus checks keep their existin
 The legacy canonical recorder excludes this mixed semantic corpus from its payload discovery.
 Both backend-conformance copy paths also exclude this family from fixture trees.
 The legacy readers use one shared family selector.
-The copy paths check all discovered paths for symbolic links before selection.
+Discovery and copy paths use the existing directory scanner.
+It checks all discovered paths for symbolic links before selection.
 This keeps future semantic fixture changes independent of Python parity regeneration.
 Existing canonical payload coverage remains unchanged.
 The full admission reference inventory also excludes this exact family directory.

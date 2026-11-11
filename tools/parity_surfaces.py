@@ -721,16 +721,15 @@ def http_trace_cases() -> Iterator[Case]:
 
 def data_inputs(repo: Path) -> list[Path]:
     """Discover input data without following repository-controlled links."""
+    from tools.parity_inputs import InputCollector
+
     result = []
     for root in (repo / "examples", repo / FIXTURES_ROOT):
         if root.is_symlink() or root.parent.is_symlink():
             raise ValueError("a parity data root must not be a symbolic link")
-        for path in sorted(root.rglob("*")):
-            if path.is_symlink():
-                raise ValueError("parity data discovery refuses symbolic links")
-            # Native semantic checks own this mixed input/expectation inventory.
-            if is_native_semantic_fixture(path, repo / FIXTURES_ROOT):
-                continue
-            if path.suffix in {".json", ".yaml", ".yml"} and path.is_file():
-                result.append(path)
+        result.extend(
+            path
+            for path in InputCollector.directory_inputs(root)
+            if path.is_file() and not is_native_semantic_fixture(path, repo / FIXTURES_ROOT)
+        )
     return result
