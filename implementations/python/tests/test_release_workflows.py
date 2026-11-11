@@ -36,6 +36,7 @@ _FRESH_ATTACHMENT_CALLS = [
     "download",
 ]
 FULL_SHA_USE = re.compile(r"^[^@]+@[0-9a-f]{40}$")
+DIGEST_IMAGE_USE = re.compile(r"^docker://[^\s@]+@sha256:[0-9a-f]{64}$")
 DRAFT_RELEASE_STATE = re.compile(r"(?:\bisDraft\b|\.(?:isDraft|draft)\b|-F\s+draft=)")
 
 
@@ -465,7 +466,9 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     assert canonical["uses"] == LOCAL_CANONICAL_WORKFLOW
     assert canonical["with"]["ref"] == "${{ github.sha }}"
     assert "github.event.pull_request.base.sha" in canonical["with"]["base-rev"]
-    assert canonical["with"]["requirement-branch"] == "${{ github.head_ref || github.ref_name }}"
+    assert canonical["with"]["requirement-branch"] == (
+        "${{ needs.queued-pull-request.outputs.head-ref || github.head_ref || github.ref_name }}"
+    )
     assert canonical["with"]["sonar-enabled"] is True
     assert canonical["secrets"]["sonar_token"] == "${{ secrets.SONAR_TOKEN }}"  # noqa: S105
 
@@ -1025,6 +1028,9 @@ def test_every_workflow_pins_every_third_party_action_to_a_full_sha() -> None:
         for action_ref in _uses(_load(path)):
             if action_ref.startswith("./"):
                 continue
+            if action_ref.startswith("docker://"):
+                assert DIGEST_IMAGE_USE.fullmatch(action_ref), f"{path.name}: unpinned image {action_ref!r}"
+                continue
             assert FULL_SHA_USE.fullmatch(action_ref), f"{path.name}: unpinned action {action_ref!r}"
 
 
@@ -1068,7 +1074,8 @@ def test_codeql_stays_inactive_until_rollout_is_enabled(enabled: str) -> None:
 
 def test_codeql_events_and_credentials_preserve_scan_boundaries() -> None:
     workflow = _load(WORKFLOWS / "codeql.yml")
-    assert set(workflow["on"]) == {"push", "pull_request", "schedule", "workflow_dispatch"}
+    assert set(workflow["on"]) == {"push", "pull_request", "merge_group", "schedule", "workflow_dispatch"}
+    assert workflow["on"]["merge_group"] == {"types": ["checks_requested"]}
     for event in ("push", "pull_request"):
         assert set(workflow["on"][event]["branches"]) == {"main", "dev", "go-cutover"}
         assert not set(workflow["on"][event]) & {"paths", "paths-ignore"}
@@ -1192,6 +1199,7 @@ def test_release_bookkeeping_changes_do_not_retrigger_check_workflows() -> None:
         ("pr-title-lint.yml", "pull_request"),
         ("release-classification.yml", "pull_request"),
         ("scorecard.yml", "push"),
+        ("secret-scan.yml", "pull_request"),
     }
 
 
