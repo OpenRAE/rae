@@ -1136,11 +1136,13 @@ def _release_managed_paths() -> list[str]:
 
 # Keep CodeQL's existing scan frequency; Release Please publishes and the Docs
 # push redeploys the release version when only release-managed files change.
+# The maintainer gate is a required check, so it runs on every pull request.
 _RELEASE_BOOKKEEPING_RUNS = {
     ("release-please.yml", "push"),
     ("docs.yml", "push"),
     ("codeql.yml", "push"),
     ("codeql.yml", "pull_request"),
+    ("maintainer-gate.yml", "pull_request"),
 }
 
 
