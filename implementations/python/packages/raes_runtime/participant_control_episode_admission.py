@@ -71,6 +71,8 @@ def execute_participant_policy_call(
         from .participant_control_action_admission import require_live_control_proposal
 
         require_live_control_proposal(plane, request)
+        if plane._participant_episode is not None:
+            plane._participant_episode.require_request(request)
         request = _prepare_episode_request(plane, request)
     except CONTROL_CUT_REFUSALS:
         return _unverified(plane, address), OperationState.FAILED, None
@@ -104,6 +106,8 @@ def _retain_episode_admissions(
     plane: RuntimeControlPlane, predecessor: RuntimeSnapshot, result: ApplyResult, address: str
 ) -> tuple[ApplyResult, OperationState, dict[str, object] | None]:
     try:
+        if plane._participant_episode is not None:
+            plane._participant_episode.require_snapshot(result.snapshot)
         admissions = episode_policy_admissions(plane, predecessor, result.snapshot)
     except CONTROL_CUT_REFUSALS:
         # The callback ran. Preserve the current committed cut, record uncertainty

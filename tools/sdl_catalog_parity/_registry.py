@@ -14,6 +14,11 @@ REFERENCE_EDGE_EXPECTATIONS: dict[str, tuple[str, str, str, str]] = {
     **EXPECTATIONS_PART_4,
 }
 
-_PART_TOTAL = len(EXPECTATIONS_PART_1) + len(EXPECTATIONS_PART_2) + len(EXPECTATIONS_PART_3) + len(EXPECTATIONS_PART_4)
+_PART_TOTAL = (
+    len(EXPECTATIONS_PART_1)
+    + len(EXPECTATIONS_PART_2)
+    + len(EXPECTATIONS_PART_3)
+    + len(EXPECTATIONS_PART_4)
+)
 if len(REFERENCE_EDGE_EXPECTATIONS) != _PART_TOTAL:
     raise RuntimeError("reference-edge expectation parts overlap")

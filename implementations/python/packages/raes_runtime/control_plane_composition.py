@@ -27,6 +27,9 @@ def compose_operation_execution(control_plane: RuntimeControlPlane, config: Cont
     control_plane._operation_evidence = config.operation_evidence
     control_plane._inject_execution = config.inject_execution
     control_plane._inject_delivery = config.inject_delivery
+    control_plane._participant_episode = config.participant_episode
+    if config.participant_episode is not None:
+        config.participant_episode.require_target(control_plane._target)
     control_plane._distributed_execution = config.distributed_execution
     control_plane._admitted_backend_requests = {}
     control_plane._execution_deadlines = {}

@@ -13,9 +13,10 @@ from __future__ import annotations
 from collections.abc import Iterable
 from dataclasses import dataclass
 
+from raes_contracts.propositions import AssertionRole
+
 from .._reference_targetability import ReferencePurpose
 from ..participant_episode_policy import ParticipantEpisodeTimeoutCondition
-from ..propositions import AssertionRole
 from ..semantics.participant_behavior import select_participants
 from ..time_model import TemporalConstraintKind
 

@@ -23,6 +23,15 @@ def runtime_plan_precondition_diagnostics(
 ) -> list[Diagnostic]:
     """Return every deterministic plan-admission failure for a manager apply."""
     diagnostics = _provenance_diagnostics(execution_plan, target, snapshot)
+    if execution_plan.model.participant_episode_policies:
+        diagnostics.append(
+            Diagnostic(
+                code="runtime.participant-episode-binding-unavailable",
+                domain="participant",
+                address=_RUNTIME_APPLY_ADDRESS,
+                message="Authored episode policies require the control plane's installed episode runtime binding.",
+            )
+        )
     context = execution_plan.planning_context
     processor = None if context is None else context.processor_manifest
     diagnostics.extend(participant_tool_support_diagnostics(execution_plan.model, target.manifest, processor))

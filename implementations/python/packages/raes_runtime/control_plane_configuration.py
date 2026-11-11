@@ -22,6 +22,7 @@ from .operation_supervision_configuration import OperationEvidenceResolver, Oper
 from .participant_control_binding import ParticipantControlRuntimeBinding
 from .participant_control_runtime import MixedControlRuntimeBinding
 from .participant_crossing_mediation import ParticipantCrossingPolicyResolver
+from .participant_episode_binding import ParticipantEpisodeRuntimeBinding
 from .participant_inject_delivery import ParticipantInjectRuntimeBinding
 
 
@@ -55,6 +56,7 @@ class ControlPlaneOptions(TypedDict, total=False):
     inject_execution: InjectExecutionResolver | None
     mixed_control: MixedControlRuntimeBinding | None
     inject_delivery: ParticipantInjectRuntimeBinding | None
+    participant_episode: ParticipantEpisodeRuntimeBinding | None
     stochastic_controls: Iterable[ExperimentStochasticControlModel]
     required_operation_guarantees: tuple[OperationGuarantee, ...]
     wall_clock: WallClock
@@ -82,6 +84,7 @@ class ControlPlaneConfiguration:
     inject_execution: InjectExecutionResolver | None = None
     mixed_control: MixedControlRuntimeBinding | None = None
     inject_delivery: ParticipantInjectRuntimeBinding | None = None
+    participant_episode: ParticipantEpisodeRuntimeBinding | None = None
     stochastic_controls: Iterable[ExperimentStochasticControlModel] = ()
     required_operation_guarantees: tuple[OperationGuarantee, ...] = ()
     wall_clock: WallClock = utc_now
@@ -114,6 +117,21 @@ class ControlPlaneConfiguration:
             raise TypeError("inject delivery requires a typed runtime binding")
         self._require_state_configuration()
         self._require_inject_projection_configuration()
+        self._require_episode_configuration()
+
+    def _require_episode_configuration(self) -> None:
+        specifications = self.behavior_specifications or {}
+        if self.participant_episode is None:
+            if any(spec.episode_policy_address for spec in specifications.values()):
+                raise ValueError("episode policies require an installed participant episode binding")
+            return
+        if not isinstance(self.participant_episode, ParticipantEpisodeRuntimeBinding):
+            raise TypeError("participant_episode requires a typed runtime binding")
+        if any(
+            self.participant_episode.model.behavior_specifications.get(ref) != spec
+            for ref, spec in specifications.items()
+        ):
+            raise ValueError("episode binding must match installed behavior specifications")
 
     def _require_inject_projection_configuration(self) -> None:
         if self.inject_delivery is not None:

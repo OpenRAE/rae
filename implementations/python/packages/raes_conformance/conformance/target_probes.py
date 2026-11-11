@@ -16,6 +16,7 @@ from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 from raes_processor.models import ExecutionPlan
 from raes_processor.reference import ScenarioInput
 from raes_runtime.control_plane import RuntimeControlPlane
+from raes_runtime.participant_episode_binding import ParticipantEpisodeRuntimeBinding
 from raes_runtime.registry import RuntimeTarget
 from raes_runtime.snapshot_contract import runtime_snapshot_contract_payload
 
@@ -350,6 +351,7 @@ def _target_adapter_cases(
     profile: BackendProfileSelector,
     *,
     reference_scenario: ScenarioInput | None = None,
+    participant_episode: ParticipantEpisodeRuntimeBinding | None = None,
 ) -> tuple[ConformanceCaseResult, ...]:
     """Run target-adapter probes appropriate for known runtime surfaces only.
 
@@ -400,8 +402,27 @@ def _target_adapter_cases(
                 ),
             )
         )
+    elif execution_plan.model.participant_episode_policies and (
+        participant_episode is None or participant_episode.model != execution_plan.model
+    ):
+        cases.append(
+            ConformanceCaseResult(
+                name="target-episode-binding",
+                contract_name="participant-episode-state-envelope-v1",
+                valid=False,
+                passed=False,
+                outcome="unsupported",
+                diagnostics=(
+                    _diagnostic(
+                        "conformance.participant-episode-binding-missing",
+                        "target",
+                        "The probe scenario requires its exact installed episode binding.",
+                    ),
+                ),
+            )
+        )
     else:
-        cases.extend(_target_runtime_cases(target, known, execution_plan, scope))
+        cases.extend(_target_runtime_cases(target, known, execution_plan, scope, participant_episode))
     return tuple(cases)
 
 
@@ -410,12 +431,13 @@ def _target_runtime_cases(
     known: BackendCapabilityProfile,
     execution_plan: ExecutionPlan,
     scope: PlanScope | None = None,
+    participant_episode: ParticipantEpisodeRuntimeBinding | None = None,
 ) -> tuple[ConformanceCaseResult, ...]:
     """Drive the runtime surfaces that are valid for one known backend profile."""
 
     owner = ProbeRuntimeOwner(scope)
     try:
-        return _target_runtime_probe_cases(target, known, execution_plan, owner)
+        return _target_runtime_probe_cases(target, known, execution_plan, owner, participant_episode)
     finally:
         owner.close()
 
@@ -425,6 +447,7 @@ def _target_runtime_probe_cases(
     known: BackendCapabilityProfile,
     execution_plan: ExecutionPlan,
     owner: ProbeRuntimeOwner,
+    participant_episode: ParticipantEpisodeRuntimeBinding | None = None,
 ) -> tuple[ConformanceCaseResult, ...]:
     cases: list[ConformanceCaseResult] = []
     materialization_required = owner.materialization_required
@@ -435,6 +458,7 @@ def _target_runtime_probe_cases(
         initial_snapshot=_participant_execution_probe_snapshot(target),
         crossing_policy_resolver=_conformance_crossing_policy_resolver(target),
         enforce_final_sink_flow_control=False,
+        participant_episode=participant_episode,
     )
     controls = frozenset()
     with control_plane:

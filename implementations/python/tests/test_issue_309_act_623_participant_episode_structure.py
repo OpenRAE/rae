@@ -16,8 +16,8 @@ from raes_backend_stubs.stubs import create_stub_target
 from raes_conformance.conformance import participant_episode_structure_conformance_diagnostics
 from raes_contracts.participant_episode import (
     ParticipantEpisodeTerminalReason,
-    iter_participant_episode_snapshot_violations,
 )
+from raes_contracts.participant_episode_snapshot import iter_participant_episode_snapshot_violations
 from raes_processor.compiler import compile_runtime_model
 from raes_runtime.control_plane import RuntimeControlPlane
 

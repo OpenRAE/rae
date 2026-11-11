@@ -10,7 +10,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from .._base import is_variable_ref
+from raes_contracts.variable_references import is_variable_ref
+
 from .._reference_targetability import ReferencePurpose
 from ._references import _maybe_rename
 

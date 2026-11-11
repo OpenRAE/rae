@@ -33,6 +33,10 @@ class RuntimePlanAuthorizationMixin:
             raise TypeError("planner authorization requires a composite ExecutionPlan")
         if not plan.is_valid:
             raise ValueError("invalid composite execution plans cannot be authorized")
+        if plan.model.participant_episode_policies and (
+            self._participant_episode is None or self._participant_episode.model != plan.model
+        ):
+            raise ConflictError("episode plan requires its exact installed runtime binding")
         from raes_processor.planner.mixed_control_admission import mixed_control_policy_addresses
 
         if mixed_control_policy_addresses(

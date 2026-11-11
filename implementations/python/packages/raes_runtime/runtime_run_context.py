@@ -199,6 +199,8 @@ class RuntimeRunContext(
     def _restore_persisted_state(self, config: ControlPlaneConfiguration) -> None:
         self._participant_outcome_model = deepcopy(config.participant_outcome_model)
         self._snapshot_state = self._store.load_snapshot_state()
+        if self._participant_episode is not None:
+            self._participant_episode.require_snapshot(self._snapshot)
         self._operations: dict[str, ControlPlaneOperationRecord] = self._store.load_records()
         require_operation_record_scopes(self._operations, target_scope=self._target_scope, run_scope=self._run_scope)
         self._behavior_specifications = dict(config.behavior_specifications or {})

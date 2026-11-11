@@ -12,9 +12,9 @@ from raes._errors import SDLInstantiationError, SDLParseError, SDLValidationErro
 from raes.instantiate import instantiate_scenario
 from raes.language_service import language_completions
 from raes.parser import parse_sdl, parse_sdl_file
-from raes_contracts.contracts import schema_bundle
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.models import ParticipantEpisodeConditionRuntime, ParticipantEpisodePolicyRuntime
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_ROOT = REPO_ROOT / "contracts" / "fixtures" / "sdl" / "participant-episode-policy-v1"

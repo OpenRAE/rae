@@ -4,9 +4,7 @@ from __future__ import annotations
 
 from tools.sdl_catalog_parity._paths import _DANGLING, _SEMANTIC
 
-_EPISODE_POLICY_VALIDATOR = (
-    "[episode-policy validator](../../implementations/python/packages/raes/validator/_participant_episode_policies.py)"
-)
+_EPISODE_POLICY_VALIDATOR = "[episode-policy validator](../../implementations/python/packages/raes/validator/_participant_episode_policies.py)"
 _EPISODE_POLICY = "behavior_specifications.*.episode_policy"
 _FATAL_DANGLING = "fatal dangling"
 _CLOSURE_ASSERTION = "fatal dangling or not an invariant or postcondition assertion"

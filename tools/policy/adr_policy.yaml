@@ -111,6 +111,7 @@ module_boundaries:
           - raes.parse_sdl
           - raes.parser
           - raes.participant_behavior_specification
+          - raes.participant_episode_policy
           - raes.participant_control_context
           - raes.participant_mixed_control_policy
           - raes.participant_temporal_semantics
@@ -234,6 +235,7 @@ module_boundaries:
           - raes_processor.reference
         raes_runtime:
           - raes_runtime.control_plane
+          - raes_runtime.participant_episode_binding
           # Issue #1017: the claim refusal signal that identifies a moved-phase refusal.
           - raes_runtime.control_plane_store
           - raes_runtime.registry

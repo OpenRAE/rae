@@ -1,4 +1,4 @@
-# SDL Sections Reference
+# SDL sections reference
 
 Cloud projects and accounts use resource scopes within `runtime.identity_authorities`.
 The same owner describes workload identity use and resource-policy attachment.
@@ -24,7 +24,7 @@ Canonical `imports.source` classes are:
 - `oci:...` for remote OCI-packaged modules
 - `locked:...` for lockfile-resolved concrete imports
 
-## Section Overview
+## Section overview
 
 ### OCR-derived core
 
@@ -1524,7 +1524,7 @@ silently ignoring the missing prerequisite.
 
 ---
 
-## Conditions, Propositions, and Assertions
+## Conditions, propositions, and assertions
 
 `conditions` describe executable probe implementations. They do not define
 portable truth by themselves. A condition may bind to a proposition that says
@@ -1643,7 +1643,7 @@ Nested entities are referenced via dot-notation: `blue-team.alice`.
 
 ---
 
-## Orchestration: Injects, Events, Scripts, Stories
+## Orchestration: injects, events, scripts, stories
 
 Entity endpoints are optional but must be paired when present; they do not
 declare participants or select physical execution targets. Ordinary injects
@@ -1832,7 +1832,7 @@ authorizes disclosure of one exact fixture binding. See the normative
 
 ---
 
-## Identity Domains
+## Identity domains
 
 Authored identity-domain realization intent. This is separate from observed
 `nodes.*.runtime.identity_authorities` inventory.
@@ -2092,7 +2092,7 @@ remain separate apparatus surfaces.
 
 ---
 
-## Forwarding Agents
+## Forwarding agents
 
 The top-level `forwarding_agents` list declares scenario-scoped logical
 forwarders. Each element carries a stable `forwarding_agent_id`; relationship
@@ -2100,7 +2100,7 @@ subtypes may reference it from a `forwarding_edge`. This list is distinct from
 `nodes.<node>.runtime.forwarding_agents`, which places the same logical family
 on one node.
 
-## Action Contracts
+## Action contracts
 
 `action_contracts` describe participant-visible actions as declared behavior:
 their applicability, intended and side effects, failure classes, interactions,
@@ -2117,7 +2117,7 @@ action_contracts:
     realization_profile: backend-declared
 ```
 
-## Observation Boundaries
+## Observation boundaries
 
 `observation_boundaries` define an information projection for a participant:
 what begins observable or hidden, what may become discovered, and which evidence
@@ -2133,7 +2133,7 @@ observation_boundaries:
     evidence_refs: [content.terminal-output]
 ```
 
-## Outcome Interpretation Rules
+## Outcome interpretation rules
 
 `outcome_interpretation_rules` state how participant action outcomes,
 observations, objective results, and evidence claims are interpreted. They keep
@@ -2148,7 +2148,7 @@ outcome_interpretation_rules:
     interpretation_basis: retained terminal evidence supports the local outcome
 ```
 
-## Behavior Specifications
+## Behavior specifications
 
 First-class participant behavior specifications name, version, and validate an
 aggregate over existing participant behavior surfaces. They do not replace
@@ -2450,6 +2450,25 @@ produces, other than `interrupted`, and a reset or restart that the reset
 policy does not admit. For a policy without a `reset_policy`, it admits any
 reset or restart. It reads history only and does not evaluate conditions.
 
+The runtime control plane accepts a `ParticipantEpisodeRuntimeBinding` through its `participant_episode` option.
+The binding retains the compiled model and one admitted manifest selection per governed participant.
+It checks implementation identity, manifest digest, decision mode, and support for the episode state and history contracts.
+Missing or duplicate selections fail before a backend call.
+The binding checks reset actions and terminal reasons before dispatch through the existing ADR-013 lifecycle.
+It also checks restored history and successful backend results against the authored bounds.
+
+Initialization assertions, turn execution, condition evaluation, and memory-reset realization remain their existing owners' responsibilities.
+
+`run_target_conformance` accepts `participant_episode_model` and `participant_episode_snapshot` as recorded evidence inputs.
+The report includes episode-policy and snapshot-integrity findings and fails when a governed participant lacks recorded history.
+A target without the matching episode contracts receives a `not-applicable` result, not a passing episode case.
+The same applies when no authored episode policy is selected.
+The report keeps recorded-history inspection separate from native execution claims.
+The diagnostics function is also exported from `raes_conformance`.
+
+The legacy runtime manager does not install this binding and rejects authored episode-policy plans before execution.
+Use the control plane with the exact compiled binding for these plans.
+
 For `behavior_mode: mixed-control`, authors must also provide a closed
 `mixed_control` declaration. It binds one controlled participant, explicit
 controller states, fail-closed disposition rules, and ordered control facts.
@@ -2619,7 +2638,7 @@ author decision.
 
 ---
 
-## Evidence Requirements
+## Evidence requirements
 
 `evidence_requirements` are portable capture obligations authored with the
 scenario. They state sources, scope, trigger or boundary, channel, artifact
@@ -2705,7 +2724,7 @@ shares, such as a node and a condition both named `web`, stays ambiguous.
 referenced stories/scripts/events/workflows must exist and remain internally
 consistent. Workflow steps use qualified refs of the form `<workflow>.<step>`.
 
-`depends_on` is an ordering relation, not just commentary. It defines a partial order over objectives: downstream objectives are not considered ready until their predecessors have been satisfied. Objective dependency cycles are rejected.
+`depends_on` defines an ordering relation. It defines a partial order over objectives: downstream objectives are not considered ready until their predecessors have been satisfied. Objective dependency cycles are rejected.
 
 This section is intentionally declarative. It says who is trying to do what, against what, during which window, and how success is interpreted. It does **not** embed backend-specific probes such as Wazuh queries or command-output checks. These objectives are scenario-local declarations; experiment-core task records live outside SDL and bind a scenario or scenario snapshot to an evaluation protocol, apparatus constraints, and study context.
 
@@ -2876,7 +2895,7 @@ Think of variables as parameterizing **properties of declared objects**, not the
 
 ---
 
-## Objectives, Conditions, and Runtime Checks
+## Objectives, conditions, and runtime checks
 
 The SDL carries:
 

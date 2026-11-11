@@ -288,6 +288,21 @@ restart must be one that the reset policy admits. A policy without a
 history only. It does not evaluate conditions or claim that a backend enforces
 the policy.
 
+Runtime adoption requires an explicit `ParticipantEpisodeRuntimeBinding` on the control plane.
+The binding retains compiler context and exactly one implementation selection per governed participant.
+The selection must match its manifest identity, digest, decision mode, and episode contract support.
+Unsupported or ambiguous bindings fail before backend execution.
+
+The existing lifecycle owner admits only the policy's reset actions and terminal reasons.
+It preserves ADR-013 participant identity, generation, and append-only history semantics.
+Recorded policy violations in restored state or successful backend results are refused.
+
+The target conformance runner accepts compiled episode context and recorded snapshot evidence.
+It includes policy findings and snapshot-integrity failures in its report.
+Missing history for a governed participant fails the check.
+No matching episode capability or no selected authored policy produces `not-applicable`, never a passing episode case.
+This inspection does not establish condition evaluation, memory-reset realization, or native execution.
+
 ## Extending the section set
 
 A new top-level authoring section requires its model, published schema field, and a row in this catalog.

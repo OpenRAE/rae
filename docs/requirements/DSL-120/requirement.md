@@ -8,7 +8,9 @@ created_at: 2026-04-05T01:39:32.895216Z
 updated_at: 2026-04-05T01:39:32.895216Z
 ---
 
-# DSL-120 — Participant Episode Structure And Termination Surface
+<a id="dsl-120--participant-episode-structure-and-termination-surface"></a>
+
+# DSL-120 participant episode structure and termination surface
 
 ## Statement
 

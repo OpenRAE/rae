@@ -1348,6 +1348,7 @@ ownership:
   # ACT-623 keeps the participant-model roots it reached through ^ACT- and adds
   # its issue scope. Other ^ACT- requirements stay in the shared phase (#1510).
   participant-episode-structure:
+    - tools/policy/adr_policy.yaml
     - contracts/concept-authority
     - contracts/fixtures
     - contracts/schemas

@@ -7,6 +7,9 @@
     "DSL-120"
   ],
   "bindings": {
+    ".vale.ini": [
+      "ACT-623"
+    ],
     "contracts/fixtures/sdl/participant-episode-policy-v1/README.md": [
       "ACT-623",
       "DSL-120"
@@ -52,6 +55,9 @@
     ],
     "contracts/schemas/sdl/sdl-authoring-input-v1.json": [
       "DSL-120"
+    ],
+    "docs/decisions/issue-309-participant-episode-runtime-binding.md": [
+      "ACT-623"
     ],
     "docs/decisions/package-artifacts/operations.md": [
       "DSL-120"
@@ -155,13 +161,28 @@
     "implementations/python/packages/raes/validator/_participant_episode_policies.py": [
       "DSL-120"
     ],
+    "implementations/python/packages/raes_conformance/__init__.py": [
+      "ACT-623"
+    ],
     "implementations/python/packages/raes_conformance/conformance/__init__.py": [
       "ACT-623"
     ],
     "implementations/python/packages/raes_conformance/conformance/diagnostics.py": [
       "ACT-623"
     ],
+    "implementations/python/packages/raes_conformance/conformance/participant_episode_case.py": [
+      "ACT-623"
+    ],
     "implementations/python/packages/raes_conformance/conformance/participant_episode_structure.py": [
+      "ACT-623"
+    ],
+    "implementations/python/packages/raes_conformance/conformance/report.py": [
+      "ACT-623"
+    ],
+    "implementations/python/packages/raes_conformance/conformance/target.py": [
+      "ACT-623"
+    ],
+    "implementations/python/packages/raes_conformance/conformance/target_probes.py": [
       "ACT-623"
     ],
     "implementations/python/packages/raes_processor/compiler/addresses.py": [
@@ -185,8 +206,35 @@
     "implementations/python/packages/raes_processor/models/participant_episode_resources.py": [
       "DSL-120"
     ],
+    "implementations/python/packages/raes_processor/models/participant_episode_validation.py": [
+      "ACT-623"
+    ],
     "implementations/python/packages/raes_processor/models/runtime_model.py": [
       "DSL-120"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_composition.py": [
+      "ACT-623"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_configuration.py": [
+      "ACT-623"
+    ],
+    "implementations/python/packages/raes_runtime/control_plane_plan_authorization.py": [
+      "ACT-623"
+    ],
+    "implementations/python/packages/raes_runtime/manager_plan_admission.py": [
+      "ACT-623"
+    ],
+    "implementations/python/packages/raes_runtime/mixed_runtime_lifecycle.py": [
+      "ACT-623"
+    ],
+    "implementations/python/packages/raes_runtime/participant_control_episode_admission.py": [
+      "ACT-623"
+    ],
+    "implementations/python/packages/raes_runtime/participant_episode_binding.py": [
+      "ACT-623"
+    ],
+    "implementations/python/packages/raes_runtime/runtime_run_context.py": [
+      "ACT-623"
     ],
     "implementations/python/tests/test_conformance_facade_parity.py": [
       "ACT-623"
@@ -203,7 +251,16 @@
     "implementations/python/tests/test_issue_309_act_623_participant_episode_structure.py": [
       "ACT-623"
     ],
+    "implementations/python/tests/test_issue_309_episode_runtime_binding.py": [
+      "ACT-623"
+    ],
+    "implementations/python/tests/test_issue_309_episode_target_conformance.py": [
+      "ACT-623"
+    ],
     "implementations/python/tests/test_issue_309_policy_ownership.py": [
+      "ACT-623"
+    ],
+    "implementations/python/tests/test_runtime_conformance.py": [
       "ACT-623"
     ],
     "specs/concept-authority/semantic-profiles.md": [
@@ -219,6 +276,12 @@
     "specs/sdl/sections.md": [
       "ACT-623",
       "DSL-120"
+    ],
+    "styles/RAES/HeadingCase.yml": [
+      "ACT-623"
+    ],
+    "tools/policy/adr_policy.yaml": [
+      "ACT-623"
     ],
     "tools/policy/requirement_order.yaml": [
       "ACT-623",
