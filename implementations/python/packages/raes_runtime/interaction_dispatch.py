@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, TypedDict, Unpack, cast
 from raes_contracts.operation_lifecycle import OperationAdmissionContext
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import ApplyResult, OperationKind, OperationReceipt, OperationState, RuntimeSnapshot
+from raes_processor.planner import realization_authority_diagnostics
 
 from .backend_calls import _BackendCallContext, _call_backend_apply, _RealizationApplyContext
 from .backend_observation_calls import _RuntimePlanApplyRequest
@@ -179,6 +180,8 @@ class RuntimeInteractionDispatchMixin:
             raise TypeError("unsupported interaction callback option")
         native_plan = bool(args and isinstance(args[0], (ProvisioningPlan, OrchestrationPlan, EvaluationPlan)))
         phase = args[0] if native_plan else ProvisioningPlan()
+        if native_plan and isinstance(phase, ProvisioningPlan):
+            realization = replace(realization, manifest=self._target.manifest)
         domain = RuntimeDomain.PARTICIPANT if runtime_composition else realization.stop_domain or _phase_domain(phase)
         context = operation_admission_context(
             self,
@@ -221,6 +224,11 @@ class RuntimeInteractionDispatchMixin:
                 execute_observation=False,
                 result_sink=results.append,
                 cancellation_result=_cancellation_reader(self, cancelled, address) if runtime_composition else None,
+                admission_diagnostics=(
+                    (lambda: realization_authority_diagnostics(phase, self._target.manifest))
+                    if native_plan and isinstance(phase, ProvisioningPlan)
+                    else None
+                ),
             ),
         )
         return self._interaction_phase_result(receipt, results)

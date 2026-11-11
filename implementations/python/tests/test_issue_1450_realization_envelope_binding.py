@@ -95,7 +95,8 @@ def test_control_plane_keeps_the_predecessor_envelope(applied):
         status = control.get_operation(control.submit_provisioning(execution.provisioning).operation_id)
         snapshot = control.snapshot
 
-    assert status.state is OperationState.FAILED
+    assert status.state is OperationState.INDETERMINATE
+    assert "runtime.control-plane.operation-indeterminate" in {diagnostic.code for diagnostic in status.diagnostics}
     assert _ENVELOPE_ADDRESS in _refusal_addresses(status.diagnostics)
     assert snapshot.realization_envelope == predecessor.realization_envelope
     assert snapshot.entries == predecessor.entries
