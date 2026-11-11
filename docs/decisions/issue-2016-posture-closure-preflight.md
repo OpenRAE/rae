@@ -158,6 +158,20 @@ The writing review preserves obligations, source identifiers, and qualified defa
 The reference table gives semantics; this record gives design reasons.
 The issue plan carries implementation tasks and verification commands.
 
+### Deadline test scheduling repair
+
+CI exposed a scheduling assumption in `test_issue_1362_review_regressions.py`.
+The test's 200 ms execution budget can expire before dispatcher binding completes.
+No timer is armed in that case, so waiting for its callback cannot test store-lane isolation.
+A controlled 250 ms binding delay reproduced the same failure locally.
+
+The test must retain the default admission budget and capture timer registration.
+After successful admission, it arms the real timer with an immediately due deadline.
+The real expiry callback still uses the deadline lane and the single store slot.
+Its terminal-state and context-cleanup assertions remain unchanged.
+The adjacent callback-failure test uses the same controlled registration to avoid the same setup race.
+This changes test scheduling only; runtime deadlines, authorization, and durability rules remain unchanged.
+
 ## Extensibility and verification boundaries
 
 New domains and collection profiles should use existing owners.
