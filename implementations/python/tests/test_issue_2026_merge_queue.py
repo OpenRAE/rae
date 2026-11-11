@@ -53,7 +53,8 @@ def test_dev_uses_the_merge_queue_without_strict_checks_and_main_does_not() -> N
     assert (dev["merge_queue"], dev["strict_status_checks"]) == (True, False)
     assert (main["merge_queue"], main["strict_status_checks"]) == (False, True)
     contexts = {check["context"] for check in dev["required_checks"]}
-    assert contexts == {check["context"] for check in main["required_checks"]}
+    # Code scanning posts `CodeQL` on pull request commits only; `dev` gates CodeQL with a ruleset rule (#2031).
+    assert contexts == {check["context"] for check in main["required_checks"]} - {"CodeQL"}
     assert all("workflow" in check for check in dev["required_checks"])
 
 
