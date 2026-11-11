@@ -62,7 +62,8 @@ only one profile.
 The reference stack requires the native `episodes` family in `exchange` and `execution`.
 These phases exchange and execute participant episode state and history contracts.
 Authoring and processing do not currently require the family.
-ADR-013 adds no SDL authoring syntax for episode semantics.
+ADR-013's amendment permits an optional `behavior_specifications.*.episode_policy` record of authored episode intent (DSL-120).
+That record compiles to participant metadata, without asserting episode state or history.
 The reference processor does not publish episode state/history contracts as a processing capability.
 
 The profile records episode coverage through `required_contracts` and `required_concept_families`.
@@ -70,13 +71,10 @@ It does not use a `required_bindings` entry on `capabilities.supported_participa
 That manifest scope also contains implementation, behavior, and provenance contracts.
 It is not an episode-only binding surface.
 
-The reference stack requires the native `runtime-inventory` concept family in
-the `authoring` phase because SDL authoring and instantiation carry observed
-node runtime inventory under `nodes.*.runtime` in the `sdl-authoring-input-v1`
-and `instantiated-scenario-v1` contracts. As with the other authoring families,
-the profile records this through `required_concept_families` only: `authoring`
-does not define governed `required_bindings` surfaces, so runtime-inventory
-coverage is not expressed as a binding.
+The reference stack requires the native `runtime-inventory` concept family in the `authoring` phase.
+SDL authoring and instantiation carry observed node runtime inventory under `nodes.*.runtime` in the `sdl-authoring-input-v1` and `instantiated-scenario-v1` contracts.
+The profile records this through `required_concept_families` only, as with other authoring families.
+Authoring does not define governed `required_bindings` surfaces, so runtime-inventory coverage is not expressed as a binding.
 
 ## Machine-readable artifacts
 
