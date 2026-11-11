@@ -8,15 +8,19 @@ created_at: 2026-07-15T02:40:07.724312Z
 updated_at: 2026-10-21T00:00:00Z
 ---
 
-# DSL-435 — Stateful Realization Resource Declarations
+# `DSL-435` — Stateful realization resource declarations
 
 ## Statement
 
-The language and processor shall support first-class, backend-neutral declarations for generated artifacts and persistent volumes, compile them into stable-addressed provisioning resources with validated dependency ordering and exact realization provenance, and require provisioner manifests to declare honest support before dispatch.
+The language and processor shall support first-class, backend-neutral declarations for generated artifacts and persistent volumes.
+They shall compile these declarations into provisioning resources with stable addresses, validated dependency ordering, and exact realization provenance.
+They shall require provisioner manifests to declare honest support before dispatch.
 
 ## Rationale
 
-Downstream scenarios need to declare generated certificate/configuration artifacts and persistent data volumes as desired state. Reusing observed runtime mounts, generic metadata, content placement, or provider-specific fragments loses lifecycle, access, sensitivity, provenance, dependency, and capability semantics and permits unsupported realization to proceed ambiguously.
+Downstream scenarios need to declare generated certificate/configuration artifacts and persistent data volumes as desired state.
+Reusing observed runtime mounts, generic metadata, content placement, or provider-specific fragments loses lifecycle, access, sensitivity, provenance, dependency, and capability semantics.
+It also permits unsupported realization to proceed ambiguously.
 
 ## Traceability
 
@@ -52,7 +56,7 @@ Downstream scenarios need to declare generated certificate/configuration artifac
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/random_value.py` (Configurable random-value recipe for issue #1276)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/random_value_generation.py` (Portable random-value alphabets and reference generation for issue #1276)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/content.py` (Content text_from deferred generated-value binding for issue #1276)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/propositions.py` (StringPredicate expected_from deferred verification for issue #1276)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/propositions.py` (StringPredicate expected_from deferred verification for issue #1276; canonical shared predicate owner)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_stateful_resource_references.py` (Content and proposition generated-artifact reference admission for issue #1276)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_sections.py` (Stateful-resource reference validation wiring for issue #1276)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/planning.py` (Value-free run/instantiation scope identity on plan DTOs for issue #1276)
@@ -63,7 +67,7 @@ Downstream scenarios need to declare generated certificate/configuration artifac
 - IMPLEMENTS → ADR `docs/decisions/issue-1276-per-run-random-values-preflight.md` (Configurable per-run random values preflight)
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1276` (Configurable random value generation for per-run scenario values)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_plans.py` (Published plan model run/instantiation scope identity for issue #1276)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/plan_projection.py` (Plan projection and digest scope identity for issue #1276)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/plan_projection.py` (Plan projection and digest scope identity for issue #1276)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_capability_schema.py` (Provisioner capability schema conditionals for issue #1276)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api_models.py` (Plan API round-trip scope identity for issue #1276)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/interaction.py` (RuntimeManager run/instantiation scope threading for issue #1276)
@@ -79,3 +83,4 @@ Downstream scenarios need to declare generated certificate/configuration artifac
 - TESTS → TEST `implementations/python/tests/test_runtime_manager.py` (RuntimeManager planning uses the bundled plan scope for issue #1276)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/interaction_evaluation.py` (Preserve original run and instantiation bindings during fresh evaluation)
 - TESTS → TEST `implementations/python/tests/test_issue_1660_runtime_lifetime.py` (Single-owner refresh, run identity, result integrity and retained exclusion)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/generated_artifact_value.py` (Shared value-free generated-artifact output reference)

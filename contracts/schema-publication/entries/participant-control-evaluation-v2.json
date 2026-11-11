@@ -1,10 +1,5 @@
 {
   "contract_id": "participant-control-evaluation-v2",
   "schema_path": "contracts/schemas/participant-runtime/participant-control-evaluation-v2.json",
-  "stability": "draft",
-  "content_hash": "2cfce4608959c5a1b5f7cfe7af901d88e7181947249e4205568ab8c48bfcd864",
-  "last_change": {
-    "summary": "Pin complete inject requests and add exact-source effect continuations; preserve absent-field historical serialization (#1369).",
-    "content_hash": "2cfce4608959c5a1b5f7cfe7af901d88e7181947249e4205568ab8c48bfcd864"
-  }
+  "stability": "draft"
 }

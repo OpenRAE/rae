@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
+from ..json_pointer import pointer_from_tokens
 from ._build import RealizationConstraintBuildResult, build_failure
-from ._common import RelationBudget, pointer
+from ._common import RelationBudget
 from ._legacy import OpenRealizationValue, RealizationStructure
 from ._models import (
     RealizationClosure,
@@ -37,7 +38,7 @@ def upgrade_open_node(
     if structure.taxonomy_sentinel:
         failure = build_failure(
             RealizationRelationStatus.UNSUPPORTED,
-            pointer(path),
+            pointer_from_tokens(path),
             "Recursive delegation cannot preserve the legacy taxonomy-sentinel exclusion.",
         )
     else:
@@ -64,7 +65,7 @@ def legacy_metadata_failure(
     failure = None
     for value in values:
         if budget.spend_operation() is not None or len(value.encode("utf-8")) > budget.limits.max_scalar_bytes:
-            failure = build_failure(RealizationRelationStatus.LIMIT_EXCEEDED, pointer(path), message)
+            failure = build_failure(RealizationRelationStatus.LIMIT_EXCEEDED, pointer_from_tokens(path), message)
             break
     return failure
 

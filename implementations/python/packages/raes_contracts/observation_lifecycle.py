@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 
+from raes_contracts.observation_demand import validate_observation_lifecycle_plan
+
 from .observation_demand import (
     EffectiveObservationDemand,
     ObservationDemandMode,
@@ -16,7 +18,9 @@ from .observation_demand import (
     ObservationSelector,
     observation_selector_has_more_specific_policy,
 )
-from .observation_demand_validation import validate_observation_lifecycle_plan
+from .operational_logging import foreign_failure_record, get_logger
+
+_LOGGER = get_logger(__name__)
 
 
 @dataclass
@@ -139,8 +143,14 @@ def _collect_demand(
             item = _produce_item(resolution, demand, selector, producers, supported)
             if item is not None:
                 accumulator.add(demand, item, protector)
-        except Exception:
+        except Exception as exc:
             if demand.required or not optional_failure_is_loss:
                 raise
             # An optional failed collection/protection contributes no evidence.
             # Preserve independently achieved mandatory selector results.
+            # Isolation: the producers and the protector are backend-owned observation
+            # runtime code, so the record keeps only the RAES frames (ADR-116 rule H2).
+            _LOGGER.warning(
+                "optional observation selector contributed no evidence after a failure",
+                exc_info=foreign_failure_record(exc),
+            )

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from threading import RLock
 
+from raes_contracts.errors import ConflictError, OperationalError
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
 from raes_contracts.runtime_state import OperationAdmissionContext, RuntimeSnapshot
 from rpds import HashTrieMap
@@ -80,12 +81,12 @@ class InMemoryControlPlaneStore(MemoryRuntimeDecisionStoreMixin):
 
         with self._lock:
             if self._runtime_owner_token is not None:
-                raise RuntimeError("in-memory control-plane store already has a runtime owner")
+                raise ConflictError("in-memory control-plane store already has a runtime owner")
             scope = (target_scope, run_scope)
             if self._bound_scope is None:
                 self._bound_scope = scope
             elif self._bound_scope != scope:
-                raise ValueError("in-memory control-plane store scope does not match runtime admission")
+                raise ConflictError("in-memory control-plane store scope does not match runtime admission")
             token = object()
             self._runtime_owner_token = token
             return _InMemoryRuntimeOwner(self, token)
@@ -93,7 +94,7 @@ class InMemoryControlPlaneStore(MemoryRuntimeDecisionStoreMixin):
     def _assert_runtime_owner(self, token: object) -> None:
         with self._lock:
             if self._runtime_owner_token is not token:
-                raise RuntimeError("in-memory control-plane runtime ownership has ended")
+                raise OperationalError("in-memory control-plane runtime ownership has ended")
 
     def _release_runtime_owner(self, token: object) -> None:
         with self._lock:
@@ -201,7 +202,7 @@ class InMemoryControlPlaneStore(MemoryRuntimeDecisionStoreMixin):
             if current == record and audit_event in self._audit:
                 return self._snapshot_state
             if current != expected:
-                raise ValueError("invocation revision conflict")
+                raise ConflictError("invocation revision conflict")
             self._publish(record, audit_event, self._snapshot_state)
             return self._snapshot_state
 
@@ -288,7 +289,7 @@ class InMemoryControlPlaneStore(MemoryRuntimeDecisionStoreMixin):
         )
         existing_operation_id = idempotency.get(claim_identity)
         if existing_operation_id is not None and existing_operation_id != record.receipt.operation_id:
-            raise ValueError(_store._IDEMPOTENCY_KEY_CONFLICT)
+            raise ConflictError(_store._IDEMPOTENCY_KEY_CONFLICT)
         return idempotency.insert(claim_identity, record.receipt.operation_id)
 
     def _publish(

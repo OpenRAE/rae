@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
 import re
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
@@ -11,12 +10,22 @@ from threading import Lock
 from typing import TYPE_CHECKING
 
 from pydantic import SecretStr
+from raes_contracts.digests import sha256_bytes
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError, OperationalError
 
 from .control_plane_profiles import ControlPlaneCapability, ControlPlaneStoreCapabilities
 from .control_plane_store import ControlPlaneOperationRecord
 from .control_plane_store_changes import OperationChanges
-from .control_plane_store_local_codec import decode_payload, encode_payload
-from .control_plane_store_records import _audit_event_from_payload, _record_from_payload, _record_payload
+from .control_plane_store_claim_columns import ledger_operation_claim_columns
+from .control_plane_store_local_codec import decode_contract, encode_payload
+from .control_plane_store_postgresql_projection import (
+    SELECT_LEDGER_OPERATIONS,
+    ledger_operation_from_row,
+    load_snapshot,
+    operation_changes,
+    stored_record,
+)
+from .control_plane_store_records import _audit_event_from_payload, _record_payload
 from .control_plane_store_revision import SnapshotState
 from .operation_execution_adapter import require_budget_ms
 from .runtime_decision_store import SQLRuntimeDecisionStoreMixin
@@ -28,7 +37,7 @@ if TYPE_CHECKING:
     from .control_plane_store import AuditEvent, TerminalCommitMode
 
 _IDENTIFIER = re.compile(r"[A-Za-z][A-Za-z0-9_.-]{0,62}\Z")
-_OWNER_LOCK = int.from_bytes(hashlib.sha256(b"raes.single-owner.ledger/v1").digest()[:8], "big") & ((1 << 63) - 1)
+_OWNER_LOCK = int.from_bytes(sha256_bytes(b"raes.single-owner.ledger/v1")[:8], "big") & ((1 << 63) - 1)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -75,14 +84,14 @@ class _PostgreSQLOwner:
     def assert_owner(self) -> None:
         with self._lock:
             if self.closed or self._connection.closed:
-                raise RuntimeError("PostgreSQL runtime ownership has ended")
+                raise OperationalError("PostgreSQL runtime ownership has ended")
             row = self._connection.execute(
                 "SELECT EXISTS(SELECT 1 FROM pg_locks WHERE locktype='advisory' AND pid=pg_backend_pid() "
                 "AND classid::bigint=%s AND objid::bigint=%s AND objsubid=1)",
                 (_OWNER_LOCK >> 32, _OWNER_LOCK & 0xFFFFFFFF),
             ).fetchone()
             if row != (True,):
-                raise RuntimeError("PostgreSQL runtime ownership has ended")
+                raise OperationalError("PostgreSQL runtime ownership has ended")
 
     def close(self) -> None:
         with self._lock:
@@ -150,28 +159,36 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
         return psycopg.connect(**options)
 
     def initialize_schema(self) -> None:
-        from .control_plane_store_postgresql_schema import initialize_schema
+        from .control_plane_store_postgresql_schema import initialize_schema, refuse_corrupted_ledger
 
-        with self._connect() as connection:
+        with refuse_corrupted_ledger(), self._connect() as connection:
             initialize_schema(connection)
 
     def admit_runtime(self, *, target_scope: str, run_scope: str) -> _PostgreSQLOwner:
         if self._owner is not None:
-            raise RuntimeError("PostgreSQL ledger already has runtime admission")
+            raise ConflictError("PostgreSQL ledger already has runtime admission")
         connection = self._connect(autocommit=True)
         try:
             if connection.execute("SELECT pg_try_advisory_lock(%s)", (_OWNER_LOCK,)).fetchone() != (True,):
-                raise RuntimeError("PostgreSQL ledger already has a runtime owner")
+                raise ConflictError("PostgreSQL ledger already has a runtime owner")
             owner = _PostgreSQLOwner(self, connection)
             self._owner = owner
             self._closed = False
             self._scope = (target_scope, run_scope)
             with self._connection() as ledger:
-                metadata = dict(ledger.execute("SELECT key, value FROM raes_ledger_metadata FOR UPDATE").fetchall())
-                from .control_plane_store_postgresql_schema import POSTGRES_LEDGER_SCHEMA_VERSION
+                from .control_plane_store_postgresql_schema import (
+                    POSTGRES_LEDGER_SCHEMA_VERSION,
+                    require_ledger_tables,
+                )
 
+                # A dropped table must be refused before a query reaches it.
+                require_ledger_tables(ledger, projection=False)
+                metadata = dict(ledger.execute("SELECT key, value FROM raes_ledger_metadata FOR UPDATE").fetchall())
                 if metadata.get("schema-version") not in {"1", "2", "3", "4", POSTGRES_LEDGER_SCHEMA_VERSION}:
-                    raise ValueError("PostgreSQL ledger schema is missing or unsupported")
+                    # A schema that this build cannot open conflicts with the ledger state.
+                    raise ConflictError("PostgreSQL ledger schema is missing or unsupported")
+                if metadata.get("schema-version") == POSTGRES_LEDGER_SCHEMA_VERSION:
+                    require_ledger_tables(ledger, projection=True)
                 prior = (metadata.get("target-scope"), metadata.get("run-scope"))
                 if prior == (None, None):
                     with ledger.cursor() as cursor:
@@ -180,7 +197,7 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
                             (("target-scope", target_scope), ("run-scope", run_scope)),
                         )
                 elif prior != self._scope:
-                    raise RuntimeError("PostgreSQL ledger scope does not match runtime admission")
+                    raise ConflictError("PostgreSQL ledger scope does not match runtime admission")
                 if metadata.get("schema-version") != POSTGRES_LEDGER_SCHEMA_VERSION:
                     from .control_plane_store_postgresql_schema import initialize_projection_schema
 
@@ -193,7 +210,7 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
 
                 previous = LocalInvocationStoreMixin._generation(metadata.get("owner-generation", "0"))
                 if previous >= 9007199254740991:
-                    raise ValueError("execution generation exhausted")
+                    raise ConflictError("execution generation exhausted")
                 generation = previous + 1
                 ledger.execute(
                     "INSERT INTO raes_ledger_metadata(key, value) VALUES ('owner-generation', %s) "
@@ -201,18 +218,21 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
                     (str(generation),),
                 )
                 self._owner_generation = generation
-            return owner
         except BaseException:
             connection.close()
             self._owner = None
             raise
+        return owner
 
     @contextmanager
     def _connection(self) -> Iterator[Connection[tuple[object, ...]]]:
         if not self.admitted:
-            raise RuntimeError("PostgreSQL ledger requires live runtime admission")
+            raise OperationalError("PostgreSQL ledger requires live runtime admission")
         self._owner.assert_owner()
-        with self._connect() as connection:
+        from .control_plane_store_postgresql_schema import refuse_corrupted_ledger
+
+        # A damaged page fails the first statement that reads it, so the refusal covers every use.
+        with refuse_corrupted_ledger(), self._connect() as connection:
             try:
                 with connection.transaction():
                     self._pending_snapshots[id(connection)] = None
@@ -230,7 +250,7 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
                 "SELECT value FROM raes_ledger_metadata WHERE key='owner-generation' FOR UPDATE"
             ).fetchone()
             if row != (str(self._owner_generation),):
-                raise RuntimeError("PostgreSQL execution owner is stale")
+                raise ConflictError("PostgreSQL execution owner is stale")
 
     def close(self) -> None:
         # The lease closes separately, after confirmed drain.
@@ -240,8 +260,6 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
         return self.load_snapshot_state().snapshot
 
     def _load_snapshot_state(self, connection: Connection[tuple[object, ...]]) -> SnapshotState:
-        from .control_plane_store_postgresql_projection import load_snapshot
-
         return load_snapshot(self, connection)
 
     def load_snapshot_state(self) -> SnapshotState:
@@ -250,17 +268,13 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
 
     @staticmethod
     def _load_records(connection: Connection[tuple[object, ...]]) -> dict[str, ControlPlaneOperationRecord]:
-        from .inject_claims import require_inject_history
+        from .inject_claims import require_stored_inject_history
 
         records = {}
-        for operation_id, payload, digest in connection.execute(
-            "SELECT operation_id, payload, digest FROM raes_ledger_operations ORDER BY operation_id"
-        ).fetchall():
-            record = _record_from_payload(decode_payload(payload, digest, kind="operation record"))
-            if record.receipt.operation_id != operation_id:
-                raise ValueError("operation record does not match its durable identity")
-            records[operation_id] = record
-        require_inject_history(records.values())
+        for row in connection.execute(SELECT_LEDGER_OPERATIONS + "ORDER BY operation_id").fetchall():
+            record = ledger_operation_from_row(row)
+            records[record.receipt.operation_id] = record
+        require_stored_inject_history(records.values())
         return records
 
     def load_records(self) -> dict[str, ControlPlaneOperationRecord]:
@@ -268,15 +282,11 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
             return self._load_records(connection)
 
     def load_operation_changes(self, cursor: int | None = None) -> OperationChanges:
-        from .control_plane_store_postgresql_projection import operation_changes
-
         with self._connection() as connection:
             return operation_changes(self, connection, cursor)
 
     @staticmethod
     def _load_record(connection: Connection[tuple[object, ...]], identity: str) -> ControlPlaneOperationRecord | None:
-        from .control_plane_store_postgresql_projection import stored_record
-
         return stored_record(connection, identity)
 
     def _upsert_record(self, connection: Connection[tuple[object, ...]], record: ControlPlaneOperationRecord) -> None:
@@ -289,19 +299,12 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
                 revision=self._load_snapshot_state(connection).revision,
             )
         payload, digest = encode_payload(_record_payload(record))
-        context = record.receipt.context
+        # The claim columns are immutable after the claim. Thus an update writes only the record.
         connection.execute(
             "INSERT INTO raes_ledger_operations(operation_id, actor_id, operation_kind, "
             "idempotency_key, payload, digest) VALUES (%s, %s, %s, %s, %s, %s) "
             "ON CONFLICT(operation_id) DO UPDATE SET payload=excluded.payload, digest=excluded.digest",
-            (
-                record.receipt.operation_id,
-                context.actor_id,
-                context.operation_kind.value,
-                record.idempotency_key,
-                payload,
-                digest,
-            ),
+            (record.receipt.operation_id, *ledger_operation_claim_columns(record), payload, digest),
         )
 
     @staticmethod
@@ -314,7 +317,7 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
     @staticmethod
     def _load_audits(connection: Connection[tuple[object, ...]]) -> list[AuditEvent]:
         return [
-            _audit_event_from_payload(decode_payload(payload, digest, kind="audit event"))
+            decode_contract(payload, digest, kind="audit event", rebuild=_audit_event_from_payload)
             for payload, digest in connection.execute(
                 "SELECT payload, digest FROM raes_ledger_audit ORDER BY sequence"
             ).fetchall()
@@ -330,7 +333,7 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
 
     def admit_execution_generation(self) -> int:
         if not self.admitted:
-            raise RuntimeError("PostgreSQL ledger requires live runtime admission")
+            raise OperationalError("PostgreSQL ledger requires live runtime admission")
         return self._owner_generation
 
     @staticmethod
@@ -339,7 +342,7 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
             "SELECT value FROM raes_ledger_metadata WHERE key='effect-admission-stopped'"
         ).fetchone()
         if row is not None and row != ("1",):
-            raise ValueError("effect admission metadata is invalid")
+            raise EvidenceIntegrityError("effect admission metadata is invalid")
         return row is not None
 
     def effect_admission_stopped(self) -> bool:

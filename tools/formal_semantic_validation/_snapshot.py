@@ -6,6 +6,8 @@ import dataclasses
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
+from raes_contracts.errors import InvalidInputError
+
 from tools.formal_semantic_validation._replay import (
     _participant_test_refs,
     _replay_observation_matches,
@@ -14,7 +16,11 @@ from tools.formal_semantic_validation._replay import (
 from tools.formal_semantic_validation._shape import (
     _closed_object,
     _failure,
+    _hashable,
     _is_sequence,
+    _lookup,
+    _member,
+    _members,
     _stable_ids,
     _string_list,
 )
@@ -62,7 +68,11 @@ def _observation_coverage_failures(
         )
         if accepted:
             observation_ids.append(case_id)
-    if set(observation_ids) != set(cases_by_id) or len(observation_ids) != len(set(observation_ids)):
+    if (
+        not all(_hashable(item) for item in observation_ids)
+        or set(observation_ids) != set(cases_by_id)
+        or len(observation_ids) != len(set(observation_ids))
+    ):
         failures.append(
             _failure(
                 "formal-validation-observation-coverage",
@@ -88,14 +98,12 @@ def _participant_coverage_failures(
             )
         )
         participant_observations = []
-    obligation_ids = {
-        item.get("obligation_id") for item in protocol.get("participant_obligations", []) if isinstance(item, Mapping)
-    }
     obligations_by_id = {
         item.get("obligation_id"): item
-        for item in protocol.get("participant_obligations", [])
-        if isinstance(item, Mapping)
+        for item in _members(protocol.get("participant_obligations", []))
+        if isinstance(item, Mapping) and _hashable(item.get("obligation_id"))
     }
+    obligation_ids = set(obligations_by_id)
     observed_obligations: list[object] = []
     for item in participant_observations:
         accepted, obligation_id = _validate_snapshot_participant_observation(
@@ -108,7 +116,11 @@ def _participant_coverage_failures(
         )
         if accepted:
             observed_obligations.append(obligation_id)
-    if set(observed_obligations) != obligation_ids or len(observed_obligations) != len(set(observed_obligations)):
+    if (
+        not all(_hashable(item) for item in observed_obligations)
+        or set(observed_obligations) != obligation_ids
+        or len(observed_obligations) != len(set(observed_obligations))
+    ):
         failures.append(
             _failure(
                 "formal-validation-participant-observation-coverage",
@@ -228,7 +240,7 @@ def _validate_snapshot_replay(
     if replayable and replay_cases:
         try:
             replayed = replay_case(repo_root, case)
-        except (ValueError, OSError) as exc:
+        except (OSError, InvalidInputError) as exc:
             failures.append(
                 _failure(
                     "formal-validation-replay-error",
@@ -277,7 +289,7 @@ def _validate_snapshot_participant_observation(
     ):
         return False, None
     obligation_id = item.get("obligation_id")
-    if obligation_id not in obligation_ids:
+    if not _member(obligation_id, obligation_ids):
         failures.append(
             _failure(
                 "formal-validation-participant-observation-join",
@@ -293,7 +305,7 @@ def _validate_snapshot_participant_observation(
                 path,
             )
         )
-    obligation = obligations_by_id.get(obligation_id)
+    obligation = _lookup(obligations_by_id, obligation_id)
     expected_refs = (
         [obligation.get("positive_test_ref"), obligation.get("negative_test_ref")]
         if isinstance(obligation, Mapping)

@@ -2,10 +2,12 @@
 
 from typing import Any
 
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.execution_policy import ExecutionPolicyScope, resolve_execution_policy
+from raes_contracts.variable_references import contains_variable_token
 
 from raes.execution_policy_scope import EXECUTION_SECTIONS, supported_execution_scope
-from raes.observation_scope import resolve_observation_scope, semantic_scope_namespace
+from raes.observation_scope import resolve_observation_scope, resolve_safe_states, semantic_scope_namespace
 from raes.orchestration import Workflow
 
 
@@ -35,12 +37,14 @@ class _ExecutionPolicyMixin:
             self._err("Execution policy scope has no native execution owner")
         if rule.namespace and not any(ns[: len(rule.namespace)] == rule.namespace for ns in namespaces):
             self._err("Execution policy lexical namespace does not resolve")
-        if (
-            len(rule.scope.split("/")) >= 3
-            and rule.namespace
-            and semantic_scope_namespace(payload, rule.scope)[: len(rule.namespace)] != rule.namespace
-        ):
-            self._err("Execution policy scope escapes its lexical namespace")
+        if len(rule.scope.split("/")) >= 3 and rule.namespace:
+            try:
+                owner = semantic_scope_namespace(payload, rule.scope)
+            except ValueError:
+                # An unresolved forwarding-agent scope has no owner; it is reported above.
+                owner = ()
+            if owner[: len(rule.namespace)] != rule.namespace:
+                self._err("Execution policy scope escapes its lexical namespace")
 
     def _verify_policy_references(self) -> bool:
         document = self._s.execution_policy
@@ -84,3 +88,40 @@ class _ExecutionPolicyMixin:
                 and effective.policy.retry.max_attempts != step.max_attempts
             ):
                 self._err("Execution policy conflicts with the authored workflow retry bound")
+
+    def _verify_safe_state(self) -> None:
+        if self._s.safe_state is None:
+            return
+        document = self._s.safe_state
+        states = [rule.state for rule in document.scopes]
+        if document.default is not None:
+            states.append(document.default)
+        # Reference placeholders retain the language's source-time deferral.
+        # InstantiatedScenario rejects remaining tokens before compilation.
+        assertions = [self._s.assertions.get(ref) for ref in {ref for state in states for ref in state.assertion_refs}]
+        propositions = [
+            self._s.propositions.get(ref)
+            for ref in {assertion.proposition for assertion in assertions if assertion is not None}
+        ]
+        evidence = [
+            self._s.evidence_requirements.get(ref)
+            for ref in {
+                ref
+                for proposition in propositions
+                if proposition is not None
+                for ref in proposition.evidence_requirements
+            }
+        ]
+        if any(
+            contains_variable_token(model.model_dump_json())
+            for model in (*states, *assertions, *propositions, *evidence)
+            if model is not None
+        ):
+            return
+        with self._owner(("safe_state",)):
+            try:
+                resolve_safe_states(self._s)
+            except InvalidInputError:
+                self._err("Safe-state proof exceeds aggregate plan limits")
+            except ValueError:
+                self._err("Safe-state declaration has invalid scope, assertion, or observed evidence coverage")

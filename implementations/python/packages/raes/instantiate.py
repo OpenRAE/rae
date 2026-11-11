@@ -13,11 +13,11 @@ from dataclasses import dataclass
 from typing import Any, ClassVar
 
 from pydantic import ConfigDict, Field, ValidationError
+from raes_contracts.identifiers import QualifiedName
+from raes_contracts.variable_references import VARIABLE_TOKEN_RE, extract_variable_name
 
-from ._base import VARIABLE_TOKEN_RE, extract_variable_name
 from ._capability_constraints import capture_bound_parameter_provenance
 from ._errors import SDLInstantiationError, SDLValidationError
-from ._identifiers import QualifiedName
 from ._mapping_scopes import HASHMAP_SECTIONS
 from .canonical import canonical_sdl_digest
 from .explicitness import ExplicitnessRecord, derive_instantiated_explicitness
@@ -160,7 +160,7 @@ def _substitute_value(
             )
             for key, nested_value in value.items()
         }
-    if isinstance(value, list):
+    if isinstance(value, (list, tuple)):
         return [
             _substitute_value(
                 nested_value,

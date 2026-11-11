@@ -116,3 +116,9 @@ CI cannot hide a latent boundary violation behind an unrelated changed file.
   processor runtime-model types. Runtime-facing DTOs have moved to
   `aces_contracts`, and remaining splits must preserve the compatibility
   re-exports used by existing callers.
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+| --- | --- | --- |
+| 2026-10-31 | #1711 | ADR-121 makes `raes_contracts` the lowest package: it imports no first-party package and owns the shared authored types. `raes_processor` owns its analysis evidence, and `raes_schemas` composes the published schemas. |

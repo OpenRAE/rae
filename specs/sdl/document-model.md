@@ -1,9 +1,7 @@
-# SDL Document Model
+# SDL document model
 
-This file defines how an SDL document is encoded, how its top-level surfaces are
-organised, what is required, how user-defined identifiers are formed, how the
-document is structurally closed, and the phases a document passes through from
-authoring to instantiation.
+This reference defines SDL encoding, top-level structure, required fields, identifiers, and structural closure.
+It also defines the document phases from authoring to instantiation.
 
 See [`sections.md`](sections.md) for the per-section catalog,
 [`references.md`](references.md) for reference resolution, and
@@ -37,18 +35,25 @@ construction:
    objects, non-finite floats, and other tag-specific values are invalid.
 6. Anchors and aliases **MAY** share acyclic representation nodes; their names
    and sharing carry no SDL meaning. Cyclic aliases are invalid. The YAML 1.1
-   `<<` merge extension is not YAML 1.2.2 Core syntax and is invalid canonical
-   SDL; §5 defines its explicit migration treatment.
+   `<<` merge extension is not YAML 1.2.2 Core syntax and is invalid canonical SDL.
+   Section 5 defines its explicit migration treatment.
 7. Every authored mapping entry **MUST** remain distinguishable until key
    uniqueness is checked. Exact duplicates and canonical-field collisions are
    invalid; a decoder **MUST NOT** construct a last-write-wins mapping first.
 8. No Unicode normalization is performed. Code-point sequences remain as
    authored after YAML escape processing.
 
-Each source document has fixed denial-of-service bounds: at most 8 MiB of UTF-8 source,
-1 MiB in one scalar, depth 128, 100,000 unique representation nodes, 256 alias
-occurrences, and 250,000 nodes of alias-expanded traversal work. Exceeding any
-bound is a source error. A future syntax, scalar policy, or incompatible limit
+Each source document has these fixed denial-of-service bounds:
+
+- at most 8 MiB of UTF-8 source;
+- 1 MiB in one scalar;
+- depth 128;
+- 100,000 unique representation nodes;
+- 256 alias occurrences;
+- 250,000 nodes of alias-expanded traversal work.
+
+Exceeding any bound is a source error.
+A future syntax, scalar policy, or incompatible limit
 set requires a new source-profile identifier.
 
 A file-backed composition request additionally carries one aggregate budget
@@ -59,9 +64,10 @@ conservative declaration bound because every declaration consumes at least one
 counted node. Exceeding any aggregate bound is a source error; recursively
 starting a fresh per-file budget is non-conforming.
 
-This uniqueness rule follows the YAML 1.2.2 representation model, in which a
-mapping is an unordered association of unique keys and non-unique keys are a
-loading failure ([YAML 1.2.2 §§3.2.1.1, 3.3](https://yaml.org/spec/1.2.2/)).
+This uniqueness rule follows the YAML 1.2.2 representation model.
+A mapping is an unordered association of unique keys.
+Non-unique keys are a loading failure
+([YAML 1.2.2 §§3.2.1.1, 3.3](https://yaml.org/spec/1.2.2/)).
 
 ## 2. Top-level organisation
 
@@ -92,9 +98,8 @@ to match `contracts/schemas/sdl/sdl-authoring-input-v1.json`.
 2. Every other top-level field is **OPTIONAL**. An omitted authoring section is
    equivalent to an empty one (an empty map, or an empty list for the
    list-valued section); an omitted metadata field takes its documented default.
-3. Requiredness **within** a section's elements (for example, a field that a
-   `node` or a runtime family element must carry) is governed by that section's
-   schema and, for runtime families, by the owning family ADR
+3. The section schema governs required fields within each element, such as a node.
+   Runtime families also use their owning family ADR
    ([runtime-inventory.md](runtime-inventory.md)).
 
 These rules describe `sdl-authoring-input-v1`. Derived phase contracts add
@@ -109,23 +114,22 @@ their own required members: an instantiated scenario requires
    within a nested model — **MUST** be rejected, not ignored. There is no
    permissive "extra fields allowed" mode.
 2. Rejection of an unknown or malformed key is a **parse/structural** failure
-   (see [`diagnostics.md`](diagnostics.md)); it occurs before semantic
-   validation and is fatal.
+   (see [`diagnostics.md`](diagnostics.md)). It occurs before semantic validation and is fatal.
 3. Closure exists so that a typo in a field name (`vulnerabilites`) fails the
    document rather than silently dropping content. Authors **MUST NOT** rely on
    undeclared keys to carry data.
 4. Anchors and aliases do not weaken closure or uniqueness. Migration-mode
-   merge input is accepted only when every inherited and local effective field
-   is disjoint; override precedence is never SDL semantics.
+   merge input is accepted only when every inherited and local effective field is disjoint.
+   Override precedence is never SDL semantics.
 
 > *Implementation evidence (non-normative): the reference models set
 > `extra="forbid"` on the shared SDL base model.*
 
 ## 5. Canonical fields, literal keys, and migration
 
-1. Enum-valued fields accept their value case-insensitively, and accept a hyphen
-   as an alias for an underscore in the value text, so that an authoring value
-   such as `search-index` and `search_index` denote the same enum member. This
+1. Enum-valued fields accept their value case-insensitively.
+   They accept a hyphen as an alias for an underscore in the value text.
+   Thus `search-index` and `search_index` denote the same enum member. This
    is an authoring convenience; the normalised (canonical) form is what the
    document means.
 2. A structural field key **MUST** use its exact lower-case `snake_case` schema
@@ -134,13 +138,12 @@ their own required members: an instantiated scenario requires
 3. A tool **MAY** offer an explicit migration operation that recognizes legacy
    case and hyphen spellings and `<<` merges. Migration is never implicit: the
    strict/default policy rejects each construct. An accepting migration policy
-   **MUST** emit a source-ranged advisory for every rewritten field or merge,
-   and its output **MUST** pass strict `sdl-yaml/v1` decoding. Unrecognized
+   **MUST** emit a source-ranged advisory for every rewritten field or merge.
+   Its output **MUST** pass strict `sdl-yaml/v1` decoding. Unrecognized
    fields remain errors.
-4. Migration aliases do not create a precedence rule. If two keys in one
-   effective mapping address the same canonical field, including through a YAML
-   merge, the mapping is ambiguous and **MUST** fail during parsing before model
-   construction. The diagnostic contract is defined in
+4. Migration aliases do not create a precedence rule.
+   Two keys addressing one canonical field make an effective mapping ambiguous, including through a YAML merge.
+   The mapping **MUST** fail during parsing before model construction. The diagnostic contract is defined in
    [diagnostics.md §6](diagnostics.md).
 5. Field recognition applies only while traversing a schema-defined
    structural mapping. It **MUST NOT** be applied to user-defined identifier
@@ -148,8 +151,8 @@ their own required members: an instantiated scenario requires
    preserved verbatim, including case, hyphens, and underscores; only exact
    duplicate identifiers are rejected. Core scalar resolution still applies,
    so boolean/null/numeric-looking identifiers must be quoted when necessary.
-6. A field that holds a variable placeholder (`${…}`) is **not** normalised as an
-   enum value; the placeholder is preserved until instantiation
+6. A field that holds a variable placeholder (`${…}`) is **not** normalised as an enum value.
+   The placeholder is preserved until instantiation
    ([variables-and-instantiation.md](variables-and-instantiation.md)).
 
 Formally, let `c_scope(k)` lowercase a key and replace hyphens with underscores
@@ -179,10 +182,16 @@ line terminator. The spelling is exact: an implementation **MUST NOT** trim,
 case-fold, Unicode-normalize, escape, sanitize, or repair it. Uppercase,
 non-ASCII, whitespace, controls, `.`, `/`, `:`, and `${…}` are invalid.
 
-The rule applies by semantic role, not field spelling. It covers `Scenario.name`;
-map-valued section and variable keys; nested entity, role, and workflow-step
-keys; named services, ACLs, and content items; scenario-level forwarding-agent
-ids; and every RAES-local primary or child id in the runtime-family registry.
+The rule applies by semantic role, not field spelling.
+It covers these identities:
+
+- `Scenario.name`.
+- Map-valued section and variable keys.
+- Nested entity, role, and workflow-step keys.
+- Named services, ACLs, and content items.
+- Scenario-level forwarding-agent ids.
+- Every RAES-local primary or child id in the runtime-family registry.
+
 It does **not** apply merely because a field is called `name` or ends in `_id`.
 Display labels, usernames, DNS names, URLs, paths, LDAP DNs, environment names,
 versions, external/native/provider ids, and opaque evidence refs retain their
@@ -190,9 +199,9 @@ owning types. Where one object needs both a stable identity and a filename or
 label, those are separate fields.
 
 Identifiers **MUST** be unique within their owning collection. Before aliases
-are deduplicated, every declaration is also entered in a document-scoped typed
-address index; two distinct declarations that render the same canonical address
-make the document invalid. The admitted-document invariant is:
+are deduplicated, every declaration is also entered in a document-scoped typed address index.
+Two distinct declarations that render the same canonical address make the document invalid.
+The admitted-document invariant is:
 
 ```text
 for all d1,d2 in Declarations(document):
@@ -246,10 +255,10 @@ into typed expansion provenance. Only the composition path may create this
 internal representation or generated qualified declaration keys. Full semantic
 validation applies to it.
 
-The **instantiated scenario** exists after the public binding operation has
-validated its input, selected and checked every binding, substituted values,
-rebuilt the closed concrete shape, checked provenance consistency, and rerun
-semantic validation. Its provenance retains the normalized realization
+The public binding operation validates its input, selects and checks every binding, and substitutes values.
+It rebuilds the closed concrete shape, checks provenance consistency, and reruns semantic validation.
+The **instantiated scenario** exists after these checks.
+Its provenance retains the normalized realization
 designations without retaining the authoring block. Provenance is part of the
 portable artifact, not implementation-private context. Direct/deserialized
 artifacts must pass the same structural and semantic admission before
@@ -264,9 +273,9 @@ authoring/instantiation model of
 [ADR-001](../../docs/decisions/adrs/adr-001-scenario-description-language.md) and
 the runtime-layering boundary of
 [ADR-004](../../docs/decisions/adrs/adr-004-sdl-runtime-layer.md) and
-[ADR-036](../../docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md):
-delivery-level realisation remains downstream of the author-facing realization
-designation and is out of scope for the authoring model.
+[ADR-036](../../docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md).
+Delivery-level realization remains downstream of the author-facing realization designation.
+It is outside the authoring model's scope.
 
 The **materialized description** reports the full world after backend hooks,
 including in-world additions and changes. It uses ordinary SDL parsing,
@@ -345,7 +354,171 @@ and scenario members are both required; unknown envelope members are forbidden.
 The envelope is serialized and digested with the same JCS/SHA-256 rules in §8.
 Any change to concrete content or `instantiation_provenance` changes the
 canonical input. This digest establishes artifact identity under the named
-profile. It does **not** establish that the recorded derivation activity
-occurred, that external module sources remain available, that two scenarios
-produce the same behavior, or that two executions are observationally
-equivalent.
+profile. It does **not** establish that the recorded derivation activity occurred or that external module sources remain available.
+It also does **not** establish equal scenario behavior or observationally equivalent executions.
+
+## 10. Infrastructure
+
+`infrastructure` maps node identifiers to deployment topology declarations.
+Each key **MUST** select a same-named entry in `nodes`.
+A node need not have an infrastructure entry.
+Omission of the section means an empty map.
+The section persists through the document phases in §7.
+
+Each normalized entry is a closed object with these fields:
+
+| Field | Shape and meaning | Default |
+| --- | --- | --- |
+| `count` | Integer instance count, at least `1`, or an integer variable reference | `1` |
+| `links` | List of distinct switch-backed infrastructure references; network connectivity | Empty list |
+| `dependencies` | List of distinct infrastructure references; deployment prerequisites | Empty list |
+| `properties` | Subnet object, list of per-link address maps, or null | null |
+| `acls` | List of network access control rules | Empty list |
+| `description` | Descriptive string | Empty string |
+
+In source, `web: 3` is shorthand for `web: {count: 3}` within `infrastructure`.
+A full-value count placeholder has the same shorthand treatment.
+A switch **MUST** have count `1`.
+A compute node with attached conditions **MUST** also have count `1`.
+Links express connectivity; dependencies express prerequisites.
+Neither creates a node or an implicit feature binding.
+
+Reference resolution follows [the reference catalog](references.md).
+
+A subnet object contains required strings `cidr` and `gateway`, plus optional `internal`, which defaults to `false`.
+`cidr` **MUST** describe an IPv4 or IPv6 network; host bits do not invalidate its network prefix.
+`gateway` **MUST** be an IP address within that network.
+`internal` expresses whether the network is internal.
+Its authored value is a boolean or boolean variable reference.
+This declaration does not prove backend enforcement of network isolation.
+
+Each per-link address map associates linked switch-backed infrastructure identifiers with IP address strings.
+Each target **MUST** declare subnet properties.
+Each concrete address **MUST** belong to that target's CIDR.
+Placeholders defer concrete value checks until instantiation, which reruns validation.
+
+Each ACL rule is a closed object with these fields:
+
+| Field | Shape and meaning | Default |
+| --- | --- | --- |
+| `name` | Optional portable local identifier; nonempty names are unique within the infrastructure entry | Empty string |
+| `direction` | Direction string | Empty string |
+| `from_net`, `to_net` | Network reference strings; nonempty concrete references select switch-backed infrastructure | Empty strings |
+| `protocol` | Protocol string | `any` |
+| `ports` | List of integer ports from `1` through `65535`, or integer variable references | Empty list |
+| `action` | `allow`, `deny`, or an enum variable reference | `allow` |
+| `description` | Descriptive string | Empty string |
+
+Direction and protocol strings do not acquire additional enums from this reference.
+Named ACL addresses follow [the reference catalog](references.md).
+ACL declarations express network policy intent.
+They do not grant operator authority or establish packet-filter precedence or backend enforcement.
+
+## 11. Features
+
+`features` maps identifiers to reusable software declarations for compute nodes.
+Omission means an empty map.
+The section persists through the document phases in §7.
+A declaration is distinct from a node service or observed runtime software inventory.
+It has these closed fields:
+
+| Field | Shape and meaning | Presence/default |
+| --- | --- | --- |
+| `type` | `service`, `configuration`, or `artifact`; enum normalization follows §5 | Required |
+| `name` | Display name string; the map key remains the declaration identity | Empty string |
+| `source` | Artifact source object, or null | null |
+| `dependencies` | List of feature references; prerequisites for this feature | Empty list |
+| `destination` | Destination string for feature content | Empty string |
+| `environment` | List of environment strings | Empty list |
+| `description` | Descriptive string | Empty string |
+
+A source string is shorthand for an object with that `name` and version `*`.
+Source objects retain the published schema's optional build provenance and artifact-requirement refinements.
+They identify artifacts without authorizing retrieval or proving installation.
+Feature environment strings do not carry the typed runtime environment or secret-reference contract.
+
+`nodes.<node>.features` binds declarations to a compute node.
+A list of feature identifiers means bindings without roles.
+A map associates each feature identifier with a node-local role, or an empty string for no role.
+Nonempty roles **MUST** exist on that node.
+
+Dependencies **MUST** resolve to declared features and form an acyclic graph.
+Each dependency **MUST** also be bound on the same node before runtime planning can succeed.
+Compilation diagnoses a missing binding; it does not install an unbound dependency implicitly.
+
+## 12. Duration values
+
+This grammar applies to `scripts.*.start_time`, `scripts.*.end_time`, `scripts.*.events.*`, and `workflows.*.timeout.seconds`.
+These fields normalize concrete durations to integer seconds before normalized-object schema validation.
+A scalar `workflows.*.timeout` is shorthand for an object whose `seconds` field contains that value.
+It does not apply to every field that measures time.
+Condition polling, execution-policy delays, and [shared rational clocks](../formal/time-model/README.md) retain their own contracts.
+Duration notation does not select a clock, epoch, or runtime pacing policy.
+
+### Numeric and string forms
+
+A numeric source value denotes seconds.
+It **MUST** be finite and nonnegative; booleans are invalid.
+Zero stays `0`; a positive fractional value rounds upward to the next integer second.
+For example, numeric `1.2` becomes `2`.
+Numeric exponent notation follows source scalar decoding in §1.
+
+For a string, remove leading and trailing whitespace first.
+Then remove ASCII spaces and underscores, replace `µ` with `u`, and lowercase the text.
+Internal tabs and line breaks are not separators.
+The resulting string **MUST** match this grammar completely:
+
+```text
+duration = { "+" }, term, { { "+" }, term }, { "+" } ;
+term     = number, [ unit ] ;
+number   = digit, { digit }, [ ".", digit, { digit } ] ;
+```
+
+Here, braces mean repetition, brackets mean optional content, and commas mean concatenation.
+`digit` is a Unicode decimal digit; `unit` is an alias from the table below.
+Scan the longest number first, then the longest matching unit alias.
+An omitted unit denotes seconds.
+Terms can touch, or have one or more plus signs between them.
+Leading and trailing plus signs are also accepted; at least one term is required.
+
+Negative strings, empty strings, unknown units, exponent strings, and incomplete decimal fractions are invalid.
+For example, `-1s`, `1e3`, `.5s`, and `1.s` are invalid strings.
+Full-value variable references remain unresolved until instantiation and subsequent validation.
+
+### Units and rounding
+
+| Unit | Accepted aliases after normalization | Seconds per unit |
+| --- | --- | --- |
+| Year | `y`, `year`, `years` | `31536000` |
+| Month | `mon`, `month`, `months` | `2592000` |
+| Week | `w`, `week`, `weeks` | `604800` |
+| Day | `d`, `day`, `days` | `86400` |
+| Hour | `h`, `hr`, `hour`, `hours` | `3600` |
+| Minute | `m`, `min`, `mins`, `minute`, `minutes` | `60` |
+| Second | `s`, `sec`, `secs`, `second`, `seconds` | `1` |
+| Millisecond | `ms`, `msec`, `millisecond`, `milliseconds` | `0.001` |
+| Microsecond | `us`, `usec`, `usecond`, `microsecond`, `microseconds` | `0.000001` |
+| Nanosecond | `ns`, `nsec`, `nanosecond`, `nanoseconds` | `0.000000001` |
+
+Months always mean 30 days; years always mean 365 days.
+These are fixed conversions, not calendar arithmetic.
+Convert terms to decimal seconds and add them before rounding.
+Round the total upward to the least integer greater than or equal to it.
+Do not round each term separately.
+The rule does not establish arbitrary-precision arithmetic for implementations.
+
+| Source value | Normalized seconds |
+| --- | --- |
+| `0` or `"0s"` | `0` |
+| `"1h 30min"` | `5400` |
+| `"1m+30"` | `90` |
+| `"400ms 400ms"` | `1` |
+| `"1001 ms"` | `2` |
+| `"1 µs"` or `"1 ns"` | `1` |
+| `"1_000 MS"` | `1` |
+| `"+1s++"` | `1` |
+
+Consumer bounds apply after conversion.
+Script end time **MUST** be at least its start time.
+Each event time **MUST** lie within those inclusive bounds.
+Workflow timeout seconds **MUST** be positive; zero is invalid there.

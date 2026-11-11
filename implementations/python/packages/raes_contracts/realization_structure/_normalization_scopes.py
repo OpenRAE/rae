@@ -5,8 +5,9 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 
+from ..json_pointer import array_index, pointer_from_tokens, pointer_tokens
 from ._build import RealizationConstraintBuildResult, build_failure
-from ._common import RelationBudget, actual_identity, pointer, pointer_tokens
+from ._common import RelationBudget, actual_identity
 from ._models import (
     RealizationCollectionProfile,
     RealizationRelationStatus,
@@ -33,7 +34,8 @@ def _advance_keyed_scope(
 ) -> RealizationConstraintBuildResult | None:
     failure = None
     assert isinstance(cursor.current, list)
-    if not token.isdigit() or int(token) >= len(cursor.current):
+    index = array_index(token, len(cursor.current))
+    if index is None:
         failure = build_failure(
             RealizationRelationStatus.INVALID,
             address,
@@ -46,7 +48,7 @@ def _advance_keyed_scope(
             f"Scope normalization exceeded {exhausted}.",
         )
     else:
-        item = cursor.current[int(token)]
+        item = cursor.current[index]
         identity = actual_identity(item, profile.identity_fields)
         if identity is None:
             failure = build_failure(
@@ -66,8 +68,8 @@ def _advance_plain_scope(cursor: _ScopeCursor, token: str) -> None:
     cursor.source_path.append(token)
     if isinstance(cursor.current, Mapping):
         cursor.current = cursor.current.get(token, MISSING_SCOPE_VALUE)
-    elif isinstance(cursor.current, list) and token.isdigit() and int(token) < len(cursor.current):
-        cursor.current = cursor.current[int(token)]
+    elif isinstance(cursor.current, list) and (index := array_index(token, len(cursor.current))) is not None:
+        cursor.current = cursor.current[index]
     else:
         cursor.current = MISSING_SCOPE_VALUE
 
@@ -89,7 +91,7 @@ def _normalize_one_scope(
                 f"Scope normalization exceeded {exhausted}.",
             )
         else:
-            profile = collection_profiles.get(pointer(tuple(cursor.source_path)))
+            profile = collection_profiles.get(pointer_from_tokens(tuple(cursor.source_path)))
             if isinstance(cursor.current, list) and profile is not None:
                 failure = _advance_keyed_scope(cursor, token, profile, scope.field_pointer, budget)
             else:
@@ -99,7 +101,7 @@ def _normalize_one_scope(
     normalized = (
         None
         if failure is not None
-        else scope.model_copy(update={"field_pointer": pointer(tuple(cursor.semantic_path))})
+        else scope.model_copy(update={"field_pointer": pointer_from_tokens(tuple(cursor.semantic_path))})
     )
     return normalized, failure
 

@@ -1,4 +1,4 @@
-# Operation Supervision and Recovery Semantics
+# Operation supervision and recovery semantics
 
 Status: design authority under ADR-104, issue #1348 and API-404.
 Classification: FM3. This specification defines obligations for implementation;
@@ -9,13 +9,16 @@ The [operation model](README.md) owns the persisted state matrix and atomic
 store invariants. The [decision](../../../docs/decisions/issue-1348-operation-lifecycle.md)
 records canonical requirement dispositions and current implementation gaps.
 
-## S1 — Authority and admission
+<!-- vale RAES.HeadingCase = NO -->
+## S1 — authority and admission
 
 RAE is the shared product runtime driving backend execution. Authors select
 required semantics through the owning workflow, time, realization and trial
 contracts. The processor preserves them in admitted plans; the runtime admits,
 drives, supervises and classifies operations. Backends own concrete realization,
 effect observation and contextual willingness. Embedders own process deployment.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 For an operation, let `R` be its exact admitted requirements, `C` the effective
 capabilities of the installed backend for that operation kind and context, and
@@ -110,10 +113,13 @@ operation completion and verified cleanup are distinct outcomes. A successful
 operation that records a workflow cancellation proves only its admitted action.
 A disconnect, cancelled future or killed local process proves no remote cessation.
 
-## S4 — Deadlines and shutdown
+<!-- vale RAES.HeadingCase = NO -->
+## S4 — deadlines and shutdown
 
 Operational budgets use local apparatus monotonic elapsed time. Each admitted
 budget is positive, finite, validated and bound to its stage and origin:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 | Budget | Starts | Expiry consequence |
 | --- | --- | --- |
@@ -145,7 +151,7 @@ Keep existing strict workflow timestamp validation and inclusive expiry rules.
 Shutdown stops admission, requests supported cessation, settles or quarantines
 operations, closes the store provider, then releases the owner lease. If store
 close is unconfirmed, retain the lease while the process lives. If the embedder
-must terminate the process, that is a declared loss boundary: a restart acquires
+must end the process, that is a declared loss boundary: a restart acquires
 the store lease but remains unready until external work is reconciled. Local
 lease release or process death is never an external fence. Restore obeys the
 same rule because the database can be older than backend effects.
@@ -196,11 +202,14 @@ it does not establish cessation, retry safety, a clean range or scientific
 validity. Quarantine is discharged only by the required effect/cessation evidence
 and applicable admission rules, not by the existence of the child receipt.
 
-## S6 — Author-directed subsequent work
+<!-- vale RAES.HeadingCase = NO -->
+## S6 — author-directed subsequent work
 
 Use the existing authored policies and their normative defaults. Durability adds
 none of the permissions below. Fresh authorization and current backend
 willingness are required whenever subsequent work can produce effects.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 | Action | Authority and necessary evidence |
 | --- | --- |
@@ -208,7 +217,7 @@ willingness are required whenever subsequent work can produce effects.
 | Workflow retry | SEM-203's retry graph, attempt bounds, guards and history. It is not a store-recovery retry loop. |
 | Another trial execution attempt | SCE-007 `ExecutionRetryPolicyModel`: remaining attempts, selected after-effect posture, and established idempotence or required reset/compensation evidence. New `execution_attempt_id`, same admitted entry and archival `run_id`. |
 | Resume | Explicit permitted continuation, a compatible checkpoint/continuation boundary, reconciled effects, preserved workflow/participant/time state and valid inputs/authority. Same run and preserved history; any new control operation links to the original. A snapshot alone is insufficient. |
-| Terminate | Authorized policy ends the relevant control flow and closes admission; separately report backend cessation, episode outcome, cleanup and trial validity. Emergency administrative stop can contain work but cannot silently change authored success/validity criteria. |
+| `Terminate` | Authorized policy ends the relevant control flow and closes admission; separately report backend cessation, episode outcome, cleanup and trial validity. Emergency administrative stop can contain work but cannot silently change authored success/validity criteria. |
 | New trial | Authorized allocation under EXP-706/SCE-002, distinct admitted trial coordinate/run identity, clean or declared reusable initial state and SCE-006/007 isolation/cleanup evidence. Preserve the failed/interrupted trial and its invalidation evidence. |
 
 No resumed or repeated effects enter a quarantined scope. An independently

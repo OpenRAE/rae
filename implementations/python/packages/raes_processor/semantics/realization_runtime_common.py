@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.apparatus import (
     DECLARED_CAPABILITY_MATCH_REQUIREMENT_KIND,
     RealizationSupportDeclaration,
 )
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.runtime_state import (
     RealizationObservationDisclosure,
     RealizationProvenanceEntry,
@@ -70,6 +70,14 @@ def matching_observation(
     )
 
 
+def _capability_kind(requirement: CompiledRealizationRequirement) -> str:
+    return (
+        "operating-system"
+        if requirement.requirement_kind in OPERATING_SYSTEM_REQUIREMENT_KINDS
+        else requirement.requirement_kind
+    )
+
+
 def manifest_corroborates(
     requirement: CompiledRealizationRequirement,
     observation: RealizationObservationDisclosure,
@@ -77,11 +85,7 @@ def manifest_corroborates(
 ) -> bool:
     if manifest is None:
         return False
-    capability_kind = (
-        "operating-system"
-        if requirement.requirement_kind in OPERATING_SYSTEM_REQUIREMENT_KINDS
-        else requirement.requirement_kind
-    )
+    capability_kind = _capability_kind(requirement)
     return any(
         (capability := declaration.observation_capabilities.get(capability_kind)) is not None
         and observation_posture_supported(requirement, declaration)
@@ -127,7 +131,8 @@ def observed_projection(
             observed=True,
             recursive=requirement.constraint_document is not None,
         )
-    except TypeError, ValueError:
+    except ValueError:
+        # Observed values pass their closed observation contract first, which refuses with ValueError (E3).
         return invalid_observation_diagnostic(requirement), MISSING_CONCERN_VALUE
     return None, projection
 

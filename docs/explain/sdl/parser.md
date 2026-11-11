@@ -5,6 +5,10 @@ The parser (`raes.parser`) transforms raw YAML into a validated
 composition, canonical-field validation, shorthand expansion, and typed model
 construction.
 
+Untrusted consumers use `parse_sdl_sources()`. See
+[Supplied-Source Parsing](supplied-source-parsing.md) and the
+[issue #1757 consumer-parse preflight](issue-1757-consumer-parse-preflight.md).
+
 This layer is intentionally about syntax, normalization, and structural model
 construction. It is usually an `FM0` surface under the repository's
 [coding standards](../reference/coding-standards.md): parser work normally
@@ -206,6 +210,30 @@ Top-level composition supports:
   - `raes.lock.json`
   - `raes-trust.yaml`
 
+`parse_sdl_file(...)` reads files by pathname and trusts the workspace policy.
+Do not use it for untrusted input. Use `parse_sdl_sources(...)` for that input:
+
+```python
+from raes import SDLImportError, parse_sdl_sources
+
+try:
+    scenario = parse_sdl_sources(
+        {
+            "sdl/pack.sdl.yaml": root_bytes,
+            "sdl/raes.lock.json": lock_bytes,
+            "sdl/kits/web/module.sdl.yaml": module_bytes,
+        },
+        "sdl/pack.sdl.yaml",
+    )
+except SDLImportError as exc:
+    print(exc.code)  # for example, sdl.import.digest-missing
+```
+
+The operation reads only the supplied bytes. Each import at each depth must be
+`local:`, must have a `sha256:` digest pin and must match exactly one record in
+the `raes.lock.json` of the directory of its importing document. The operation
+never reads `raes-trust.yaml`. The result passed full semantic validation.
+
 Import `source:` values are not treated as ordinary SDL package-source
 shorthand. They are resolved by the composition layer, not expanded into
 `{name, version}` package dictionaries.
@@ -223,6 +251,9 @@ invalid, including when migration acceptance is enabled.
   scalar ids use `sdl.identifier.invalid` and do not echo the invalid spelling;
   other typed-model failures use `sdl.model.invalid` with a control-escaped,
   512-character-bounded domain message and no Pydantic input rendering
+- `SDLImportError` — a subclass of `SDLParseError` for each import refusal; its
+  `.code` is an `SDLImportErrorCode` value, such as `sdl.import.lock-mismatch`
+  (see [ADR-119](../../decisions/adrs/adr-119-consumer-parse-of-supplied-sdl-sources.md))
 - `SDLValidationError` — semantic validation failures (has `.errors` list with all issues)
 
 Imported-unit typed-model failures use the same bounded `sdl.model.invalid`

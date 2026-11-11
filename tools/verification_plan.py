@@ -3,8 +3,17 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 from dataclasses import dataclass, replace
 from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import OperationalError  # noqa: E402
 
 
 @dataclass(frozen=True)
@@ -108,7 +117,13 @@ def select_changed_python_tests(paths: list[str]) -> list[str]:
     return selected
 
 
-def _run_git(repo_root: Path, *args: str) -> bytes:
+def _run_git(repo_root: Path, *args: str) -> str:
+    """Run one fixed git query and return its UTF-8 output.
+
+    A failure names only the git subcommand and its exit status: git output and
+    full command lines stay out of messages (rules E7 and L6).
+    """
+
     proc = subprocess.run(
         ["git", *args],
         cwd=repo_root,
@@ -116,16 +131,17 @@ def _run_git(repo_root: Path, *args: str) -> bytes:
         check=False,
     )
     if proc.returncode != 0:
-        stderr = proc.stderr.decode("utf-8", errors="replace").strip()
-        raise RuntimeError(f"git {' '.join(args)} failed: {stderr}")
-    return proc.stdout
+        raise OperationalError(f"git {args[0]} failed with exit code {proc.returncode}")
+    try:
+        return proc.stdout.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise OperationalError(f"git {args[0]} returned output that is not UTF-8") from exc
 
 
 def collect_git_changes(repo_root: Path, base_rev: str) -> list[ChangeRecord]:
     """Return status-aware changes from ``base_rev`` through the working tree."""
 
-    raw = _run_git(repo_root, "diff", "--name-status", "-z", "--find-renames", base_rev)
-    fields = raw.decode("utf-8").split("\0")
+    fields = _run_git(repo_root, "diff", "--name-status", "-z", "--find-renames", base_rev).split("\0")
     if fields and fields[-1] == "":
         fields.pop()
 
@@ -135,17 +151,19 @@ def collect_git_changes(repo_root: Path, base_rev: str) -> list[ChangeRecord]:
         status_token = fields[index]
         status = status_token[:1]
         index += 1
-        if status in {"R", "C"}:
-            old_path, path = fields[index : index + 2]
-            changes.append(ChangeRecord(status=status, old_path=old_path, path=path))
-            index += 2
+        width = 2 if status in {"R", "C"} else 1
+        paths = fields[index : index + width]
+        if len(paths) != width:
+            raise OperationalError("git diff returned an incomplete change record")
+        if width == 2:
+            changes.append(ChangeRecord(status=status, old_path=paths[0], path=paths[1]))
         else:
-            changes.append(ChangeRecord(status=status, path=fields[index]))
-            index += 1
+            changes.append(ChangeRecord(status=status, path=paths[0]))
+        index += width
 
     tracked_paths = {path for change in changes for path in change.paths}
     untracked = _run_git(repo_root, "ls-files", "--others", "--exclude-standard", "-z")
-    for path in untracked.decode("utf-8").split("\0"):
+    for path in untracked.split("\0"):
         if path and path not in tracked_paths:
             changes.append(ChangeRecord(status="A", path=path))
     return changes
@@ -154,14 +172,10 @@ def collect_git_changes(repo_root: Path, base_rev: str) -> list[ChangeRecord]:
 def resolve_upstream(repo_root: Path) -> str:
     """Resolve the current branch's remote-tracking ref."""
 
-    return (
-        _run_git(
-            repo_root,
-            "rev-parse",
-            "--abbrev-ref",
-            "--symbolic-full-name",
-            "@{upstream}",
-        )
-        .decode("utf-8")
-        .strip()
-    )
+    return _run_git(
+        repo_root,
+        "rev-parse",
+        "--abbrev-ref",
+        "--symbolic-full-name",
+        "@{upstream}",
+    ).strip()

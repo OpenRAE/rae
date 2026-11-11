@@ -1,15 +1,17 @@
 """Typed node defaults for comparison without changing supplied concern values."""
 
+from collections.abc import Mapping
 from dataclasses import replace
 from typing import cast
 
 from pydantic import TypeAdapter
 from raes.nodes import Node
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.planning import PlannedResource, ProvisionOp
 from raes_contracts.runtime_state import SnapshotEntry
 
 from .realization_concern_observations import typed_runtime_observation_shape
-from .realization_concerns import realization_concern_descriptors
+from .realization_concerns import RealizationConcernDescriptor, realization_concern_descriptors
 
 
 def defaulted_node_payload(resource: ProvisionOp, cache: dict[str, object]) -> object:
@@ -18,7 +20,7 @@ def defaulted_node_payload(resource: ProvisionOp, cache: dict[str, object]) -> o
     if resource.address not in cache:
         try:
             cache[resource.address] = with_node_defaults(resource).payload
-        except KeyError, TypeError, ValueError:
+        except InvalidInputError:
             cache[resource.address] = None
     return cache[resource.address]
 
@@ -26,11 +28,20 @@ def defaulted_node_payload(resource: ProvisionOp, cache: dict[str, object]) -> o
 def with_node_defaults(
     resource: SnapshotEntry | PlannedResource | ProvisionOp,
 ) -> SnapshotEntry | PlannedResource | ProvisionOp:
-    """Restore typed defaults while retaining validated value commitments."""
+    """Restore typed defaults while retaining validated value commitments.
 
-    spec = resource.payload["spec"]
+    A payload without a node specification, or one that the node contract refuses, raises ``InvalidInputError``.
+    """
+
+    spec = resource.payload.get("spec")
+    if not isinstance(spec, Mapping) or not isinstance(spec.get("node"), Mapping):
+        raise InvalidInputError("resource payload has no node specification")
     adapter = TypeAdapter(Node)
-    node = adapter.dump_python(typed_runtime_observation_shape(spec.get("node"), adapter=adapter), mode="json")
+    try:
+        node = adapter.dump_python(typed_runtime_observation_shape(spec["node"], adapter=adapter), mode="json")
+    # The shape helper and the node contract refuse a malformed specification with ValueError (E9).
+    except ValueError as exc:
+        raise InvalidInputError("node specification does not satisfy the node contract") from exc
     for descriptor in realization_concern_descriptors():
         if descriptor.section == "nodes":
             _restore_supplied_concern(spec["node"], node, descriptor.authored_path)
@@ -38,6 +49,38 @@ def with_node_defaults(
         "SnapshotEntry | PlannedResource | ProvisionOp",
         replace(resource, payload={**resource.payload, "spec": {**spec, "node": node}}),
     )
+
+
+def materialization_node_projection(value: object, *, observed: bool) -> dict[str, object]:
+    """Compare native SDL and safe readback through their concern owners.
+
+    Observation placeholders serve only closed shape validation. Supplied
+    commitments and presence markers are restored before concern projection.
+    """
+    adapter = TypeAdapter(Node)
+    validated = typed_runtime_observation_shape(value, adapter=adapter) if observed else adapter.validate_python(value)
+    node = adapter.dump_python(validated, mode="json")
+    for descriptor in realization_concern_descriptors():
+        if descriptor.section != "nodes" or descriptor.projector is None:
+            continue
+        if observed:
+            _restore_supplied_concern(value, node, descriptor.authored_path)
+        _project_materialization_concern(node, descriptor, observed=observed)
+    return node
+
+
+def _project_materialization_concern(
+    node: dict[str, object], descriptor: RealizationConcernDescriptor, *, observed: bool
+) -> None:
+    parent = node
+    for token in descriptor.authored_path[:-1]:
+        child = parent.get(token)
+        if not isinstance(child, dict):
+            return
+        parent = child
+    leaf = descriptor.authored_path[-1]
+    if leaf in parent and parent[leaf] is not None:
+        parent[leaf] = descriptor.project(parent[leaf], observed=observed, recursive=True)
 
 
 def _restore_supplied_concern(original: object, normalized: object, path: tuple[str, ...]) -> None:

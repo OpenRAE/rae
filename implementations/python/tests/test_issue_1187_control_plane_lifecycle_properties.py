@@ -162,7 +162,8 @@ def test_each_operation_kind_commits_one_immutable_actor_bound_terminal_cut(prof
 
 @pytest.mark.parametrize("profile", ["P0", "P1"])
 def test_lifecycle_oracle_detects_removed_transition_enforcement(profile, tmp_path, monkeypatch) -> None:
-    import raes_runtime.control_plane_store as contracts
+    # The store providers share the transition rule of this module.
+    import raes_runtime.control_plane_store_transitions as contracts
 
     with _store(profile, tmp_path) as store:
         current = _seed(store, OperationState.SUCCEEDED)

@@ -11,7 +11,10 @@ from dataclasses import dataclass
 from threading import Condition, Lock, get_ident, local
 from typing import Concatenate
 
+from raes_contracts.errors import ConflictError, OperationalError, RaesError
 from raes_contracts.runtime_state import OperationKind
+
+from .errors import RuntimeBudgetExhaustedError
 
 _BACKEND_REENTRY_ERROR = "backend callback cannot start a control-plane mutation"
 
@@ -56,7 +59,7 @@ def detached_extension(*, extension: bool = True) -> Iterator[None]:
         _ACTIVE_RESERVATION.reset(reservation)
 
 
-class MutationReservationRequired(RuntimeError):
+class MutationReservationRequired(RaesError):
     """Signal that an HTTP admission probe reached its accepted mutation phase."""
 
     def __init__(self, authority: RuntimeMutationAuthority, kind: OperationKind) -> None:
@@ -83,6 +86,61 @@ class RuntimeMutationAuthority:
         self._async_waiters: deque[_AsyncWaiter] = deque()
         self._depth = 0
         self._local = local()
+
+    def require_invocation_child_live(self, scope: InvocationChildScope) -> None:
+        with self._condition:
+            if not scope.active or self._effect_owner is not scope.effect_owner:
+                raise ConflictError("invocation child authority is closed")
+
+    def close_invocation_child(self, scope: InvocationChildScope) -> None:
+        with self._condition:
+            scope.active = False
+            self._condition.notify_all()
+
+    def run_invocation_child[T](self, scope: InvocationChildScope, handler: Callable[[], T]) -> T:
+        thread_id = get_ident()
+        self.require_invocation_child_live(scope)
+        with self._condition:
+            if self._owner_thread == thread_id or getattr(self._local, "child_scope", None) is not None:
+                raise RuntimeError("invocation child handlers cannot recursively acquire state authority")
+            ready = self._condition.wait_for(
+                lambda: not scope.active or self._permit_is_free(),
+                timeout=self._admission_seconds,
+            )
+            if not ready:
+                raise RuntimeBudgetExhaustedError("invocation child state admission budget exhausted")
+            if not scope.active or self._effect_owner is not scope.effect_owner:
+                raise ConflictError("invocation child authority is closed")
+            self._owner_thread, self._depth = thread_id, 1
+            self._local.child_scope = scope
+        try:
+            value = handler()
+            self.require_invocation_child_live(scope)
+            return value
+        finally:
+            with self._condition:
+                self._local.child_scope = None
+                if self._owner_thread == thread_id:
+                    self._owner_thread, self._depth = None, 0
+                self._local.abandoned_depth = 0
+                self._grant_next_waiter_locked()
+
+    def invocation_child_scope(self) -> InvocationChildScope:
+        """Bind private child handlers to the current invocation's effect reservation."""
+
+        if _IN_EXTENSION.get() or getattr(self._local, "child_scope", None) is not None:
+            raise RuntimeError(_BACKEND_REENTRY_ERROR)
+        if not self.owns_current_thread():
+            raise RuntimeError("invocation child scope requires the live state writer")
+        with self._condition:
+            return InvocationChildScope(self, self._effect_owner)
+
+    def require_live_child_scope(self) -> None:
+        """Fence a late handler before it publishes state after closure."""
+
+        scope = getattr(self._local, "child_scope", None)
+        if scope is not None:
+            scope.require_live()
 
     @contextmanager
     def mutation(self, kind: OperationKind) -> Iterator[None]:
@@ -126,7 +184,7 @@ class RuntimeMutationAuthority:
             timeout=self._admission_seconds,
         )
         if not admitted:
-            raise TimeoutError("state admission budget exhausted")
+            raise RuntimeBudgetExhaustedError("state admission budget exhausted")
         self._owner_thread = thread_id
         self._depth = 1
         if not _SUPERVISORY_CUT.get():
@@ -225,7 +283,7 @@ class RuntimeMutationAuthority:
                 if not self._condition.wait_for(self._permit_is_free, timeout=self._admission_seconds):
                     if reservation is None:
                         self._local.abandoned_depth = state_depth
-                    raise TimeoutError("state reacquisition budget exhausted")
+                    raise RuntimeBudgetExhaustedError("state reacquisition budget exhausted")
                 self._owner_thread, self._reservation, self._depth = owner, reservation, state_depth
 
     @contextmanager
@@ -281,6 +339,24 @@ class RuntimeMutationAuthority:
         self._condition.notify_all()
 
 
+class InvocationChildScope:
+    """Revocable scope; writer state remains owned by RuntimeMutationAuthority."""
+
+    def __init__(self, authority: RuntimeMutationAuthority, effect_owner: object) -> None:
+        self._authority = authority
+        self.effect_owner = effect_owner
+        self.active = True
+
+    def require_live(self) -> None:
+        self._authority.require_invocation_child_live(self)
+
+    def close(self) -> None:
+        self._authority.close_invocation_child(self)
+
+    def run[T](self, handler: Callable[[], T]) -> T:
+        return self._authority.run_invocation_child(self, handler)
+
+
 class SubordinateMutationGate:
     """Compatibility context for path-local gates without a second mutex."""
 
@@ -332,7 +408,9 @@ def control_plane_mutation(control_plane: object, kind: OperationKind) -> Iterat
         if callable(mutation):
             assert_owner = getattr(control_plane, "_assert_runtime_owner", None)
             if getattr(control_plane, "_durability_poisoned", False):
-                raise RuntimeError("runtime control plane requires restart after a durability reconciliation failure")
+                raise OperationalError(
+                    "runtime control plane requires restart after a durability reconciliation failure"
+                )
             if callable(assert_owner):
                 assert_owner()
         yield

@@ -3,13 +3,23 @@
 from __future__ import annotations
 
 import hashlib
+import sys
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
-from tools.policy.common import PolicyFailure
-from tools.tooling_artifact_policy_common import (
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError  # noqa: E402
+
+from tools.policy.common import PolicyFailure  # noqa: E402
+from tools.tooling_artifact_policy_common import (  # noqa: E402
     PROFILES_PATH,
+    as_list,
     failure,
     is_regular_repo_file,
     read_tooling_document,
@@ -20,6 +30,16 @@ PYTHON_TOOL_LOCK_PATH = "implementations/tooling/python/uv.lock"
 _EXPECTED_CONTEXT_IDS = frozenset({"python-public"})
 _PROJECT_SCOPED_PURPOSES = frozenset({"wheel-smoke", "sdist-smoke", "compatibility", "docs"})
 _PROJECTION_SIZE_LIMIT = 2 * 1024 * 1024
+
+
+def _value_set(value: object) -> set[object] | None:
+    """Return the set of one authored collection, or None when the value has no set form."""
+
+    try:
+        return set(value)
+    except TypeError:
+        # A scalar is not iterable, and a list of lists or objects cannot be hashed.
+        return None
 
 
 def _context_set_failures(context_ids: Sequence[str]) -> list[PolicyFailure]:
@@ -71,7 +91,9 @@ def _closure_binding_failures(
     """Validate the host, runtime, purpose, and context bindings of one closure."""
 
     failures: list[PolicyFailure] = []
-    if value.get("host_profile_id") not in host_ids:
+    host_profile_id = value.get("host_profile_id")
+    # The known host ids are text, so an id of another type, also one that cannot be hashed, is unknown.
+    if not isinstance(host_profile_id, str) or host_profile_id not in host_ids:
         failures.append(
             failure(
                 "tooling-python-host",
@@ -90,7 +112,7 @@ def _closure_binding_failures(
                 PROFILES_PATH,
             )
         )
-    if not project_scoped and set(value.get("purposes", [])) != {"tool", "build"}:
+    if not project_scoped and _value_set(value.get("purposes", [])) != {"tool", "build"}:
         failures.append(
             failure(
                 "tooling-python-purposes",
@@ -99,30 +121,28 @@ def _closure_binding_failures(
             )
         )
     expected_extras = {"dev", "docs", "distributed"} if project_scoped else set()
-    if set(value.get("project_extras", [])) != expected_extras:
-        failures.append(
-            failure(
-                "tooling-python-extras",
-                "project smoke closures must include all extras and tool/build closures must include none",
-                PROFILES_PATH,
-            )
-        )
-    if set(value.get("tool_groups", [])) != {"default", "build"}:
-        failures.append(
-            failure(
-                "tooling-python-groups",
-                "every Python closure must bind tool and build groups",
-                PROFILES_PATH,
-            )
-        )
-    if set(value.get("acquisition_context_ids", [])) != set(context_ids):
-        failures.append(
-            failure(
-                "tooling-python-context-binding",
-                "Python closure profile must bind every acquisition context",
-                PROFILES_PATH,
-            )
-        )
+    for field, expected, rule_id, message in (
+        (
+            "project_extras",
+            expected_extras,
+            "tooling-python-extras",
+            "project smoke closures must include all extras and tool/build closures must include none",
+        ),
+        (
+            "tool_groups",
+            {"default", "build"},
+            "tooling-python-groups",
+            "every Python closure must bind tool and build groups",
+        ),
+        (
+            "acquisition_context_ids",
+            set(context_ids),
+            "tooling-python-context-binding",
+            "Python closure profile must bind every acquisition context",
+        ),
+    ):
+        if _value_set(value.get(field, [])) != expected:
+            failures.append(failure(rule_id, message, PROFILES_PATH))
     return failures
 
 
@@ -164,7 +184,7 @@ def _projection_drift_failures(
     try:
         manifest = read_tooling_document(repo_root, manifest_path)
         requirements = (repo_root / requirements_path).read_bytes()
-    except (OSError, ValueError):
+    except (OSError, InvalidInputError):
         return [
             failure(
                 "tooling-python-projection",
@@ -224,11 +244,13 @@ def _closure_profile_failures(
     """Validate every reviewed Python closure profile and its projection."""
 
     host_ids = {
-        str(value.get("host_profile_id")) for value in profiles.get("host_profiles", []) if isinstance(value, Mapping)
+        str(value.get("host_profile_id"))
+        for value in as_list(profiles.get("host_profiles"))
+        if isinstance(value, Mapping)
     }
     failures: list[PolicyFailure] = []
     seen: set[str] = set()
-    for value in profiles.get("python_closure_profiles", []):
+    for value in as_list(profiles.get("python_closure_profiles")):
         if not isinstance(value, Mapping):
             continue
         profile_id = str(value.get("python_closure_profile_id", ""))
@@ -241,7 +263,7 @@ def _closure_profile_failures(
                 )
             )
         seen.add(profile_id)
-        project_scoped = bool(set(value.get("purposes", [])) & _PROJECT_SCOPED_PURPOSES)
+        project_scoped = bool((_value_set(value.get("purposes", [])) or set()) & _PROJECT_SCOPED_PURPOSES)
         failures.extend(
             _closure_binding_failures(
                 value,
@@ -272,7 +294,7 @@ def _closure_profile_failures(
 def profile_semantic_failures(repo_root: Path, profiles: Mapping[str, Any]) -> list[PolicyFailure]:
     """Validate acquisition contexts and closure profiles against reviewed policy."""
 
-    contexts = [value for value in profiles.get("python_package_contexts", []) if isinstance(value, Mapping)]
+    contexts = [value for value in as_list(profiles.get("python_package_contexts")) if isinstance(value, Mapping)]
     context_ids = [str(value.get("context_id", "")) for value in contexts]
     return [
         *_context_set_failures(context_ids),

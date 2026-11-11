@@ -12,13 +12,14 @@ from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
 import pytest
+
 from tools import check_requirement_governance, check_schema_publication
-from tools.policy.common import REPO_ROOT, changed_paths
+from tools.policy.common import REPO_ROOT, changed_paths, load_yaml
 from tools.policy.repo_policy import evaluate_repo_policy
 
 # Without -z, git quotes a name with a byte above 0x80 (under the default core.quotePath=true), a control character
 # or a double quote. Read in text mode, a carriage return or CRLF in a name becomes LF, and the old line split
-# stripped spaces at either end of a path. Each stem names one schema publication record and one 501-line module.
+# stripped spaces at either end of a path. Each stem names one schema publication record and one over-cap module.
 _STEMS = ("plain", "naïve", "tab\tname", "new\nline", "carriage\rreturn", "crlf\r\nname", '"quoted"')
 _RECORDS_DIR = "contracts/schema-publication/entries"
 _RECORDS = sorted(f"{_RECORDS_DIR}/{stem}.json" for stem in _STEMS)
@@ -68,9 +69,10 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     _write(tmp_path, "tools/policy/oversized_allowlist.yaml", "files: []\n")
     _git(tmp_path, "add", ".")
     _git(tmp_path, "commit", "-q", "-m", "base")
+    line_cap = load_yaml(tmp_path / "tools/policy/adr_policy.yaml")["oversized_source_files"]["line_cap"]
     for stem, record, module in zip(_STEMS, _RECORDS, _MODULES, strict=True):
         _write(tmp_path, record, json.dumps({"contract_id": stem}))
-        _write(tmp_path, module, "value = 0\n" * 501)
+        _write(tmp_path, module, "value = 0\n" * (line_cap + 1))
     for name in set(_NAMES) - {*_RECORDS, *_MODULES}:
         _write(tmp_path, name, "text\n")
     _git(tmp_path, "add", ".")
@@ -91,7 +93,7 @@ def runner(repo: Path, monkeypatch: pytest.MonkeyPatch) -> ModuleType:
 
 
 def _oversized_paths(repo: Path, listed: list[str]) -> list[str | None]:
-    """The paths the repository policy's 500-line cap rejects; the scratch repository holds no other package roots."""
+    """The paths the repository policy's configured line cap rejects; the scratch repository holds no other package roots."""
 
     failures = evaluate_repo_policy(repo, listed, check_set="file-local", structural_runner=lambda _: [])
     return sorted(failure.path for failure in failures if failure.rule_id == "oversized-source-file")

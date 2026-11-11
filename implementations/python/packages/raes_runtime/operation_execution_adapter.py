@@ -3,20 +3,25 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from contextlib import AbstractContextManager
 from functools import partial
 from os import getpid
 from threading import BoundedSemaphore, Condition, Lock
 from time import monotonic
 from typing import Literal, NamedTuple, cast
+from weakref import finalize
 
 import anyio
-from anyio.from_thread import start_blocking_portal
+from anyio.from_thread import BlockingPortal, start_blocking_portal
+from raes_contracts.errors import OperationalError
+from raes_contracts.operational_logging import get_logger
 
 from .control_plane_mutation import detached_extension
 
 Lane = Literal["effect", "control", "store", "deadline", "resolution"]
 # Portable apparatus ceiling, below native wait overflow.
 _MAX_BUDGET = 2147483647
+_LOGGER = get_logger(__name__)
 
 
 class _CallbackOutcome(NamedTuple):
@@ -34,6 +39,12 @@ def _capture_callback(method: Callable[[], object]) -> _CallbackOutcome:
             # Ordinary failures use AnyIO's existing exception propagation.
             raise
         return _CallbackOutcome(None, error)
+
+
+def _stop_portal(portal: BlockingPortal, portal_context: AbstractContextManager[BlockingPortal]) -> None:
+    portal.call(portal.stop, True)
+    # The stopped portal refuses the stop of the context exit, and the exit then joins the portal thread.
+    portal_context.__exit__(None, None, None)
 
 
 def require_budget_ms(value: object) -> int:
@@ -95,6 +106,9 @@ class LocalExecutionAdapter:
         self._slots = {lane: BoundedSemaphore(value) for lane, value in capacities.items()}
         self._portal_context = start_blocking_portal(name="runtime-execution")
         self._portal = self._portal_context.__enter__()
+        # The portal thread is a daemon, and interpreter finalization stops it. An adapter that its owner does not close
+        # stops the portal at collection or at exit, before finalization, so that no portal stop waits on that thread.
+        self._portal_stop = finalize(self, _stop_portal, self._portal, self._portal_context)
         self._limiters = self._portal.call(self._create_limiters, capacities)
 
     @staticmethod
@@ -118,9 +132,9 @@ class LocalExecutionAdapter:
             raise ValueError("unknown execution lane")
         with self._condition:
             if self._closed or (self._draining and lane in {"effect", "resolution"}):
-                raise RuntimeError("execution adapter is closed to effect admission")
+                raise OperationalError("execution adapter is closed to effect admission")
             if not self._slots[lane].acquire(blocking=False):
-                raise RuntimeError("execution capacity unavailable")
+                raise OperationalError("execution capacity unavailable")
             self._pending += 1
 
         def release() -> None:
@@ -190,11 +204,12 @@ class LocalExecutionAdapter:
             if outcome.error is not None:
                 if isinstance(outcome.error, Exception):
                     raise outcome.error
-                raise RuntimeError("invocation deadline callback interrupted") from None
+                raise RuntimeError("invocation deadline callback interrupted") from outcome.error
         except Exception:
+            # Boundary of the timer task: nothing awaits its result, so record the failure once.
+            _LOGGER.exception("invocation deadline callback failed")
             if failure_handler is not None:
                 failure_handler()
-            raise
 
     def cancel_deadline(self, key: str) -> None:
         self._require_owner_process()
@@ -218,7 +233,7 @@ class LocalExecutionAdapter:
                     return False
                 self._closed = True
         if close_portal:
-            self._portal_context.__exit__(None, None, None)
+            self._portal_stop()
         return True
 
 

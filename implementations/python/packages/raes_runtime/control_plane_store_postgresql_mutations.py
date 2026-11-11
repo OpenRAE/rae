@@ -5,10 +5,17 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
+from raes_contracts.errors import ConflictError
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
 
 from . import control_plane_store as contracts
 from .control_plane_store_history import require_expected_history_heads
+from .control_plane_store_postgresql_projection import (
+    SELECT_LEDGER_OPERATIONS,
+    claim_guard_records,
+    ledger_operation_from_row,
+    save_history,
+)
 from .control_plane_store_revision import (
     SnapshotRevisionConflict,
     SnapshotState,
@@ -48,8 +55,6 @@ def save_snapshot(
     require_participant_autonomous_runtime_snapshot(snapshot)
     expected_state(store, connection, expected_revision)
     revision = next_snapshot_revision(expected_revision)
-    from .control_plane_store_postgresql_projection import save_history
-
     return save_history(store, connection, snapshot, revision)
 
 
@@ -64,23 +69,17 @@ def find_by_idempotency(
     if not key:
         return None
     if context is None:
-        rows = connection.execute(
-            "SELECT payload, digest FROM raes_ledger_operations WHERE idempotency_key=%s", (key,)
-        ).fetchall()
+        rows = connection.execute(SELECT_LEDGER_OPERATIONS + "WHERE idempotency_key=%s", (key,)).fetchall()
     else:
         rows = connection.execute(
-            "SELECT payload, digest FROM raes_ledger_operations WHERE actor_id=%s AND "
-            "operation_kind=%s AND idempotency_key=%s",
+            SELECT_LEDGER_OPERATIONS + "WHERE actor_id=%s AND operation_kind=%s AND idempotency_key=%s",
             (context.actor_id, context.operation_kind.value, key),
         ).fetchall()
     if len(rows) > 1:
         raise ValueError("idempotency lookup requires immutable context")
     if not rows:
         return None
-    from .control_plane_store_local_codec import decode_payload
-    from .control_plane_store_records import _record_from_payload
-
-    return _record_from_payload(decode_payload(rows[0][0], rows[0][1], kind="operation record"))
+    return ledger_operation_from_row(rows[0])
 
 
 def claim_record(
@@ -99,8 +98,6 @@ def claim_record(
         return existing
     if new_claim_blocked:
         contracts._raise_new_claim_block(new_claim_blocked)
-    from .control_plane_store_postgresql_projection import claim_guard_records
-
     records = (
         store._load_records(connection)
         if record.inject_occurrence is not None
@@ -199,7 +196,7 @@ def commit_invocation_transition(
     if current == record and audit_event in store._load_audits(connection):
         return store._load_snapshot_state(connection)
     if current != expected:
-        raise ValueError("invocation revision conflict")
+        raise ConflictError("invocation revision conflict")
     store._upsert_record(connection, record)
     store._insert_audit(connection, audit_event)
     return store._load_snapshot_state(connection)

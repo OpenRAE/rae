@@ -20,10 +20,18 @@
           "type": "string"
         },
         "source_digest": {
-          "minLength": 1,
-          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
-          "title": "Source Digest",
-          "type": "string"
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Digest"
         },
         "source_path": {
           "const": "implementations/formal/participant_crossing/abstract.py",
@@ -35,7 +43,6 @@
         "model_id",
         "revision",
         "source_path",
-        "source_digest",
         "initial_state_ordinal"
       ],
       "title": "AbstractCrossingCarrierModel",
@@ -131,10 +138,18 @@
       "description": "Immutable source identity used to reproduce one profile revision.",
       "properties": {
         "source_digest": {
-          "minLength": 1,
-          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
-          "title": "Source Digest",
-          "type": "string"
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Digest"
         },
         "source_ref": {
           "maxLength": 256,
@@ -144,8 +159,7 @@
         }
       },
       "required": [
-        "source_ref",
-        "source_digest"
+        "source_ref"
       ],
       "title": "BehavioralProfileSourceModel",
       "type": "object"
@@ -219,10 +233,18 @@
           "type": "string"
         },
         "source_digest": {
-          "minLength": 1,
-          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
-          "title": "Source Digest",
-          "type": "string"
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Digest"
         },
         "source_path": {
           "const": "implementations/formal/participant_crossing/concrete.py",
@@ -234,7 +256,6 @@
         "model_id",
         "revision",
         "source_path",
-        "source_digest",
         "initial_state_ordinal"
       ],
       "title": "ConcreteCrossingCarrierModel",
@@ -543,10 +564,18 @@
           "type": "string"
         },
         "source_digest": {
-          "minLength": 1,
-          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
-          "title": "Source Digest",
-          "type": "string"
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Digest"
         },
         "source_path": {
           "const": "implementations/formal/participant_crossing/multi_abstract.py",
@@ -558,7 +587,6 @@
         "model_id",
         "revision",
         "source_path",
-        "source_digest",
         "initial_state_ordinal"
       ],
       "title": "MultiAbstractCarrierModel",
@@ -584,10 +612,18 @@
           "type": "string"
         },
         "source_digest": {
-          "minLength": 1,
-          "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
-          "title": "Source Digest",
-          "type": "string"
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Digest"
         },
         "source_path": {
           "const": "implementations/formal/participant_crossing/multi_concrete.py",
@@ -599,7 +635,6 @@
         "model_id",
         "revision",
         "source_path",
-        "source_digest",
         "initial_state_ordinal"
       ],
       "title": "MultiConcreteCarrierModel",

@@ -4,7 +4,7 @@ from copy import deepcopy
 
 import pytest
 from raes import parse_sdl
-from raes_contracts.plan_projection import provisioning_plan_model
+from raes_contracts.contracts.plan_projection import provisioning_plan_model
 from raes_contracts.planning import ChangeAction, PlanScope, ProvisionOp
 from raes_contracts.runtime_state import OperationState
 from raes_processor.compiler import compile_runtime_model
@@ -78,7 +78,7 @@ def test_rejected_prepared_node_update_keeps_admitted_extra_across_durable_reloa
         def prepare(self, request, snapshot):
             if "provision.node.extra" not in snapshot.entries:
                 return super().prepare(request, snapshot)
-            from raes_contracts.realization_preparation import RealizationPreparation
+            from raes_contracts.contracts.realization_preparation import RealizationPreparation
 
             entry = snapshot.entries["provision.node.extra"]
             update = ProvisionOp(ChangeAction.UPDATE, entry.address, entry.resource_type, deepcopy(entry.payload))

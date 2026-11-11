@@ -13,6 +13,7 @@ from raes.semantics.domain_topology import (
     DomainTopologyAnalysis,
 )
 from raes_backend_protocols.domain_topology import DomainTopologyBinding
+from raes_contracts.json_pointer import unescape_token
 
 from ..models import (
     CompiledCapabilityConstraint,
@@ -77,7 +78,7 @@ def _compile_capability_constraints(
             # realization requirement, keyed by semantic record identity.
             continue
         section_name, encoded_name, field_name = parts[1:]
-        node_name = encoded_name.replace("~1", "/").replace("~0", "~")
+        node_name = unescape_token(encoded_name)
         node = scenario.nodes[node_name]
         address = _network_address(node_name) if node.type == NodeType.SWITCH else _node_address(node_name)
         compiled.append(
@@ -202,9 +203,9 @@ def _record_node_runtime(
         node_name=node_name,
         node_kind=node_spec.get("type", ""),
         os_family=node_spec.get("os", "") or "",
-        os_distribution=node_spec.get("os_distribution", "") or "",
+        os_distribution=node_spec.get("os_distribution"),
         os_version=node_spec.get("os_version", "") or "",
-        architecture=node_spec.get("architecture", "") or "",
+        architecture=node_spec.get("architecture"),
         count=infra_spec.get("count"),
         network_namespace_target=network_namespace_target,
         domain_topology=domain_topology,

@@ -206,7 +206,7 @@ def test_legacy_serialization_omits_empty_additions() -> None:
 
 def test_published_schema_rejects_invalid_selection_slot_keys() -> None:
     from jsonschema import Draft202012Validator
-    from raes_contracts.contracts import schema_bundle
+    from raes_schemas import schema_bundle
 
     payload = source_payload()
     payload["agents"]["red"]["control_context"]["_invalid"] = payload["agents"]["red"]["control_context"].pop(

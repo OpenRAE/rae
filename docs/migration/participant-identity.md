@@ -1,4 +1,21 @@
-# Migrating Participant Identity and Objective Assignment
+<a id="migrating-participant-identity-and-objective-assignment"></a>
+
+# Migrate participant identity and objective assignment
+
+## Versions and purpose
+
+Source: `Pre-1338 authoring with Agent.entity and Objective.agent/entity`.
+Target: `Current affiliations, owner, and assigned_participant fields`.
+
+## Before you start
+
+Use RAES 11.0.2 and retain the exact legacy source bytes.
+Inventory every organizational objective before creating its source-bound decisions.
+Obtain the author's decision about ownership and assignment.
+Affiliation cannot supply that decision.
+Convert source modules separately. Imported and materialized artifacts are not supported inputs.
+The helper returns a new in-memory artifact.
+It does not change source files or runtime state.
 
 Issue #1338 removes the ambiguous canonical fields `Agent.entity` and
 `Objective.agent/entity`. The `agents` section remains; its map key is identity.
@@ -40,32 +57,36 @@ else:
     diagnostics = result.report.diagnostics  # bounded codes and pointers
 ```
 
-Decision keys are JSON pointers (escape `~` as `~0` and `/` as `~1`). Every legacy
+Decision keys are JSON pointers.
+Escape `~` as `~0` and `/` as `~1`. Every legacy
 entity objective needs exactly one decision. Deterministic-only sources need no
-context. The report binds source bytes, decision policy, and canonical target
-digests. Preserve that report with the newly published artifact; the function
-does not overwrite source files. Publish under a new artifact/version binding.
+context. The report binds source bytes and decision policy.
+It also binds canonical target digests. Preserve that report with the new published artifact.
+The function does not overwrite source files. Publish under a new artifact/version binding.
 
-Missing or stale decisions, unknown or conflicting fields, unresolved participant
-relation variables, dangling references,
-and invalid action constraints produce no partial output. Imports and materialized
+The following failures produce no partial output:
+
+- Missing or stale decisions.
+- Unknown or conflicting fields.
+- Unresolved participant relation variables.
+- Dangling references or invalid action constraints.
+ Imports and materialized
 artifacts are refused: migrate source modules separately, then explicitly update
-their version/digest bindings. Linked external-concept bindings need rebinding
-to the new source/target digest through their existing admission workflow; this
-function does not migrate linked artifacts. Historical compiled snapshots,
+their version/digest bindings. Rebind linked external-concept bindings to the new source/target digest through their existing admission workflow.
+This function does not migrate linked artifacts. Historical compiled snapshots,
 participant episodes, action histories, and stored evidence retain their original
 schema identifiers and coordinates.
 
-The explicit reader supports the pre-1338 authoring lineage indefinitely until
-a separately reviewed deprecation notice establishes a removal window. This is
+The explicit reader supports the pre-1338 authoring lineage without a scheduled end.
+A separately reviewed deprecation notice must establish any removal window. This is
 not a promise that canonical parsing accepts legacy fields. The
 [deprecation record](../../specs/evolution/deprecation-records.yaml) records
 field removal eligibility and source-reader retention.
 
 ## Author-task walkthrough and checks
 
-Declare `agents: {harness: {}}` for one composite subject: no organization or
-component inventory is required. Declare two keys with `affiliations: [team]`
+Declare `agents: {harness: {}}` for one composite subject.
+No organization or component inventory is required. Declare two keys with `affiliations: [team]`
 to retain two identities. Add `role: blue` to override the single-affiliation
 fallback; two affiliations without direct role yield no effective role.
 
@@ -79,34 +100,24 @@ The tests `test_issue_1338_participant_identity.py`,
 `test_issue_1338_identity_stages.py`, `test_issue_1338_identity_authority.py`, and
 `test_issue_1338_identity_migration.py` exercise these author tasks and their
 negative cases. From `implementations/python`, run `.venv/bin/python -m pytest`
-with those four `tests/` paths. These are declaration/compiler checks, not proof
-of live effects. Only a runtime action record identifies who actually acted;
-an owner or assignee alone supplies no such evidence.
+with those four `tests/` paths. These checks cover declarations and compilation. They do not prove live effects.
+Only a runtime action record identifies who actually acted.
+An owner or assignee alone supplies no such evidence.
 
 ## Repository fixture disposition
 
-The preflight inventories 21 active structured documents: 28 participant entity
-bindings, 20 agent objectives, and seven entity objectives. Deterministic fields
-use the mappings above. All seven entity objectives carry no action constraints;
-their disposition is explicitly **owner-only**, preserving organizational intent
-without inferring a participant. They occur in the formal-semantic-validation
-valid/invalid corpus and the hospital, port-authority, reconciliation v1/v2,
-and satcom scenarios. The hospital's two `ransom-crew` participants stay distinct.
+Read the [issue 1338 fixture inventory](../explain/reference/participant-identity-migration-history.md).
+It retains the delivery's counts, example decisions, and preserved historical fixtures.
+Those decisions are not automatic conversion rules.
 
-The remaining documents are the minimal scenario, single-objective task,
-parallel-objective workflow, observational study, timed-run, and action-contract
-library templates; the enterprise participant scenario; the external-concept
-autonomous subject fixture; and valid/invalid mixed-control, participant-inject,
-and participant-relationship fixtures. Inline tests are migrated alongside them.
-Historical audit specimens remain unchanged as evidence of the audited model.
-The two original formal-validation fixtures also remain byte-for-byte historical
-inputs. The current corpus uses separately versioned `participant-identity-v2`
-successors with explicit ownership; the positive fixture also uses canonical
-`compute` spelling. New evidence releases replay those successors without
-rewriting historical snapshots, analyses, or release pins.
+## Check the result and recover
 
-The hospital, port, and satcom examples now declare their existing action intent
-as portable abstract action contracts, with explicit independent-authorization
-preconditions and intended-effect subjects. This is an authored example update,
-not an automatic migration rule: the migrator still refuses undeclared actions.
-These contracts claim no backend procedure, successful effect, or authority.
+Success returns a validated artifact and a report binding the source, decisions, and target digest.
+On refusal, read the bounded diagnostic and pointer.
+Correct the source or decisions.
+Create a fresh context.
+Keep the original source and linked evidence. Rebind sidecars through their owning admission workflow.
+Save successful output under a new artifact/version binding.
+No backend cleanup is needed for the helper.
+Read [participant identity semantics](../../specs/sdl/participant-identity.md)
+and [participant-control explanation](../public/participant-control-explanation.md).

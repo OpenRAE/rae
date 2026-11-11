@@ -312,8 +312,8 @@ def test_current_retest_requires_drift_disposition_for_production_evidence_cases
 
 
 def test_retest_production_evidence_contains_governed_payloads() -> None:
-    from raes_contracts.exploit_path import ExploitPathAnalysisEvidenceModel
-    from raes_contracts.satisfiability import ScenarioSatisfiabilityEvidenceModel
+    from raes_processor.exploit_path.evidence import ExploitPathAnalysisEvidenceModel
+    from raes_processor.satisfiability.evidence import ScenarioSatisfiabilityEvidenceModel
 
     _, _, _, snapshot, _ = copy_bundle(load_retest_bundle, REPO_ROOT)
     paths = {
@@ -577,7 +577,7 @@ def test_gate_replays_participant_tests_instead_of_trusting_pass_labels(monkeypa
             protocol={"participant_obligations": [{"positive_test_ref": "positive", "negative_test_ref": "negative"}]},
         )
     ]
-    monkeypatch.setattr(formal_validation, "current_release_path", lambda *_: "selected-manifest.json")
+    monkeypatch.setattr(formal_validation, "latest_recorded_release_path", lambda *_: "selected-manifest.json")
     failures = formal_validation._participant_replay_failures(REPO_ROOT, releases, failed_replay)
     assert [(failure.rule_id, failure.message, failure.path) for failure in failures] == [
         ("formal-validation-participant-replay", "seeded participant fixture failure", "snapshot.json")

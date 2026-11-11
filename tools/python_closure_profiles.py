@@ -11,18 +11,25 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from tools.tooling_artifact_policy_common import (
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError, OperationalError  # noqa: E402
+
+from tools.tooling_artifact_policy_common import (  # noqa: E402
     is_regular_repo_file,
     read_tooling_document,
     validate_tooling_record,
 )
-from tools.tooling_artifact_policy_python_profiles import (
+from tools.tooling_artifact_policy_python_profiles import (  # noqa: E402
     _closure_binding_failures,
     _closure_projection_failures,
     _context_failures,
 )
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
 PROFILES_PATH = "implementations/tooling/profiles/development-profiles.json"
 TOOL_PROJECT = REPO_ROOT / "implementations" / "tooling" / "python"
 _ALLOWED_TOOLS = frozenset(
@@ -65,23 +72,23 @@ class PythonClosureProfile:
 
 def _repo_file(repo_root: Path, relative_path: object) -> Path:
     if not isinstance(relative_path, str):
-        raise ValueError("Python closure authority path must be a string")
+        raise InvalidInputError("Python closure authority path must be a string")
     if not is_regular_repo_file(repo_root, relative_path):
-        raise ValueError("Python closure authority must be a regular repository file")
+        raise InvalidInputError("Python closure authority must be a regular repository file")
     root = repo_root.resolve()
     path = root / relative_path
     try:
         resolved = path.resolve(strict=True)
     except OSError as exc:
-        raise ValueError("Python closure authority is missing") from exc
+        raise InvalidInputError("Python closure authority is missing") from exc
     if not resolved.is_relative_to(root):
-        raise ValueError("Python closure authority must stay inside the repository")
+        raise InvalidInputError("Python closure authority must stay inside the repository")
     try:
         mode = path.lstat().st_mode
     except OSError as exc:
-        raise ValueError("Python closure authority is missing") from exc
+        raise InvalidInputError("Python closure authority is missing") from exc
     if not stat.S_ISREG(mode) or path.is_symlink():
-        raise ValueError("Python closure authority must be a regular file")
+        raise InvalidInputError("Python closure authority must be a regular file")
     return resolved
 
 
@@ -97,7 +104,7 @@ def _selected_closure_profile(repo_root: Path, document: dict[str, Any], profile
         if isinstance(value, Mapping) and value.get("python_closure_profile_id") == profile_id
     ]
     if len(matches) != 1:
-        raise ValueError("Python closure profile must resolve to exactly one reviewed entry")
+        raise InvalidInputError("Python closure profile must resolve to exactly one reviewed entry")
     value = matches[0]
     validate_tooling_record(repo_root, value, PROFILES_PATH, definition="pythonClosureProfile")
     return value
@@ -114,7 +121,7 @@ def _selected_closure_contexts(
             if isinstance(context, Mapping) and context.get("context_id") == context_id
         ]
         if len(matches) != 1:
-            raise ValueError("Python acquisition context must resolve to exactly one entry")
+            raise InvalidInputError("Python acquisition context must resolve to exactly one entry")
         validate_tooling_record(repo_root, matches[0], PROFILES_PATH, definition="pythonPackageContext")
         contexts[context_id] = matches[0]
     return contexts
@@ -149,7 +156,7 @@ def load_python_closure_profile(repo_root: Path, profile_id: str) -> PythonClosu
         _closure_projection_failures(repo_root, value, profile_id=profile_id, project_scoped=project_scoped)
     )
     if failures:
-        raise ValueError("Python closure binding or projection is invalid")
+        raise InvalidInputError("Python closure binding or projection is invalid")
     return PythonClosureProfile(
         profile_id=profile_id,
         host_profile_id=str(value["host_profile_id"]),
@@ -188,7 +195,7 @@ def closure_environment(
     """Construct the profile-owned minimal environment for a uv invocation."""
 
     if context_id not in profile.acquisition_context_ids or context_id not in profile.contexts:
-        raise ValueError("acquisition context is not admitted by the Python closure profile")
+        raise InvalidInputError("acquisition context is not admitted by the Python closure profile")
     context = profile.contexts[context_id]
     source = os.environ if source is None else source
     environment = {
@@ -199,7 +206,7 @@ def closure_environment(
         "UV_PYTHON_DOWNLOADS": "never",
     }
     if context.get("mode") != "public":
-        raise ValueError("unsupported Python acquisition context")
+        raise InvalidInputError("unsupported Python acquisition context")
     environment.update(UV_DEFAULT_INDEX="https://pypi.org/simple", UV_INDEX_STRATEGY="first-index")
     return environment
 
@@ -224,7 +231,7 @@ def assert_runtime_matches_profile(profile: PythonClosureProfile) -> None:
 
     selected = f"{sys.version_info.major}.{sys.version_info.minor}"
     if sys.implementation.name != "cpython" or selected != profile.python_version:
-        raise ValueError("executing Python runtime does not match the reviewed closure profile")
+        raise OperationalError("executing Python runtime does not match the reviewed closure profile")
 
 
 __all__ = (

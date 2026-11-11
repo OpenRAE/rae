@@ -1,9 +1,7 @@
 """Resolve action-local temporal guarantees against shared-time declarations."""
 
-import hashlib
-
-import rfc8785
 from raes.scenario import InstantiatedScenario
+from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.participant_temporal import ParticipantTemporalBindingModel
 
 from .addresses import _action_contract_address, _section_ref_name
@@ -97,7 +95,7 @@ def _binding_digest(
     }
     if boundary_name is not None:
         payload.update(_boundary_digest_fields(scenario, action_name, temporal.shared_time_binding, boundary_name))
-    return "sha256:" + hashlib.sha256(rfc8785.dumps(payload)).hexdigest()
+    return canonical_json_digest(payload)
 
 
 def _boundary_digest_fields(

@@ -15,7 +15,6 @@ from implementations.python.tests.participant_execution_test_backend import (
 )
 from raes._errors import SDLValidationError
 from raes.parser import parse_sdl
-from raes.participant_behavior import ParticipantFailureClass
 from raes.participant_execution import ParticipantAutonomousExecutionPolicyV2
 from raes_backend_protocols.capabilities import (
     ObservationCaptureOffer,
@@ -35,6 +34,7 @@ from raes_contracts.contracts import (
     ParticipantImplementationSelectionModel,
     RuntimeSnapshotEnvelopeModel,
 )
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_execution import ParticipantExecutionServiceStateModel
 from raes_contracts.contracts.participant_resource_budgets import ParticipantResourceMeasurementModel
 from raes_contracts.contracts.random_stream import (
@@ -44,11 +44,8 @@ from raes_contracts.contracts.random_stream import (
     RandomStreamProfileReferenceModel,
 )
 from raes_contracts.contracts.time_model import TimeRuntimeStateModel
-from raes_contracts.participant_binding import (
-    ParticipantActionAdmissionRequest,
-    ParticipantActionApplyResult,
-    ParticipantNativeActionExecution,
-)
+from raes_contracts.participant_action_semantics import ParticipantFailureClass
+from raes_contracts.participant_binding import ParticipantActionApplyResult, ParticipantNativeActionExecution
 from raes_contracts.participant_episode import (
     ParticipantEpisodeInitializeRequest,
     ParticipantEpisodeResetRequest,
@@ -2056,7 +2053,7 @@ def test_wall_driver_cannot_advance_during_time_state_readback() -> None:
     def read_state() -> None:
         try:
             outcome.append(manager.read_time_state())
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 - the worker hands the exception to the test thread, which asserts it.
             outcome.append(exc)
 
     reader = threading.Thread(target=read_state)

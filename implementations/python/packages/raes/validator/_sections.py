@@ -4,9 +4,11 @@ Part of the SemanticValidator mixin composition; see __init__.py.
 """
 
 from pydantic import BaseModel
+from raes_contracts.graphs import has_cycle
+from raes_contracts.variable_references import VARIABLE_TOKEN_RE
 
-from .._base import VARIABLE_TOKEN_RE
 from .._stateful_resource_references import stateful_resource_reference_errors
+from ..descriptor_profiles import descriptor_owner_errors
 from ..entities import flatten_entities
 from ..explicitness import classify_scenario_explicitness
 from ..nodes import Node, NodeType
@@ -17,20 +19,19 @@ from ..realization_designation import (
     resolve_json_pointer_surface,
 )
 from ..scenario import ExpandedScenario, Scenario
-from ._support import _topological_sort
 
 
 class _SectionsMixin:
     def _verify_stateful_resources(self) -> None:
-        self._errors.extend(
-            stateful_resource_reference_errors(
-                nodes=self._s.nodes,
-                generated_artifacts=self._s.generated_artifacts,
-                persistent_volumes=self._s.persistent_volumes,
-                content=self._s.content,
-                propositions=self._s.propositions,
-            )
-        )
+        for finding in stateful_resource_reference_errors(
+            nodes=self._s.nodes,
+            generated_artifacts=self._s.generated_artifacts,
+            persistent_volumes=self._s.persistent_volumes,
+            content=self._s.content,
+            propositions=self._s.propositions,
+        ):
+            with self._owner(finding.owner):
+                self._err(finding.message)
 
     def _verify_variables(self) -> None:
         variables = getattr(self._s, "variables", {})
@@ -94,6 +95,13 @@ class _SectionsMixin:
         self._s._set_explicitness(result.records)
         for error in result.errors:
             self._err(error)
+
+    def _verify_descriptor_profiles(self) -> None:
+        """Require each typed descriptor binding to be owned by its own field (ADR-120)."""
+
+        for owner, pointer, message in descriptor_owner_errors(self._s):
+            with self._owner(owner):
+                self._err(message, pointer=pointer.removeprefix("#"))
 
     def _verify_realization_designations(self) -> None:
         records, constraints, known_namespaces = self._realization_designation_surfaces()
@@ -170,10 +178,11 @@ class _SectionsMixin:
                 if self._is_unresolved_var(dep):
                     continue
                 if dep not in self._s.features:
-                    self._err(f"Feature '{name}' depends on undefined feature '{dep}'")
+                    with self._owner(("features", name)):
+                        self._err(f"Feature '{name}' depends on undefined feature '{dep}'")
                 else:
                     dep_graph[name].append(dep)
-        if dep_graph and _topological_sort(dep_graph) is None:
+        if dep_graph and has_cycle(dep_graph):
             self._err("Feature dependency graph contains a cycle")
 
     def _verify_conditions(self) -> None:
@@ -183,7 +192,8 @@ class _SectionsMixin:
 
     def _verify_entities(self) -> None:
         for name, entity in flatten_entities(self._s.entities).items():
-            self._verify_entity_refs(name, entity)
+            with self._owner(("entities", name)):
+                self._verify_entity_refs(name, entity)
 
     def _verify_entity_refs(self, name: str, entity: object) -> None:
         self._verify_membership_refs(
@@ -193,7 +203,8 @@ class _SectionsMixin:
     def _verify_injects(self) -> None:
         flat_names = self._all_entity_names()
         for name, inject in self._s.injects.items():
-            self._verify_inject_refs(name, inject, flat_names)
+            with self._owner(("injects", name)):
+                self._verify_inject_refs(name, inject, flat_names)
 
     def _verify_inject_refs(self, name: str, inject: object, flat_names: set[str]) -> None:
         if (
@@ -208,7 +219,8 @@ class _SectionsMixin:
 
     def _verify_events(self) -> None:
         for name, event in self._s.events.items():
-            self._verify_event_refs(name, event)
+            with self._owner(("events", name)):
+                self._verify_event_refs(name, event)
 
     def _verify_event_refs(self, name: str, event: object) -> None:
         self._verify_membership_refs(
@@ -221,7 +233,8 @@ class _SectionsMixin:
                 if self._is_unresolved_var(event_name):
                     continue
                 if event_name not in self._s.events:
-                    self._err(f"Script '{name}' references undefined event '{event_name}'")
+                    with self._owner(("scripts", name)):
+                        self._err(f"Script '{name}' references undefined event '{event_name}'")
 
     def _verify_stories(self) -> None:
         for name, story in self._s.stories.items():
@@ -229,7 +242,8 @@ class _SectionsMixin:
                 if self._is_unresolved_var(script_name):
                     continue
                 if script_name not in self._s.scripts:
-                    self._err(f"Story '{name}' references undefined script '{script_name}'")
+                    with self._owner(("stories", name)):
+                        self._err(f"Story '{name}' references undefined script '{script_name}'")
 
     def _verify_roles(self) -> None:
         flat_names = self._all_entity_names()
@@ -240,4 +254,7 @@ class _SectionsMixin:
                     if self._is_unresolved_var(entity_ref):
                         continue
                     if entity_ref not in flat_names:
-                        self._err(f"Node '{node_name}' role '{role_name}' references undefined entity '{entity_ref}'")
+                        self._err_for(
+                            ("nodes", node_name),
+                            f"Node '{node_name}' role '{role_name}' references undefined entity '{entity_ref}'",
+                        )

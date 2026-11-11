@@ -2934,6 +2934,17 @@
       "title": "Behavioral Claims",
       "type": "array"
     },
+    "definition_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ExperimentReferenceModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "description": {
       "minLength": 1,
       "title": "Description",

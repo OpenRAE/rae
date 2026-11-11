@@ -3,8 +3,7 @@
 from enum import Enum
 
 from raes_contracts.domain_profiles import DomainProfileBindingModel
-
-from .value_parsing import parse_enum_or_var
+from raes_contracts.variable_references import parse_enum_or_var
 
 
 def parse_profile_or_enum(value: object, enum_cls: type[Enum], *, field_name: str) -> object:

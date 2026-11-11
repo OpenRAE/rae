@@ -1,0 +1,106 @@
+{
+  "schema_version": "requirement-scope/v1",
+  "issue_number": 219,
+  "primary_requirement_uid": "ASR-506",
+  "requirement_uids": [
+    "ASR-506"
+  ],
+  "bindings": {
+    ".github/workflows/canonical-verification.yml": [
+      "ASR-506"
+    ],
+    "docs/decisions/issue-219-asr-506-participant-semantic-consistency-preflight.md": [
+      "ASR-506"
+    ],
+    "docs/decisions/issue-219-participant-semantic-consistency-design.md": [
+      "ASR-506"
+    ],
+    "docs/decisions/package-artifacts/operations.md": [
+      "ASR-506"
+    ],
+    "docs/explain/reference/participant-decision-surface-v2-migration.md": [
+      "ASR-506"
+    ],
+    "docs/explain/reference/shared-semantic-integrity.md": [
+      "ASR-506"
+    ],
+    "docs/governance/requirement-scopes/219.json": [
+      "ASR-506"
+    ],
+    "docs/requirements/ACT-609/requirement.md": [
+      "ASR-506"
+    ],
+    "docs/requirements/ACT-610/requirement.md": [
+      "ASR-506"
+    ],
+    "docs/requirements/ASR-506/requirement.md": [
+      "ASR-506"
+    ],
+    "docs/research/formal-semantic-validation/capture-records/capture-07d8a3564e4c657749a8d5403312543c7253c75b36a130286b434361ccd4ad3e.json": [
+      "ASR-506"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-07d8a3564e4c657749a8d5403312543c7253c75b36a130286b434361ccd4ad3e/analysis.json": [
+      "ASR-506"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-07d8a3564e4c657749a8d5403312543c7253c75b36a130286b434361ccd4ad3e/manifest.json": [
+      "ASR-506"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-07d8a3564e4c657749a8d5403312543c7253c75b36a130286b434361ccd4ad3e/snapshot.json": [
+      "ASR-506"
+    ],
+    "docs/research/specification-coverage/capture-records/capture-5d13883d4d64630b4495667dc0b85db2c87987421371d16e883741383d0c3118.json": [
+      "ASR-506"
+    ],
+    "docs/research/specification-coverage/captures/capture-5d13883d4d64630b4495667dc0b85db2c87987421371d16e883741383d0c3118/analysis.json": [
+      "ASR-506"
+    ],
+    "docs/research/specification-coverage/captures/capture-5d13883d4d64630b4495667dc0b85db2c87987421371d16e883741383d0c3118/manifest.json": [
+      "ASR-506"
+    ],
+    "docs/research/specification-coverage/captures/capture-5d13883d4d64630b4495667dc0b85db2c87987421371d16e883741383d0c3118/snapshot.json": [
+      "ASR-506"
+    ],
+    "implementations/python/tests/test_issue_219_participant_semantic_coverage.py": [
+      "ASR-506"
+    ],
+    "specs/formal/assurance-fulfillment.yaml": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-behavior-model/README.md": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-semantics/README.md": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-semantics/reusable-mixed-control.md": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-semantics/runtime-mapping/capture-dd0ba4d888b2cbb4dce76715df8ea780b4f6554b910da57901acc7ab2f0c5d17/cases.json": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-semantics/runtime-mapping/capture-dd0ba4d888b2cbb4dce76715df8ea780b4f6554b910da57901acc7ab2f0c5d17/manifest.json": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-semantics/semantic-coverage.md": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-semantics/semantic-coverage/behavior-model-and-runtime.md": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-semantics/semantic-coverage/design-commitments-sem-208-to-211.md": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-semantics/semantic-coverage/design-commitments-sem-212-to-215.md": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-semantics/semantic-coverage/family-rows.md": [
+      "ASR-506"
+    ],
+    "specs/formal/participant-semantics/semantic-coverage/invariants-i1-to-i18.md": [
+      "ASR-506"
+    ],
+    "tools/policy/requirement_order.yaml": [
+      "ASR-506"
+    ]
+  }
+}

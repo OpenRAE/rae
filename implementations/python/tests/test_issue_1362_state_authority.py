@@ -19,14 +19,14 @@ def test_control_can_commit_while_external_effect_keeps_conflicting_work_reserve
                 entered.set()
                 if not release.wait(3):
                     raise TimeoutError("test callback was not released")
-        except BaseException as exc:
+        except BaseException as exc:  # noqa: BLE001 - the worker hands the exception to the test thread, which asserts it.
             failures.append(exc)
 
     def conflict():
         try:
             with authority.mutation(OperationKind.EVALUATION):
                 conflicting_entered.set()
-        except BaseException as exc:
+        except BaseException as exc:  # noqa: BLE001 - the worker hands the exception to the test thread, which asserts it.
             failures.append(exc)
 
     worker = Thread(target=effect)

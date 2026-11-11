@@ -9,34 +9,34 @@ from pathlib import Path
 import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
+from raes.artifact_requirement_contract import (
+    ArtifactRequirementContractModel,
+    artifact_requirement_invariant_violations,
+)
 from raes.artifact_requirements import (
     ArtifactCandidate,
     ArtifactConstraint,
-    ArtifactIdentity,
     ArtifactLockedInput,
     ArtifactMaterializationSpecification,
-    ArtifactMechanismProfile,
     ArtifactRequirement,
     ArtifactSatisfactionRoute,
     Source,
 )
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes.parser import parse_sdl
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_stubs.stubs import create_stub_manifest
 from raes_contracts.apparatus import ApparatusIdentity
+from raes_contracts.artifact_identity import ArtifactIdentity, ArtifactMechanismProfile
 from raes_contracts.artifact_requirements import (
-    ARTIFACT_REQUIREMENT_SCHEMA_VERSION,
     ArtifactAvailabilityContext,
     ArtifactMechanismCapability,
     ArtifactRequirementAvailability,
-    ArtifactRequirementContractModel,
     ArtifactSatisfactionDisclosureModel,
-    artifact_requirement_invariant_violations,
 )
-from raes_contracts.contracts import schema_bundle
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp, RuntimeDomain
 from raes_contracts.runtime_state import RealizationProvenanceEntry, RuntimeSnapshot, SnapshotEntry
+from raes_contracts.versions import ARTIFACT_REQUIREMENT_SCHEMA_VERSION
 from raes_contracts.vocabulary import RealizationSupportMode
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.models import CompiledRealizationRequirement
@@ -46,6 +46,7 @@ from raes_processor.semantics.realization import (
     realization_disclosure,
 )
 from raes_runtime.control_plane_store import _snapshot_from_payload, _snapshot_payload
+from raes_schemas import schema_bundle
 
 _DIGEST_A = "sha256:" + "a" * 64
 _DIGEST_B = "sha256:" + "b" * 64

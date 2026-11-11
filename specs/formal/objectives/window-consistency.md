@@ -1,6 +1,6 @@
-# Objective Window Consistency
+# Objective window consistency
 
-## Window Reference Model
+## Window reference model
 
 Objective windows can constrain visibility using normalized references to:
 
@@ -20,7 +20,7 @@ shape before compiler/planner semantics run. Each resolved reference carries:
 - optional workflow and step identity
 - a namespace-extensible path slot reserved for future module/import work
 
-## Consistency Rules
+## Consistency rules
 
 - `window.steps` must use `<workflow>.<step>` syntax
 - `window.steps` require at least one referenced workflow
@@ -35,7 +35,7 @@ shape before compiler/planner semantics run. Each resolved reference carries:
 - if explicit or reachable scripts are known, every `window.events` entry must
   be included by at least one referenced script
 
-## Reachability and Refresh Semantics
+## Reachability and refresh semantics
 
 - referenced stories derive reachable scripts
 - explicit scripts override story-derived reachability for event membership
@@ -48,7 +48,7 @@ shape before compiler/planner semantics run. Each resolved reference carries:
 - objective refresh dependencies are therefore derived from one shared
   objective-window analysis rather than separate validator/compiler logic
 
-## Fail-Closed Cases
+## Fail-closed cases
 
 - malformed workflow-step syntax
 - undefined story/script/event/workflow names
@@ -57,7 +57,7 @@ shape before compiler/planner semantics run. Each resolved reference carries:
 - event refs outside the explicit/reachable script window
 - step refs outside the declared workflow window
 
-## Composition-Ready Invariants
+## Composition-ready invariants
 
 - normalized references are independent of source-file layout
 - future module/import expansion must occur before this analysis runs
@@ -66,7 +66,7 @@ shape before compiler/planner semantics run. Each resolved reference carries:
   - dependency role semantics
   - workflow-step ownership semantics
 
-## Implementation Mapping
+## Implementation mapping
 
 - shared semantic source of truth: `implementations/python/packages/raes/semantics/objectives.py`
 - validator checks: `implementations/python/packages/raes/validator/`

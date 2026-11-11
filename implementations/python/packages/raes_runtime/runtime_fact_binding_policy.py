@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from enum import Enum
 
 from raes_contracts.contracts.runtime_facts import (
@@ -16,8 +15,9 @@ from raes_contracts.contracts.runtime_facts import (
     RuntimeFactSourceKind,
     RuntimeFactVersionModel,
 )
+from raes_contracts.timestamps import parse_offset_datetime
 
-from .runtime_fact_dispatch import RuntimeFactBindingAdmission, _parse_datetime
+from .runtime_fact_dispatch import RuntimeFactBindingAdmission
 
 
 class RuntimeFactActionDisposition(str, Enum):
@@ -116,12 +116,12 @@ def _validate_freshness(
     sink: RuntimeFactSinkModel,
     version: RuntimeFactVersionModel,
 ) -> RuntimeFactBindingDisposition:
-    requested_at = _parse_datetime(admission.requested_at, "requested_at")
-    observed_at = _parse_datetime(version.observed_at, "observed_at")
+    requested_at = parse_offset_datetime(admission.requested_at, "requested_at")
+    observed_at = parse_offset_datetime(version.observed_at, "observed_at")
     within_max_age = sink.max_age_seconds is None or (
         observed_at <= requested_at and (requested_at - observed_at).total_seconds() <= sink.max_age_seconds
     )
-    unexpired = version.expires_at is None or requested_at <= _parse_datetime(version.expires_at, "expires_at")
+    unexpired = version.expires_at is None or requested_at <= parse_offset_datetime(version.expires_at, "expires_at")
     if within_max_age and unexpired:
         disposition = RuntimeFactBindingDisposition.BOUND
     else:
@@ -152,7 +152,5 @@ def aggregate_action_disposition(failures: list[RuntimeFactActionDisposition]) -
     )
 
 
-def parse_datetime(value: str, field_name: str = "timestamp") -> datetime:
-    """Parse an offset-qualified timestamp for comparison; reject naive values with ``ValueError``."""
-
-    return _parse_datetime(value, field_name)
+#: Public name kept for existing callers; ``raes_contracts.timestamps`` owns the parser (ADR-118).
+parse_datetime = parse_offset_datetime

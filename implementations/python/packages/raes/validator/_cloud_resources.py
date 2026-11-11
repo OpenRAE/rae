@@ -70,6 +70,9 @@ class _CloudResourcesMixin:
     def _verify_cloud_scopes(self, scopes: _Scopes) -> None:
         for scope in scopes.values():
             self._verify_cloud_scope_parent(scope)
+            for audit_log in scope.audit_logs:
+                for principal_ref in audit_log.exempted_principal_refs:
+                    self._cloud_model(principal_ref, RuntimeIdentitySubject, "audit exemption principal reference")
         self._cloud_acyclic(
             {key: (value.parent_ref,) if value.parent_ref in scopes else () for key, value in scopes.items()}, "scope"
         )
@@ -223,7 +226,14 @@ class _CloudResourcesMixin:
 
     def _verify_cloud_secret(self, secret: RuntimeServiceSecret) -> None:
         if secret.resource_scope_ref:
-            self._cloud_model(secret.resource_scope_ref, RuntimeIdentityResourceScope, "secret scope")
+            scope = self._cloud_model(secret.resource_scope_ref, RuntimeIdentityResourceScope, "secret scope")
+            if (
+                secret.replication is not None
+                and scope is not None
+                and scope.provider != "gcp"
+                and not self._is_unresolved_var(scope.provider)
+            ):
+                self._err("cloud-provider: GCP Secret Manager replication requires a gcp scope")
         for field in ("encryption_key_ref", "reset_owner_ref", "deletion_owner_ref"):
             reference = getattr(secret, field)
             if reference:

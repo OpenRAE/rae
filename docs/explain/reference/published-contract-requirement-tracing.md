@@ -29,9 +29,9 @@ carries this link to the contract's exact schema path:
   such as the vocabulary or temporal rules one requirement adds to a shared SDL
   schema; leave those as they are.
 - **`CODE_FILE` links never count.** A module link cannot say which contract a
-  requirement governs. `raes_contracts/contracts/bundle.py` generates every
-  published contract and several requirements link it as a `CODE_FILE`, so
-  accepting module links would mark every contract traced.
+  requirement governs. `raes_contracts/schema_contributions.py` registers every
+  neutral published contract and several requirements link it as a `CODE_FILE`,
+  so accepting module links would mark every contract traced.
 - **The path must match exactly.** A link to a document beside the schema,
   such as the catalog `contracts/concept-authority/behavioral-relations-v1.json`,
   does not trace `contracts/schemas/concept-authority/behavioral-relations-v1.json`.

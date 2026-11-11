@@ -2,6 +2,8 @@
 
 from typing import Any
 
+from raes_contracts.errors import InvalidInputError
+
 _VISIBLE_VIEW_DISPOSITIONS = frozenset({"observable", "discovered", "inferred", "disclosed", "deceptive"})
 
 
@@ -13,7 +15,7 @@ def _normalize_visibility_references(
     def resolve(ref: str) -> str:
         matches = addressable_ref_index.get(ref, set())
         if len(matches) > 1:
-            raise ValueError("ambiguous observation visibility reference: " + ref[:128])
+            raise InvalidInputError("ambiguous observation visibility reference: " + ref[:128])
         return next(iter(matches)) if matches else ref
 
     normalized = dict(boundary_spec)
@@ -63,7 +65,7 @@ def _initial_view_relation(*, view_rules: list[Any]) -> dict[str, str]:
             continue
         ref = str(information_ref)
         if ref in view_relation and view_relation[ref] != str(disposition):
-            raise ValueError("conflicting observation visibility dispositions: " + ref[:128])
+            raise InvalidInputError("conflicting observation visibility dispositions: " + ref[:128])
         view_relation[ref] = str(disposition)
     return view_relation
 
@@ -140,7 +142,7 @@ def _compile_view_relation_timeline(
             continue
         ref = str(information_ref)
         if ref in view_relation and transition.get("from_disposition") != view_relation[ref]:
-            raise ValueError("conflicting observation visibility transition: " + ref[:128])
+            raise InvalidInputError("conflicting observation visibility transition: " + ref[:128])
         view_relation[ref] = str(to_disposition)
         timeline.append(
             _view_relation_snapshot(

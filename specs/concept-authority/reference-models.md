@@ -1,4 +1,4 @@
-# Shared Reference Models
+# Shared reference models
 
 ## Scope
 
@@ -10,12 +10,12 @@ artifact-local schemas. They declare which published structure definitions are
 the shared reusable models for recurrent objects such as assets, identities,
 relationships, observables, actions or events, and tools or artifacts.
 
-## Decision Record
+## Decision record
 
-[ADR-012](../../docs/decisions/adrs/adr-012-shared-concept-authority-and-raes-extension-discipline.md)
+ADR-012 in the [decision index](../../docs/decisions/adrs/README.md)
 governs this specification.
 
-## Reference Model Catalog
+## Reference model catalog
 
 Each reference-model catalog declares:
 
@@ -39,7 +39,7 @@ schema definitions, and real governed instance collections. Reference models
 are intentionally anchored to existing schema authority instead of restating
 object structure inline.
 
-## Initial Catalog
+## Initial catalog
 
 The initial GOV-921 catalog is:
 
@@ -57,30 +57,28 @@ slice:
 - node runtime inventory as observed runtime configuration state under
   `nodes.*.runtime`
 
-## Participant Episode Lineage
+## Participant episode lineage
 
-Participant episodes are cataloged as the native `episodes` concept family
-rather than as an SDL reference model entry. The external lineage is the
-reinforcement-learning environment episode notion used by Gymnasium and
-OpenAI Gym: a bounded interaction sequence that starts after initialization or
-reset and ends at a terminal, timeout, or truncation boundary. RAES narrows
-that lineage to participant-runtime contracts by requiring stable
+Participant episodes belong to the native `episodes` concept family, not an SDL reference model entry.
+The external lineage is the reinforcement-learning environment episode used by Gymnasium and OpenAI Gym.
+This bounded interaction sequence starts after initialization or reset.
+It ends at a terminal, timeout, or truncation boundary.
+RAES narrows that lineage to participant-runtime contracts by requiring stable
 `participant_address`, per-episode `episode_id`, explicit lifecycle state, and
 append-only state/history surfaces.
 
-The internal authority is
-[ADR-013](../../docs/decisions/adrs/adr-013-participant-episode-lifecycle-boundaries.md),
-which makes participant episode state its own processor/runtime contract
-surface and keeps it separate from workflow state, evaluation state,
-operation receipts, backend process restarts, tasks, runs, scenarios, and
-participant-local actions or observations.
+[ADR-013](../../docs/decisions/adrs/adr-013-participant-episode-lifecycle-boundaries.md)
+is the internal authority.
+It gives participant episode state its own processor/runtime contract surface.
+This surface remains separate from workflow state, evaluation state, operation receipts, backend process restarts, tasks, runs, and scenarios.
+Participant-local actions and observations also remain separate.
 
-## Node Runtime Inventory
+## Node runtime inventory
 
 `nodes.*.runtime` is cataloged as the `scenario-node-runtime` reference model in
-the native `runtime-inventory` concept family. It is the largest recurrent SDL
-structure and the surface where new inventory fields are most often added, so it
-is anchored to the published `RuntimeConfiguration` definition
+the native `runtime-inventory` concept family.
+It is the largest recurrent SDL structure and receives most new inventory fields.
+Its anchor is the published `RuntimeConfiguration` definition
 (`#/$defs/RuntimeConfiguration`) in both `sdl-authoring-input-v1` and
 `instantiated-scenario-v1` rather than restated inline.
 
@@ -92,7 +90,7 @@ models while bindings still resolve to real published schema definitions. The
 governance decision path for adding a new runtime inventory field is documented
 under Extension Discipline in [concept-authority.md](./concept-authority.md).
 
-## Machine-Readable Artifacts
+## Machine-readable artifacts
 
 The JSON Schema for the catalog format is published at:
 
@@ -102,7 +100,8 @@ The valid and invalid fixture corpus for reference models is published under:
 
 `contracts/fixtures/concept-authority/reference-models-v1/`
 
-## UCO Alignment Evidence
+<!-- vale RAES.HeadingCase = NO -->
+## UCO alignment evidence
 
 Reference models bind recurrent RAES structures to RAES concept families; they
 do not inherit UCO class structure. The concept-authority relationship behind
@@ -111,9 +110,11 @@ separately as machine-checkable evidence in
 `contracts/concept-authority/uco-alignment-v1.json` (schema `uco-alignment/v1`).
 That artifact pins the reviewed UCO version and maps each adopted and adapted
 family to the UCO object types it aligns to, enumerating adapted-family
-divergences explicitly. See [ADR-012](../../docs/decisions/adrs/adr-012-shared-concept-authority-and-raes-extension-discipline.md).
+divergences explicitly. See ADR-012 in the [decision index](../../docs/decisions/adrs/README.md).
 
-## Relationship To Other Requirements
+<!-- vale RAES.HeadingCase = YES -->
+
+## Relationship to other requirements
 
 - GOV-917: canonical concept authority
 - GOV-918: cross-artifact concept binding

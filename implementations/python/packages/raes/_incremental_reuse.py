@@ -20,6 +20,10 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ._errors import SDLValidationFinding
 
 # Pseudo read names: every field, and the set of fields the author supplied.
 ALL_FIELDS = "*"
@@ -74,9 +78,7 @@ def _view_type(scenario_type: type) -> type:
         fields = frozenset(scenario_type.model_fields)
         private = frozenset(getattr(scenario_type, "__private_attributes__", {}))
 
-        def __getattribute__(  # noqa: N807
-            self: object, name: str, _get: _AttributeGetter = object.__getattribute__
-        ) -> object:
+        def tracked_getattribute(self: object, name: str, _get: _AttributeGetter = object.__getattribute__) -> object:
             sink: ReadSink | None = _get(self, "__dict__").get("__raes_read_sink__")
             if sink is not None:
                 if name in fields or name in private:
@@ -90,7 +92,7 @@ def _view_type(scenario_type: type) -> type:
         view_type = type(
             f"_Tracked{scenario_type.__name__}",
             (scenario_type,),
-            {"__getattribute__": __getattribute__, "__module__": __name__},
+            {"__getattribute__": tracked_getattribute, "__module__": __name__},
         )
         _VIEW_TYPES[scenario_type] = view_type
     return view_type
@@ -127,9 +129,7 @@ def tracking_index(index: object, sink: ReadSink) -> object:
     view_type = _INDEX_VIEW_TYPES.get(index_type)
     if view_type is None:
 
-        def __getattribute__(  # noqa: N807
-            self: object, name: str, _get: _AttributeGetter = object.__getattribute__
-        ) -> object:
+        def tracked_getattribute(self: object, name: str, _get: _AttributeGetter = object.__getattribute__) -> object:
             if not name.startswith("__"):
                 _get(self, "_raes_read_sink").note(DECLARATION_INDEX)
             return _get(self, name)
@@ -137,7 +137,7 @@ def tracking_index(index: object, sink: ReadSink) -> object:
         view_type = type(
             f"_Tracked{index_type.__name__}",
             (index_type,),
-            {"__getattribute__": __getattribute__, "__module__": __name__},
+            {"__getattribute__": tracked_getattribute, "__module__": __name__},
         )
         _INDEX_VIEW_TYPES[index_type] = view_type
     view = object.__new__(view_type)
@@ -161,7 +161,7 @@ class _TrackedDict(dict[str, object]):
 
 @dataclass(frozen=True)
 class PassOutputs:
-    errors: tuple[str, ...]
+    errors: tuple[SDLValidationFinding, ...]
     warnings: tuple[str, ...]
     private_writes: tuple[tuple[str, object], ...]
 

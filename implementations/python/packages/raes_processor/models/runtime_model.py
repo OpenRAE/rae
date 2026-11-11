@@ -10,13 +10,14 @@ from raes_contracts.addressing import require_compiled_address
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.contracts import ProcessorManifestV2Model
 from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
+from raes_contracts.domain_profiles import DomainProfileBindingModel, DomainProfileResolutionContextModel
 from raes_contracts.evaluation import EvaluationExecutionContract, EvaluationResultContract
 from raes_contracts.execution_policy import EffectiveExecutionPolicy
 from raes_contracts.observation_demand import EffectiveObservationDemand
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.safe_state import ResolvedSafeState
 from raes_contracts.vocabulary import Closure
 
 from raes_processor.semantics.realization import CompiledRealizationAuthority, CompiledRealizationRequirement
@@ -114,6 +115,7 @@ class RuntimeModel:
     """
 
     scenario_name: str
+    safe_states: tuple[ResolvedSafeState, ...] = field(default=(), kw_only=True)
     execution_policies: dict[str, tuple[EffectiveExecutionPolicy, ...]] = field(default_factory=dict)
     feature_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)
     condition_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)
@@ -165,8 +167,12 @@ class RuntimeModel:
     materialization_description: MaterializedScenario | None = None
     observation_demands: tuple[EffectiveObservationDemand, ...] = ()
     profile_authority: PlanProfileAuthority | None = None
+    # ADR-120: every typed descriptor selection, in field order. Planning and
+    # runtime plan admission admit each one against the target profile context.
+    descriptor_profile_bindings: tuple[DomainProfileBindingModel, ...] = ()
 
     def __post_init__(self) -> None:
+        self._require_admissible_channels()
         owners: dict[str, str] = {}
         address_map_fields = (
             "networks",
@@ -214,6 +220,17 @@ class RuntimeModel:
         capability_keys = [(constraint.address, constraint.concern) for constraint in self.capability_constraints]
         if len(capability_keys) != len(set(capability_keys)):
             raise ValueError("RuntimeModel capability constraints must address unique fields")
+
+    def _require_admissible_channels(self) -> None:
+        """Keep every compiled typed channel inside the descriptor admission tuple (ADR-120)."""
+
+        for behavior in self.participant_behaviors.values():
+            for access in behavior.interactive_access:
+                if (
+                    isinstance(access.channel, DomainProfileBindingModel)
+                    and access.channel not in self.descriptor_profile_bindings
+                ):
+                    raise ValueError("RuntimeModel typed channel is missing from its descriptor profile bindings")
 
 
 @dataclass(frozen=True)

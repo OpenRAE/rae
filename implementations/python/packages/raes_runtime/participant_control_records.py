@@ -32,7 +32,6 @@ from raes_contracts.contracts.participant_control_resolution import (
     validate_participant_control_resolved_context,
 )
 from raes_contracts.contracts.participant_control_results import ControlRealizationBindingModel
-from raes_contracts.immutable_history import append_history, seal_history
 from raes_contracts.operation_lifecycle import OperationAdmissionContext
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -41,8 +40,9 @@ from raes_contracts.runtime_state import (
     OperationStatus,
     operation_terminal_diagnostics,
 )
+from raes_contracts.snapshot_histories import append_history, seal_history
+from raes_contracts.timestamps import isoformat_z
 
-from .control_plane_execution import _utc_now
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
 from .participant_control_binding import fenced_validation_context
 from .participant_crossing_state_cut import expected_participant_history_heads
@@ -137,7 +137,7 @@ def _closed_carrier(
             status=replace(
                 carrier.status,
                 state=state,
-                updated_at=_utc_now(),
+                updated_at=isoformat_z(control_plane.wall_clock()),
                 diagnostics=operation_terminal_diagnostics(state, []),
                 changed_addresses=[participant_address],
             ),
@@ -173,7 +173,7 @@ def _linked_carrier(
         }
     )
     operation_id = str(uuid4())
-    timestamp = _utc_now()
+    timestamp = isoformat_z(control_plane.wall_clock())
     running = ControlPlaneOperationRecord(
         receipt=OperationReceipt(
             operation_id=operation_id,

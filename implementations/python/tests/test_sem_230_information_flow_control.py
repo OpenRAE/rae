@@ -60,7 +60,7 @@ def _crossing(**overrides: object) -> Crossing:
 def test_catalog_publishes_revisioned_policy_noninterference_claim_surface():
     catalog = load_behavioral_relation_catalog()
 
-    assert catalog.taxonomy_revision == "rev13"
+    assert catalog.taxonomy_revision == "rev14"
     relation = catalog.relations["policy-noninterference"]
     assert relation.projection_required is True
     assert relation.quantification.states

@@ -97,7 +97,7 @@ def test_normalization_revalidates_mutated_leaf_models():
 
 def test_recursive_authority_roundtrip_and_digest_preserve_explicit_null():
     from raes_contracts.contracts import ProvisioningPlanModel
-    from raes_contracts.plan_projection import provisioning_plan_model, runtime_plan_digest
+    from raes_contracts.contracts.plan_projection import provisioning_plan_model, runtime_plan_digest
     from raes_runtime.control_plane_api_models import _provisioning_plan
     from test_issue_1200_mixed_runtime_constraints import _fixture
 
@@ -132,7 +132,7 @@ def test_compiler_and_portable_plan_share_the_recursive_database_authority():
 def test_constraint_and_source_binding_cannot_be_carried_independently(missing):
     from pydantic import ValidationError
     from raes_contracts.contracts import ProvisioningPlanModel
-    from raes_contracts.plan_projection import provisioning_plan_model
+    from raes_contracts.contracts.plan_projection import provisioning_plan_model
     from test_issue_1200_mixed_runtime_constraints import _fixture
 
     _, plan, _ = _fixture({"packages": [{"manager": "apt", "name": "nmap", "version": "7.95"}]})

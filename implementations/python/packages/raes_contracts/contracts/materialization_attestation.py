@@ -2,16 +2,25 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, Protocol
 
-from pydantic import Field, model_validator
+from pydantic import Field, field_validator, model_validator
 
-from raes_contracts.materialization import MaterializationSource
+from raes_contracts.materialization import (
+    MATERIALIZATION_MAX_BYTES,
+    MaterializationSource,
+    MaterializationSubmission,
+)
 from raes_contracts.materialization_inventory import RuntimeInventoryReport
+from raes_contracts.realization_structure import validate_realization_value
+from raes_contracts.runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
 
+from .._sealing import sealing_active
+from ..safe_state import SafeStates, validate_safe_states
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
 from .experiment_artifacts import ExperimentArtifactRefModel
 from .experiment_references import ExperimentReferenceModel
+from .schema_invariants import add_raes_invariant
 
 if TYPE_CHECKING:
     from .experiment_run import ExperimentRunModel
@@ -19,6 +28,14 @@ if TYPE_CHECKING:
 
 class MaterializationPlanModel(ContractModel):
     """Phase-independent descriptive purpose and authenticated source context."""
+
+    safe_states: SafeStates = ()
+
+    @field_validator("safe_states")
+    @classmethod
+    def _resolved_safe_states(cls, value: SafeStates) -> SafeStates:
+        validate_safe_states(value)
+        return value
 
     purpose: Literal["execution", "inspection"] = Field(
         default="execution", exclude_if=lambda value: value == "execution"
@@ -53,18 +70,51 @@ class MaterializationArchiveRecord(ContractModel):
         if (
             self.artifact.role != "materialization-attestation"
             or self.reference.ref_id != self.artifact.artifact_id
-            or self.artifact.uri != f"urn:sha256:{self.artifact.checksum.value}"
             or self.artifact.checksum.algorithm != "sha256"
             or self.artifact.media_type != "application/vnd.raes.sdl+yaml"
             or self.artifact.sensitivity not in {"restricted", "redacted"}
         ):
             raise ValueError("materialization artifact reference does not bind the protected SDL artifact")
+        if self.artifact.size_bytes > MATERIALIZATION_MAX_BYTES:
+            raise ValueError("materialization artifact exceeds the materialization document limit")
         return self
+
+    @model_validator(mode="after")
+    def _validate_artifact_uri(self) -> MaterializationArchiveRecord:
+        if not sealing_active() and self.artifact.uri != materialization_artifact_uri(self.artifact.checksum.value):
+            raise ValueError("materialization artifact reference does not bind the protected SDL artifact")
+        return self
+
+
+class MaterializationArchive(Protocol):
+    """The incumbent run archive supplied by the runtime's operational owner."""
+
+    def publish(self, content: str) -> MaterializationArchiveRecord: ...
+
+    def read(self, record: MaterializationArchiveRecord) -> MaterializationSubmission: ...
+
+
+def require_materialization_records(records: object) -> None:
+    """Validate the bounded runtime-owned archive-reference collection."""
+    if not isinstance(records, tuple):
+        raise TypeError("materialization attestations must be a tuple")
+    if not records:
+        return
+    if not validate_realization_value(records, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS, python_carriers=True).conformant:
+        raise ValueError("materialization attestations exceed portable bounds")
+    identities = set()
+    for record in records:
+        if not isinstance(record, MaterializationArchiveRecord):
+            raise TypeError("materialization attestations require typed archive references")
+        MaterializationArchiveRecord.model_validate(record.model_dump(mode="json"))
+        identity = (record.run_id, record.reference.ref_id)
+        if identity in identities:
+            raise ValueError("materialization attestations must have unique run and artifact identities")
+        identities.add(identity)
 
 
 def validate_run_materializations(run: ExperimentRunModel) -> None:
     """Bind descriptive carriers to the run's actual archived artifact records."""
-    from raes_contracts.materialization import require_materialization_records
 
     require_materialization_records(tuple(run.materialization_attestations))
     if any(record.run_id != run.run_id for record in run.materialization_attestations):
@@ -80,8 +130,6 @@ def validate_run_materializations(run: ExperimentRunModel) -> None:
 
 def attach_materialization_invariants(contract_id: str, schema: dict[str, Any]) -> None:
     """Disclose the context-dependent checks that schema shape alone cannot prove."""
-    from .schema_invariants import _add_raes_invariant
-
     invariants = {
         "materialized-scenario-v1": (
             "materialized-sdl-source-and-inventory-binding",
@@ -116,10 +164,15 @@ def attach_materialization_invariants(contract_id: str, schema: dict[str, Any]) 
     }
     if contract_id in invariants:
         identity, description, validator = invariants[contract_id]
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             identity,
             description,
             validator=validator,
             inputs=[{"contract_id": contract_id, "instance_path": "#"}],
         )
+
+
+def materialization_artifact_uri(checksum: str) -> str:
+    """Return the content-addressed URI of a materialization artifact with the SHA-256 *checksum*."""
+    return f"urn:sha256:{checksum}"

@@ -1,10 +1,5 @@
 {
   "contract_id": "backend-realization-preparation-v1",
   "schema_path": "contracts/schemas/plans/backend-realization-preparation-v1.json",
-  "stability": "draft",
-  "content_hash": "a08ab314b8e89240b162b251fa7cbcad9c093236658949d30f64f852250961ca",
-  "last_change": {
-    "content_hash": "a08ab314b8e89240b162b251fa7cbcad9c093236658949d30f64f852250961ca",
-    "summary": "Carry optional complete execution/recovery requirements and resolved evidence through SDL/native plans; declare installed support and fail closed on incompatible requests (#1361)."
-  }
+  "stability": "draft"
 }

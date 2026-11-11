@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import threading
 from dataclasses import replace
 
@@ -15,7 +16,6 @@ from implementations.python.tests.test_dsl_437_benign_participant_execution impo
 )
 from implementations.python.tests.test_runtime_control_plane_api import _test_security
 from raes import parse_sdl
-from raes.participant_behavior import ParticipantFailureClass
 from raes_backend_protocols.capability_admission import (
     participant_autonomous_execution_capability_gaps,
 )
@@ -31,15 +31,14 @@ from raes_contracts.contracts import (
     ParticipantAutonomousExecutionStateModel,
     ParticipantTemporalRuntimeContextModel,
 )
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_execution import (
     ParticipantExecutionBindingModel,
     ParticipantExecutionControlRequestModel,
     ParticipantExecutionServiceStateModel,
 )
-from raes_contracts.participant_binding import (
-    ParticipantActionAdmissionRequest,
-    ParticipantNativeActionExecution,
-)
+from raes_contracts.participant_action_semantics import ParticipantFailureClass
+from raes_contracts.participant_binding import ParticipantNativeActionExecution
 from raes_contracts.participant_episode import ParticipantEpisodeInitializeRequest
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.compiler import compile_runtime_model
@@ -905,3 +904,32 @@ def test_live_conformance_rejects_autonomous_claim_without_executable_behavior()
 
     assert action_case.passed is False
     assert action_case.diagnostics[0].code == ("conformance.participant-execution-action-inert")
+
+
+def test_live_conformance_sanitizes_and_logs_a_failing_native_action(caplog: pytest.LogCaptureFixture) -> None:
+    secret = "native-action-secret-1678"
+
+    class _FailingParticipantRuntime(_NativeParticipantRuntime):
+        def bind_autonomous_action(self, *args, **kwargs):
+            raise RuntimeError(f"backend detail {secret}")
+
+    runtime_model = compile_runtime_model(_two_green_participant_scenario())
+    target = replace(
+        create_stub_target(),
+        manifest=_autonomous_manifest(runtime_model),
+        participant_runtime=_FailingParticipantRuntime(),
+    )
+
+    with caplog.at_level(logging.ERROR, logger="raes_conformance"):
+        cases = _target_adapter_cases(target, BackendCapabilityProfile.FULL_REMOTE_CONTROL_PLANE)
+    action_case = next(case for case in cases if case.name == "participant-execution-bounded-native-actions")
+
+    assert action_case.passed is False
+    assert action_case.diagnostics[0].code == "conformance.participant-execution-action-failed"
+    assert secret not in action_case.diagnostics[0].message
+    records = [record for record in caplog.records if record.name.endswith("participant_execution_probes")]
+    assert records
+    for record in records:
+        assert secret not in record.getMessage()
+        assert secret not in (record.exc_text or "")
+        assert "ForeignCodeFailure" in (record.exc_text or "")

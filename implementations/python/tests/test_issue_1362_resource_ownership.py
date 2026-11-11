@@ -2,6 +2,7 @@
 
 import pytest
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.errors import ConflictError, OperationalError
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.manager import RuntimeManager
 from runtime_plan_fixtures import plan_for_target
@@ -15,9 +16,9 @@ def test_direct_manager_close_releases_components_and_refuses_later_effects():
     manager = RuntimeManager(target)
     manager.close()
     with RuntimeControlPlane(target):
-        with pytest.raises(RuntimeError, match="closed"):
+        with pytest.raises(OperationalError, match="closed"):
             manager.apply(planned)
-        with pytest.raises(RuntimeError, match="closed"):
+        with pytest.raises(OperationalError, match="closed"):
             manager.pause_time("time.clock.test")
 
 
@@ -31,9 +32,9 @@ def test_direct_manager_close_retains_components_until_a_physical_callback_retur
     original = target.provisioner.apply
 
     def assert_owned():
-        with pytest.raises(RuntimeError, match="callbacks remain active"):
+        with pytest.raises(ConflictError, match="callbacks remain active"):
             manager.close()
-        with pytest.raises(RuntimeError, match="runtime owner"):
+        with pytest.raises(ConflictError, match="runtime owner"):
             RuntimeControlPlane(target)
 
     def apply(plan, snapshot):
@@ -54,9 +55,9 @@ def test_another_store_and_direct_manager_cannot_bypass_backend_ownership():
     target = create_stub_target()
     plane = RuntimeControlPlane(target)
     try:
-        with pytest.raises(RuntimeError):
+        with pytest.raises(ConflictError):
             RuntimeControlPlane(target)
-        with pytest.raises(RuntimeError):
+        with pytest.raises(ConflictError):
             RuntimeManager(target)
     finally:
         plane.close()

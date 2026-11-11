@@ -5,9 +5,26 @@ from __future__ import annotations
 
 import hashlib
 import stat
+import sys
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError, OperationalError  # noqa: E402
+
+
+def _working_directory(purpose: str) -> Path:
+    try:
+        return Path.cwd()
+    except OSError as exc:
+        # The invoking working directory no longer exists, so a relative operator path has no anchor.
+        raise OperationalError(f"{purpose} cannot be resolved without a working directory") from exc
 
 
 def operator_path(path: Path, *, purpose: str) -> Path:
@@ -21,9 +38,9 @@ def operator_path(path: Path, *, purpose: str) -> Path:
     path rather than on the raw argument.
     """
 
-    anchored = path if path.is_absolute() else Path.cwd() / path
+    anchored = path if path.is_absolute() else _working_directory(purpose) / path
     if anchored.is_symlink():
-        raise ValueError(f"{purpose} must not be a symbolic link")
+        raise InvalidInputError(f"{purpose} must not be a symbolic link")
     return anchored.resolve(strict=False)
 
 
@@ -41,24 +58,37 @@ def candidate_digest(path: Path) -> str:
     """Digest an admitted candidate distribution, refusing anything irregular."""
 
     if path.is_symlink() or not path.is_file():
-        raise ValueError("candidate distribution must be a regular file")
-    return sha256_file(path)
+        raise InvalidInputError("candidate distribution must be a regular file")
+    try:
+        return sha256_file(path)
+    except OSError as exc:
+        raise InvalidInputError("candidate distribution is unreadable") from exc
 
 
 def require_empty_destination(path: Path, purpose: str) -> None:
     """Refuse to write into an existing non-empty destination."""
 
-    if path.is_symlink() or path.exists() and any(path.iterdir()):
-        raise ValueError(f"{purpose} must be an empty non-symlink directory")
+    refusal = f"{purpose} must be an empty non-symlink directory"
+    if path.is_symlink():
+        raise InvalidInputError(refusal)
+    if not path.exists():
+        return
+    try:
+        occupied = not path.is_dir() or any(path.iterdir())
+    except OSError as exc:
+        # A destination that cannot be listed cannot be shown to be empty.
+        raise InvalidInputError(refusal) from exc
+    if occupied:
+        raise InvalidInputError(refusal)
 
 
 def _require_wheelhouse_directory(wheelhouse: Path) -> None:
     try:
         mode = wheelhouse.lstat().st_mode
     except OSError as exc:
-        raise ValueError("wheelhouse is missing") from exc
+        raise InvalidInputError("wheelhouse is missing") from exc
     if not stat.S_ISDIR(mode) or wheelhouse.is_symlink():
-        raise ValueError("wheelhouse must be a regular directory")
+        raise InvalidInputError("wheelhouse must be a regular directory")
 
 
 def _expected_wheelhouse_artifacts(
@@ -66,14 +96,14 @@ def _expected_wheelhouse_artifacts(
 ) -> dict[str, Mapping[str, Any]]:
     artifacts = manifest.get("artifacts")
     if not isinstance(artifacts, list) or not artifacts:
-        raise ValueError("wheelhouse manifest has no artifacts")
+        raise InvalidInputError("wheelhouse manifest has no artifacts")
     expected: dict[str, Mapping[str, Any]] = {}
     for artifact in artifacts:
         if not isinstance(artifact, Mapping):
-            raise ValueError("wheelhouse manifest artifact is invalid")
+            raise InvalidInputError("wheelhouse manifest artifact is invalid")
         filename = artifact.get("filename")
         if not isinstance(filename, str) or not filename or Path(filename).name != filename or filename in expected:
-            raise ValueError("wheelhouse manifest filenames must be unique portable basenames")
+            raise InvalidInputError("wheelhouse manifest filenames must be unique portable basenames")
         expected[filename] = artifact
     return expected
 
@@ -85,19 +115,28 @@ def _require_wheelhouse_inventory(
     missing = sorted(set(expected) - set(observed))
     unexpected = sorted(set(observed) - set(expected))
     if missing:
-        raise ValueError(f"wheelhouse is missing {len(missing)} reviewed artifacts")
+        raise InvalidInputError(f"wheelhouse is missing {len(missing)} reviewed artifacts")
     if unexpected:
-        raise ValueError(f"wheelhouse contains {len(unexpected)} unexpected artifacts")
+        raise InvalidInputError(f"wheelhouse contains {len(unexpected)} unexpected artifacts")
 
 
 def _require_wheelhouse_artifact(filename: str, path: Path, artifact: Mapping[str, Any]) -> None:
-    mode = path.lstat().st_mode
+    unreadable = f"wheelhouse artifact is unreadable: {filename}"
+    try:
+        mode = path.lstat().st_mode
+    except OSError as exc:
+        raise InvalidInputError(unreadable) from exc
     if path.is_symlink() or not stat.S_ISREG(mode):
-        raise ValueError("wheelhouse entries must be regular files")
-    if path.stat().st_size != artifact.get("size"):
-        raise ValueError(f"wheelhouse artifact size mismatch: {filename}")
-    if sha256_file(path) != artifact.get("sha256"):
-        raise ValueError(f"wheelhouse artifact digest mismatch: {filename}")
+        raise InvalidInputError("wheelhouse entries must be regular files")
+    try:
+        size = path.stat().st_size
+        digest = sha256_file(path) if size == artifact.get("size") else None
+    except OSError as exc:
+        raise InvalidInputError(unreadable) from exc
+    if size != artifact.get("size"):
+        raise InvalidInputError(f"wheelhouse artifact size mismatch: {filename}")
+    if digest != artifact.get("sha256"):
+        raise InvalidInputError(f"wheelhouse artifact digest mismatch: {filename}")
 
 
 def verify_wheelhouse(wheelhouse: Path, manifest: Mapping[str, Any]) -> None:
@@ -105,7 +144,10 @@ def verify_wheelhouse(wheelhouse: Path, manifest: Mapping[str, Any]) -> None:
 
     _require_wheelhouse_directory(wheelhouse)
     expected = _expected_wheelhouse_artifacts(manifest)
-    observed = {path.name: path for path in wheelhouse.iterdir()}
+    try:
+        observed = {path.name: path for path in wheelhouse.iterdir()}
+    except OSError as exc:
+        raise InvalidInputError("wheelhouse is unreadable") from exc
     _require_wheelhouse_inventory(expected, observed)
     for filename, artifact in expected.items():
         _require_wheelhouse_artifact(filename, observed[filename], artifact)

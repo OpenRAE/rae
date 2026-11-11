@@ -25,7 +25,9 @@ def promised_request(*, owner=False, floor="exact"):
     for obligation in selection["obligations"]:
         obligation.update(required_strength=floor, constraints=promise["constraints"], admitted_support=[promise])
     if owner:
-        from raes_contracts.participant_flow_policy_profiles import load_participant_boundary_flow_policy_profile
+        from raes_contracts.contracts.participant_flow_policy_profiles import (
+            load_participant_boundary_flow_policy_profile,
+        )
 
         profile = load_participant_boundary_flow_policy_profile("participant-owner-flow-policy-v1")
         pin = {**ref(profile.profile_id, "profile"), "digest": profile.canonical_digest}

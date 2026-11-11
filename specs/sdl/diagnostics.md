@@ -1,10 +1,13 @@
-# Diagnostics — Errors and Advisories
+<!-- vale RAES.HeadingCase = NO -->
+# Diagnostics — errors and advisories
 
 This file documents the SDL diagnostic boundary: the stages at which a document
 is checked, the fail-closed error semantics, and the distinction between a fatal
 **error** and a non-fatal **advisory**. It states the normative criterion that
 classifies a condition as an error or an advisory (§5); it does not introduce a
 new diagnostic mechanism, and it does not reclassify any existing condition.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ## 1. Diagnostic stages
 
@@ -127,25 +130,25 @@ The criterion is **meaning preservation**:
    construct a backend may be unable to realise without defaults, or a non-binding
    observation an author may wish to review. Advisories are non-fatal (§4).
 
-**Borderline rule.** SDL diagnostics are fail-closed, so the default for a
-condition whose classification is genuinely unclear is **error**. A condition is
-classified as an advisory **only** when it is clearly a deployability or quality
-heuristic that leaves SDL meaning intact; if a violation could leave the
-document's meaning undefined, or if two conforming tools could legitimately
-disagree about whether the document is valid, it is an error. This rule is
-directional with §4: it governs how a *new* condition is classified, while §4
-forbids re-labelling an *already-classified* condition to change its severity.
+**Borderline rule.** SDL diagnostics are fail-closed.
+When a condition's classification is unclear, the default is **error**.
+An advisory is permitted **only** for a clearly identified deployability or quality heuristic that leaves SDL meaning intact.
+A violation that could leave the document's meaning undefined is an error.
+It is also an error if two conforming tools could disagree about document validity.
 
-The existing conditions in §4 are consistent with this criterion. "Compute node without
-resources" and the name-based secret heuristic are deployability/quality
-heuristics that leave meaning intact, so they are advisories; reference
-resolution, uniqueness, acyclicity, ambiguity, required-profile guards, and
-explicit redaction are meaning-affecting, so they are errors.
+This rule governs the classification of a *new* condition.
+Section 4 forbids severity changes through relabeling of an *already-classified* condition.
 
-A future change that moves a condition between the error and advisory channels,
-or that adds a new diagnostic category, **MUST** apply this criterion and be
-reflected here, in the published schemas, and in the reference implementation
-together, so the boundary stays single-sourced.
+The existing conditions in §4 satisfy this criterion.
+"Compute node without resources" and the name-based secret heuristic are deployability/quality heuristics.
+They leave meaning intact and are advisories.
+Reference resolution, uniqueness, acyclicity, ambiguity, required-profile guards, and explicit redaction affect meaning.
+They are errors.
+
+A change to a condition's error/advisory channel **MUST** apply this criterion.
+A new diagnostic category **MUST** also apply it.
+The change **MUST** appear here, in the published schemas, and in the reference implementation together.
+This keeps one source for the boundary.
 
 ## 6. Mapping-key diagnostics
 

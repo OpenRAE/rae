@@ -10,7 +10,7 @@ from pydantic import TypeAdapter, ValidationError
 
 from ._behavior_authoring import validate_authored_behavior_references
 from ._declarations import Declaration
-from ._errors import SDLValidationError
+from ._errors import SDLValidationError, SDLValidationFinding
 from ._language_context import PurposeResolver
 from ._reference_targetability import ReferencePurpose
 from ._relationship_endpoint_policy import RELATIONSHIP_DETAIL_BINDINGS
@@ -36,7 +36,7 @@ class _RelationshipContext:
     scenario: ScenarioContent | None
     incomplete: bool
     resolver: PurposeResolver
-    baseline: set[str]
+    baseline: set[SDLValidationFinding]
     session: ValidationSession
 
 
@@ -63,11 +63,11 @@ def filter_relationship_candidates(
     return [item for item in items if _candidate_allowed(item, context)]
 
 
-def _semantic_errors(scenario: ScenarioContent, session: ValidationSession) -> set[str]:
+def _semantic_errors(scenario: ScenarioContent, session: ValidationSession) -> set[SDLValidationFinding]:
     try:
         SemanticValidator(scenario, session=session).validate()
     except SDLValidationError as exc:
-        return set(exc.errors)
+        return set(exc.findings)
     return set()
 
 

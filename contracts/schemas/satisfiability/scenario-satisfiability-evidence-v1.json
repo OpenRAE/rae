@@ -1790,6 +1790,72 @@
       "title": "Condition",
       "type": "object"
     },
+    "ConstrainedTrialParallelismModel": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "minimum": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "minimum"
+          ]
+        },
+        {
+          "properties": {
+            "maximum": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "maximum"
+          ]
+        }
+      ],
+      "description": "Require an inclusive lower bound, upper bound, or both.",
+      "properties": {
+        "maximum": {
+          "anyOf": [
+            {
+              "maximum": 4096,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum"
+        },
+        "minimum": {
+          "anyOf": [
+            {
+              "maximum": 4096,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum"
+        },
+        "posture": {
+          "const": "constrained",
+          "title": "Posture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "posture"
+      ],
+      "title": "ConstrainedTrialParallelismModel",
+      "type": "object"
+    },
     "ConstraintClauseKind": {
       "description": "Meaning of a normalized finite-domain membership clause.",
       "enum": [
@@ -5150,6 +5216,29 @@
       "title": "ExactRatio",
       "type": "object"
     },
+    "ExactTrialParallelismModel": {
+      "additionalProperties": false,
+      "description": "Require one exact effective capacity.",
+      "properties": {
+        "count": {
+          "maximum": 4096,
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        },
+        "posture": {
+          "const": "exact",
+          "title": "Posture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "posture",
+        "count"
+      ],
+      "title": "ExactTrialParallelismModel",
+      "type": "object"
+    },
     "ExecutionPolicy": {
       "additionalProperties": false,
       "description": "A complete local choice; omitted fields never inherit from another policy.",
@@ -7400,6 +7489,18 @@
           "title": "Relationships",
           "type": "object"
         },
+        "safe_state": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SafeStateDocument"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "x-raes-realization-dimension": false
+        },
         "scripts": {
           "additionalProperties": {
             "$ref": "#/$defs/Script"
@@ -7455,6 +7556,37 @@
           },
           "title": "Time Progression Policies",
           "type": "object"
+        },
+        "trial_parallelism": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "constrained": "#/$defs/ConstrainedTrialParallelismModel",
+                  "exact": "#/$defs/ExactTrialParallelismModel",
+                  "open": "#/$defs/OpenTrialParallelismModel"
+                },
+                "propertyName": "posture"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/OpenTrialParallelismModel"
+                },
+                {
+                  "$ref": "#/$defs/ExactTrialParallelismModel"
+                },
+                {
+                  "$ref": "#/$defs/ConstrainedTrialParallelismModel"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trial Parallelism",
+          "x-raes-realization-dimension": false
         },
         "version": {
           "default": "*",
@@ -9944,6 +10076,22 @@
         "names"
       ],
       "title": "ObservationSelector",
+      "type": "object"
+    },
+    "OpenTrialParallelismModel": {
+      "additionalProperties": false,
+      "description": "Leave effective capacity to the allocator.",
+      "properties": {
+        "posture": {
+          "const": "open",
+          "title": "Posture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "posture"
+      ],
+      "title": "OpenTrialParallelismModel",
       "type": "object"
     },
     "OperatorSecretCredentialMaterial": {
@@ -21761,7 +21909,7 @@
     },
     "RuntimeForwardingSource": {
       "additionalProperties": false,
-      "description": "An observed forwarder input source (tailed path, API pull, or queue).",
+      "description": "An observed forwarder input source (tailed path, API pull, queue, or listening socket).",
       "properties": {
         "description": {
           "default": "",
@@ -21780,7 +21928,7 @@
               "not": {
                 "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
               },
-              "pattern": "^(?:[tT][aA][iI][lL][eE][dD][-_][pP][aA][tT][hH]|[aA][pP][iI][-_][pP][uU][lL][lL]|[qQ][uU][eE][uU][eE]|[uU][nN][kK][nN][oO][wW][nN]|[oO][tT][hH][eE][rR]|x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$(?![\\s\\S])",
+              "pattern": "^(?:[tT][aA][iI][lL][eE][dD][-_][pP][aA][tT][hH]|[aA][pP][iI][-_][pP][uU][lL][lL]|[qQ][uU][eE][uU][eE]|[sS][oO][cC][kK][eE][tT]|[uU][nN][kK][nN][oO][wW][nN]|[oO][tT][hH][eE][rR]|x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$(?![\\s\\S])",
               "type": "string"
             }
           ],
@@ -21839,6 +21987,7 @@
         "tailed_path",
         "api_pull",
         "queue",
+        "socket",
         "unknown",
         "other"
       ],
@@ -22149,6 +22298,71 @@
         }
       },
       "title": "RuntimeIdentityAttribute",
+      "type": "object"
+    },
+    "RuntimeIdentityAuditLog": {
+      "additionalProperties": false,
+      "description": "Required native recording for one service and log type on a scope.",
+      "properties": {
+        "audit_log_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Audit Log Id",
+          "type": "string"
+        },
+        "exempted_principal_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 1024,
+          "title": "Exempted Principal Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "log_type": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Log Type",
+          "type": "string"
+        },
+        "service": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Service",
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_log_id",
+        "service",
+        "log_type"
+      ],
+      "title": "RuntimeIdentityAuditLog",
       "type": "object"
     },
     "RuntimeIdentityAuthority": {
@@ -22827,6 +23041,14 @@
       "additionalProperties": false,
       "description": "A provider-qualified ownership scope, independent of node placement.",
       "properties": {
+        "audit_logs": {
+          "items": {
+            "$ref": "#/$defs/RuntimeIdentityAuditLog"
+          },
+          "maxItems": 1024,
+          "title": "Audit Logs",
+          "type": "array"
+        },
         "description": {
           "default": "",
           "not": {
@@ -22909,7 +23131,21 @@
         "scope_kind"
       ],
       "title": "RuntimeIdentityResourceScope",
-      "type": "object"
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Audit log IDs and native service/log-type pairs must each be unique within their resource scope.",
+          "id": "cloud-audit-scope-uniqueness",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes.scenario.Scenario.model_validate"
+        }
+      ]
     },
     "RuntimeIdentitySubject": {
       "additionalProperties": false,
@@ -28606,6 +28842,152 @@
       "title": "RuntimeSecretConsumer",
       "type": "object"
     },
+    "RuntimeSecretReplica": {
+      "additionalProperties": false,
+      "description": "One GCP Secret Manager replica with optional native encryption key identity.",
+      "properties": {
+        "kms_key_name": {
+          "anyOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "pattern": "^projects/[^/\\s]+/locations/[^/\\s]+/keyRings/[^/\\s]+/cryptoKeys/[^/\\s]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kms Key Name"
+        },
+        "location": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^\\S+$",
+          "title": "Location",
+          "type": "string"
+        }
+      },
+      "required": [
+        "location"
+      ],
+      "title": "RuntimeSecretReplica",
+      "type": "object"
+    },
+    "RuntimeSecretReplication": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "automatic"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "replicas": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "user-managed"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "kms_key_name": {
+                "type": "null"
+              },
+              "replicas": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "replicas"
+            ]
+          }
+        }
+      ],
+      "description": "Provider-qualified replication intent; never inferred from missing locations.",
+      "properties": {
+        "kms_key_name": {
+          "anyOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "pattern": "^projects/[^/\\s]+/locations/[^/\\s]+/keyRings/[^/\\s]+/cryptoKeys/[^/\\s]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kms Key Name"
+        },
+        "mode": {
+          "enum": [
+            "automatic",
+            "user-managed"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "provider": {
+          "const": "gcp-secret-manager",
+          "title": "Provider",
+          "type": "string"
+        },
+        "replicas": {
+          "items": {
+            "$ref": "#/$defs/RuntimeSecretReplica"
+          },
+          "maxItems": 1024,
+          "title": "Replicas",
+          "type": "array"
+        }
+      },
+      "required": [
+        "provider",
+        "mode"
+      ],
+      "title": "RuntimeSecretReplication",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Replica locations must be unique and encryption keys must match their location; automatic encryption requires global. Typed replication excludes legacy placement fields.",
+          "id": "secret-replication-location-agreement",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes.scenario.Scenario.model_validate"
+        }
+      ]
+    },
     "RuntimeSecretSelector": {
       "additionalProperties": false,
       "description": "Inert provider selector identity, kept separate from its resolution.",
@@ -30366,6 +30748,33 @@
     },
     "RuntimeServiceSecret": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "replication": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "replication"
+            ]
+          },
+          "then": {
+            "properties": {
+              "encryption_key_ref": {
+                "const": ""
+              },
+              "location": {
+                "const": ""
+              },
+              "replica_locations": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ],
       "description": "A service-owned secret resource; payload bytes belong to content.",
       "properties": {
         "consumers": {
@@ -30426,6 +30835,17 @@
           },
           "title": "Replica Locations",
           "type": "array"
+        },
+        "replication": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeSecretReplication"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "reset_owner_ref": {
           "default": "",
@@ -30549,6 +30969,24 @@
           },
           "title": "Manifest Path",
           "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Model identifier selected for this software component.",
+          "title": "Model"
         },
         "name": {
           "not": {
@@ -31388,6 +31826,203 @@
       },
       "title": "RuntimeSudoRule",
       "type": "object"
+    },
+    "SafeState": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "continuing_mode": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "continue"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "continuing_mode": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "continuing_mode"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "assertion_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "^\\S+$",
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Assertion Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "continuing_mode": {
+          "anyOf": [
+            {
+              "maxLength": 2048,
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "pattern": "^\\S+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Continuing Mode"
+        },
+        "kind": {
+          "enum": [
+            "safe-hold",
+            "controlled-stop",
+            "continue"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "safe-state/v1",
+          "default": "safe-state/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "assertion_refs"
+      ],
+      "title": "SafeState",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Safe states are complete lexical values with unique scopes and assertions. Resolved values bind exact observed postconditions and target-specific evidence. Resolved collections obey aggregate PLAN_VALUE_LIMITS before proof copying. See specs/sdl/safe-state.md.",
+          "id": "safe-state-safestate",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#/safe_state"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.safe_state.SafeState.model_validate"
+        }
+      ]
+    },
+    "SafeStateDocument": {
+      "additionalProperties": false,
+      "properties": {
+        "default": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SafeState"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scopes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SafeStateScope"
+          },
+          "maxItems": 256,
+          "title": "Scopes",
+          "type": "array"
+        }
+      },
+      "title": "SafeStateDocument",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Safe states are complete lexical values with unique scopes and assertions. Resolved values bind exact observed postconditions and target-specific evidence. Resolved collections obey aggregate PLAN_VALUE_LIMITS before proof copying. See specs/sdl/safe-state.md.",
+          "id": "safe-state-safestatedocument",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#/safe_state"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.safe_state.SafeStateDocument.model_validate"
+        }
+      ]
+    },
+    "SafeStateScope": {
+      "additionalProperties": false,
+      "properties": {
+        "namespace": {
+          "default": [],
+          "items": {
+            "maxLength": 64,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)$",
+            "type": "string"
+          },
+          "maxItems": 31,
+          "title": "Namespace",
+          "type": "array"
+        },
+        "scope": {
+          "default": "",
+          "maxLength": 4096,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Scope",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/SafeState"
+        }
+      },
+      "required": [
+        "state"
+      ],
+      "title": "SafeStateScope",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Safe states are complete lexical values with unique scopes and assertions. Resolved values bind exact observed postconditions and target-specific evidence. Resolved collections obey aggregate PLAN_VALUE_LIMITS before proof copying. See specs/sdl/safe-state.md.",
+          "id": "safe-state-safestatescope",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#/safe_state"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.safe_state.SafeStateScope.model_validate"
+        }
+      ]
     },
     "SatisfiabilityOutcome": {
       "description": "Completed outcomes exposed by the governed analysis boundary.",

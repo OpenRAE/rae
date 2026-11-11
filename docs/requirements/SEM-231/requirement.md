@@ -30,6 +30,7 @@ SEM-230 governs participant-policy noninterference, but it intentionally delegat
 - IMPLEMENTS → SPEC `specs/formal/participant-semantics/participant-predicate-opacity.md` (Participant-relative predicate opacity formal specification)
 - IMPLEMENTS → CONFIG `contracts/concept-authority/behavioral-relations-v1.json` (Behavioral relation concept authority catalog)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/base.py` (Behavioral claim binding contract model)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/behavioral_claims.py` (Behavioral claim binding contract model)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/behavioral_relations.py` (Behavioral relation catalog and assurance validators)
 - IMPLEMENTS → ADR `docs/decisions/adrs/adr-099-participant-relative-predicate-opacity.md` (ADR-099: Participant-relative predicate opacity)
 - TESTS → TEST `implementations/python/tests/test_sem_231_participant_predicate_opacity.py` (SEM-231 participant predicate opacity contract tests)

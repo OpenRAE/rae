@@ -1,10 +1,5 @@
 {
   "contract_id": "participant-status-view-v1",
   "schema_path": "contracts/schemas/control-plane/participant-status-view-v1.json",
-  "stability": "draft",
-  "content_hash": "8e50a817b2ccbab2bf6c760982b2f1c9708397f30843a1ddda35adca99d86581",
-  "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "8e50a817b2ccbab2bf6c760982b2f1c9708397f30843a1ddda35adca99d86581"
-  }
+  "stability": "draft"
 }

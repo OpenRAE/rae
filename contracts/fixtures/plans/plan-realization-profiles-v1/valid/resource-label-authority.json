@@ -81,7 +81,6 @@
         ],
         "coordinate": {
           "authority": "urn:example:profiles",
-          "definition_digest": "sha256:3dcbeac3315948d7b6047b19dc1da9f480fe65442050f5fd82b8b3313c29c062",
           "namespace": "com.example.private",
           "profile_id": "resource-label",
           "revision": "1.0.0"
@@ -90,7 +89,6 @@
           "dialect": "https://json-schema.org/draft/2020-12/schema",
           "required_vocabularies": [],
           "revision": "1.0.0",
-          "schema_digest": "sha256:eb1dbf89f9c93bd46c2b00fdfb44e712337d05b14d07183af7bc2c6841d845fa",
           "schema_document": {
             "$id": "urn:example:schema:resource-label",
             "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -116,7 +114,6 @@
         }
       },
       "provenance": {
-        "source_digest": "sha256:3dcbeac3315948d7b6047b19dc1da9f480fe65442050f5fd82b8b3313c29c062",
         "source_locator": "urn:example:admitted-profile",
         "trust_decision_id": "trust-private-profile-1"
       }

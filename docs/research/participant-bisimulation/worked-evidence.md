@@ -5,6 +5,10 @@ Date: 2026-07-29
 These are design-scale witness and counterexample obligations. They are not
 executed results.
 
+The [#973 architecture preflight](../../decisions/issue-973-crossing-counterexample-preflight.md)
+defines the executable corpus boundaries, required reuse, and safe publication
+guardrails without changing these historical sketches.
+
 ## Positive Witness Sketch
 
 Consider abstract:

@@ -47,7 +47,11 @@ nodes:
       identity_authorities:
       - identity_authority_id: identity-authorities
         resource_scopes:
-        - {scope_id: resource-scopes, provider: example, scope_kind: project}
+        - scope_id: resource-scopes
+          provider: example
+          scope_kind: project
+          audit_logs:
+          - {audit_log_id: audit-logs, service: example-service, log_type: example-read}
         identity_uses:
         - use_id: identity-uses
           workload_ref: nodes.app

@@ -3,6 +3,7 @@
 from dataclasses import replace
 
 import pytest
+from raes_contracts.errors import ConflictError
 from raes_contracts.execution_policy import EffectiveExecutionPolicy, ExecutionPolicy
 from raes_contracts.planning import ChangeAction, PlanOperation, ProvisioningPlan
 from raes_runtime.operation_supervision_configuration import OperationSupervisionConfiguration
@@ -35,5 +36,5 @@ def test_authored_budget_caps_the_execution_origin_and_unsupported_clock_is_refu
     rejected_candidate = replace(operation, execution_policy=semantic)
     rejected_candidate_1 = replace(plan, operations=[rejected_candidate])
     rejected_supervision = OperationSupervisionConfiguration()
-    with pytest.raises(ValueError):
+    with pytest.raises(ConflictError):
         execution_budget_ms(rejected_candidate_1, rejected_supervision)

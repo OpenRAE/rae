@@ -19,6 +19,7 @@ from raes_contracts.runtime_state import (
     OperationState,
     OperationStatus,
 )
+from raes_contracts.timestamps import isoformat_z
 from raes_contracts.workflow import (
     WorkflowCompensationStatus,
     WorkflowExecutionState,
@@ -27,11 +28,7 @@ from raes_contracts.workflow import (
     WorkflowStatus,
 )
 
-from .control_plane_execution import (
-    SucceededOperationRequest,
-    _utc_now,
-    persist_succeeded_operation,
-)
+from .control_plane_execution import SucceededOperationRequest, persist_succeeded_operation
 from .control_plane_lifecycle import runtime_owned
 from .control_plane_mutation import control_plane_mutation, mutation_entry
 from .control_plane_operation_context import (
@@ -118,7 +115,7 @@ class WorkflowControlMixin:
         idempotency_key: str,
     ) -> OperationReceipt | None:
         operation_id = str(uuid4())
-        submitted_at = _utc_now()
+        submitted_at = isoformat_z(self.wall_clock())
         receipt = OperationReceipt(
             operation_id=operation_id,
             domain=RuntimeDomain.ORCHESTRATION,
@@ -177,7 +174,7 @@ class WorkflowControlMixin:
             identity=identity,
             run_scope=f"run:{run_id}" if run_id else None,
         )
-        submitted_at = _utc_now()
+        submitted_at = isoformat_z(self.wall_clock())
         operation_id = str(uuid4())
         context = self._cancellable_workflow_state(
             workflow_address,
@@ -392,7 +389,7 @@ class WorkflowControlMixin:
             request={"now": now or "runtime-clock"},
             identity=identity,
         )
-        submitted_at = now or _utc_now()
+        submitted_at = now or isoformat_z(self.wall_clock())
         reconciliation_clock = _reconciliation_clock(submitted_at)
         changed: list[str] = []
         orchestration_results = dict(self._snapshot.orchestration_results)

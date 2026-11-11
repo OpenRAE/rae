@@ -19,6 +19,7 @@ from participant_crossing_fixtures import (
     admit,
     policy_capable_target,
 )
+from raes_contracts.errors import ConflictError
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_store import InMemoryControlPlaneStore, LocalControlPlaneStore
 
@@ -107,7 +108,7 @@ def test_a_second_concurrent_owner_cannot_write_the_committed_history(tmp_path: 
     admit(owner, idempotency_key="sole-owner")
 
     second_store = LocalControlPlaneStore(store_path)
-    with pytest.raises(RuntimeError, match="already has a runtime owner"):
+    with pytest.raises(ConflictError, match="already has a runtime owner"):
         _plane(store=second_store)
 
     assert len(_evaluations(owner)) == 1
@@ -122,7 +123,7 @@ def test_a_stale_expected_head_refuses_a_second_commit(tmp_path: Path):
     stale_heads = {f"{_CARRIER}:{PARTICIPANT}": None}
     admit(plane, idempotency_key="stale-head")
 
-    with pytest.raises(ValueError, match="history head"):
+    with pytest.raises(ConflictError, match="history head"):
         require_expected_history_heads(plane.snapshot, stale_heads)
 
 
@@ -383,7 +384,7 @@ def test_a_store_newer_than_this_build_is_refused_rather_than_rewritten(tmp_path
     connection.close()
 
     newer_store = LocalControlPlaneStore(store_path)
-    with pytest.raises(ValueError, match="unsupported local control-plane database schema"):
+    with pytest.raises(ConflictError, match="unsupported local control-plane database schema"):
         _plane(store=newer_store)
 
 

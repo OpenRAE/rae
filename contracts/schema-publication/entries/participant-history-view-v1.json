@@ -1,10 +1,5 @@
 {
   "contract_id": "participant-history-view-v1",
   "schema_path": "contracts/schemas/control-plane/participant-history-view-v1.json",
-  "stability": "draft",
-  "content_hash": "dddcf90e771ac49af5a9c0f6c95e19e4436c9250c21149d48ec1b14c0b093f35",
-  "last_change": {
-    "summary": "Add opt-in bounded shared-time guarantees and typed numeric authoring; keep backend execution capabilities conditional (#216).",
-    "content_hash": "dddcf90e771ac49af5a9c0f6c95e19e4436c9250c21149d48ec1b14c0b093f35"
-  }
+  "stability": "draft"
 }

@@ -215,7 +215,7 @@ def test_crossed_models_prompts_and_structure_retain_every_effect(multiple):
 
 
 def test_crossed_plan_reload_reconstruction_and_public_realization():
-    from raes_contracts.admitted_trial_plan_ingress import parse_admitted_trial_plan_json
+    from raes_contracts.contracts.admitted_trial_plan_ingress import parse_admitted_trial_plan_json
 
     request = _treatment_request()
     processor = _request_with_processor()

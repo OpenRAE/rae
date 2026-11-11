@@ -53,7 +53,9 @@ def test_conftest_error_output_fails_the_policy_run(
         lambda *_args, **_kwargs: subprocess.CompletedProcess(args=[], returncode=1, stdout="", stderr=stderr),
     )
 
-    with pytest.raises(RuntimeError, match=r"^conftest repo policy evaluation failed: Error: running test: "):
+    with pytest.raises(
+        conftest_tool.ConftestPolicyError, match=r"^conftest repo policy evaluation failed: Error: running test: "
+    ):
         run_conftest_policy({"changed": ["a"]}, repo_root=tmp_path, policy_dir=tmp_path / "policy")
 
 
@@ -72,5 +74,5 @@ def test_pinned_conftest_evaluation_error_fails_the_policy_run(
     policy_dir.mkdir()
     (policy_dir / "conflict.rego").write_text(_CONFLICTING_POLICY, encoding="utf-8")
 
-    with pytest.raises(RuntimeError, match="eval_conflict_error"):
+    with pytest.raises(conftest_tool.ConftestPolicyError, match="eval_conflict_error"):
         run_conftest_policy({"changed": ["a"]}, repo_root=tmp_path, policy_dir=policy_dir)

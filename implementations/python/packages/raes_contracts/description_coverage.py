@@ -8,10 +8,11 @@ from .contracts.realization_descriptions import (
     DescriptionProvenanceModel,
     TypedRealizationDescriptionModel,
 )
+from .errors import InvalidInputError
 from .realization_structure import semantic_address_contains
 
 
-class DescriptionCoverageUnsatisfied(ValueError):
+class DescriptionCoverageUnsatisfied(InvalidInputError):
     """A valid partial report cannot satisfy the requested complete coverage."""
 
 

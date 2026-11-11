@@ -4,9 +4,7 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
-import re
 import subprocess
 import sys
 from collections.abc import Iterable
@@ -15,15 +13,23 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError  # noqa: E402
+from raes_contracts.operational_logging import run_application  # noqa: E402
+
 MANIFEST_PATH = Path("contracts/schema-publication-manifest.json")
 SCHEMAS_PREFIX = "contracts/schemas/"
 SCHEMA_VERSION = "schema-publication-manifest/v2"
 LEGACY_SCHEMA_VERSION = "schema-publication-manifest/v1"
 ENTRIES_DIRECTORY = "contracts/schema-publication/entries"
 TOMBSTONES_DIRECTORY = "contracts/schema-publication/tombstones"
-HASH_ALGORITHM = "sha256"
 STABILITY_VALUES = {"draft", "stable"}
-SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+RETIRED_MANIFEST_KEYS = ("hash_algorithm",)
+RETIRED_ENTRY_KEYS = ("content_hash", "last_change")
 
 JSON_SCHEMA_ANNOTATION_KEYS = {
     "$comment",
@@ -46,7 +52,6 @@ PROPERTY_SPECIAL_COMPATIBILITY_KEYS = {"default", "enum"}
 _MISSING = object()
 
 
-LAST_CHANGE_KEY = "last_change"
 REMOVED_SCHEMAS_KEY = "removed_schemas"
 
 
@@ -55,9 +60,7 @@ class ManifestEntry:
     contract_id: str
     schema_path: str
     stability: str
-    content_hash: str
     schema: Any
-    last_change: dict[str, Any] | None = None
 
 
 def _published_schema_paths(repo_root: Path) -> set[str]:
@@ -65,19 +68,39 @@ def _published_schema_paths(repo_root: Path) -> set[str]:
     return {path.relative_to(repo_root).as_posix() for path in sorted(schemas_root.rglob("*.json"))}
 
 
+def _json_integer(literal: str) -> int:
+    # The decoder passes only JSON integer literals, so int() fails only beyond the interpreter digit limit.
+    try:
+        return int(literal)
+    except ValueError as exc:
+        raise InvalidInputError("schema publication JSON contains an integer beyond the digit limit") from exc
+
+
+def _parse_json(text: str) -> object:
+    """Decode JSON text; raise ``InvalidInputError`` for a value the decoder cannot build."""
+
+    try:
+        return json.loads(text, parse_int=_json_integer)
+    except RecursionError as exc:
+        # Without a depth limit, the recursive decoder stops at the interpreter recursion limit.
+        raise InvalidInputError("schema publication JSON nests beyond the decoder depth") from exc
+
+
 def _load_manifest(repo_root: Path) -> tuple[dict[str, Any] | None, list[str]]:
     manifest_file = repo_root / MANIFEST_PATH
     if not manifest_file.exists():
         return None, [f"schema publication manifest is missing: {MANIFEST_PATH.as_posix()}"]
     try:
-        payload = json.loads(manifest_file.read_text(encoding="utf-8"))
+        payload = _parse_json(manifest_file.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         return None, [f"schema publication manifest is not valid JSON: {exc.msg}"]
+    except InvalidInputError as exc:
+        return None, [f"schema publication manifest is not valid JSON: {exc}"]
     if not isinstance(payload, dict):
         return None, ["schema publication manifest must be a JSON object"]
     if payload.get("schema_version") == LEGACY_SCHEMA_VERSION:
         return payload, []
-    expected = {"schema_version", "hash_algorithm", "entries_directory", "tombstones_directory"}
+    expected = {"schema_version", "entries_directory", "tombstones_directory"}
     if set(payload) != expected:
         return None, [f"schema publication manifest fields must exactly match: {sorted(expected)}"]
     records, record_failures = _load_record_directory(
@@ -98,7 +121,6 @@ def _load_manifest(repo_root: Path) -> tuple[dict[str, Any] | None, list[str]]:
         return None, failures
     return {
         "schema_version": payload.get("schema_version"),
-        "hash_algorithm": payload.get("hash_algorithm"),
         "schemas": records,
         REMOVED_SCHEMAS_KEY: tombstones,
     }, []
@@ -127,29 +149,44 @@ def _load_record_directory(
     records: list[dict[str, Any]] = []
     failures: list[str] = []
     for path in paths:
-        relative = path.relative_to(repo_root).as_posix()
-        try:
-            record = json.loads(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
-            failures.append(f"schema publication {record_kind} is not valid JSON: {relative}: {exc.msg}")
-            continue
-        if not isinstance(record, dict):
-            failures.append(f"schema publication {record_kind} must be a JSON object: {relative}")
-            continue
-        identity = record.get("contract_id" if record_kind == "entry" else "schema_path")
-        if not isinstance(identity, str) or path.stem != Path(identity).stem:
-            failures.append(f"schema publication {record_kind} filename does not match its identity: {relative}")
-            continue
-        records.append(record)
+        record, failure = _load_record(path, path.relative_to(repo_root).as_posix(), record_kind)
+        if failure is not None:
+            failures.append(failure)
+        else:
+            records.append(record)
     return records, failures
 
 
+def _load_record(path: Path, relative: str, record_kind: str) -> tuple[dict[str, Any], str | None]:
+    """Return one publication record, or a failure that names why it cannot be used."""
+    try:
+        record = _parse_json(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, InvalidInputError) as exc:
+        detail = exc.msg if isinstance(exc, json.JSONDecodeError) else exc
+        return (
+            {},
+            f"schema publication {record_kind} is not valid JSON: {relative}: {detail}",
+        )
+    if not isinstance(record, dict):
+        return {}, f"schema publication {record_kind} must be a JSON object: {relative}"
+    identity = record.get("contract_id" if record_kind == "entry" else "schema_path")
+    matches = isinstance(identity, str) and path.stem == Path(identity).stem
+    return (
+        record,
+        None if matches else f"schema publication {record_kind} filename does not match its identity: {relative}",
+    )
+
+
 def load_schema_publication_catalog(repo_root: Path = REPO_ROOT) -> dict[str, Any]:
-    """Load the normalized publication catalog from legacy or sharded storage."""
+    """Load the normalized publication catalog from legacy or sharded storage.
+
+    Raise ``InvalidInputError`` when the manifest or one of its records is
+    missing or malformed.
+    """
 
     payload, failures = _load_manifest(repo_root)
     if payload is None:
-        raise ValueError("; ".join(failures))
+        raise InvalidInputError("; ".join(failures))
     return payload
 
 
@@ -157,53 +194,13 @@ def _canonical_json(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
 
 
-def _schema_content_digest(schema: Any) -> str:
-    return hashlib.sha256(_canonical_json(schema).encode("utf-8")).hexdigest()
-
-
-def schema_content_hash(path: Path) -> str:
-    """Return the canonical JSON sha256 for a published schema file."""
-
-    return _schema_content_digest(json.loads(path.read_text(encoding="utf-8")))
-
-
 def _load_schema(path: Path, schema_path: str) -> tuple[Any | None, str | None]:
     try:
-        return json.loads(path.read_text(encoding="utf-8")), None
+        return _parse_json(path.read_text(encoding="utf-8")), None
     except json.JSONDecodeError as exc:
         return None, f"schema manifest path is not valid JSON: {schema_path}: {exc.msg}"
-
-
-def _validate_last_change(
-    contract_id: str, value: Any, entry_content_hash: str
-) -> tuple[list[str], dict[str, Any] | None]:
-    """Validate a manifest entry's optional ``last_change`` ledger block.
-
-    The block records the contract-facing rationale for the schema's current
-    content (ADR-009 section 7: schema changes are governed contract edits, not
-    regeneration side-effects). It must carry a non-empty ``summary`` and a
-    ``content_hash`` equal to the entry's canonical schema hash, so a stale
-    ledger (rationale left pointing at an older schema) cannot satisfy the gate.
-    """
-    if not isinstance(value, dict):
-        return [f"schema manifest entry {contract_id} last_change must be a JSON object"], None
-    failures: list[str] = []
-    summary = value.get("summary")
-    if not isinstance(summary, str) or not summary.strip():
-        failures.append(f"schema manifest entry {contract_id} last_change.summary must be a non-empty string")
-    change_hash = value.get("content_hash")
-    if not isinstance(change_hash, str) or not SHA256_RE.match(change_hash):
-        failures.append(
-            f"schema manifest entry {contract_id} last_change.content_hash must be a 64-character sha256 hex digest"
-        )
-    elif change_hash != entry_content_hash:
-        failures.append(
-            f"schema manifest entry {contract_id} last_change.content_hash {change_hash} does not match the schema "
-            f"content_hash {entry_content_hash}; record the ledger entry against the current schema content"
-        )
-    if failures:
-        return failures, None
-    return [], {"summary": summary, "content_hash": change_hash}
+    except InvalidInputError as exc:
+        return None, f"schema manifest path is not valid JSON: {schema_path}: {exc}"
 
 
 def _git_show(repo_root: Path, gitref: str) -> str | None:
@@ -388,27 +385,39 @@ def _load_base_manifest(repo_root: Path, base_rev: str) -> tuple[dict[str, dict[
     if text is None:
         return None, f"base schema publication manifest is missing at {base_rev}"
     try:
-        payload = json.loads(text)
-    except json.JSONDecodeError:
+        payload = _parse_json(text)
+    except json.JSONDecodeError, InvalidInputError:
         return None, f"base schema publication manifest at {base_rev} is not valid JSON"
     if not isinstance(payload, dict):
-        return None, f"base schema publication manifest at {base_rev} must be a JSON object"
+        return (
+            None,
+            f"base schema publication manifest at {base_rev} must be a JSON object",
+        )
     if payload.get("schema_version") == SCHEMA_VERSION:
         directory = payload.get("entries_directory")
         if not isinstance(directory, str):
-            return None, f"base schema publication manifest at {base_rev} has no entries directory"
+            return (
+                None,
+                f"base schema publication manifest at {base_rev} has no entries directory",
+            )
         paths = _git_paths(repo_root, base_rev, directory)
         if paths is None:
-            return None, f"base schema publication records at {base_rev} could not be listed"
+            return (
+                None,
+                f"base schema publication records at {base_rev} could not be listed",
+            )
         entries: list[dict[str, Any]] = []
         for path in paths:
             record_text = _git_show(repo_root, f"{base_rev}:{path}")
             try:
-                record = json.loads(record_text) if record_text is not None else None
-            except json.JSONDecodeError:
+                record = _parse_json(record_text) if record_text is not None else None
+            except json.JSONDecodeError, InvalidInputError:
                 record = None
             if not isinstance(record, dict):
-                return None, f"base schema publication record at {base_rev}:{path} is invalid"
+                return (
+                    None,
+                    f"base schema publication record at {base_rev}:{path} is invalid",
+                )
             entries.append(record)
         payload = {"schemas": entries}
     return _manifest_entries(payload), None
@@ -445,13 +454,20 @@ def _check_stable_schema_changes(
             failures.append(f"base schema for {entry.contract_id} is missing at {base_rev}: {base_path}")
             continue
         try:
-            base_schema = json.loads(base_text)
-        except json.JSONDecodeError:
+            base_schema = _parse_json(base_text)
+        except json.JSONDecodeError, InvalidInputError:
             failures.append(f"base schema for {entry.contract_id} at {base_rev}:{base_path} is not valid JSON")
             continue
-        if _schema_content_digest(base_schema) == entry.content_hash:
+        try:
+            if base_schema == entry.schema:
+                continue
+            breaking_changes = _schema_breaking_changes(base_schema, entry.schema)
+        except RecursionError:
+            # The comparison walks the schemas recursively; the JSON decoder accepts deeper documents.
+            failures.append(
+                f"stable schema {entry.contract_id} nests beyond the depth that the compatibility check can compare"
+            )
             continue
-        breaking_changes = _schema_breaking_changes(base_schema, entry.schema)
         if breaking_changes:
             failures.append(
                 f"stable schema {entry.contract_id} changed incompatibly without a version bump: "
@@ -460,13 +476,15 @@ def _check_stable_schema_changes(
     return failures
 
 
-def _removal_ledger(payload: dict[str, Any]) -> tuple[dict[str, dict[str, Any]], list[str]]:
+def _removal_ledger(
+    payload: dict[str, Any],
+) -> tuple[dict[str, dict[str, Any]], list[str]]:
     """Parse and validate the normalized ``removed_schemas`` tombstone list.
 
-    A removed schema has no current ``schemas`` entry to carry a ``last_change``
-    block, so its contract-facing rationale is recorded as a tombstone keyed by
-    ``schema_path`` (ADR-009 section 7: a contract removal is a governed edit,
-    not a silent regeneration side-effect). Each tombstone must carry a
+    A removed schema has no current ``schemas`` entry, so its contract-facing
+    rationale is recorded as a tombstone keyed by ``schema_path`` (ADR-009
+    section 7: a contract removal is a governed edit, not a silent
+    regeneration side-effect). Each tombstone must carry a
     non-empty ``summary``; the ``schema_path`` is what links the tombstone back
     to the schema that existed at ``base_rev``.
     """
@@ -497,53 +515,6 @@ def _removal_ledger(payload: dict[str, Any]) -> tuple[dict[str, dict[str, Any]],
     return tombstones, failures
 
 
-def _check_change_ledger(
-    repo_root: Path,
-    current_entries: Iterable[ManifestEntry],
-    *,
-    base_rev: str,
-    base_entries: dict[str, dict[str, Any]] | None,
-    removal_tombstones: dict[str, dict[str, Any]],
-) -> list[str]:
-    """Require a contract-facing change-ledger entry whenever a published schema's
-    content changed relative to ``base_rev`` (or is newly published or removed).
-
-    The manifest ``last_change`` block is what turns a schema change into a
-    reviewed contract edit rather than a silent regeneration side-effect
-    (ADR-009 section 7). The per-entry shape check already rejects a stale or
-    malformed ledger; this gate adds the "a change must carry one at all" rule,
-    keyed by the same ``schema_path`` identity used elsewhere. Removals have no
-    current entry to inspect, so they are gated separately against the base
-    publication catalog and must carry an independent tombstone record.
-    """
-    failures: list[str] = []
-    for entry in current_entries:
-        base_text = _git_show(repo_root, f"{base_rev}:{entry.schema_path}")
-        if base_text is not None:
-            try:
-                base_schema = json.loads(base_text)
-            except json.JSONDecodeError:
-                base_schema = None
-            if base_schema is not None and _schema_content_digest(base_schema) == entry.content_hash:
-                continue
-        if entry.last_change is None:
-            failures.append(
-                f"published schema {entry.contract_id} changed without a contract-facing change description; "
-                f"add a '{LAST_CHANGE_KEY}' entry (summary + current content_hash) to its record under "
-                f"{ENTRIES_DIRECTORY} "
-                "recording why the contract changed"
-            )
-
-    failures.extend(
-        _check_removal_ledger(
-            current_entries,
-            base_entries=base_entries,
-            removal_tombstones=removal_tombstones,
-        )
-    )
-    return failures
-
-
 def _check_removal_ledger(
     current_entries: Iterable[ManifestEntry],
     *,
@@ -554,10 +525,8 @@ def _check_removal_ledger(
     existed at ``base_rev`` and is gone from the current manifest.
 
     Without this, a PR can delete ``contracts/schemas/foo.json`` and drop its
-    manifest entry: the file-level Rego rule is satisfied because the manifest
-    was touched, and ``_check_change_ledger`` has no current entry to inspect,
-    so the removal lands without the contract-facing ledger this gate requires
-    for every other schema change (ADR-009 section 7).
+    manifest entry, and the removal lands without a recorded reason
+    (ADR-061).
     """
     if not base_entries:
         return []
@@ -585,7 +554,10 @@ def _safe_schema_path(repo_root: Path, schema_path: str) -> tuple[Path | None, s
         resolved = candidate.resolve(strict=False)
         resolved.relative_to(schemas_root)
     except OSError, ValueError:
-        return None, f"schema manifest path resolves outside contracts/schemas/: {schema_path}"
+        return (
+            None,
+            f"schema manifest path resolves outside contracts/schemas/: {schema_path}",
+        )
     return resolved, None
 
 
@@ -602,8 +574,9 @@ def validate_schema_publication_manifest(
 
     if payload.get("schema_version") not in {SCHEMA_VERSION, LEGACY_SCHEMA_VERSION}:
         failures.append(f"schema manifest schema_version must be {SCHEMA_VERSION!r} or {LEGACY_SCHEMA_VERSION!r}")
-    if payload.get("hash_algorithm") != HASH_ALGORITHM:
-        failures.append(f"schema manifest hash_algorithm must be {HASH_ALGORITHM!r}")
+    for key in RETIRED_MANIFEST_KEYS:
+        if key in payload:
+            failures.append(f"schema manifest must not record {key}; git holds schema history")
 
     entries = payload.get("schemas")
     if not isinstance(entries, list) or not entries:
@@ -623,7 +596,6 @@ def validate_schema_publication_manifest(
         contract_id = entry.get("contract_id")
         schema_path = entry.get("schema_path")
         stability = entry.get("stability")
-        content_hash = entry.get("content_hash")
         if not isinstance(contract_id, str) or not contract_id:
             failures.append(f"schema manifest entry {index} contract_id must be a non-empty string")
             continue
@@ -632,10 +604,9 @@ def validate_schema_publication_manifest(
             continue
         if stability not in STABILITY_VALUES:
             failures.append(f"schema manifest entry {contract_id} stability must be one of: draft, stable")
-        if not isinstance(content_hash, str) or not SHA256_RE.match(content_hash):
-            failures.append(
-                f"schema manifest entry {contract_id} content_hash must be a 64-character sha256 hex digest"
-            )
+        for key in RETIRED_ENTRY_KEYS:
+            if key in entry:
+                failures.append(f"schema manifest entry {contract_id} must not record {key}; git holds schema history")
 
         if contract_id <= previous_id:
             failures.append("schema manifest entries must be sorted by contract_id")
@@ -673,28 +644,13 @@ def validate_schema_publication_manifest(
         if schema_error is not None:
             failures.append(schema_error)
             continue
-        if isinstance(content_hash, str) and SHA256_RE.match(content_hash):
-            actual_hash = _schema_content_digest(schema)
-            if actual_hash != content_hash:
-                failures.append(
-                    f"schema manifest entry {contract_id} content_hash {content_hash} does not match "
-                    f"canonical schema hash {actual_hash}"
-                )
-        parsed_last_change: dict[str, Any] | None = None
-        if isinstance(content_hash, str) and SHA256_RE.match(content_hash) and LAST_CHANGE_KEY in entry:
-            last_change_failures, parsed_last_change = _validate_last_change(
-                contract_id, entry[LAST_CHANGE_KEY], content_hash
-            )
-            failures.extend(last_change_failures)
-        if stability in STABILITY_VALUES and isinstance(content_hash, str) and SHA256_RE.match(content_hash):
+        if stability in STABILITY_VALUES:
             validated_entries.append(
                 ManifestEntry(
                     contract_id=contract_id,
                     schema_path=schema_path,
                     stability=stability,
-                    content_hash=content_hash,
                     schema=schema,
-                    last_change=parsed_last_change,
                 )
             )
 
@@ -717,10 +673,8 @@ def validate_schema_publication_manifest(
         failures.extend(_check_stable_schema_changes(repo_root, validated_entries, base_rev=base_rev))
         base_entries, _ = _load_base_manifest(repo_root, base_rev)
         failures.extend(
-            _check_change_ledger(
-                repo_root,
+            _check_removal_ledger(
                 validated_entries,
-                base_rev=base_rev,
                 base_entries=base_entries,
                 removal_tombstones=removal_tombstones,
             )
@@ -737,7 +691,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    failures = validate_schema_publication_manifest(REPO_ROOT, base_rev=args.base_rev)
+    try:
+        failures = validate_schema_publication_manifest(REPO_ROOT, base_rev=args.base_rev)
+    except (OSError, UnicodeDecodeError, InvalidInputError) as exc:
+        print(f"[schema-publication] {exc}", file=sys.stderr)
+        return 1
     if failures:
         for failure in failures:
             print(f"[schema-publication] {failure}", file=sys.stderr)
@@ -746,4 +704,4 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

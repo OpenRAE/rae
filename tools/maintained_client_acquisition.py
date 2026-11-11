@@ -6,12 +6,21 @@ import os
 import re
 import stat
 import subprocess
+import sys
 import tempfile
 from dataclasses import dataclass
 from hashlib import sha256
 from pathlib import Path
 from typing import Protocol
 from urllib.parse import urlsplit
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import OperationalError  # noqa: E402
 
 SYSTEM_CURL = Path("/usr/bin/curl")
 PROBE_TIMEOUT_SECONDS = 15
@@ -24,6 +33,10 @@ _MINIMUM_CURL = (8, 4, 0)
 _VERSION_RE = re.compile(r"(\d{1,10})[.](\d{1,10})[.](\d{1,10})")
 _CLIENT_ENV = {"LC_ALL": "C", "LANG": "C", "PATH": "/usr/bin:/bin"}
 _TLS_EXIT_CODES = frozenset({35, 51, 58, 60, 77, 82, 83, 90, 91})
+
+
+class ArtifactAcquisitionError(OperationalError):
+    """A reviewed raw object could not be acquired and admitted against its lock."""
 
 
 class LockedRawObject(Protocol):
@@ -185,6 +198,9 @@ def _curl_preflight_failure(executable: Path) -> str | None:
         )
     except (OSError, subprocess.SubprocessError):
         failure = "curl-unavailable"
+    except UnicodeDecodeError:
+        # Text mode decodes the banner strictly; a banner that is not text cannot show a supported version.
+        failure = "curl-version-inadequate"
     if failure is None:
         observed = f"{completed.stdout}\n{completed.stderr}"
         if completed.returncode != 0:
@@ -286,14 +302,14 @@ def acquire_locked_bytes(
     """Acquire one selected raw object and admit it against the reviewed lock."""
 
     if not 1 <= expected.size <= MAX_GENERIC_ARTIFACT_BYTES:
-        raise RuntimeError(f"{artifact_id} locked raw size is outside the generic artifact budget")
+        raise ArtifactAcquisitionError(f"{artifact_id} locked raw size is outside the generic artifact budget")
     if local_input is not None:
         try:
             payload = _read_bounded_regular_file(local_input, max_bytes=expected.size)
         except OSError:
-            raise RuntimeError(f"{artifact_id} local input failed locked identity validation") from None
+            raise ArtifactAcquisitionError(f"{artifact_id} local input failed locked identity validation") from None
         if not _matches_lock(payload, expected):
-            raise RuntimeError(f"{artifact_id} local input failed locked identity validation")
+            raise ArtifactAcquisitionError(f"{artifact_id} local input failed locked identity validation")
         return payload
 
     with tempfile.TemporaryDirectory(prefix="raes-artifact-acquisition-") as temporary_dir:
@@ -306,13 +322,13 @@ def acquire_locked_bytes(
             max_bytes=expected.size,
         )
         if result["outcome"] != "passed":
-            raise RuntimeError(f"{artifact_id} acquisition failed: {result['reason_code']}")
+            raise ArtifactAcquisitionError(f"{artifact_id} acquisition failed: {result['reason_code']}")
         try:
             payload = _read_bounded_regular_file(output, max_bytes=expected.size)
         except OSError:
-            raise RuntimeError(f"{artifact_id} acquired output is unsafe") from None
+            raise ArtifactAcquisitionError(f"{artifact_id} acquired output is unsafe") from None
         if not _matches_lock(payload, expected):
-            raise RuntimeError(f"{artifact_id} acquired bytes differ from the reviewed lock")
+            raise ArtifactAcquisitionError(f"{artifact_id} acquired bytes differ from the reviewed lock")
         return payload
 
 
@@ -390,14 +406,16 @@ def acquire_locked_file(
     """
 
     if not 1 <= expected.size <= budget.max_bytes:
-        raise RuntimeError(f"{artifact_id} locked raw size is outside the {budget.budget_id} artifact budget")
+        raise ArtifactAcquisitionError(
+            f"{artifact_id} locked raw size is outside the {budget.budget_id} artifact budget"
+        )
     if local_input is not None:
         try:
             admitted = _copy_bounded_regular_file(local_input, destination, expected=expected)
         except OSError:
             admitted = False
         if not admitted:
-            raise RuntimeError(f"{artifact_id} local input failed locked identity validation")
+            raise ArtifactAcquisitionError(f"{artifact_id} local input failed locked identity validation")
         return
     result = run_curl_transfer(
         SYSTEM_CURL,
@@ -408,13 +426,13 @@ def acquire_locked_file(
         budget=budget,
     )
     if result["outcome"] != "passed":
-        raise RuntimeError(f"{artifact_id} acquisition failed: {result['reason_code']}")
+        raise ArtifactAcquisitionError(f"{artifact_id} acquisition failed: {result['reason_code']}")
     try:
         admitted = _regular_file_matches_lock(destination, expected)
     except OSError:
-        raise RuntimeError(f"{artifact_id} acquired output is unsafe") from None
+        raise ArtifactAcquisitionError(f"{artifact_id} acquired output is unsafe") from None
     if not admitted:
-        raise RuntimeError(f"{artifact_id} acquired bytes differ from the reviewed lock")
+        raise ArtifactAcquisitionError(f"{artifact_id} acquired bytes differ from the reviewed lock")
 
 
 __all__ = [
@@ -423,6 +441,7 @@ __all__ = [
     "MAX_GENERIC_ARTIFACT_BYTES",
     "MAX_LARGE_OBJECT_BYTES",
     "SYSTEM_CURL",
+    "ArtifactAcquisitionError",
     "TransferBudget",
     "acquire_locked_bytes",
     "acquire_locked_file",

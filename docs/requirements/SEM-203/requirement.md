@@ -9,7 +9,7 @@ created_at: 2026-04-03T05:39:40.192269Z
 updated_at: 2026-04-05T02:40:10.318695Z
 ---
 
-# SEM-203 — Workflow Control Semantics
+# `SEM-203` workflow control semantics
 
 ## Statement
 
@@ -17,10 +17,12 @@ The ecosystem shall define explicit, portable control semantics for workflow bra
 
 ## Rationale
 
-Current state: implemented. Workflow behavior needs explicit state-machine-style meaning so it is not reconstructed differently by each execution environment.
+Current state: implemented. Explicit state-machine rules keep workflow meaning the same in each execution environment.
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/workflow/semantics.py` (Workflow step state and join rules)
+- TESTS → TEST `implementations/python/tests/test_workflow_join_analysis.py` (Join checks against all paths in small graphs)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/sections.md` (SDL Sections Reference)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/runtime-architecture.md` (SDL Runtime Architecture)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/validation.md` (SDL Semantic Validation)

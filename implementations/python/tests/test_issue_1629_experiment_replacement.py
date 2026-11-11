@@ -3,6 +3,7 @@
 import pytest
 from issue_1629_archive_fixture import TrialArchive
 from issue_1629_trial_fixture import TrialServices, factorial_inputs
+from raes_contracts.errors import OperationalError
 from raes_runtime import RuntimeControlPlane
 from raes_runtime.runtime_experiment_replacement import ExperimentReplacementBinding
 from raes_runtime.runtime_trial_decisions import TrialReplacementDecision, TrialTerminalDecision
@@ -30,7 +31,7 @@ def test_replacement_preserves_failure_after_lost_archive_acknowledgement():
         first = services.observed[0][0]
         services.execution_fails = False
         archive.lose_ack = True
-        with pytest.raises(OSError, match="acknowledgement lost"):
+        with pytest.raises(OperationalError, match="could not publish the trial run"):
             engine.advance_experiment(experiment)
         original = archive.runs[(first, "1")].model_copy(deep=True)
         assert original.outcome_status == "failed"

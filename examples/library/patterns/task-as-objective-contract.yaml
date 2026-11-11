@@ -8,8 +8,8 @@ source_refs:
   - docs/explain/sdl/limitations.md
 summary: Represent current task templates as objective contracts with explicit actors, targets, and success criteria.
 intent: >
-  Provide a reusable task authoring path using current SDL surfaces while the
-  repository does not expose a first-class tasks section.
+  Author a task through current SDL declarations.
+  The repository exposes no first-class tasks section.
 use_when:
   - A user-facing task can be expressed as one objective with measurable success.
   - The task target can be named through existing SDL target references.
