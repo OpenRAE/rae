@@ -50,3 +50,4 @@ Primary-source refresh shows that participant-supporting ecosystems frequently t
 - TESTS → TEST `implementations/python/tests/test_issue_307_dsl_120_participant_episode_policy.py` (DSL-120 authoring, validation, composition, compilation, and schema tests; no episode execution.)
 - TESTS → TEST `implementations/python/tests/test_issue_307_policy_ownership.py` (DSL-120 requirement-governance route and ownership bounds.)
 - TESTS → TEST `implementations/python/tests/test_issue_1885_explicitness_work.py` (DSL-120 policy-free compilation retains its semantic fingerprints.)
+- TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (DSL-120 absent-policy normalization retains the complete capture dimension in compilation fingerprints.)
