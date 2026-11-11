@@ -128,6 +128,60 @@ lives under `nodes.<id>.runtime` ([runtime-inventory.md](runtime-inventory.md));
 both carry `forwarding_agent_id` identity and the same family invariants.
 They occupy different positions in the document.
 
+## Realization posture and closure
+
+Realization uses two independent axes, as defined by
+[envelope semantics](../formal/realization/envelope-semantics.md#terms):
+
+- **Posture** constrains a value or child scope: `open` delegates selection,
+  `constrained` requires a typed domain, and `exact` requires its singleton value.
+- **Closure** governs additional realizable dimensions or members:
+  `open-world` permits them within the owning semantics; `closed-world` excludes them.
+  A local declaration can leave closure unresolved for its owning resolution rules.
+
+The table maps the three vocabularies to these axes.
+“Not set” means that the term supplies no declaration on that axis.
+It does not erase an independently declared constraint.
+
+| Source vocabulary | Term | Posture axis | Closure axis | Meaning |
+| --- | --- | --- | --- | --- |
+| Author `realization.default` and `scopes[].posture` | `closed` | Not set | `closed-world` default | Do not fill otherwise unspecified realizable concerns under this default. |
+| Author `realization.default` and `scopes[].posture` | `open` | Not set | `open-world` default | Delegate otherwise unspecified realizable concerns; explicit descendants remain binding. |
+| Author `realization.default` and `scopes[].posture` | `unspecified` | Not set | No concrete local default | Use a governing concrete scope, or defer to the apparatus default. |
+| Concern constraint or envelope binding | `open` | `open` | Not set | Permit selection at the designated realization point within the admitted capability domain. |
+| Concern constraint or envelope binding | `constrained` | `constrained` | Not set | Require selection within the stated typed domain. |
+| Concern constraint or envelope binding | `exact` | `exact` | Not set | Require the stated singleton value or structure. |
+| Recursive record, collection, or scope closure | `open` | Not set | `open-world` in the named universe/profile | Permit additional modeled members while preserving declared children. |
+| Recursive record, collection, or scope closure | `closed` | Not set | `closed-world` in the named universe/profile | Exclude additional modeled members without making child values exact. |
+| Recursive record, collection, or scope closure | `undefined` | Not set | No local closure | Inherit a concrete lexical scope or document default; unresolved effective closure is `unsupported`. |
+
+This model does not add SDL fields or replace existing wire spellings.
+The source context determines which axis a term addresses.
+An exact package version can coexist with open package membership.
+A closed collection can contain constrained child values.
+Presence, knowledge, origin, capability, and observation demand remain independent.
+
+The [author cascade](../formal/realization/explicitness-and-realization.md#scoped-default-cascade)
+retains explicit leaf precedence, namespace ownership, and most-specific concrete defaults.
+Equal-scope duplicates are invalid; declaration order has no effect.
+Explicit `unspecified` retains delegation provenance.
+Without a selected apparatus policy, its current fallback is closed.
+Omitting `realization` instead retains the legacy closed fallback without an explicit delegation record.
+The owning compute-substrate rule still makes an omitted substrate constraint open.
+
+[Recursive closure](recursive-realization-constraints.md#2-records-scopes-and-closure)
+retains its own local and lexical resolution rules.
+A concrete closure names both its universe and profile revision.
+An undefined closure supplies neither name.
+The pure recursive relation does not select apparatus policy.
+Closure covers its named universe, not every incidental dependency or backend setting.
+
+Envelope bindings retain their separate
+[override rules](../formal/realization/envelope-semantics.md#required-semantics).
+Semantic openness does not admit unknown SDL fields.
+An open author default does not waive explicit leaf constraints.
+[Augmentation scope](augmentation-scope.md) separately governs added in-world effects and remains open by default.
+
 ## Narrative chain
 
 [External inject triggering](external-injects.md) defines the accepted
