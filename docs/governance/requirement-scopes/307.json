@@ -6,6 +6,9 @@
     "DSL-120"
   ],
   "bindings": {
+    ".vale.ini": [
+      "DSL-120"
+    ],
     "contracts/fixtures/sdl/participant-episode-policy-v1/README.md": [
       "DSL-120"
     ],
@@ -48,10 +51,7 @@
     "docs/decisions/package-artifacts/operations.md": [
       "DSL-120"
     ],
-    "docs/explain/sdl/lineage.md": [
-      "DSL-120"
-    ],
-    "docs/explain/sdl/sections.md": [
+    "docs/explain/sdl/participant-episode-policies.md": [
       "DSL-120"
     ],
     "docs/governance/requirement-scopes/307.json": [
@@ -97,6 +97,9 @@
       "DSL-120"
     ],
     "implementations/python/packages/raes/composition/_episode_policy.py": [
+      "DSL-120"
+    ],
+    "implementations/python/packages/raes/composition/_references.py": [
       "DSL-120"
     ],
     "implementations/python/packages/raes/participant_behavior_specification.py": [
@@ -147,10 +150,19 @@
     "specs/formal/assurance-fulfillment.yaml": [
       "DSL-120"
     ],
+    "specs/formal/participant-behavior-model/README.md": [
+      "DSL-120"
+    ],
+    "specs/formal/participant-semantics/semantic-coverage/behavior-model-and-runtime.md": [
+      "DSL-120"
+    ],
     "specs/sdl/references.md": [
       "DSL-120"
     ],
     "specs/sdl/sections.md": [
+      "DSL-120"
+    ],
+    "tools/formal_semantic_validation/_replay.py": [
       "DSL-120"
     ],
     "tools/policy/adr_policy.yaml": [

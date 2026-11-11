@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 from raes_contracts.variable_references import is_variable_ref
 
 from .._reference_targetability import ReferencePurpose
-from ._references import _maybe_rename
+from ._references import rename_reference
 
 if TYPE_CHECKING:
     from .._declarations import DeclarationIndex
@@ -31,7 +31,7 @@ _EPISODE_POLICY_REFS = (
 )
 
 
-def _unit_reset_authority_ambiguities(unit: ScenarioContent, index: DeclarationIndex) -> list[str]:
+def unit_reset_authority_ambiguities(unit: ScenarioContent, index: DeclarationIndex) -> list[str]:
     """Use the standalone reset-authority purpose and diagnostic before the import is renamed."""
 
     errors = []
@@ -62,7 +62,7 @@ def _episode_policy_records(policy: dict[str, Any]) -> list[object]:
     return records
 
 
-def _rewrite_participant_episode_policy(
+def rewrite_participant_episode_policy(
     policy: object,
     symbols: dict[str, dict[str, str] | set[str]],
 ) -> None:
@@ -81,7 +81,7 @@ def _rewrite_episode_policy_record(
 ) -> None:
     for field_name, section in _EPISODE_POLICY_REF_LISTS:
         if isinstance(record.get(field_name), list):
-            record[field_name] = [_maybe_rename(str(ref), symbols[section]) for ref in record[field_name]]
+            record[field_name] = [rename_reference(str(ref), symbols[section]) for ref in record[field_name]]
     for field_name, section in _EPISODE_POLICY_REFS:
         if record.get(field_name):
-            record[field_name] = _maybe_rename(str(record[field_name]), symbols[section])
+            record[field_name] = rename_reference(str(record[field_name]), symbols[section])

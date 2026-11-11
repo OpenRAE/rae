@@ -316,7 +316,9 @@ and the reset policy name the evidence requirements that together back the
 transition. Semantic validation requires each named requirement to be
 declared; it does not check which record the requirement captures.
 `interrupted` is never authored, because interruption is externally induced. A participant is governed by at most one episode policy,
-because realized episodes are keyed by participant. The record holds
+because realized episodes are keyed by participant.
+
+The record holds
 references only. It rejects realized episode coordinates such as episode
 identity, lifecycle status, timestamps, sequence numbers, and decision epochs.
 Those stay on the ADR-013 participant episode state and history contracts.
@@ -327,6 +329,9 @@ Compilation emits one `participant.episode-policy.<name>` record beside the
 selected participants' `participant.behavior.<agent>` episode addresses. It
 never initializes, resets, or ends an episode, and it claims no executable or
 runtime adoption.
+
+The [episode policy reference](../../docs/explain/sdl/participant-episode-policies.md)
+gives an authoring example, reset rules, and lineage sources.
 
 ## Extending the section set
 

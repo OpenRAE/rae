@@ -53,7 +53,7 @@ def _domain_controller_address(controller_node_name: str, domain_name: str) -> s
     return _address("provision", "domain-controller", domain_name, controller_node_name)
 
 
-def _section_ref_name(ref: str, section: str, declarations: Mapping[str, object]) -> str:
+def section_ref_name(ref: str, section: str, declarations: Mapping[str, object]) -> str:
     """Return the declaration key denoted by a bare or section-qualified ref."""
 
     if ref in declarations:
@@ -63,6 +63,10 @@ def _section_ref_name(ref: str, section: str, declarations: Mapping[str, object]
     if candidate in declarations:
         return candidate
     raise ValueError(f"validated {section} reference must resolve")
+
+
+# Preserve existing callers while exposing the shared resolution interface.
+_section_ref_name = section_ref_name
 
 
 def _compiled_domain_binding(
@@ -154,10 +158,6 @@ def _participant_inject_delivery_address(spec_name: str, binding_id: str) -> str
         "inject-delivery",
         binding_id,
     )
-
-
-def _participant_episode_policy_address(spec_name: str) -> str:
-    return _address("participant", "episode-policy", spec_name)
 
 
 def _condition_binding_address(node_name: str, condition_name: str) -> str:

@@ -102,7 +102,9 @@ operation requires:
 
 Missing policy meaning fails closed. So does a missing identity or evidence.
 Missing contracts or backend support also fail closed. Each check fails at its
-own gate. Only the API-407 policy path can allow a downgrade. Record its real
+own gate.
+
+Only the API-407 policy path can allow a downgrade. Record its real
 strength. Record its limits, release, and source. Missing support is not a
 downgrade.
 
@@ -110,6 +112,7 @@ Legacy API-408 status, context, and history retrieval remains available when
 no crossing resolver is set. That legacy mode is not governed egress. With a
 resolver, the HTTP adapter binds the audience before lookup. It resolves
 trusted evidence. It commits crossing facts before it writes the view.
+
 If the final flow-sink check refuses release, retrieval returns no view and
 the same atomic write records a failed operation and denied audit. Earlier
 crossing decisions remain in history as evidence of work performed; they do
@@ -154,6 +157,7 @@ Use [the relation catalogue](participant-control-explanation.md#select-a-behavio
 
 Name the question first. Then select a relation. Record the subject and
 carriers. Record the direction and projection revision. Name all quantifiers.
+
 State the scheduler, setting, and order assumptions. State the evidence bound,
 status, limits, and nonclaims.
 

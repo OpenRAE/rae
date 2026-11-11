@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import textwrap
+from dataclasses import replace
 from pathlib import Path
 
 import pytest
@@ -15,6 +16,8 @@ from raes.parser import parse_sdl, parse_sdl_file
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.models import ParticipantEpisodeConditionRuntime, ParticipantEpisodePolicyRuntime
 from raes_schemas import schema_bundle
+
+from tools.check_formal_semantic_validation import replay_case
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_ROOT = REPO_ROOT / "contracts" / "fixtures" / "sdl" / "participant-episode-policy-v1"
@@ -612,6 +615,24 @@ def test_policy_free_behavior_specifications_keep_their_existing_shape() -> None
     assert "episode_policy" not in scenario.behavior_specifications["analyst-triage"].model_dump(mode="json")
     assert "episode_policy" not in model.behavior_specifications[SPEC_ADDRESS].spec
     assert model.participant_episode_policies == {}
+
+
+def test_formal_fingerprint_keeps_nonempty_episode_policies(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    source = _source()
+    model = compile_runtime_model(parse_sdl(source))
+    (tmp_path / "episode.yaml").write_text(source, encoding="utf-8")
+    case = {"case_id": "episode-policy-fingerprint", "fixture_path": "episode.yaml", "replay_mode": "compile-stability"}
+    monkeypatch.setattr("raes_processor.compiler.compile_runtime_model", lambda _scenario: model)
+    with_policy = replay_case(tmp_path, case)
+
+    monkeypatch.setattr(
+        "raes_processor.compiler.compile_runtime_model",
+        lambda _scenario: replace(model, participant_episode_policies={}),
+    )
+    without_policy = replay_case(tmp_path, case)
+
+    assert with_policy["actual_outcome"] == without_policy["actual_outcome"] == "stable"
+    assert with_policy["result_digest"] != without_policy["result_digest"]
 
 
 @pytest.mark.parametrize(
