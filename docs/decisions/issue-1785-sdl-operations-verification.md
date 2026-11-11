@@ -140,4 +140,5 @@ No full regression or mutation lane runs locally.
 
 The Python reference replay test runs the seven operation recorders in check mode.
 Each recorder compares its output with the frozen fixture.
+The transformation check ignores JSON object member order and checks array order.
 The hosted Python coverage report includes those executions.

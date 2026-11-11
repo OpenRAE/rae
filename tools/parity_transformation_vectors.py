@@ -49,7 +49,7 @@ def fixture_cases(rows: list[TransformCase]) -> None:
             continue
         source_path = directory / case["source_path"]
         source = parse_sdl_file(source_path)
-        files = {file.name: file.read_text() for file in source_path.parent.glob("*.yaml")}
+        files = {file.name: file.read_text() for file in sorted(source_path.parent.glob("*.yaml"))}
         if source_path.name not in files:
             files[source_path.name] = source_path.read_text()
         rows.append(
@@ -242,10 +242,10 @@ def main() -> int:
     policy_cases(rows)
     binding_cases(rows)
     cases = record_cases(rows)
-    encoded = json.dumps({"cases": cases}, indent=2, ensure_ascii=True) + "\n"
     target = ROOT / "implementations/go/internal/sdl/authoring/testdata/transformations.json"
+    encoded = json.dumps({"cases": cases}, indent=2, ensure_ascii=True) + "\n"
     if arguments.check:
-        return int(target.read_text() != encoded)
+        return int(json.loads(target.read_bytes()) != json.loads(encoded))
     target.write_text(encoded)
     return 0
 
