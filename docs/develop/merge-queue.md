@@ -32,8 +32,10 @@ After the switch, `codeql.yml` produces the `CodeQL`, `Analyze (actions)`, and `
 2. Set the merge method to **Squash**.
 3. Set the maximum group size to a value greater than 1.
 4. Select **Only merge non-failing pull requests**.
-5. In the `dev` branch protection, bind the `GitGuardian Security Checks` required check to **GitHub Actions**.
-6. Keep **Require branches to be up to date before merging** off for `dev`.
+5. Add the **Repository admin** role to the ruleset bypass list.
+   The release flow admin-merges the `main` to `dev` back-merge PR, and its checks do not run.
+6. In the `dev` branch protection, bind the `GitGuardian Security Checks` required check to **GitHub Actions**.
+7. Keep **Require branches to be up to date before merging** off for `dev`.
 
 Keep every other required check on `dev`.
 Do not add a merge queue to `main`.

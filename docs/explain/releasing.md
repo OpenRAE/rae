@@ -216,6 +216,9 @@ Because the check workflows do not trigger, the required status checks never
 report on either bot PR. **Admin-merge** both. Adding any other change to
 either PR brings the full check suite back.
 
+The `dev` merge queue (ADR-122) does not block the back-merge admin merge.
+The `dev` ruleset lets repository administrators bypass the queue.
+
 Research evidence captures bind a digest of the reference-package sources
 (source profile `python-reference-source/v2`). That digest replaces the marked
 Release Please version literal with a placeholder, so the release commit's
