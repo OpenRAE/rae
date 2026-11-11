@@ -229,10 +229,14 @@ def test_secret_scan_uses_a_fixed_config_and_the_change_range() -> None:
     assert job["name"] == "GitGuardian Security Checks"
     assert job["steps"][0]["with"] == {"fetch-depth": 0, "persist-credentials": False}
     scan = job["steps"][1]
-    assert scan["with"]["entrypoint"] == "/bin/sh"
-    assert "--config-path /tmp/ggshield-ci.yaml" in scan["with"]["args"]
-    assert 'commit-range "$BASE_SHA..$HEAD_SHA"' in scan["with"]["args"]
-    assert scan["env"]["BASE_SHA"] == ("${{ github.event.merge_group.base_sha || github.event.pull_request.base.sha }}")
+    assert "entrypoint" not in scan["with"]
+    # The runner evaluates the expressions before it splits `args` on spaces.
+    assert scan["with"]["args"] == (
+        "ggshield --config-path /dev/null secret scan commit-range"
+        " ${{ github.event.merge_group.base_sha || github.event.pull_request.base.sha }}"
+        "..${{ github.event.merge_group.head_sha || github.event.pull_request.head.sha }}"
+    )
+    assert scan["env"]["GIT_CONFIG_VALUE_0"] == "/github/workspace"
     assert "continue-on-error" not in scan and "continue-on-error" not in job
 
 
