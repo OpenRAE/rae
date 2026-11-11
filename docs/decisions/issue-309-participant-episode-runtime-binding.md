@@ -80,6 +80,7 @@ Tests run lifecycle calls and check reset lineage.
 They reject missing contracts, duplicate bindings, and forged compiler context.
 Runner tests pass in invalid history and require a failing report.
 Negative tests also cover missing evidence and absent episode support.
+
 Regression tests change public model copies after installation and verify that policy checks still apply.
 Mixed lifecycle tests cover admitted results and policy violations after a backend effect.
 
