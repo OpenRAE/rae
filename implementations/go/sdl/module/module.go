@@ -39,10 +39,13 @@ type VerificationFacts struct {
 	LocalSource, SignatureVerified, ManifestVerified, ContentVerified, ExportsVerified bool
 }
 
-// TrustPolicy can narrow admission after native integrity verification.
-type TrustPolicy interface {
+// Admitter can narrow admission after native integrity verification.
+type Admitter interface {
 	AdmitModule(ctx context.Context, facts VerificationFacts) error
 }
+
+// TrustPolicy names the admission interface in the published module contract.
+type TrustPolicy = Admitter
 
 // RegistryTrust supplies the explicit pre-fetch policy for one registry.
 type RegistryTrust struct {

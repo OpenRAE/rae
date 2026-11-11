@@ -20,9 +20,10 @@ type VerificationFacts struct {
 	Registry, SignerPublicKey                                                          string
 	LocalSource, SignatureVerified, ManifestVerified, ContentVerified, ExportsVerified bool
 }
-type TrustPolicy interface {
+type Admitter interface {
 	AdmitModule(ctx context.Context, facts VerificationFacts) error
 }
+type TrustPolicy = Admitter
 type RegistryTrust struct {
 	RequireSignatures, AllowInsecureHTTP bool
 	TrustedSigners                       map[string]string

@@ -122,7 +122,7 @@ func (request transformationRequest) validPolicy() bool {
 		return false
 	}
 	for _, kind := range request.Policy.Losses {
-		if kind != termDeclarationRemoved && kind != "semantic-omission" {
+		if kind != termDeclarationRemoved && kind != termSemanticOmission {
 			return false
 		}
 	}
@@ -176,7 +176,7 @@ func (t *transformation) selectTarget() map[string]any {
 func (t *transformation) rename() (*Document, []byte, error) {
 	candidate, err := t.candidate(t.source, t.old, t.next, false)
 	if err != nil {
-		return t.finish(nil, t.refused("target-invalid", "The complete transformed candidate failed structural or semantic admission.", []string{termSourceAdmitted, termTargetExact, termTargetInjective, termTargetSupported}, true, false), nil)
+		return t.finish(nil, t.refused(termTargetInvalid, "The complete transformed candidate failed structural or semantic admission.", []string{termSourceAdmitted, termTargetExact, termTargetInjective, termTargetSupported}, true, false), nil)
 	}
 	bindings, err := t.retargetBindings(candidate)
 	if err != nil {
@@ -194,15 +194,15 @@ func (t *transformation) remove() (*Document, []byte, error) {
 	if !slices.Contains(t.request.Policy.Losses, termDeclarationRemoved) {
 		return t.finish(nil, t.refused("loss-not-authorized", "Declaration removal requires explicit authorization of its exact loss kind.", passed, true, true), nil)
 	}
-	passed = append(passed, "loss-authorized")
+	passed = append(passed, termLossAuthorized)
 	if len(t.request.Bindings) > 0 {
 		return t.finish(nil, t.refused("linked-artifact-unsupported", "Declaration removal cannot silently discard or retarget supplied concept bindings.", passed, true, true), nil)
 	}
 	candidate, err := t.candidate(t.source, t.old, "", true)
 	if err != nil {
-		return t.finish(nil, t.refused("target-invalid", "The complete transformed candidate failed structural or semantic admission.", passed, true, true), nil)
+		return t.finish(nil, t.refused(termTargetInvalid, "The complete transformed candidate failed structural or semantic admission.", passed, true, true), nil)
 	}
-	report := t.success(candidate, []string{"loss-authorized", termSourceAdmitted, termTargetExact}, []string{termTargetAdmitted})
+	report := t.success(candidate, []string{termLossAuthorized, termSourceAdmitted, termTargetExact}, []string{termTargetAdmitted})
 	report[termLosses] = []any{t.loss("warning")}
 	return t.finish(candidate, report, nil)
 }
@@ -363,7 +363,7 @@ func (t *transformation) loss(severity string) map[string]any {
 }
 func (t *transformation) refused(code, message string, passed []string, affected, includeLoss bool) map[string]any {
 	report := t.baseReport()
-	failed := map[string]string{"target-not-exact": termTargetExact, "target-unsupported": termTargetSupported, "identity-collision": termTargetInjective, "linked-artifact-stale": termLinkedArtifactsCurrent, "target-invalid": termTargetAdmitted, "preservation-failed": "round-trip-canonical-identity", "loss-not-authorized": "loss-authorized", "linked-artifact-unsupported": "linked-artifacts-supported"}[code]
+	failed := map[string]string{"target-not-exact": termTargetExact, "target-unsupported": termTargetSupported, "identity-collision": termTargetInjective, "linked-artifact-stale": termLinkedArtifactsCurrent, termTargetInvalid: termTargetAdmitted, "preservation-failed": "round-trip-canonical-identity", "loss-not-authorized": termLossAuthorized, "linked-artifact-unsupported": "linked-artifacts-supported"}[code]
 	checks := map[string]any{}
 	for _, id := range passed {
 		checks[id] = transformationCheck(id, termPassed)

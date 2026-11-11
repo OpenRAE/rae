@@ -7488,10 +7488,10 @@
           "method context.Context func (context.Context).Err() error selected=func() error",
           "method context.Context func (context.Context).Value(key any) any selected=func(key any) any",
           "method error func (error).Error() string selected=func() string",
+          "method github.com/OpenRAE/rae/implementations/go/sdl/module.Admitter func (github.com/OpenRAE/rae/implementations/go/sdl/module.Admitter).AdmitModule(ctx context.Context, facts github.com/OpenRAE/rae/implementations/go/sdl/module.VerificationFacts) error selected=func(ctx context.Context, facts github.com/OpenRAE/rae/implementations/go/sdl/module.VerificationFacts) error",
           "method github.com/OpenRAE/rae/implementations/go/sdl/module.Policy func (github.com/OpenRAE/rae/implementations/go/sdl/module.Policy).AdmitModule(ctx context.Context, facts github.com/OpenRAE/rae/implementations/go/sdl/module.VerificationFacts) error selected=func(ctx context.Context, facts github.com/OpenRAE/rae/implementations/go/sdl/module.VerificationFacts) error",
           "method github.com/OpenRAE/rae/implementations/go/sdl/module.PublicationAdmitter func (github.com/OpenRAE/rae/implementations/go/sdl/module.PublicationAdmitter).AdmitModuleSources(ctx context.Context, source io/fs.FS, root string) (string, map[string][]byte, error) selected=func(ctx context.Context, source io/fs.FS, root string) (string, map[string][]byte, error)",
           "method github.com/OpenRAE/rae/implementations/go/sdl/module.SourceAdmitter func (github.com/OpenRAE/rae/implementations/go/sdl/module.SourceAdmitter).AdmitModuleSource(raw []byte) error selected=func(raw []byte) error",
-          "method github.com/OpenRAE/rae/implementations/go/sdl/module.TrustPolicy func (github.com/OpenRAE/rae/implementations/go/sdl/module.TrustPolicy).AdmitModule(ctx context.Context, facts github.com/OpenRAE/rae/implementations/go/sdl/module.VerificationFacts) error selected=func(ctx context.Context, facts github.com/OpenRAE/rae/implementations/go/sdl/module.VerificationFacts) error",
           "method github.com/OpenRAE/rae/implementations/go/sdl/module.VersionRequirement func (github.com/OpenRAE/rae/implementations/go/sdl/module.VersionRequirement).Accepts(actual string) bool selected=func(actual string) bool",
           "method io/fs.FS func (io/fs.FS).Open(name string) (io/fs.File, error) selected=func(name string) (io/fs.File, error)",
           "method io/fs.File func (io/fs.File).Close() error selected=func() error",
@@ -7567,6 +7567,7 @@
           "type any = interface{}",
           "type context.Context constraints[] interface{Deadline() (deadline time.Time, ok bool); Done() <-chan struct{}; Err() error; Value(key any) any} comparable=true",
           "type error constraints[] interface{Error() string} comparable=true",
+          "type github.com/OpenRAE/rae/implementations/go/sdl/module.Admitter constraints[] interface{AdmitModule(ctx context.Context, facts github.com/OpenRAE/rae/implementations/go/sdl/module.VerificationFacts) error} comparable=true",
           "type github.com/OpenRAE/rae/implementations/go/sdl/module.Artifact constraints[] struct{Manifest []byte \"\" embedded=false; Config []byte \"\" embedded=false; Bundle []byte \"\" embedded=false} unexported-fields=false comparable=false",
           "type github.com/OpenRAE/rae/implementations/go/sdl/module.Bundle constraints[] struct{} unexported-fields=true comparable=false",
           "type github.com/OpenRAE/rae/implementations/go/sdl/module.LockRecord constraints[] struct{Source string \"\" embedded=false; Namespace string \"\" embedded=false; RequestedVersion string \"\" embedded=false; ResolvedSource string \"\" embedded=false; ModuleID string \"\" embedded=false; ModuleVersion string \"\" embedded=false; ManifestDigest string \"\" embedded=false; ContentDigest string \"\" embedded=false; ExportHash string \"\" embedded=false; SignerID string \"\" embedded=false} unexported-fields=false comparable=true",
@@ -7577,7 +7578,7 @@
           "type github.com/OpenRAE/rae/implementations/go/sdl/module.Registry constraints[] struct{} unexported-fields=true comparable=false",
           "type github.com/OpenRAE/rae/implementations/go/sdl/module.RegistryTrust constraints[] struct{RequireSignatures bool \"\" embedded=false; AllowInsecureHTTP bool \"\" embedded=false; TrustedSigners map[string]string \"\" embedded=false} unexported-fields=false comparable=false",
           "type github.com/OpenRAE/rae/implementations/go/sdl/module.SourceAdmitter constraints[] interface{AdmitModuleSource(raw []byte) error} comparable=true",
-          "type github.com/OpenRAE/rae/implementations/go/sdl/module.TrustPolicy constraints[] interface{AdmitModule(ctx context.Context, facts github.com/OpenRAE/rae/implementations/go/sdl/module.VerificationFacts) error} comparable=true",
+          "type github.com/OpenRAE/rae/implementations/go/sdl/module.TrustPolicy = github.com/OpenRAE/rae/implementations/go/sdl/module.Admitter",
           "type github.com/OpenRAE/rae/implementations/go/sdl/module.VerificationFacts constraints[] struct{Record github.com/OpenRAE/rae/implementations/go/sdl/module.LockRecord \"\" embedded=false; Registry string \"\" embedded=false; SignerPublicKey string \"\" embedded=false; LocalSource bool \"\" embedded=false; SignatureVerified bool \"\" embedded=false; ManifestVerified bool \"\" embedded=false; ContentVerified bool \"\" embedded=false; ExportsVerified bool \"\" embedded=false} unexported-fields=false comparable=true",
           "type github.com/OpenRAE/rae/implementations/go/sdl/module.VersionRequirement constraints[] struct{} unexported-fields=true comparable=false",
           "type io/fs.FS constraints[] interface{Open(name string) (io/fs.File, error)} comparable=true",
@@ -7627,7 +7628,7 @@
     "docs/decisions/adrs/adr-119-consumer-parse-of-supplied-sdl-sources.md": "b29df4c1c6dcb690d540532011f498a0a1afbe794877ec38e5b80d8cb66b5442",
     "docs/decisions/issue-1799-go-governance-design.md": "abcc366a9fba4afcd8a9e0e42af3907f5cd858249152b8eacad25b85fb91e6e7",
     "docs/decisions/issue-1783-sdl-semantics-design.md": "fd11370fc74df070907fffc80e5ee400e14e2ca0585edfa29f75c6921b37c084",
-    "docs/decisions/issue-1785-sdl-operations-design.md": "41bdc60d1661d71a3b8e9d3077c79501aac38edba76ffee60032e88bdf2818e0",
+    "docs/decisions/issue-1785-sdl-operations-design.md": "5dda1cdd8572b3c839dc28b5a4b8bb7201c8c6441cc5df4ea09b67b02d1674ba",
     "docs/decisions/issue-1784-runtime-inventory-design.md": "58b113c6cbb591035e86d1745870478fbf8aea190cac760dc4c329f813c0ee36"
   },
   "consumer_api": {
@@ -8086,6 +8087,7 @@
         "symbols": [
           "LockfileName",
           "Lockfile",
+          "Admitter",
           "TrustPolicy",
           "LoadLockfile",
           "ResolveLock",
@@ -8109,7 +8111,7 @@
           "runtime"
         ],
         "declarations": "implementations/architecture-api/planned/rae/sdl/module.go.txt",
-        "declarations_sha256": "74429c5be66e0382669b0f0bfd2114e07ffcdbbdde7cd2b263fa4b8ca85b7db5"
+        "declarations_sha256": "76726e747a28a601726038eedce23ae103d0ec3b085bfda66e84e6d951ac7442"
       },
       {
         "owner": "rae",

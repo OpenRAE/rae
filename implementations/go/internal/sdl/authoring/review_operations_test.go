@@ -1,13 +1,73 @@
 package authoring
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
+	"slices"
 	"strings"
 	"testing"
 	"testing/fstest"
 
 	"github.com/OpenRAE/rae/implementations/go/sdl/module"
 )
+
+func TestPublicationCapturesOnlyTheCheckedSubdirectory(t *testing.T) {
+	parser := operationParser(t)
+	root := []byte("name: parent\nmodule: {id: example/parent, version: 1.0.0}\nimports: [{path: child.yaml, namespace: child}]\n")
+	child := []byte("name: child\nmodule: {id: example/child, version: 1.0.0, exports: {nodes: [host]}}\nnodes: {host: {type: compute}}\n")
+	files := fstest.MapFS{"pkg/module.yaml": {Data: root}, "pkg/child.yaml": {Data: child}, "unrelated.yaml": {Data: []byte("unused")}}
+	entry, captured, err := parser.AdmitModuleSources(t.Context(), files, "pkg/module.yaml")
+	if err != nil || entry != "module.yaml" || len(captured) != 2 || !bytes.Equal(captured[entry], root) || !bytes.Equal(captured["child.yaml"], child) {
+		t.Fatalf("unexpected publication snapshot: %q, %v, %v", entry, captured, err)
+	}
+	files["pkg/child.yaml"].Data[0] = 'x'
+	if captured["child.yaml"][0] != 'n' {
+		t.Fatal("the publication snapshot retained a caller buffer")
+	}
+}
+
+func TestPublicationRefusesInvalidRootsAndCanceledRequests(t *testing.T) {
+	parser := operationParser(t)
+	files := fstest.MapFS{"broken.yaml": {Data: []byte("[broken")}}
+	for _, name := range []string{"../escape.yaml", "missing.yaml", "broken.yaml"} {
+		entry, snapshot, err := parser.AdmitModuleSources(t.Context(), files, name)
+		if err == nil || entry != "" || snapshot != nil {
+			t.Fatalf("publication returned a snapshot for %q: %v", name, err)
+		}
+	}
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+	entry, snapshot, err := parser.AdmitModuleSources(ctx, files, "broken.yaml")
+	if !errors.Is(err, context.Canceled) || entry != "" || snapshot != nil {
+		t.Fatalf("publication returned a result after cancellation: %v", err)
+	}
+}
+
+func TestReferenceBindingsExposeOnlyAdmittedAliasesAndCopyTheirValues(t *testing.T) {
+	parser := operationParser(t)
+	document, err := parser.Decode(Request{Source: []byte("name: aliases\nnodes: {web: {type: compute}}\n")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if aliases, bindingErr := document.ReferenceBindings(); bindingErr == nil || aliases != nil {
+		t.Fatal("an unvalidated document exposed reference bindings")
+	}
+	document, _, err = parser.Validate(document)
+	if err != nil {
+		t.Fatal(err)
+	}
+	aliases, err := document.ReferenceBindings()
+	if err != nil || !slices.Equal(aliases["web"], []string{"nodes.web"}) {
+		t.Fatalf("expected the admitted node alias: %v, %v", aliases, err)
+	}
+	aliases["web"][0] = "nodes.changed"
+	again, err := document.ReferenceBindings()
+	if err != nil || !slices.Equal(again["web"], []string{"nodes.web"}) {
+		t.Fatalf("alias mutation changed the document: %v, %v", again, err)
+	}
+}
 
 func TestPublicationRejectsLockDependentGraph(t *testing.T) {
 	parser := operationParser(t)

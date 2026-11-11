@@ -190,7 +190,7 @@ func (r *Registry) resolveImportRecord(ctx context.Context, files fs.FS, root st
 			return LockRecord{}, invalid()
 		}
 		record = bundle.Record()
-	case strings.HasPrefix(reference, "local:"):
+	case strings.HasPrefix(reference, termLocalPrefix):
 		record, err = r.localRecord(ctx, files, root, decl, reference, version, admitter)
 		if err != nil {
 			return LockRecord{}, err
@@ -229,7 +229,7 @@ func (r *Registry) lockRootPayload(raw []byte) (map[string]any, error) {
 	return payload, nil
 }
 func (r *Registry) localRecord(ctx context.Context, files fs.FS, root string, decl map[string]any, reference, version string, admitter SourceAdmitter) (LockRecord, error) {
-	relative := strings.TrimPrefix(reference, "local:")
+	relative := strings.TrimPrefix(reference, termLocalPrefix)
 	name, err := sdlsource.ResolvePath(path.Dir(root), relative)
 	if err != nil {
 		return LockRecord{}, err
@@ -265,7 +265,7 @@ func (r *Registry) localRecord(ctx context.Context, files fs.FS, root string, de
 	if err != nil {
 		return LockRecord{}, err
 	}
-	record := LockRecord{ModuleID: descriptor.ID, ModuleVersion: descriptor.Version, ResolvedSource: strings.ReplaceAll(relative, "\\", "/"), ContentDigest: content, ExportHash: strings.TrimPrefix(digest.SHA256(exports), "sha256:")}
+	record := LockRecord{ModuleID: descriptor.ID, ModuleVersion: descriptor.Version, ResolvedSource: strings.ReplaceAll(relative, "\\", "/"), ContentDigest: content, ExportHash: strings.TrimPrefix(digest.SHA256(exports), termSHA256Prefix)}
 	record.Source, record.Namespace, record.RequestedVersion = reference, text(decl["namespace"]), version
 	facts := VerificationFacts{Record: record, LocalSource: true, ContentVerified: true, ExportsVerified: true}
 	if r.cache != nil {
@@ -291,7 +291,7 @@ func importReference(decl map[string]any) string {
 	if reference := text(decl["source"]); reference != "" {
 		return reference
 	}
-	return "local:" + text(decl["path"])
+	return termLocalPrefix + text(decl["path"])
 }
 func (r *Registry) sourcePayload(raw []byte, admitter SourceAdmitter) (map[string]any, error) {
 	options := sdlsource.DefaultOptions()

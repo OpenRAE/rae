@@ -137,3 +137,7 @@ Regression tests use APIs that exist at the delivery base.
 They cover the sibling enum default, typed mixed-control location, and root policy scope.
 CI runs these regression tests against the feature head and replays them against the delivery base.
 No full regression or mutation lane runs locally.
+
+The Python reference replay test runs the seven operation recorders in check mode.
+Each recorder compares its output with the frozen fixture.
+The hosted Python coverage report includes those executions.

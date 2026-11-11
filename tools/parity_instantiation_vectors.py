@@ -10,6 +10,7 @@ import json
 import sys
 import tempfile
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
@@ -19,8 +20,9 @@ from raes._errors import SDLError  # noqa: E402
 from raes.canonical import canonical_instantiated_sdl_bytes  # noqa: E402
 from raes.family_admission import admit_scenario_family  # noqa: E402
 from raes.instantiate import admit_instantiated_scenario, instantiate_scenario  # noqa: E402
+from raes.materialization import MaterializedScenario  # noqa: E402
 from raes.parser import parse_sdl, parse_sdl_file  # noqa: E402
-from raes.scenario import ExpandedScenario  # noqa: E402
+from raes.scenario import ExpandedScenario, Scenario  # noqa: E402
 from raes.selected_scenario import select_scenario_family  # noqa: E402
 from raes_contracts.contracts import (  # noqa: E402
     ExperimentSelectionMemberOutcomeModel,
@@ -33,7 +35,7 @@ from raes_contracts.contracts import (  # noqa: E402
 DIRECTORY = ROOT / "implementations/go/internal/sdl/authoring/testdata"
 
 
-def source_family(row: dict):
+def source_family(row: dict[str, Any]) -> Scenario | ExpandedScenario | MaterializedScenario:
     if not row.get("files"):
         return parse_sdl(row["source"], skip_semantic_validation=True)
     with tempfile.TemporaryDirectory(prefix="sdl-reference-") as directory:
@@ -47,7 +49,7 @@ def source_family(row: dict):
         )
 
 
-def record(row: dict) -> dict:
+def record(row: dict[str, Any]) -> dict[str, Any]:
     result = dict(row)
     try:
         if row.get("operation") == "admit":

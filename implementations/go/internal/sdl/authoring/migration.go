@@ -34,7 +34,7 @@ type semanticMigrationContext struct {
 
 // Migrate adopts explicitly selected semantics. It never interprets legacy
 // source as executable current SDL or invents an author's missing decision.
-func (p *Parser) Migrate(data []byte, context []byte) (*Document, []byte, error) {
+func (p *Parser) Migrate(data, context []byte) (*Document, []byte, error) {
 	operation, authorRaw, err := p.migrationOperationContext(context)
 	if err != nil {
 		return nil, nil, err
@@ -153,7 +153,7 @@ func (p *Parser) progressiveBindings(source, target *Document, context migration
 	if err != nil {
 		return nil, err
 	}
-	return p.retargetBindingDocuments(conceptSubjects(source, fromDigest), conceptSubjects(target, toDigest), fromDigest, toDigest, "", "", raw, context.resolved, true)
+	return p.retargetBindingDocuments(bindingRetarget{from: conceptSubjects(source, fromDigest), into: conceptSubjects(target, toDigest), sourceDigest: fromDigest, targetDigest: toDigest}, raw, context.resolved, true)
 }
 func (p *Parser) semanticMigrationContext(raw []byte) (*semanticMigrationContext, error) {
 	if len(raw) == 0 || bytes.Equal(bytes.TrimSpace(raw), []byte("null")) {

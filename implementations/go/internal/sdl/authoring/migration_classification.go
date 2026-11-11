@@ -22,7 +22,7 @@ func classificationMessage(code string) string {
 		return "Assertion context must preserve each exact source subject and source pointer without missing, duplicate, stale, or extra mappings."
 	case "loss-not-authorized":
 		return "Vulnerability declaration removal requires declaration-removed authorization; an unreferenced declaration also requires semantic-omission authorization."
-	case "target-invalid":
+	case termTargetInvalid:
 		return "The native SDL must independently pass structural and semantic validation; migrate references to removed declarations explicitly."
 	case "native-projection-changed":
 		return "Normalize legacy native fields with the source-version formatter before migration; migration must preserve the native projection exactly."
@@ -62,7 +62,7 @@ func (p *Parser) migrateClassifications(data, raw []byte) (*Document, []byte, er
 	}
 	target, err := p.admitMigrationPayload(source.native)
 	if err != nil {
-		return operation.finish(nil, nil, nil, nil, "target-invalid")
+		return operation.finish(nil, nil, nil, nil, termTargetInvalid)
 	}
 	var normalized any
 	if err = json.Unmarshal(target.JSON(), &normalized); err != nil {
@@ -119,7 +119,7 @@ func (p *Parser) classificationContext(raw []byte) (*classificationMigration, er
 		return nil, invalid()
 	}
 	for _, loss := range wire.Losses {
-		if loss != termDeclarationRemoved && loss != "semantic-omission" {
+		if loss != termDeclarationRemoved && loss != termSemanticOmission {
 			return nil, invalid()
 		}
 	}
@@ -179,10 +179,10 @@ func classificationLosses(source *legacyClassifications, allowed []string) ([]an
 		if referenced[id] {
 			continue
 		}
-		if !slices.Contains(allowed, "semantic-omission") {
+		if !slices.Contains(allowed, termSemanticOmission) {
 			return nil, false
 		}
-		losses = append(losses, classificationLoss("semantic-omission", id, "unreferenced-classification", "An unreferenced classification was omitted under explicit loss authorization."))
+		losses = append(losses, classificationLoss(termSemanticOmission, id, "unreferenced-classification", "An unreferenced classification was omitted under explicit loss authorization."))
 	}
 	return losses, true
 }
@@ -220,7 +220,7 @@ func (c *classificationMigration) bindings(source *legacyClassifications, target
 	if err != nil {
 		return nil, err
 	}
-	return c.parser.retargetBindingDocuments(from, into, source.digest, targetDigest, "", "", raw, c.context.resolved, true)
+	return c.parser.retargetBindingDocuments(bindingRetarget{from: from, into: into, sourceDigest: source.digest, targetDigest: targetDigest}, raw, c.context.resolved, true)
 }
 
 func (c *classificationMigration) finish(output *Document, documents, losses []any, affected []string, code string) (*Document, []byte, error) {

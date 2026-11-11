@@ -32,7 +32,7 @@ func conceptSubjects(document *Document, digest string) []concept.Subject {
 				if containsVariable(route) {
 					continue
 				}
-				result = append(result, concept.Subject{SubjectKind: "runtime-application-route", OwningContractID: authoringContract, LifecyclePhase: phase, CanonicalRef: "nodes." + node + ".runtime.applications." + id + ".routes." + route, ArtifactDigest: digest})
+				result = append(result, concept.Subject{SubjectKind: "runtime-application-route", OwningContractID: authoringContract, LifecyclePhase: phase, CanonicalRef: termNodesPrefix + node + ".runtime.applications." + id + ".routes." + route, ArtifactDigest: digest})
 			}
 		}
 	}
@@ -45,7 +45,8 @@ func (t *transformation) retargetBindings(target *Document) ([]any, error) {
 	}
 	from := conceptSubjects(t.source, t.sourceDigest)
 	into := conceptSubjects(target, targetDigest)
-	return t.parser.retargetBindingDocuments(from, into, t.sourceDigest, targetDigest, t.request.Request.Target, t.after, t.request.Bindings, t.parser.authority.PinnedSnapshots(), false)
+	change := bindingRetarget{from: from, into: into, sourceDigest: t.sourceDigest, targetDigest: targetDigest, before: t.request.Request.Target, after: t.after}
+	return t.parser.retargetBindingDocuments(change, t.request.Bindings, t.parser.authority.PinnedSnapshots(), false)
 }
 
 type bindingTransport struct {
@@ -53,17 +54,22 @@ type bindingTransport struct {
 	sourceDigest, targetDigest, before, after string
 }
 
-func (p *Parser) retargetBindingDocuments(from, into []concept.Subject, sourceDigest, targetDigest, before, after string, documents []json.RawMessage, snapshots []concept.SchemeSnapshot, resolveAll bool) ([]any, error) {
-	transport := bindingTransport{from: map[string]concept.Subject{}, into: map[string]concept.Subject{}, sourceDigest: sourceDigest, targetDigest: targetDigest, before: before, after: after}
-	for _, subject := range from {
+type bindingRetarget struct {
+	from, into                                []concept.Subject
+	sourceDigest, targetDigest, before, after string
+}
+
+func (p *Parser) retargetBindingDocuments(change bindingRetarget, documents []json.RawMessage, snapshots []concept.SchemeSnapshot, resolveAll bool) ([]any, error) {
+	transport := bindingTransport{from: map[string]concept.Subject{}, into: map[string]concept.Subject{}, sourceDigest: change.sourceDigest, targetDigest: change.targetDigest, before: change.before, after: change.after}
+	for _, subject := range change.from {
 		transport.from[subject.CanonicalRef] = subject
 	}
-	for _, subject := range into {
+	for _, subject := range change.into {
 		transport.into[subject.CanonicalRef] = subject
 	}
 	result := []any{}
 	for _, raw := range documents {
-		payload, err := p.retargetBindingDocument(raw, transport, into, snapshots, resolveAll)
+		payload, err := p.retargetBindingDocument(raw, transport, change.into, snapshots, resolveAll)
 		if err != nil {
 			return nil, err
 		}
@@ -72,7 +78,7 @@ func (p *Parser) retargetBindingDocuments(from, into []concept.Subject, sourceDi
 	return result, nil
 }
 func (p *Parser) retargetBindingDocument(raw []byte, transport bindingTransport, subjects []concept.Subject, snapshots []concept.SchemeSnapshot, resolveAll bool) (map[string]any, error) {
-	admitted, err := p.models.Validate("external-concept-bindings-v1", raw, modelLimits(raw), nil)
+	admitted, err := p.models.Validate(termExternalConceptBindingsV1, raw, modelLimits(raw), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +112,7 @@ func (p *Parser) retargetBindingDocument(raw []byte, transport bindingTransport,
 	if err != nil {
 		return nil, err
 	}
-	if err = p.models.CheckPortable("external-concept-bindings-v1", encoded, modelLimits(encoded)); err != nil {
+	if err = p.models.CheckPortable(termExternalConceptBindingsV1, encoded, modelLimits(encoded)); err != nil {
 		return nil, err
 	}
 	return payload, nil
@@ -138,7 +144,7 @@ func (p *Parser) admitTransportedBindings(payload map[string]any, subjects []con
 	if err != nil {
 		return err
 	}
-	value, err := p.models.Validate("external-concept-bindings-v1", encoded, modelLimits(encoded), nil)
+	value, err := p.models.Validate(termExternalConceptBindingsV1, encoded, modelLimits(encoded), nil)
 	if err != nil {
 		return err
 	}

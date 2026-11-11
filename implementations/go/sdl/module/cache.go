@@ -23,7 +23,7 @@ func (r *Registry) publishCache(ctx context.Context, inventory archiveInventory,
 	if !digest.Valid(manifestDigest) {
 		return "", invalid()
 	}
-	slotName := strings.TrimPrefix(manifestDigest, "sha256:")
+	slotName := strings.TrimPrefix(manifestDigest, termSHA256Prefix)
 	locks, err := openDirectory(r.cache, ".locks", true)
 	if err != nil {
 		return "", err
@@ -87,7 +87,7 @@ func recoverVersion(slot, versions *os.Root, inventory archiveInventory, identit
 	if current != "" && validCachedVersion(versions, current, inventory, limits) {
 		return current, nil
 	}
-	prefix, tagged := strings.CutPrefix(identity, "sha256:")
+	prefix, tagged := strings.CutPrefix(identity, termSHA256Prefix)
 	if !tagged || len(prefix) != 64 {
 		return "", invalid()
 	}
@@ -236,7 +236,7 @@ func stageVersion(versions *os.Root, inventory archiveInventory, identity string
 	if err = syncStageDirectories(stage, inventory.entries); err != nil {
 		return "", err
 	}
-	version := strings.TrimPrefix(identity, "sha256:")[:20] + "-" + id
+	version := strings.TrimPrefix(identity, termSHA256Prefix)[:20] + "-" + id
 	if err = versions.Rename(stageName, version); err != nil {
 		return "", operational(err)
 	}

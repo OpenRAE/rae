@@ -19,7 +19,8 @@ It does not import the authoring package.
 The existing public module declarations remain the consumer contract.
 Callers grant registry access.
 That grant includes policy, transport, and cache access.
-The `TrustPolicy` callback runs after the native checks.
+The `Admitter` callback runs after the native checks.
+The `TrustPolicy` alias preserves the planned API name.
 It can only narrow policy.
 `NewRegistry` receives the cache directory and both policies.
 The second policy is optional.
@@ -280,4 +281,4 @@ No dictionary-conformance claim follows from the prose review or Vale checks.
 
 <!-- go-api implementations/go/internal/sdl/authoring 2ea8f0d84a88a2aef7c2024a87f0bb84eade8c99c6a3502f340bc05cf15774d4 -->
 
-<!-- go-api implementations/go/sdl/module a3f02ac21425dcbc5146afef7ac25c59f080606c2d751b9a7f082ff10ea22898 -->
+<!-- go-api implementations/go/sdl/module 311915e9a23375f03f7fdeda63240de76bcd6209e3227983cacd4e2e0824b31b -->

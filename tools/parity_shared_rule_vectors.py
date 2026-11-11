@@ -9,6 +9,7 @@ import hashlib
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT), str(ROOT / "implementations/python/packages")]
@@ -16,7 +17,7 @@ from parity_authoring_vectors import read_semantic_vectors, semantic_input  # no
 from raes._source_profile import DEFAULT_PARSER_LIMITS  # noqa: E402
 
 
-def record() -> dict:
+def record() -> dict[str, Any]:
     digest = hashlib.sha256()
     package = ROOT / "implementations/python/packages/raes"
     for path in sorted(package.rglob("*.py")):
@@ -32,9 +33,13 @@ def record() -> dict:
             continue
         document = semantic_input(row, DEFAULT_PARSER_LIMITS)
         rows.append(
-            dict(name=row["name"], data=document.model_dump(mode="json", by_alias=True), findings=row["findings"])
+            {
+                "name": row["name"],
+                "data": document.model_dump(mode="json", by_alias=True),
+                "findings": row["findings"],
+            }
         )
-    return dict(reference_package_sha256=digest.hexdigest(), cases=rows)
+    return {"reference_package_sha256": digest.hexdigest(), "cases": rows}
 
 
 def main() -> int:

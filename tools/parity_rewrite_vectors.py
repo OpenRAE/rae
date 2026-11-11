@@ -68,7 +68,8 @@ def main() -> int:
             scenario = parse_sdl(row["source"], skip_semantic_validation=True)
         except (SDLError, ValidationError) as error:
             print(f"Skipping unconstructed source: {type(error).__name__}", file=sys.stderr)
-            continue  # This owner operates only on constructed source documents.
+            # This owner operates only on constructed source documents.
+            continue
         payload = scenario.model_dump(mode="json", by_alias=True, exclude_unset=True)
         if payload.get("expansion_provenance"):
             continue
@@ -86,12 +87,12 @@ def main() -> int:
         output = _preserve_explicit_shape(payload, rewritten)
         collect_fields(payload)
         candidates.append(
-            dict(
-                name=row["name"],
-                payload=payload,
-                descriptor=descriptor.model_dump(mode="json"),
-                output=output,
-            )
+            {
+                "name": row["name"],
+                "payload": payload,
+                "descriptor": descriptor.model_dump(mode="json"),
+                "output": output,
+            }
         )
     seen = set()
     selected = []
@@ -100,7 +101,7 @@ def main() -> int:
         if paths - seen:
             seen.update(paths)
             selected.append(row)
-    output = json.dumps(dict(cases=selected), indent=2, ensure_ascii=True) + "\n"
+    output = json.dumps({"cases": selected}, indent=2, ensure_ascii=True) + "\n"
     target = DIRECTORY / "rewrites.json.gz"
     if options.check:
         return int(gzip.decompress(target.read_bytes()).decode() != output)

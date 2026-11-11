@@ -414,8 +414,8 @@ func rewriteWorkflowStep(reference string, symbols importSymbols) string {
 }
 func rewriteNodeService(reference string, symbols importSymbols) (string, error) {
 	for old, next := range symbols[nodesSection] {
-		if strings.HasPrefix(reference, "nodes."+old+".services.") {
-			return "nodes." + next + strings.TrimPrefix(reference, "nodes."+old), nil
+		if strings.HasPrefix(reference, termNodesPrefix+old+".services.") {
+			return termNodesPrefix + next + strings.TrimPrefix(reference, termNodesPrefix+old), nil
 		}
 	}
 	return rewriteSectionReference(reference, symbols, "=nodes"), nil

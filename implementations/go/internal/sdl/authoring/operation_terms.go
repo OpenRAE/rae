@@ -2,6 +2,11 @@ package authoring
 
 // Stable wire terms shared by SDL document operations.
 const (
+	termExternalConceptBindingsV1      = "external-concept-bindings-v1"
+	termNodesPrefix                    = "nodes."
+	termLossAuthorized                 = "loss-authorized"
+	termTargetInvalid                  = "target-invalid"
+	termSemanticOmission               = "semantic-omission"
 	termActions                        = "actions"
 	termAffectedIdentities             = "affected_identities"
 	termAllowedLossKinds               = "allowed_loss_kinds"

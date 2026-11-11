@@ -9,6 +9,7 @@ import json
 import sys
 import tempfile
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "implementations/python/packages"))
@@ -82,8 +83,10 @@ def policy_inputs() -> list[str]:
         "registries: {example: {require_signatures: " + value + ", allow_insecure_http: false}}" for value in scalars
     ]
     rows += [
-        "allow_unsigned_local_sources: &flag false\nregistries: {example: {require_signatures: *flag, allow_insecure_http: on}}",
-        "registries:\n  example:\n    <<: [{require_signatures: false}, {allow_insecure_http: true}]\n    trusted_signers: {test: key}\n",
+        "allow_unsigned_local_sources: &flag false\n"
+        "registries: {example: {require_signatures: *flag, allow_insecure_http: on}}",
+        "registries:\n  example:\n    <<: [{require_signatures: false}, {allow_insecure_http: true}]\n"
+        "    trusted_signers: {test: key}\n",
         "registries: {example: {<<: 7}}",
         "registries: {example: {<<: [7]}}",
         "registries: {example: &self {<<: *self, require_signatures: true}}",
@@ -95,14 +98,18 @@ def policy_inputs() -> list[str]:
     return rows
 
 
-def record() -> dict:
+def verify_reference_sources() -> None:
     reference_sources = {
-        "implementations/python/packages/raes/module_registry/_digests.py": "9ceeddbda9f288695a588a0c86b9061bd4578a45e097d5c454af85a926bdedb2",
-        "implementations/python/packages/raes/module_registry/models.py": "6afcd65ef2ea5be50017f0412aa6a83d6b48726d02d2553d0b00ac74df451218",
+        "_digests.py": "9ceeddbda9f288695a588a0c86b9061bd4578a45e097d5c454af85a926bdedb2",
+        "models.py": "6afcd65ef2ea5be50017f0412aa6a83d6b48726d02d2553d0b00ac74df451218",
     }
+    reference_dir = ROOT / "implementations/python/packages/raes/module_registry"
     for source, expected in reference_sources.items():
-        if hashlib.sha256((ROOT / source).read_bytes()).hexdigest() != expected:
+        if hashlib.sha256((reference_dir / source).read_bytes()).hexdigest() != expected:
             raise ValueError("Module policy reference source differs from its pinned contents")
+
+
+def policy_cases() -> list[dict[str, Any]]:
     policies = []
     with tempfile.TemporaryDirectory() as directory:
         path = Path(directory) / "raes-trust.yaml"
@@ -130,6 +137,10 @@ def record() -> dict:
                     },
                 )
             policies.append(row)
+    return policies
+
+
+def version_cases() -> list[dict[str, Any]]:
     actuals = [
         "invalid",
         "0",
@@ -203,13 +214,23 @@ def record() -> dict:
         try:
             _normalize_exact_or_range(request)
         except InvalidSpecifier:
-            versions.append(dict(request=request, valid=False))
+            versions.append({"request": request, "valid": False})
             continue
         for actual in actuals:
             versions.append(
-                dict(request=request, actual=actual, valid=True, accepted=_satisfies_version(actual, request))
+                {
+                    "request": request,
+                    "actual": actual,
+                    "valid": True,
+                    "accepted": _satisfies_version(actual, request),
+                }
             )
-    return dict(policies=policies, versions=versions)
+    return versions
+
+
+def record() -> dict[str, list[dict[str, Any]]]:
+    verify_reference_sources()
+    return {"policies": policy_cases(), "versions": version_cases()}
 
 
 def main() -> int:

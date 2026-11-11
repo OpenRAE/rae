@@ -2,6 +2,8 @@ package module
 
 // Stable wire terms shared by SDL document operations.
 const (
+	termLocalPrefix      = "local:"
+	termSHA256Prefix     = "sha256:"
 	termContentDigest    = "content_digest"
 	termDirectory        = "directory"
 	termModuleID         = "module_id"

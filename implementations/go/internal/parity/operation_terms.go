@@ -2,6 +2,7 @@ package parity
 
 // Stable wire terms shared by SDL document operations.
 const (
+	termSDLParse  = "sdl-parse"
 	termCanonical = "canonical"
 	termDigest    = "digest"
 	termObject    = "object"

@@ -241,7 +241,7 @@ func (w *normalizer) mapping(schema map[string]any, pointer string, value map[st
 		}
 	}
 	for _, name := range keys {
-		normalized, err := w.mappingField(schema, pointer, value, name, path, policy, view, presentation)
+		normalized, err := w.mappingField(schema, pointer, name, value[name], path, mappingPresentation{layout: presentation, inherited: policy}, view)
 		if err != nil {
 			failures = append(failures, err)
 			continue
@@ -262,18 +262,23 @@ func (w *normalizer) mapping(schema map[string]any, pointer string, value map[st
 	return result, nil
 }
 
-func (w *normalizer) mappingField(schema map[string]any, pointer string, value map[string]any, name string, path []string, policy scalarPolicy, view source.View, presentation layout) (field, error) {
+type mappingPresentation struct {
+	layout    layout
+	inherited scalarPolicy
+}
+
+func (w *normalizer) mappingField(schema map[string]any, pointer, name string, value any, path []string, presentation mappingPresentation, view source.View) (field, error) {
 	child, err := w.propertySchema(schema, name)
 	if err != nil {
 		return field{}, locatedModelError(err, appendPath(path, name))
 	}
-	raw, err := w.memoField(pointer, name, value[name])
+	raw, err := w.memoField(pointer, name, value)
 	if err != nil {
 		return field{}, locatedModelError(err, appendPath(path, name))
 	}
-	fieldPolicy, present := presentation.Scalar[name]
+	fieldPolicy, present := presentation.layout.Scalar[name]
 	if !present {
-		fieldPolicy = childPolicy(policy.Values)
+		fieldPolicy = childPolicy(presentation.inherited.Values)
 	}
 	childPointer := pointer + "/additionalProperties"
 	if _, known := object(schema["properties"])[name]; known {
@@ -283,8 +288,8 @@ func (w *normalizer) mappingField(schema map[string]any, pointer string, value m
 	if err != nil {
 		return field{}, err
 	}
-	normalized = omitInferredTarget(pointer, name, value[name], normalized)
-	return field{name: name, value: normalized, omit: omitted(normalized, presentation.Omit[name])}, nil
+	normalized = omitInferredTarget(pointer, name, value, normalized)
+	return field{name: name, value: normalized, omit: omitted(normalized, presentation.layout.Omit[name])}, nil
 }
 
 // The legacy service discriminator is supplied by the Content constructor,

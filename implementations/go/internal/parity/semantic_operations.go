@@ -117,13 +117,13 @@ func semanticRefusal(result map[string]any, err error) (json.RawMessage, error) 
 		findings = append(findings, semanticDiagnostic("sdl.validation", "sdl-validation", "", "error"))
 	} else {
 		for _, finding := range source.Diagnostics(err) {
-			findings = append(findings, semanticDiagnostic(finding.Code, "sdl-parse", finding.Pointer, finding.Severity))
+			findings = append(findings, semanticDiagnostic(finding.Code, termSDLParse, finding.Pointer, finding.Severity))
 			if len(findings) == 20 {
 				break
 			}
 		}
 		if len(findings) == 0 {
-			findings = append(findings, semanticDiagnostic("sdl.parse", "sdl-parse", "", "error"))
+			findings = append(findings, semanticDiagnostic("sdl.parse", termSDLParse, "", "error"))
 		}
 	}
 	result["diagnostics"] = findings
@@ -181,7 +181,7 @@ func admitSemanticCommand(ctx context.Context, parser *authoring.Parser, raw []b
 		}
 		request.Source = formatted.Content
 		for _, finding := range formatted.Diagnostics {
-			advisories = append(advisories, semanticDiagnostic(finding.Code, "sdl-parse", finding.Pointer, finding.Severity))
+			advisories = append(advisories, semanticDiagnostic(finding.Code, termSDLParse, finding.Pointer, finding.Severity))
 		}
 	}
 	document, err := parser.DecodeContext(ctx, request)
