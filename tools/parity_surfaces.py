@@ -725,6 +725,9 @@ def data_inputs(repo: Path) -> list[Path]:
         for path in sorted(root.rglob("*")):
             if path.is_symlink():
                 raise ValueError("parity data discovery refuses symbolic links")
+            # Native semantic checks own this mixed input/expectation inventory.
+            if path.is_relative_to(repo / "contracts/fixtures/sdl/semantic-vectors-v1"):
+                continue
             if path.suffix in {".json", ".yaml", ".yml"} and path.is_file():
                 result.append(path)
     return result

@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 import pytest
+
 from tools import parity_corpus as pc
 
 REAL_PROVENANCE = pc.provenance
@@ -233,6 +234,19 @@ def test_canonical_cases_cover_each_json_fixture_and_each_edge_input(repo: Path)
 
     assert "contracts/fixtures/family/demo-v1/valid/one" in names
     assert sum(name.startswith("edge/") for name in names) == len(pc.CANONICAL_EDGE_TEXTS)
+
+
+def test_native_semantic_vectors_do_not_require_python_canonical_recording(repo: Path) -> None:
+    from tools.parity_surfaces import data_inputs
+
+    family = "contracts/fixtures/sdl/semantic-vectors-v1/"
+    _write(repo, {family + "semantics.json": "{}", family + "semantics-000.json": "[]"})
+    names = {case.name for case in pc.canonical_cases(repo)}
+    assert not any(name.startswith(family) for name in names)
+    assert "contracts/fixtures/family/demo-v1/valid/one" in names
+    inputs = {path.relative_to(repo).as_posix() for path in data_inputs(repo)}
+    assert not any(name.startswith(family) for name in inputs)
+    assert "contracts/fixtures/family/demo-v1/valid/one.json" in inputs
 
 
 def test_canonical_results_record_each_form_or_its_refusal() -> None:

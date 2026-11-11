@@ -703,7 +703,7 @@ jobs:
           uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_authoring_vectors.py --check
           uv run --project implementations/python --frozen --no-default-groups python \
-            tools/parity_authoring_vectors.py --semantic --check
+            tools/parity_authoring_vectors.py --selection --check
           uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_authoring_vectors.py --semantic-imports --check
           uv run --project implementations/python --frozen --no-default-groups python \

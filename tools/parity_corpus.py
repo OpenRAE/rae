@@ -232,9 +232,13 @@ def schema_cases(repo: Path) -> Iterator[Case]:
 
 
 def canonical_cases(repo: Path) -> Iterator[Case]:
-    """Yield the canonical encodings of each JSON fixture and each edge input."""
+    """Yield canonical payload fixtures and edge inputs outside the native semantic corpus."""
 
     for fixture in sorted((repo / "contracts" / "fixtures").rglob(JSON_FILES)):
+        # The native semantic runner owns these mixed input/expectation records.
+        # Their maintenance must not require Python parity regeneration.
+        if fixture.is_relative_to(repo / "contracts/fixtures/sdl/semantic-vectors-v1"):
+            continue
         name = fixture.relative_to(repo).with_suffix("").as_posix()
         yield Case(
             surface="canonical",

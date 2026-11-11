@@ -13,6 +13,7 @@ import (
 )
 
 type semanticVector struct {
+	Materialized       bool                          `json:"materialized,omitempty"`
 	RecordExplicitness bool                          `json:"record_explicitness"`
 	Explicitness       map[string]ExplicitnessRecord `json:"explicitness"`
 	AdmissionError     string                        `json:"admission_error"`
@@ -32,6 +33,11 @@ type semanticFindingVector struct {
 	Pointer *string  `json:"pointer"`
 }
 type semanticLocationVector struct {
+	Code         string       `json:"code"`
+	Message      string       `json:"message"`
+	Severity     string       `json:"severity"`
+	Stage        string       `json:"stage"`
+	Address      string       `json:"canonical_address"`
 	Path         string       `json:"path"`
 	OriginalPath string       `json:"original_path"`
 	Source       string       `json:"source"`
