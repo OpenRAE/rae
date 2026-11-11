@@ -24,17 +24,17 @@ from ..models.participant_episode_resources import (
     ParticipantEpisodePolicyRuntime,
 )
 from .addresses import (
-    _action_contract_address,
-    _assertion_address,
-    _behavior_specification_address,
-    _participant_behavior_address,
-    _participant_episode_policy_address,
-    _section_ref_name,
+    action_contract_address,
+    assertion_address,
+    behavior_specification_address,
+    participant_behavior_address,
+    participant_episode_policy_address,
+    section_reference_name,
 )
-from .support import _address, _dedupe, _dump
+from .support import canonical_address, deduplicate, dump_spec
 
 
-def _compile_participant_episode_policies(
+def compile_participant_episode_policies(
     scenario: InstantiatedScenario,
     declaration_index: object,
 ) -> dict[str, ParticipantEpisodePolicyRuntime]:
@@ -68,7 +68,7 @@ def _reset_authority_address(declaration_index: object, reset: ParticipantEpisod
     if len(candidates) != 1:
         raise ValueError(f"validated memory_reset_authority_ref did not resolve to one declaration: {ref}")
     section, _, name = next(iter(candidates)).partition(".")
-    return _address("sdl", section.replace("_", "-"), name)
+    return canonical_address("sdl", section.replace("_", "-"), name)
 
 
 def _addresses(
@@ -78,7 +78,7 @@ def _addresses(
     render: Callable[[str], str],
 ) -> tuple[str, ...]:
     declarations = getattr(scenario, section)
-    return tuple(render(_section_ref_name(ref, section, declarations)) for ref in refs)
+    return tuple(render(section_reference_name(ref, section, declarations)) for ref in refs)
 
 
 def _evidence_addresses(scenario: InstantiatedScenario, refs: Iterable[str]) -> tuple[str, ...]:
@@ -86,7 +86,7 @@ def _evidence_addresses(scenario: InstantiatedScenario, refs: Iterable[str]) -> 
         scenario,
         refs,
         "evidence_requirements",
-        lambda name: _address("sdl", "evidence-requirements", name),
+        lambda name: canonical_address("sdl", "evidence-requirements", name),
     )
 
 
@@ -100,7 +100,7 @@ def _assertion_condition(
         condition_id=condition_id,
         terminal_reason=terminal_reason,
         evidence_requirement_addresses=_evidence_addresses(scenario, condition.evidence_requirement_refs),
-        assertion_addresses=_addresses(scenario, condition.assertion_refs, "assertions", _assertion_address),
+        assertion_addresses=_addresses(scenario, condition.assertion_refs, "assertions", assertion_address),
     )
 
 
@@ -109,14 +109,14 @@ def _timeout_condition(
     condition_id: str,
     condition: ParticipantEpisodeTimeoutCondition,
 ) -> ParticipantEpisodeConditionRuntime:
-    constraint = _section_ref_name(
+    constraint = section_reference_name(
         condition.temporal_constraint_ref, "temporal_constraints", scenario.temporal_constraints
     )
     return ParticipantEpisodeConditionRuntime(
         condition_id=condition_id,
         terminal_reason=condition.terminal_reason,
         evidence_requirement_addresses=_evidence_addresses(scenario, condition.evidence_requirement_refs),
-        temporal_constraint_address=_address("time", "constraint", constraint),
+        temporal_constraint_address=canonical_address("time", "constraint", constraint),
     )
 
 
@@ -154,30 +154,30 @@ def _compile_policy(
     participants: list[str],
     reset_authority: str,
 ) -> ParticipantEpisodePolicyRuntime:
-    owner = _behavior_specification_address(spec_name)
-    participant_addresses = tuple(_participant_behavior_address(name) for name in participants)
+    owner = behavior_specification_address(spec_name)
+    participant_addresses = tuple(participant_behavior_address(name) for name in participants)
     initialization = policy.initialization
     initialization_addresses = _addresses(
         scenario,
         initialization.assertion_refs if initialization is not None else (),
         "assertions",
-        _assertion_address,
+        assertion_address,
     )
     structure = policy.interaction_structure
     turn_actions = _addresses(
         scenario,
         structure.action_contract_refs if structure is not None else (),
         "action_contracts",
-        _action_contract_address,
+        action_contract_address,
     )
     reset = policy.reset_policy
     reset_evidence = _evidence_addresses(scenario, reset.evidence_requirement_refs if reset is not None else ())
     conditions = _compile_conditions(scenario, policy)
     return ParticipantEpisodePolicyRuntime(
-        address=_participant_episode_policy_address(spec_name),
+        address=participant_episode_policy_address(spec_name),
         name=spec_name,
-        spec=_dump(policy),
-        refresh_dependencies=_dedupe(
+        spec=dump_spec(policy),
+        refresh_dependencies=deduplicate(
             [
                 owner,
                 *participant_addresses,

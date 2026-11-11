@@ -24,10 +24,10 @@ from .addresses import (
     _observation_boundary_address,
     _outcome_interpretation_rule_address,
     _participant_behavior_address,
-    _participant_episode_policy_address,
     _participant_inject_delivery_address,
     _section_ref_name,
     _tool_affordance_address,
+    participant_episode_policy_address,
 )
 from .alias_index import (
     _account_addresses_for_refs,
@@ -390,7 +390,7 @@ def _compile_behavior_specifications(
             tool_affordance_addresses=tool_affordance_addresses,
             participant_inject_delivery_addresses=participant_inject_delivery_addresses,
             episode_policy_address=(
-                _participant_episode_policy_address(name) if behavior_spec.episode_policy is not None else ""
+                participant_episode_policy_address(name) if behavior_spec.episode_policy is not None else ""
             ),
             extension_policy=str(behavior_spec.extension_policy),
             extension_keys=tuple(sorted(behavior_spec.extensions)),

@@ -93,3 +93,16 @@ Their reading scores exceed the prose threshold: fixture 15.02, lineage 16.63, s
 Exact-file metric exceptions preserve those terms. Other writing checks remain enabled.
 Headings use sentence case while preserving acronyms and existing anchor names.
 Sources are the compiled policy, runtime binding, shared history check, and target-runner tests named above.
+
+Episode validation composes with the existing validator through callbacks.
+It adds no inherited validator layer.
+Compiler, composition, and conformance helpers expose named public collaborator interfaces.
+The control plane exposes its installed episode binding through a public read property.
+The structural ratchet passes without a baseline change.
+The reference lookup accepts heading case changes and preserves the original section text.
+
+Absent episode metadata is omitted from retained semantic fingerprints.
+This follows the existing empty-safe-state rule.
+Existing compile controls retain their pinned digests.
+A changed authored reset policy still changes its fingerprint.
+The formal behavior aggregate also names the episode-policy member.

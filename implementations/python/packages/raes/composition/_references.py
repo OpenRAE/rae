@@ -129,3 +129,7 @@ def _rewrite_variable_tokens(value: object, variables: Mapping[str, str]) -> obj
     else:
         rewritten = value
     return rewritten
+
+
+# Public identity-preserving rename seam for composition collaborators.
+rename_reference = _maybe_rename

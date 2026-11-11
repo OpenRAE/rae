@@ -258,3 +258,17 @@ def test_installed_episode_context_is_detached_from_caller_mutations():
     admitted.selection.participant_contract_versions.clear()
     assert installed.model.participant_episode_policies
     assert set(installed.implementations[0].selection.participant_contract_versions) == EPISODE_CONTRACTS
+
+
+def test_authored_episode_policy_stays_in_the_semantic_fingerprint(tmp_path):
+    from tools.check_formal_semantic_validation import replay_case
+
+    source = FIXTURE.read_text()
+    fixture = tmp_path / "episode.yaml"
+    fixture.write_text(source)
+    case = {"case_id": "episode-policy-control", "fixture_path": "episode.yaml", "replay_mode": "compile-stability"}
+    original = replay_case(tmp_path, case)
+    fixture.write_text(source.replace("control_actions: [reset]", "control_actions: [reset, restart]"))
+    changed = replay_case(tmp_path, case)
+    assert original["actual_outcome"] == changed["actual_outcome"] == "stable"
+    assert original["result_digest"] != changed["result_digest"]

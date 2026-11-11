@@ -10,7 +10,7 @@ from raes_contracts.diagnostics import Diagnostic, Severity
 
 _SEMANTIC_INVALID_DIAGNOSTIC_CODE = "conformance.semantic-invalid"
 _OBSERVABILITY_EVIDENCE_INVALID_DIAGNOSTIC_CODE = "conformance.observability-evidence-invalid"
-_PARTICIPANT_EPISODE_STRUCTURE_INVALID_DIAGNOSTIC_CODE = "conformance.participant-episode-structure-invalid"
+PARTICIPANT_EPISODE_STRUCTURE_INVALID_DIAGNOSTIC_CODE = "conformance.participant-episode-structure-invalid"
 
 _MAX_REPORTED_VALIDATION_ERRORS = 5
 
@@ -108,3 +108,7 @@ def _diagnostic_payload(diag: Diagnostic) -> dict[str, object]:
         "severity": diag.severity.value if hasattr(diag.severity, "value") else str(diag.severity),
         "message": diag.message,
     }
+
+
+# Public construction seam for conformance collaborators.
+diagnostic = _diagnostic

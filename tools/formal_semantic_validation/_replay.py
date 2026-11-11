@@ -27,7 +27,11 @@ from tools.policy.common import safe_repo_path
 def replay_case(repo_root: Path, case: Mapping[str, object]) -> dict[str, str | None]:
     """Replay one supported case through its declared production boundary."""
     fixture_value = case.get("fixture_path")
-    fixture = safe_repo_path(repo_root, str(fixture_value)) if _nonempty_string(fixture_value) else None
+    fixture = (
+        safe_repo_path(repo_root, str(fixture_value))
+        if _nonempty_string(fixture_value)
+        else None
+    )
     if fixture is None or not fixture.is_file():
         raise InvalidInputError(f"missing or unsafe replay fixture {fixture_value!r}")
 
@@ -47,11 +51,15 @@ def replay_case(repo_root: Path, case: Mapping[str, object]) -> dict[str, str | 
     raise InvalidInputError(f"case {case.get('case_id')!r} is not replayable")
 
 
-def _migration_policy_for_case(repo_root: Path, case: Mapping[str, object], path: Path) -> object:
+def _migration_policy_for_case(
+    repo_root: Path, case: Mapping[str, object], path: Path
+) -> object:
     from raes import SDLMigrationPolicy
 
     relative = path.resolve().relative_to(repo_root.resolve()).as_posix()
-    expected_digest = _HISTORICAL_VM_REPLAY_INPUTS.get((str(case.get("case_id")), relative))
+    expected_digest = _HISTORICAL_VM_REPLAY_INPUTS.get(
+        (str(case.get("case_id")), relative)
+    )
     if expected_digest is not None and _sha256_file(path) == expected_digest:
         return SDLMigrationPolicy.ACCEPT
     return SDLMigrationPolicy.REJECT
@@ -82,7 +90,9 @@ def _replay_parse_case(
     }
 
 
-def _compiled_case_digest(repo_root: Path, case: Mapping[str, object], path: Path) -> str:
+def _compiled_case_digest(
+    repo_root: Path, case: Mapping[str, object], path: Path
+) -> str:
     from raes import instantiate_scenario, parse_sdl_file
     from raes_processor.compiler import compile_runtime_model
 
@@ -95,6 +105,11 @@ def _compiled_case_digest(repo_root: Path, case: Mapping[str, object], path: Pat
     # Absence adds no semantic value to retained fingerprints. Authored proofs stay bound.
     if compiled["safe_states"] == ():
         compiled.pop("safe_states")
+    if not compiled["participant_episode_policies"]:
+        compiled.pop("participant_episode_policies")
+    for specification in compiled["behavior_specifications"].values():
+        if not specification["episode_policy_address"]:
+            specification.pop("episode_policy_address")
     return _digest(compiled)
 
 
@@ -104,9 +119,15 @@ def _replay_compile_distinguish(
     fixture: Path,
 ) -> dict[str, str | None]:
     comparison_value = case.get("comparison_fixture_path")
-    comparison = safe_repo_path(repo_root, str(comparison_value)) if _nonempty_string(comparison_value) else None
+    comparison = (
+        safe_repo_path(repo_root, str(comparison_value))
+        if _nonempty_string(comparison_value)
+        else None
+    )
     if comparison is None or not comparison.is_file():
-        raise InvalidInputError(f"missing or unsafe comparison fixture {comparison_value!r}")
+        raise InvalidInputError(
+            f"missing or unsafe comparison fixture {comparison_value!r}"
+        )
     first = _compiled_case_digest(repo_root, case, fixture)
     second = _compiled_case_digest(repo_root, case, comparison)
     return {
@@ -131,7 +152,9 @@ def _validate_test_ref(repo_root: Path, value: object) -> bool:
     if not _nonempty_string(value):
         return False
     path_value, separator, node_id = str(value).partition("::")
-    node_id_valid = bool(separator) and bool(node_id) and "[" not in node_id and "/" not in node_id
+    node_id_valid = (
+        bool(separator) and bool(node_id) and "[" not in node_id and "/" not in node_id
+    )
     path = safe_repo_path(repo_root, path_value) if node_id_valid else None
     if path is None or not path.is_file() or path.suffix != ".py":
         return False
@@ -141,7 +164,10 @@ def _validate_test_ref(repo_root: Path, value: object) -> bool:
     except UnicodeDecodeError:
         # A referenced file that is not UTF-8 text cannot define the test.
         source = ""
-    return re.search(rf"^def {re.escape(function_name)}\s*\(", source, re.MULTILINE) is not None
+    return (
+        re.search(rf"^def {re.escape(function_name)}\s*\(", source, re.MULTILINE)
+        is not None
+    )
 
 
 def _participant_test_refs(protocol: Mapping[str, object]) -> list[str]:
@@ -156,7 +182,9 @@ def _participant_test_refs(protocol: Mapping[str, object]) -> list[str]:
     return refs
 
 
-def _replay_participant_tests(repo_root: Path, test_refs: list[str]) -> tuple[bool, str]:
+def _replay_participant_tests(
+    repo_root: Path, test_refs: list[str]
+) -> tuple[bool, str]:
     """Run the declared participant fixtures without trusting snapshot labels."""
     try:
         completed = subprocess.run(

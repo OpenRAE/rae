@@ -89,6 +89,7 @@ _P0_SCOPE_BOUND_ERROR = "control-plane profile P0 missing capabilities: store.sc
 if TYPE_CHECKING:
     from raes_processor.models import ExecutionPlan
 
+    from .participant_episode_binding import ParticipantEpisodeRuntimeBinding
     from .runtime_run_driver import RunProgress
 
 
@@ -154,6 +155,9 @@ class RuntimeRunContext(
         self._initialize_runtime_lifecycle()
         self._flow_sink_resolver = compose_participant_boundary(target, config)
         self._target = target
+        self._participant_episode = config.participant_episode
+        if self._participant_episode is not None:
+            self._participant_episode.require_target(target)
         self._target_scope, self._run_scope = target_scope, config.run_scope
         self._mixed_runtime = config.mixed_runtime
         self._materialization_archive = config.materialization_archive
@@ -302,6 +306,11 @@ class RuntimeRunContext(
         with self._operation_lock:
             self._reload_derived_state_if_unpinned()
             return self._snapshot
+
+    @property
+    def participant_episode(self) -> ParticipantEpisodeRuntimeBinding | None:
+        """Return the explicitly installed episode policy binding, when present."""
+        return self._participant_episode
 
     @property
     @runtime_owned

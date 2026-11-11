@@ -278,6 +278,7 @@ BehaviorSpecification =
   evidence_contract_ref*
   tool_affordance*
   participant_inject_delivery*
+  episode_policy?
   extension_policy
   extension*
 ```
@@ -303,6 +304,9 @@ Rules:
 - `participant_inject_delivery` entries are the DSL-142 participant-directed
   inject deliveries defined in `specs/sdl/sections.md` and MC-09 of
   [reusable mixed control](../participant-semantics/reusable-mixed-control.md).
+- `episode_policy` is the authored episode structure defined in
+  [participant episode structure](../../sdl/sections.md#participant-episode-structure).
+  It is available across behavior modes and remains distinct from realized episode state and history.
 - Offensive (ACT-609) and defensive (ACT-610) behavior classifications are not
   aggregate fields. They use generic concept bindings against the exact
   behavior specification. SDL parsing rejects the retired

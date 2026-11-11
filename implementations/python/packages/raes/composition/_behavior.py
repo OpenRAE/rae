@@ -18,7 +18,12 @@ from .._errors import SDLValidationError
 from .._reference_targetability import PURPOSE_LABELS, ReferencePurpose
 from ..participant_behavior_specification import tool_affordance_reference
 from ._control_context import rewrite_control_context as _rewrite_control_context
-from ._episode_policy import _rewrite_participant_episode_policy, _unit_reset_authority_ambiguities
+from ._episode_policy import (
+    rewrite_participant_episode_policy as _rewrite_participant_episode_policy,
+)
+from ._episode_policy import (
+    unit_reset_authority_ambiguities as _unit_reset_authority_ambiguities,
+)
 from ._references import (
     _maybe_rename,
     _prefix,

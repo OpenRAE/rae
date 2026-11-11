@@ -43,7 +43,7 @@ from .participant_contracts import (
     _compile_observation_boundaries,
     _compile_outcome_interpretation_rules,
 )
-from .participant_episode_policies import _compile_participant_episode_policies
+from .participant_episode_policies import compile_participant_episode_policies as _compile_participant_episode_policies
 from .participant_inject_deliveries import _compile_participant_inject_deliveries
 from .placement import (
     _compile_account_placements,

@@ -161,8 +161,8 @@ def execute_mixed_participant_lifecycle(
     del request_fingerprint
     with control_plane_mutation(control_plane, OperationKind.PARTICIPANT_ACTION):
         control_plane._reload_derived_state()
-        if control_plane._participant_episode is not None:
-            control_plane._participant_episode.require_request(request)
+        if control_plane.participant_episode is not None:
+            control_plane.participant_episode.require_request(request)
         receipt, accepted, prepared = _new_lifecycle_operation(
             control_plane,
             request,

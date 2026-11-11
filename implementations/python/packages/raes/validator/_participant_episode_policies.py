@@ -10,7 +10,7 @@ still a ``${var}`` wait for the post-instantiation validation pass.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 
 from raes_contracts.propositions import AssertionRole
@@ -46,8 +46,27 @@ class _EpisodeOwner:
     selection_resolved: bool
 
 
-class _ParticipantEpisodePoliciesMixin:
-    def _verify_participant_episode_policies(self) -> None:
+class ParticipantEpisodePolicyValidator:
+    """Compose episode checks with the existing validator's reference and error owners."""
+
+    def __init__(
+        self,
+        *,
+        scenario: object,
+        declaration_index: object,
+        roles: dict[str, str],
+        is_unresolved: Callable[[object], bool],
+        report_error: Callable[[str], None],
+        validate_named_ref: Callable[..., object],
+    ) -> None:
+        self._s = scenario
+        self._declaration_index = declaration_index
+        self._roles = roles
+        self._is_unresolved_var = is_unresolved
+        self._err = report_error
+        self._validate_named_ref = validate_named_ref
+
+    def verify(self) -> None:
         if self._declaration_index is None:
             raise RuntimeError(_DECLARATION_INDEX_REQUIRED)
         governed = [
@@ -57,7 +76,7 @@ class _ParticipantEpisodePoliciesMixin:
         ]
         if not governed:
             return
-        roles = self._participant_roles_by_agent()
+        roles = self._roles
         owners = [self._episode_owner(spec_name, behavior_spec, roles) for spec_name, behavior_spec in governed]
         for owner in owners:
             self._verify_episode_policy(owner)
