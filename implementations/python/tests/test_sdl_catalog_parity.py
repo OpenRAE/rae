@@ -127,6 +127,32 @@ def test_reference_domain_drift_is_flagged(tmp_path: Path) -> None:
     assert "sdl-catalog-reference-domain" in _rule_ids(repo)
 
 
+def test_reference_catalog_accepts_language_neutral_rows() -> None:
+    text = """## 6. Machine-checkable reference-edge index
+
+| Source path | Candidate domain | Resolution phase | Failure | Normative owner |
+| --- | --- | --- | --- | --- |
+| `nodes.*.features[]` | `features` | semantic validation | fatal dangling or ambiguous | [reference rules](references.md) |
+"""
+    [row] = parse_reference_catalog(text)
+    assert (row.source_path, row.domain, row.phase, row.failure, row.normative_owner) == (
+        "nodes.*.features[]",
+        "features",
+        "semantic validation",
+        "fatal dangling or ambiguous",
+        "[reference rules](references.md)",
+    )
+
+
+@pytest.mark.parametrize("columns", [4, 6])
+def test_reference_catalog_rejects_wrong_column_count(columns: int) -> None:
+    text = "## 6. Machine-checkable reference-edge index\n\n" + "\n".join(
+        "| " + " | ".join([cell] * columns) + " |" for cell in ("field", "---", "value")
+    )
+    with pytest.raises(CatalogParseError, match="expected 5"):
+        parse_reference_catalog(text)
+
+
 def test_non_completion_reference_domain_drift_is_flagged(tmp_path: Path) -> None:
     repo = _seed_repo(tmp_path)
     _replace(
@@ -143,11 +169,9 @@ def test_non_completion_reference_domain_drift_is_flagged(tmp_path: Path) -> Non
     [
         ("| `features` | semantic validation |", "| `features` | |"),
         (
-            "| fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) | "
-            "[node validator]",
-            "| | [reference rules](#5-cross-section-reference-edge-catalog) | [node validator]",
+            "| fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) |",
+            "| | [reference rules](#5-cross-section-reference-edge-catalog) |",
         ),
-        ("[node validator](../../implementations/python/packages/raes/validator/_nodes_infra_network.py)", ""),
     ],
 )
 def test_reference_row_classification_drift_is_flagged(tmp_path: Path, old: str, new: str) -> None:
@@ -250,8 +274,8 @@ def test_implementation_specific_diagnostic_term_must_be_marked_nonnormative(tmp
     _replace(
         repo,
         "specs/sdl/diagnostics.md",
-        "> these as `SDLParseError`, `SDLValidationError`, and `SDLInstantiationError`;",
-        "these as `SDLParseError`, `SDLValidationError`, and `SDLInstantiationError`;",
+        "An **error** is fatal:",
+        "An **error** (`SDLParseError`) is fatal:",
     )
     assert "sdl-catalog-normative-layer" in _rule_ids(repo)
 

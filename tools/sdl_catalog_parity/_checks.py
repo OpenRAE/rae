@@ -225,7 +225,7 @@ def _check_top_level(text: str, schema: dict[str, Any]) -> tuple[list[PolicyFail
 
 
 def _reference_contract_failures(
-    by_source: dict[str, tuple[str, str, str, str]],
+    by_source: dict[str, tuple[str, str, str]],
 ) -> list[PolicyFailure]:
     if by_source == REFERENCE_EDGE_EXPECTATIONS:
         return []
@@ -282,7 +282,7 @@ def _row_validity_failures(rows: list[ReferenceRow], repo_root: Path) -> list[Po
 
 
 def _behavior_edge_failures(
-    by_source: dict[str, tuple[str, str, str, str]],
+    by_source: dict[str, tuple[str, str, str]],
 ) -> list[PolicyFailure]:
     failures: list[PolicyFailure] = []
     behavior_expectations = {
@@ -333,7 +333,7 @@ def _check_references(text: str, top_rows: list[TopLevelRow], repo_root: Path) -
         rows = parse_reference_catalog(text)
     except CatalogParseError as exc:
         return [_failure("sdl-catalog-reference-parse", str(exc), REFERENCES_PATH)]
-    by_source = {row.source_path: (row.domain, row.phase, row.failure, row.evidence) for row in rows}
+    by_source = {row.source_path: (row.domain, row.phase, row.failure) for row in rows}
     failures = _reference_contract_failures(by_source)
     failures.extend(_completion_target_failures(rows))
     failures.extend(_row_validity_failures(rows, repo_root))

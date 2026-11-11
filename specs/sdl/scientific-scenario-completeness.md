@@ -3,9 +3,7 @@
 Status: **normative**.
 
 This specification defines the REV1 intended-use scope contract required by
-GOV-942. It answers which semantic concerns are required, may remain
-underspecified, or are excluded for a stated scenario-use claim, and joins that
-stable taxonomy to a separately versioned assessment of what RAES delivers.
+GOV-942. It identifies required, underspecified, or excluded semantic concerns for a stated scenario-use claim. It joins that stable taxonomy to a separately versioned assessment of what RAES delivers.
 
 It does not change ordinary SDL validity. A document containing only `name` may
 be a valid SDL fragment while being unsuitable for deployment, participant
@@ -43,9 +41,7 @@ Profile disposition and delivery status are different dimensions:
 | Profile disposition | `required`, `allowed-underspecified`, `excluded` |
 | Delivery status | `implemented`, `partial`, `external-contract`, `deliberately-excluded`, `missing` |
 
-`external-contract` means that a named, versioned non-SDL contract supplies the
-concern, has at least one conforming checked-in instance as a satisfiability
-witness, and states a binding obligation to the same scenario/run lineage. The
+`external-contract` means that a named, versioned non-SDL contract supplies the concern. It has at least one conforming checked-in instance as a satisfiability witness. It states a binding obligation to the same scenario/run lineage. The
 witness establishes that the structural contract is non-empty. It does not
 prove that a backend can realize the obligation or that a particular run
 satisfied it. A formal design, accepted ADR, open issue, example mention, or
@@ -86,16 +82,14 @@ The following block is checked mechanically against the normative artifacts.
 
 Only a computed-complete profile may cite a minimal example as completeness
 evidence. The current example for `valid-sdl-fragment` is admitted through the
-production SDL parser. An incomplete stronger profile may have an illustration,
-but that illustration MUST be labeled as a gap illustration and MUST NOT be
-used to upgrade the profile.
+production SDL parser. An incomplete stronger profile may have an illustration. It MUST be labeled as a gap illustration and MUST NOT be used to upgrade the profile.
 
 ## Composition boundary
 
 The stronger profiles compose SDL with existing experiment and evidence
 contracts. Factors, allocation, stochastic controls, apparatus context, runs,
 studies, captured evidence, and associated artifacts do not become new
-`Scenario` fields. A binding obligation must connect those artifacts to the
+SDL scenario fields. A binding obligation must connect those artifacts to the
 same instantiated scenario and derivation lineage.
 
 Profile validity is also distinct from:
@@ -110,10 +104,7 @@ Profile validity is also distinct from:
 
 The revisioned behavioral-relation taxonomy is defined by
 `raes-behavioral-relations@rev1`. Every profile binds its intended claim to that
-catalog and lists relations it does not claim. This implements the taxonomy
-concern without promoting any currently incomplete stronger profile: passing
-the same bounded probes or producing equal result tuples is not evidence of
-bisimulation.
+catalog and lists relations it does not claim. This implements the taxonomy concern without promoting any currently incomplete stronger profile. Passing the same bounded probes or producing equal result tuples is not evidence of bisimulation.
 
 ## Security and evidence boundary
 

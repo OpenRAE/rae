@@ -1,11 +1,7 @@
 <!-- vale RAES.HeadingCase = NO -->
 # Diagnostics — errors and advisories
 
-This file documents the SDL diagnostic boundary: the stages at which a document
-is checked, the fail-closed error semantics, and the distinction between a fatal
-**error** and a non-fatal **advisory**. It states the normative criterion that
-classifies a condition as an error or an advisory (§5); it does not introduce a
-new diagnostic mechanism, and it does not reclassify any existing condition.
+This file documents the SDL diagnostic boundary and the stages at which a document is checked. It defines fail-closed error semantics and distinguishes fatal **errors** from non-fatal **advisories**. It states the normative criterion for classifying a condition as an error or advisory (§5). It introduces no new diagnostic mechanism and reclassifies no existing condition.
 
 <!-- vale RAES.HeadingCase = YES -->
 
@@ -17,10 +13,7 @@ Portable instantiated artifacts also have an admission gate. Each is
 a problem at a stage stops the document from advancing past that stage.
 
 1. **Source / parse / structural.** `sdl-yaml/v1` decoding, operational bounds,
-   structural shape, and typed construction: the root is a mapping, keys are
-   strings, mapping entries remain unique, canonical structural fields are
-   exact, values have the right shapes, and **no unknown key is present**
-   ([document-model.md §§1, 4-5](document-model.md)). A problem is a parse error.
+   structural shape, and typed construction: the root is a mapping, keys are strings, and mapping entries remain unique. Canonical structural fields are exact. Values have the right shapes, and **no unknown key is present** ([document-model.md §§1, 4-5](document-model.md)). A problem is a parse error.
 2. **Semantic validation.** Cross-section reference resolution
    ([references.md](references.md)), uniqueness, acyclicity, control-flow
    closure, and the runtime-family invariants
@@ -32,11 +25,7 @@ a problem at a stage stops the document from advancing past that stage.
    problem here is an instantiation error. Instantiation re-runs semantic
    validation on the concrete document, so semantic errors can also surface at
    this stage.
-4. **Instantiated-artifact admission.** A direct or deserialized
-   `instantiated-scenario-v1` payload is checked for its closed phase shape,
-   required and internally consistent provenance, absence of substitution
-   tokens, and ordinary semantic validity before compilation or canonical
-   snapshot creation. Structural/provenance failures use the instantiation
+4. **Instantiated-artifact admission.** Before compilation or canonical snapshot creation, a direct or deserialized `instantiated-scenario-v1` payload is checked. Checks cover closed phase shape, required and internally consistent provenance, absence of substitution tokens, and ordinary semantic validity. Structural/provenance failures use the instantiation
    error surface; semantic failures use the validation error surface. Admission
    never trusts a caller-set private validation flag.
 
@@ -46,22 +35,16 @@ The semantic-validation and instantiation stages **collect all errors in a pass*
 and report them together, rather than failing at the first problem. An author
 fixing a document sees the full set of errors a stage found, not one error at a
 time. Parsing may stop at the first structural fault that prevents composition
-of a YAML node graph. Once that graph is available, the mapping-key preflight
-collects all exact duplicates, migration-merge conflicts, canonical-field
-violations, and field-alias collisions before construction; none is hidden by
-a last-write-wins mapping.
+of a YAML node graph. With that graph available, the mapping-key preflight collects all faults in these categories before construction. They are exact duplicates, migration-merge conflicts, canonical-field violations, and field-alias collisions. A last-write-wins mapping hides none of them.
 
 ## 3. Errors are fatal
 
-An **error** is fatal: it prevents the document from advancing past its stage. A
-parse error prevents semantic validation; a semantic error prevents a document
-from being treated as valid; an instantiation error prevents a concrete document
-from being produced. There is no "warn and continue" for an error.
+An **error** is fatal: it prevents the document from advancing past its stage. A parse error prevents semantic validation. A semantic error prevents a document from being treated as valid. An instantiation error prevents a concrete document from being produced. There is no "warn and continue" for an error.
 
-> *Implementation evidence (non-normative): the reference implementation reports
-> these as `SDLParseError`, `SDLValidationError`, and `SDLInstantiationError`;
-> the latter two carry the full collected error list. This specification does
-> not define a new exception hierarchy or diagnostic envelope.*
+> *Implementation evidence (non-normative): the reference implementation uses separate
+> parse, semantic-validation, and instantiation error channels.
+> The latter two carry the full collected error list.
+> This specification does not define a new exception hierarchy or diagnostic envelope.*
 
 ## 4. Advisories are non-fatal
 
@@ -84,9 +67,7 @@ Existing advisory conditions, documented here by reference (not redefined):
   `sdl-yaml/v1` decoding still rejects it, and the migrated output must pass
   strict decoding. Ambiguity and unknown fields remain fatal in migration mode.
 
-- **Compute node without resources.** A compute node declared without a
-  `resources` block is **valid** SDL; it is flagged as an advisory because it may
-  be undeployable unless a backend supplies defaults. It is not an error.
+- **Compute node without resources.** A compute node declared without a `resources` block is **valid** SDL. It raises an advisory because deployment may need defaults from a backend. It is not an error.
 - **Name-based secret-classification heuristics.** A field whose *name* suggests
   it carries a secret, but which is not explicitly classified
   `redacted`/`operator_secret`, may raise an advisory. The heuristic is advisory
@@ -104,31 +85,31 @@ Existing advisory conditions, documented here by reference (not redefined):
 ## 5. Classification criterion
 
 This section states the normative rule that decides whether a condition is an
-**error** or an **advisory**. It resolves the classification deferred by review
-**IMP-3**: the boundary is single-sourced here, and the classification of an
-individual condition follows from this criterion rather than from each pass's
-implementation.
+**error** or an **advisory**. It resolves the classification deferred by review **IMP-3**. This criterion is the single classification source for individual conditions, independent of each pass's implementation.
 
 The criterion is **meaning preservation**:
 
-1. A condition is an **error** if and only if it affects the *meaning* of the SDL
-   document — whether the document denotes a well-defined scenario at all. The
-   meaning-affecting categories are: structural shape and closure (the §1 stage-1
-   checks, including unknown-key rejection); cross-section reference resolution
-   ([references.md](references.md)); identifier uniqueness; reference ambiguity;
-   dependency and control-flow acyclicity; control-flow reachability,
-   convergence, and "known-before-evaluation" visibility; required-profile guards
-   on discriminated runtime spines ([runtime-inventory.md](runtime-inventory.md));
-   variable binding, type, and constraint checks at instantiation
-   ([variables-and-instantiation.md §3](variables-and-instantiation.md)); and
-   explicit-redaction enforcement ([runtime-inventory.md §3](runtime-inventory.md)).
-   A document that violates one of these has no single well-defined meaning, so
-   the stage **MUST** fail closed (§3).
-2. A condition is an **advisory** if and only if the document still has a single
-   well-defined meaning and the condition reports a *deployability* or *quality*
-   heuristic that does not change what the scenario means — for example, a
-   construct a backend may be unable to realise without defaults, or a non-binding
-   observation an author may wish to review. Advisories are non-fatal (§4).
+1. A condition is an **error** if and only if it affects the *meaning* of the SDL document.
+   That is, it affects whether the document denotes a well-defined scenario at all.
+   The meaning-affecting categories are:
+
+   - Structural shape and closure, including unknown-key rejection (§1, stage 1).
+   - Cross-section reference resolution ([references.md](references.md)), identifier uniqueness, and reference ambiguity.
+   - Dependency and control-flow acyclicity.
+   - Control-flow reachability, convergence, and "known-before-evaluation" visibility.
+   - Required-profile guards on discriminated runtime spines ([runtime-inventory.md](runtime-inventory.md)).
+   - Variable binding, type, and constraint checks at instantiation ([variables-and-instantiation.md §3](variables-and-instantiation.md)).
+   - Explicit-redaction enforcement ([runtime-inventory.md §3](runtime-inventory.md)).
+
+   A document that violates one of these has no single well-defined meaning.
+   The stage **MUST** fail closed (§3).
+2. A condition is an **advisory** if and only if these conditions hold:
+
+   - The document still has one well-defined meaning.
+   - The condition reports a deployability or quality heuristic that does not change scenario meaning.
+
+   Examples include constructs that a backend may need defaults to realise, or non-binding observations for author review.
+   Advisories are non-fatal (§4).
 
 **Borderline rule.** SDL diagnostics are fail-closed.
 When a condition's classification is unclear, the default is **error**.
@@ -158,33 +139,23 @@ diagnostic code `sdl.mapping_key_conflict`. They are fatal at the `parse` stage
 and **MUST** be raised before typed SDL model construction sees the mapping.
 
 An explicitly non-string or complex mapping key uses
-`sdl.mapping_key_type`. A cyclic YAML alias graph uses `sdl.alias_cycle`. These
-conditions are likewise fatal at the `parse` stage and carry the canonical
-target path and primary source range; they do not have a second authored-key
-range when no competing declaration exists.
+`sdl.mapping_key_type`. A cyclic YAML alias graph uses `sdl.alias_cycle`. These conditions are likewise fatal at the `parse` stage and carry the canonical target path and primary source range. Without a competing declaration, they have no second authored-key range.
 
 Each diagnostic **MUST** carry:
 
-1. the canonical target path as an RFC 6901 JSON Pointer, with schema field
-   segments canonicalised and user-defined/native-map segments preserved and
-   escaped;
+1. the canonical target path as an RFC 6901 JSON Pointer. Schema field segments are canonicalised. User-defined/native-map segments are preserved and escaped;
 2. both authored key spellings (the spellings are identical for an exact
    duplicate); and
 3. the one-based line and column range of both key tokens. The later/conflicting
-   key is the primary range and the earlier key is a related range. When the
-   conflict is contributed through a YAML merge, the ranges identify the
-   original key declarations and the canonical path identifies the effective
-   target mapping.
+   key is the primary range and the earlier key is a related range. When a YAML merge contributes the conflict, the ranges identify the original key declarations. The canonical path identifies the effective target mapping.
 
 Implementations **MUST** expose this failure through the existing parse-error
 channel rather than a parallel diagnostic hierarchy. Public structured adapters
 (including language-service and MCP responses) preserve the code, stage,
-canonical path, and both ranges. Plain-text CLI/library rendering may format the
-same fields as prose but must not replace them with raw YAML values or silently
-downgrade the error to a generic model-validation failure.
+canonical path, and both ranges. Plain-text CLI/library rendering may format the same fields as prose. It must not replace them with raw YAML values or silently downgrade the error to a generic model-validation failure.
 
-> *Implementation evidence (non-normative): the reference implementation's
-> parse-error class for this channel is `SDLParseError`.*
+> *Implementation evidence (non-normative): the reference implementation reports
+> this failure through its existing parse-error channel.*
 
 ## 7. Source-profile and migration diagnostics
 
@@ -231,9 +202,7 @@ upgrade at their versioned deserialization boundary.
 An identifier diagnostic points to the exact defining key or scalar-id token
 and carries that token's source range. Its bounded message states the grammar
 without echoing the invalid spelling, adjacent value, document fragment,
-parameter map, or traceback. The accepting migration profile does not demote or
-rewrite an invalid identity; identifier migration requires an explicit atomic
-rename of the declaration and all resolved references.
+parameter map, or traceback. The accepting migration profile does not demote or rewrite an invalid identity. Identifier migration requires an explicit atomic rename of the declaration and all resolved references.
 
 A typed-model diagnostic preserves the structural contract statement so an
 author can determine why the field is invalid. Framework input rendering,
@@ -242,28 +211,23 @@ are never exposed. The JSON Pointer and source range remain the authoritative
 locator, and the bounded message **MUST NOT** exceed 512 characters.
 
 > *Implementation evidence (non-normative): the reference parser removes
-> Pydantic input rendering, documentation URLs, and framework prefixes; escapes
-> control characters; and converts raw `ValidationError` instances into
+> framework input rendering, documentation URLs, and framework prefixes; escapes
+> control characters; and converts raw model-validation failures into
 > `sdl.model.invalid` diagnostics.*
 
 ## 8. Instantiation and artifact-admission disclosure
 
 Instantiation and instantiated-artifact admission diagnostics identify a
-bounded variable/field location and failure class. They **MUST NOT** render a
-supplied parameter value, an `allowed_values` domain, a complete parameter map,
-the concrete artifact, trust-policy contents, credentials, a raw framework input
-dump, documentation URL, or traceback.
+bounded variable/field location and failure class. They **MUST NOT** render supplied parameter values, `allowed_values` domains, complete parameter maps, concrete artifacts, trust-policy contents, or credentials. They **MUST NOT** render raw framework input dumps, documentation URLs, or tracebacks.
 
-When structural reconstruction fails, the public diagnostic renders an RFC 6901
-location plus a stable validation category through the instantiation-error
-channel; a raw framework exception is not the public artifact-admission
-contract. Semantic errors discovered after successful structural admission
+When structural reconstruction fails, the public diagnostic renders an RFC 6901 location plus a stable validation category through the instantiation-error channel. A raw framework exception is not the public artifact-admission contract. Semantic errors discovered after successful structural admission
 remain on the semantic-error channel and retain the collect-all semantics of
 the semantic pass.
 
 > *Implementation evidence (non-normative): the reference implementation wraps
-> structural failures in `SDLInstantiationError`; semantic failures remain
-> `SDLValidationError`; and raw `ValidationError` instances are not exposed.*
+> structural failures in the instantiation-error channel.
+> Semantic failures remain in the semantic-validation channel.
+> Raw model-validation failures are not exposed.*
 
 Resolved values necessarily occur in the concrete fields they populate and in
 the portable replay binding record. Authoring, MCP, compiler, and operation

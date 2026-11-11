@@ -16,7 +16,7 @@ and the [authority boundary manifest](../authority/authority-boundary.yaml).
 establishes SDL as a declarative language for security experiment scenarios, independent of a backend.
 This reference defines the **authoring model** in SDL terms.
 It covers document structure, references, parameters, instantiation, and diagnostics.
-An independent implementation can use it without reading the reference Python code.
+An independent implementation can use it without reading reference implementation code.
 For operating steps, use the [authoring guide](../../docs/public/sdl/index.md).
 For reasons behind the split, read the [authority explanation](../../docs/explain/reference/normative-artifact-authority.md).
 
@@ -41,11 +41,10 @@ Three artifact classes describe the SDL, with distinct authority:
    This prose is written to match them. The authoring schema validates the normalized
    object, not raw YAML presentation; `document-model.md` §1 and the
    `contracts/fixtures/sdl/sdl-yaml-v1/` corpus define the raw source profile.
-3. **Reference implementations (`implementations/`)** consume both. No Python
-   model, validator function, or generator defines ecosystem meaning; it is
-   evidence of one conforming realisation. This specification names
-   implementation symbols only in clearly marked, non-normative
-   *implementation-evidence* notes.
+3. **Reference implementations (`implementations/`)** consume both. No implementation
+   model, validator function, or generator defines ecosystem meaning.
+   Reference code is evidence of one conforming realisation.
+   This specification describes behavior through SDL terms and portable contracts.
 
 `docs/explain/sdl/sections.md` and the rest of `docs/` are explanatory and
 **non-normative**. They are useful learning and migration aids, but they are
@@ -97,8 +96,8 @@ An implementer can answer each structural question from the named file alone:
 
 - *Which sections exist, which are required, and what shape is each?* →
   [`document-model.md`](document-model.md) and [`sections.md`](sections.md).
-  The nox contracts gate runs `tools/check_sdl_catalog_parity.py` to prove the
-  catalog, published schema, and reference registries remain reconciled.
+  The catalog parity check verifies agreement between the
+  catalog, published schema, and reference registries.
 - *Which raw YAML documents are canonical SDL, and what receives a stable
   semantic digest?* → [`document-model.md`](document-model.md) §§1, 5, 7-9.
 - *What is a valid identifier for a user-defined key?* →

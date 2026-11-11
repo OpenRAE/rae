@@ -2,12 +2,7 @@
 # Catalog 4 — runtime-family index
 
 The runtime inventory is the node-scoped record of logical service state an SDL
-document declares for a node. This file is a normative **index**: it places the
-runtime inventory in the document, names each runtime family and its addressing
-shape, and states the invariants every family shares **once**. It deliberately
-**delegates** each family's per-field semantics to that family's ADR rather than
-restating them, so the authoring spec does not duplicate the runtime ADR
-sequence.
+document declares for a node. This file is a normative **index**. It places runtime inventory in the document, names each runtime family and its addressing shape, and states shared invariants **once**. It **delegates** each family's per-field semantics to that family's ADR rather than restating them. The authoring spec does not duplicate the runtime ADR sequence.
 
 <!-- vale RAES.HeadingCase = YES -->
 
@@ -16,20 +11,12 @@ sequence.
 1. Runtime inventory lives under a node: `nodes.<node>.runtime.<collection>`. It
    is **not** a top-level authoring section.
 2. The runtime layer records **logical service state** — what a service is and
-   how it is configured — not delivery mechanics. The scenario/delivery boundary
-   for runtime node state is fixed by
-   [ADR-033](../../docs/decisions/adrs/adr-033-scenario-delivery-boundary-for-runtime-node-state.md);
-   the SDL/processor/runtime layering by
-   [ADR-004](../../docs/decisions/adrs/adr-004-sdl-runtime-layer.md) and
-   [ADR-036](../../docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md).
+   how it is configured — not delivery mechanics. The scenario/delivery boundary for runtime node state is fixed by [ADR-033](../../docs/decisions/adrs/adr-033-scenario-delivery-boundary-for-runtime-node-state.md). [ADR-004](../../docs/decisions/adrs/adr-004-sdl-runtime-layer.md) and [ADR-036](../../docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md) fix the SDL/processor/runtime layering.
 3. Runtime-family elements and their children are addressed by the
    nested runtime-family reference form
    ([references.md §1](references.md)):
    `nodes.<node>.runtime.<collection>.<id>[.<child-collection>.<child-id>…]`.
-4. `Node.services[]` is adjacent authored identity, not runtime inventory. Each
-   entry identifies a node-local transport binding by port, protocol, and
-   optional name; it does not authorize traffic, prove a live listener, publish
-   a host port, or classify an audience. Authorization remains in
+4. `nodes.<node>.services[]` is adjacent authored identity, not runtime inventory. Each entry identifies a node-local transport binding by port, protocol, and optional name. It grants no traffic authorization or proof of a live listener. It neither publishes a host port nor classifies an audience. Authorization remains in
    `infrastructure.*.acls`, observed bind state in
    `runtime.service_listeners`, and host publication in
    `runtime.network.published_ports`.
@@ -96,9 +83,7 @@ They MUST NOT be collapsed into one.
 
 Service-manager rows use portable `unit_id` as their stable comparison key.
 Their optional `unit_name` is exact native data, not a portable systemd name.
-Only explicit `manager_kind: systemd` selects the flat systemd lifecycle-state
-contract; omitted manager/name fields preserve partiality and inherited
-delegation, while private managers require admitted profiles for richer state.
+Only explicit `manager_kind: systemd` selects the flat systemd lifecycle-state contract. Omitted manager/name fields preserve partiality and inherited delegation. Private managers require admitted profiles for richer state.
 
 Component software requirements, exact-package shorthand, optional typed
 acquisition refinements and the node-local shared `repository_state` surface
@@ -152,10 +137,7 @@ not contradict these.
    likewise omit protocol knowledge; an explicitly contradictory known pairing
    remains invalid. Concrete references, stable identities, typed bounds,
    incompatible structural combinations and protection rules still apply.
-   A selected operation **MUST** satisfy its actual prerequisites through the
-   [admitted profile host](plan-realization-profiles.md) and
-   [backend preparation](backend-realization-preparation.md), including
-   independent trust, support and execution authorization. A product name,
+   A selected operation **MUST** satisfy its actual prerequisites through the [admitted profile host](plan-realization-profiles.md) and [backend preparation](backend-realization-preparation.md). These include independent trust, support and execution authorization. A product name,
    profile-shaped value, socket path, or partial observation supplies none of
    those authorities. Neither a core nor a private catalog is compulsory merely
    to describe state. Unmentioned detail follows the enclosing realization
@@ -190,7 +172,7 @@ runtime inventory. Reporting a choice, observing it, retaining it and exporting
 it remain independent decisions under the existing observation-demand owners.
 
 The [disposition inventory](../../docs/research/language-extensibility/scope-inventory.md)
-records each migrated and retained vocabulary. Python and published schema
+records each migrated and retained vocabulary. Reference implementation and published schema
 validation share the same core aliases, variable grammar and extension policy.
 Legacy data with no recoverable identity remains unknown; conversions must not
 invent a private token or collapse a known token into `other`.

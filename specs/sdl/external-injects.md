@@ -11,10 +11,7 @@ claim that the current runtime/backend executes these rules.
 Reuse Inject, Event, Script, Story and optional Node.injects declarations.
 An external trigger instantiates one authored inject, not an arbitrary command
 and not an entire event. A separate admitted occurrence is needed for every
-other inject in that event. Record the canonical inject address, scenario and
-compiled-plan content pins, realization profile/version, source artifact
-identity and integrity, target/run, concrete binding set and narrative placement
-when applicable. Entities describe narrative endpoints; neither they nor an
+other inject in that event. Record the canonical inject address, scenario and compiled-plan content pins, realization profile/version, source artifact identity and integrity, target/run, and concrete binding set. Record narrative placement when applicable. Entities describe narrative endpoints; neither they nor an
 opaque environment string identify a host, actor, participant or controller.
 
 <!-- vale RAES.HeadingCase = YES -->
@@ -23,12 +20,16 @@ The request selects one admitted binding or an explicit nonempty subset of a
 resolved fan-out. Each binding names a concrete realization instance and its
 revision, including node-count expansion and module namespaces. Missing,
 ambiguous, cross-run or stale selections refuse; never silently choose every
-host or the first matching name. A top-level inject without Node.injects may
+host or the first matching name.
+
+A top-level inject without Node.injects may
 execute only when its selected realization supplies an explicit resolved target
 contract, not by inferring hosts from entity names. Optional or floating source authoring remains valid, but execution requires a
 resolved executable realization and immutable artifact pin; retries never
 re-resolve a floating selector. A descriptive inject without such a realization
-is unsupported, never a successful no-op. No source replacement,
+is unsupported, never a successful no-op.
+
+No source replacement,
 plan mutation, arbitrary URL/path callback or expanded scope is permitted.
 
 An event-anchored request retains that event's assertions. A scheduled placement
@@ -57,11 +58,15 @@ Persist a value-free commitment to admitted intent and classified input refs;
 extend the owning ephemeral exact-retry mechanism deliberately for any
 sensitive input. Current account-credential helpers do not already protect
 arbitrary inject payloads. Never
-persist raw secret values or guessable secret digests. Loss of an ephemeral
+persist raw secret values or guessable secret digests.
+
+Loss of an ephemeral
 commitment cannot be treated as equality; retain the claim and refuse an
 unverifiable retry without redispatch. References/digests still need disclosure
 authorization. Payloads cannot supply credentials, executable selectors or
-accepted outcome evidence. Backend secret/input resolution uses existing owners.
+accepted outcome evidence.
+
+Backend secret/input resolution uses existing owners.
 
 Keep request key, operation ID, logical occurrence ID, attempt/generation,
 narrative placement, delivery occurrence and observation occurrence distinct.
@@ -75,10 +80,14 @@ Within the ADR-104 target/run store, the retry key is (actor, operation kind,
 client key). Bind its immutable commitment to occurrence ID, exact target set,
 payload/source, plan/interpretation, cut/order and optional composition joins.
 Exact authorized retry returns the original operation/occurrence and current
-recorded outcome without a new admission or invocation. Changed content
+recorded outcome without a new admission or invocation.
+
+Changed content
 conflicts. Independently claim occurrence identity in the run: another retry
 key cannot execute an already claimed occurrence. Another actor cannot take it
-over or inspect its receipt. Authorize receipt access before any lookup and
+over or inspect its receipt.
+
+Authorize receipt access before any lookup and
 before revealing whether another actor's claim exists. Re-check current read
 authorization, not original execution admissibility, for an exact retry.
 
@@ -164,10 +173,7 @@ effect leaves an unsettled/indeterminate attempt for reconciliation.
 
 Recovery observes under the original pins and ownership, never blindly invokes
 again. Exact client retries, new retry keys, delivery retries and new processes
-cannot bypass retained claims. Later attributable evidence links a resolution
-to the original immutable result and generation; it does not rewrite history,
-unblock conflicting work without cessation, or upgrade stale results to current
-state. There is no exactly-once remote execution, universal rollback, liveness
+cannot bypass retained claims. Later attributable evidence links a resolution to the original immutable result and generation. It does not rewrite history, unblock conflicting work without cessation, or upgrade stale results to current state. There is no exactly-once remote execution, universal rollback, liveness
 or physical cancellation guarantee. P0 has only its admitted in-process
 guarantees; P1/P2 durability does not imply P3 multi-writer coordination.
 
@@ -194,11 +200,13 @@ occurrence identity/revision, edge/policy, acting source controller, typed
 target, authority scope, validity and evidence. The caller's operational role
 and the control-subject/audience bindings confer different authority. Do not
 classify a participant direction as an environment effect to evade these gates.
+
 One (control occurrence, participant binding) authorizes at most one logical
 delivery; independent fan-out uses separately admitted bindings. Reserve that
 pair atomically through the existing crossing/history/receipt owner before
 emission. Retain the reservation after a lost acknowledgement or crash; unknown
 delivery requires reconciliation, never blind emission under a new client key.
+
 An exact receipt lookup is separately authorized; a pending emission still
 requires current disclosure gates.
 
@@ -207,10 +215,14 @@ result with source provenance; a participant status view alone satisfies
 neither. If composition requires a world effect, its outcome is a predecessor
 to the corresponding result delivery. Optional delivery failure preserves the
 world outcome; required delivery failure keeps composed success/dependent
-progress withheld without claiming rollback. A failed world effect supplies no
+progress withheld without claiming rollback.
+
+A failed world effect supplies no
 successful effect result for delivery. Any failure notification is a separately
 authorized disclosure. Delivery retry reuses the effect/result identity and
-cannot refire it. Emission, acknowledgement and observation require their own
+cannot refire it.
+
+Emission, acknowledgement and observation require their own
 evidence; no participant observation follows from transport success.
 
 Legacy DSL-142 anchors still require their original event/script/story fields.
@@ -257,8 +269,7 @@ The following invariants apply:
 - Participant delivery cannot create a world effect or observation.
 - Historical interpretation and actor attribution remain stable.
 
-The [bounded test relation](../../implementations/python/tests/test_issue_1353_external_inject_design.py)
-checks finite claim/order/lifecycle/outcome and
+The bounded conformance relation checks finite claim/order/lifecycle/outcome and
 delivery projections. It assumes trusted resolver/authorization/clock/evidence
 inputs and an atomic store. Existing parser/compiler and delivery tests witness
 legacy behavior. Neither test family proves the new HTTP/core/store/backend

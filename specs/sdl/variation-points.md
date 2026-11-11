@@ -18,9 +18,12 @@ facts.
 The section is admitted in normalized and expanded authoring objects and is
 forbidden in instantiated scenarios and snapshots. Composition MUST complete
 before selection. Public instantiation of an unresolved family MUST fail closed.
-The public `select_scenario_family()` API applies complete recorded selections.
+
+Scenario-family selection applies complete recorded selections.
 It MUST NOT use variable defaults or first members as implicit selections.
-Selection MUST keep authored field presence. A field that the family omits
+Selection MUST keep authored field presence.
+
+A field that the family omits
 stays omitted in the selected scenario, so selection does not change its
 explicitness or realization authority.
 
@@ -159,9 +162,11 @@ This form couples node presence and inventory membership in one choice.
 Runtime references MUST identify top-level records on the target node in the target collection.
 Nested children remain inside their owning record.
 Member labels and list positions are not inventory identities.
+
 Selections preserve record payloads, semantic identifiers, and source order.
 An empty reference list selects no records in the collection.
 Omission does not assert forbidden presence, closed inventory, or runtime discovery.
+
 Unselected node fields and inventory collections remain unchanged.
 
 The `nodes.runtime.network_detection_engines.rule_sources` slot selects child records.
@@ -182,21 +187,26 @@ Authors couple dependent declarations to node absence with `requires` and `exclu
 A resource consumer member lists the consumer rows that the owner resource keeps.
 Each selector MUST identify one existing row by its node and mount destination.
 The node reference follows the resource consumer rule.
+
 Two selectors MUST NOT identify the same row.
 Selections preserve row payloads and source order.
 Unselected rows leave the resource.
+
 An empty list selects no rows.
 The owning resource validator decides if the selected rows are valid.
 
 All writes resolve against the unchanged family.
 Different values for the same canonical target MUST fail admission.
 The canonical target is `<owner section>.<owner name>.<slot field>`.
+
 The rule source target is the qualified engine reference, followed by `.rule_sources`.
 Node absence conflicts with other writes to that node or its descendants.
 Declaration absence conflicts with other writes to that declaration or its descendants.
+
 Coupled and separate inventory writes MUST agree when they address the same collection.
 A rule source write conflicts with an inventory write to the engine collection of the same node.
 Conflict detection MUST NOT depend on point identifiers or traversal order.
+
 Owned provenance follows retained records by stable identity after selection.
 Removed records carry their owned provenance out of the selected scenario.
 Surviving constraints remain authoritative at their new positions.

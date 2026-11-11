@@ -122,8 +122,8 @@ their own required members: an instantiated scenario requires
    merge input is accepted only when every inherited and local effective field is disjoint.
    Override precedence is never SDL semantics.
 
-> *Implementation evidence (non-normative): the reference models set
-> `extra="forbid"` on the shared SDL base model.*
+> *Implementation evidence (non-normative): the reference models reject
+> unknown fields through their shared SDL base model.*
 
 ## 5. Canonical fields, literal keys, and migration
 
@@ -185,7 +185,7 @@ non-ASCII, whitespace, controls, `.`, `/`, `:`, and `${…}` are invalid.
 The rule applies by semantic role, not field spelling.
 It covers these identities:
 
-- `Scenario.name`.
+- the top-level `name`.
 - Map-valued section and variable keys.
 - Nested entity, role, and workflow-step keys.
 - Named services, ACLs, and content items.

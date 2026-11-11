@@ -105,7 +105,7 @@ list carries addressed concern-specific mechanism intent. A compute-substrate
 constraint uses a `namespace`, a `field_pointer` addressing one compute node, the
 literal concern `compute-substrate`, an `open`, `constrained`, or `exact`
 posture, and a compatible domain when bounded. Equal
-`(namespace, field_pointer, concern)` identities are invalid. Expansion and instantiation remove the block from executable `ScenarioContent`.
+`(namespace, field_pointer, concern)` identities are invalid. Expansion and instantiation remove the block from executable scenario content.
 
 They carry typed designation and constraint records in phase provenance.
 Compilation resolves those records without turning authoring machinery into runtime scenario content.

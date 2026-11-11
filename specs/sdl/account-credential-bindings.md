@@ -6,15 +6,13 @@ normative account-credential contract for DSL-439 and issue #673.
 
 ## 1. Distinct concepts
 
-An `Account` describes account existence and posture. Fields such as
+An SDL account describes account existence and posture. Fields such as
 `password_strength`, `disabled`, and `auth_method` MUST NOT be interpreted as
 credential material.
 
 A credential binding describes one authentication purpose served for its
 owning account. The binding MUST be nested in that account's
-`credential_bindings` list. It MUST NOT contain an account reference, target a
-different account, or be inferred from a runtime value, environment variable,
-path, backend option, username, or list position.
+`credential_bindings` list. It MUST NOT contain an account reference or target a different account. It MUST NOT be inferred from runtime values, environment variables, paths, backend options, usernames, or list positions.
 
 Credential material has exactly two v1 classifications:
 
@@ -82,9 +80,7 @@ safe reference ID MAY use an ordinary whole-field `${variable}` reference.
 
 Instantiation MUST reconstruct the closed union and rerun semantic validation.
 Composition MUST retain each binding under its owning qualified account.
-Fixture bytes and reference IDs MUST otherwise be preserved: implementations
-MUST NOT trim, case-fold, Unicode-normalize, hash, mask, interpolate partially,
-or parse them as another scalar type. Existing source ranges, composition
+Fixture bytes and reference IDs MUST otherwise be preserved. Implementations MUST NOT trim, case-fold, Unicode-normalize, hash, mask, interpolate partially, or parse them as another scalar type. Existing source ranges, composition
 provenance, instantiation bindings, canonical account addresses, and
 credential IDs are the binding's provenance; no competing provenance string is
 authorable.
@@ -106,35 +102,32 @@ realization evidence remain backend-owned protected-sink behavior.
 ## 6. Information flow and inspection
 
 Authoritative SDL, canonical SDL identity, and authenticated provisioning input
-MAY contain a `secret_fixture` literal. Generic plan display, runtime snapshots,
-operation records, apply-result details, diagnostics, logs, audits, exceptions,
-and sanitized publication MUST be value-free for fixture values and operator
-reference IDs. Rejected-request envelopes MUST NOT echo credential input.
+MAY contain a `secret_fixture` literal. Generic plan display, runtime snapshots, operation records, apply-result details, diagnostics, logs, audits, exceptions, and sanitized publication MUST be value-free. This applies to fixture values and operator reference IDs. Rejected-request envelopes MUST NOT echo credential input.
 
 For a credential-bearing plan, backend egress uses a closed result contract.
 Account snapshot entries are reconstructed from the admitted plan and expose a
 typed binding projection containing only `credential_id`, purpose, method,
 classification, and value/reference presence. Arbitrary apply-result details
-and backend-authored diagnostic prose are not admitted. Supplemental realization
-data is limited to the existing typed provenance, observation, and envelope
-carriers and closed evidence fields consumed by the applicable admitted
-realization contract, including entry payload `artifact_satisfaction`. Such
-evidence MUST pass its canonical structural and semantic validators, remain
-bound to the admitted requirement and resource address, and survive projection
-so that post-sanitization validation checks the same meaning. This permission
+and backend-authored diagnostic prose are not admitted.
+
+Supplemental realization data is limited to existing typed provenance, observation, and envelope carriers and closed evidence fields. The applicable admitted realization contract consumes these fields, including entry payload `artifact_satisfaction`. Such evidence MUST pass its canonical structural and semantic validators and remain bound to the admitted requirement and resource address. It MUST survive projection so that post-sanitization validation checks the same meaning. This permission
 does not admit arbitrary payload additions or changes to plan-owned values.
+
 See the [credential/artifact boundary guidance](../../docs/decisions/issue-1603-credential-artifact-evidence-preflight.md).
 Applicable admitted realization concerns MAY replace plan values with observed
 values at their registered payload paths. Their existing validators and safe
-observation projections govern publication. OPEN choices, constrained choices,
+observation projections govern publication.
+
+OPEN choices, constrained choices,
 and semantically equal EXACT observations follow their existing realization rules.
 All payload values outside those paths and separately authorized evidence MUST
 retain typed exact equality with the admitted operation.
 The runtime MUST preserve observed meaning through repeat validation.
+
 This permission does not change the canonical account credential projection.
 See the [credential/observation design](../../docs/decisions/issue-1638-credential-realization-design.md).
 A protected resolver or native transformer MUST keep
-resolved and material-derived bytes outside `ApplyResult` entirely.
+resolved and material-derived bytes outside the apply result entirely.
 
 Projection follows the canonical account-placement `spec.credential_bindings`
 path; a discriminator-shaped mapping elsewhere is not credential material.
@@ -155,8 +148,6 @@ It never exposes the reference ID or value.
 
 ## 7. Non-goals
 
-This contract does not define a secret store, resolver protocol, backend
-injection mechanism, credential generation or rotation, password hashing or
-strength policy, MFA, credential discovery, or a participant credential route.
+This contract defines no secret store, resolver protocol, backend injection mechanism, credential generation or rotation, password hashing or strength policy. It also defines no MFA, credential discovery, or participant credential route.
 It does not merge top-level accounts with runtime local identities, directory
 subjects, application principals, database roles, or participant identities.
