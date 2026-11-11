@@ -5,7 +5,7 @@ Status: normative. Requirement: DSL-118. Issue: #299.
 ## Architecture and ownership
 
 `control_context_assets` is an optional SDL declaration map.
-Each value is the existing ACT-620 `ParticipantControlContextAssetModel`.
+Each value is an existing ACT-620 participant control-context asset descriptor.
 The map supplies local symbols, without creating a registry or lifecycle authority.
 Asset content remains an inert artifact reference.
 SDL contains no private instruction bytes.
@@ -19,7 +19,7 @@ The default disposition is `selected`.
 
 `declaration_ref` resolves through the existing declaration index.
 The resolved declaration must be a control-context asset.
-The `asset_ref` must equal `control_context_asset_reference()` of that descriptor.
+The `asset_ref` must equal the exact ACT-620 reference triple derived from that descriptor.
 Its identity, exact opaque version, and canonical descriptor digest must agree.
 The content checksum remains part of the descriptor commitment.
 Versions have no inferred ordering or fallback.
@@ -32,11 +32,13 @@ A selection creates no content placement, action permission, or exposure.
 ## Scope and conflicts
 
 Direct selections apply to their owning agent.
-Reusable selections use the existing `select_participants()` rule.
+Reusable selections use the existing participant-selection rule.
 Each resulting participant must satisfy the descriptor's declared applicability.
+
 Exact canonical participant addresses and effective role values are alternative matches.
-`Agent.effective_role()` supplies authored roles.
+The [effective-role rule](participant-identity.md#contract) supplies authored roles.
 Unresolved authored roles defer their applicability check until instantiation.
+
 Trusted role membership and live authorization still require ACT-620 validation.
 
 Two declarations for the same asset identity and version must have identical descriptors.
@@ -47,9 +49,11 @@ Different slots can select different assets without an implicit order or composi
 Imports namespace local symbols and authored references through existing symbol maps.
 They preserve the complete ACT-620 descriptor and exact reference triple.
 Descriptor applicability, provenance, and locators are external immutable data.
+
 They receive no namespace rewrite or variable substitution.
 Descriptors containing substitution tokens are invalid.
 Imported descriptors must name final canonical participants or applicable effective roles.
+
 Authored references cannot access private exports through `__private` spellings.
 Existing safe YAML, composition budgets, and post-instantiation admission remain mandatory.
 
@@ -58,9 +62,11 @@ Existing safe YAML, composition budgets, and post-instantiation admission remain
 ADR-094 participant configuration targets can declare a `control_context` selection domain.
 The domain contains a `slot_id` and bounded `references` map.
 Each reference key is an exact SDL declaration address.
+
 Each value is the existing ACT-620 asset reference triple.
 The target admits literal strings only and declares scalar type `string`.
 Domain references use exported canonical names.
+
 Slot and reference syntax rejects line endings and private namespace segments.
 A value selects exactly one domain entry.
 Secret references and serialized asset objects are invalid selections.
@@ -68,16 +74,18 @@ Secret references and serialized asset objects are invalid selections.
 The existing complete-configuration validator provides trusted contextual validation.
 For these targets it must also validate the participant, slot, declaration, and exact asset pin.
 Absent contextual validation fails admission.
-Trial compilation binds the owner validator to the concrete selected scenario through `for_scenario()`.
+Trial compilation binds the owner validator to the concrete selected scenario.
 The SDL adapter reuses the declaration index, scope checks, and conflict rules.
 It performs no acquisition and changes no shared scenario family.
 
 Each realized configuration value retains a typed `control_context_selection`.
 That selection contains the slot, declaration address, and exact ACT-620 reference.
 The existing configuration digest, sealed trial entry, and plan digest cover it.
+
 The public trial result carries it to the run producer.
 Consumers use the retained pin, never a current catalog's replacement for the string.
 An invalid coordinate rejects the whole plan.
+
 Existing run validation preserves configuration and manifest provenance.
 Live lifecycle eligibility still requires an authorized consumer check at use time.
 
@@ -172,56 +180,68 @@ Implementation tasks remain in the issue plan.
 The existing observation boundary declares asset visibility.
 Use the canonical declaration address, such as `control_context_assets.shared`, in its view rules.
 The existing participant or reusable `control_context` slot declares the exact asset pin and selection intent.
+
 These declarations have different purposes.
 A visible source without an authorized result remains unavailable.
 A selected source can remain absent from a decision surface.
+
 A withheld source cannot enter a surface through another result reference.
 
 <!-- vale RAES.HeadingCase = YES -->
 
-`raes_processor.models.AuthoredParticipantExposureV2` joins compiled slots to ACT-620 records.
+The authored participant-exposure input joins compiled slots to ACT-620 records.
 Its `records` map uses selection slot keys.
 Its trusted `context` supplies lifecycle, role, selection, context-view, and authorization authority.
+
 Its optional `configuration` carries an admitted ADR-094 participant configuration result.
 The processor checks configuration identity, digest, scope, exact references, and slot conflicts.
 The SDL owner validator checks those references against the concrete instantiated scenario.
+
 The host must supply the admitted configuration selected for this participant implementation.
 A portable configuration digest alone does not establish admission authority.
 
-Pass this input as `authored_exposure` to `project_participant_decision_surface_v2()`.
+Decision-surface projection receives this authored exposure input.
 The projector resolves the owning compiled participant.
 It maps that participant to the authored `agents.<name>` selection scope.
+
 It requires a matching selected slot and an independently visible source declaration.
 The ACT-620 record must bind that slot's exact pin to the projected result.
 Existing SEM-226 resolvers still authorize every serialized item at the exact derivation cut.
+
 Initial and later decisions use their existing distinct anchor rules.
 Unknown declarations, missing records, changed pins, and scope mismatches fail closed.
 
 Each exposed slot uses an existing ACT-620 context result.
 The source reference is `urn:` followed by the descriptor digest.
 The existing context view identifies the source layer and transformation.
+
 The result reference enters `visible_context_refs`.
 The v2 assurance projection retains the exact source binding and provenance.
 The canonical participant-view digest binds the result reference and participant-visible metadata.
+
 That digest does not establish the integrity of separately supplied bytes.
 The host must use ACT-620 artifact checksum and size validation before content release.
 The current ACT-620 context-view contract requires one payload reference per view.
+
 This interface does not silently combine multiple asset payloads into one view.
 
-Use `deliver_authored_participant_decision_surface_v2()` for the authored asset path.
-Supply delivered ACT-620 records and current trusted context at the delivery cut.
-The function binds the existing trusted delivery occurrence and checks ACT-620 agreement before returning it.
+Authored asset delivery uses delivered ACT-620 records and current trusted context at the delivery cut.
+It binds the existing trusted delivery occurrence and checks ACT-620 agreement before returning it.
 A policy change can refuse delivery after successful projection.
+
 A delivery record must match the exact participant-view digest.
 Changed content requires a new projection.
 The lower-level portable delivery helper only binds trusted delivery evidence.
+
 Its callers retain responsibility for establishing delivery-time authorization.
 
 SDL owns observation classes and authored disclosure intent.
 The apparatus owns live audience, role, policy, transformation, and declassification decisions.
 Hidden, evaluator, benchmark, and assurance-only content retain their existing sensitive boundary classes.
+
 Their presence in a catalog or selection creates no disclosure authority.
 Serialize the authorized participant view through the existing governed participant sink.
 Do not serialize the assurance carrier to the participant.
+
 Delivery, participant observation, and admission remain separate facts.
 No new transport or content acquisition is installed by these helpers.

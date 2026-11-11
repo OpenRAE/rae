@@ -17,7 +17,7 @@ that forest's members.
 
 `identity_facades` identifies an existing named compute service that exposes a
 closed protocol, initially `oidc`. The facade is authored intent and remains
-separate from observed `Node.runtime.identity_authorities`.
+separate from observed `nodes.<node>.runtime.identity_authorities`.
 
 The specialized `forest_trusts` relationship connects two distinct forests and
 carries `forest_trust.trust_type` plus direction. The specialized
@@ -29,7 +29,7 @@ client configuration, or provider mapper documents.
 
 ## Endpoints and cells
 
-`Node.endpoint_persona` is a closed scenario-function classification:
+`nodes.<node>.endpoint_persona` is a closed scenario-function classification:
 `workforce`, `engineering`, `privileged_admin`, `participant`, `service`, or
 `carrier`. It is valid only for compute nodes and is independent of node login
 `roles`, participant agents, accounts, authorization, and operating system.
@@ -64,10 +64,14 @@ Cross-tenant use requires `stateless` or `tenant_partitioned` isolation and
 tenant-scoped workload identity. Mutable state references resolve to existing
 `persistent_volumes`. Ownership must agree with those volumes' consumers,
 state cannot receive conflicting owners, and reset ownership follows mutable
-state ownership. `stateless` forbids shared-service-owned state;
+state ownership.
+
+`stateless` forbids shared-service-owned state;
 `tenant_partitioned` requires shared-service-owned state and reset generation.
 An ordinary relationship can connect a node or named service in one cell to a named service in another cell.
-Admission requires an explicit `uses_shared_service` binding from the caller's tenant to that exact target service. Identity,
+Admission requires an explicit `uses_shared_service` binding from the caller's tenant to that exact target service.
+
+Identity,
 topology, placement, and generic infrastructure edges never grant that access.
 
 ## Composition and realization boundary

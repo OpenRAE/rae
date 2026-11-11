@@ -43,7 +43,6 @@ class ReferenceRow:
     phase: str
     failure: str
     normative_owner: str
-    evidence: str
     line_no: int
 
     @property
@@ -169,10 +168,9 @@ def parse_reference_catalog(text: str) -> list[ReferenceRow]:
             phase=cells[2].strip().lower(),
             failure=cells[3].strip().lower(),
             normative_owner=cells[4].strip(),
-            evidence=cells[5].strip(),
             line_no=line_no,
         )
-        for line_no, cells in _table(text, _REFERENCE_HEADING, 6)
+        for line_no, cells in _table(text, _REFERENCE_HEADING, 5)
     ]
     _unique(rows, "source_path", "reference edge")
     return rows

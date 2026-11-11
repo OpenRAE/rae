@@ -25,9 +25,11 @@ It MUST NOT imply a complete organization inventory.
 Scopes belong to an authority's SDL address namespace.
 Node containment MUST NOT imply cloud ownership, isolation, policy inheritance or deletion authority.
 The service endpoint can serve resources from several scopes.
-`RuntimeIdentitySubject.resource_scope_ref` names a subject's scope.
-`RuntimePlatformApplication.resource_scope_ref` names an application's scope.
+
+`runtime.identity_authorities[].subjects[].resource_scope_ref` names a subject's scope.
+`runtime.platform_applications[].resource_scope_ref` names an application's scope.
 Both fields are optional.
+
 Subject, endpoint and secret ownership MUST NOT be inferred from each other.
 
 ## Identity use
@@ -47,12 +49,14 @@ A policy can also target that subject as a resource.
 
 ## Resource policies
 
-`RuntimeIdentityPolicy.resource_access` describes resource-policy attachment.
+`runtime.identity_authorities[].policies[].resource_access` describes resource-policy attachment.
 It requires an exact resource `attachment_ref`.
 Optional `bindings` have policy-local `binding_id` identities.
+
 Bindings require `principal_refs`, `resource_refs` and an explicit `effect`.
 Both reference lists MUST be nonempty and contain no duplicates.
 Effects are `allow` or `deny`.
+
 Each binding requires explicit `actions`, a `role_ref`, or both.
 Role references MUST name role subjects.
 Role names MUST NOT cause automatic permission expansion.
@@ -60,17 +64,21 @@ Role names MUST NOT cause automatic permission expansion.
 An optional `condition` requires `language` and `expression`.
 Condition text is inert provider data.
 Core MUST NOT evaluate expressions, load handlers or fetch role catalogs from these fields.
+
 A valid description does not prove that a provider accepts the policy.
 A backend must support the provider's restrictions and policy rules before execution.
 For example, GCP Secret Manager does not permit IAM role attachment to a version.
+
 A generic reference to a version MUST NOT claim such native support.
 
 An inherited policy view uses `inherited_from_ref` to name its source policy.
 It MUST NOT copy the source bindings into a second authority.
 Policy-source references MUST be acyclic.
+
 An inherited view requires declared resource ancestry.
 Scope policies can apply through declared descendant scopes to resources owned there.
 A secret can be the structural parent of its versions.
+
 Sharing one project does not make two secrets ancestors of each other.
 These structural relations do not decide effective access.
 
@@ -82,9 +90,11 @@ Resource policies do not replace that store.
 `runtime.identity_authorities[].access_observations` records reported attempts.
 Each record requires `observation_id`, `principal_ref`, `action`, `resource_ref` and `outcome`.
 Outcomes are `allowed`, `denied`, `unknown` or `unsupported`.
+
 An allowed or denied outcome MUST include nonempty `evidence_refs`.
 Optional `context_refs` name exact described resources.
 Evidence identifiers name evidence records.
+
 They do not declare SDL resources or request data retrieval.
 
 The record remains its producer's claim.
@@ -247,18 +257,22 @@ The design rationale, alternatives, data flow and security controls are in
 `resource_scopes[].audit_logs` states required recording on the owning scope.
 Each record requires a scope-local `audit_log_id`, native `service`, and native `log_type`.
 The ID and the service/log-type pair MUST each be unique within the scope.
+
 The collection contains at most 1024 records.
 Native service and log-type strings contain 1 to 2048 characters and MUST NOT be blank.
 Their case and provider meaning remain unchanged.
+
 A service name is not a node service or endpoint reference.
 Core MUST NOT expand native wildcards or calculate effective inherited coverage.
 
 Optional `exempted_principal_refs` names exact declared identity subjects.
 It contains at most 1024 distinct references.
 Each reference contains 1 to 2048 characters and MUST NOT be blank.
+
 Subject ownership need not equal the logging scope.
 RAES MUST retain each exemption in the binding runtime requirement.
 Runtime admission MUST honor protocol rejection before effectful invocation.
+
 The reference does not create a principal or an access grant.
 
 Omission or an empty collection contributes no recording requirement.
@@ -282,9 +296,11 @@ audit_logs:
 These records remain configuration in the `runtime-identity-authorities` concern.
 RAES defines the support, refusal, and result obligations at the backend protocol boundary.
 Runtime admission MUST reject unsupported exact requirements before effectful invocation.
+
 A protocol validation rejection MUST also prevent that invocation.
 A general identity support declaration MUST NOT remove or weaken an audit requirement.
 RAES result validation MUST detect missing rules and changed exemptions.
+
 Conforming results MUST preserve the binding configuration and its declared closure semantics.
 No destination, selector, or additional infrastructure is implied by these fields.
 Scope ownership alone grants no right to change a shared cloud policy.

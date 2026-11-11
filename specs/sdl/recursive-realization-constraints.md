@@ -2,13 +2,17 @@
 
 Status: **normative contract boundary**. The authoritative portable schema is
 [`recursive-realization-constraint-v1.json`](../../contracts/schemas/realization-constraints/recursive-realization-constraint-v1.json).
-ADR-105 supplies the reviewed semantic design. The contract has draft
+ADR-105 supplies the reviewed semantic design.
+
+The contract has draft
 stability while later migration issues adopt it at parser, compiler, planner,
 backend and observation boundaries. Issue #1204 adopts this contract at the
 existing compiler, authenticated plan and runtime result boundaries; see
 [backend preparation](backend-realization-preparation.md) and
 [plan-level profiles](plan-realization-profiles.md). Public SDL profile
-attachment syntax is not part of that adoption. Issue #1205 adds the bounded
+attachment syntax is not part of that adoption.
+
+Issue #1205 adds the bounded
 [software refinement adapter](software-requirements.md) and named version domains.
 
 ## 1. Purpose and authority
@@ -51,14 +55,15 @@ dependency, backend-internal setting, or observation exists anywhere.
 
 Undefined makes no local statement. The most-specific concrete lexical scope
 applies; otherwise the document default applies. Equal-pointer scope duplicates
-are invalid. An inherited open scope covers unspecified descendants without
+are invalid.
+
+An inherited open scope covers unspecified descendants without
 materializing one waiver per field. Explicit descendants are still evaluated,
 and a locally closed child remains closed without closing its parent or sibling.
 Scope overlays are evaluated even when their path crosses an additional member
-or delegated subtree that has no materialized constraint node. A descendant
-scope supplies structural meaning to its addressed member; if a collection
-address cannot be interpreted with the available keyed or sequence shape, the
-result is `unsupported`, not silent acceptance. An unselected effective closure
+or delegated subtree that has no materialized constraint node.
+
+A descendant scope supplies structural meaning to its addressed member. If the available keyed or sequence shape cannot interpret a collection address, the result is `unsupported`, not silent acceptance. An unselected effective closure
 also returns `unsupported`, not conformance.
 
 ## 3. Collections and identities
@@ -69,11 +74,15 @@ retains that tuple; a canonical digest may index it in an address but is not the
 identity's meaning. Input order does not affect matching.
 
 A required identity must match exactly once. An optional identity may be absent
-and must conform when present. A forbidden identity must not match. Missing,
+and must conform when present. A forbidden identity must not match.
+
+Missing,
 non-scalar, duplicate, or ambiguous identities are invalid. Collection
 cardinality and the presence of declared members are independent. Open closure
 permits additional modeled members in the collection's universe; closed closure
-does not. Neither posture claims completeness for incidental OS dependencies or
+does not.
+
+Neither posture claims completeness for incidental OS dependencies or
 files outside that universe.
 
 Identity aliases are explicit collision-free mappings to a declared canonical
@@ -96,7 +105,7 @@ a set-member identity.
 
 `domain` reuses the bounded-domain algebra. The recursive revision adds an
 explicit `null` domain without changing older contracts that reference the
-non-null `DomainDescriptor`. It also admits the explicitly identified `version`
+non-null bounded-domain contract. It also admits the explicitly identified `version`
 predicate specified in [software requirements](software-requirements.md#2-version-constraints),
 without changing legacy capability-envelope domain unions. Strict JSON equality
 applies: `true` is not `1`.
@@ -110,11 +119,15 @@ rules when `forbid` is selected.
 
 Conjunction is canonical, commutative, associative and idempotent for the
 supported fragment. A delegated value contributes no value restriction. An
-exact value inside a domain normalizes to that exact value. Conflicting exact
+exact value inside a domain normalizes to that exact value.
+
+Conflicting exact
 typed values produce `nonconformant`; input or import order never chooses a
 winner. Constraints that cannot be safely folded remain a canonically ordered
 `all-of`. The refinement helper recognizes a candidate when conjunction with
-the baseline leaves the candidate unchanged. It MUST return `unsupported`
+the baseline leaves the candidate unchanged.
+
+It MUST return `unsupported`
 rather than inventing a relation for incompatible profiles or unresolved
 semantics.
 
@@ -123,7 +136,7 @@ with optional is required; forbidden combined with optional is forbidden;
 required combined with forbidden is inconsistent. An `all-of` retains the
 resulting presence instead of resetting it to required.
 
-The legacy `RealizationStructure` exact/open/record/keyed-collection form is a
+The legacy exact/open/record/keyed-collection structure form is a
 compatibility subset. Conversion binds its value-free exact nodes to the
 existing admitted baseline and retains semantic member identities. It refuses
 a lossy conversion of presence, provenance, domains, knowledge, references,
@@ -137,48 +150,66 @@ MUST NOT become a second editable authority.
 
 ## 5. Bounded outcomes
 
-Every normalization, evaluation, composition, refinement and compatibility
-conversion receives positive limits for recursive depth, nodes, operations,
-collection members, identity work, definition hops, scalar size, and emitted
-diagnostics. Constraint nodes, optional or forbidden children, domains,
+Every normalization, evaluation, composition, refinement and compatibility conversion receives positive limits. These bound recursive depth, nodes, operations, collection members, identity work, definition hops, scalar size, and emitted diagnostics. Constraint nodes, optional or forbidden children, domains,
 closures, scopes, aliases, profiles, origins, definitions and actual values are
 admitted before their related work. Identity canonicalization is charged before
-each keyed lookup or rewrite. Direct model/JSON construction is covered, not
+each keyed lookup or rewrite.
+
+Direct model/JSON construction is covered, not
 only YAML parsing. Exhaustion returns `limit-exceeded` with a bounded,
-value-free `Diagnostic`. Invalid shape, nonconformance, unresolved knowledge,
-unsupported semantics, and exhaustion are distinct outcomes. Only `conformant`
+value-free diagnostic. Invalid shape, nonconformance, unresolved knowledge,
+unsupported semantics, and exhaustion are distinct outcomes.
+
+Only `conformant`
 is a success claim.
 
-For registered realization concerns, the Python compiler and planner use
-the fixed `PLAN_AUTHORITY_LIMITS` profile from `raes_contracts.runtime_value_limits`.
-It applies to recursive source admission,
+For registered realization concerns, the reference compiler and planner use
+fixed recursive plan-authority bounds.
+These apply to recursive source admission,
 normalization, integrity binding, serialized plan authority, prepared selections,
 and delivered-value evaluation. Each relation permits 131,072 nodes and 1,048,576 operations.
+
 Value admission and constraint evaluation share this node budget during evaluation.
 The limits allow 65,536 metadata members and identity checks.
 They retain depth 32, 256 reference hops, and 16 diagnostics.
+
 Scalar bounds are 1 MiB per value and 8 MiB in total.
 Published structural cardinality bounds still apply, including 4,096 members
 per keyed collection or sequence. Aggregate plans and runtime carriers also
-retain their existing `PLAN_VALUE_LIMITS` and `RUNTIME_SNAPSHOT_VALUE_LIMITS`.
+retain separate finite-work bounds, listed below.
+
 The profile supports a concrete 2,048-secret inventory without changing author values
 or dividing its source node. An over-budget compilation reports
 `realization.limit-exceeded` and the exhausted limit, separately from an
 unrepresentable semantic bound. Backend-supplied data cannot raise these limits.
 
 The compiler's recursive constraint builder checks evaluation work against the
-source projection through `evaluate_realization_constraint` before publishing authority.
+source projection through the recursive conformance relation before publishing authority.
 This check rejects evaluation exhaustion during planning, even when normalization
 and binding fit their budgets. It does not grant conformance to changed selections.
 Value admission renders diagnostic addresses only when a check fails.
 Successful traversal retains the same node, operation, and scalar accounting.
 
-Generic relation APIs retain `DEFAULT_REALIZATION_CONSTRAINT_LIMITS` unless a
-caller supplies explicit finite `limits`. This includes
-`realization_constraint_binding`; changing its admission limits does not change
-the binding digest for the same admitted constraint and source projection.
-`validate_realization_constraint_document` admits authority without evaluating
-a selected value or granting realization permission.
+Generic recursive relations use default finite-work bounds unless a caller supplies explicit finite limits.
+This includes source-integrity binding.
+Changing admission limits does not change the binding digest for the same admitted constraint and source projection.
+Authority-document validation admits authority without evaluating a selected value or granting realization permission.
+
+The reference implementation uses these distinct aggregate and generic bounds:
+
+| Limit | Aggregate plan | Runtime snapshot and preparation carrier | Generic recursive relation |
+| --- | --- | --- | --- |
+| Nodes | 524,288 | 65,536 | 4,096 |
+| Operations | 2,097,152 | 262,144 | 16,384 |
+| Members | 16,384 | 16,384 | 4,096 |
+| Identity checks | 4,096 | 4,096 | 4,096 |
+| Scalar bytes per value | 1 MiB | 1 MiB | 4,096 bytes |
+| Total scalar bytes | 16 MiB | 8 MiB | 1 MiB |
+| Document scalar bytes | 4 MiB | 4 MiB | Per-value scalar bound |
+
+All three retain depth 32, 256 reference hops, and 16 diagnostics.
+Document scalar bounds apply only to fields explicitly classified as document scalars.
+Other scalars retain their per-value bound.
 
 The pure relation layer performs no network fetch, plugin/profile code
 execution, secret lookup, subprocess, filesystem mutation, backend call,
@@ -199,10 +230,7 @@ declared level. Literal normalization does not synthesize an OS, image, package,
 filesystem, network mechanism, or observation request beneath it.
 
 This contract does not change universal envelope subsumption or select and
-deliver a backend witness (#1204). It does not migrate the public software
-authoring surface (#1205), define realization reporting (#1209), negotiate all
-legacy compatibility boundaries (#1210), supply integrated conformance (#1211),
-or select observation, retention and export demand (#1212).
+deliver a backend witness (#1204). It does not migrate public software authoring (#1205), define realization reporting (#1209), or negotiate all legacy compatibility boundaries (#1210). It supplies no integrated conformance (#1211) and selects no observation, retention or export demand (#1212).
 
 ## Descriptive projection and explicit promotion
 
@@ -211,9 +239,7 @@ granting them author authority. Coverage-aware assessment MUST retain the existi
 conformant, nonconformant, unresolved, invalid, unsupported and limit-exceeded
 outcomes. A supplied scalar or positive absence can contradict an explicit
 constraint. Missing fields in a partial report cannot prove violation or
-satisfaction. A whole-description conformance claim requires complete recursive
-coverage of the same named universe/profile, compatible windows and no unresolved
-facts or limitations before invoking the existing realization evaluator.
+satisfaction. A whole-description conformance claim requires complete recursive coverage of the same named universe/profile, compatible windows and no unresolved facts or limitations. These checks precede invocation of the existing realization evaluator.
 
 Promotion is a pure operation that selects known, supported scalar facts by
 identity and creates a new recursive author-constraint artifact. It MUST preserve

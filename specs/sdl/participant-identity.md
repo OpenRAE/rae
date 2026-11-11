@@ -15,7 +15,7 @@ control-plane identity.
 PI-02. `affiliations` is an optional list (default empty) of distinct declared,
 flattened entity names. Affiliation MUST NOT imply objective assignment,
 authority, shared knowledge, a beneficiary, or a component relation. A direct
-optional `role` uses the existing `ExerciseRole` vocabulary. Whole-field
+optional `role` uses the existing exercise-role vocabulary. Whole-field
 variables remain legal before instantiation and are revalidated afterward.
 
 PI-03. All effective-role consumers MUST use the same rule. For participant P,
@@ -45,10 +45,14 @@ not create a participant, evaluation authority, or action occurrence.
 
 PI-06. A participant relationship's `objective_refs` MUST name objectives
 explicitly assigned to a relationship endpoint. Common affiliation or ownership
-is insufficient. Autonomous declared-objective evaluation MUST name an objective
+is insufficient.
+
+Autonomous declared-objective evaluation MUST name an objective
 assigned to a selected participant. Non-evaluating participant modes MUST NOT
 receive objective assignments. Incumbent action, evaluation, target, backend,
-and control-plane admission gates still apply. A participant MUST NOT be owned
+and control-plane admission gates still apply.
+
+A participant MUST NOT be owned
 by multiple autonomous behavior specifications, including overlaps introduced
 by role selectors; conflict validation and compilation use the same selection.
 
@@ -66,29 +70,27 @@ affiliation. Objective projection carries `owner_name`,
 participant action/episode/history records. Assignment MUST NOT be copied into
 such a record as proof of action; observed actions MUST NOT rewrite assignment.
 
-PI-09. Canonical readers MUST reject `Agent.entity`, `Objective.agent`, and
-`Objective.entity` with migration guidance. The [migration](../../docs/migration/participant-identity.md)
+PI-09. Canonical readers MUST reject legacy authored `agents.<participant>.entity`, `objectives.<objective>.agent`, and
+`objectives.<objective>.entity` with migration guidance. The [migration](../../docs/migration/participant-identity.md)
 creates a new artifact or refuses atomically. It MUST NOT guess assignment from
 affiliation, drop conflicting fields, or rewrite stored historical evidence.
 
 ## Conformance and clause-to-test matrix
 
-Paths below are relative to `implementations/python/tests/`. Parameterized tests
-include positive and negative cases; model/schema and parser/compiler comparisons
-are differential evidence, not claims of live backend execution.
+Conformance checks include positive and negative cases.
+Model/schema and parser/compiler comparisons provide differential evidence, not claims of live backend execution.
 
 | Clauses | Executable evidence |
 | --- | --- |
-| PI-01, PI-02, PI-03 | `test_issue_1338_participant_identity.py`: composite declaration, shared affiliation, direct/inherited/multiple-affiliation roles, duplicate/dangling refs, role-selected compiler projection |
-| PI-04, PI-05 | Same file: model/schema differential relation shape; assigned/unassigned objectives; dangling owner/assignment; global and participant-local action checks |
-| PI-06 | `test_issue_1338_identity_authority.py`, including `test_autonomous_ownership_conflicts_include_role_selected_participants`; relationship endpoint tests in `test_issue_1338_participant_identity.py` |
-| PI-07 | `test_issue_1338_identity_stages.py`: namespaced imports, variable revalidation, editor completion/navigation; `test_sdl_variation_points.py` |
-| PI-08 | Compiler assertions in `test_issue_1338_participant_identity.py`; unchanged action/episode boundary covered by `test_runtime_control_plane.py` |
-| PI-09 | `test_issue_1338_identity_migration.py`: deterministic migration, explicit owner/assignment decisions, stale/missing context, conflicts, invalid actions, imports, idempotence |
+| PI-01, PI-02, PI-03 | Composite declaration, shared affiliation, direct/inherited/multiple-affiliation roles, duplicate/dangling refs, role-selected compiler projection |
+| PI-04, PI-05 | Model/schema differential relation shape; assigned/unassigned objectives; dangling owner/assignment; global and participant-local action checks |
+| PI-06 | Autonomous ownership conflicts, including role-selected participants; relationship endpoint constraints |
+| PI-07 | Namespaced imports, variable revalidation, editor completion/navigation; scenario variation points |
+| PI-08 | Compiler projection; unchanged action/episode boundary under runtime control |
+| PI-09 | Deterministic migration, explicit owner/assignment decisions, stale/missing context, conflicts, invalid actions, imports, idempotence |
 
-`test_issue_1338_identity_evidence.py` locks the accepted decision amendments and
-historical fixture retention; `test_issue_1338_identity_examples.py` checks the
-published scenarios' declared action constraints and honest abstract contracts.
+Conformance checks preserve the accepted decision amendments and historical fixtures.
+They also check published scenarios' declared action constraints and honest abstract contracts.
 
 The human reference catalog and machine parity expectations enumerate the exact
 reference fields. Published schemas under `contracts/schemas/` govern portable

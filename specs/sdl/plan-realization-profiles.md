@@ -9,9 +9,7 @@ relation from #1203 at the runtime handoff required by #1204.
 
 ## Authority and independent support
 
-`ProvisioningPlan.profile_authority` contains public author-supplied bindings,
-pinned admitted definitions with their source/trust provenance, and one recursive
-constraint document for every full binding path, including nested bindings.
+The provisioning plan's `profile_authority` contains public author-supplied bindings and pinned admitted definitions with their source/trust provenance. It contains one recursive constraint document for every full binding path, including nested bindings.
 Each document identifies the exact profile definition digest as its semantic
 profile and binds its source projection with `source_binding`. Missing,
 duplicate, changed or unbounded documents are invalid. Source checksums are
@@ -30,13 +28,17 @@ the enclosing collection protocol; an existing profile binding is not such a
 grant.
 
 The plan MUST NOT contain operation-support declarations. A target independently
-configures its immutable local `DomainProfileResolutionContextModel`: namespace
+configures its immutable local domain-profile resolution context: namespace
 admissions, exact definitions, support declarations and bounded work limits.
-The manifest's `domain_profile_context_digest` commits to this context. The
+The manifest's `domain_profile_context_digest` commits to this context.
+
+The
 complete manifest digest in preparation authority binds it to the authenticated
 plan. Both registration and pre-apply admission reject a changed context.
 Resolution performs no discovery, network access, ambient secret lookup or
-handler loading. Standard and private namespaces use the same checks.
+handler loading.
+
+Standard and private namespaces use the same checks.
 
 Structural admission uses an explicit no-retrieval schema registry containing
 only the supplied pinned document and installed specification resources.
@@ -52,7 +54,7 @@ reference.
 
 The backend MUST explicitly negotiate both `plan-realization-profiles-v1` and
 `backend-realization-preparation-v1`. It exposes `domain_profile_context` and an
-installed read-only `validate_profiles(selected_plan)` implementation in addition
+installed read-only profile validator for the selected plan in addition
 to preparation and ordinary validation. Local support must cover structural and
 semantic validation, comparison and execution for every exact definition and
 semantic contract. The installed validator receives the complete selected plan,

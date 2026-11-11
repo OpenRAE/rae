@@ -12,9 +12,8 @@ author installation recipe or catalog of complete manifest offers is required.
 
 ## Negotiation and binding
 
-A backend MUST advertise the preparation contract and expose a callable
-`prepare(plan, snapshot)` alongside its existing `validate(plan)` and
-`apply(plan, snapshot)` methods. A legacy backend that does not advertise it
+A backend MUST advertise the preparation contract and expose a preparation operation accepting the plan and snapshot.
+Its existing validation and apply operations remain available. A legacy backend that does not advertise it
 retains its existing validation and universal-envelope admission contract.
 Advertising preparation does not authorize a backend to omit other selected
 support, policy, profile, or observation obligations.
@@ -68,10 +67,10 @@ Invalid carriers fail before conversion; conversion grants no additional authori
 
 The original plan and stored snapshots retain their native representations.
 
-The Python implementation uses the fixed recursive
-[`PLAN_AUTHORITY_LIMITS` profile](recursive-realization-constraints.md#5-bounded-outcomes)
-for both original authority and selected-value evaluation. Prepared operation
-payloads use `RUNTIME_SNAPSHOT_VALUE_LIMITS`, as does the complete response.
+The reference implementation uses the fixed
+[recursive plan-authority bounds](recursive-realization-constraints.md#5-bounded-outcomes)
+for both original authority and selected-value evaluation.
+Prepared operation payloads and the complete response use the runtime snapshot and preparation carrier bounds in that section.
 An individual payload therefore retains the aggregate carrier's supported scale;
 it does not fall back to the smaller generic recursive-relation default.
 

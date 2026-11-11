@@ -73,7 +73,7 @@ Proposition subjects and evidence source/scope references use canonical declarat
 Targets MUST be unique.
 The collection has at most 4096 entries.
 
-Resolution MUST enforce `PLAN_VALUE_LIMITS` before it copies proofs.
+Resolution MUST enforce the [aggregate plan bounds](recursive-realization-constraints.md#5-bounded-outcomes) before it copies proofs.
 Native plans MUST check this limit before they copy the collection.
 Proof and evidence maps MUST reject whitespace keys and values outside their declared types.
 
