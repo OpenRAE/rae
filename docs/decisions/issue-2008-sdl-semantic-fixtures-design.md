@@ -82,6 +82,12 @@ Its package and interface declarations remain valid.
 The diagrams above supply both the component relationships and the data flow.
 No deployment, estate, or persistent service changes occur.
 
+The store-reopen test allows ten seconds for each observation call.
+This covers disk writes on busy CI hosts.
+It checks the first final state before the store reopens.
+It keeps its checks for retained stages, reservations, and no repeated effects.
+Runtime deadlines and the tests that check them stay the same.
+
 ## References and review
 
 - [Go testing](https://pkg.go.dev/testing@go1.27.3), Go 1.27.3: subtests and test helpers support the existing runner.
