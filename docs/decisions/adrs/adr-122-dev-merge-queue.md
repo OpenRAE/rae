@@ -39,7 +39,8 @@ Three required contexts also had producers that cannot report on a merge group:
 3. Each producer of a required `dev` context runs on every merge group and does a real check there:
    - `ci.yml` runs the full canonical graph on the merge group commit. It reads the queued pull request from the API to get the requirement branch. The policy base is the parent commit, so the diff-scoped checks see only the queued pull request.
    - SonarCloud has no merge queue support. The `sonar` job runs a pull request analysis and quality gate for the queued pull request against `dev`, on the merge group commit.
-   - `codeql.yml` is the advanced CodeQL setup and replaces default setup.
+   - `codeql.yml` is the advanced CodeQL setup and replaces default setup. It produces the `Analyze (actions)` and `Analyze (python)` contexts on merge groups.
+   - Code scanning posts the `CodeQL` check on pull request commits only. `dev` uses the ruleset rule "Require code scanning results" for CodeQL instead of that status check.
    - `secret-scan.yml` runs ggshield on `pull_request` and `merge_group` events. Its job produces the `GitGuardian Security Checks` context. The GitGuardian App stays installed.
    - `title-guard` and `body-guard` read the current title and body of the queued pull request from the API. They load their checkers from the merge group base.
 4. A failed required check on a merge group removes the pull request from the queue, and the pull request does not merge. No required check is removed, set to non-blocking, or replaced by a check that always passes.
@@ -63,3 +64,9 @@ Three required contexts also had producers that cannot report on a merge group:
 - The repository settings must agree with the declaration. GitHub settings are not readable with the CI token, so the maintainer applies the declaration to the settings.
 - The ggshield job needs the `GITGUARDIAN_API_KEY` secret in the Actions and Dependabot secret stores. A pull request from a fork has no access to the key, so its `GitGuardian Security Checks` context fails.
 - A merge group runs the full CI again after the pull request checks, so each merge uses more CI time.
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+| --- | --- | --- |
+| 2026-11-11 | #2031 | Decision 3: `dev` uses the CodeQL code scanning rule instead of the `CodeQL` status check, because code scanning does not post that check on merge groups. |
