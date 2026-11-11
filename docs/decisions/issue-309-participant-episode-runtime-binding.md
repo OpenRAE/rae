@@ -19,6 +19,9 @@ Its existing mutation owner checks reset actions and terminal reasons before dis
 The backend still owns the ADR-013 lifecycle calls.
 Those calls initialize, reset, restart, or end an episode.
 The binding also checks restored history and successful backend results.
+Both ordinary and mixed dispatch check returned history before accepting success.
+If the returned history violates the policy after dispatch, the operation remains indeterminate.
+The control plane retains the admitted snapshot and the mixed lifecycle attempt for reconciliation.
 
 `raes_conformance` owns the target runner and its recorded-history result.
 The runner takes a compiled model and recorded snapshot as evidence.
@@ -61,6 +64,8 @@ flowchart LR
 - Existing authorization, idempotency, audit, and mutation owners remain in use.
 - Diagnostics remain operator evidence. No new participant view is added.
 - The binding copies caller-owned models and selections before use.
+- Public model and selection properties return copies of the binding's private state.
+- Request and history checks use only that private state.
 
 The existing authored schema already holds the required intent.
 Schema regeneration follows current contract ownership and publication rules.
@@ -74,6 +79,8 @@ Tests run lifecycle calls and check reset lineage.
 They reject missing contracts, duplicate bindings, and forged compiler context.
 Runner tests pass in invalid history and require a failing report.
 Negative tests also cover missing evidence and absent episode support.
+Regression tests change public model copies after installation and verify that policy checks still apply.
+Mixed lifecycle tests cover admitted results and policy violations after a backend effect.
 
 Mutation checks remove admission and runner checks one at a time.
 The matching tests must fail.

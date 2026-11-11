@@ -49,26 +49,38 @@ class ParticipantEpisodeImplementationBinding:
         object.__setattr__(self, "selection", selection)
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(frozen=True, kw_only=True, init=False)
 class ParticipantEpisodeRuntimeBinding:
     """Install one implementation per governed participant without a deployment graph."""
 
-    model: RuntimeModel
-    implementations: tuple[ParticipantEpisodeImplementationBinding, ...]
+    _model: RuntimeModel
+    _implementations: tuple[ParticipantEpisodeImplementationBinding, ...]
 
-    def __post_init__(self) -> None:
-        if not isinstance(self.model, RuntimeModel) or self.model.realization_instance is None:
+    def __init__(
+        self, *, model: RuntimeModel, implementations: tuple[ParticipantEpisodeImplementationBinding, ...]
+    ) -> None:
+        if not isinstance(model, RuntimeModel) or model.realization_instance is None:
             raise TypeError("episode binding requires retained compiler context")
         try:
-            canonical = compile_runtime_model(self.model.realization_instance)
+            canonical = compile_runtime_model(model.realization_instance)
         except InvalidInputError as exc:
             raise ValueError("episode binding must match its original compiler context") from exc
-        if canonical != self.model:
+        if canonical != model:
             raise ValueError("episode binding must match its original compiler context")
-        participants = _admitted_implementations(self.implementations)
+        participants = _admitted_implementations(implementations)
         _require_policy_owners(canonical, participants)
-        object.__setattr__(self, "model", deepcopy(canonical))
-        object.__setattr__(self, "implementations", tuple(participants.values()))
+        object.__setattr__(self, "_model", deepcopy(canonical))
+        object.__setattr__(self, "_implementations", tuple(participants.values()))
+
+    @property
+    def model(self) -> RuntimeModel:
+        """Return a detached view of the admitted compiler context."""
+        return deepcopy(self._model)
+
+    @property
+    def implementations(self) -> tuple[ParticipantEpisodeImplementationBinding, ...]:
+        """Return detached implementation declarations."""
+        return deepcopy(self._implementations)
 
     def require_target(self, target: RuntimeTarget) -> None:
         """Require the target's existing episode contract and runtime declarations."""
@@ -78,7 +90,7 @@ class ParticipantEpisodeRuntimeBinding:
             raise ValueError("episode binding requires an installed participant runtime")
         if not set(target.manifest.supported_contract_versions) >= EPISODE_CONTRACTS:
             raise ValueError("episode target must declare episode state and history contracts")
-        for binding in self.implementations:
+        for binding in self._implementations:
             compatibility = binding.manifest.compatibility
             if compatibility.participant_runtimes and capability.name not in compatibility.participant_runtimes:
                 raise ValueError("episode implementation does not support the selected participant runtime")
@@ -88,8 +100,8 @@ class ParticipantEpisodeRuntimeBinding:
     def policy(self, participant_address: str) -> ParticipantEpisodePolicyRuntime | None:
         return next(
             (
-                policy
-                for policy in self.model.participant_episode_policies.values()
+                deepcopy(policy)
+                for policy in self._model.participant_episode_policies.values()
                 if participant_address in policy.participant_addresses
             ),
             None,
@@ -126,7 +138,7 @@ class ParticipantEpisodeRuntimeBinding:
                 None,
             )
             is not None
-            for policy in self.model.participant_episode_policies.values()
+            for policy in self._model.participant_episode_policies.values()
             for address in policy.participant_addresses
         ):
             raise ConflictError("recorded participant episodes contradict the installed authored policy")

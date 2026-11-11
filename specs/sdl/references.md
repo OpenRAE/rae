@@ -548,7 +548,7 @@ The index is independent of implementation file locations.
 | `behavior_specifications.*.episode_policy.reset_policy.evidence_requirement_refs[]` | `evidence_requirements` | semantic validation | fatal dangling | [participant episode model](../formal/participant-episode-model/README.md) |
 | `behavior_specifications.*.episode_policy.reset_policy.memory_reset_authority_ref` | `targetable` | semantic validation | fatal dangling or ambiguous | [participant episode model](../formal/participant-episode-model/README.md) |
 
-The checked reference contract is compared with the index by exact source path, domain, phase, failure semantics, and implementation evidence.
+The checked reference contract is compared with the index by exact source path, domain, phase, and failure semantics.
 The completion-aware subset is compared with language-service metadata. Adding,
 removing, or renaming an edge on only one surface fails the repository contract
 gate; a matching row count cannot hide a different edge.

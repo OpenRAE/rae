@@ -266,6 +266,96 @@ def test_installed_episode_context_is_detached_from_caller_mutations():
     assert set(installed.implementations[0].selection.participant_contract_versions) == EPISODE_CONTRACTS
 
 
+@pytest.mark.parametrize("view", ["binding", "control-plane"])
+def test_public_episode_model_cannot_remove_installed_admission(view, monkeypatch):
+    binding = runtime_binding()
+    target = create_stub_target()
+    with RuntimeControlPlane(target, participant_episode=binding) as plane:
+        plane.initialize_participant_episode(PARTICIPANT)
+        exposed = binding if view == "binding" else plane.participant_episode
+        exposed.model.participant_episode_policies.clear()
+        before = plane.snapshot
+        calls = []
+        monkeypatch.setattr(target.participant_runtime, "terminate", lambda *args: calls.append(args))
+
+        receipt = plane.terminate_participant_episode(
+            PARTICIPANT, terminal_reason=ParticipantEpisodeTerminalReason.COMPLETED
+        )
+
+        assert plane.get_operation(receipt.operation_id).state.value == "failed"
+        assert not calls
+        assert plane.snapshot == before
+        assert plane.participant_episode.model.participant_episode_policies
+
+
+def test_public_implementation_declarations_cannot_change_target_admission():
+    binding = runtime_binding()
+    binding.implementations[0].manifest.compatibility.backends.append("different-backend")
+    binding.implementations[0].selection.participant_contract_versions.clear()
+    binding.require_target(create_stub_target())
+    assert set(binding.implementations[0].selection.participant_contract_versions) == EPISODE_CONTRACTS
+
+
+@pytest.mark.parametrize("violates_policy", [False, True])
+def test_mixed_episode_results_keep_policy_bounds_and_uncertain_effects(monkeypatch, violates_policy):
+    from participant_crossing_fixtures import PARTICIPANT as mixed_participant
+    from participant_crossing_fixtures import identity
+    from raes.parser import parse_sdl
+    from sem233_flow_sink_fixtures import permit_resolver
+    from test_issue_1016_mixed_runtime_coordination import _admitted_binding, _runtime_profile
+
+    mixed, run_id, runtimes = _admitted_binding(_runtime_profile)
+    model = compile_runtime_model(parse_sdl(FIXTURE.read_text().replace("replayer", "red-agent")))
+    admitted = implementation()
+    selection = admitted.selection.model_copy(update={"participant_address": mixed_participant})
+    episode = ParticipantEpisodeRuntimeBinding(
+        model=model,
+        implementations=(ParticipantEpisodeImplementationBinding(manifest=admitted.manifest, selection=selection),),
+    )
+    calls = []
+    terminate = runtimes["sim"].terminate
+
+    def backend_terminate(request, snapshot):
+        calls.append(request)
+        if violates_policy:
+            request = replace(request, terminal_reason=ParticipantEpisodeTerminalReason.COMPLETED)
+        return terminate(request, snapshot)
+
+    monkeypatch.setattr(runtimes["sim"], "terminate", backend_terminate)
+    with RuntimeControlPlane(
+        create_stub_target(),
+        mixed_runtime=mixed,
+        participant_episode=episode,
+        crossing_policy_resolver=permit_resolver(),
+        run_scope=f"run:{run_id}",
+    ) as plane:
+        plane.activate_mixed_composition(identity=identity(), idempotency_key="initial-phase")
+        plane.initialize_participant_episode(mixed_participant, identity=identity())
+        before = plane.snapshot
+        receipt = plane.terminate_participant_episode(
+            mixed_participant,
+            terminal_reason=ParticipantEpisodeTerminalReason.TIMED_OUT,
+            identity=identity(),
+            idempotency_key="terminate-episode",
+        )
+        status = plane.get_operation(receipt.operation_id, identity=identity())
+        snapshot = plane.snapshot
+        assert len(calls) == 1
+        if violates_policy:
+            assert status.state.value == "indeterminate"
+            assert any(diag.code == "runtime.participant-episode-result-unverified" for diag in status.diagnostics)
+            assert snapshot.participant_episode_history == before.participant_episode_history
+            assert snapshot.participant_episode_results == before.participant_episode_results
+            assert snapshot.mixed_composition_history[run_id][-1]["event_kind"] == "lifecycle-attempt"
+            with pytest.raises(ConflictError, match="indeterminate"):
+                plane.reset_participant_episode(mixed_participant, identity=identity(), idempotency_key="next-reset")
+            assert len(calls) == 1
+        else:
+            assert status.state.value == "succeeded"
+            assert snapshot.participant_episode_results[mixed_participant]["terminal_reason"] == "timed_out"
+            assert snapshot.mixed_composition_history[run_id][-1]["disposition"] == "succeeded"
+
+
 def test_authored_episode_policy_stays_in_the_semantic_fingerprint(tmp_path):
     from tools.check_formal_semantic_validation import replay_case
 
