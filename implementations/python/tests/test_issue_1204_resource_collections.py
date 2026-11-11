@@ -6,7 +6,7 @@ from dataclasses import replace
 import pytest
 from raes import parse_sdl
 from raes_contracts.contracts import ProvisioningPlanModel
-from raes_contracts.plan_projection import provisioning_plan_model, runtime_plan_digest
+from raes_contracts.contracts.plan_projection import provisioning_plan_model, runtime_plan_digest
 from raes_contracts.realization_structure import evaluate_realization_constraint
 from raes_contracts.vocabulary import RealizationSupportMode
 from raes_processor.compiler import compile_runtime_model
@@ -86,7 +86,7 @@ class _PreparingNodes:
         self.applies = 0
 
     def prepare(self, request, snapshot):
-        from raes_contracts.realization_preparation import RealizationPreparation
+        from raes_contracts.contracts.realization_preparation import RealizationPreparation
 
         operations = deepcopy(request.operations)
         if self.add:

@@ -1,11 +1,13 @@
-# Catalog 1 — Section Catalog
+<!-- vale RAES.HeadingCase = NO -->
+# Catalog 1 — section catalog
 
-This catalog enumerates every top-level field of an SDL document: its kind, its
-value shape, whether it is required, the shape of its keys, and the sections it
-references. It is the normative section enumeration and is written to match the
-published `contracts/schemas/sdl/sdl-authoring-input-v1.json` schema; where this
-table and that schema diverge, the divergence is a defect to reconcile
+This catalog enumerates every top-level SDL field.
+It gives each field's kind, value shape, requirement, key shape, and referenced sections.
+This normative section list matches the published `contracts/schemas/sdl/sdl-authoring-input-v1.json` schema.
+A difference between this table and that schema is a defect to reconcile
 ([README](README.md)).
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Value-shape legend:
 
@@ -40,6 +42,7 @@ machinery is not retained as an empty compatibility field. "References" is
 | `module` | composition | mapping | normalized | optional; default null | `module.id` | none | [ADR-053](../../docs/decisions/adrs/adr-053-sdl-module-composition-for-inventory-backed-scenarios.md) |
 | `imports` | composition | list | normalized | optional; default empty list | `namespace` | none | [ADR-053](../../docs/decisions/adrs/adr-053-sdl-module-composition-for-inventory-backed-scenarios.md) |
 | `realization` | composition | mapping | normalized | optional; default null | none | none | [explicitness and realization](../formal/realization/explicitness-and-realization.md) |
+| `trial_parallelism` | section | mapping | normalized, expanded, instantiated | optional; default null | none | none | [trial scheduling](../formal/scenario-variation-trial-realization/README.md#svr-031--scheduler-opacity) |
 | `nodes` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [nodes and runtime inventory](runtime-inventory.md) |
 | `infrastructure` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [document model](document-model.md) |
 | `features` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [document model](document-model.md) |
@@ -70,6 +73,7 @@ machinery is not retained as an empty compatibility field. "References" is
 | `behavior_specifications` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [behavior specifications](../formal/participant-behavior-model/README.md) |
 | `evidence_requirements` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [observability and evidence](observability-and-evidence.md) |
 | `execution_policy` | section | mapping | normalized, expanded, instantiated | optional; default null | none | catalogued | [execution and recovery](execution-recovery.md) |
+| `safe_state` | section | mapping | normalized, expanded, instantiated | optional; default null | none | catalogued | [safe state](safe-state.md) |
 | `augmentation_scope` | section | mapping | normalized, expanded, instantiated | optional; default null | none | none | [augmentation scope](augmentation-scope.md) |
 | `time_domains` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | none | [shared time model](../formal/time-model/README.md) |
 | `clocks` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [shared time model](../formal/time-model/README.md) |
@@ -87,7 +91,7 @@ addition would impose a large, unexpected authoring burden. The policy also
 survives into materialized descriptions, where its addresses retain their
 original-source meaning. See [augmentation scope](augmentation-scope.md).
 
-<!-- sdl-catalog-summary top-level=47 metadata-composition=7 sections=40 maps=37 lists=1 -->
+<!-- sdl-catalog-summary top-level=49 metadata-composition=7 sections=42 maps=37 lists=1 -->
 
 The section set therefore has two authoring shapes: maps keyed by stable
 user-defined identifiers and the scenario-level `forwarding_agents` list, whose
@@ -101,10 +105,10 @@ list carries addressed concern-specific mechanism intent. A compute-substrate
 constraint uses a `namespace`, a `field_pointer` addressing one compute node, the
 literal concern `compute-substrate`, an `open`, `constrained`, or `exact`
 posture, and a compatible domain when bounded. Equal
-`(namespace, field_pointer, concern)` identities are invalid. Expansion and
-instantiation remove the block from executable `ScenarioContent` and carry typed
-designation and constraint records in phase provenance so compilation can
-resolve them without turning authoring machinery into runtime scenario content.
+`(namespace, field_pointer, concern)` identities are invalid. Expansion and instantiation remove the block from executable `ScenarioContent`.
+
+They carry typed designation and constraint records in phase provenance.
+Compilation resolves those records without turning authoring machinery into runtime scenario content.
 
 `nodes.*.type` is a structural resource kind, not a deployment mechanism. Its
 canonical values are `compute` and `switch`. A `compute` node is portable and
@@ -114,11 +118,15 @@ emulator. Authors who require or bound a mechanism use
 leaves that registered concern open. A switch remains a strict connectivity
 resource and cannot carry compute-substrate constraints or compute-only fields.
 
+A switch can state a compute-only field only with its empty value: `null`, an
+empty string, or an empty collection. That value has the same meaning as an
+omitted field, and realization authority treats it as omitted.
+
 `forwarding_agents` is the **scenario-level** forwarding-agent inventory. It is
 distinct from the node-scoped `forwarding_agents` runtime-family collection that
 lives under `nodes.<id>.runtime` ([runtime-inventory.md](runtime-inventory.md));
-both carry `forwarding_agent_id` identity and the same family invariants, but
-they occupy different positions in the document.
+both carry `forwarding_agent_id` identity and the same family invariants.
+They occupy different positions in the document.
 
 ## Narrative chain
 
@@ -138,18 +146,17 @@ ordering is normative (resolution and failure semantics in
   `injects` naming `entities` and `events` naming precondition assertions. Objective
   windows bind `stories`/`scripts`/`events`/`workflows`.
 
-Participant-directed delivery is an explicit nested binding under
-`behavior_specifications.*.participant_inject_deliveries`. It anchors one
-participant to one inject occurrence across the event/script/story chain and
-binds a participant-visible result, observation boundary, revisioned delivery
-policy, shared-time constraint, evidence requirement, and—when applicable—a
-mixed-control transition. Direction and intervention bindings also state the
-controller, authority scope, effective order, validity interval, and evidence
-basis that must agree with that transition and its target controller state.
-Their order must satisfy the named temporal constraints, and their control
-evidence must be covered by the named evidence requirements. An inject without
-that binding remains ordinary orchestration input; `injects.*.environment`
-never implies participant delivery.
+Participant-directed delivery is an explicit nested binding under `behavior_specifications.*.participant_inject_deliveries`.
+It anchors one participant to one inject occurrence across the event/script/story chain.
+It binds a participant-visible result, observation boundary, revisioned delivery policy, shared-time constraint, and evidence requirement.
+When applicable, it also binds a mixed-control transition.
+
+Direction and intervention bindings state the controller, authority scope, effective order, validity interval, and evidence basis.
+These must agree with the transition and its target controller state.
+Their order must satisfy the named temporal constraints.
+Their control evidence must be covered by the named evidence requirements.
+An inject without that binding remains ordinary orchestration input.
+`injects.*.environment` never implies participant delivery.
 
 The view rule that admits the result must itself agree with the delivery's
 visibility and disclosure bases. Every control scope and evidence reference
@@ -167,24 +174,29 @@ required `form` of `reusable-policy` or `finite-script`. Its
 or proposal identity ([MC-01](../formal/participant-semantics/reusable-mixed-control.md#mc-01--policy-permissions-and-occurrence-facts)).
 A finite script adds ordered `script_steps` that may only narrow their edges
 ([MC-02](../formal/participant-semantics/reusable-mixed-control.md#mc-02--reusable-policies-and-finite-scripts)).
+
 Each application is one API-409 `participant-control-occurrence-v2` occurrence.
-It has a fresh identity, its exact edge ref, exact prior and resulting states,
-a resulting revision of expected + 1 for every accepted kind
+It has a fresh identity, its exact edge ref, and exact prior and resulting states.
+Each accepted kind has a resulting revision of expected + 1
 ([MC-03](../formal/participant-semantics/reusable-mixed-control.md#mc-03--exact-state-relation-and-repeated-cycles)),
 and a participant-wide `occurrence_revision`. It carries the acting source
 controller, grant and scope
 ([MC-04](../formal/participant-semantics/reusable-mixed-control.md#mc-04--acting-controller-authority-and-handoff)).
+
 An accepted occurrence records its admitted order and inclusive evaluated
 bounds; a rejected one keeps attempted and observed values apart and asserts
 no validity. Under that form a directed delivery carries a nested `control`
 block that names one permission and joins one exact accepted occurrence
 ([MC-09](../formal/participant-semantics/reusable-mixed-control.md#mc-09--participant-directed-injects)).
-The block pins the control policy apart from the delivery policy, uses the
-source-state controller and a non-widening scope, and compares no order with
-shared time. Ordinary injects and disclosure-only bindings are unchanged. The
-rev1 form validates and compiles, but planning refuses it for every backend,
-the reference runtime refuses its execution admission and control-plane
-construction, and no runtime executes it. The
+
+The block pins the control policy apart from the delivery policy.
+It uses the source-state controller and a non-widening scope.
+It compares no order with shared time. Ordinary injects and disclosure-only bindings are unchanged. The rev1 form validates and compiles.
+
+Planning refuses it for every backend.
+The reference runtime refuses its execution admission and control-plane construction.
+
+No runtime executes it. The
 [migration contract](../../docs/migration/reusable-mixed-control.md) retains
 the old form's historical interpretation, and the
 [finite-script conversion record](../../docs/migration/mixed-control-finite-script-conversion.md)
@@ -208,11 +220,10 @@ never as authored SDL.
 
 ## Extending the section set
 
-A new top-level authoring section is added by: defining its model and the
-published schema field, adding a row to this catalog (with its shape,
-requiredness, key shape, and references), adding its reference edges to
-[`references.md`](references.md), and updating the reference implementation and
-its tests. Scenario-native observability or authored evidence-requirement
-sections must also satisfy
-[`observability-and-evidence.md`](observability-and-evidence.md). No parallel
-section registry exists or should be created.
+A new top-level authoring section requires its model, published schema field, and a row in this catalog.
+The row gives its shape, requiredness, key shape, and references.
+Its reference edges belong in [the reference catalog](references.md).
+The reference implementation and its tests must also be updated.
+Scenario-native observability and authored evidence-requirement sections must also satisfy
+[the evidence-plane reference](observability-and-evidence.md).
+No parallel section registry exists or should be created.

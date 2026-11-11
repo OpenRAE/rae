@@ -6,8 +6,9 @@ command/source fields never define that proposition's meaning.
 """
 
 from pydantic import Field, model_validator
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import parse_int_or_var
 
-from ._base import SDLModel, parse_int_or_var
 from ._source import Source
 
 

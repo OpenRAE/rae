@@ -34,6 +34,7 @@ from cryptography.x509.oid import ExtendedKeyUsageOID, NameOID
 from raes._errors import SDLParseError
 from raes.module_registry import publish_module_to_oci_layout
 from raes.parser import parse_sdl_file
+from raes_contracts.errors import OperationalError
 
 REPOSITORY = "acme/shared"
 SERVICE = "registry.test"
@@ -428,7 +429,7 @@ def test_rejected_token_gets_exactly_one_retry(
     registry = serve(_registry_route(layout, token=None, challenges=[_challenge(token_server)]))
     url = _url(registry, "tags/list")
 
-    with pytest.raises(SDLParseError) as exc_info:
+    with pytest.raises(OperationalError) as exc_info:
         module_registry._json_request(url)
 
     assert str(exc_info.value) == f"Failed to fetch OCI metadata from {url}"
@@ -443,7 +444,7 @@ def test_401_without_a_bearer_challenge_keeps_the_existing_failure(
     registry = serve(_registry_route(layout, token=None, challenges=challenges))
     url = _url(registry, "tags/list")
 
-    with pytest.raises(SDLParseError) as exc_info:
+    with pytest.raises(OperationalError) as exc_info:
         module_registry._json_request(url)
 
     assert str(exc_info.value) == f"Failed to fetch OCI metadata from {url}"
@@ -501,7 +502,7 @@ def test_token_endpoint_redirect_is_not_followed(
     registry = serve(_registry_route(layout, token=token, challenges=[_challenge(token_server)]))
     url = _url(registry, "tags/list")
 
-    with pytest.raises(SDLParseError) as exc_info:
+    with pytest.raises(OperationalError) as exc_info:
         module_registry._json_request(url)
 
     assert str(exc_info.value) == f"Failed to obtain an anonymous OCI registry token for {url}"
@@ -540,7 +541,8 @@ def test_unusable_token_responses_fail_without_a_retry(
     registry = serve(_registry_route(layout, token=_new_token(), challenges=[_challenge(token_server)]))
     url = _url(registry, "tags/list")
 
-    with pytest.raises(SDLParseError) as exc_info:
+    error_type = OperationalError if response[0] >= 400 else SDLParseError
+    with pytest.raises(error_type) as exc_info:
         module_registry._json_request(url)
 
     assert str(exc_info.value) == message.format(url=url)
@@ -595,7 +597,7 @@ def test_challenge_from_a_redirect_target_is_not_answered(
     registry = serve(_registry_route(layout, token=None, challenges=[], blob_location=storage.origin, anonymous=True))
     url = _url(registry, f"blobs/{layout.bundle_digest}")
 
-    with pytest.raises(SDLParseError) as exc_info:
+    with pytest.raises(OperationalError) as exc_info:
         module_registry._bytes_request(url)
 
     assert str(exc_info.value) == f"Failed to fetch OCI blob from {url}"

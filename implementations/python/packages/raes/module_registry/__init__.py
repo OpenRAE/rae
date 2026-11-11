@@ -11,21 +11,26 @@ source module below the repository size cap.
 
 from __future__ import annotations
 
+import gzip
 import json
 import os
 import tarfile
 import time
 import zlib
 from dataclasses import dataclass
+from http.client import HTTPException
 from pathlib import Path, PurePosixPath
 from typing import Any, Protocol
 
 # Registry requests resolve ``urlopen`` through this facade, the transport patch seam.
 from urllib.request import urlopen
 
+from raes_contracts.digests import sha256_digest
+from raes_contracts.errors import OperationalError
+
 # The submodule imports below retain the package's documented domain re-exports
-# plus the private ``_sha256_digest`` / ``_signable_payload`` /
-# ``_verify_signatures`` seams used by existing tests. Incidental implementation
+# plus the private ``_signable_payload`` / ``_verify_signatures`` seams used by
+# existing tests. Incidental implementation
 # imports are not an API; F401 is ignored for this facade because these deliberate
 # domain re-exports otherwise look unused inside this file.
 from .._errors import SDLParseError
@@ -65,7 +70,6 @@ from ._constants import (
     TRUST_POLICY_NAME,
     TRUST_POLICY_SCHEMA_VERSION,
 )
-from ._digests import _sha256_digest
 from ._extraction import (
     _HTTP_TIMEOUT_SECONDS,
     _extract_tar_to_stage,
@@ -94,6 +98,7 @@ from .models import (
     RegistryTrustPolicy,
     ResolvedModule,
     TrustPolicy,
+    decode_lockfile,
     load_lockfile,
     load_trust_policy,
     write_lockfile,
@@ -130,7 +135,7 @@ def _declared_content_length(response: _CappableResponse) -> int | None:
     try:
         value = int(raw)
     except (TypeError, ValueError) as exc:
-        raise SDLParseError(f"OCI response declares an invalid Content-Length: {raw!r}") from exc
+        raise SDLParseError("OCI response declares an invalid Content-Length") from exc
     if value < 0:
         raise SDLParseError(f"OCI response declares a negative Content-Length: {value}")
     return value
@@ -257,7 +262,7 @@ def _validated_root_file(root_file: str) -> PurePosixPath:
 
 
 def _validated_content_digest(bundle_bytes: bytes, expected: str | None) -> str:
-    actual = f"sha256:{_sha256_digest(bundle_bytes)}"
+    actual = sha256_digest(bundle_bytes)
     expected_digest = expected or actual
     if expected_digest != actual:
         raise SDLParseError("OCI module bundle does not match its expected content digest")
@@ -363,7 +368,7 @@ def _commit_extracted_stage(
         root_relative=extraction.root_relative,
     )
     if staged_validation is None:
-        raise SDLParseError("Staged OCI module cache entry failed validation")
+        raise OperationalError("Staged OCI module cache entry failed validation")
     version_name = _new_digest_version_name(extraction.content_digest)
     installed = _install_version_directory(
         staged=staging,
@@ -377,7 +382,7 @@ def _commit_extracted_stage(
         root_relative=extraction.root_relative,
     )
     if committed is None:
-        raise SDLParseError("Committed OCI module cache entry failed validation")
+        raise OperationalError("Committed OCI module cache entry failed validation")
     _prune_version_directories(
         versions=versions,
         retain_names={version_name, *(() if prior_version is None else (prior_version,))},
@@ -490,5 +495,8 @@ def _extract_bundle_to_cache(
                 tarfile.open(fileobj=tar_stream, mode="r:") as tar,
             ):
                 return _read_or_install_extracted_source(extraction, tar=tar, versions=versions)
-        except (EOFError, OSError, tarfile.TarError, zlib.error) as exc:
+        except (EOFError, gzip.BadGzipFile, tarfile.TarError, zlib.error) as exc:
             raise SDLParseError("OCI module bundle is not a valid gzip-compressed tar archive") from exc
+        # gzip.BadGzipFile is an OSError, so the bundle clause above comes first.
+        except OSError as exc:
+            raise OperationalError("Unable to extract the OCI module bundle into the cache") from exc

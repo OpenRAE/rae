@@ -5,9 +5,11 @@ from threading import Event, Thread
 
 import pytest
 from raes_backend_stubs.stubs import StubProvisioner, create_stub_target
+from raes_contracts.errors import OperationalError
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import OperationState
 from raes_runtime.control_plane import RuntimeControlPlane
+from raes_runtime.errors import RuntimeBudgetExhaustedError
 from raes_runtime.operation_supervision_configuration import OperationSupervisionConfiguration
 
 
@@ -63,7 +65,7 @@ def test_outer_activity_admission_wait_consumes_the_original_allowance():
             rejected_effect_job = activities._job(
                 activities._effect_jobs, "effect", lambda: calls.append(True), budget_ms=50
             )
-            with pytest.raises(RuntimeError):
+            with pytest.raises(OperationalError):
                 await asyncio.wait_for(rejected_effect_job, 0.3)
             assert not calls
         finally:
@@ -161,7 +163,7 @@ def test_protocol_result_finalization_is_bounded_while_an_archive_remains_blocke
                 plane.publish_backend_response(outcome(None), identity=worker())
             else:
                 receipts.append(plane.submit_provisioning(execution.provisioning))
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001 - the worker hands the exception to the test thread, which asserts it.
             errors.append(error)
 
     running = None
@@ -184,7 +186,7 @@ def test_protocol_result_finalization_is_bounded_while_an_archive_remains_blocke
         assert not errors
         assert plane.get_operation(receipts[0].operation_id).state is OperationState.INDETERMINATE
         assert plane._store.load_records()[receipts[0].operation_id].invocation.reserved
-        with pytest.raises(TimeoutError):
+        with pytest.raises(RuntimeBudgetExhaustedError):
             plane.close()
     finally:
         release.set()
@@ -198,11 +200,8 @@ def test_protocol_result_finalization_is_bounded_while_an_archive_remains_blocke
 @pytest.mark.parametrize("distributed", [False, True])
 @pytest.mark.parametrize("collection_fails", [False, True])
 def test_protocol_success_runs_and_retains_the_native_observation_lifecycle(distributed, collection_fails):
-    from raes_contracts.observation_demand import (
-        ObservationDemandRule,
-        ObservationLifecycleStage,
-        normalize_observation_demands,
-    )
+    from raes_contracts.observation_demand import ObservationDemandRule, ObservationLifecycleStage
+    from raes_contracts.observation_demand_resolution import normalize_observation_demands
     from raes_runtime.observation_execution import ConfiguredObservationRuntime
     from test_issue_1212_observation_demand import _document, _runtime_capability, _runtime_capability_id, _selector
     from test_issue_1362_distributed_authority import Dispatcher, worker

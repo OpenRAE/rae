@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from raes_contracts.errors import InvalidInputError
+
 from tools.check_json_artifacts import covered_schema_paths
 from tools.check_schema_publication import load_schema_publication_catalog
 from tools.policy.common import PolicyFailure
@@ -30,7 +32,7 @@ def _catalog_entries(repo_root: Path) -> tuple[list[dict[str, object]], list[Pol
 
     try:
         catalog = load_schema_publication_catalog(repo_root)
-    except OSError, ValueError:
+    except OSError, UnicodeDecodeError, InvalidInputError:
         message = "schema publication catalog could not be read; check_schema_publication.py owns the detail"
         return [], [PolicyFailure(CATALOG_RULE_ID, message, MANIFEST_RELATIVE_PATH)]
     entries = catalog.get("schemas")

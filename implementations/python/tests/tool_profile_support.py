@@ -21,7 +21,7 @@ from raes_contracts.contracts import (
     ParticipantImplementationManifestModel,
     ParticipantImplementationSelectionModel,
 )
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.participant_binding_v2 import ParticipantDecisionSurfaceBindingResolversV2
 from raes_contracts.participant_decision_surface_delivery import deliver_participant_decision_surface_v2
 from raes_processor.compiler import compile_runtime_model

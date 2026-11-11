@@ -2,6 +2,7 @@
 
 import pytest
 from participant_crossing_fixtures import PARTICIPANT
+from raes_contracts.errors import ConflictError
 from reusable_control_runtime_fixtures import identity
 from test_issue_1369_cancellation_effects import cancellation_race_plane
 
@@ -71,7 +72,7 @@ def test_cancellation_resumes_after_restart_and_recovery(tmp_path, monkeypatch, 
     with reopened:
         if pending_native:
             caller = identity()
-            with pytest.raises(RuntimeError, match="indeterminate operation requires resolution"):
+            with pytest.raises(ConflictError, match="indeterminate operation requires resolution"):
                 reopened.dispatch_participant_control_effects(PARTICIPANT, identity=caller)
         else:
             # Cancellation may supervise unknown running work; its unsettled

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from enum import Enum
 
+from raes_contracts.errors import AuthorizationError
 from raes_contracts.operation_lifecycle import OperationAdmissionContext
 
 from .control_plane_store import ControlPlaneOperationRecord
@@ -64,7 +65,7 @@ def authorize_resolution(
         operation_id=parent.receipt.operation_id,
         reason="resolution-forbidden",
     )
-    raise PermissionError("indeterminate resolution is forbidden")
+    raise AuthorizationError("indeterminate resolution is forbidden")
 
 
 __all__ = ("IndeterminateResolutionDisposition", "is_valid_resolution_child")

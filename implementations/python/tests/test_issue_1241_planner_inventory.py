@@ -4,6 +4,7 @@ from dataclasses import replace
 
 import pytest
 from raes import parse_sdl
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.planning import PlanScope, RuntimeDomain
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotEntry
 from raes_processor.compiler import compile_runtime_model
@@ -141,7 +142,7 @@ def test_materialized_inventory_preserves_trusted_planner_projection(kind, phase
     request = replace(getattr(execution, phase), operation_id="materialize-once")
     report = ReportingProvisioner(execution.manifest).report(request, previous, ApplyResult(True, actual))
     if tampered:
-        with pytest.raises(ValueError, match="inventory|outside its operation domain"):
+        with pytest.raises(InvalidInputError, match="inventory|outside its operation domain"):
             admit_materialization_submission(
                 report.materialization_attestation, request, execution.manifest, previous, actual
             )

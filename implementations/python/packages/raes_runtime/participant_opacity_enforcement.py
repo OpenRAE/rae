@@ -9,6 +9,9 @@ from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingGateDisposition,
     ParticipantCrossingOccurrenceModel,
 )
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError
+
+_PERSISTED_BINDING_NOT_ADMITTED = "persisted participant opacity binding is not admitted by restart context"
 
 if TYPE_CHECKING:
     from raes_contracts.contracts.participant_crossing import ParticipantOpacityRuntimeSupportModel
@@ -28,7 +31,7 @@ def bind_active_participant_opacity_support(
     if resolution.opacity_enforcement is not None or not supports:
         return resolution
     if len(supports) != 1:
-        raise ValueError("participant opacity runtime support is ambiguous at the exact state cut")
+        raise ConflictError("participant opacity runtime support is ambiguous at the exact state cut")
     return cast(
         "ParticipantCrossingPolicyResolution",
         replace(resolution, opacity_enforcement=supports[0].binding),
@@ -84,13 +87,16 @@ def validate_persisted_participant_opacity(
             None,
         )
         if support is None:
-            raise ValueError("persisted participant opacity binding is not admitted by restart context")
-        validate_participant_opacity_runtime_enforcement(
-            binding,
-            support=support,
-            participant_address=record.participant_address,
-            audience_scope_ref=record.occurrence.audience_scope_ref,
-        )
+            raise EvidenceIntegrityError(_PERSISTED_BINDING_NOT_ADMITTED)
+        try:
+            validate_participant_opacity_runtime_enforcement(
+                binding,
+                support=support,
+                participant_address=record.participant_address,
+                audience_scope_ref=record.occurrence.audience_scope_ref,
+            )
+        except ValueError as exc:
+            raise EvidenceIntegrityError(_PERSISTED_BINDING_NOT_ADMITTED) from exc
 
 
 __all__ = [

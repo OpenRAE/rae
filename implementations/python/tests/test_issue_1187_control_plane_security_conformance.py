@@ -6,7 +6,11 @@ from dataclasses import asdict
 
 import pytest
 from raes_backend_stubs.stubs import create_stub_target
-from raes_contracts.plan_projection import evaluation_plan_model, orchestration_plan_model, provisioning_plan_model
+from raes_contracts.contracts.plan_projection import (
+    evaluation_plan_model,
+    orchestration_plan_model,
+    provisioning_plan_model,
+)
 from raes_contracts.planning import (
     ChangeAction,
     EvaluationOp,

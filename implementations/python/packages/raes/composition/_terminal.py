@@ -20,6 +20,7 @@ from ._references import (
     _maybe_rename,
     _prefix,
     _private_prefix,
+    _rewrite_section_ref,
     _rewrite_variation_reference,
     _variation_slot,
     _variation_target_section,
@@ -181,6 +182,16 @@ def _rewrite_variation_members(
                 _rewrite_variation_member(member, target_section, symbols)
 
 
+def _rewrite_consumer_selectors(
+    member: dict[str, Any],
+    symbols: dict[str, dict[str, str] | set[str]],
+) -> None:
+    consumers = member.get("consumers")
+    for selector in consumers if isinstance(consumers, list) else []:
+        if isinstance(selector, dict) and isinstance(selector.get("node"), str):
+            selector["node"] = _rewrite_section_ref(selector["node"], "nodes", symbols["nodes"])
+
+
 def _rewrite_variation_member(
     member: dict[str, Any],
     target_section: str | None,
@@ -197,6 +208,7 @@ def _rewrite_variation_member(
             slot: [_rewrite_variation_reference(reference, "targetable", symbols) for reference in refs]
             for slot, refs in member["inventory"].items()
         }
+    _rewrite_consumer_selectors(member, symbols)
     _rewrite_member_relations(member, symbols)
 
 

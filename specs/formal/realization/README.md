@@ -1,4 +1,4 @@
-# Realization Semantics
+# Realization semantics
 
 This directory holds the normative semantic boundary for binding author
 declarations versus concerns left open to backend realization (`SEM-218`).
@@ -28,7 +28,7 @@ backend manifests carry `realization_support`.
   supports membership, subsumption, witness generation, scoped
   closed-world posture, and negative conformance
 
-## Out Of Scope
+## Out of scope
 
 - new SDL syntax for declaring exact, constrained, or open authoring
   intent — the existing closed Pydantic SDL models, controlled
@@ -40,23 +40,16 @@ backend manifests carry `realization_support`.
 - wave-3 participant semantics (`SEM-208`–`SEM-229`) that build on this
   boundary — those have their own owning requirements
 
-## Realization Status
+## Realization status
 
-The spec's semantic boundary is normative immediately. End-to-end
-realization across the seven `SEM-200` lifecycle phases is staged: today
-the boundary is enforced at the authoring, validation, and
-instantiation phases through the apparatus contract layer (the shape
-gates on backend `RealizationSupportDeclaration` and the JSON-schema
-conditional gate, plus the asymmetric rejection of `realization_support`
-on processor manifests), the SDL explicitness classifier, and
-instantiation downgrade metadata. Compilation, planning, execution, and
-observation responsibilities in the spec are normative but not yet
-realized end-to-end. The coverage row in
-`docs/explain/reference/shared-semantic-integrity.md` carries the
-current `partial` status; promoting it to `active` is the implementation
-work the SEM-218 row tracks.
+The semantic boundary is normative.
+The [explicitness reference](explicitness-and-realization.md#realization-status) maps enforcement across all seven `SEM-200` lifecycle phases.
+It names the apparatus shape gates, SDL classifier, instantiation metadata, compiler emission, planner admission, runtime checks, and provenance ledger.
+The [coverage reference](../../../docs/explain/reference/shared-semantic-integrity.md) records the `SEM-218` family as `active` across those seven phases.
+The earlier authoring/validation/instantiation-only summary no longer describes the delivered reference implementation.
+These bounded reference checks do not qualify every external backend.
 
-## Implementation Mapping
+## Implementation mapping
 
 - realization support modes: `implementations/python/packages/raes_contracts/vocabulary.py`
   (`RealizationSupportMode`)

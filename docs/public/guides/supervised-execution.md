@@ -1,5 +1,17 @@
 # Supervise runtime execution
 
+Stop new admission, request cancellation, and inspect the retained outcome of an existing operation.
+
+## Before you start
+
+Use RAES 11.0.2.
+Keep the original runtime owner, target/run scope, operation ID, actor identity, and store.
+Install the target's operation provider and a trusted evidence resolver before requesting native controls.
+Use operator authority for P2 stop, control, and resolution requests.
+Administrative reads need their existing role and original actor/scope checks.
+These requests change admission or operation state and can invoke backend controls.
+Cancellation and service shutdown do not prove native cessation.
+
 `RuntimeControlPlane` separates short state writes from native phase execution.
 Each phase keeps its target/run effect reservation. Its backend calls run outside
 the state writer. Authorized stop and control requests can use the writer during
@@ -32,7 +44,9 @@ The admitted request keeps its original actor and target/run. It also keeps the
 command digest, invocation/attempt, deployment and owner generations, predecessor
 revision, effect scope and budget origin. The ledger consumes dispatch permission
 before calling a backend. A lost reply to that write grants no permission.
-SQLite schema 7 stores these facts. P0 keeps them only while the process lives.
+SQLite schema 12 stores these facts in this release.
+Schema 7 introduced the earlier supervision records.
+P0 keeps them only while the process lives.
 
 Opaque command commitments use HMAC-SHA256. Only the live artifact owner holds
 the random key. The ledger and engine history store neither that key nor an
@@ -67,6 +81,11 @@ owners. They use the shared state writer and bounded served admission. This
 guide makes no new interruption or continuation promise for those controllers.
 
 ## Stop, cancellation and reconciliation
+
+1. Stop admission before changing the installation or reconciling uncertain effects.
+2. Submit the exact bound control with a stable identity and its original budget.
+3. Read the control disposition and parent operation separately.
+4. Resolve exclusion only through independently verified absence and cessation evidence.
 
 P0/P1 embedders call `stop_admission()` or `cancel_operation()` through their
 trusted host. P2 uses the existing administrative identity boundary:
@@ -199,3 +218,15 @@ these service cases and includes their coverage in the combined quality report.
 Repository-wide, service integration and fuzz
 suites run in CI/CD. The tests supply scoped synthetic no-op witnesses.
 They do not certify interruption or cessation for arbitrary backends.
+
+## Finish
+
+The result is retained admission state, control disposition, and a separately checked operation outcome.
+Preserve an indeterminate result and its reservation when cessation remains unknown.
+Retry transport with the original identity; do not manufacture another native attempt.
+Drain the runtime before releasing host components.
+Run native teardown through its authorized owner after effect reconciliation.
+
+Distributed deployment is unverified here without approved Temporal/PostgreSQL versions, TLS, worker grants, readback, and cleanup evidence.
+Read the {py:class}`RuntimeControlPlane <raes_runtime.RuntimeControlPlane>`
+and [supervision contract explanation](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/backend-operation-supervision.md).

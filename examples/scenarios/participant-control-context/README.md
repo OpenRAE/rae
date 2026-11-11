@@ -1,47 +1,35 @@
 # Participant control-context references
 
-These examples declare reference-only instruction, directive, policy, and guidance assets.
-They contain synthetic public descriptors, without private content bytes.
+Inspect references to instruction, directive, policy, and guidance assets.
+The descriptors are public and synthetic.
+They contain no private bytes.
 
-- `context-kit.sdl.yaml` selects a shared instruction for red and withholds it from blue.
-- Blue also selects a distinct policy in the `rules` slot.
-- A reusable specification selects directive version `two` for red's `followup` slot.
-- The guidance declaration has no selection.
-- `twice-imported.sdl.yaml` imports the kit as `alpha` and `bravo`.
+| File | Purpose | Required support |
+| --- | --- | --- |
+| [Context kit](context-kit.sdl.yaml) | Select a shared instruction for red, withhold it from blue, and give blue a distinct policy in `rules`. | RAES file parser and control-context validation. |
+| [Repeated imports](twice-imported.sdl.yaml) | Import the kit as `alpha` and `bravo` with separate declaration namespaces. | File parser with local imports. |
 
-Each import retains the same immutable descriptor and asset pin.
-Participant addresses and local declaration references receive their own namespaces.
-The descriptor uses effective role applicability, which remains valid across these imports.
-An address-scoped descriptor must already name its final canonical participants.
+The reusable specification selects version `two` of the directive.
+It uses red's `followup` slot.
+The guidance declaration has no selection.
+Each import keeps the same descriptor and asset pin.
+The descriptor is immutable.
+Each import gives local names and participant addresses its own namespace.
 
-Declaring or selecting an asset creates no participant-visible item or content placement.
-`withheld` states authored intent; it is not a runtime withholding or delivery record.
-Different slots imply no ordering, precedence, or instruction composition.
+## Required support and limits
 
-An ADR-094 participant target can declare a `control_context` domain:
+These descriptors apply by role.
+That scope stays valid across imports.
+A descriptor scoped by address must name its final canonical participants.
+Declaring or selecting an asset places no content.
+It creates no item for a participant to see.
+`withheld` states the author's intent.
+It records no runtime withholding or delivery.
+Slots impose no order or precedence.
+They do not compose instructions.
+Consumers must still check lifecycle, authority, content, audience, and delivery under ACT-620.
 
-```yaml
-context.briefing:
-  target_id: context.briefing
-  value_type: string
-  allowed_value_kinds: [literal]
-  sensitivity: restricted
-  control_context:
-    slot_id: briefing
-    references:
-      control_context_assets.alpha.shared:
-        asset_id: privacy-instruction
-        asset_version: one
-        asset_digest: sha256:83c7094c1ac208ad0b6cbe65560801b2512b93edf919b3b4e1debf6ae6eada8a
-```
-
-A participant factor selects the literal `control_context_assets.alpha.shared`.
-Use a participant and slot with no competing SDL selection.
-The selected manifest owns the target and pins this domain.
-Configure the trusted `SDLControlContextConfigurationValidator` through the existing owner-validator hook.
-The compiler binds it to each concrete trial scenario before it seals the configuration.
-The result retains a typed selection and exact asset pin for the run producer.
-
-The consumer must still validate lifecycle, authority, content, audience, and delivery under ACT-620.
-See the [normative reference contract](../../../specs/sdl/participant-control-context.md)
-and [migration guidance](../../../docs/explain/sdl/control-context-migration.md).
+See the [normative reference contract](../../../specs/sdl/participant-control-context.md) for selection rules.
+Use the [migration guide](../../../docs/explain/sdl/control-context-migration.md) to author selections.
+The [factor example reference](../../../docs/explain/reference/example-library.md#control-context-factor-target) retains the target configuration example and validator requirements.
+Return to the [catalogue](../../README.md) to select another example.

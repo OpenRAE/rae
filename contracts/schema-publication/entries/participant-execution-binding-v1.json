@@ -1,10 +1,5 @@
 {
   "contract_id": "participant-execution-binding-v1",
   "schema_path": "contracts/schemas/participant-runtime/participant-execution-binding-v1.json",
-  "stability": "draft",
-  "content_hash": "a58d81f90d3fec4e9b8e52671101642a1669e08c2d26ed220c60e8918267d746",
-  "last_change": {
-    "summary": "Add opt-in bounded shared-time guarantees and typed numeric authoring; keep backend execution capabilities conditional (#216).",
-    "content_hash": "a58d81f90d3fec4e9b8e52671101642a1669e08c2d26ed220c60e8918267d746"
-  }
+  "stability": "draft"
 }

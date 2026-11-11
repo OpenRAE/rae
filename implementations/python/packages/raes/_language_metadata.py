@@ -5,6 +5,7 @@ from __future__ import annotations
 from ._reference_targetability import ReferencePurpose, reference_domain
 from .participant_relationships import PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS
 from .variation import COLLECTION_TARGET_SPECS, REFERENCE_TARGET_SPECS, STRUCTURAL_TARGET_SPECS, TIMING_TARGET_SPECS
+from .variation_structure import ResourceConsumerSlot
 
 _OBJECTIVE_SUBJECT = reference_domain(ReferencePurpose.OBJECTIVE_SUBJECT)
 _ACTION_TARGET = reference_domain(ReferencePurpose.ACTION_TARGET)
@@ -56,9 +57,11 @@ VARIATION_SLOT_TARGETS = {
     "reference": VARIATION_CANDIDATE_TARGETS,
     "allowed_refs": VARIATION_CANDIDATE_TARGETS,
     "references": {slot: spec[1] for slot, spec in STRUCTURAL_TARGET_SPECS.items()},
+    "node": {slot.value: STRUCTURAL_TARGET_SPECS[slot.value][1] for slot in ResourceConsumerSlot},
 }
 
 REFERENCE_COMPLETION_TARGETS = {
+    ("safe_state", "assertion_refs"): "assertions",
     **{
         ("relationships", field): section
         for field, section in PARTICIPANT_RELATIONSHIP_REFERENCE_SECTIONS.items()

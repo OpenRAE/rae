@@ -18,8 +18,8 @@ from raes.parser import parse_sdl_file
 from raes.scenario import InstantiatedScenario, Scenario
 from raes.validator import SemanticValidator
 from raes_contracts.bounded_domains import EnumDomain
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.realization_envelope import EnumDomain as EnvelopeEnumDomain
+from raes_schemas import schema_bundle
 
 FIXTURE_DIR = Path(__file__).parents[3] / "contracts" / "fixtures" / "sdl" / "variation-points-v1"
 

@@ -1,11 +1,15 @@
 # Cloud resource descriptions
 
-[The example](cloud-secret-cross-project.sdl.yaml) has a workload in project A
-use an identity to read a secret in project B.
-It keeps metadata access and version state separate.
-It includes a denied value read.
+Use [cloud-secret-cross-project.sdl.yaml](cloud-secret-cross-project.sdl.yaml) to inspect cross-project identity and secret access declarations.
+A workload in project A uses an identity to read a secret in project B.
+The example separates metadata access from version state and includes a denied value read.
 
-This file describes part of a system.
-It leaves host sizes open, so the parser reports capacity advisories.
-Tests parse the file and check it against the published JSON Schema.
-It does not deploy a cloud service or prove an access result.
+## Required support
+
+The RAES file parser and published JSON Schema can check this synthetic input.
+Host sizes are omitted, so the parser reports capacity advisories.
+The example deploys no cloud service and establishes no access result.
+Native execution needs a separate backend that supports the declared resources and access checks.
+
+See the [cloud-resource reference](../../../specs/sdl/cloud-resource-access.md) for field meaning.
+See the [example catalogue](../../README.md) for other authoring examples and validation commands.

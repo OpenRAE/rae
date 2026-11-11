@@ -1,4 +1,4 @@
-# SDL Phase Contracts
+# SDL phase contracts
 
 Classification: FM2, refinement/constraint semantics.
 
@@ -56,7 +56,7 @@ value.
 | `instantiation_provenance` | forbidden | forbidden | required | forbidden | Required portable derivation context for an instantiated artifact; materialization refers to the source digest, never copies its history onto a different world. |
 | `materialization_provenance` | forbidden | forbidden | forbidden | required | Descriptive producer, execution, source and field/member lineage for the post-materialization world. |
 
-## Transition Relations
+## Transition relations
 
 The supported transitions are partial functions:
 
@@ -77,7 +77,7 @@ requires an explicit new authoring derivation.
 
 ## Invariants
 
-### P1: Phase exclusion
+### P1: phase exclusion
 
 ```text
 {module, imports, realization} intersect fields(E) = empty
@@ -93,7 +93,7 @@ executable content. Its normalized designation records survive under provenance
 so downstream realization can resolve the scoped cascade without admitting the
 source block into `E` or `I`.
 
-### P2: Concreteness
+### P2: concreteness
 
 ```text
 tokens(I) = empty
@@ -103,7 +103,7 @@ tokens(S) = empty
 This includes provenance strings. Substitution is single-pass, but a selected
 value that reintroduces a token is not an admitted concrete artifact.
 
-### P3: Binding environment closure
+### P3: binding environment closure
 
 For provenance `P`, define its qualified binding environment:
 
@@ -116,7 +116,7 @@ Root binding identities have one segment. Import-local binding identities have
 one segment. Import namespaces are non-empty segment tuples. Every resulting
 key in `B(P)` is unique.
 
-### P4: Capability evidence consistency
+### P4: capability evidence consistency
 
 For each capability constraint `q` in `P`:
 
@@ -153,7 +153,7 @@ multiple independent finite images are unsupported rather than approximated.
 Owning field validation, safe publication, plan binding and runtime comparison
 remain separate gates. See SEM-218's configurable scalar binding authority.
 
-### P5: Explicitness evidence closure
+### P5: explicitness evidence closure
 
 For every explicitness record `r` and every parameter identity `p` in
 `r.parameters`:
@@ -176,7 +176,7 @@ Requested/resolved source identities contain no absolute host/cache path or
 registry user information. Digest fields are empty only when the source class
 does not produce that digest; otherwise they use `sha256:<64 lowercase hex>`.
 
-### P7: Admission
+### P7: admission
 
 ```text
 admitted(I) iff
@@ -190,7 +190,7 @@ JSON Schema checks `closed_shape` and token/scalar syntax. Runtime model
 validation checks provenance relations. Semantic validation checks the SDL
 reference and graph rules. No one layer is described as proving all three.
 
-### P8: Canonical snapshot identity
+### P8: canonical snapshot identity
 
 For admitted `I`:
 
@@ -208,7 +208,7 @@ Changing concrete content or provenance changes the snapshot input. Equality
 of `digest(I)` is identity under this canonical profile, not behavioral
 equivalence or bisimilarity.
 
-## Evidence Mapping
+## Evidence mapping
 
 Materialized admission additionally requires exact native-identity differences
 from `I`, complete instance bindings and a match with the returned resource

@@ -29,5 +29,4 @@ Primary-source refresh shows that episode lifecycle meaning must be explicit if 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/runtime_state.py` (SEM-222 RuntimeSnapshot participant_episode_closure_records carrier (canonical closure-validation wiring))
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_plans.py` (Published runtime-snapshot-v1 participant episode closure-record carrier)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/conformance/snapshot_semantics.py` (Published runtime snapshot closure-record preservation and semantic validation)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_snapshot_updates.py` (RuntimeSnapshot update-builder module split out to admit the SEM-222 closure-records field under the source-size cap)
 - TESTS → TEST `implementations/python/tests/test_issue_1373_history_consumers.py` (Stored closure history survives updates and backend validation)

@@ -15,6 +15,8 @@ from collections.abc import Iterable
 from dataclasses import replace
 
 from raes_contracts.contracts import validate_mixed_backend_bindings
+from raes_contracts.errors import ConflictError, InvalidInputError, RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 
 from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_failure_message
 from raes_conformance.conformance.mixed_backend_cases import (
@@ -66,6 +68,7 @@ from raes_conformance.conformance.report import (
 )
 from raes_conformance.realization import ExecutionBasis
 
+_LOGGER = get_logger(__name__)
 MIXED_BACKEND_PROBE_FAMILY = "mixed-backend-execution"
 _PROBE_KIND = "mixed-backend-executed-case"
 _CONTRACTS = {
@@ -133,6 +136,9 @@ def _run_case(harness: object, case: MixedBackendCase, environment: str, set_dig
         else:
             verdict = _composition_case(harness, case)
     except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Isolation of the harness and its installed services: a refusal category needs no record.
+            _LOGGER.exception("mixed-backend probe case failed", exc_info=foreign_failure_record(exc))
         failure = _diagnostic("conformance.mixed-case-error", case.case_id, sanitized_failure_message(exc))
         verdict = Verdict("failed", diagnostics=(failure,))
     return _case_result(case, verdict, environment, set_digest)
@@ -248,7 +254,7 @@ def _requested_cut(
     model = run.configuration.binding.context.time_models[required.time_model_ref]
     requested, discriminating = requested_time_state(run.case, required, model, nominal)
     if cut_comparison(required, model, requested) != "incomparable":
-        raise ValueError("the derived cut is not incomparable under the admitted mapping")
+        raise InvalidInputError("the derived cut is not incomparable under the admitted mapping")
     run.requested_cut = requested
     run.limitations.append(
         "The requested cut distinguishes the admitted mapping from identity."
@@ -311,7 +317,10 @@ def _execute_unbound(
         run.read = submit(lambda: _admit(run.configuration, plane, nonce()), plane, run.configuration.store)
         kinds = {event["event_kind"] for event in composition_history(plane, run.run_id)[before:]}
         refusal = run.read.refusal_type
-        run.check(refusal is not None and issubclass(refusal, ValueError), "dispatch was not refused by validation")
+        # The runtime refuses dispatch without an executable edge binding with ConflictError.
+        run.check(
+            refusal is not None and issubclass(refusal, ConflictError), "dispatch was not refused as a binding conflict"
+        )
         run.check(not kinds & {"attempt", "execution", "delivery", "observation"}, "an unbound edge was attempted")
         run.check(instrumented.component_calls("admit_action") == 0, "a component runtime was called directly")
         run.calls = Counter(instrumented.log.entries())
@@ -346,6 +355,9 @@ def _execute(harness: object, run: CompositionRun, request: MixedBackendProbeReq
         try:
             realized.append(run.configuration.apply_condition(run.case.condition))
         except Exception as exc:
+            if not isinstance(exc, RaesError):
+                # Isolation of the harness condition hook: a refusal category needs no record.
+                _LOGGER.exception("mixed-backend condition hook failed", exc_info=foreign_failure_record(exc))
             realized.append(exc)
 
     hook = after_grant if run.case.condition_point == "after-time-grant" else None

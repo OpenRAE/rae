@@ -3,6 +3,7 @@
 import pytest
 from pydantic import ValidationError
 from raes.runtime_configuration import RuntimeConfiguration
+from realization_authority_fixtures import empty_runtime_readback
 from test_issue_1200_mixed_runtime_constraints import _apply, _fixture
 
 
@@ -55,10 +56,11 @@ def test_explicit_repository_absence_is_checked_after_software_realization(retai
     }
     _, request, manifest = _fixture(authored, scope="/nodes/host/runtime")
     actual = {
+        **empty_runtime_readback(),
         "software_components": [{"component_id": "tool", "name": "tool"}],
         "repository_state": {"repositories": [{"repository_id": "temporary"}] if retained else []},
     }
-    result = _apply(request, manifest, actual, observe=False)
+    result = _apply(request, manifest, actual)
     assert result.success is accepted, result.diagnostics
 
 
@@ -69,10 +71,11 @@ def test_present_optional_component_cannot_return_a_dangling_repository_referenc
         {"software_components": [component], "repository_state": state}, scope="/nodes/host/runtime"
     )
     actual = {
+        **empty_runtime_readback(),
         "software_components": [{"component_id": "tool", "name": "tool", "repository_refs": ["shared"]}],
         "repository_state": {"repositories": []},
     }
-    result = _apply(request, manifest, actual, observe=False)
+    result = _apply(request, manifest, actual)
     assert not result.success
     assert result.snapshot.entries == {}
 
@@ -94,10 +97,10 @@ def test_final_repository_reference_identity_is_unordered_and_binding(actual_ref
         request,
         manifest,
         {
+            **empty_runtime_readback(),
             "software_components": [{**component, "repository_refs": actual_refs}],
             "repository_state": state,
         },
-        observe=False,
     )
     assert result.success is accepted, result.diagnostics
     if accepted:
@@ -122,9 +125,9 @@ def test_open_repository_reference_set_accepts_additions_before_authored_referen
         request,
         manifest,
         {
+            **empty_runtime_readback(),
             "software_components": [{**component, "repository_refs": ["a", "b"]}],
             "repository_state": state,
         },
-        observe=False,
     )
     assert result.success, result.diagnostics

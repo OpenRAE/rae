@@ -18,7 +18,8 @@ from __future__ import annotations
 import re
 from contextlib import closing
 from dataclasses import dataclass, field
-from urllib.error import HTTPError, URLError
+from http.client import HTTPException
+from urllib.error import HTTPError
 from urllib.parse import urlencode, urlsplit, urlunsplit
 from urllib.request import (
     HTTPDefaultErrorHandler,
@@ -29,6 +30,8 @@ from urllib.request import (
     Request,
     UnknownHandler,
 )
+
+from raes_contracts.errors import OperationalError
 
 from .._errors import SDLParseError
 
@@ -176,8 +179,8 @@ def _anonymous_token(challenge: _BearerChallenge, *, url: str) -> str:
         with opener.open(request, timeout=_OCI_LIMITS.timeout_seconds) as response:
             # Messages name the requested URL only, never the challenge-derived token URL.
             payload = _read_capped(response, url=url, max_bytes=_OCI_LIMITS.max_metadata_bytes)
-    except URLError as exc:
-        raise SDLParseError(f"Failed to obtain an anonymous OCI registry token for {url}") from exc
+    except (OSError, HTTPException) as exc:
+        raise OperationalError(f"Failed to obtain an anonymous OCI registry token for {url}") from exc
     document = _decode_json_object(payload, context=f"OCI registry token response for {url}")
     token = document.get("token") or document.get("access_token")
     if not isinstance(token, str) or _B64TOKEN.fullmatch(token) is None:
@@ -221,14 +224,14 @@ def _registry_get(
     except HTTPError as exc:
         challenge = _challenge_for(exc, request)
         if challenge is None:
-            raise SDLParseError(failure) from exc
-    except URLError as exc:
-        raise SDLParseError(failure) from exc
+            raise OperationalError(failure) from exc
+    except (OSError, HTTPException) as exc:
+        raise OperationalError(failure) from exc
     token = (_RegistryTokens() if tokens is None else tokens).token_for(challenge, url=url)
     retry = Request(url, headers=dict(headers or {}))  # noqa: S310 - trust-policy registry URL
     # Unredirected: urllib copies only ``Request.headers`` into a redirected request.
     retry.add_unredirected_header("Authorization", f"Bearer {token}")
     try:
         return _open_capped(retry, url=url, max_bytes=max_bytes)
-    except URLError as exc:
-        raise SDLParseError(failure) from exc
+    except (OSError, HTTPException) as exc:
+        raise OperationalError(failure) from exc

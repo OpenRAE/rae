@@ -14,7 +14,7 @@ from textwrap import dedent
 import pytest
 from raes.parser import parse_sdl
 from raes_backend_stubs.stubs import create_stub_manifest, create_stub_target
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel, realization_envelope_digest
 from raes_operations.run_artifacts import is_valid_run_id_label
 from raes_processor.compiler import compile_runtime_model

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.errors import ConflictError
 from raes_contracts.runtime_state import OperationKind, OperationState
 
 from .control_plane_operation_context import operation_actor_scope, operation_idempotency_fingerprint
@@ -25,6 +26,11 @@ APPLICATION_PHASES = (
     "_apply_orchestration_phase",
     "_apply_participant_start_phase",
 )
+
+
+def run_phase_key(admission: RunProgramDecision, phase: int) -> str:
+    """Canonical binding shared by dispatch and retained operation readers."""
+    return "run-phase:" + canonical_json_digest((admission.decision_id, phase)).removeprefix("sha256:")
 
 
 if TYPE_CHECKING:
@@ -101,12 +107,12 @@ def _admit_program(
     if prior is None:
         failure = run._apply_precondition_failure(plan, list(plan.diagnostics))
         if failure is not None:
-            raise ValueError("run plan admission failed")
+            raise ConflictError("run plan admission failed")
         if run._participant_driver_apply_precondition() is not None:
-            raise RuntimeError("run participant driver remains active")
+            raise ConflictError("run participant driver remains active")
         run._store.claim_runtime_decision(admission)
     elif prior != admission or plan.manifest != run._target.manifest:
-        raise ValueError("run execution identity conflicts with its admitted inputs or actor")
+        raise ConflictError("run execution identity conflicts with its admitted inputs or actor")
 
 
 def _advance_phases(
@@ -157,7 +163,7 @@ def _advance_phase(
         run_scope=run._run_scope, execution_id=admission.execution_id, phase=phase, state="started"
     )
     run._store.claim_runtime_decision(started)
-    key = "run-phase:" + canonical_json_digest((admission.decision_id, phase)).removeprefix("sha256:")
+    key = run_phase_key(admission, phase)
     records = _phase_records(run, admission, key)
     state = None
     if not records:

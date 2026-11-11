@@ -6,6 +6,7 @@ import textwrap
 from pathlib import Path
 
 import pytest
+from contract_fixtures import contract_fixture_text
 from raes.parser import parse_sdl
 from raes_backend_protocols.capability_admission import time_model_capability_gaps
 from raes_backend_stubs.stubs import create_stub_manifest, create_stub_target
@@ -201,7 +202,7 @@ def test_published_time_fixture_corpora(
 
     assert valid and invalid
     for path in valid:
-        model.model_validate_json(path.read_text(encoding="utf-8"))
+        model.model_validate_json(contract_fixture_text(path))
     for path in invalid:
         payload = path.read_text(encoding="utf-8")
         with pytest.raises(ValueError):

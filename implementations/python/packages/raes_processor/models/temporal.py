@@ -4,12 +4,12 @@ from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import dataclass
 from typing import Any
 
-from raes.participant_temporal_semantics import (
+from raes.participant_temporal_semantics import ParticipantTemporalState
+from raes_contracts.contracts.participant_temporal import ParticipantTemporalExecutionContextModel
+from raes_contracts.participant_temporal_vocabulary import (
     ParticipantTemporalEventPoint,
-    ParticipantTemporalState,
     ParticipantTimeDomain,
 )
-from raes_contracts.contracts.participant_temporal import ParticipantTemporalExecutionContextModel
 
 from .behavior_resources import (
     _optional_payload_string,
@@ -215,8 +215,9 @@ def _try_parse_temporal_transition(
     """Parse one raw transition, returning either the transition or an error message."""
     try:
         return _participant_temporal_state_transition_from_payload(raw_transition), None
-    except (TypeError, ValueError) as exc:
-        return None, f"participant temporal state transition is invalid: {exc}"
+    except TypeError, ValueError:
+        # The value object refuses a malformed payload with TypeError or ValueError (E3).
+        return None, "participant temporal state transition is invalid"
 
 
 def _iter_domain_authority_violations(

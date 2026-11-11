@@ -3,13 +3,87 @@
 import asyncio
 import os
 import socket
-from contextlib import ExitStack
+from contextlib import ExitStack, asynccontextmanager
 from pathlib import Path
 from threading import Thread
+from time import monotonic
 
 import pytest
 
 pytestmark = pytest.mark.integration
+
+
+async def _until(predicate, *, timeout=15):
+    deadline = monotonic() + timeout
+    while not await asyncio.to_thread(predicate):
+        if monotonic() >= deadline:
+            raise TimeoutError("integration witness did not arrive")
+        await asyncio.sleep(0.02)
+
+
+# A hosted runner can need more than the 5 seconds that the Temporal SDK core
+# allows its ephemeral dev server to start, and the SDK has no option to change
+# that limit. The test owns the dev server process and waits for a client.
+TEMPORAL_START_SECONDS = 60
+
+
+def _free_port():
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        return probe.getsockname()[1]
+
+
+@asynccontextmanager
+async def local_temporal(cli, directory):
+    """Start the Temporal CLI dev server and yield a client of its default namespace."""
+
+    from temporalio.client import Client
+    from temporalio.service import RPCError
+
+    address = f"127.0.0.1:{_free_port()}"
+    log_path = directory / "temporal-dev-server.log"
+    with log_path.open("wb") as log:
+        process = await asyncio.create_subprocess_exec(
+            str(cli),
+            "server",
+            "start-dev",
+            "--ip",
+            "127.0.0.1",
+            "--port",
+            address.rsplit(":", 1)[1],
+            "--namespace",
+            "default",
+            "--db-filename",
+            str(directory / "history.sqlite3"),
+            "--headless",
+            "--log-format",
+            "pretty",
+            "--log-level",
+            "warn",
+            stdout=log,
+            stderr=asyncio.subprocess.STDOUT,
+        )
+    try:
+        deadline = monotonic() + TEMPORAL_START_SECONDS
+        while True:
+            if process.returncode is not None:
+                raise RuntimeError(f"Temporal dev server exited: {log_path.read_text(errors='replace')[-2000:]}")
+            try:
+                client = await Client.connect(address, namespace="default")
+                break
+            except RuntimeError, RPCError:
+                if monotonic() >= deadline:
+                    raise
+                await asyncio.sleep(0.25)
+        yield client
+    finally:
+        if process.returncode is None:
+            process.terminate()
+            try:
+                await asyncio.wait_for(process.wait(), 10)
+            except TimeoutError:
+                process.kill()
+                await process.wait()
 
 
 @pytest.mark.parametrize("kind", ["run", "experiment"])
@@ -41,7 +115,6 @@ async def exercise(kind, tmp_path, databases):
     from temporalio.client import Client
     from temporalio.testing import WorkflowEnvironment
     from temporalio.worker import Worker
-    from test_issue_1362_distributed_integration import _until
     from test_issue_1629_temporal_runtime import worker
     from test_runtime_manager import _full_scenario
 
@@ -118,9 +191,10 @@ async def exercise(kind, tmp_path, databases):
     try:
         await _until(lambda: server.started)
         cli = Path(os.environ["RAES_TEMPORAL_CLI"]).resolve(strict=True)
-        async with await WorkflowEnvironment.start_local(
-            dev_server_existing_path=str(cli), dev_server_database_filename=str(tmp_path / "history.sqlite3")
-        ) as environment:
+        async with (
+            local_temporal(cli, tmp_path) as client,
+            WorkflowEnvironment.from_client(client) as environment,
+        ):
             address = environment.client.service_client.config.target_host
 
             async def connected():

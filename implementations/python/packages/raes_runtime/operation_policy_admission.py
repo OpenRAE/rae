@@ -8,6 +8,10 @@ from contextvars import ContextVar
 from time import monotonic
 from typing import TYPE_CHECKING
 
+from raes_contracts.errors import ConflictError
+
+from .errors import RuntimeBudgetExhaustedError
+
 if TYPE_CHECKING:
     from raes_contracts.execution_policy import ExecutionPolicy
 
@@ -42,7 +46,7 @@ def _remaining_attempt_budget(budget: int) -> int:
     if deadline is not None:
         remaining = int((deadline - monotonic()) * 1000)
         if remaining <= 0:
-            raise ValueError("authored attempt budget is exhausted")
+            raise RuntimeBudgetExhaustedError("authored attempt budget is exhausted")
         budget = min(budget, remaining)
     return budget
 
@@ -55,5 +59,5 @@ def _effective_policy_budget(policy: ExecutionPolicy, budget: int) -> int:
         or policy.clock_basis != "apparatus"
         or policy.on_exhausted != "terminate"
     ):
-        raise ValueError("runtime execution policy is unsupported")
+        raise ConflictError("runtime execution policy is unsupported")
     return budget if policy.budget_ms is None else min(budget, policy.budget_ms)

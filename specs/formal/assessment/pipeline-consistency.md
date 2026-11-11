@@ -1,4 +1,4 @@
-# Assessment Pipeline Consistency (removed)
+# Assessment pipeline consistency (removed)
 
 [ADR-073](../../../docs/decisions/adrs/adr-073-scoring-reward-language-scope.md)
 removed the SDL scoring/assessment pipeline. This spec formerly defined the
@@ -16,13 +16,17 @@ of those consistency rules apply.
 
 ## What is left
 
-`conditions` remain the SDL's **observable state**. A condition compiles onto a
-runtime `evaluation.condition.*` address, and its consistency (a condition
-binding that resolves to no bound node, or to more than one) is still enforced at
-compilation as `evaluation.condition-ref-unbound` /
-`evaluation.condition-ref-ambiguous` against the resolved addresses. Objective
-`success` and workflow predicates reference `conditions` only; the
-objective-success reference model is in
+`conditions` remain executable probe bindings.
+A condition compiles onto a runtime `evaluation.condition.*` address.
+Each node-local binding resolves a declared condition template.
+Compilation reports `evaluation.condition-template-ref-unbound` if the template is missing.
+The former `evaluation.condition-ref-unbound` and `evaluation.condition-ref-ambiguous` diagnostics
+are not current compiler evidence.
+[ADR-079](../../../docs/decisions/adrs/adr-079-backend-neutral-proposition-and-truth-semantics.md)
+separates probe execution from backend-neutral truth.
+Objective success references invariant or postcondition assertions.
+Workflow predicates reference precondition assertions.
+The objective-success reference model is in
 [`../objectives/declarative-objective-semantics.md`](../objectives/declarative-objective-semantics.md).
 
 ## Where graded scoring now lives

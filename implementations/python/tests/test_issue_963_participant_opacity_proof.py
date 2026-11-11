@@ -264,7 +264,7 @@ def test_current_and_historical_authority_resolve_by_exact_revision() -> None:
         "sem-231/rev2",
     )
 
-    assert current_catalog.taxonomy_revision == "rev13"
+    assert current_catalog.taxonomy_revision == "rev14"
     assert semantic_catalog.taxonomy_revision == "rev11"
     assert proof_catalog.taxonomy_revision == "rev9"
     assert current_profile.profile_revision == "sem-231/rev3"
@@ -288,33 +288,35 @@ def test_proof_manifest_closes_claim_theorem_assumption_and_digest_joins() -> No
     assert summary.prover_replayed is False
 
 
-def _tamper_digest(value: str) -> str:
-    prefix, digest = value.split(":", 1)
-    return f"{prefix}:{'0' if digest[0] != '0' else '1'}{digest[1:]}"
-
-
 @pytest.mark.integration
 @pytest.mark.parametrize(
     "location",
     [
-        ("taxonomy", "digest"),
-        ("profiles", 0, "digest"),
-        ("semantic_sources", 0, "digest"),
-        ("dependencies", 0, "digest"),
-        ("toolchain", "tool_sources", 0, "digest"),
-        ("toolchain", "tool_sources", -1, "digest"),
-        ("session", "root_digest"),
-        ("session", "theory_digest"),
+        ("taxonomy",),
+        ("profiles", 0),
+        ("semantic_sources", 0),
+        ("dependencies", 0),
+        ("toolchain", "tool_sources", 0),
     ],
 )
-def test_proof_manifest_rejects_every_digest_bound_source_drift(location: tuple[object, ...]) -> None:
+def test_proof_manifest_rejects_a_retired_source_digest(location: tuple[object, ...]) -> None:
+    # The replay reads the current sources, so a stored source digest is a retired key (issue #1929).
     manifest = deepcopy(load_proof_manifest(MANIFEST_PATH))
     container = manifest
-    for key in location[:-1]:
+    for key in location:
         container = container[key]
-    container[location[-1]] = _tamper_digest(container[location[-1]])
+    container["digest"] = "sha256:" + "0" * 64
 
-    with pytest.raises(ProofEvidenceError, match="digest"):
+    with pytest.raises(ProofEvidenceError):
+        validate_proof_manifest(manifest, repo_root=REPO_ROOT, run_prover=False)
+
+
+@pytest.mark.integration
+def test_proof_manifest_rejects_a_missing_bound_source() -> None:
+    manifest = deepcopy(load_proof_manifest(MANIFEST_PATH))
+    manifest["dependencies"][0]["path"] = "specs/formal/participant-semantics/absent-dependency.json"
+
+    with pytest.raises(ProofEvidenceError, match="missing repository file"):
         validate_proof_manifest(manifest, repo_root=REPO_ROOT, run_prover=False)
 
 
@@ -367,7 +369,6 @@ def _set(manifest: dict, location: tuple[object, ...], value: object) -> None:
         (("toolchain", "replay_command", -1), "tools.other", "fixed repository command"),
         (("session", "session_id"), "Other_Session", "session declaration drifted"),
         (("session", "generated_artifacts"), ["heap"], "session declaration drifted"),
-        (("kernel_result", "network"), "host-network", "kernel result or expected digest drifted"),
         (("independent_reproduction", "reproduced_on"), "2026-01-01", "reproduction record drifted"),
         (("taxonomy", "path"), "/etc/passwd", "immutable rev9 authority"),
         (("semantic_sources", 0, "path"), "/etc/passwd", "unsafe repository path"),

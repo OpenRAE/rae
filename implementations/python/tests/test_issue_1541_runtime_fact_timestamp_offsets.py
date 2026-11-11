@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import pytest
 from raes_contracts.contracts.runtime_facts import RuntimeFactBindingDisposition
+from raes_contracts.errors import InvalidInputError
 from raes_runtime.runtime_fact_bindings import RuntimeFactActionDisposition, RuntimeFactBindingPlane
 from test_runtime_fact_bindings import (
     _admission,
@@ -93,7 +94,7 @@ def test_append_rejects_fact_version_timestamp_without_an_offset(field_name: str
     plane.declare(_host_declaration())
     forged = _host_version().model_copy(update={field_name: value})
 
-    with pytest.raises(ValueError, match=f"^{field_name} {_OFFSET_RULE}$"):
+    with pytest.raises(InvalidInputError, match=f"^{field_name} {_OFFSET_RULE}$"):
         plane.append(forged)
 
     assert plane.history("fact.observed-host") == ()

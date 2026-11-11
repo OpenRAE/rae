@@ -5,9 +5,9 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import replace
 
-from raes import (
-    validate_experiment_selection_against_family,
-)
+from pydantic import ValidationError
+from raes import SDLSelectionError, validate_experiment_selection_against_family
+from raes.observation_scope import resolve_safe_states
 from raes_backend_protocols.backend_manifest import BackendManifest
 from raes_backend_protocols.capabilities import ObservationCapabilities
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model_with_envelope
@@ -32,7 +32,9 @@ from raes_contracts.contracts.experiment_allocation import (
 )
 from raes_contracts.contracts.trial_coordinate_order import canonical_coordinate_sort_key
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.experiment_bindings import ApparatusManifest, ApparatusManifestKey
+from rfc8785 import CanonicalizationError
 
 from ..capture_admission import (
     CaptureDemand,
@@ -68,11 +70,13 @@ from .tool_support import require_selected_tool_support
 _DOMAIN = "trial-compiler"
 _BINDING_DESCRIPTORS_ADDRESS = "/binding_descriptors"
 _ENTRIES_ADDRESS = "/entries/"
+# Domain refusals from the SDL, contract and compiler owners; defects still propagate (H5).
+_INPUT_REFUSALS = (InvalidInputError, ValidationError, CanonicalizationError)
 # Preserve the established monkeypatch seam used by compiler failure-path tests.
 _validate_selected_scenario = validate_selected_scenario
 
 
-class _CaptureAdmissionFailure(Exception):
+class _CaptureAdmissionFailure(InvalidInputError):
     def __init__(self, diagnostics: tuple[Diagnostic, ...]) -> None:
         super().__init__("required capture is not supported by the admitted apparatus")
         self.diagnostics = diagnostics
@@ -161,6 +165,7 @@ def _compile_entry(
         )
     apparatus = canonical_realization_binding(realization) if realization is not None else request.apparatus
     entry = seal_admitted_trial_entry(
+        safe_states=resolve_safe_states(selected),
         plan_entry_id=entry_id,
         coordinate=coordinate,
         run_id=run_id,
@@ -243,9 +248,10 @@ def _compile_entries(
     entries: dict[str, AdmittedTrialEntryModel] = {}
     cleanup_plans: dict[str, TrialCleanupPlanModel] = {}
     used_control_ids: set[str] = set()
-    resolved_signatures: dict[str, str] = {}
+    resolved_signatures: dict[str, str | None] = {}
     canonical_failure: CompilationFailure | None = None
     capture_failures: dict[tuple[str, str, str], Diagnostic] = {}
+    retained_bytes = 0
     for coordinate_index in visit_indices:
         coordinate = coordinates[coordinate_index]
         row = rows[coordinate_index]
@@ -263,7 +269,7 @@ def _compile_entries(
             continue
         except CompilationFailure as failure:
             candidate_failure = failure
-        except (TypeError, ValueError) as exc:
+        except _INPUT_REFUSALS as exc:
             candidate_failure = _fail(
                 "entry-invalid",
                 f"{_ENTRIES_ADDRESS}{coordinate.replicate_id or 'coordinate'}",
@@ -271,11 +277,22 @@ def _compile_entries(
             )
             candidate_failure.__cause__ = exc
         else:
+            retained_bytes += len(canonical_json_bytes(entry.model_dump(mode="json")))
+            retained_bytes += len(canonical_json_bytes(cleanup.model_dump(mode="json")))
+            if retained_bytes > request.limits.max_plan_bytes:
+                # Retain no oversized aggregate, but preserve canonical refusal order.
+                entries.clear()
+                cleanup_plans.clear()
+                resolved_signatures.clear()
+                canonical_failure = _earliest_failure(
+                    canonical_failure,
+                    _fail("plan-byte-limit-exceeded", "", "canonical admitted plan bytes exceed the compilation limit"),
+                )
+                continue
             used_control_ids.update(draw.control_id for draw in row.draws)
             entries[entry_id] = entry
             cleanup_plans[cleanup_id] = cleanup
-            if signature is not None:
-                resolved_signatures[entry_id] = signature
+            resolved_signatures[entry_id] = signature
             continue
         canonical_failure = _earliest_failure(canonical_failure, candidate_failure)
     if capture_failures:
@@ -340,7 +357,7 @@ def _compile(
     validate_input_identities(request)
     try:
         validate_experiment_selection_against_family(request.experiment, family=request.family)
-    except ValueError as exc:
+    except SDLSelectionError as exc:
         raise _fail(
             "selection-intent-rejected",
             "/run_plan/selection_policies",
@@ -395,6 +412,7 @@ def _compile(
             treatments=_has_typed_treatments(request),
         ),
         allocation=allocation,
+        trial_parallelism=request.family.trial_parallelism,
         input_refs=(replacement.input_refs(request, entries) if replacement else canonical_input_refs(request)),
         stochastic_controls=controls,
         cleanup_plans=cleanup_plans,
@@ -437,7 +455,12 @@ def _compile_controls_and_allocation(
         entry.plan_entry_id
         for entry in sorted(entries.values(), key=lambda entry: canonical_coordinate_sort_key(entry.coordinate))
     ]
-    return controls, compile_experiment_allocation(policy, domain, controls)
+    try:
+        allocation = compile_experiment_allocation(policy, domain, controls)
+    except ValueError as exc:
+        # The contract owner reports an unallocatable domain with ValueError (E3); refuse here (E9).
+        raise InvalidInputError("experiment allocation failed closed compilation") from exc
+    return controls, allocation
 
 
 def compile_admitted_trial_plan(
@@ -453,7 +476,7 @@ def compile_admitted_trial_plan(
         result = TrialCompilationResult(plan=None, diagnostics=failure.diagnostics)
     except CompilationFailure as failure:
         result = TrialCompilationResult(plan=None, diagnostics=(_diagnostic(failure),))
-    except (TypeError, ValueError) as exc:
+    except _INPUT_REFUSALS as exc:
         failure = _fail(
             "input-invalid",
             "",

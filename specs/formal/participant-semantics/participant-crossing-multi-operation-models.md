@@ -28,13 +28,13 @@ status reads and clean restart remain enabled indefinitely.
 `receipt-a` and `receipt-b` are formal references to retained receipt objects.
 Runtime receipt binding uses the existing `OperationReceipt.operation_id` field.
 
-An attempt is a traversal of a request edge. Its fresh/retry role is finite;
-it has no stored counter, UUID or timestamp. The API-423 request occurrence is
-a transient preparation identity, distinct from the retained operation/key
-and original receipt. The projection discards its value. Equality of those
-transient names is never tested by these rules or disclosed by their labels,
-so replacing fresh transient names by their role changes neither enabledness,
-retry equality, result provenance nor divergence in this declared carrier.
+An attempt traverses a request edge.
+Its fresh/retry role is finite, with no stored counter, UUID, or timestamp.
+The API-423 request occurrence is a transient preparation identity, distinct from the retained operation/key and original receipt.
+The projection discards its value.
+These rules neither test equality of transient names nor disclose that equality through labels.
+
+Replacing fresh transient names with their role therefore leaves enabledness, retry equality, result provenance, and divergence unchanged in this declared carrier.
 This does not abstract runtime histories containing all such identities.
 
 Every state coordinate has a finite domain in the profile. Ledger length is
@@ -51,17 +51,18 @@ have one initial state: idle, p0, h0, empty ledger, e0 and k0, no intent.
 
 ## Context and history boundary
 
-Retry eligibility compares the original request commitment (input **and**
-body), the applicable current policy and the current history head against the
-retained decision or result head. Participant, episode, actor, authorization
-scope, target/run, kind, audience, controller, authority, subject mapping,
-action/projection, marking/evidence/provenance, gates, support/downgrade and
-transformation/opacity coordinates are fixed by the synthetic fixture and input
-class. Their runtime owners are `OperationAdmissionContext`, `_semantic_request()`
-and `_require_same_idempotency_replay()`. Changing any of those fixed coordinates
-is outside this profile; input-class equality alone is not general runtime
-retry equality. Empty keys, migrated legacy claims and sensitive ephemeral
-retry proofs are excluded.
+Retry eligibility compares the original request commitment (input **and** body), applicable current policy, and current history head against the retained decision or result head.
+The synthetic fixture and input class fix these other coordinates:
+
+- Participant, episode, actor, authorization scope, target/run, and kind.
+- Audience, controller, authority, and subject mapping.
+- Action/projection and marking/evidence/provenance.
+- Gates, support/downgrade, and transformation/opacity.
+
+Their runtime owners are `OperationAdmissionContext`, `_semantic_request()`, and `_require_same_idempotency_replay()`.
+Changing any fixed coordinate is outside this profile.
+Input-class equality alone is not general runtime retry equality.
+Empty keys, migrated legacy claims, and sensitive ephemeral retry proofs are excluded.
 
 The admitted history vector has four constant components (episode, behavior,
 control and control-evaluation) and one crossing-batch component. A governed
@@ -166,8 +167,8 @@ Both independent builders close all admitted transitions without sampled
 schedules. Safety caps fail instead of returning prefixes. Export checks
 domain membership, initial membership, closure, reachability, independence,
 strict AUT readback, exact source/profile identities and artifact counts.
-Complete bundles use trusted fixed repository paths and exclusive staged
-publication; changed published bytes are never overwritten.
+Each run builds the complete bundle from the current sources; no bundle is
+committed.
 
 Construction establishes no DPBB result, runtime realization, backend
 conformance, noninterference, opacity, latency, throughput, concurrency, handoff,

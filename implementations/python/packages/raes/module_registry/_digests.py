@@ -2,25 +2,16 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
-
 from packaging.specifiers import SpecifierSet
 from packaging.version import InvalidVersion, Version
+from raes_contracts.digests import sha256_hex
+from raes_contracts.json_serialization import sorted_json_text
 
 from .._errors import SDLParseError
 
-# Canonical prefix for the SHA-256 digests used throughout module resolution and
-# publishing (manifest / config / bundle / content digests).
-_SHA256_PREFIX = "sha256:"
-
-
-def _sha256_digest(data: bytes) -> str:
-    return hashlib.sha256(data).hexdigest()
-
 
 def _descriptor_digest(exports: dict[str, list[str]]) -> str:
-    return _sha256_digest(json.dumps(exports, sort_keys=True, separators=(",", ":")).encode("utf-8"))
+    return sha256_hex(sorted_json_text(exports).encode("utf-8"))
 
 
 def _normalize_exact_or_range(version: str) -> SpecifierSet | None:

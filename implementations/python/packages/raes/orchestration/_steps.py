@@ -3,8 +3,9 @@
 from enum import Enum
 
 from pydantic import Field, field_validator, model_validator
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import normalize_enum_value, parse_int_or_var
 
-from .._base import SDLModel, normalize_enum_value, parse_int_or_var
 from ._durations import parse_duration
 
 
@@ -191,7 +192,8 @@ class WorkflowStep(SDLModel):
     @classmethod
     def normalize_type(cls, v: str) -> str:
         normalized = normalize_enum_value(v)
-        if normalized in {"if", "while"}:
+        # Tuple membership compares by equality, so an unhashable authored value reaches type validation.
+        if normalized in ("if", "while"):
             raise ValueError(
                 f"workflow step type '{normalized}' is no longer supported; "
                 "use 'decision' or 'retry' with explicit success/failure "

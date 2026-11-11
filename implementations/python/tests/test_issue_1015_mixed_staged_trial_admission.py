@@ -21,6 +21,7 @@ from raes_contracts.contracts import (
     seal_mixed_composition_profile,
 )
 from raes_contracts.contracts.mixed_composition import MixedCompositionValidationLimits
+from raes_contracts.errors import InvalidInputError
 from raes_processor.trial_compiler import compile_admitted_trial_plan
 from raes_processor.trial_compiler.profiles import derive_identity, realization_assignment_key
 from raes_processor.trial_compiler.realization_admission import validate_mixed_authority
@@ -269,7 +270,7 @@ def test_single_backend_realizer_rejects_mixed_entry_before_backend_selection() 
         realization_envelope=request.realization_envelope,
         backend_key=_BACKEND_KEY,
     )
-    with pytest.raises(ValueError, match="mixed-composition runtime coordination"):
+    with pytest.raises(InvalidInputError, match="mixed-composition runtime coordination"):
         realize_admitted_trial_entry(inputs=inputs, plan_entry_id=entry.plan_entry_id)
 
 

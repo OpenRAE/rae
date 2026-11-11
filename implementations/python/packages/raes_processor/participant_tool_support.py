@@ -2,6 +2,7 @@
 
 from collections import Counter
 
+from pydantic import ValidationError
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_protocols.manifest import backend_manifest_v2_model
 from raes_backend_protocols.participant_feature_admission import participant_feature_support_gaps
@@ -70,7 +71,10 @@ def _backend_supports(
     model: RuntimeModel, backend: BackendManifest, tool_features: set[str], backend_features: set[str]
 ) -> bool:
     # Revalidate nested caller-owned values rather than retaining a trusted cache.
-    wire = BackendManifestV2Model.model_validate(backend_manifest_v2_model(backend).model_dump(mode="json"))
+    try:
+        wire = BackendManifestV2Model.model_validate(backend_manifest_v2_model(backend).model_dump(mode="json"))
+    except ValidationError:
+        return False
     capability = wire.capabilities.participant_runtime
     if capability is None or capability.tool_profiles is None:
         return False
@@ -114,12 +118,14 @@ def participant_tool_support_diagnostics(
         return []
     tool_features, backend_features = _required_features(model)
     diagnostics: list[Diagnostic] = []
+    processor = processor_manifest or reference_processor_manifest_v2_model()
     try:
-        processor = processor_manifest or reference_processor_manifest_v2_model()
+        # Revalidate the caller-owned manifest; a contract refusal means no support.
         processor = ProcessorManifestV2Model.model_validate(processor.model_dump(mode="json"))
-        processor_supported = _processor_supports(model, processor, tool_features)
-    except ValueError:
+    except ValidationError:
         processor_supported = False
+    else:
+        processor_supported = _processor_supports(model, processor, tool_features)
     if not processor_supported:
         diagnostics.append(
             Diagnostic(
@@ -129,10 +135,7 @@ def participant_tool_support_diagnostics(
                 message="Selected processor lacks required tool-profile semantics, strength, or capacity.",
             )
         )
-    try:
-        backend_supported = _backend_supports(model, backend, tool_features, backend_features)
-    except ValueError:
-        backend_supported = False
+    backend_supported = _backend_supports(model, backend, tool_features, backend_features)
     if not backend_supported:
         diagnostics.append(
             Diagnostic(

@@ -13,6 +13,7 @@ import pytest
 import raes_runtime.control_plane_api_guards as api_guards
 from anyio import to_thread
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.errors import InvalidInputError
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_api import create_control_plane_app
 from raes_runtime.control_plane_api_guards import (
@@ -308,7 +309,7 @@ def test_request_size_middleware_enforces_exact_stream_boundary(
 def test_declared_content_length_rejects_ambiguous_or_non_digit_values(
     headers: list[tuple[bytes, bytes]],
 ) -> None:
-    with pytest.raises(ValueError, match="content-length"):
+    with pytest.raises(InvalidInputError, match="content-length"):
         _declared_content_length(headers)
 
 

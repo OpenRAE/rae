@@ -7,7 +7,7 @@ scoring/reward language — the OCR-inherited SDL scoring pipeline
 They are research and design evidence; they are not contract authority by
 themselves.
 
-The normative decision is the proposed ADR at
+The accepted decision is recorded in
 [`ADR-073`](../../decisions/adrs/adr-073-scoring-reward-language-scope.md). The
 governing requirement is SEM-206 (Assessment Semantics).
 

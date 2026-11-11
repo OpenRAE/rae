@@ -1,22 +1,27 @@
-# Assessment Semantics (SDL scoring chain removed)
+# Assessment semantics (SDL scoring chain removed)
 
 [ADR-073](../../../docs/decisions/adrs/adr-073-scoring-reward-language-scope.md)
-removed the OCR-inherited SDL scoring/assessment pipeline. The graded chain that
-these formal artifacts once specified —
-`condition bindings -> metrics -> evaluations -> TLOs -> goals` — is no longer an
-SDL authoring surface: the `metrics`, `evaluations`, `tlos` (Training Learning
-Objectives), and `goals` sections and the CybORG `agents.reward_calculator`
-label are gone.
+removed the OCR-inherited SDL scoring/assessment pipeline.
+The former chain was `condition bindings -> metrics -> evaluations -> TLOs -> goals`.
+It is no longer an SDL authoring surface.
+The `metrics`, `evaluations`, `tlos` (Training Learning Objectives), and `goals` sections are removed.
+The CybORG `agents.reward_calculator` label is removed too.
 
 ## What remains in the SDL
 
-- `conditions` are **observable state** and stay a first-class SDL surface. They
-  compile onto runtime `evaluation.condition.*` addresses.
-- `objectives` are participant intent and stay first-class. An objective's
-  `success` references **only** `conditions` (observable state), not a graded
-  score (see [`../objectives/`](../objectives/README.md) for the objective-success
-  semantics under `SEM-207`).
-- Workflow predicates reference `conditions`.
+- `conditions` describe executable probe bindings.
+  They compile onto runtime `evaluation.condition.*` addresses.
+- Backend-neutral `propositions` describe truth claims.
+  `assertions` give their role and polarity.
+- An objective's `success.assertions` references invariant or postcondition assertions.
+- Event triggers and workflow predicates reference precondition assertions.
+
+[ADR-079](../../../docs/decisions/adrs/adr-079-backend-neutral-proposition-and-truth-semantics.md)
+replaces the former direct condition references.
+The current model rejects `success.conditions`.
+See the [objective reference](../objectives/declarative-objective-semantics.md)
+and [truth-result algebra](../objectives/proposition-and-assertion-semantics.md).
+These corrections apply an existing decision; they add no new scoring or truth semantics.
 
 There is no condition→metric→evaluation→TLO→goal scoring chain, no score
 aggregation rule, no per-condition metric-exclusivity rule, and no

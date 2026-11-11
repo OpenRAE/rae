@@ -22,6 +22,11 @@ _SONAR_GUARD = """inputs.sonar-enabled
 || (github.event_name == 'pull_request'
 && github.event.pull_request.head.repo.full_name == github.repository
 && github.actor != 'dependabot[bot]'))"""
+_CODEQL_STEPS = (
+    ("actions/checkout", {"persist-credentials": False}),
+    ("github/codeql-action/init", {"languages": "${{ matrix.language }}", "build-mode": "none"}),
+    ("github/codeql-action/analyze", {"category": "/language:${{ matrix.language }}"}),
+)
 
 
 def _condition(value: object) -> str:
@@ -112,16 +117,47 @@ def _merged_issue_boundary(triggers: object, job: Mapping[str, Any]) -> bool:
     )
 
 
+def _codeql_step(step: Mapping[str, Any], expected: tuple[str, Mapping[str, Any]]) -> bool:
+    uses = step.get("uses")
+    return bool(
+        isinstance(uses, str)
+        and _ACTION_PIN.fullmatch(uses)
+        and uses.split("@", 1)[0] == expected[0]
+        and step.get("with") == expected[1]
+        and set(step) <= {"name", "id", "uses", "with"}
+    )
+
+
+def _codeql_boundary(path: str, name: str, job: Mapping[str, Any], events: set[str]) -> bool:
+    """Admit only the reviewed, build-free CodeQL scan-result publisher."""
+    if (path, name) != (".github/workflows/codeql.yml", "analyze"):
+        return False
+    steps = as_list(job.get("steps"))
+    return bool(
+        events <= {"push", "pull_request", "schedule", "workflow_dispatch"}
+        and job.get("runs-on") == "ubuntu-24.04"
+        and job.get("permissions") == {"contents": "read", "security-events": "write"}
+        and set(job) <= {"name", "runs-on", "if", "permissions", "strategy", "steps", "timeout-minutes"}
+        and len(steps) == len(_CODEQL_STEPS)
+        and all(_codeql_step(as_mapping(step), expected) for step, expected in zip(steps, _CODEQL_STEPS, strict=True))
+    )
+
+
 def _permission_failures(
     path: str,
     permissions: object,
     *,
     untrusted: bool,
     merged_issue_boundary: bool = False,
+    codeql_boundary: bool = False,
 ) -> list[PolicyFailure]:
     failures = []
+    allowed_writes = {"issues"} if merged_issue_boundary else set()
+    if codeql_boundary:
+        allowed_writes.add("security-events")
+    # Tuple membership compares without hashing, so a level that is a list or a mapping is not scoped.
     if not isinstance(permissions, Mapping) or any(
-        level not in {"read", "write", "none"} for level in as_mapping(permissions).values()
+        level not in ("read", "write", "none") for level in as_mapping(permissions).values()
     ):
         failures.append(
             failure(
@@ -130,9 +166,7 @@ def _permission_failures(
                 path,
             )
         )
-    elif untrusted and any(
-        level == "write" and not (merged_issue_boundary and scope == "issues") for scope, level in permissions.items()
-    ):
+    elif untrusted and any(level == "write" and scope not in allowed_writes for scope, level in permissions.items()):
         failures.append(
             failure(
                 "tooling-action-permissions",
@@ -213,7 +247,9 @@ def action_failures(
     workflows, failures = workflow_documents(repo_root, tracked_paths)
     for path, workflow in workflows.items():
         triggers = workflow.get("on", workflow.get(True, {}))
-        events = set(triggers) if isinstance(triggers, (Mapping, list)) else {triggers}
+        # Only event names decide the boundary; an entry that is a list, a set or a mapping names no event.
+        trigger_names = triggers if isinstance(triggers, (Mapping, list)) else [triggers]
+        events = {name for name in trigger_names if isinstance(name, str)}
         untrusted = bool(events & {"pull_request", "pull_request_target", "workflow_call"})
         if not isinstance(workflow.get("permissions"), Mapping):
             failures.append(
@@ -235,6 +271,7 @@ def action_failures(
                     permissions,
                     untrusted=untrusted and not protected,
                     merged_issue_boundary=_merged_issue_boundary(triggers, job),
+                    codeql_boundary=_codeql_boundary(path, str(name), job, events),
                 )
             )
             failures.extend(

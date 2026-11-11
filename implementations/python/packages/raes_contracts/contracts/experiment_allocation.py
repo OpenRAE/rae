@@ -5,13 +5,20 @@ from __future__ import annotations
 from typing import Annotated, Literal
 
 from pydantic import Field, StrictInt
-from raes.identifiers import PortableIdentifier
+
+from raes_contracts.contracts.random_stream_engine import (
+    decode_public_seed,
+    derive_stream_key,
+    draw_bounded_integer,
+)
+from raes_contracts.identifiers import PortableIdentifier
 
 from .base import ContractModel, NonEmptyString
 from .experiment_apparatus import ExperimentStochasticControlModel
+from .random_stream import AllocationOrdinal as _AllocationOrdinal
+from .random_stream import AllocationStreamAddressModel as _AllocationStreamAddressModel
 from .random_stream import PublicSeedModel
 
-AllocationOrdinal = Annotated[StrictInt, Field(ge=0, le=999999)]
 RECORDED_ALLOCATION_POLICY_ID = "experiment-recorded-allocation-v1"
 
 
@@ -24,20 +31,9 @@ class ExperimentAllocationPolicyModel(ContractModel):
     stochastic_control_ref: NonEmptyString
 
 
-class AllocationStreamAddressModel(ContractModel):
-    """A plan-scope slot, never an SDL point or a selected trial coordinate."""
-
-    address_profile: Literal["allocation-address-v1"] = "allocation-address-v1"
-    namespace: PortableIdentifier
-    allocation_policy_id: PortableIdentifier
-    draw_purpose: Literal["condition-assignment"] = "condition-assignment"
-    slot: AllocationOrdinal
-    local_coordinate: Literal[0] = 0
-
-
 class AllocationDrawModel(ContractModel):
-    address: AllocationStreamAddressModel
-    value: AllocationOrdinal
+    address: _AllocationStreamAddressModel
+    value: _AllocationOrdinal
     rejection_attempts: Annotated[StrictInt, Field(ge=0, lt=32)]
 
 
@@ -69,8 +65,6 @@ def compile_experiment_allocation(
 ) -> AdmittedExperimentAllocationModel:
     """Reverse Fisher–Yates with bounded draws at stable pre-allocation slots."""
 
-    from ..random_stream_engine import decode_public_seed, derive_stream_key, draw_bounded_integer
-
     if not 1 <= len(canonical_entry_ids) <= 10000 or len(set(canonical_entry_ids)) != len(canonical_entry_ids):
         raise ValueError("allocation domain must be nonempty, bounded, and unique")
     control = resolve_allocation_control(policy, controls)
@@ -79,7 +73,7 @@ def compile_experiment_allocation(
     order = list(canonical_entry_ids)
     draws = []
     for slot, index in enumerate(range(len(order) - 1, 0, -1)):
-        address = AllocationStreamAddressModel(
+        address = _AllocationStreamAddressModel(
             namespace=binding.namespace, allocation_policy_id=policy.policy_id, slot=slot
         )
         draw = draw_bounded_integer(

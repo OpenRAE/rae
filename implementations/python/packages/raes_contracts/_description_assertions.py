@@ -10,6 +10,7 @@ from .contracts.realization_descriptions import (
     DescriptionProvenanceModel,
     TypedRealizationDescriptionModel,
 )
+from .json_pointer import pointer_tokens
 from .realization_structure import (
     RealizationKeyedCollectionConstraint,
     RealizationLiteral,
@@ -17,7 +18,6 @@ from .realization_structure import (
     RealizationSequenceConstraint,
     RecursiveRealizationStructure,
 )
-from .realization_structure._common import pointer_tokens
 from .realization_structure._models import identity_key
 
 Address = tuple[str, ...]

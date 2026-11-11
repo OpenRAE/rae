@@ -10,10 +10,10 @@ from enum import Enum
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
 from raes_contracts.domain_profiles import DomainProfileBindingModel
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import WholeFieldVariableReference, is_variable_ref
 
-from ._base import SDLModel
 from .profile_selections import parse_profile_or_enum
-from .value_parsing import WholeFieldVariableReference, is_variable_ref
 
 _DNS_LABEL_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?$")
 _NETBIOS_NAME_RE = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,13}[A-Za-z0-9])?$")

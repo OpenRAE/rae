@@ -11,16 +11,17 @@ from pydantic_core import CoreSchema
 
 from ..evidence_output_validation import validate_evidence_media_declaration
 from ..observation_demand import ObservationDemandRule
+from ..timestamps import parse_rfc3339_datetime
 from ..versions import EXPERIMENT_CAPTURE_SPEC_SCHEMA_VERSION
-from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString, _parse_rfc3339_datetime
+from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString
 from .experiment_artifacts import (
     ExperimentArtifactRefModel,
     ExperimentChecksumModel,
     ExperimentMeasurementChannelReferenceModel,
 )
 from .experiment_references import ExperimentReferenceModel
-from .schema_invariants import _add_raes_invariant, _add_raes_plane
-from .validators import _validate_unique_string_values
+from .schema_invariants import _add_raes_plane, add_raes_invariant
+from .validators import validate_unique_string_values
 
 __all__ = [
     "ExperimentCaptureRequirementModel",
@@ -63,8 +64,8 @@ class ExperimentCaptureWindowModel(ContractModel):
         if self.starts_at is None and self.ends_at is None and self.trigger_ref is None:
             raise ValueError("capture windows must declare starts_at, ends_at, or trigger_ref")
         if self.starts_at is not None and self.ends_at is not None:
-            starts_at = _parse_rfc3339_datetime("starts_at", self.starts_at)
-            ends_at = _parse_rfc3339_datetime("ends_at", self.ends_at)
+            starts_at = parse_rfc3339_datetime("starts_at", self.starts_at)
+            ends_at = parse_rfc3339_datetime("ends_at", self.ends_at)
             if ends_at < starts_at:
                 raise ValueError("capture window ends_at must be greater than or equal to starts_at")
         return self
@@ -84,7 +85,7 @@ class ExperimentCaptureWindowModel(ContractModel):
                 {"required": ["trigger_ref"], "properties": {"trigger_ref": {"not": {"type": "null"}}}},
             ]
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "capture-window-interval-valid",
             "Capture window ends_at must not precede starts_at when both timestamps are present.",
@@ -117,10 +118,10 @@ class ExperimentCaptureRequirementModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_capture_requirement(self) -> ExperimentCaptureRequirementModel:
-        _validate_unique_string_values("window_refs", self.window_refs)
-        _validate_unique_string_values("expected_media_types", self.expected_media_types)
-        _validate_unique_string_values("required_artifact_roles", self.required_artifact_roles)
-        _validate_unique_string_values("field_selectors", self.field_selectors)
+        validate_unique_string_values("window_refs", self.window_refs)
+        validate_unique_string_values("expected_media_types", self.expected_media_types)
+        validate_unique_string_values("required_artifact_roles", self.required_artifact_roles)
+        validate_unique_string_values("field_selectors", self.field_selectors)
         if any(re.fullmatch(r"(?:/(?:[^~/]|~[01])*)*", selector) is None for selector in self.field_selectors):
             raise ValueError("field_selectors must be canonical RFC 6901 JSON Pointers")
         validate_evidence_media_declaration(self.output_contract, self.expected_media_types)
@@ -164,7 +165,7 @@ class ExperimentCaptureSpecModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_capture_spec(self) -> ExperimentCaptureSpecModel:
-        _validate_unique_string_values(
+        validate_unique_string_values(
             "capture window ids",
             [window.window_id for window in self.capture_windows],
         )
@@ -198,7 +199,7 @@ class ExperimentCaptureSpecModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "capture-requirement-key-matches-requirement-id",
             "Every capture_requirements object key must match the embedded requirement_id value, capture window ids "

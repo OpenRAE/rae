@@ -1,4 +1,4 @@
-# Participant-Relative Predicate Opacity
+# Participant-relative predicate opacity
 
 Classification: FM3, epistemic secrecy semantics.
 
@@ -32,7 +32,7 @@ initial-state, K-step, infinite-step, coalition, and active-participant
 variants are profiles of this kernel. They are not silently implied by the
 baseline.
 
-## Possible Points And Profiles
+## Possible points and profiles
 
 A possible point is
 
@@ -79,7 +79,7 @@ worlds, participant memory, policy bodies, supervisor internals, and
 counterexample payloads are not portable evidence. Portable artifacts carry
 typed references, digests, safe labels, and redacted witness structure.
 
-## Information Cells And Baseline Opacity
+## Information cells and baseline opacity
 
 Let `Init_P(x)` be the initial public information fixed by `P`, and let
 `Obs_P(x)` be the complete participant observation at the declared cut. The
@@ -110,7 +110,7 @@ reachability is determined. One equal-observation pair supplies one possible
 witness for one secret point; it does not discharge the universal
 actual-secret-point quantifier.
 
-## Active Participants
+## Active participants
 
 A passive profile fixes participant inputs independently of its observations.
 An active profile declares a closed allowed-strategy set `Sigma_P`. A strategy
@@ -131,7 +131,7 @@ strategy in the witness would conceal information exposed by adaptive probes.
 “All strategies” ranges only over the capability and policy bounds recorded in
 `P`; it neither invents unavailable actions nor omits permitted probes.
 
-## Supervisor Visibility
+## Supervisor visibility
 
 The supervisor is distinct from the observer. A profile MUST select one of
 these postures:
@@ -157,7 +157,7 @@ carrier. Randomness is not evidence of opacity. Probabilistic opacity or
 quantitative leakage requires a separate probability-bearing relation,
 threshold, measure, and assurance result.
 
-## Observation, Order, And Memory
+## Observation, order, and memory
 
 `Obs_P` is the complete delivered participant observation, not merely a
 payload field. Its alphabet may include:
@@ -187,7 +187,7 @@ Memory is perfect only when the profile says so. Reset, restart, retry,
 handoff, concealment, or policy revocation does not erase prior knowledge
 unless a trusted memory-reset authority and its semantics are in the model.
 
-## Release And Policy Change
+## Release and policy change
 
 An authorized release may:
 
@@ -205,7 +205,7 @@ Revocation governs future release. It does not reconstruct a larger
 information cell for a remembering observer. Replay and time-transitive flow
 must be declared; they are not inferred from a policy version number.
 
-## Relation Boundaries
+## Relation boundaries
 
 `participant-predicate-opacity` is not an alias for another catalog relation:
 
@@ -221,17 +221,17 @@ Simulation, refinement, weak/branching bisimulation, anonymity, plausible
 deniability, differential privacy, and quantitative information flow remain
 separate claims.
 
-## Worked Falsification Models
+## Worked falsification models
 
 These finite models are definition examples, not model checking or proof.
 
-### Equal Pair Does Not Prove Opacity
+### Equal pair does not prove opacity
 
 Let secret points be `a` and `c`, with nonsecret point `b`.
 `Obs(a) = Obs(b) = 0`, while `Obs(c) = 1`. Point `a` has witness `b`, but the
 information cell of `c` contains only secret points. Opacity fails at `c`.
 
-### Supervisor Decision Leak
+### Supervisor decision leak
 
 Two worlds deliver the same redacted participant payload. In the secret world
 the supervisor denies an action; in the nonsecret world it approves it. If
@@ -239,7 +239,7 @@ decision outcome, occurrence, changed action availability, or resulting
 behavior is observed, the cells split and opacity fails. Redacting the
 decision body alone is insufficient.
 
-### Opacity Without Noninterference
+### Opacity without noninterference
 
 Every point satisfying selected predicate `S` has an observationally equal
 `not S` alternative. A different unprotected low fact nevertheless varies
@@ -247,7 +247,7 @@ between two SEM-230 low-equivalent worlds and produces different projected
 histories. `S` is opaque, while policy noninterference fails. This is the
 required counterexample to the reverse implication.
 
-### Declassification Changes Knowledge
+### Declassification changes knowledge
 
 Before release, a cell contains a secret and nonsecret point. An authorized
 release exposes the predicate and splits the cell. Post-release opacity fails
@@ -255,7 +255,7 @@ unless the new policy stops protecting it or another nonsecret alternative
 remains. Later concealment does not erase what a remembering participant
 learned.
 
-## Mathematical Proof Profile
+## Mathematical proof profile
 
 The `Participant_Opacity` Isabelle/HOL session under
 [`isabelle/`](isabelle/) kernel-checks three positive theorem scopes for
@@ -268,13 +268,15 @@ The `Participant_Opacity` Isabelle/HOL session under
 3. the conditional implication from SEM-230 policy noninterference to SEM-231
    opacity for an eligible predicate under exactly matching profiles.
 
-The implication assumes the same model and reachable carrier, observer and
-audience, initial information, complete observation, memory, exact cut and
-horizon, active strategy, supervisor visibility, policy and release schedule,
-scheduler and environment, nondeterminism support, time and progress,
-concurrency and order, and probability posture. Eligibility supplies a
-reachable nonsecret variation in every protected public class and preserves
-that nonsecret label through the noninterference-selected correspondence.
+The implication assumes the same values for all of these coordinates:
+
+- Model and reachable carrier, observer and audience, and initial information.
+- Complete observation, memory, exact cut and horizon, and active strategy.
+- Supervisor visibility, policy and release schedule, and scheduler and environment.
+- Nondeterminism support, time and progress, concurrency and order, and probability posture.
+
+Eligibility supplies a reachable nonsecret variation in every protected public class.
+It preserves that nonsecret label through the correspondence selected by noninterference.
 
 The same session checks countermodels for the reverse implication, one-pair
 promotion, declassification, retained memory after revocation, relation
@@ -287,7 +289,7 @@ and the independently reproduced kernel result. It does not instantiate RAES,
 a runtime, a deployment, or a backend, and it establishes no correspondence
 theorem for the Python finite-analysis implementation.
 
-## Independent Assurance Lanes
+## Independent assurance lanes
 
 Assurance states are independent:
 
@@ -308,23 +310,24 @@ evidence cannot satisfy universal quantification. A definition does not
 establish satisfaction, a declaration does not establish realization, and
 realization does not establish conformance.
 
-Each positive binding uses the axis-native status: `defined`, `implemented`,
-`tested`, `model-checked`, `proved`, `enforced`, `declared`, `realized`, or
-`conformant` respectively. Definition and declaration evidence is structural;
-bounded tests are finite; model checking and proof use their same-named
-evidence scopes; checker, runtime, and realization evidence may be structural
-or finite; bounded backend conformance may be finite or statistical. A future
-axis, and a deliberately unproved proof axis, has structural evidence only.
+Each positive binding uses the status for its axis:
+`defined`, `implemented`, `tested`, `model-checked`, `proved`, `enforced`, `declared`, `realized`, or `conformant`, respectively.
+Definition and declaration evidence is structural.
+Bounded-test evidence is finite.
+Model checking and proof use their same-named evidence scopes.
+
+Checker, runtime, and realization evidence may be structural or finite.
+Bounded backend conformance may be finite or statistical.
+A future axis, or a deliberately unproved proof axis, has structural evidence only.
 
 Legacy aggregates cannot contradict the explicit axes.
-`implementation_status` summarizes checker, runtime-enforcement, and backend
-realization; a model-checked legacy proof aggregate requires a positive
-model-check axis but a positive model-check axis does not promote the
-mathematical-proof status; and positive backend conformance requires a
-realized or partially realized backend. A future definition cannot carry a
-positive assurance axis.
+`implementation_status` summarizes checker, runtime-enforcement, and backend realization.
+A model-checked legacy proof aggregate requires a positive model-check axis.
+A positive model-check axis does not promote mathematical-proof status.
+Positive backend conformance requires a realized or partially realized backend.
+A future definition cannot carry a positive assurance axis.
 
-## Requirement And Delivery Mapping
+## Requirement and delivery mapping
 
 - `SEM-230` continues to define `policy-noninterference`, exact-cut policy,
   adaptive low strategies, releases, memory, projection, scheduler, and order
@@ -352,7 +355,7 @@ backend readback. Under the runtime profile, RUN-319 produces the normal form
 before any protected backend effect, so the runner derives runtime-mediated
 evidence only.
 
-## Bounded Checker Contract
+## Bounded checker contract
 
 `participant-opacity-baseline-v1@sem-231/rev2` closes the observer, secret,
 carrier, projection, cut, memory, strategy, supervisor, release, scheduler,
@@ -382,7 +385,7 @@ the exact admitted artifact; it is not named or represented as opacity,
 verification, model checking, proof, runtime enforcement, or backend
 conformance.
 
-## Finite-State Model-Check Contract
+## Finite-state model-check contract
 
 `participant-opacity-baseline-v1@sem-231/rev2` also admits a distinct
 transition-model artifact. The artifact binds the exact catalog and profile
@@ -409,7 +412,7 @@ overflow, non-total-order profiles, and unsupported scheduler/environment
 postures cannot produce positive evidence. A model with no reachable secret
 evaluation point is reported as vacuous.
 
-## Explicit Nonclaims
+## Explicit nonclaims
 
 This revision does not claim that RAES, the reference runtime, or any backend
 satisfies or enforces participant predicate opacity. The bounded checker

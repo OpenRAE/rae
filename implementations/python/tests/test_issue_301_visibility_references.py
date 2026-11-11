@@ -4,6 +4,7 @@ from copy import deepcopy
 
 import pytest
 import yaml
+from raes_contracts.errors import InvalidInputError
 from test_issue_301_participant_tool_profiles import _blue_only_profile
 from test_issue_301_projection_boundaries import _project
 from tool_profile_support import (
@@ -85,7 +86,7 @@ def test_ambiguous_visibility_reference_is_rejected():
     document["content"]["scan-active"] = deepcopy(document["content"]["nmap"])
     source = yaml.safe_dump(document)
 
-    with pytest.raises(ValueError, match="ambiguous.*visibility reference"):
+    with pytest.raises(InvalidInputError, match="ambiguous.*visibility reference"):
         compiled(source)
 
 
@@ -97,7 +98,7 @@ def test_conflicting_visibility_aliases_are_rejected():
     boundary["hidden_refs"].append(ACTIVE)
     source = yaml.safe_dump(document)
 
-    with pytest.raises(ValueError, match="conflicting.*visibility"):
+    with pytest.raises(InvalidInputError, match="conflicting.*visibility"):
         compiled(source)
 
 
@@ -133,5 +134,5 @@ def test_alias_transitions_cannot_reuse_a_stale_initial_disposition():
     boundary["view_transitions"].append(transition)
     source = yaml.safe_dump(document)
 
-    with pytest.raises(ValueError, match="conflicting.*visibility transition"):
+    with pytest.raises(InvalidInputError, match="conflicting.*visibility transition"):
         compiled(source)

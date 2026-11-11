@@ -10,6 +10,7 @@ from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import BackendManifestV2Model, ExperimentTaskModel
 from raes_contracts.contracts.admitted_trial_plan import seal_admitted_trial_entry, seal_admitted_trial_plan
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.plan_effects import plan_can_mutate
 from raes_contracts.planning import PlanScope
 from raes_processor.capture_admission import compile_capture_spec_demands
@@ -99,7 +100,7 @@ def test_capture_invariant_across_planning_compilation_realization_and_runtime(f
         assert compilation.plan is None
         assert any(item.code == f"capture.{diagnostic}" for item in execution.diagnostics)
         assert any(item.code == f"capture.{diagnostic}" for item in compilation.diagnostics)
-        with pytest.raises(ValueError, match="processor planning failed"):
+        with pytest.raises(InvalidInputError, match="processor planning failed"):
             realize_admitted_trial_entry(inputs=inputs, plan_entry_id=entry_id)
         with pytest.raises(ValueError, match="invalid composite"):
             control_plane.register_planner_produced_plan(execution)

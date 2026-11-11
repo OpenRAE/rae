@@ -9,7 +9,7 @@ from dataclasses import dataclass, replace
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.augmentation_scope import AUGMENTATION_SCOPE_CONTRACT
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
-from raes_contracts.materialization import MaterializationArchive
+from raes_contracts.contracts.materialization_attestation import MaterializationArchive
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 from .backend_augmentation import prepare_auxiliary_augmentation

@@ -12,11 +12,13 @@ if TYPE_CHECKING:
     from .participant_crossing_mediation import ParticipantCrossingEvidence
 
 
+from raes_contracts.errors import AuthorizationError
 from raes_contracts.runtime_state import OperationKind
 
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_security import ControlPlaneIdentity, ControlPlaneRole
 from .control_plane_store import IDEMPOTENCY_CLAIM_CONFLICT
+from .errors import IdempotencyClaimConflictError
 
 
 def control_application_context(
@@ -58,7 +60,7 @@ def control_application_retry(
         or identity.roles.isdisjoint({ControlPlaneRole.OPERATOR, ControlPlaneRole.BACKEND})
         or not any(subject.participant_address == participant for subject in identity.participant_control_subjects)
     ):
-        raise PermissionError("participant control subject is not authorized")
+        raise AuthorizationError("participant control subject is not authorized")
     replay = None
     if key:
         plane._assert_runtime_owner()
@@ -72,5 +74,5 @@ def _retained_receipt(
 ) -> OperationReceipt | None:
     existing = plane._store.find_by_idempotency(key, context=context)
     if existing is not None and existing.receipt.context != context:
-        raise ValueError(IDEMPOTENCY_CLAIM_CONFLICT)
+        raise IdempotencyClaimConflictError(IDEMPOTENCY_CLAIM_CONFLICT)
     return None if existing is None else existing.receipt

@@ -1,4 +1,18 @@
-# Converting legacy mixed control to a finite script
+<a id="converting-legacy-mixed-control-to-a-finite-script"></a>
+
+# Convert legacy mixed control to a finite script
+
+## Versions and purpose
+
+Source: `Legacy fixed-coordinate MixedControlParticipantOperation without semantics`.
+Target: `mixed-control-policy-occurrence/rev1 with form: finite-script`.
+
+## Before you start
+
+Use RAES 11.0.2. Keep unchanged legacy YAML text in `source` and retain its original artifact identity.
+The input must pass legacy semantic validation.
+The helper returns a separate result without writing files or changing an episode.
+It cannot authorize conversion to a reusable policy.
 
 Issue #1363 adds the reusable mixed-control form of
 [ADR-110](../decisions/adrs/adr-110-reusable-mixed-control-policies-and-occurrences.md)
@@ -82,3 +96,13 @@ Run `raes semantic validate` on the published output. Keep the report, which
 binds the source digest and the canonical target digest. Historical v1
 occurrences, compiled snapshots, and runtime evidence keep their original
 lineage and are never rewritten.
+
+## Check the result and recover
+
+Success returns a validated finite script and a source/target-bound report.
+Save a new artifact only after checking `result.succeeded` and all diagnostics.
+Ambiguity refuses the whole conversion. Obtain an author decision instead of deleting the reported condition.
+Retain the original source for its supported reader; never rewrite historical runtime evidence.
+No native cleanup is needed for this in-memory conversion.
+Read the [adoption reference](reusable-mixed-control.md)
+and [reusable-control explanation](../explain/reference/reusable-participant-control.md).

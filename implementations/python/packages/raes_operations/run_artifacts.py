@@ -14,19 +14,28 @@ so a caller-supplied run id can never escape the archive directory.
 from __future__ import annotations
 
 import contextlib
-import hashlib
+import errno
 import os
 import re
 import stat
+from collections.abc import Iterator
 from pathlib import Path
-from typing import TYPE_CHECKING
 from uuid import uuid4
 
-if TYPE_CHECKING:
-    from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
-    from raes_contracts.materialization import MaterializationSubmission
+from raes_contracts.contracts.materialization_attestation import (
+    MaterializationArchiveRecord,
+    require_materialization_records,
+)
+from raes_contracts.digests import sha256_hex
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError, InvalidInputError, OperationalError
+from raes_contracts.materialization import MATERIALIZATION_MAX_BYTES, MaterializationSubmission
 
 RUN_ID_LABEL_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$")
+_PUBLICATION_REFUSED = "materialization archive requires valid bounded SDL and safe identities"
+_PUBLICATION_TOO_LARGE = "materialization archive content exceeds the materialization document limit"
+# A missing file, a changed permission, or a symbolic link: an open with O_NOFOLLOW reports a link
+# with ELOOP, or with ENOTDIR under O_DIRECTORY.
+_RETAINED_ARTIFACT_ERRNOS = frozenset({errno.ENOENT, errno.ENOTDIR, errno.ELOOP, errno.EACCES, errno.EPERM})
 
 
 def is_valid_run_id_label(run_id: str) -> bool:
@@ -45,8 +54,25 @@ def _materialization_record_path(record: MaterializationArchiveRecord) -> Path:
         or any(component in {".", ".."} for component in relative.parts)
         or len(relative.parts) != 4
     ):
-        raise ValueError("invalid materialization archive path")
+        raise EvidenceIntegrityError("materialization archive record names an invalid archive path")
     return relative
+
+
+@contextlib.contextmanager
+def _archive_storage_refusals(*, retained: bool) -> Iterator[None]:
+    """Classify a filesystem failure of the archive (E9).
+
+    Under ``retained``, a missing artifact, a replaced directory, a changed permission or a
+    planted symbolic link means that the archive does not hold the protected files that it
+    created. Any other failure, and any failure outside ``retained``, is a host failure.
+    """
+
+    try:
+        yield
+    except OSError as exc:
+        if retained and exc.errno in _RETAINED_ARTIFACT_ERRNOS:
+            raise EvidenceIntegrityError("materialization archive artifact is not the retained protected file") from exc
+        raise OperationalError("materialization archive storage operation failed") from exc
 
 
 class RunMaterializationArchive:
@@ -62,56 +88,63 @@ class RunMaterializationArchive:
 
     def read(self, record: MaterializationArchiveRecord) -> MaterializationSubmission:
         """Resolve only protected, bounded bytes named by a validated archive record."""
-        from raes_contracts.materialization import (
-            MATERIALIZATION_MAX_BYTES,
-            MaterializationSubmission,
-            require_materialization_records,
-        )
-
-        require_materialization_records((record,))
-        relative = _materialization_record_path(record)
-        directory = os.open(self.output_dir, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        # The record is retained evidence; its validators refuse an invalid record with ValueError (E3).
         try:
-            for component in relative.parts[:-1]:
-                child = os.open(component, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory)
-                os.close(directory)
-                directory = child
-            descriptor = os.open(relative.name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
-            with os.fdopen(descriptor, "rb") as handle:
-                info = os.fstat(handle.fileno())
-                if (
-                    not stat.S_ISREG(info.st_mode)
-                    or stat.S_IMODE(info.st_mode) != 0o600
-                    or info.st_size > MATERIALIZATION_MAX_BYTES
-                ):
-                    raise ValueError("materialization archive is not a bounded protected regular file")
-                data = handle.read(MATERIALIZATION_MAX_BYTES + 1)
+            require_materialization_records((record,))
+        except ValueError as exc:
+            raise EvidenceIntegrityError("materialization archive record failed its contract check") from exc
+        relative = _materialization_record_path(record)
+        with _archive_storage_refusals(retained=False):
+            directory = os.open(self.output_dir, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        try:
+            with _archive_storage_refusals(retained=True):
+                for component in relative.parts[:-1]:
+                    child = os.open(component, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory)
+                    os.close(directory)
+                    directory = child
+                descriptor = os.open(relative.name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK, dir_fd=directory)
+                with os.fdopen(descriptor, "rb") as handle:
+                    info = os.fstat(handle.fileno())
+                    if (
+                        not stat.S_ISREG(info.st_mode)
+                        or stat.S_IMODE(info.st_mode) != 0o600
+                        or info.st_size > MATERIALIZATION_MAX_BYTES
+                    ):
+                        raise EvidenceIntegrityError("materialization archive is not a bounded protected regular file")
+                    data = handle.read(MATERIALIZATION_MAX_BYTES + 1)
         finally:
             os.close(directory)
-        if (
-            len(data) != record.artifact.size_bytes
-            or hashlib.sha256(data).hexdigest() != record.artifact.checksum.value
-        ):
-            raise ValueError("materialization archive bytes do not match the retained record")
-        return MaterializationSubmission(sdl=data.decode("utf-8"))
+        if len(data) != record.artifact.size_bytes or sha256_hex(data) != record.artifact.checksum.value:
+            raise EvidenceIntegrityError("materialization archive bytes do not match the retained record")
+        # Bytes that match the record but are not bounded UTF-8 SDL text are not a valid retained artifact.
+        try:
+            return MaterializationSubmission(sdl=data.decode("utf-8"))
+        except ValueError as exc:
+            raise EvidenceIntegrityError("materialization archive bytes are not a valid submission") from exc
 
     def publish(self, content: str) -> MaterializationArchiveRecord:
         from raes.canonical import canonical_materialized_sdl_digest
         from raes.formatting import render_sdl_source
         from raes.materialization import MaterializedScenario
         from raes.parser import parse_sdl
-        from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
 
+        # Bound the incoming text before parsing and the rendered bytes before writing; rendering can expand input.
+        _require_document_bytes(content)
+        # SDL failures are InvalidInputError; ``from None`` keeps authored values out of the refusal.
         try:
             scenario = parse_sdl(content)
-            if not isinstance(scenario, MaterializedScenario):
-                raise ValueError("not a materialization description")
-            provenance = scenario.materialization_provenance
-            if not is_valid_run_id_label(provenance.run_id):
-                raise ValueError("unsafe run identity")
+        except InvalidInputError:
+            raise InvalidInputError(_PUBLICATION_REFUSED) from None
+        if not isinstance(scenario, MaterializedScenario) or not is_valid_run_id_label(
+            scenario.materialization_provenance.run_id
+        ):
+            raise InvalidInputError(_PUBLICATION_REFUSED)
+        provenance = scenario.materialization_provenance
+        try:
             data = render_sdl_source(scenario).content.encode("utf-8")
-        except Exception:
-            raise ValueError("materialization archive requires valid bounded SDL and safe identities") from None
+        except InvalidInputError:
+            raise InvalidInputError(_PUBLICATION_REFUSED) from None
+        _require_document_bytes(data)
         relative = Path("runs") / provenance.run_id / "attestations" / f"{provenance.attestation_id}.sdl"
         record = MaterializationArchiveRecord.model_validate(
             {
@@ -124,8 +157,8 @@ class RunMaterializationArchive:
                     "artifact_id": provenance.attestation_id,
                     "role": "materialization-attestation",
                     "media_type": "application/vnd.raes.sdl+yaml",
-                    "uri": "urn:sha256:" + hashlib.sha256(data).hexdigest(),
-                    "checksum": {"algorithm": "sha256", "value": hashlib.sha256(data).hexdigest()},
+                    "uri": "urn:sha256:" + sha256_hex(data),
+                    "checksum": {"algorithm": "sha256", "value": sha256_hex(data)},
                     "size_bytes": len(data),
                     "created_at": provenance.recorded_at.isoformat(),
                     "source": provenance.producer.name,
@@ -136,19 +169,38 @@ class RunMaterializationArchive:
                 "inventory": provenance.inventory,
             }
         )
-        self.output_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
-        directory = os.open(self.output_dir, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
+        with _archive_storage_refusals(retained=False):
+            self.output_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+            directory = os.open(self.output_dir, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW)
         try:
-            for component in relative.parts[:-1]:
-                with contextlib.suppress(FileExistsError):
-                    os.mkdir(component, mode=0o700, dir_fd=directory)
-                child = os.open(component, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory)
-                os.close(directory)
-                directory = child
-            _publish_immutable_bytes(directory, relative.name, data)
+            # Below its root, the archive holds only directories and artifacts that it created.
+            with _archive_storage_refusals(retained=True):
+                for component in relative.parts[:-1]:
+                    with contextlib.suppress(FileExistsError):
+                        os.mkdir(component, mode=0o700, dir_fd=directory)
+                    child = os.open(component, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory)
+                    os.close(directory)
+                    directory = child
+                _publish_immutable_bytes(directory, relative.name, data)
         finally:
             os.close(directory)
         return record
+
+
+def _require_document_bytes(content: str | bytes) -> None:
+    """Refuse text or bytes beyond the shared materialization document ceiling."""
+    if not isinstance(content, (str, bytes)):
+        raise InvalidInputError(_PUBLICATION_REFUSED)
+    # A character count above the ceiling already implies too many UTF-8 bytes, so skip the copy.
+    if len(content) > MATERIALIZATION_MAX_BYTES:
+        raise InvalidInputError(_PUBLICATION_TOO_LARGE)
+    if isinstance(content, str):
+        try:
+            content = content.encode("utf-8")
+        except UnicodeEncodeError:
+            raise InvalidInputError(_PUBLICATION_REFUSED) from None
+    if len(content) > MATERIALIZATION_MAX_BYTES:
+        raise InvalidInputError(_PUBLICATION_TOO_LARGE)
 
 
 def _verify_immutable_bytes(directory: int, name: str, data: bytes) -> None:
@@ -156,9 +208,9 @@ def _verify_immutable_bytes(directory: int, name: str, data: bytes) -> None:
     with os.fdopen(descriptor, "rb") as handle:
         info = os.fstat(handle.fileno())
         if not stat.S_ISREG(info.st_mode) or stat.S_IMODE(info.st_mode) != 0o600:
-            raise ValueError("materialization archive artifact is not a protected regular file")
+            raise EvidenceIntegrityError("materialization archive artifact is not a protected regular file")
         if info.st_size != len(data) or handle.read(len(data) + 1) != data:
-            raise ValueError("materialization archive identity already binds different bytes")
+            raise ConflictError("materialization archive identity already binds different bytes")
 
 
 def _publish_immutable_bytes(directory: int, name: str, data: bytes) -> None:

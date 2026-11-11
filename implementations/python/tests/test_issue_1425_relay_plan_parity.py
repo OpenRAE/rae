@@ -17,7 +17,11 @@ import pytest
 from raes import parse_sdl
 from raes.instantiate import instantiate_scenario
 from raes_backend_stubs.stubs import StubProvisioner, create_stub_target
-from raes_contracts.plan_projection import planned_provisioning_resources, provisioning_plan_model, runtime_plan_digest
+from raes_contracts.contracts.plan_projection import (
+    planned_provisioning_resources,
+    provisioning_plan_model,
+    runtime_plan_digest,
+)
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import OperationState, RuntimeSnapshot, SnapshotEntry
 from raes_processor.compiler import compile_runtime_model

@@ -164,6 +164,14 @@ def _map_set_failures(rows: list[TopLevelRow]) -> list[PolicyFailure]:
     return failures
 
 
+def _summary_count(digits: str) -> int | None:
+    try:
+        return int(digits)
+    except ValueError:
+        # The summary pattern admits only digits, so int() fails only beyond the interpreter digit limit.
+        return None
+
+
 def _summary_failures(text: str, rows: list[TopLevelRow]) -> list[PolicyFailure]:
     summary = _SUMMARY_RE.search(text)
     actual = {
@@ -173,7 +181,7 @@ def _summary_failures(text: str, rows: list[TopLevelRow]) -> list[PolicyFailure]
         "maps": sum(row.shape == "map" for row in rows),
         "lists": sum(row.shape == "list" and row.kind == "section" for row in rows),
     }
-    if summary is not None and all(int(summary.group(key)) == value for key, value in actual.items()):
+    if summary is not None and all(_summary_count(summary.group(key)) == value for key, value in actual.items()):
         return []
     return [
         _failure(

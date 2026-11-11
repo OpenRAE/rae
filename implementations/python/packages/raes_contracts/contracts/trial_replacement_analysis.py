@@ -3,13 +3,24 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Mapping
 from dataclasses import dataclass
 
-from ..admitted_trial_plan_ingress import revalidate_admitted_trial_plan
+from raes_contracts.contracts.admitted_trial_plan_ingress import (
+    AdmittedTrialPlanIngressError,
+    revalidate_admitted_trial_plan,
+)
+
 from ..canonical import canonical_json_digest
 from .admitted_trial_plan import AdmittedTrialEntryModel, AdmittedTrialPlanModel
+from .experiment_analysis_eligibility import experiment_run_is_analysis_eligible
+from .experiment_apparatus import ExperimentTaskModel
+from .experiment_capture import ExperimentCaptureSpecModel
+from .experiment_evidence_refinement import AuthoredScenarioEvidence
 from .experiment_run import ExperimentRunModel
-from .trial_analysis import validate_admitted_trial_run
+from .experiment_run_evidence_validation import ExperimentRunEvidenceInputs
+from .experiment_spec import ExperimentStudyModel
+from .trial_analysis import validate_admitted_trial_run, validate_reconciled_trial_study
 from .trial_cleanup import TrialCleanupReceiptModel, validate_trial_cleanup_receipt
 from .trial_replacement import TrialReplacementOriginModel, TrialReplacementPolicyModel
 from .trial_replacement_archive import (
@@ -41,6 +52,15 @@ def _digest(run: ExperimentRunModel) -> str:
     return canonical_json_digest(run.model_dump(mode="json"))
 
 
+def _revalidated(plan: AdmittedTrialPlanModel) -> AdmittedTrialPlanModel:
+    """Keep the ValueError contract of this lineage validation (E3)."""
+
+    try:
+        return revalidate_admitted_trial_plan(plan)
+    except AdmittedTrialPlanIngressError as exc:
+        raise ValueError("Admitted trial plan contract validation failed") from exc
+
+
 def _index(
     root: AdmittedTrialPlanModel,
     replacements: list[AdmittedTrialPlanModel],
@@ -60,7 +80,7 @@ def _index(
 def _index_plans(root: AdmittedTrialPlanModel, replacements: list[AdmittedTrialPlanModel]) -> _Plans:
     plans = {root.plan_id: root}
     for candidate in replacements:
-        plan = revalidate_admitted_trial_plan(candidate)
+        plan = _revalidated(candidate)
         if plan.plan_id in plans or plan.replacement_origin is None:
             raise ValueError("replacement plans must be distinct linked children")
         plans[plan.plan_id] = plan
@@ -262,12 +282,8 @@ def _leaf_run(
 
 
 def _eligible(run: ExperimentRunModel | None, policy: TrialReplacementPolicyModel | None) -> bool:
-    return (
-        run is not None
-        and run.run_status not in {"invalidated", "superseded"}
-        and run.outcome_status != "not-evaluated"
-        and not (policy and policy.max_replacements and run.run_status in policy.replace_on)
-    )
+
+    return experiment_run_is_analysis_eligible(run, policy)
 
 
 def _exhausted(
@@ -298,7 +314,7 @@ def reconcile_replacement_trials(
     Study evaluation membership must name only a returned eligible leaf. Failed
     scientific outcomes stay eligible when they have not been replaced.
     """
-    root = revalidate_admitted_trial_plan(original_plan)
+    root = _revalidated(original_plan)
     runs = [ExperimentRunModel.model_validate(run.model_dump(mode="python")) for run in runs]
     cleanup_receipts = [
         TrialCleanupReceiptModel.model_validate(item.model_dump(mode="python")) for item in cleanup_receipts
@@ -327,4 +343,44 @@ def reconcile_replacement_trials(
     return ReplacementTrialReconciliation(tuple(analysis), tuple(shortfall), tuple(exhausted))
 
 
-__all__ = ["ReplacementTrialReconciliation", "reconcile_replacement_trials"]
+@dataclass(frozen=True)
+class TrialReplacementStudyInputs:
+    """Complete retained replacement history and ordinary study evidence."""
+
+    replacement_plans: list[AdmittedTrialPlanModel]
+    cleanup_receipts: list[TrialCleanupReceiptModel]
+    evidence_by_run: Mapping[str, ExperimentRunEvidenceInputs] | None = None
+    relation_scenarios: Mapping[str, AuthoredScenarioEvidence] | None = None
+    relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None = None
+    study_definition: ExperimentStudyModel | None = None
+
+
+def validate_replacement_trial_study(
+    plan: AdmittedTrialPlanModel,
+    study: ExperimentStudyModel,
+    tasks: list[ExperimentTaskModel],
+    runs: list[ExperimentRunModel],
+    *,
+    inputs: TrialReplacementStudyInputs,
+) -> None:
+    """Reconcile retained history before validating single-leaf study membership."""
+
+    accounting = reconcile_replacement_trials(plan, inputs.replacement_plans, runs, inputs.cleanup_receipts)
+    validate_reconciled_trial_study(
+        plan,
+        study,
+        tasks,
+        list(accounting.analysis_runs),
+        study_definition=inputs.study_definition,
+        evidence_by_run=inputs.evidence_by_run,
+        relation_scenarios=inputs.relation_scenarios,
+        relation_capture_specs=inputs.relation_capture_specs,
+    )
+
+
+__all__ = [
+    "ReplacementTrialReconciliation",
+    "TrialReplacementStudyInputs",
+    "reconcile_replacement_trials",
+    "validate_replacement_trial_study",
+]

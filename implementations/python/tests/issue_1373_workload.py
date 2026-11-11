@@ -7,8 +7,9 @@ from tempfile import TemporaryDirectory
 from time import perf_counter
 from unittest.mock import patch
 
-from raes_contracts.immutable_history import HISTORY_FIELDS, EventHistory, append_history
+from raes_contracts.immutable_history import EventHistory
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.snapshot_histories import HISTORY_FIELDS, append_history
 from raes_runtime.control_plane_store import InMemoryControlPlaneStore, LocalControlPlaneStore
 
 

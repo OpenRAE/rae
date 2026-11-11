@@ -5,13 +5,15 @@ linked from the existing [scope inventory](scope-inventory.md). Reviewed baselin
 `2ed2d97cee641419912dfd2e4e2e4b0c9c61f35e`, 2026-09-16.
 
 The scope is every model reachable from the 17 registered runtime families,
-plus service-manager units: 126 model types and 975 fields, including inherited
+plus service-manager units: 129 model types and 987 fields, including inherited
 fields. The runtime registry remains authoritative. This ledger neither
 registers families nor changes model validation. Adjacent surfaces outside this
 field graph have separate dispositions in the audit.
 
 Issue #1653 adds cloud ownership, identity use, access reports and secret versions.
-The rows below include those extensions; the original reviewed baseline stays fixed.
+Issue #1831 adds scope-owned audit recording requirements.
+Issue #1848 adds explicit provider-qualified secret replication.
+The rows below include these extensions; the original reviewed baseline stays fixed.
 
 Each field has one primary semantic owner:
 
@@ -114,6 +116,7 @@ supply those separate arguments.
 | `RuntimeForwardingSource` | [runtime_forwarding_agent.py](../../../implementations/python/packages/raes/runtime_forwarding_agent.py) | P: `source_id`, `kind`, `description`; C: `selector`; B: `location`; N: `parse_format` |
 | `RuntimeForwardingTransform` | [runtime_forwarding_agent.py](../../../implementations/python/packages/raes/runtime_forwarding_agent.py) | P: `transform_id`, `kind`, `description`; N: `sid_namespace` |
 | `RuntimeIdentityAccessObservation` | [runtime_identity_resources.py](../../../implementations/python/packages/raes/runtime_identity_resources.py) | P: `observation_id`, `description`; B: `principal_ref`, `resource_ref`, `context_refs`; O: `action`, `outcome`, `evidence_refs` |
+| `RuntimeIdentityAuditLog` | [runtime_identity_resources.py](../../../implementations/python/packages/raes/runtime_identity_resources.py) | P: `audit_log_id`; N: `service`, `log_type`; B: `exempted_principal_refs` |
 | `RuntimeIdentityAttribute` | [runtime_directory_identity.py](../../../implementations/python/packages/raes/runtime_directory_identity.py) | P: `description`; A: `value_classification`; N: `name`, `values`; O: `origin`, `provenance` |
 | `RuntimeIdentityAuthorityService` | [runtime_directory_identity.py](../../../implementations/python/packages/raes/runtime_directory_identity.py) | P: `service_id`, `description`; B: `service`, `protocol`, `address`, `port` |
 | `RuntimeIdentityAuthority` | [runtime_directory_identity.py](../../../implementations/python/packages/raes/runtime_directory_identity.py) | P: `identity_authority_id`, `kind`, `name`, `description`, `resource_scopes`; C: `subjects`; B: `services`, `relationships`, `identity_uses`; A: `policies`; N: `namespace`, `domain_name`, `realm`, `issuer`, `tenant_id`, `base_dn`; O: `access_observations` |
@@ -122,7 +125,7 @@ supply those separate arguments.
 | `RuntimeIdentityPolicy` | [runtime_directory_identity.py](../../../implementations/python/packages/raes/runtime_directory_identity.py) | P: `policy_id`, `name`, `description`; B: `applies_to_refs`; A: `policy_kind`, `settings`, `resource_access` |
 | `RuntimeIdentityRelationship` | [runtime_directory_identity.py](../../../implementations/python/packages/raes/runtime_directory_identity.py) | P: `relationship_id`, `relationship_type`, `description`; B: `source_ref`, `target_ref`, `external_target` |
 | `RuntimeIdentityResourceAccess` | [runtime_identity_resources.py](../../../implementations/python/packages/raes/runtime_identity_resources.py) | B: `attachment_ref`, `inherited_from_ref`; A: `bindings` |
-| `RuntimeIdentityResourceScope` | [runtime_identity_resources.py](../../../implementations/python/packages/raes/runtime_identity_resources.py) | P: `scope_id`, `description`; B: `parent_ref`; N: `provider`, `scope_kind`, `name`, `native_id`, `incarnation_id` |
+| `RuntimeIdentityResourceScope` | [runtime_identity_resources.py](../../../implementations/python/packages/raes/runtime_identity_resources.py) | P: `scope_id`, `description`; C: `audit_logs`; B: `parent_ref`; N: `provider`, `scope_kind`, `name`, `native_id`, `incarnation_id` |
 | `RuntimeIdentitySubject` | [runtime_directory_identity.py](../../../implementations/python/packages/raes/runtime_directory_identity.py) | P: `subject_id`, `kind`, `name`, `description`; C: `display_name`, `attributes`; B: `resource_scope_ref`; A: `enabled`; N: `principal_name`, `distinguished_name`, `domain`, `service_principal_names`; O: `origin` |
 | `RuntimeIdentityUse` | [runtime_identity_resources.py](../../../implementations/python/packages/raes/runtime_identity_resources.py) | P: `use_id`, `description`; B: `workload_ref`, `principal_ref`, `mode`, `source_principal_ref` |
 | `RuntimeListenerReadiness` | [runtime_listeners.py](../../../implementations/python/packages/raes/runtime_listeners.py) | P: `description`; O: `probe`, `criteria`, `evidence_refs` |
@@ -162,6 +165,8 @@ supply those separate arguments.
 | `RuntimeScheduledJobSchedule` | [runtime_scheduled_job.py](../../../implementations/python/packages/raes/runtime_scheduled_job.py) | P: `kind`; C: `spec`, `enabled` |
 | `RuntimeScheduledJob` | [runtime_scheduled_job.py](../../../implementations/python/packages/raes/runtime_scheduled_job.py) | P: `scheduled_job_id`, `name`, `description`; C: `enabled`, `schedule`; B: `command_ref`; O: `run_state` |
 | `RuntimeSecretConsumer` | [runtime_secret_service.py](../../../implementations/python/packages/raes/runtime_secret_service.py) | P: `selection_id`, `description`; B: `consumer_ref`, `version_ref`; N: `selector`; O: `resolved_version_ref`, `resolution_basis`, `resolution_evidence_refs` |
+| `RuntimeSecretReplica` | [runtime_secret_service.py](../../../implementations/python/packages/raes/runtime_secret_service.py) | N: `location`, `kms_key_name` |
+| `RuntimeSecretReplication` | [runtime_secret_service.py](../../../implementations/python/packages/raes/runtime_secret_service.py) | N: `provider`, `mode`, `kms_key_name`; C: `replicas` |
 | `RuntimeSecretSelector` | [runtime_secret_service.py](../../../implementations/python/packages/raes/runtime_secret_service.py) | N: `kind`, `value` |
 | `RuntimeSecretVersion` | [runtime_secret_service.py](../../../implementations/python/packages/raes/runtime_secret_service.py) | P: `version_id`, `description`; C: `state`; B: `payload_content_ref`; N: `native_id`, `native_state` |
 | `RuntimeSecurityMonitoringAgentGroup` | [runtime_security_monitoring/_models.py](../../../implementations/python/packages/raes/runtime_security_monitoring/_models.py) | P: `group_id`, `name`, `description`; B: `member_refs`, `configuration_file_refs` |
@@ -174,7 +179,7 @@ supply those separate arguments.
 | `RuntimeSecurityMonitoringManager` | [runtime_security_monitoring/_models.py](../../../implementations/python/packages/raes/runtime_security_monitoring/_models.py) | P: `security_monitoring_manager_id`, `manager_kind`, `name`, `description`; C: `listeners`, `components`, `agents`, `agent_groups`, `content_sets`, `detection_definitions`, `settings`; B: `service`, `configuration_file_refs`; N: `implementation`, `version`, `revision`; O: `log_file_refs`, `evidence_refs` |
 | `RuntimeSecurityMonitoringSetting` | [runtime_security_monitoring/_models.py](../../../implementations/python/packages/raes/runtime_security_monitoring/_models.py) | P: `setting_id`, `name`, `description`; C: `value`; B: `component_ref`; A: `value_classification`; O: `provenance`, `source_path` |
 | `RuntimeServiceListener` | [runtime_listeners.py](../../../implementations/python/packages/raes/runtime_listeners.py) | P: `service_listener_id`, `description`; C: `scope`; B: `service`, `address`, `port`, `protocol`, `address_family`, `bind_interface`, `socket_path`, `process_ref`, `published_port_refs`; O: `process_name`, `readiness`, `provenance`, `evidence_refs` |
-| `RuntimeServiceSecret` | [runtime_secret_service.py](../../../implementations/python/packages/raes/runtime_secret_service.py) | P: `secret_id`, `description`; C: `versions`, `location`, `replica_locations`; B: `resource_scope_ref`, `consumers`, `encryption_key_ref`, `reset_owner_ref`, `deletion_owner_ref`; N: `native_id` |
+| `RuntimeServiceSecret` | [runtime_secret_service.py](../../../implementations/python/packages/raes/runtime_secret_service.py) | P: `secret_id`, `description`; C: `versions`, `location`, `replica_locations`, `replication`; B: `resource_scope_ref`, `consumers`, `encryption_key_ref`, `reset_owner_ref`, `deletion_owner_ref`; N: `native_id` |
 | `RuntimeSshServer` | [runtime_ssh_server.py](../../../implementations/python/packages/raes/runtime_ssh_server.py) | P: `description`, `ssh_server_id`; B: `service`; A: `forced_command`, `accept_env`, `allow_users`, `deny_users`, `allow_groups`, `deny_groups`, `authentication_methods`, `password_authentication`, `pubkey_authentication`, `permit_tty`, `chroot_directory`, `authorized_keys_file`, `match_rules` |
 | `ServiceManagerUnit` | [runtime_service_units.py](../../../implementations/python/packages/raes/runtime_service_units.py) | P: `unit_id`, `description`; C: `exec_start`; B: `service`; N: `manager_kind`, `unit_name`, `unit_type`; O: `load_state`, `active_state`, `sub_state`, `enabled_state`, `result`, `exit_code`, `status_text`, `main_pid`, `unit_file_path` |
 | `ServiceUnitExecStart` | [runtime_service_units.py](../../../implementations/python/packages/raes/runtime_service_units.py) | P: `description`; C: `command_kind`, `command`; A: `command_redacted` |

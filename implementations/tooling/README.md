@@ -91,6 +91,13 @@ remain; mirror/pre-seeded distribution and mandatory OCI export/import do not.
 The connected AWS smokes preserve verified VM/bootstrap bytes and SSH identity
 without staging a complete Python wheelhouse or requiring native snapshots.
 
+The mCRL2 model checker uses the same verified-tree installer with an admitted
+Debian carrier. Its `model-check-ubuntu-26.04-x86_64` host profile declares the
+native decoder, limiter, runtime libraries and Bubblewrap prerequisites.
+Acquisition is explicit; comparison verifies the whole installed tree and runs
+with fixed arguments in an offline sandbox. See the
+[crossing corpus instructions](../formal/participant_crossing/README.md).
+
 ## Release evidence and current scope
 
 Standard SBOM/provenance, producer identity, exact release SHA and tested

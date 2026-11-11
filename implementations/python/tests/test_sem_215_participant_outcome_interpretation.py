@@ -7,16 +7,16 @@ import textwrap
 import pytest
 from raes._errors import SDLParseError, SDLValidationError
 from raes.parser import parse_sdl
-from raes.participant_behavior import (
+from raes_contracts.contracts import ParticipantBehaviorHistoryEventModel
+from raes_contracts.participant_action_semantics import (
     ParticipantEffectClass,
     ParticipantFailureClass,
     ParticipantPreconditionClass,
 )
-from raes.participant_outcome_semantics import (
+from raes_contracts.participant_outcome_semantics import (
     OutcomeInterpretationSourceLayer,
     OutcomeInterpretationTargetLayer,
 )
-from raes_contracts.contracts import ParticipantBehaviorHistoryEventModel
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.models import (
     ParticipantActionEffectResult,

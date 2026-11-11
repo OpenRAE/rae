@@ -7,6 +7,7 @@ from time import monotonic
 from typing import TYPE_CHECKING, Any
 
 import anyio
+from pydantic import ValidationError
 from raes_contracts.contracts import (
     BackendOperationCapabilitiesModel,
     BackendOperationResponseModel,
@@ -14,8 +15,11 @@ from raes_contracts.contracts import (
     require_backend_operation_admission,
     validate_backend_operation_response,
 )
+from raes_contracts.errors import AuthorizationError, ConflictError, InvalidInputError, OperationalError, RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from temporalio import activity
 
+from .errors import RuntimeBudgetExhaustedError
 from .operation_control_budget import ControlDeliveryGrant
 from .operation_execution_adapter import LocalExecutionAdapter
 from .operation_temporal import EngineOperationReference
@@ -30,6 +34,8 @@ if TYPE_CHECKING:
     from .operation_execution_adapter import Lane
     from .operation_remote_authority import RemoteOperationAuthority
     from .operation_temporal import TemporalExecutionConfiguration
+
+_LOGGER = get_logger(__name__)
 
 
 # The SDK decodes raw JSON using these annotations. Carrier models validate
@@ -62,10 +68,11 @@ class TemporalOperationActivities:
     def _reference(self, payload: dict[str, Any]) -> EngineOperationReference:
         try:
             reference = EngineOperationReference.model_validate(payload)
-        except Exception:
-            raise ValueError("engine operation reference is invalid") from None
+        except ValidationError:
+            # The validation detail can echo payload values; Temporal history records only this message.
+            raise InvalidInputError("engine operation reference is invalid") from None
         if reference.worker_id != self._worker_identity:
-            raise ValueError("engine reference belongs to another worker")
+            raise AuthorizationError("engine reference belongs to another worker")
         return reference
 
     @staticmethod
@@ -91,7 +98,7 @@ class TemporalOperationActivities:
             reference.worker_id,
             reference.request_digest,
         ):
-            raise ValueError("engine reference does not match admitted authority")
+            raise ConflictError("engine reference does not match admitted authority")
         return request
 
     @activity.defn(name="raes.invoke")
@@ -111,7 +118,7 @@ class TemporalOperationActivities:
         def admitted() -> T:
             remaining = int((deadline - monotonic()) * 1000)
             if remaining <= 0:
-                raise TimeoutError("activity allowance exhausted before admission")
+                raise RuntimeBudgetExhaustedError("activity allowance exhausted before admission")
             return executor.call(lane, method, *args, timeout_ms=remaining)
 
         try:
@@ -119,11 +126,18 @@ class TemporalOperationActivities:
                 return await anyio.to_thread.run_sync(
                     admitted, abandon_on_cancel=True, limiter=self._offload_limiters[lane]
                 )
-        except Exception:
-            raise RuntimeError("backend activity could not be established") from None
+        except Exception as exc:
+            # Temporal history records only this fixed failure; keep an unexpected cause in one value-free record.
+            if not isinstance(exc, RaesError):
+                _LOGGER.exception(
+                    "backend activity failed before its outcome was established", exc_info=foreign_failure_record(exc)
+                )
+        # Raised after the handler, so the fixed failure carries no provider exception as its context.
+        raise OperationalError("backend activity could not be established")
 
     def _invoke(self, reference: EngineOperationReference) -> str:
         authority, provider = self._effect_authority, self._provider
+        granted: tuple[BackendOperationRequestModel, int] | None = None
         try:
             request = self._request(authority, reference)
             capabilities = self._executor.call(
@@ -141,21 +155,31 @@ class TemporalOperationActivities:
             grant_started = monotonic()
             grant = authority.claim(reference, capabilities, admission)
             if grant.request != request:
-                raise ValueError("invocation grant changed its admitted request")
+                raise InvalidInputError("invocation grant changed its admitted request")
             remaining = grant.remaining_budget_ms - int((monotonic() - grant_started) * 1000)
             if remaining <= 0:
-                raise ValueError("invocation grant expired in delivery")
-        except Exception:
+                raise RuntimeBudgetExhaustedError("invocation grant expired in delivery")
+            granted = request, remaining
+        except Exception as exc:
+            # Isolation of the provider and the authority claim: the operation becomes indeterminate.
+            if not isinstance(exc, RaesError):
+                _LOGGER.exception("backend admission or invocation grant failed", exc_info=foreign_failure_record(exc))
+        # Each indeterminate settlement runs after its handler, so a settlement failure carries
+        # no provider exception as its context.
+        if granted is None:
             return self._control_authority.indeterminate(reference)
+        request, remaining = granted
         try:
             response = self._executor.call("effect", provider.start_operation, request, timeout_ms=remaining)
             response = BackendOperationResponseModel.model_validate(response.model_dump(mode="json"))
             validate_backend_operation_response(request, response)
             if response.message.kind != "acknowledgement":
-                raise ValueError("backend acknowledgement is invalid")
+                raise InvalidInputError("backend acknowledgement is invalid")
             return authority.publish(reference, response)
-        except Exception:
-            return self._control_authority.indeterminate(reference)
+        except Exception as exc:
+            if not isinstance(exc, RaesError):
+                _LOGGER.exception("backend operation start failed", exc_info=foreign_failure_record(exc))
+        return self._control_authority.indeterminate(reference)
 
     @activity.defn(name="raes.observe")
     async def observe(self, payload: dict[str, Any]) -> str:
@@ -173,7 +197,7 @@ class TemporalOperationActivities:
             control = grant.control
             remaining = self._control_allowance(request, grant, began)
             if control.action != "observe":
-                raise ValueError("worker observation grant is invalid")
+                raise InvalidInputError("worker observation grant is invalid")
             response = self._executor.call(
                 "control",
                 self._provider.observe_operation,
@@ -183,10 +207,14 @@ class TemporalOperationActivities:
             response = BackendOperationResponseModel.model_validate(response.model_dump(mode="json"))
             validate_backend_operation_response(request, response, control=control)
             if response.message.kind not in {"progress", "outcome", "control", "reconciliation"}:
-                raise ValueError("backend observation is invalid")
+                raise InvalidInputError("backend observation is invalid")
             return authority.publish(reference, response)
-        except Exception:
-            return authority.indeterminate(reference)
+        except Exception as exc:
+            # Isolation of the provider observation: the operation becomes indeterminate.
+            if not isinstance(exc, RaesError):
+                _LOGGER.exception("backend operation observation failed", exc_info=foreign_failure_record(exc))
+        # Settled after the handler, so a settlement failure carries no provider exception as its context.
+        return authority.indeterminate(reference)
 
     @activity.defn(name="raes.control")
     async def control(self, payload: dict[str, Any]) -> str:
@@ -208,7 +236,7 @@ class TemporalOperationActivities:
         control = grant.control
         remaining = self._control_allowance(request, grant, began)
         if control.control_id != control_id:
-            raise ValueError("worker control grant is invalid")
+            raise InvalidInputError("worker control grant is invalid")
         methods = {
             "cancel": self._provider.cancel_operation,
             "observe": self._provider.observe_operation,
@@ -224,7 +252,7 @@ class TemporalOperationActivities:
         validate_backend_operation_response(request, response, control=control)
         allowed = {"control"} if control.action == "cancel" else {"progress", "outcome", "control", "reconciliation"}
         if response.message.kind not in allowed:
-            raise ValueError("backend control response is invalid")
+            raise InvalidInputError("backend control response is invalid")
         return authority.publish(reference, response)
 
     @staticmethod
@@ -235,10 +263,10 @@ class TemporalOperationActivities:
             or control.request_digest != backend_operation_request_digest(request)
             or grant.remaining_budget_ms > control.budget.remaining_ms
         ):
-            raise ValueError("worker control allowance is invalid")
+            raise InvalidInputError("worker control allowance is invalid")
         remaining = grant.remaining_budget_ms - int((monotonic() - began) * 1000)
         if remaining <= 0:
-            raise TimeoutError("worker control allowance expired during delivery")
+            raise RuntimeBudgetExhaustedError("worker control allowance expired during delivery")
         return remaining
 
     @activity.defn(name="raes.indeterminate")

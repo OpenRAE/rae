@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Callable, Mapping
 
-from ._common import RelationBudget, closure_for, json_equal, pointer
+from ..json_pointer import pointer_from_tokens
+from ._common import RelationBudget, closure_for, json_equal
 from ._compatibility_checks import (
     CompatibilityLimit,
     constraint_is_exact,
@@ -107,7 +108,7 @@ def downgrade_collection_members(
     error = None
     for member in node.members:
         if exhausted := budget.spend_identity():
-            raise CompatibilityLimit(pointer(path), f"Legacy projection exceeded {exhausted}.")
+            raise CompatibilityLimit(pointer_from_tokens(path), f"Legacy projection exceeded {exhausted}.")
         digest = identity_key(member.identity)
         item = indexed.get(digest)
         if item is None:

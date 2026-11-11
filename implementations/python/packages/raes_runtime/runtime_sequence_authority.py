@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal, NotRequired, TypedDict
 
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.errors import AuthorizationError, ConflictError
 
 from .control_plane_operation_context import operation_actor_scope
 from .control_plane_security import ControlPlaneIdentity, ControlPlaneRole
@@ -48,11 +49,13 @@ def bind_sequence(engine: RuntimeControlPlane, options: RuntimeSequenceOptions) 
     if kind == "run":
         run = engine.get_run(scope_id)
         plan = deepcopy(plan)
-        if plan is None or plan.manifest != engine._target.manifest:
+        if plan is None:
             raise ValueError("run delivery requires its exact planner artifact")
+        if plan.manifest != engine._target.manifest:
+            raise ConflictError("run delivery requires its exact planner artifact")
         commitment = program_decision(run, plan, execution_id, identity).plan_digest
     else:
-        experiment = engine._experiments[scope_id]
+        experiment = engine._admitted_experiment(scope_id)
         experiment._authorize(identity)
         commitment = canonical_json_digest(experiment.admission.model_dump(mode="json"))
     actor, scopes = operation_actor_scope(identity)
@@ -82,10 +85,10 @@ def advance_sequence(engine: RuntimeControlPlane, reference: RuntimeSequenceRefe
         or identity.identity != reference.worker_id
         or reference.engine_id != runtime_store_digest(engine._store)
     ):
-        raise PermissionError("runtime sequence worker is forbidden")
+        raise AuthorizationError("runtime sequence worker is forbidden")
     binding = engine._sequence_bindings.get(reference.workflow_id)
     if binding is None or binding.decision.reference != reference:
-        raise PermissionError("runtime sequence requires restored admitted artifacts")
+        raise AuthorizationError("runtime sequence requires restored admitted artifacts")
     if reference.kind == "experiment":
         progress = engine.advance_experiment(reference.scope_id, identity=binding.identity)
     else:

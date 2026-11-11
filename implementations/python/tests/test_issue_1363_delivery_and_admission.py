@@ -22,6 +22,7 @@ from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts import manifest_authority
 from raes_contracts.contracts.participant_control_composition import control_digest
 from raes_contracts.contracts.participant_control_resolution import _validate_inject
+from raes_contracts.errors import ConflictError
 from raes_contracts.participant_control_history import iter_participant_control_history_snapshot_violations
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.compiler import compile_runtime_model
@@ -177,7 +178,7 @@ def test_defense_in_depth_guards_hold() -> None:
         controller_ref=spec.controller_states[0].controller_address,
     )
     identity = SimpleNamespace(participant_control_subjects=(subject,))
-    with pytest.raises(ValueError, match="cannot execute a mixed-control-policy-occurrence/rev1"):
+    with pytest.raises(ConflictError, match="cannot execute a mixed-control-policy-occurrence/rev1"):
         _specification_for_participant(control_plane, spec.mixed_control_participant_address, identity)
     delivery = (
         parse(rev1_delivery_scenario())

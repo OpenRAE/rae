@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import sqlite3
 
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError
 from raes_contracts.runtime_state import OperationAdmissionContext
 
 from .control_plane_store import (
+    IDEMPOTENCY_CLAIM_CONFLICT,
     ControlPlaneOperationRecord,
     NewClaimBlock,
     _raise_new_claim_block,
@@ -16,14 +18,36 @@ from .control_plane_store import (
     require_idempotency_key,
 )
 from .control_plane_store_changes import OperationChanges
-from .control_plane_store_local_codec import decode_payload as _decode_payload
+from .control_plane_store_claim_columns import local_operation_claim_columns, require_claim_columns
+from .control_plane_store_local_codec import decode_contract as _decode_contract
 from .control_plane_store_local_codec import encode_payload as _encode_payload
 from .control_plane_store_local_codec import transaction as _transaction
 from .control_plane_store_records import _record_from_payload, _record_payload
-from .inject_claims import require_inject_claim, require_inject_history
+from .errors import IdempotencyClaimConflictError
+from .inject_claims import require_inject_claim, require_stored_inject_history
 from .operation_invocation_ledger import control_record_is_supervisory, supervised_claim_conflicts
 
 _OPERATION_RECORD_KIND = "operation record"
+_RECORD_IDENTITY_MISMATCH = "operation record identity does not match its durable key"
+# Each operation query reads the durable key, the claim columns in `local_operation_claim_columns` order and the record.
+_SELECT_OPERATIONS = (
+    "SELECT operation_id, idempotency_key, actor_id, operation_kind, target_scope, run_scope, "
+    "request_commitment, legacy_opaque_claim, request_fingerprint, payload, digest FROM operations "
+)
+
+
+def _operation_from_row(row: tuple[object, ...]) -> ControlPlaneOperationRecord:
+    """Decode one `_SELECT_OPERATIONS` row.
+
+    Refuse a row whose key or claim columns do not match its record.
+    """
+
+    operation_id, *claim_columns, payload, digest = row
+    record = _decode_contract(payload, digest, kind=_OPERATION_RECORD_KIND, rebuild=_record_from_payload)
+    if record.receipt.operation_id != operation_id:
+        raise EvidenceIntegrityError(_RECORD_IDENTITY_MISMATCH)
+    require_claim_columns(local_operation_claim_columns(record), claim_columns)
+    return record
 
 
 class LocalOperationRecordStoreMixin:
@@ -41,16 +65,12 @@ class LocalOperationRecordStoreMixin:
 
     @staticmethod
     def _load_records(connection: sqlite3.Connection) -> dict[str, ControlPlaneOperationRecord]:
-        rows = connection.execute(
-            "SELECT operation_id, payload, digest FROM operations ORDER BY operation_id"
-        ).fetchall()
+        rows = connection.execute(_SELECT_OPERATIONS + "ORDER BY operation_id").fetchall()
         records: dict[str, ControlPlaneOperationRecord] = {}
-        for operation_id, payload, digest in rows:
-            record = _record_from_payload(_decode_payload(payload, digest, kind=_OPERATION_RECORD_KIND))
-            if record.receipt.operation_id != operation_id:
-                raise ValueError("operation record identity does not match its durable key")
-            records[operation_id] = record
-        require_inject_history(records.values())
+        for row in rows:
+            record = _operation_from_row(row)
+            records[record.receipt.operation_id] = record
+        require_stored_inject_history(records.values())
         return records
 
     def save_record(self, record: ControlPlaneOperationRecord) -> None:
@@ -123,15 +143,10 @@ class LocalOperationRecordStoreMixin:
         operation_id: str,
     ) -> ControlPlaneOperationRecord | None:
         row = connection.execute(
-            "SELECT payload, digest FROM operations WHERE operation_id=?",
+            _SELECT_OPERATIONS + "WHERE operation_id=?",
             (operation_id,),
         ).fetchone()
-        if row is None:
-            return None
-        record = _record_from_payload(_decode_payload(row[0], row[1], kind=_OPERATION_RECORD_KIND))
-        if record.receipt.operation_id != operation_id:
-            raise ValueError("operation record identity does not match its durable key")
-        return record
+        return None if row is None else _operation_from_row(row)
 
     @staticmethod
     def _upsert_record(connection: sqlite3.Connection, record: ControlPlaneOperationRecord) -> None:
@@ -146,7 +161,7 @@ class LocalOperationRecordStoreMixin:
                 (context.actor_id, context.operation_kind.value),
             ).fetchone()
             if opaque_conflict is not None and opaque_conflict[0] != record.receipt.operation_id:
-                raise ValueError("idempotency claim conflicts with the original request")
+                raise IdempotencyClaimConflictError(IDEMPOTENCY_CLAIM_CONFLICT)
             conflict = connection.execute(
                 """
                 SELECT operation_id FROM operations
@@ -155,7 +170,7 @@ class LocalOperationRecordStoreMixin:
                 (context.actor_id, context.operation_kind.value, record.idempotency_key),
             ).fetchone()
             if conflict is not None and conflict[0] != record.receipt.operation_id:
-                raise ValueError("idempotency key already belongs to another operation")
+                raise ConflictError("idempotency key already belongs to another operation")
         payload, digest = _encode_payload(_record_payload(record))
         connection.execute(
             """
@@ -171,23 +186,12 @@ class LocalOperationRecordStoreMixin:
                 target_scope=excluded.target_scope,
                 run_scope=excluded.run_scope,
                 request_commitment=excluded.request_commitment,
+                legacy_opaque_claim=excluded.legacy_opaque_claim,
                 request_fingerprint=excluded.request_fingerprint,
                 payload=excluded.payload,
                 digest=excluded.digest
             """,
-            (
-                record.receipt.operation_id,
-                record.idempotency_key,
-                context.actor_id,
-                context.operation_kind.value,
-                context.target_scope,
-                context.run_scope,
-                context.request_commitment,
-                0,
-                record.request_fingerprint,
-                payload,
-                digest,
-            ),
+            (record.receipt.operation_id, *local_operation_claim_columns(record), payload, digest),
         )
 
     @staticmethod
@@ -210,7 +214,7 @@ class LocalOperationRecordStoreMixin:
     ) -> ControlPlaneOperationRecord | None:
         if context is None:
             rows = connection.execute(
-                "SELECT payload, digest FROM operations WHERE idempotency_key=?",
+                _SELECT_OPERATIONS + "WHERE idempotency_key=?",
                 (key,),
             ).fetchall()
             if len(rows) > 1:
@@ -218,15 +222,10 @@ class LocalOperationRecordStoreMixin:
             row = rows[0] if rows else None
         else:
             row = connection.execute(
-                """
-                SELECT payload, digest FROM operations
-                WHERE actor_id=? AND operation_kind=? AND idempotency_key=?
-                """,
+                _SELECT_OPERATIONS + "WHERE actor_id=? AND operation_kind=? AND idempotency_key=?",
                 (context.actor_id, context.operation_kind.value, key),
             ).fetchone()
-        if row is None:
-            return None
-        return _record_from_payload(_decode_payload(row[0], row[1], kind=_OPERATION_RECORD_KIND))
+        return None if row is None else _operation_from_row(row)
 
 
 __all__ = ("LocalOperationRecordStoreMixin",)

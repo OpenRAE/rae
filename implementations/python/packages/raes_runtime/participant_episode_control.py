@@ -6,6 +6,7 @@ from raes_contracts.contracts.participant_execution import (
     ParticipantExecutionControlRequestModel,
     ParticipantExecutionServiceStateModel,
 )
+from raes_contracts.errors import NotFoundError
 from raes_contracts.participant_episode import (
     ParticipantEpisodeInitializeRequest,
     ParticipantEpisodeResetRequest,
@@ -80,7 +81,7 @@ class ParticipantEpisodeControlMixin:
         participant_runtime = self._target.participant_runtime
         method = getattr(participant_runtime, "execution_state", None)
         if participant_runtime is None or not callable(method):
-            raise ValueError("participant runtime does not expose execution-service readback")
+            raise NotFoundError("participant runtime does not expose execution-service readback")
         return method(execution_scope_ref, self._snapshot)
 
     @runtime_owned

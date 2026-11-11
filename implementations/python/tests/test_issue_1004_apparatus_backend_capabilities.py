@@ -28,6 +28,7 @@ from raes_backend_protocols.capabilities import (
 )
 from raes_backend_stubs.stubs import create_stub_manifest
 from raes_contracts.controlled_vocabularies import load_controlled_vocabulary_catalog
+from raes_contracts.errors import ConflictError
 from raes_contracts.manifest_authority import BACKEND_SUPPORTED_CONTRACT_IDS
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 
@@ -171,7 +172,7 @@ def test_honest_exact_declaration_resolves(feature: str):
 def test_overclaiming_without_required_contract_is_deny_equivalent(feature: str):
     required = ADVERSARIAL_CONTROL_FEATURE_CONTRACTS[feature]
     manifest = _manifest_declaring(_exact_declaration(feature), drop_contracts=required)
-    with pytest.raises(ValueError, match="missing required contracts"):
+    with pytest.raises(ConflictError, match="missing required contracts"):
         resolve_participant_feature_support(manifest, feature)
 
 
@@ -184,7 +185,7 @@ def test_owning_contract_is_required_beyond_generic_occurrence(feature: str):
     owning = required - {"participant-crossing-occurrence-v1"}
     assert owning, feature  # every term binds an owning contract beyond the crossing carrier
     manifest = _manifest_declaring(_exact_declaration(feature), drop_contracts=owning)
-    with pytest.raises(ValueError, match="missing required contracts"):
+    with pytest.raises(ConflictError, match="missing required contracts"):
         resolve_participant_feature_support(manifest, feature)
 
 
@@ -229,11 +230,11 @@ def test_weakened_claim_needs_authorized_downgrade(feature: str):
     manifest = _manifest_declaring(bounded)
 
     # A bounded claim never satisfies a required exact level on its own.
-    with pytest.raises(ValueError, match="requires exact support"):
+    with pytest.raises(ConflictError, match="requires exact support"):
         resolve_participant_feature_support(manifest, feature, required_level=ParticipantFeatureSupportLevel.EXACT)
 
     # A downgrade requires explicit policy and provenance references.
-    with pytest.raises(ValueError, match="downgrade authorization"):
+    with pytest.raises(ConflictError, match="downgrade authorization"):
         resolve_participant_feature_support(
             manifest,
             feature,

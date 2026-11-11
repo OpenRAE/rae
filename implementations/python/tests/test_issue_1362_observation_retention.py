@@ -9,6 +9,7 @@ from raes_contracts.contracts import (
     backend_operation_control_digest,
     backend_operation_request_digest,
 )
+from raes_contracts.errors import ConflictError
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import OperationState
 from raes_runtime.control_plane import RuntimeControlPlane
@@ -138,7 +139,7 @@ def test_worker_observation_limit_retains_operator_recovery_after_reopen(tmp_pat
             assert grant.control.control_id == f"poll-{index}"
         rejected_observation = observer(AUTOMATIC_LIMIT)
         rejected_identity = worker()
-        with pytest.raises(ValueError):
+        with pytest.raises(ConflictError):
             plane.record_worker_observation(rejected_observation, identity=rejected_identity)
         plane.mark_backend_indeterminate(request.binding, identity=worker())
         retained = plane._store.load_records()[receipt.operation_id].invocation
@@ -247,7 +248,7 @@ def test_manual_observation_cannot_consume_cancellation_or_reconciliation_slots(
         ledger = append_control(ledger, control("observe").model_copy(update={"control_id": f"manual-{index}"}))
     rejected_control = control("observe")
     rejected_candidate_2 = rejected_control.model_copy(update={"control_id": "overflow"})
-    with pytest.raises(ValueError):
+    with pytest.raises(ConflictError):
         append_control(ledger, rejected_candidate_2)
     for action in ("cancel", "reconcile"):
         for index in range(32):

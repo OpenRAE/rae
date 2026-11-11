@@ -21,6 +21,8 @@ from raes_contracts.contracts import (
     MixedBackendStageReportModel,
     mixed_backend_binding_reference,
 )
+from raes_contracts.errors import RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_runtime.control_plane import RuntimeControlPlane
 
 from raes_conformance.conformance.diagnostics import sanitized_failure_message
@@ -33,6 +35,7 @@ from raes_conformance.conformance.mixed_backend_types import (
 from raes_conformance.conformance.participant_opacity_execution import _qualified_name_of, _raes_version
 from raes_conformance.conformance.participant_policy_execution import _CallCounter
 
+_LOGGER = get_logger(__name__)
 _TOOL_REVISION = "mixed-backend-executed/rev1"
 EFFECT_METHODS = ("grant", "start_operation", "stage_reports", "read_stage")
 
@@ -193,6 +196,9 @@ def close_plane(plane: object | None, failures: list[str]) -> bool:
     try:
         plane.close()
     except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Isolation of the installed services that close with the runtime: a refusal category needs no record.
+            _LOGGER.exception("mixed-backend probe runtime close failed", exc_info=foreign_failure_record(exc))
         failures.append(f"cleanup: {sanitized_failure_message(exc)}")
         return False
     return True
@@ -230,6 +236,10 @@ def submit(call: Callable[[], object], plane: object, store: object) -> Operatio
     try:
         receipt = call()
     except Exception as exc:
+        if not isinstance(exc, RaesError):
+            # Isolation of the installed services and the harness configuration: a refusal category of the
+            # runtime is the expected outcome of a negative case and needs no record.
+            _LOGGER.exception("mixed-backend governed call failed", exc_info=foreign_failure_record(exc))
         return OperationRead(refusal=sanitized_failure_message(exc), refusal_type=type(exc))
     return read_operation(plane, store, receipt)
 

@@ -14,6 +14,8 @@ from collections.abc import Iterator
 from pathlib import Path, PurePosixPath
 from typing import TYPE_CHECKING, Any, BinaryIO
 
+from raes_contracts.errors import OperationalError
+
 from .._errors import SDLParseError
 from ._cache_integrity import _DECOMPRESSION_CHUNK_BYTES, _validated_cache_root
 from ._filesystem import (
@@ -65,11 +67,12 @@ def _acquire_file_lock(handle: BinaryIO) -> None:
                 import fcntl
 
                 fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-            return
         except OSError as exc:
             if time.monotonic() >= deadline:
-                raise SDLParseError("Timed out waiting for the OCI module cache lock") from exc
+                raise OperationalError("Timed out waiting for the OCI module cache lock") from exc
             time.sleep(0.01)
+        else:
+            return
 
 
 def _release_file_lock(handle: BinaryIO) -> None:
@@ -91,7 +94,7 @@ def _anchored_lock_parent(
 ) -> tuple[int, os.stat_result, str | Path, dict[str, int]]:
     parent_expected = lock_path.parent.lstat()
     if not stat.S_ISDIR(parent_expected.st_mode):
-        raise SDLParseError(error_message)
+        raise OperationalError(error_message)
     if not _LOCK_DIR_FD_SUPPORTED:
         return -1, parent_expected, lock_path, {}
 
@@ -100,8 +103,8 @@ def _anchored_lock_parent(
     try:
         parent_actual = os.fstat(parent_descriptor)
         if not stat.S_ISDIR(parent_actual.st_mode) or not _same_file_identity(parent_expected, parent_actual):
-            raise SDLParseError(error_message)
-    except OSError, SDLParseError:
+            raise OperationalError(error_message)
+    except BaseException:
         os.close(parent_descriptor)
         raise
     return parent_descriptor, parent_actual, lock_path.name, {"dir_fd": parent_descriptor}
@@ -122,7 +125,7 @@ def _open_existing_lock_file(
     error_message: str,
 ) -> int:
     if not stat.S_ISREG(expected.st_mode):
-        raise SDLParseError(error_message)
+        raise OperationalError(error_message)
     return os.open(open_path, common_flags, **open_options)
 
 
@@ -174,10 +177,10 @@ def _validate_open_lock(
 ) -> None:
     actual = os.fstat(descriptor)
     if not stat.S_ISREG(actual.st_mode) or (expected is not None and not _same_file_identity(expected, actual)):
-        raise SDLParseError(error_message)
+        raise OperationalError(error_message)
     parent_after = lock_path.parent.lstat()
     if not stat.S_ISDIR(parent_after.st_mode) or not _same_file_identity(parent_actual, parent_after):
-        raise SDLParseError(error_message)
+        raise OperationalError(error_message)
 
 
 def _open_cache_lock(lock_path: Path) -> BinaryIO:
@@ -210,18 +213,15 @@ def _open_cache_lock(lock_path: Path) -> BinaryIO:
         )
         handle = os.fdopen(descriptor, "r+b")
         descriptor = -1
-        return handle
-    except SDLParseError:
-        if descriptor >= 0:
-            os.close(descriptor)
-        raise
     except OSError as exc:
+        raise OperationalError(error_message) from exc
+    finally:
+        # The handle owns the descriptor after fdopen; close it only on a failure path.
         if descriptor >= 0:
             os.close(descriptor)
-        raise SDLParseError(error_message) from exc
-    finally:
         if parent_descriptor >= 0:
             os.close(parent_descriptor)
+    return handle
 
 
 @contextlib.contextmanager
@@ -252,7 +252,7 @@ def _bounded_gzip_tar_stream(bundle_bytes: bytes) -> Iterator[BinaryIO]:
     absolute_limit = limits.max_tar_stream_bytes
     ratio_limit = len(bundle_bytes) * limits.max_gzip_expansion_ratio
     if absolute_limit < 0 or limits.max_gzip_expansion_ratio < 0:
-        raise SDLParseError("OCI gzip expansion limits must be non-negative")
+        raise ValueError("OCI gzip expansion limits must be non-negative")
     total = 0
     with (
         tempfile.SpooledTemporaryFile(max_size=_SPOOL_MEMORY_BYTES, mode="w+b") as stream,

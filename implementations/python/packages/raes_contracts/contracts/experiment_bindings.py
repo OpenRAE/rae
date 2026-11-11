@@ -20,6 +20,9 @@ from pydantic import (
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from raes_contracts.canonical import canonical_contract_digest
+
+from .._sealing import sealing_active
 from ..secret_references import SecretReferenceId
 from ..versions import (
     EXPERIMENT_BINDING_DESCRIPTORS_V1_SCHEMA_VERSION,
@@ -28,7 +31,7 @@ from ..versions import (
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
 from .capabilities import ApparatusIdentityModel
 from .participant_control_context import ParticipantControlContextAssetReferenceModel
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 
 class BindingScalarType(str, Enum):
@@ -327,7 +330,7 @@ class ExperimentBindingDescriptorSetModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "binding-descriptors-canonical-targets-injective",
             "Binding ids must be unique and target resolution must be injective within each source condition.",
@@ -421,9 +424,8 @@ class ParticipantConfigurationResultModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_configuration_digest(self) -> ParticipantConfigurationResultModel:
-        from ..satisfiability import canonical_contract_digest
 
-        if self.configuration_digest != canonical_contract_digest(self.configuration):
+        if not sealing_active() and self.configuration_digest != canonical_contract_digest(self.configuration):
             raise ValueError("configuration_digest must match the canonical normalized configuration")
         return self
 
@@ -435,7 +437,7 @@ class ParticipantConfigurationResultModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "participant-configuration-digest-valid",
             "The configuration digest must be the RFC 8785/JCS digest of the complete normalized configuration.",

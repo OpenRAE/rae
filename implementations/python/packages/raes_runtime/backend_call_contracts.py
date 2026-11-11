@@ -9,6 +9,7 @@ from itertools import islice
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.diagnostics import Diagnostic, portable_diagnostic_payload
 from raes_contracts.materialization import MATERIALIZATION_MAX_BYTES, MaterializationSubmission
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.realization_observation import RealizationObservationDisclosure
 from raes_contracts.realization_structure import validate_realization_value
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
@@ -17,26 +18,28 @@ from .backend_snapshot_contracts import snapshot_shape_violation
 
 _MAX_DIAGNOSTICS = 1024
 _MAX_DETAILS_BYTES = 65536
+_TOO_MANY_DIAGNOSTICS = "Backend returned too many diagnostics."
+_LOGGER = get_logger(__name__)
 
 
-def _bounded_diagnostics(result: object) -> list[Diagnostic]:
-    """Drain one diagnostics iterable under its bound, refusing an overlong one."""
-
-    diagnostics = list(islice(result, _MAX_DIAGNOSTICS + 1))
-    if len(diagnostics) > _MAX_DIAGNOSTICS:
-        raise ValueError("Backend returned too many diagnostics.")
+def _drained_diagnostics(result: object, address: str) -> list[Diagnostic] | None:
+    try:
+        # Drain one diagnostics iterable under its bound; its iterator is backend code.
+        diagnostics = list(islice(result, _MAX_DIAGNOSTICS + 1))
+    except Exception as exc:
+        # Isolation of the backend iterator: record its failure once, without its type, then refuse the result.
+        _LOGGER.exception("backend diagnostics iterable failed at %s", address, exc_info=foreign_failure_record(exc))
+        return None
     return diagnostics
 
 
 def _materialize_diagnostics(result: object, address: str) -> tuple[list[Diagnostic], str | None]:
     message = _diagnostics_iterable_violation(result, address)
-    if message:
-        return [], message
-    try:
-        diagnostics = _bounded_diagnostics(result)
-    except Exception as exc:
-        overlong = isinstance(exc, ValueError) and str(exc) == "Backend returned too many diagnostics."
-        return [], str(exc) if overlong else "Backend returned a diagnostics iterable that could not be validated."
+    diagnostics = None if message else _drained_diagnostics(result, address)
+    if diagnostics is None:
+        return [], message or "Backend returned a diagnostics iterable that could not be validated."
+    if len(diagnostics) > _MAX_DIAGNOSTICS:
+        return [], _TOO_MANY_DIAGNOSTICS
     return diagnostics, _diagnostics_values_violation(diagnostics, address)
 
 

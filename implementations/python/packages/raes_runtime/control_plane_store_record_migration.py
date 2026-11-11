@@ -10,12 +10,14 @@ from typing import Any
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.diagnostics import portable_diagnostic_payload
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError
 from raes_contracts.operation_lifecycle import OperationAdmissionContext, OperationKind
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import OperationState, operation_terminal_diagnostic
 from raes_contracts.versions import OPERATION_SCHEMA_VERSION
 
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
+from .control_plane_store_claim_columns import local_operation_claim_columns
 from .control_plane_store_records import _record_from_payload, _record_payload
 
 _MIGRATION_ID = "local-operation-record/v1-to-v2"
@@ -24,6 +26,9 @@ _MIGRATION_ID = "local-operation-record/v1-to-v2"
 # re-serializing its snapshot without that carrier, which is what keeps a
 # retained modular claim from being silently erased by a downgrade round-trip.
 LOCAL_OPERATION_SCHEMA_VERSION = "12"
+# A schema version that this build cannot open conflicts with the store state; it is not a damaged store.
+UNSUPPORTED_SCHEMA = "unsupported local control-plane database schema"
+_RECORD_IDENTITY_MISMATCH = "operation record identity does not match its durable key"
 _CONTROL_EVALUATION_CARRIER = "participant_control_evaluation_history"
 _SNAPSHOT_KEY = "runtime-snapshot"
 _OPERATION_KINDS = {
@@ -83,7 +88,11 @@ def migrate_sqlite_operation_records(
     rows = connection.execute("SELECT operation_id, payload, digest FROM operations ORDER BY operation_id").fetchall()
     for operation_id, content, digest in rows:
         payload = decode_payload(content, digest, kind="operation record")
-        disposition = migrate_legacy_operation_payload(payload)
+        try:
+            disposition = migrate_legacy_operation_payload(payload)
+        except ValueError as exc:
+            # The legacy payload validators refuse with ValueError (E3); a stored row that fails them is damaged.
+            raise EvidenceIntegrityError("legacy operation record failed its durable contract check") from exc
         if disposition.record is None:
             assert disposition.audit is not None
             audit_payload, audit_digest = encode_payload(asdict(disposition.audit))
@@ -95,7 +104,7 @@ def migrate_sqlite_operation_records(
             continue
         record = disposition.record
         if record.receipt.operation_id != operation_id:
-            raise ValueError("operation record identity does not match its durable key")
+            raise EvidenceIntegrityError(_RECORD_IDENTITY_MISMATCH)
         record_content, record_digest = encode_payload(_record_payload(record))
         connection.execute(
             """
@@ -147,7 +156,7 @@ def migrate_sqlite_schema(
             encode_payload=encode_payload,
         )
     elif row is None or row[0] not in {"4", "5", "6", "7", "8", "9", "10", "11", LOCAL_OPERATION_SCHEMA_VERSION}:
-        raise ValueError("unsupported local control-plane database schema")
+        raise ConflictError(UNSUPPORTED_SCHEMA)
     _ensure_idempotency_claim_index(connection)
     if row is not None and row[0] != LOCAL_OPERATION_SCHEMA_VERSION:
         _initialize_control_evaluation_carrier(
@@ -218,11 +227,15 @@ def _add_idempotency_claim_columns(
         """
     ).fetchall()
     for operation_id, persisted_key, content, digest in rows:
-        record = _record_from_payload(decode_payload(content, digest, kind="operation record"))
+        payload = decode_payload(content, digest, kind="operation record")
+        try:
+            record = _record_from_payload(payload)
+        except ValueError as exc:
+            raise EvidenceIntegrityError("operation record failed its durable contract check") from exc
         if record.receipt.operation_id != operation_id:
-            raise ValueError("operation record identity does not match its durable key")
+            raise EvidenceIntegrityError(_RECORD_IDENTITY_MISMATCH)
         if record.idempotency_key != persisted_key:
-            raise ValueError("operation idempotency key does not match its durable index")
+            raise EvidenceIntegrityError("operation idempotency key does not match its durable index")
         context = record.receipt.context
         migrated_record = ControlPlaneOperationRecord(
             receipt=record.receipt,
@@ -235,38 +248,31 @@ def _add_idempotency_claim_columns(
             legacy_request_commitment=bool(record.idempotency_key),
         )
         record_content, record_digest = encode_payload(_record_payload(migrated_record))
-        legacy_opaque = int(record.idempotency_key.startswith(("participant-control:", "participant-crossing:")))
+        # The migrated record marks its legacy request commitment. Thus its claim columns quarantine an opaque key.
         connection.execute(
             """
             UPDATE operations SET
-                actor_id=?, operation_kind=?, target_scope=?, run_scope=?, request_commitment=?,
-                legacy_opaque_claim=?, request_fingerprint=?, payload=?, digest=?
+                idempotency_key=?, actor_id=?, operation_kind=?, target_scope=?, run_scope=?,
+                request_commitment=?, legacy_opaque_claim=?, request_fingerprint=?, payload=?, digest=?
             WHERE operation_id=?
             """,
-            (
-                context.actor_id,
-                context.operation_kind.value,
-                context.target_scope,
-                context.run_scope,
-                context.request_commitment,
-                legacy_opaque,
-                context.request_commitment,
-                record_content,
-                record_digest,
-                operation_id,
-            ),
+            (*local_operation_claim_columns(migrated_record), record_content, record_digest, operation_id),
         )
     connection.execute("DROP INDEX IF EXISTS operations_idempotency_key")
 
 
 def _ensure_idempotency_claim_index(connection: sqlite3.Connection) -> None:
-    connection.execute(
-        """
-        CREATE UNIQUE INDEX IF NOT EXISTS operations_idempotency_claim
-        ON operations(actor_id, operation_kind, idempotency_key)
-        WHERE idempotency_key != ''
-        """
-    )
+    try:
+        connection.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS operations_idempotency_claim
+            ON operations(actor_id, operation_kind, idempotency_key)
+            WHERE idempotency_key != ''
+            """
+        )
+    except sqlite3.IntegrityError as exc:
+        # Stored rows that repeat one idempotency claim cannot carry the unique claim index.
+        raise EvidenceIntegrityError("stored operation records repeat an idempotency claim") from exc
 
 
 def _required_mapping(payload: dict[str, Any], field: str) -> dict[str, Any]:
@@ -350,6 +356,7 @@ def _legacy_denial_audit(
 
 __all__ = (
     "LOCAL_OPERATION_SCHEMA_VERSION",
+    "UNSUPPORTED_SCHEMA",
     "LegacyOperationDisposition",
     "migrate_legacy_operation_payload",
     "migrate_sqlite_operation_records",

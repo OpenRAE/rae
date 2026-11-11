@@ -8,6 +8,7 @@ from functools import wraps
 from time import monotonic
 from typing import TYPE_CHECKING
 
+from .errors import RuntimeBudgetExhaustedError
 from .operation_execution_adapter import LocalExecutionAdapter
 
 if TYPE_CHECKING:
@@ -22,7 +23,7 @@ def remaining_store_budget(budget_ms: int) -> int:
     if deadline is not None:
         budget_ms = min(budget_ms, int((deadline - monotonic()) * 1000))
         if budget_ms <= 0:
-            raise TimeoutError("store commit and readback budget exhausted")
+            raise RuntimeBudgetExhaustedError("store commit and readback budget exhausted")
     return budget_ms
 
 

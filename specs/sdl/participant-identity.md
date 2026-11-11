@@ -1,4 +1,4 @@
-# Participant Identity, Affiliation, and Objective Assignment
+# Participant identity, affiliation, and objective assignment
 
 Status: **normative**. Decision: [ADR-109](../../docs/decisions/adrs/adr-109-participant-identity-and-objective-assignment.md).
 Issue #1338; no requirement status transition is implied.

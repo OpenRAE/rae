@@ -5,6 +5,7 @@ from __future__ import annotations
 from copy import deepcopy
 from pathlib import Path
 
+import pytest
 from tools.check_related_work_comparison import (
     EXPECTED_AXIS_IDS,
     load_bundle,
@@ -216,3 +217,24 @@ def test_gate_rejects_historical_delivery_scores_without_executable_evidence() -
     failures = validate_bundle(REPO_ROOT, protocol, snapshot, analysis)
 
     assert "related-work-raes-executable-evidence" in _rule_ids(failures)
+
+
+def test_an_invalid_bundle_artifact_is_a_bundle_failure(tmp_path: Path) -> None:
+    from tools.check_related_work_comparison import PROTOCOL_PATH, evaluate
+
+    artifact = tmp_path / PROTOCOL_PATH
+    artifact.parent.mkdir(parents=True)
+    artifact.write_text('{"axes": [], "axes": []}', encoding="utf-8")
+
+    assert _rule_ids(evaluate(tmp_path)) == {"related-work-bundle-invalid"}
+
+
+def test_a_defect_while_loading_the_bundle_is_not_reported_as_an_invalid_bundle(monkeypatch) -> None:
+    import tools.check_related_work_comparison as gate
+
+    def defective(*_args, **_kwargs):
+        raise ValueError("loader defect")
+
+    monkeypatch.setattr(gate, "load_bounded_json_object", defective)
+    with pytest.raises(ValueError, match="loader defect"):
+        gate.evaluate(REPO_ROOT)
