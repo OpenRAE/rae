@@ -8,6 +8,10 @@ on:
     branches: [main, dev, go-cutover]
   pull_request:
     branches: [main, dev, go-cutover]
+  # Code scanning default setup does not run on merge groups. The `dev` merge
+  # queue requires this advanced workflow to report the CodeQL contexts (#2026).
+  merge_group:
+    types: [checks_requested]
   schedule:
     - cron: '23 4 * * 1'
   workflow_dispatch:

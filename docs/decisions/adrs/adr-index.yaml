@@ -656,3 +656,9 @@ adrs:
     path: docs/decisions/adrs/adr-120-owned-and-admitted-typed-descriptor-profiles.md
   - id: ADR-121
     path: docs/decisions/adrs/adr-121-strict-package-layers.md
+  - id: ADR-122
+    path: docs/decisions/adrs/adr-122-dev-merge-queue.md
+    amendments:
+      - date: 2026-11-11
+        ref: "#2031"
+        summary: "Decision 3: dev uses the CodeQL code scanning rule instead of the CodeQL status check, because code scanning does not post that check on merge groups."

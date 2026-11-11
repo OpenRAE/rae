@@ -1,4 +1,4 @@
-# SDL Parser Behavior
+# SDL parser behavior
 
 The parser (`raes.parser`) transforms raw YAML into a validated
 `Scenario` object through `sdl-yaml/v1` decoding, source-marked safe
@@ -11,15 +11,15 @@ Untrusted consumers use `parse_sdl_sources()`. See
 
 This layer is intentionally about syntax, normalization, and structural model
 construction. It is usually an `FM0` surface under the repository's
-[coding standards](../reference/coding-standards.md): parser work normally
-needs ordinary tests, not state-machine modeling or solver-backed formal
-artifacts, unless it also introduces new semantic invariants above raw syntax.
+[coding standards](../reference/coding-standards.md). Parser work normally
+needs ordinary tests. It does not need state-machine modeling or solver-backed
+formal artifacts, unless it also adds new semantic invariants above raw syntax.
 The mapping-key gate is `FM1`; portable declaration identity, canonical-address
 injectivity, and cross-stage coherence are `FM2`. Table-driven, property, and
 differential tests pin grammar parity, ambiguity rejection, literal-map
 preservation, and processor/runtime agreement.
 
-## Canonical Fields and Migration
+## Canonical fields and migration
 
 Canonical SDL structural fields use exact lower-case `snake_case`:
 
@@ -53,11 +53,11 @@ user-defined and native maps, but distinct valid declaration ids such as
 
 The check runs over the composed YAML node graph before a Python dictionary is
 constructed, so it retains both authored spellings and source ranges. YAML
-anchors remain supported. A `<<` merge is rejected by strict parsing and is
-accepted only by explicit migration when all inherited and local effective
-keys are disjoint; cyclic aliases are rejected.
+anchors remain supported. Strict parsing rejects a `<<` merge. Explicit
+migration accepts a `<<` merge only when all inherited and local effective keys
+are disjoint. The parser rejects cyclic aliases.
 
-## Source Profile
+## Source profile
 
 `sdl-yaml/v1` is UTF-8, exactly one YAML 1.2.2 document, and uses Core-schema
 scalar resolution. Explicit tags/directives, non-string keys, non-finite or
@@ -66,7 +66,7 @@ model construction. Unlike PyYAML's default YAML 1.1 resolver, `yes`, `no`,
 `on`, and `off` remain strings. The normative rules and exact budgets are in
 `specs/sdl/document-model.md`.
 
-## Shorthand Expansion
+## Shorthand expansion
 
 Several shorthand forms are expanded before model construction:
 
@@ -77,7 +77,9 @@ Several shorthand forms are expanded before model construction:
 | `roles: {admin: "username"}` | `roles: {admin: {username: "username"}}` |
 | `features: [svc-a, svc-b]` (on nodes) | `features: {svc-a: "", svc-b: ""}` |
 
-Source expansion only applies to actual SDL `source` fields. It is skipped inside `relationships` and `agents` where `source` is a plain string reference, and it does not fire on user-defined map keys that merely happen to be named `source`.
+Source expansion only applies to actual SDL `source` fields. It does not apply
+inside `relationships` and `agents`, where `source` is a plain string reference.
+It also does not apply to user-defined map keys that have the name `source`.
 
 Shorthand expansion also works when the shorthand value is a full variable
 placeholder. For example, `infrastructure: {web: ${replicas}}` expands to
@@ -99,7 +101,7 @@ The intended boundary is:
 
 So a hostname may come from `${hostname}`, but a node key like `web` may not.
 
-## OCR Duration Grammar
+## Duration grammar
 
 Script and event times accept the documented OCR time units:
 
@@ -117,7 +119,7 @@ or `1m+30`. Sub-second values are rounded up to whole seconds, so `1 ms`
 parses as `1`. Negative numeric durations are rejected rather than silently
 coerced.
 
-## Format and Schema Boundaries
+## Format and schema boundaries
 
 The parser accepts one source profile:
 
@@ -132,7 +134,7 @@ a raw-YAML grammar and cannot validate tags, aliases, duplicate keys, scalar
 resolution, or source limits. Canonical shipped examples use longhand values so
 their strict decoded object validates against it directly.
 
-## Validation Pipeline
+## Validation pipeline
 
 1. **Source-profile preflight** — enforce UTF-8 size, tokens, aliases, and YAML 1.2 Core rules
 2. **Safe YAML composition** — build a source-marked standard-tag node graph
@@ -229,10 +231,15 @@ except SDLImportError as exc:
     print(exc.code)  # for example, sdl.import.digest-missing
 ```
 
-The operation reads only the supplied bytes. Each import at each depth must be
-`local:`, must have a `sha256:` digest pin and must match exactly one record in
-the `raes.lock.json` of the directory of its importing document. The operation
-never reads `raes-trust.yaml`. The result passed full semantic validation.
+The operation reads only the supplied bytes. Each import at each depth must:
+
+- be `local:`
+- have a `sha256:` digest pin
+- match exactly one record in the `raes.lock.json` of the directory of its
+  importing document
+
+The operation never reads `raes-trust.yaml`. The result passed full semantic
+validation.
 
 Import `source:` values are not treated as ordinary SDL package-source
 shorthand. They are resolved by the composition layer, not expanded into
@@ -243,14 +250,15 @@ never converted into identity. Composition alone creates dotted qualified
 names and the reserved `__private` segment. Raw dotted declaration keys are
 invalid, including when migration acceptance is enabled.
 
-## Error Types
+## Error types
 
-- `SDLParseError` — YAML syntax errors and structural validation failures;
-  mapping-key failures carry structured `.diagnostics` with stable code, JSON
-  Pointer, authored spellings, and source ranges; invalid declaration keys and
-  scalar ids use `sdl.identifier.invalid` and do not echo the invalid spelling;
-  other typed-model failures use `sdl.model.invalid` with a control-escaped,
-  512-character-bounded domain message and no Pydantic input rendering
+- `SDLParseError` — YAML syntax errors and structural validation failures:
+  - Mapping-key failures carry structured `.diagnostics` with stable code, JSON
+    Pointer, authored spellings, and source ranges.
+  - Invalid declaration keys and scalar ids use `sdl.identifier.invalid` and do
+    not echo the invalid spelling.
+  - Other typed-model failures use `sdl.model.invalid` with a control-escaped,
+    512-character-bounded domain message and no Pydantic input rendering.
 - `SDLImportError` — a subclass of `SDLParseError` for each import refusal; its
   `.code` is an `SDLImportErrorCode` value, such as `sdl.import.lock-mismatch`
   (see [ADR-119](../../decisions/adrs/adr-119-consumer-parse-of-supplied-sdl-sources.md))
@@ -258,8 +266,18 @@ invalid, including when migration acceptance is enabled.
 
 Imported-unit typed-model failures use the same bounded `sdl.model.invalid`
 diagnostics as root declarations, with the imported source file and field
-pointer. Malformed import version constraints also raise `SDLParseError` with a
-field diagnostic. Authored behavior refs using the reserved `__private` segment
-fail before composition; generated private refs remain valid in expanded SDL.
+pointer. These cases also raise `SDLParseError` with a field diagnostic:
+
+- a malformed import version constraint
+- a blank import version or module version
+- an import version or module version longer than 256 characters
+
+An imported unit with a removed scoring section gets the same ADR-073 error as a
+root document. `resolve_lock_records` and `raes sdl resolve` validate the root
+document as `parse_sdl_file` does before they resolve imports. They write no
+lockfile for a root that this validation rejects.
+
+Authored behavior refs using the reserved `__private` segment fail before
+composition; generated private refs remain valid in expanded SDL.
 See [behavior composition](../../decisions/issue-297-behavior-authoring.md) for
 reference scope, compatibility, and the authoring/runtime boundary.

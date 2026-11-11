@@ -278,6 +278,24 @@ def _reject_removed_scoring_sections(data: dict[str, Any], *, path: Path | None)
     )
 
 
+def admit_authored_document(
+    data: dict[str, Any],
+    *,
+    path: Path | None,
+    source_ranges: dict[str, SDLSourceRange],
+) -> Scenario:
+    """Validate one normalized authored document before import expansion.
+
+    The parser, the lock resolver and module expansion admit root and imported
+    documents through this function, so each path reports the same diagnostics.
+    """
+    _reject_removed_scoring_sections(data, path=path)
+    try:
+        return Scenario.model_validate(data)
+    except ValidationError as exc:
+        raise _model_parse_error(exc, path=path, source_ranges=source_ranges) from exc
+
+
 # Scopes where "source" is a plain string reference, NOT a Source package.
 _SOURCE_SKIP_SECTIONS = frozenset({"relationships", "agents", "imports", "runtime"})
 
@@ -389,10 +407,7 @@ def parse_sdl(
 
         # Public authoring checks must run before expansion introduces generated
         # identities, including legitimate private references owned by modules.
-        try:
-            Scenario.model_validate(data)
-        except ValidationError as exc:
-            raise _model_parse_error(exc, path=path, source_ranges=source_ranges) from exc
+        admit_authored_document(data, path=path, source_ranges=source_ranges)
 
         data, _expansion_provenance = expand_sdl_modules(
             data,

@@ -35,6 +35,16 @@ on:
         required: false
         default: false
         type: boolean
+      sonar-pull-request:
+        description: Queued pull request number; set only for a merge group
+        required: false
+        default: ""
+        type: string
+      sonar-pull-request-branch:
+        description: Head branch of the queued pull request; set only for a merge group
+        required: false
+        default: ""
+        type: string
     secrets:
       sonar_token:
         description: SonarCloud token; only consumed by the internally trust-gated sonar job
@@ -538,6 +548,7 @@ jobs:
       inputs.sonar-enabled
       && ((github.event_name == 'push'
       && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'))
+      || github.event_name == 'merge_group'
       || (github.event_name == 'pull_request'
       && github.event.pull_request.head.repo.full_name == github.repository
       && github.actor != 'dependabot[bot]'))
@@ -553,10 +564,38 @@ jobs:
         with:
           name: coverage-report
           path: implementations/python/
+      # SonarCloud has no merge queue support. A merge group runs the same
+      # pull request analysis and quality gate for the queued pull request
+      # against `dev`, on the merge group commit (#2026). The workflow fails
+      # closed when a merge group does not name its pull request.
+      - name: Resolve the analysis target
+        id: target
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PULL_REQUEST: ${{ inputs.sonar-pull-request }}
+          PULL_REQUEST_BRANCH: ${{ inputs.sonar-pull-request-branch }}
+        run: |
+          set -euo pipefail
+          if [ "${EVENT_NAME}" != "merge_group" ]; then
+            echo "args=" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+          if ! printf '%s\n' "${PULL_REQUEST}" | grep -Eq '^[0-9]+$' || [ -z "${PULL_REQUEST_BRANCH}" ]; then
+            echo "A merge group analysis requires the queued pull request number and branch" >&2
+            exit 1
+          fi
+          if ! printf '%s\n' "${PULL_REQUEST_BRANCH}" | grep -Eq '^[A-Za-z0-9._/-]+$'; then
+            echo "Queued pull request branch '${PULL_REQUEST_BRANCH}' is not a plain ref name" >&2
+            exit 1
+          fi
+          printf 'args=-Dsonar.pullrequest.key=%s -Dsonar.pullrequest.branch=%s -Dsonar.pullrequest.base=dev\n' \
+            "${PULL_REQUEST}" "${PULL_REQUEST_BRANCH}" >> "${GITHUB_OUTPUT}"
       - name: SonarCloud Scan
         id: scan
         continue-on-error: true
         uses: SonarSource/sonarqube-scan-action@e805d875275f728fac1885b413934be6d7c63f65 # v8
+        with:
+          args: ${{ steps.target.outputs.args }}
         env:
           SONAR_TOKEN: ${{ secrets.sonar_token }}
       - name: Record quality-gate outcome

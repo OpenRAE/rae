@@ -8,6 +8,18 @@ from raes_contracts.identifiers import (
 )
 from raes_contracts.sdl_model import SDLModel
 
+# Resolved import provenance bounds both the requested and the module version to this length.
+_MAX_VERSION_LENGTH = 256
+
+
+def _require_version_text(value: str, *, field_name: str) -> str:
+    """Reject a blank or overlong version, which resolved import provenance cannot record."""
+    if not value.strip():
+        raise ValueError(f"{field_name} must not be blank")
+    if len(value) > _MAX_VERSION_LENGTH:
+        raise ValueError(f"{field_name} must be at most {_MAX_VERSION_LENGTH} characters")
+    return value
+
 
 class ModuleDescriptor(SDLModel):
     """Published module metadata for SDL composition."""
@@ -17,6 +29,11 @@ class ModuleDescriptor(SDLModel):
     parameters: list[PortableIdentifier] = Field(default_factory=list)
     exports: dict[str, list[str]] = Field(default_factory=dict)
     description: str = ""
+
+    @field_validator("version")
+    @classmethod
+    def _validate_version(cls, value: str) -> str:
+        return _require_version_text(value, field_name="module.version")
 
     @model_validator(mode="after")
     def validate_descriptor(self) -> ModuleDescriptor:
@@ -46,6 +63,7 @@ class ImportDecl(SDLModel):
 
         from .module_registry._digests import _normalize_exact_or_range
 
+        _require_version_text(value, field_name="import version")
         try:
             _normalize_exact_or_range(value)
         except InvalidSpecifier as exc:

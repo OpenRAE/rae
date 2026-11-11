@@ -132,6 +132,10 @@ def _run_policy(session: nox.Session, reporter: SessionReporter, *args: str) -> 
         lambda: _run_project_python(session, "tools/check_tooling_artifact_policy.py"),
     )
     reporter.run(
+        "policy / branch merge queue",
+        lambda: _run_project_python(session, "tools/check_merge_queue_policy.py"),
+    )
+    reporter.run(
         "policy / conftest self-verify",
         lambda: _run(
             session,

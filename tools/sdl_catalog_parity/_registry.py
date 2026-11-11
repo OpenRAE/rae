@@ -7,7 +7,7 @@ from tools.sdl_catalog_parity._expectations_2 import EXPECTATIONS_PART_2
 from tools.sdl_catalog_parity._expectations_3 import EXPECTATIONS_PART_3
 from tools.sdl_catalog_parity._expectations_4 import EXPECTATIONS_PART_4
 
-REFERENCE_EDGE_EXPECTATIONS: dict[str, tuple[str, str, str, str]] = {
+REFERENCE_EDGE_EXPECTATIONS: dict[str, tuple[str, str, str]] = {
     **EXPECTATIONS_PART_1,
     **EXPECTATIONS_PART_2,
     **EXPECTATIONS_PART_3,
