@@ -144,7 +144,7 @@ def _manifest_authority_diagnostic(
     manifest: BackendManifest,
 ) -> Diagnostic | None:
     target_envelope = manifest.realization_envelope.identity if manifest.realization_envelope is not None else None
-    envelope_mismatch = _requires_realization_envelope(plan) and (
+    envelope_mismatch = (plan.realization_envelope is not None or _requires_realization_envelope(plan)) and (
         plan.realization_envelope is None or target_envelope is None or plan.realization_envelope != target_envelope
     )
     diagnostic = None
