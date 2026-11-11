@@ -196,10 +196,13 @@ def _merge_sections(
     return merged
 
 
-def _import_decl(value: object) -> ImportDecl:
+def _import_decl(value: object, *, path: Path, index: int) -> ImportDecl:
     if isinstance(value, ImportDecl):
         return value
-    return ImportDecl.model_validate(value)
+    try:
+        return ImportDecl.model_validate(value)
+    except ValidationError as exc:
+        raise _model_parse_error(exc, path=path, source_ranges={}, location_prefix=("imports", index)) from exc
 
 
 @dataclass(frozen=True)
@@ -261,7 +264,7 @@ def _expansion_context(options: _ExpansionPrivateOptions) -> _ExpansionContext:
 
 
 def _expand_one_import(
-    raw_import: object,
+    import_decl: ImportDecl,
     merged: dict[str, Any],
     context: _ImportContext,
 ) -> tuple[
@@ -276,7 +279,6 @@ def _expand_one_import(
     """Resolve, expand, namespace, and merge a single import; return provenance additions."""
 
     context.budget.add_import(path=context.path)
-    import_decl = _import_decl(raw_import)
     if "__private." in import_decl.namespace:
         raise SDLImportError(
             SDLImportErrorCode.NAMESPACE_INVALID,
@@ -482,9 +484,10 @@ def expand_sdl_modules(
     )
 
     for index, raw_import in enumerate(merged.get("imports", [])):
+        import_decl = _import_decl(raw_import, path=path, index=index)
         try:
             merged, import_add, capability_add, derivation_add, explicitness_add, realization_add, constraint_add = (
-                _expand_one_import(raw_import, merged, context)
+                _expand_one_import(import_decl, merged, context)
             )
         except SDLImportError as exc:
             if exc.located:

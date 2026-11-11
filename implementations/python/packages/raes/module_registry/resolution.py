@@ -11,10 +11,9 @@ from pydantic import ValidationError
 from raes_contracts.digests import SHA256_PREFIX, sha256_digest
 
 from .._errors import SDLImportError, SDLImportErrorCode, SDLParseDiagnostic, SDLParseError, SDLSourceRange
-from .._model_diagnostics import _model_parse_error
 from .._source_profile import DEFAULT_SOURCE_PARSE_OPTIONS, SDLSourceParseOptions
 from .._supplied_sources import SuppliedSources
-from ..scenario import ImportDecl, ModuleDescriptor, Scenario
+from ..scenario import ImportDecl, ModuleDescriptor
 from ._constants import LOCKFILE_NAME, OCI_BUNDLE_MEDIA_TYPE, OCI_LAYOUT_MEDIA_TYPE
 from ._digests import _descriptor_digest, _satisfies_version, _select_tag
 from ._supplied_admission import require_import_pin, require_lock_record
@@ -270,7 +269,7 @@ def _resolve_local_import(
     *,
     context: _ResolutionContext,
 ) -> ResolvedModule:
-    from ..parser import _load_normalized_data
+    from ..parser import _load_normalized_data, admit_authored_document
 
     relative = source.removeprefix(_LOCAL_PREFIX)
     sources = context.supplied_sources
@@ -285,10 +284,7 @@ def _resolve_local_import(
         source_diagnostics=context.source_diagnostics,
         source_ranges=source_ranges,
     )
-    try:
-        imported_scenario = Scenario.model_validate(imported_raw)
-    except ValidationError as exc:
-        raise _model_parse_error(exc, path=import_path, source_ranges=source_ranges) from exc
+    imported_scenario = admit_authored_document(imported_raw, path=import_path, source_ranges=source_ranges)
     descriptor = _scenario_module_descriptor(
         imported_scenario,
         source_id=relative.replace("\\", "/"),
@@ -527,11 +523,13 @@ def resolve_lock_records(
     *,
     trust_policy: TrustPolicy | None = None,
 ) -> Lockfile:
-    from ..parser import _load_normalized_data, read_sdl_source
+    from ..parser import _load_normalized_data, admit_authored_document, read_sdl_source
 
     trust_policy = trust_policy or load_trust_policy(root_path.parent)
-    root_data = _load_normalized_data(read_sdl_source(root_path).text, path=root_path)
-    imports = [ImportDecl.model_validate(item) for item in root_data.get("imports", [])]
+    source_ranges: dict[str, SDLSourceRange] = {}
+    root_data = _load_normalized_data(read_sdl_source(root_path).text, path=root_path, source_ranges=source_ranges)
+    # The root passes the same structural admission as parse_sdl_file, so a lock never records a rejected root.
+    imports = admit_authored_document(root_data, path=root_path, source_ranges=source_ranges).imports
     records: list[LockRecord] = []
     for import_decl in imports:
         resolved = resolve_import(
