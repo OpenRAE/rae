@@ -16,7 +16,6 @@ from raes.parser import parse_sdl, parse_sdl_file
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.models import ParticipantEpisodeConditionRuntime, ParticipantEpisodePolicyRuntime
 from raes_schemas import schema_bundle
-
 from tools.check_formal_semantic_validation import replay_case
 
 REPO_ROOT = Path(__file__).resolve().parents[3]

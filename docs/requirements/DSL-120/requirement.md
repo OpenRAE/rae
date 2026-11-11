@@ -30,7 +30,6 @@ Primary-source refresh shows that participant-supporting ecosystems frequently t
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_episode_policy.py` (DSL-120 module-composition episode policy reference rewriting; rejects a reset authority its imported unit finds ambiguous.)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_mapping_scopes.py` (DSL-120 literal-key terminal and truncation condition maps.)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_language_metadata.py` (DSL-120 episode_policy field and reference completions.)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/__init__.py` (DSL-120 episode policy validator registration.)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_content_objectives.py` (DSL-120 episode policy validation pass.)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/participant_episode_policies.py` (DSL-120 participant.episode-policy compiled records.)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/models/participant_episode_resources.py` (DSL-120 compiled episode policy and condition records.)
@@ -50,4 +49,4 @@ Primary-source refresh shows that participant-supporting ecosystems frequently t
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/participant-episode-policies.md` (DSL-120 episode policy authoring guide.)
 - TESTS → TEST `implementations/python/tests/test_issue_307_dsl_120_participant_episode_policy.py` (DSL-120 authoring, validation, composition, compilation, and schema tests; no episode execution.)
 - TESTS → TEST `implementations/python/tests/test_issue_307_policy_ownership.py` (DSL-120 requirement-governance route and ownership bounds.)
-- TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (DSL-120 current formal capture: the compiled episode-policy map changes only the compile controls' digests.)
+- TESTS → TEST `implementations/python/tests/test_issue_1885_explicitness_work.py` (DSL-120 policy-free compilation retains its semantic fingerprints.)
