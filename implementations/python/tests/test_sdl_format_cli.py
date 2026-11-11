@@ -104,6 +104,6 @@ def test_sdl_resolve_reports_a_malformed_import_declaration_without_values(tmp_p
     result = CliRunner().invoke(app, ["sdl", "resolve", str(source)])
 
     assert result.exit_code == 1
-    assert "the input was rejected (ValidationError)" in result.stderr
+    assert "the input was rejected (SDLParseError)" in result.stderr
     assert SECRET not in result.output
     assert not (tmp_path / "raes.lock.json").exists()

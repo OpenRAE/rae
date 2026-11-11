@@ -259,7 +259,12 @@ invalid, including when migration acceptance is enabled.
 Imported-unit typed-model failures use the same bounded `sdl.model.invalid`
 diagnostics as root declarations, with the imported source file and field
 pointer. Malformed import version constraints also raise `SDLParseError` with a
-field diagnostic. Authored behavior refs using the reserved `__private` segment
+field diagnostic. A blank import version or module version, or one longer than
+256 characters, also raises `SDLParseError` with a field diagnostic. An imported
+unit with a removed scoring section gets the same ADR-073 error as a root
+document. `resolve_lock_records` and `raes sdl resolve` validate the root
+document as `parse_sdl_file` does before they resolve imports. They write no
+lockfile for a root that this validation rejects. Authored behavior refs using the reserved `__private` segment
 fail before composition; generated private refs remain valid in expanded SDL.
 See [behavior composition](../../decisions/issue-297-behavior-authoring.md) for
 reference scope, compatibility, and the authoring/runtime boundary.
