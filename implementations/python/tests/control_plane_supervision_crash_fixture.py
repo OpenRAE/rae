@@ -4,17 +4,17 @@ import os
 import sys
 from pathlib import Path
 
-from pydantic import SecretStr
+from postgresql_ledger_fixtures import ledger_configuration
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.planning import ProvisioningPlan
 from raes_runtime.control_plane import RuntimeControlPlane
-from raes_runtime.control_plane_store_postgresql import PostgreSQLControlPlaneStore, PostgreSQLStoreConfiguration
+from raes_runtime.control_plane_store_postgresql import PostgreSQLControlPlaneStore
 
 
 def main():
     if os.environ.get("RAES_EXECUTION_INTEGRATION") != "1":
         raise RuntimeError("process-loss witness requires the hosted integration composition")
-    phase, marker = sys.argv[1], Path(sys.argv[2])
+    phase, marker, database = sys.argv[1], Path(sys.argv[2]), sys.argv[3]
 
     class CrashStore(PostgreSQLControlPlaneStore):
         def save_record(self, record):
@@ -40,15 +40,7 @@ def main():
         return original(plan, snapshot)
 
     target.provisioner.apply = apply
-    store = CrashStore(
-        PostgreSQLStoreConfiguration(
-            host=os.environ["RAES_TEST_PG_HOST"],
-            database="rae_ledger",
-            user="rae_ledger",
-            password=SecretStr("integration-only"),
-            sslmode="disable",
-        )
-    )
+    store = CrashStore(ledger_configuration(database))
     with RuntimeControlPlane(target, store=store) as plane:
         plane.submit_provisioning(ProvisioningPlan(operation_id="crash-case"), idempotency_key="crash-retry")
         raise RuntimeError("configured crash cut was not reached")

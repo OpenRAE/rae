@@ -34,7 +34,7 @@ def dispatch_v2_effects(
     for evaluation in retained:
         if not _dispatchable_evaluation(evaluation):
             continue
-        origin = plane._store.load_records().get(evaluation.commit.receipt.ref)
+        origin = plane._operations.get(evaluation.commit.receipt.ref)
         if origin is not None and operation_receipt(origin) == evaluation.commit.receipt:
             _dispatch_evaluation(plane, binding, evaluation, origin, drain, cancellation_only=cancellation_only)
 
@@ -79,7 +79,7 @@ def _dispatch_effect(
 ) -> None:
     from .participant_control_effects import ParticipantControlEffectRealization, _dispatched
 
-    owner = plane._store.load_records()[evaluation.commit.receipt.ref]
+    owner = plane._operations[evaluation.commit.receipt.ref]
     admitted = set(evaluation.commit.dispatchable_effect_ids) & admitted_control_effect_ids_v2(
         evaluation.composition, evaluation.effect_plan
     )
@@ -104,21 +104,23 @@ def _dispatch_effect(
 
 def has_pending_cancellation(plane: RuntimeControlPlane, participant: str) -> bool:
     """Select eligible cancellation independently of ordinary or legacy backlog."""
-    from raes_contracts.participant_control_evaluation_history import participant_control_evaluation_from_payload
+    from .participant_control_operation_index import operation_index
+    from .participant_control_projection import control_projection
 
-    from .participant_control_receipts import effect_idempotency_key
-
-    completed = _completed_claims(plane)
-    work = []
-    history = plane._store.load_snapshot_state().snapshot.participant_control_evaluation_history.get(participant, ())
-    for payload in history:
-        evaluation = participant_control_evaluation_from_payload(payload)
-        if not _committed_v2(evaluation):
-            continue
-        for effect in evaluation.effect_plan.effects:
-            if (effect.originating_principal_ref, effect_idempotency_key(effect)) not in completed:
-                work.append(effect.target)
-    return any(item.kind == "interrupt" and item.operation == "cancel" for item in work)
+    with plane._operation_lock:
+        plane._reload_derived_state()
+        projection = control_projection(plane)
+        index = operation_index(plane)
+        work = []
+        for evaluation in projection.pending.get(participant, {}).values():
+            if not _committed_v2(evaluation):
+                continue
+            for effect in evaluation.effect_plan.effects:
+                claim = index.claim(effect)
+                outcome = None if claim is None else index.outcome(claim)
+                if outcome is None or outcome.disposition not in {"applied", "failed"}:
+                    work.append(effect.target)
+        return any(item.kind == "interrupt" and item.operation == "cancel" for item in work)
 
 
 def _committed_v2(
@@ -128,7 +130,7 @@ def _committed_v2(
 
 
 def _completed_claims(plane: RuntimeControlPlane) -> set[tuple[str, str]]:
-    records = plane._store.load_records().values()
+    records = plane._operations.values()
     completed = set()
     for record in records:
         if not record.idempotency_key.startswith("control-effect:"):

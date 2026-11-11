@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import json
 import re
-from functools import cache
+from functools import cache, partial
 from pathlib import Path
 from typing import Any
 
 import yaml
-from raes import Scenario, SDLParseError, load_sdl_fragment, parse_sdl, parse_sdl_file
+from raes import Scenario, SDLError, SDLParseError, load_sdl_fragment, parse_sdl, parse_sdl_file
 from raes_contracts.experiment_spec import ExperimentSpecValidationError, parse_experiment_spec
 from raes_contracts.experiment_spec import _load_yaml as _read_experiment_yaml
 
@@ -132,10 +132,14 @@ def _check_declared_sections(
 
 
 def _check_sdl(source: str | Path, relative_path: str, *, kind: str, subject: str) -> list[PolicyFailure]:
-    """Parse SDL text, or an SDL file through the file boundary, and fail on errors or advisories."""
+    """Parse SDL text, or an SDL file through the file boundary, and fail on errors or advisories.
+
+    The parser reports invalid SDL with an ``SDLError`` and an unreadable file
+    with an ``OSError``. Any other exception is a defect and propagates.
+    """
     try:
         scenario = parse_sdl_file(source) if isinstance(source, Path) else parse_sdl(source)
-    except Exception as exc:  # noqa: BLE001 - render parser/validator failures as policy failures
+    except (OSError, SDLError) as exc:
         return [_fail(f"example-library-{kind}-body", f"{subject} is not valid SDL: {exc}", relative_path)]
     failures: list[PolicyFailure] = []
     if scenario.advisories:
@@ -147,6 +151,10 @@ def _check_sdl(source: str | Path, relative_path: str, *, kind: str, subject: st
             )
         )
     return failures
+
+
+def _parse_failure(relative_path: str, exc: Exception) -> PolicyFailure:
+    return _fail("example-library-parse", f"failed to parse {relative_path}: {exc}", relative_path)
 
 
 def load_template_file(
@@ -164,16 +172,15 @@ def load_template_file(
     mapping holds the template fields, so its keys are read literally; the
     body below it gets the same structural key checks as an SDL document root.
     """
+    if contract == EXPERIMENT_CONTRACT:
+        # The experiment reader raises ValueError for an invalid timestamp such as 2026-02-30.
+        read, refusals = _read_experiment_yaml, (yaml.YAMLError, ValueError)
+    else:
+        read, refusals = partial(load_sdl_fragment, mapping_keys="literal"), (SDLParseError, yaml.YAMLError)
     try:
-        text = path.read_text(encoding="utf-8")
-        if contract == EXPERIMENT_CONTRACT:
-            raw = _read_experiment_yaml(text)
-        else:
-            raw = load_sdl_fragment(text, mapping_keys="literal")
-    # ValueError covers UnicodeDecodeError and the experiment reader's
-    # timestamp error on an invalid date such as 2026-02-30.
-    except (SDLParseError, yaml.YAMLError, ValueError) as exc:
-        return None, [_fail("example-library-parse", f"failed to parse {relative_path}: {exc}", relative_path)]
+        raw = read(path.read_text(encoding="utf-8"))
+    except (UnicodeDecodeError, *refusals) as exc:
+        return None, [_parse_failure(relative_path, exc)]
     if not isinstance(raw, dict):
         return None, [
             _fail("example-library-shape", f"{relative_path} must be a YAML mapping at the top level", relative_path)

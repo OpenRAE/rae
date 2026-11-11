@@ -199,16 +199,15 @@ validation completes before provisioning operations are dispatched.
 
 ## Deferred verification of generated values
 
-An `observed_state` string proposition may compare a submission against a
-generated value without the value appearing in the SDL. Its `string` predicate
-declares a value-free `expected_from` reference to a `generated_artifacts.<id>`
-output (a scalar `equals`/`not_equals` operator, mutually exclusive with a literal
-`expected`). The evaluator resolves the value at the same run scope and compares
-inside the protected backend; the expected value never enters the SDL, plan,
-evidence, or error envelopes, and a `producer_private` output cannot be selected.
-A backend declares this in its evaluator capability
-`supports_deferred_expected_comparison`, and admission rejects an `expected_from`
-predicate a backend does not support.
+An `observed_state` string proposition may compare a submission against a generated value without putting that value in SDL.
+Its `string` predicate declares a value-free `expected_from` reference to a `generated_artifacts.<id>` output.
+It uses a scalar `equals`/`not_equals` operator, mutually exclusive with a literal `expected`.
+The evaluator resolves the value at the same run scope and compares it inside the protected backend.
+The expected value never enters SDL, plans, evidence, or error envelopes.
+A `producer_private` output cannot be selected.
+
+The backend declares `supports_deferred_expected_comparison` in its evaluator capability.
+Admission rejects an `expected_from` predicate that the backend does not support.
 
 The compiler preserves each declaration as an exact SEM-218 realization
 requirement and emits its typed payload into the provisioning plan. Backends

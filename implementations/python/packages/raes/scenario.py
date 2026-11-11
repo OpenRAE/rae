@@ -13,18 +13,21 @@ Delivery-level concerns (Docker, Terraform, cloud APIs) are outside the SDL.
 from collections.abc import Mapping
 from typing import ClassVar, Literal
 
-from pydantic import ConfigDict, Field, PrivateAttr, model_validator
+from pydantic import ConfigDict, Field, PrivateAttr, field_validator, model_validator
 from raes_contracts.augmentation_scope import OptionalAugmentationScope
+from raes_contracts.contracts.participant_control_context import ParticipantControlContextAssetModel
+from raes_contracts.evidence_requirements import EvidenceRequirement
 from raes_contracts.execution_policy import OptionalExecutionPolicy
+from raes_contracts.identifiers import PortableIdentifier, QualifiedName, require_portable_identifier
+from raes_contracts.json_pointer import unescape_token
+from raes_contracts.participant_outcome_semantics import OutcomeInterpretationRule
+from raes_contracts.propositions import Assertion, Proposition
+from raes_contracts.safe_state import SafeStateDocument
+from raes_contracts.trial_parallelism import TrialParallelismModel
 
 from ._classification_guard import LegacyClassificationGuard
 from ._declaration_sources import DeclarationSource
 from ._errors import SDLParseDiagnostic
-from ._identifiers import (
-    PortableIdentifier,
-    QualifiedName,
-    require_portable_identifier,
-)
 from ._mapping_scopes import HASHMAP_SECTIONS
 from ._module_declarations import ImportDecl as ImportDecl
 from ._module_declarations import ModuleDescriptor as ModuleDescriptor
@@ -40,7 +43,6 @@ from .content import Content
 from .deployment_tenancy import DeploymentCell, DeploymentTenant
 from .enterprise_identity import IdentityFacade, IdentityForest
 from .entities import Entity
-from .evidence_requirements import EvidenceRequirement
 from .explicitness import ExplicitnessRecord
 from .features import Feature
 from .identity_domains import IdentityDomain
@@ -53,13 +55,11 @@ from .participant_behavior import (
     ParticipantObservationBoundary,
 )
 from .participant_behavior_specification import ParticipantBehaviorSpecification
-from .participant_outcome_semantics import OutcomeInterpretationRule
 from .phase_contracts import (
     CapabilityConstraint,
     ExpansionProvenance,
     InstantiationProvenance,
 )
-from .propositions import Assertion, Proposition
 from .realization_designation import RealizationDesignation
 from .relationships import Relationship
 from .runtime_forwarding_agent import RuntimeForwardingAgent
@@ -112,7 +112,7 @@ def _constraint_node_refs(
             ("infrastructure", "count"),
         }:
             continue
-        node_name = parts[2].replace("~1", "/").replace("~0", "~")
+        node_name = unescape_token(parts[2])
         # ``architecture`` is populated only when present so nodes without an
         # architecture constraint keep a byte-identical canonical projection.
         refs.setdefault(node_name, {"os": None, "count": None})[field_name] = _legacy_constraint_name(
@@ -212,6 +212,12 @@ class ScenarioContent(LegacyClassificationGuard):
     name: PortableIdentifier
     version: str = "*"
     description: str = ""
+    trial_parallelism: TrialParallelismModel | None = Field(
+        default=None,
+        repr=False,
+        exclude_if=lambda value: value is None,
+        json_schema_extra={"x-raes-realization-dimension": False},
+    )
     semantic_revision: Literal["raes-progressive-semantics/v1"] | None = Field(
         default=None,
         exclude_if=lambda value: value is None,
@@ -243,12 +249,21 @@ class ScenarioContent(LegacyClassificationGuard):
     deployment_cells: dict[str, DeploymentCell] = Field(default_factory=dict)
     relationships: dict[str, Relationship] = Field(default_factory=dict)
     forwarding_agents: list[RuntimeForwardingAgent] = Field(default_factory=list)
+    control_context_assets: dict[str, ParticipantControlContextAssetModel] = Field(
+        default_factory=dict, exclude_if=lambda value: not value, max_length=256
+    )
     agents: dict[str, Agent] = Field(default_factory=dict)
     action_contracts: dict[str, ParticipantActionContract] = Field(default_factory=dict)
     observation_boundaries: dict[str, ParticipantObservationBoundary] = Field(default_factory=dict)
     outcome_interpretation_rules: dict[str, OutcomeInterpretationRule] = Field(default_factory=dict)
     behavior_specifications: dict[str, ParticipantBehaviorSpecification] = Field(default_factory=dict)
     evidence_requirements: dict[str, EvidenceRequirement] = Field(default_factory=dict)
+    safe_state: SafeStateDocument | None = Field(
+        default=None,
+        repr=False,
+        exclude_if=lambda value: value is None,
+        json_schema_extra={"x-raes-realization-dimension": False},
+    )
     execution_policy: OptionalExecutionPolicy = None
     augmentation_scope: OptionalAugmentationScope = None
     time_domains: dict[str, TimeDomain] = Field(default_factory=dict)
@@ -263,6 +278,15 @@ class ScenarioContent(LegacyClassificationGuard):
     _semantic_validated: bool = PrivateAttr(default=False)
     _explicitness: dict[str, ExplicitnessRecord] = PrivateAttr(default_factory=dict)
     _declaration_sources: dict[str, DeclarationSource] = PrivateAttr(default_factory=dict)
+
+    @field_validator("control_context_assets")
+    @classmethod
+    def _immutable_control_context_descriptors(
+        cls, assets: dict[str, ParticipantControlContextAssetModel]
+    ) -> dict[str, ParticipantControlContextAssetModel]:
+        if any(collect_variable_tokens(asset.model_dump(mode="json")) for asset in assets.values()):
+            raise ValueError("control-context.immutable-descriptor-token")
+        return assets
 
     @property
     def declaration_sources(self) -> dict[str, DeclarationSource]:
@@ -454,7 +478,7 @@ class InstantiatedScenario(ScenarioContent):
         }
 
     @model_validator(mode="after")
-    def _reject_unresolved_variable_references(self) -> "InstantiatedScenario":
+    def _reject_unresolved_variable_references(self) -> InstantiatedScenario:
         payload = self.model_dump(mode="json", by_alias=True)
         tokens = sorted(set(collect_variable_tokens(payload)))
         if tokens:

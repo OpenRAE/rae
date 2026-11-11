@@ -1,0 +1,59 @@
+name: transformation-nested-reference-case
+nodes:
+  lan:
+    type: switch
+  web:
+    type: compute
+    resources:
+      ram: 1 GiB
+      cpu: 1
+    services:
+      - port: 80
+        name: http
+    runtime:
+      service_listeners:
+        - service_listener_id: telemetry
+          port: 9100
+content:
+  bundle:
+    type: dataset
+    target: web
+    items:
+      - name: report
+entities:
+  red-team:
+    role: red
+agents:
+  red-agent:
+    affiliations: [red-team]
+    actions: [probe]
+    operating_scope:
+      - nodes.web.services.http
+      - content.bundle.items.report
+action_contracts:
+  probe:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: probe the web service
+    realization_profile: backend-declared
+    fidelity_claim: records probe intent
+    preconditions:
+      - precondition_id: in-scope
+        precondition_class: authority
+        description: the web service is in scope
+    effects:
+      - effect_id: observed
+        effect_class: observation_effect
+        description: probe observation
+        evidence_refs: [evidence.probe-output]
+    failure_classes: [unknown]
+behavior_specifications:
+  probe-behavior:
+    semantic_version: 1.0.0
+    lifecycle_state: active
+    participant_refs: [red-agent]
+    action_contract_refs: [probe]
+    authority_scope_refs:
+      - nodes.web.services.http
+      - nodes.web.runtime.service_listeners.telemetry
+      - content.bundle.items.report

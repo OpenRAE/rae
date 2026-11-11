@@ -50,7 +50,7 @@ def _require_string_values(name: str, values: frozenset[str], *, required: bool 
         raise ValueError(f"ProvisionerCapabilities.{name} must not contain empty strings")
 
 
-def _validate_operating_system_rows(capabilities: "ProvisionerCapabilities") -> None:
+def _validate_operating_system_rows(capabilities: ProvisionerCapabilities) -> None:
     os_keys = [(entry.family, entry.distribution) for entry in capabilities.operating_systems]
     if len(os_keys) != len(set(os_keys)):
         raise ValueError(
@@ -69,7 +69,7 @@ def _validate_operating_system_rows(capabilities: "ProvisionerCapabilities") -> 
 
 
 def _validated_artifact_kinds(
-    capabilities: "ProvisionerCapabilities",
+    capabilities: ProvisionerCapabilities,
 ) -> frozenset[GeneratedArtifactKind | DomainProfileCoordinateModel]:
     try:
         normalized = frozenset(
@@ -90,7 +90,7 @@ def _validated_artifact_kinds(
 
 
 def _validated_artifact_delivery_modes(
-    capabilities: "ProvisionerCapabilities",
+    capabilities: ProvisionerCapabilities,
 ) -> frozenset[GeneratedArtifactDeliveryMode]:
     try:
         normalized = frozenset(
@@ -111,7 +111,7 @@ def _validated_artifact_delivery_modes(
 
 
 def _validated_regeneration_scopes(
-    capabilities: "ProvisionerCapabilities",
+    capabilities: ProvisionerCapabilities,
 ) -> frozenset[GeneratedArtifactRegenerationScope]:
     try:
         normalized = frozenset(
@@ -131,7 +131,7 @@ def _validated_regeneration_scopes(
     return normalized
 
 
-def _validate_account_support(capabilities: "ProvisionerCapabilities") -> None:
+def _validate_account_support(capabilities: ProvisionerCapabilities) -> None:
     if capabilities.supports_accounts and not capabilities.supported_account_features:
         raise ValueError("ProvisionerCapabilities that support accounts must declare supported_account_features")
     if not capabilities.supports_accounts and capabilities.supported_account_features:

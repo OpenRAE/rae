@@ -108,7 +108,7 @@ def require_mixed_backend_service(
             raise ValueError("mixed backend service protocol is not installed")
         try:
             signature(method).bind(*(object(),) * arity)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             raise ValueError("installed mixed backend method has incompatible call shape") from None
 
 

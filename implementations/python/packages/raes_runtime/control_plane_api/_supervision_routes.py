@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING, TypeVar
+from typing import TYPE_CHECKING
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from pydantic import BaseModel, ConfigDict
@@ -17,6 +17,7 @@ from raes_contracts.contracts import (
     OperationStatusModel,
 )
 from raes_contracts.contracts.backend_operation import OperationIdentifier
+from raes_contracts.errors import AuthorizationError, NotFoundError, OperationalError, RaesError
 
 from ..control_plane_api_models import _operation_status_model
 from ..operation_control_budget import ControlDeliveryGrant
@@ -28,7 +29,6 @@ from ._offload import _control_plane_calls
 if TYPE_CHECKING:
     from ..control_plane import RuntimeControlPlane
 
-_T = TypeVar("_T")
 _SUPERVISION_RESPONSES = {
     404: {"description": "Operation not found"},
     409: {"description": "Operation supervision conflict"},
@@ -48,15 +48,15 @@ class _AbsenceResolutionRequest(BaseModel):
     control_id: OperationIdentifier
 
 
-async def _call(request: Request, method: Callable[..., _T], *args: object, **kwargs: object) -> _T:
+async def _call[T](request: Request, method: Callable[..., T], *args: object, **kwargs: object) -> T:
     try:
         return await _control_plane_calls(request).control(method, *args, **kwargs)
-    except (KeyError, PermissionError):
+    except NotFoundError, AuthorizationError:
         raise HTTPException(status_code=404, detail="operation not found") from None
-    except (ValueError, TypeError):
-        raise HTTPException(status_code=409, detail="operation supervision conflict") from None
-    except (RuntimeError, TimeoutError):
+    except OperationalError:
         raise HTTPException(status_code=503, detail="operation supervision unavailable") from None
+    except RaesError:
+        raise HTTPException(status_code=409, detail="operation supervision conflict") from None
 
 
 def _bound_path(operation_id: str, binding: BackendOperationBindingModel) -> None:

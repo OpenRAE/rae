@@ -27,7 +27,7 @@ from .experiment_evidence_refinement import (
     ExperimentEvidenceRequirementRelationModel,
     validate_evidence_requirement_relation_carrier,
 )
-from .experiment_factorial import ExperimentFactorialDesignModel, expand_factorial_input
+from .experiment_factorial import ExperimentFactorialTreatmentDesignModel, FactorialDesign, expand_factorial_input
 from .experiment_manifest_references import ExperimentCaptureSpecReferenceModel
 from .experiment_plan_controls import (
     ExperimentEpisodeControlModel,
@@ -48,7 +48,7 @@ from .experiment_study import (
     ExperimentStudyFactorModel,
     _validate_condition_factor_levels,
 )
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 from .trial_replacement import TrialReplacementPolicyModel
 
 ExperimentStudyModel = _experiment_study_contract.ExperimentStudyModel
@@ -134,7 +134,7 @@ class ExperimentRunPlanModel(ContractModel):
                 {"properties": {"allocation": {"type": "null"}, "target_run_count": {"type": "null"}}},
             ]
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "run-plan-exactly-one-run-count-source",
             "A run plan must declare exactly one of allocation or target_run_count, and every red-variant "
@@ -196,7 +196,7 @@ class ExperimentSpecModel(ContractModel):
     capture_spec_refs: list[ExperimentCaptureSpecReferenceModel] = Field(default_factory=list)
     validity_notes: list[ExperimentValidityNoteModel] = Field(default_factory=list)
     artifact_refs: list[ExperimentArtifactRefModel] = Field(default_factory=list)
-    factorial_design: ExperimentFactorialDesignModel | None = None
+    factorial_design: FactorialDesign | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -240,16 +240,23 @@ class ExperimentSpecModel(ContractModel):
     def _validate_selection_factor_joins(self) -> None:
         _validate_selection_factor_joins(self)
 
-    def _validate_binding_descriptors(self) -> None:
-        if self.binding_semantics == "explicit-required" and self.binding_descriptors is None:
+    def _binding_allocation(self) -> ExperimentRunAllocationPlanModel | None:
+        typed = isinstance(self.factorial_design, ExperimentFactorialTreatmentDesignModel)
+        if self.binding_semantics == "explicit-required" and self.binding_descriptors is None and not typed:
             raise ValueError("binding_semantics explicit-required requires binding_descriptors")
         if self.binding_descriptors is None:
-            return
+            return None
         if self.binding_semantics != "explicit-required":
             raise ValueError("binding_descriptors require binding_semantics explicit-required")
         allocation = self.run_plan.allocation
         if allocation is None:
             raise ValueError("explicit binding descriptors require condition-based run allocation")
+        return allocation
+
+    def _validate_binding_descriptors(self) -> None:
+        allocation = self._binding_allocation()
+        if allocation is None:
+            return
         legacy_conditions = sorted(
             condition_id
             for condition_id, assignment in allocation.condition_assignments.items()
@@ -263,6 +270,10 @@ class ExperimentSpecModel(ContractModel):
             _validate_binding_descriptor_source(descriptor, self.factors, allocation)
             for descriptor in self.binding_descriptors.descriptors
         }
+        if isinstance(self.factorial_design, ExperimentFactorialTreatmentDesignModel):
+            covered_conditions.update(
+                key for key, assignment in allocation.condition_assignments.items() if assignment.required_selections
+            )
         missing_conditions = sorted(set(allocation.compared_conditions) - covered_conditions)
         if missing_conditions:
             raise ValueError(
@@ -278,7 +289,7 @@ class ExperimentSpecModel(ContractModel):
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
         _add_authoring_conditionals(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "experiment-spec-blocking-factors-declared",
             "When a run plan declares an allocation with blocking factors, every blocking factor must be a "
@@ -286,7 +297,7 @@ class ExperimentSpecModel(ContractModel):
             validator=_EXPERIMENT_SPEC_VALIDATOR,
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "experiment-spec-condition-factor-levels-declared",
             "In every binding posture, each condition assignment must reference a factor and level declared "
@@ -295,14 +306,14 @@ class ExperimentSpecModel(ContractModel):
             validator=_EXPERIMENT_SPEC_VALIDATOR,
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "experiment-binding-source-joins-valid",
             "Explicit bindings must cover every compared condition and resolve exact declared factor levels.",
             validator="raes_contracts.contracts.ExperimentSpecModel._validate_binding_descriptors",
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "experiment-selection-policies-valid",
             "Selection policy ids, bounds, references, stochastic controls, and supported exact profiles must "
@@ -315,7 +326,7 @@ class ExperimentSpecModel(ContractModel):
                 }
             ],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "experiment-selection-factor-joins-valid",
             "Selection strata and binding references must resolve declared factors, levels, conditions, "
@@ -323,7 +334,7 @@ class ExperimentSpecModel(ContractModel):
             validator="raes_contracts.contracts.ExperimentSpecModel._validate_selection_factor_joins",
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "experiment-factorial-generation-valid",
             "Factorial intent resolves exact declared levels, bounded Cartesian output, collision-free bindings, "
@@ -331,7 +342,7 @@ class ExperimentSpecModel(ContractModel):
             validator="raes_contracts.contracts.ExperimentSpecModel._expand_factorial",
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "run-plan-evidence-requirement-relation-owner-valid",
             "Prospective run-scoped evidence requirement relations must identify this exact authoring input and "

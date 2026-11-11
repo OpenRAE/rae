@@ -315,6 +315,24 @@
           "title": "Authority Anchors",
           "type": "array"
         },
+        "control_context": {
+          "additionalProperties": false,
+          "maxProperties": 256,
+          "patternProperties": {
+            "^[a-z0-9]": {
+              "$ref": "#/$defs/ParticipantControlContextReference"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            }
+          },
+          "title": "Control Context",
+          "type": "object"
+        },
         "description": {
           "default": "",
           "title": "Description",
@@ -430,39 +448,157 @@
             }
           },
           "then": {
-            "else": {
-              "properties": {
-                "alternatives": {
-                  "additionalProperties": {
-                    "required": [
-                      "references"
-                    ]
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "target": {
+                      "properties": {
+                        "slot": {
+                          "enum": [
+                            "nodes.presence"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "alternatives": {
+                      "additionalProperties": {
+                        "properties": {
+                          "kind": {
+                            "const": "node-presence"
+                          }
+                        },
+                        "required": [
+                          "kind"
+                        ]
+                      }
+                    }
                   }
                 }
-              }
-            },
-            "if": {
-              "properties": {
-                "target": {
+              },
+              {
+                "if": {
                   "properties": {
-                    "slot": {
-                      "const": "nodes.presence"
+                    "target": {
+                      "properties": {
+                        "slot": {
+                          "enum": [
+                            "nodes.runtime.service_listeners",
+                            "nodes.runtime.applications",
+                            "nodes.runtime.database_services",
+                            "nodes.runtime.dns_services",
+                            "nodes.runtime.identity_authorities",
+                            "nodes.runtime.file_services",
+                            "nodes.runtime.mail_services",
+                            "nodes.runtime.network_sensors",
+                            "nodes.runtime.network_detection_engines",
+                            "nodes.runtime.security_monitoring_managers",
+                            "nodes.runtime.ssh_servers",
+                            "nodes.runtime.app_authorizations",
+                            "nodes.runtime.scheduled_jobs",
+                            "nodes.runtime.datastore_services",
+                            "nodes.runtime.platform_applications",
+                            "nodes.runtime.forwarding_agents",
+                            "nodes.runtime.orchestration_authorities",
+                            "nodes.runtime.network_detection_engines.rule_sources"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "alternatives": {
+                      "additionalProperties": {
+                        "properties": {
+                          "kind": {
+                            "const": "runtime-inventory"
+                          }
+                        },
+                        "required": [
+                          "kind"
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "target": {
+                      "properties": {
+                        "slot": {
+                          "enum": [
+                            "accounts.presence",
+                            "content.presence",
+                            "persistent_volumes.presence",
+                            "generated_artifacts.presence",
+                            "relationships.presence",
+                            "propositions.presence",
+                            "assertions.presence",
+                            "evidence_requirements.presence"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "alternatives": {
+                      "additionalProperties": {
+                        "properties": {
+                          "kind": {
+                            "const": "declaration-presence"
+                          }
+                        },
+                        "required": [
+                          "kind"
+                        ]
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "if": {
+                  "properties": {
+                    "target": {
+                      "properties": {
+                        "slot": {
+                          "enum": [
+                            "persistent_volumes.consumers",
+                            "generated_artifacts.consumers"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "alternatives": {
+                      "additionalProperties": {
+                        "properties": {
+                          "kind": {
+                            "const": "resource-consumers"
+                          }
+                        },
+                        "required": [
+                          "kind"
+                        ]
+                      }
                     }
                   }
                 }
               }
-            },
-            "then": {
-              "properties": {
-                "alternatives": {
-                  "additionalProperties": {
-                    "required": [
-                      "present"
-                    ]
-                  }
-                }
-              }
-            }
+            ]
           }
         }
       ],
@@ -480,6 +616,12 @@
                 },
                 {
                   "$ref": "#/$defs/RuntimeInventoryAlternative"
+                },
+                {
+                  "$ref": "#/$defs/DeclarationPresenceAlternative"
+                },
+                {
+                  "$ref": "#/$defs/ResourceConsumersAlternative"
                 }
               ]
             }
@@ -1566,6 +1708,72 @@
       "title": "Condition",
       "type": "object"
     },
+    "ConstrainedTrialParallelismModel": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "minimum": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "minimum"
+          ]
+        },
+        {
+          "properties": {
+            "maximum": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "maximum"
+          ]
+        }
+      ],
+      "description": "Require an inclusive lower bound, upper bound, or both.",
+      "properties": {
+        "maximum": {
+          "anyOf": [
+            {
+              "maximum": 4096,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum"
+        },
+        "minimum": {
+          "anyOf": [
+            {
+              "maximum": 4096,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum"
+        },
+        "posture": {
+          "const": "constrained",
+          "title": "Posture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "posture"
+      ],
+      "title": "ConstrainedTrialParallelismModel",
+      "type": "object"
+    },
     "ConsumerAccessMode": {
       "enum": [
         "read_only",
@@ -1573,6 +1781,28 @@
       ],
       "title": "ConsumerAccessMode",
       "type": "string"
+    },
+    "ConsumerSelector": {
+      "additionalProperties": false,
+      "description": "One existing consumer row, identified by its node and mount destination.",
+      "properties": {
+        "mount_destination": {
+          "title": "Mount Destination",
+          "type": "string"
+        },
+        "node": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Node",
+          "type": "string"
+        }
+      },
+      "required": [
+        "node",
+        "mount_destination"
+      ],
+      "title": "ConsumerSelector",
+      "type": "object"
     },
     "ContainerImageBuildProvenance": {
       "additionalProperties": false,
@@ -2305,6 +2535,61 @@
       ],
       "title": "DatabaseTable",
       "type": "object"
+    },
+    "DeclarationPresenceAlternative": {
+      "additionalProperties": false,
+      "description": "Whole-declaration presence; absence never removes incoming references.",
+      "properties": {
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "excludes": {
+          "items": {
+            "$ref": "#/$defs/SelectionRelation"
+          },
+          "title": "Excludes",
+          "type": "array"
+        },
+        "kind": {
+          "const": "declaration-presence",
+          "title": "Kind",
+          "type": "string"
+        },
+        "present": {
+          "title": "Present",
+          "type": "boolean"
+        },
+        "requires": {
+          "items": {
+            "$ref": "#/$defs/SelectionRelation"
+          },
+          "title": "Requires",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "present"
+      ],
+      "title": "DeclarationPresenceAlternative",
+      "type": "object"
+    },
+    "DeclarationPresenceSlot": {
+      "description": "Reviewed whole-declaration presence; the slot prefix names the owner section.",
+      "enum": [
+        "accounts.presence",
+        "content.presence",
+        "persistent_volumes.presence",
+        "generated_artifacts.presence",
+        "relationships.presence",
+        "propositions.presence",
+        "assertions.presence",
+        "evidence_requirements.presence"
+      ],
+      "title": "DeclarationPresenceSlot",
+      "type": "string"
     },
     "DeploymentCell": {
       "additionalProperties": false,
@@ -4237,6 +4522,29 @@
       "title": "ExactRatio",
       "type": "object"
     },
+    "ExactTrialParallelismModel": {
+      "additionalProperties": false,
+      "description": "Require one exact effective capacity.",
+      "properties": {
+        "count": {
+          "maximum": 4096,
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        },
+        "posture": {
+          "const": "exact",
+          "title": "Posture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "posture",
+        "count"
+      ],
+      "title": "ExactTrialParallelismModel",
+      "type": "object"
+    },
     "ExecutionPolicy": {
       "additionalProperties": false,
       "description": "A complete local choice; omitted fields never inherit from another policy.",
@@ -4548,6 +4856,263 @@
       ],
       "title": "ExerciseRole",
       "type": "string"
+    },
+    "ExperimentArtifactRefModel": {
+      "additionalProperties": false,
+      "description": "Reference to an artifact that supports a task, run, apparatus, or study.",
+      "properties": {
+        "artifact_id": {
+          "minLength": 1,
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "checksum": {
+          "$ref": "#/$defs/ExperimentChecksumModel"
+        },
+        "created_at": {
+          "format": "date-time",
+          "minLength": 1,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt](?:[01]\\d|2[0-3]):[0-5]\\d:(?:[0-5]\\d|60)(?:\\.\\d+)?(?:[Zz]|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$",
+          "title": "Created At",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "media_type": {
+          "minLength": 1,
+          "title": "Media Type",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "protocol",
+            "metric-definition",
+            "scenario-snapshot",
+            "materialization-attestation",
+            "manifest",
+            "apparatus-evidence",
+            "observation",
+            "result",
+            "analysis",
+            "report",
+            "export",
+            "starter-file",
+            "evaluator",
+            "subtask",
+            "gold-step",
+            "milestone",
+            "human-assistance",
+            "scaffold",
+            "baseline",
+            "cost-resource-trace",
+            "documentation",
+            "operator-guide",
+            "configuration",
+            "profile",
+            "dataset",
+            "other"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "satisfies_refs": {
+          "items": {
+            "$ref": "#/$defs/ExperimentEvidenceSatisfactionReferenceModel"
+          },
+          "title": "Satisfies Refs",
+          "type": "array"
+        },
+        "sensitivity": {
+          "enum": [
+            "public",
+            "internal",
+            "restricted",
+            "redacted"
+          ],
+          "title": "Sensitivity",
+          "type": "string"
+        },
+        "size_bytes": {
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        },
+        "source": {
+          "minLength": 1,
+          "title": "Source",
+          "type": "string"
+        },
+        "uri": {
+          "minLength": 1,
+          "title": "Uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "role",
+        "media_type",
+        "uri",
+        "checksum",
+        "size_bytes",
+        "created_at",
+        "source",
+        "sensitivity"
+      ],
+      "title": "ExperimentArtifactRefModel",
+      "type": "object"
+    },
+    "ExperimentChecksumModel": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "algorithm": {
+                "const": "sha256"
+              }
+            },
+            "required": [
+              "algorithm"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "pattern": "^[A-Fa-f0-9]{64}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "algorithm": {
+                "const": "sha384"
+              }
+            },
+            "required": [
+              "algorithm"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "pattern": "^[A-Fa-f0-9]{96}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "algorithm": {
+                "const": "sha512"
+              }
+            },
+            "required": [
+              "algorithm"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "pattern": "^[A-Fa-f0-9]{128}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "algorithm": {
+                "const": "blake3"
+              }
+            },
+            "required": [
+              "algorithm"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "pattern": "^[A-Fa-f0-9]{64}$"
+              }
+            }
+          }
+        }
+      ],
+      "description": "Checksum metadata for an experiment-core artifact reference.",
+      "properties": {
+        "algorithm": {
+          "enum": [
+            "sha256",
+            "sha384",
+            "sha512",
+            "blake3"
+          ],
+          "title": "Algorithm",
+          "type": "string"
+        },
+        "value": {
+          "minLength": 1,
+          "pattern": "^[A-Fa-f0-9]+$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "title": "ExperimentChecksumModel",
+      "type": "object"
+    },
+    "ExperimentEvidenceSatisfactionReferenceModel": {
+      "additionalProperties": false,
+      "description": "Evidence concept reference that an artifact claims to satisfy.",
+      "properties": {
+        "ref_id": {
+          "minLength": 1,
+          "title": "Ref Id",
+          "type": "string"
+        },
+        "ref_kind": {
+          "const": "evidence",
+          "title": "Ref Kind",
+          "type": "string"
+        },
+        "ref_version": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref Version"
+        }
+      },
+      "required": [
+        "ref_kind",
+        "ref_id"
+      ],
+      "title": "ExperimentEvidenceSatisfactionReferenceModel",
+      "type": "object"
     },
     "ExplicitnessClass": {
       "description": "SEM-218 author-intent class for a declaration.",
@@ -7967,6 +8532,22 @@
       "title": "ObservationSelector",
       "type": "object"
     },
+    "OpenTrialParallelismModel": {
+      "additionalProperties": false,
+      "description": "Leave effective capacity to the allocator.",
+      "properties": {
+        "posture": {
+          "const": "open",
+          "title": "Posture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "posture"
+      ],
+      "title": "OpenTrialParallelismModel",
+      "type": "object"
+    },
     "OperatorSecretCredentialMaterial": {
       "additionalProperties": false,
       "description": "Value-free reference to operator-managed credential material.",
@@ -9658,6 +10239,24 @@
           "default": null,
           "title": "Behavior Mode"
         },
+        "control_context": {
+          "additionalProperties": false,
+          "maxProperties": 256,
+          "patternProperties": {
+            "^[a-z0-9]": {
+              "$ref": "#/$defs/ParticipantControlContextReference"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            }
+          },
+          "title": "Control Context",
+          "type": "object"
+        },
         "episode_policy": {
           "anyOf": [
             {
@@ -9808,6 +10407,196 @@
       "title": "ParticipantBehaviorSpecificationLifecycle",
       "type": "string"
     },
+    "ParticipantControlContextAssetModel": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "participant_addresses": {
+              "minItems": 1
+            }
+          },
+          "required": [
+            "participant_addresses"
+          ]
+        },
+        {
+          "properties": {
+            "role_refs": {
+              "minItems": 1
+            }
+          },
+          "required": [
+            "role_refs"
+          ]
+        }
+      ],
+      "description": "An immutable descriptor; its content remains in consumer-controlled storage.",
+      "properties": {
+        "asset_id": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_version": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Version",
+          "type": "string"
+        },
+        "content": {
+          "$ref": "#/$defs/ExperimentArtifactRefModel"
+        },
+        "kind": {
+          "enum": [
+            "instruction",
+            "directive",
+            "policy",
+            "guidance"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "participant_addresses": {
+          "items": {
+            "maxLength": 1024,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Participant Addresses",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "provenance_refs": {
+          "items": {
+            "maxLength": 1024,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Provenance Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "publication_authority_ref": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Publication Authority Ref",
+          "type": "string"
+        },
+        "retention_policy_ref": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Retention Policy Ref",
+          "type": "string"
+        },
+        "role_refs": {
+          "items": {
+            "maxLength": 1024,
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Role Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "schema_version": {
+          "const": "participant-control-context-asset/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "asset_id",
+        "asset_version",
+        "kind",
+        "content",
+        "publication_authority_ref",
+        "retention_policy_ref",
+        "provenance_refs"
+      ],
+      "title": "ParticipantControlContextAssetModel",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Full conformance requires trusted exact version, lifecycle, authority, recipient, cut and content agreement.",
+          "id": "control-context-trusted-agreement",
+          "inputs": [
+            {
+              "contract_id": "participant-control-context-asset-v1",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.participant_control_context.validate_control_context_asset"
+        }
+      ]
+    },
+    "ParticipantControlContextAssetReferenceModel": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Asset Digest",
+          "type": "string"
+        },
+        "asset_id": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_version": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "title": "Asset Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id",
+        "asset_version",
+        "asset_digest"
+      ],
+      "title": "ParticipantControlContextAssetReferenceModel",
+      "type": "object"
+    },
+    "ParticipantControlContextReference": {
+      "additionalProperties": false,
+      "description": "One pinned authored intent in a participant-local selection slot.",
+      "properties": {
+        "asset_ref": {
+          "$ref": "#/$defs/ParticipantControlContextAssetReferenceModel"
+        },
+        "declaration_ref": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Declaration Ref",
+          "type": "string"
+        },
+        "disposition": {
+          "default": "selected",
+          "enum": [
+            "selected",
+            "withheld"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        }
+      },
+      "required": [
+        "declaration_ref",
+        "asset_ref"
+      ],
+      "title": "ParticipantControlContextReference",
+      "type": "object"
+    },
     "ParticipantEffectClass": {
       "description": "SEM-211 effect classes for participant action results.",
       "enum": [
@@ -9922,6 +10711,63 @@
     },
     "ParticipantEpisodePolicy": {
       "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "initialization": {
+              "minProperties": 1,
+              "type": "object"
+            }
+          },
+          "required": [
+            "initialization"
+          ]
+        },
+        {
+          "properties": {
+            "interaction_structure": {
+              "minProperties": 1,
+              "type": "object"
+            }
+          },
+          "required": [
+            "interaction_structure"
+          ]
+        },
+        {
+          "properties": {
+            "reset_policy": {
+              "minProperties": 1,
+              "type": "object"
+            }
+          },
+          "required": [
+            "reset_policy"
+          ]
+        },
+        {
+          "properties": {
+            "terminal_conditions": {
+              "minProperties": 1,
+              "type": "object"
+            }
+          },
+          "required": [
+            "terminal_conditions"
+          ]
+        },
+        {
+          "properties": {
+            "truncation_conditions": {
+              "minProperties": 1,
+              "type": "object"
+            }
+          },
+          "required": [
+            "truncation_conditions"
+          ]
+        }
+      ],
       "description": "Versioned episode structure intent of a behavior specification.",
       "properties": {
         "initialization": {
@@ -11666,7 +12512,7 @@
     },
     "ParticipantToolAffordance": {
       "additionalProperties": false,
-      "description": "Authored participant-local binding from tool identity to governed behavior.",
+      "description": "Authored participant-local binding from tool identity to governed behavior.\n\nThe optional participant selector (ACT-619) only narrows the owning specification's\nselection; both lists empty means the binding applies to every selected participant.",
       "properties": {
         "action_contract_refs": {
           "items": {
@@ -11687,6 +12533,26 @@
           },
           "minItems": 1,
           "title": "Observation Boundary Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "participant_refs": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Participant Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "participant_role_refs": {
+          "items": {
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Participant Role Refs",
           "type": "array",
           "uniqueItems": true
         },
@@ -13364,6 +14230,59 @@
       "title": "RelationshipType",
       "type": "string"
     },
+    "ResourceConsumerSlot": {
+      "description": "Reviewed consumer-row membership of one stateful resource.",
+      "enum": [
+        "persistent_volumes.consumers",
+        "generated_artifacts.consumers"
+      ],
+      "title": "ResourceConsumerSlot",
+      "type": "string"
+    },
+    "ResourceConsumersAlternative": {
+      "additionalProperties": false,
+      "description": "The consumer rows that the owner resource keeps, in source order.",
+      "properties": {
+        "consumers": {
+          "items": {
+            "$ref": "#/$defs/ConsumerSelector"
+          },
+          "title": "Consumers",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "excludes": {
+          "items": {
+            "$ref": "#/$defs/SelectionRelation"
+          },
+          "title": "Excludes",
+          "type": "array"
+        },
+        "kind": {
+          "const": "resource-consumers",
+          "title": "Kind",
+          "type": "string"
+        },
+        "requires": {
+          "items": {
+            "$ref": "#/$defs/SelectionRelation"
+          },
+          "title": "Requires",
+          "type": "array"
+        }
+      },
+      "required": [
+        "kind",
+        "consumers"
+      ],
+      "title": "ResourceConsumersAlternative",
+      "type": "object"
+    },
     "ResourceSensitivity": {
       "enum": [
         "public",
@@ -14515,6 +15434,64 @@
         }
       },
       "title": "RuntimeCapabilityPolicy",
+      "type": "object"
+    },
+    "RuntimeChildInventorySlot": {
+      "description": "Reviewed child-record membership; the owner is one top-level runtime record.",
+      "enum": [
+        "nodes.runtime.network_detection_engines.rule_sources"
+      ],
+      "title": "RuntimeChildInventorySlot",
+      "type": "string"
+    },
+    "RuntimeCloudServiceLimit": {
+      "additionalProperties": false,
+      "description": "An optional native service limit, with explicit quantity and scope.",
+      "properties": {
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "limit_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "maximum": {
+          "minimum": 0,
+          "title": "Maximum",
+          "type": "integer"
+        },
+        "name": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "resource_scope_ref": {
+          "default": "",
+          "title": "Resource Scope Ref",
+          "type": "string"
+        },
+        "unit": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "limit_id",
+        "name",
+        "maximum",
+        "unit"
+      ],
+      "title": "RuntimeCloudServiceLimit",
       "type": "object"
     },
     "RuntimeConfiguration": {
@@ -18400,7 +19377,7 @@
     },
     "RuntimeForwardingSource": {
       "additionalProperties": false,
-      "description": "An observed forwarder input source (tailed path, API pull, or queue).",
+      "description": "An observed forwarder input source (tailed path, API pull, queue, or listening socket).",
       "properties": {
         "description": {
           "default": "",
@@ -18413,7 +19390,7 @@
               "$ref": "#/$defs/RuntimeForwardingSourceKind"
             },
             {
-              "pattern": "^(?:[tT][aA][iI][lL][eE][dD][-_][pP][aA][tT][hH]|[aA][pP][iI][-_][pP][uU][lL][lL]|[qQ][uU][eE][uU][eE]|[uU][nN][kK][nN][oO][wW][nN]|[oO][tT][hH][eE][rR]|x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$(?![\\s\\S])",
+              "pattern": "^(?:[tT][aA][iI][lL][eE][dD][-_][pP][aA][tT][hH]|[aA][pP][iI][-_][pP][uU][lL][lL]|[qQ][uU][eE][uU][eE]|[sS][oO][cC][kK][eE][tT]|[uU][nN][kK][nN][oO][wW][nN]|[oO][tT][hH][eE][rR]|x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$(?![\\s\\S])",
               "type": "string"
             }
           ],
@@ -18465,6 +19442,7 @@
         "tailed_path",
         "api_pull",
         "queue",
+        "socket",
         "unknown",
         "other"
       ],
@@ -18525,6 +19503,108 @@
       ],
       "title": "RuntimeForwardingTransformKind",
       "type": "string"
+    },
+    "RuntimeIdentityAccessObservation": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "allowed",
+                  "denied"
+                ]
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence_refs": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "evidence_refs"
+            ]
+          }
+        }
+      ],
+      "description": "One reported attempt; evidence admission remains independently governed.",
+      "properties": {
+        "action": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Action",
+          "type": "string"
+        },
+        "context_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Context Refs",
+          "type": "array"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "observation_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "allowed",
+            "denied",
+            "unknown",
+            "unsupported"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "principal_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Principal Ref",
+          "type": "string"
+        },
+        "resource_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Resource Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "observation_id",
+        "principal_ref",
+        "action",
+        "resource_ref",
+        "outcome"
+      ],
+      "title": "RuntimeIdentityAccessObservation",
+      "type": "object"
     },
     "RuntimeIdentityAttribute": {
       "additionalProperties": false,
@@ -18624,10 +19704,65 @@
       "title": "RuntimeIdentityAttribute",
       "type": "object"
     },
+    "RuntimeIdentityAuditLog": {
+      "additionalProperties": false,
+      "description": "Required native recording for one service and log type on a scope.",
+      "properties": {
+        "audit_log_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "exempted_principal_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 1024,
+          "title": "Exempted Principal Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "log_type": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Log Type",
+          "type": "string"
+        },
+        "service": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "pattern": "\\S",
+          "title": "Service",
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_log_id",
+        "service",
+        "log_type"
+      ],
+      "title": "RuntimeIdentityAuditLog",
+      "type": "object"
+    },
     "RuntimeIdentityAuthority": {
       "additionalProperties": false,
       "description": "A node-scoped identity authority inventory.",
       "properties": {
+        "access_observations": {
+          "items": {
+            "$ref": "#/$defs/RuntimeIdentityAccessObservation"
+          },
+          "title": "Access Observations",
+          "type": "array"
+        },
         "base_dn": {
           "default": "",
           "title": "Base Dn",
@@ -18651,6 +19786,13 @@
           },
           "pattern": "^[a-z0-9]",
           "type": "string"
+        },
+        "identity_uses": {
+          "items": {
+            "$ref": "#/$defs/RuntimeIdentityUse"
+          },
+          "title": "Identity Uses",
+          "type": "array"
         },
         "issuer": {
           "default": "",
@@ -18697,6 +19839,13 @@
             "$ref": "#/$defs/RuntimeIdentityRelationship"
           },
           "title": "Relationships",
+          "type": "array"
+        },
+        "resource_scopes": {
+          "items": {
+            "$ref": "#/$defs/RuntimeIdentityResourceScope"
+          },
+          "title": "Resource Scopes",
           "type": "array"
         },
         "services": {
@@ -18821,6 +19970,122 @@
       "title": "RuntimeIdentityAuthorityService",
       "type": "object"
     },
+    "RuntimeIdentityPermissionBinding": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "actions": {
+              "minItems": 1
+            }
+          },
+          "required": [
+            "actions"
+          ]
+        },
+        {
+          "properties": {
+            "role_ref": {
+              "minLength": 1
+            }
+          },
+          "required": [
+            "role_ref"
+          ]
+        }
+      ],
+      "description": "A policy's declared principals, actions and targets, not effective access.",
+      "properties": {
+        "actions": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Actions",
+          "type": "array"
+        },
+        "binding_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Binding Id",
+          "type": "string"
+        },
+        "condition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeIdentityPolicyCondition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "effect": {
+          "anyOf": [
+            {
+              "enum": [
+                "allow",
+                "deny"
+              ],
+              "type": "string"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            }
+          ],
+          "title": "Effect"
+        },
+        "principal_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Principal Refs",
+          "type": "array"
+        },
+        "resource_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Resource Refs",
+          "type": "array"
+        },
+        "role_ref": {
+          "default": "",
+          "title": "Role Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "binding_id",
+        "principal_refs",
+        "resource_refs",
+        "effect"
+      ],
+      "title": "RuntimeIdentityPermissionBinding",
+      "type": "object"
+    },
     "RuntimeIdentityPolicy": {
       "additionalProperties": false,
       "description": "Observed identity authority policy or bounded policy setting group.",
@@ -18864,6 +20129,17 @@
           "default": "other",
           "title": "Policy Kind"
         },
+        "resource_access": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeIdentityResourceAccess"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "settings": {
           "items": {
             "$ref": "#/$defs/RuntimeIdentityAttribute"
@@ -18876,6 +20152,30 @@
         "policy_id"
       ],
       "title": "RuntimeIdentityPolicy",
+      "type": "object"
+    },
+    "RuntimeIdentityPolicyCondition": {
+      "additionalProperties": false,
+      "description": "An uninterpreted provider expression, never executable SDL.",
+      "properties": {
+        "expression": {
+          "maxLength": 16384,
+          "minLength": 1,
+          "title": "Expression",
+          "type": "string"
+        },
+        "language": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Language",
+          "type": "string"
+        }
+      },
+      "required": [
+        "language",
+        "expression"
+      ],
+      "title": "RuntimeIdentityPolicyCondition",
       "type": "object"
     },
     "RuntimeIdentityPolicyKind": {
@@ -18995,6 +20295,133 @@
       "title": "RuntimeIdentityRelationshipKind",
       "type": "string"
     },
+    "RuntimeIdentityResourceAccess": {
+      "additionalProperties": false,
+      "description": "A resource policy attachment or an explicitly sourced inherited view.",
+      "if": {
+        "properties": {
+          "inherited_from_ref": {
+            "minLength": 1
+          }
+        },
+        "required": [
+          "inherited_from_ref"
+        ]
+      },
+      "properties": {
+        "attachment_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Attachment Ref",
+          "type": "string"
+        },
+        "bindings": {
+          "items": {
+            "$ref": "#/$defs/RuntimeIdentityPermissionBinding"
+          },
+          "title": "Bindings",
+          "type": "array"
+        },
+        "inherited_from_ref": {
+          "default": "",
+          "title": "Inherited From Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "attachment_ref"
+      ],
+      "then": {
+        "properties": {
+          "bindings": {
+            "maxItems": 0
+          }
+        }
+      },
+      "title": "RuntimeIdentityResourceAccess",
+      "type": "object"
+    },
+    "RuntimeIdentityResourceScope": {
+      "additionalProperties": false,
+      "description": "A provider-qualified ownership scope, independent of node placement.",
+      "properties": {
+        "audit_logs": {
+          "items": {
+            "$ref": "#/$defs/RuntimeIdentityAuditLog"
+          },
+          "maxItems": 1024,
+          "title": "Audit Logs",
+          "type": "array"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "incarnation_id": {
+          "default": "",
+          "title": "Incarnation Id",
+          "type": "string"
+        },
+        "name": {
+          "default": "",
+          "title": "Name",
+          "type": "string"
+        },
+        "native_id": {
+          "default": "",
+          "title": "Native Id",
+          "type": "string"
+        },
+        "parent_ref": {
+          "default": "",
+          "title": "Parent Ref",
+          "type": "string"
+        },
+        "provider": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Provider",
+          "type": "string"
+        },
+        "scope_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "scope_kind": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Scope Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scope_id",
+        "provider",
+        "scope_kind"
+      ],
+      "title": "RuntimeIdentityResourceScope",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Audit log IDs and native service/log-type pairs must each be unique within their resource scope.",
+          "id": "cloud-audit-scope-uniqueness",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes.scenario.Scenario.model_validate"
+        }
+      ]
+    },
     "RuntimeIdentitySubject": {
       "additionalProperties": false,
       "description": "An authority-local user, group, device, role, or service principal.",
@@ -19076,6 +20503,11 @@
           "title": "Principal Name",
           "type": "string"
         },
+        "resource_scope_ref": {
+          "default": "",
+          "title": "Resource Scope Ref",
+          "type": "string"
+        },
         "service_principal_names": {
           "items": {
             "type": "string"
@@ -19117,6 +20549,72 @@
       ],
       "title": "RuntimeIdentitySubjectKind",
       "type": "string"
+    },
+    "RuntimeIdentityUse": {
+      "additionalProperties": false,
+      "description": "A workload's identity use, without implying permission or disclosure.",
+      "properties": {
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "mode": {
+          "anyOf": [
+            {
+              "enum": [
+                "attached",
+                "impersonated",
+                "federated"
+              ],
+              "type": "string"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            }
+          ],
+          "title": "Mode"
+        },
+        "principal_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Principal Ref",
+          "type": "string"
+        },
+        "source_principal_ref": {
+          "default": "",
+          "title": "Source Principal Ref",
+          "type": "string"
+        },
+        "use_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "workload_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Workload Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "use_id",
+        "workload_ref",
+        "principal_ref",
+        "mode"
+      ],
+      "title": "RuntimeIdentityUse",
+      "type": "object"
     },
     "RuntimeInitProcess": {
       "additionalProperties": false,
@@ -22308,6 +23806,13 @@
           "title": "Capabilities",
           "type": "array"
         },
+        "cloud_limits": {
+          "items": {
+            "$ref": "#/$defs/RuntimeCloudServiceLimit"
+          },
+          "title": "Cloud Limits",
+          "type": "array"
+        },
         "connectors": {
           "items": {
             "$ref": "#/$defs/RuntimePlatformApplicationConnector"
@@ -22387,6 +23892,18 @@
           "default": "",
           "title": "Product",
           "type": "string"
+        },
+        "resource_scope_ref": {
+          "default": "",
+          "title": "Resource Scope Ref",
+          "type": "string"
+        },
+        "secrets": {
+          "items": {
+            "$ref": "#/$defs/RuntimeServiceSecret"
+          },
+          "title": "Secrets",
+          "type": "array"
         },
         "service": {
           "default": "",
@@ -23648,6 +25165,448 @@
       ],
       "title": "RuntimeScheduledJobScheduleKind",
       "type": "string"
+    },
+    "RuntimeSecretConsumer": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "resolution_basis": {
+                "type": "null"
+              },
+              "resolution_evidence_refs": {
+                "maxItems": 0
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "resolved_version_ref": {
+                "minLength": 1
+              }
+            },
+            "required": [
+              "resolved_version_ref"
+            ]
+          },
+          "then": {
+            "properties": {
+              "resolution_basis": {
+                "enum": [
+                  "declared",
+                  "backend-selected",
+                  "observed"
+                ]
+              }
+            },
+            "required": [
+              "resolution_basis"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resolution_basis": {
+                "const": "observed"
+              }
+            },
+            "required": [
+              "resolution_basis"
+            ]
+          },
+          "then": {
+            "properties": {
+              "resolution_evidence_refs": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "resolution_evidence_refs"
+            ]
+          }
+        }
+      ],
+      "description": "A consumer's exact version or provider selector; no automatic fallback.",
+      "oneOf": [
+        {
+          "properties": {
+            "selector": {
+              "type": "null"
+            },
+            "version_ref": {
+              "minLength": 1
+            }
+          },
+          "required": [
+            "version_ref"
+          ]
+        },
+        {
+          "properties": {
+            "selector": {
+              "type": "object"
+            },
+            "version_ref": {
+              "const": ""
+            }
+          },
+          "required": [
+            "selector"
+          ]
+        }
+      ],
+      "properties": {
+        "consumer_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Consumer Ref",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "resolution_basis": {
+          "anyOf": [
+            {
+              "enum": [
+                "declared",
+                "backend-selected",
+                "observed"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resolution Basis"
+        },
+        "resolution_evidence_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Resolution Evidence Refs",
+          "type": "array"
+        },
+        "resolved_version_ref": {
+          "default": "",
+          "title": "Resolved Version Ref",
+          "type": "string"
+        },
+        "selection_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "selector": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeSecretSelector"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "version_ref": {
+          "default": "",
+          "title": "Version Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "selection_id",
+        "consumer_ref"
+      ],
+      "title": "RuntimeSecretConsumer",
+      "type": "object"
+    },
+    "RuntimeSecretReplica": {
+      "additionalProperties": false,
+      "description": "One GCP Secret Manager replica with optional native encryption key identity.",
+      "properties": {
+        "kms_key_name": {
+          "anyOf": [
+            {
+              "pattern": "^projects/[^/\\s]+/locations/[^/\\s]+/keyRings/[^/\\s]+/cryptoKeys/[^/\\s]+$",
+              "type": "string"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kms Key Name"
+        },
+        "location": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "pattern": "^\\S+$",
+          "title": "Location",
+          "type": "string"
+        }
+      },
+      "required": [
+        "location"
+      ],
+      "title": "RuntimeSecretReplica",
+      "type": "object"
+    },
+    "RuntimeSecretReplication": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "automatic"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "replicas": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "user-managed"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "kms_key_name": {
+                "type": "null"
+              },
+              "replicas": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "replicas"
+            ]
+          }
+        }
+      ],
+      "description": "Provider-qualified replication intent; never inferred from missing locations.",
+      "properties": {
+        "kms_key_name": {
+          "anyOf": [
+            {
+              "pattern": "^projects/[^/\\s]+/locations/[^/\\s]+/keyRings/[^/\\s]+/cryptoKeys/[^/\\s]+$",
+              "type": "string"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kms Key Name"
+        },
+        "mode": {
+          "anyOf": [
+            {
+              "enum": [
+                "automatic",
+                "user-managed"
+              ],
+              "type": "string"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            }
+          ],
+          "title": "Mode"
+        },
+        "provider": {
+          "const": "gcp-secret-manager",
+          "title": "Provider",
+          "type": "string"
+        },
+        "replicas": {
+          "items": {
+            "$ref": "#/$defs/RuntimeSecretReplica"
+          },
+          "maxItems": 1024,
+          "title": "Replicas",
+          "type": "array"
+        }
+      },
+      "required": [
+        "provider",
+        "mode"
+      ],
+      "title": "RuntimeSecretReplication",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Replica locations must be unique and encryption keys must match their location; automatic encryption requires global. Typed replication excludes legacy placement fields.",
+          "id": "secret-replication-location-agreement",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes.scenario.Scenario.model_validate"
+        }
+      ]
+    },
+    "RuntimeSecretSelector": {
+      "additionalProperties": false,
+      "description": "Inert provider selector identity, kept separate from its resolution.",
+      "properties": {
+        "kind": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "value"
+      ],
+      "title": "RuntimeSecretSelector",
+      "type": "object"
+    },
+    "RuntimeSecretVersion": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "destroyed"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload_content_ref": {
+                "const": ""
+              }
+            }
+          }
+        }
+      ],
+      "description": "Immutable version identity with optional lifecycle and content source.",
+      "properties": {
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "native_id": {
+          "default": "",
+          "title": "Native Id",
+          "type": "string"
+        },
+        "native_state": {
+          "default": "",
+          "title": "Native State",
+          "type": "string"
+        },
+        "payload_content_ref": {
+          "default": "",
+          "title": "Payload Content Ref",
+          "type": "string"
+        },
+        "state": {
+          "anyOf": [
+            {
+              "enum": [
+                "enabled",
+                "disabled",
+                "destroyed"
+              ],
+              "type": "string"
+            },
+            {
+              "not": {
+                "pattern": "[\\r\\n]"
+              },
+              "pattern": "^\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}$",
+              "type": "string",
+              "x-raes-variable-reference": true
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "State"
+        },
+        "version_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version_id"
+      ],
+      "title": "RuntimeSecretVersion",
+      "type": "object"
     },
     "RuntimeSecurityMonitoringAgent": {
       "additionalProperties": false,
@@ -24994,6 +26953,122 @@
       "title": "RuntimeServiceListener",
       "type": "object"
     },
+    "RuntimeServiceSecret": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "replication": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "replication"
+            ]
+          },
+          "then": {
+            "properties": {
+              "encryption_key_ref": {
+                "const": ""
+              },
+              "location": {
+                "const": ""
+              },
+              "replica_locations": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ],
+      "description": "A service-owned secret resource; payload bytes belong to content.",
+      "properties": {
+        "consumers": {
+          "items": {
+            "$ref": "#/$defs/RuntimeSecretConsumer"
+          },
+          "title": "Consumers",
+          "type": "array"
+        },
+        "deletion_owner_ref": {
+          "default": "",
+          "title": "Deletion Owner Ref",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "encryption_key_ref": {
+          "default": "",
+          "title": "Encryption Key Ref",
+          "type": "string"
+        },
+        "location": {
+          "default": "",
+          "title": "Location",
+          "type": "string"
+        },
+        "native_id": {
+          "default": "",
+          "title": "Native Id",
+          "type": "string"
+        },
+        "replica_locations": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Replica Locations",
+          "type": "array"
+        },
+        "replication": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeSecretReplication"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "reset_owner_ref": {
+          "default": "",
+          "title": "Reset Owner Ref",
+          "type": "string"
+        },
+        "resource_scope_ref": {
+          "default": "",
+          "title": "Resource Scope Ref",
+          "type": "string"
+        },
+        "secret_id": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "versions": {
+          "items": {
+            "$ref": "#/$defs/RuntimeSecretVersion"
+          },
+          "title": "Versions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "secret_id"
+      ],
+      "title": "RuntimeServiceSecret",
+      "type": "object"
+    },
     "RuntimeSoftwareComponent": {
       "additionalProperties": false,
       "description": "A software component required as part of a runtime node's state.",
@@ -25048,6 +27123,21 @@
           "default": "",
           "title": "Manifest Path",
           "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Model identifier selected for this software component.",
+          "title": "Model"
         },
         "name": {
           "title": "Name",
@@ -25735,6 +27825,191 @@
       },
       "title": "RuntimeSudoRule",
       "type": "object"
+    },
+    "SafeState": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "continuing_mode": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "continue"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "continuing_mode": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "continuing_mode"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "assertion_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Assertion Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "continuing_mode": {
+          "anyOf": [
+            {
+              "maxLength": 2048,
+              "minLength": 1,
+              "pattern": "^\\S+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Continuing Mode"
+        },
+        "kind": {
+          "enum": [
+            "safe-hold",
+            "controlled-stop",
+            "continue"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "safe-state/v1",
+          "default": "safe-state/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "assertion_refs"
+      ],
+      "title": "SafeState",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Safe states are complete lexical values with unique scopes and assertions. Resolved values bind exact observed postconditions and target-specific evidence. Resolved collections obey aggregate PLAN_VALUE_LIMITS before proof copying. See specs/sdl/safe-state.md.",
+          "id": "safe-state-safestate",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#/safe_state"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.safe_state.SafeState.model_validate"
+        }
+      ]
+    },
+    "SafeStateDocument": {
+      "additionalProperties": false,
+      "properties": {
+        "default": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SafeState"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scopes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SafeStateScope"
+          },
+          "maxItems": 256,
+          "title": "Scopes",
+          "type": "array"
+        }
+      },
+      "title": "SafeStateDocument",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Safe states are complete lexical values with unique scopes and assertions. Resolved values bind exact observed postconditions and target-specific evidence. Resolved collections obey aggregate PLAN_VALUE_LIMITS before proof copying. See specs/sdl/safe-state.md.",
+          "id": "safe-state-safestatedocument",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#/safe_state"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.safe_state.SafeStateDocument.model_validate"
+        }
+      ]
+    },
+    "SafeStateScope": {
+      "additionalProperties": false,
+      "properties": {
+        "namespace": {
+          "default": [],
+          "items": {
+            "maxLength": 64,
+            "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)$",
+            "type": "string"
+          },
+          "maxItems": 31,
+          "title": "Namespace",
+          "type": "array"
+        },
+        "scope": {
+          "default": "",
+          "maxLength": 4096,
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Scope",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/SafeState"
+        }
+      },
+      "required": [
+        "state"
+      ],
+      "title": "SafeStateScope",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Safe states are complete lexical values with unique scopes and assertions. Resolved values bind exact observed postconditions and target-specific evidence. Resolved collections obey aggregate PLAN_VALUE_LIMITS before proof copying. See specs/sdl/safe-state.md.",
+          "id": "safe-state-safestatescope",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#/safe_state"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.safe_state.SafeStateScope.model_validate"
+        }
+      ]
     },
     "Script": {
       "additionalProperties": false,
@@ -27191,6 +29466,15 @@
             },
             {
               "$ref": "#/$defs/RuntimeInventorySlot"
+            },
+            {
+              "$ref": "#/$defs/RuntimeChildInventorySlot"
+            },
+            {
+              "$ref": "#/$defs/DeclarationPresenceSlot"
+            },
+            {
+              "$ref": "#/$defs/ResourceConsumerSlot"
             }
           ],
           "title": "Slot"
@@ -28459,6 +30743,23 @@
       "title": "Content",
       "type": "object"
     },
+    "control_context_assets": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ParticipantControlContextAssetModel"
+      },
+      "maxProperties": 256,
+      "propertyNames": {
+        "maxLength": 64,
+        "minLength": 1,
+        "not": {
+          "pattern": "[^a-z0-9_-]"
+        },
+        "pattern": "^[a-z0-9]",
+        "type": "string"
+      },
+      "title": "Control Context Assets",
+      "type": "object"
+    },
     "deployment_cells": {
       "additionalProperties": {
         "$ref": "#/$defs/DeploymentCell"
@@ -28845,6 +31146,18 @@
       "title": "Relationships",
       "type": "object"
     },
+    "safe_state": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SafeStateDocument"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "x-raes-realization-dimension": false
+    },
     "scripts": {
       "additionalProperties": {
         "$ref": "#/$defs/Script"
@@ -28955,6 +31268,37 @@
       "title": "Time Progression Policies",
       "type": "object"
     },
+    "trial_parallelism": {
+      "anyOf": [
+        {
+          "discriminator": {
+            "mapping": {
+              "constrained": "#/$defs/ConstrainedTrialParallelismModel",
+              "exact": "#/$defs/ExactTrialParallelismModel",
+              "open": "#/$defs/OpenTrialParallelismModel"
+            },
+            "propertyName": "posture"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/OpenTrialParallelismModel"
+            },
+            {
+              "$ref": "#/$defs/ExactTrialParallelismModel"
+            },
+            {
+              "$ref": "#/$defs/ConstrainedTrialParallelismModel"
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Trial Parallelism",
+      "x-raes-realization-dimension": false
+    },
     "variables": {
       "additionalProperties": false,
       "patternProperties": {
@@ -29059,7 +31403,7 @@
         }
       ],
       "level": "error",
-      "validator": "raes.evidence_requirements.EvidenceRequirement._validate_capture_intent"
+      "validator": "raes_contracts.evidence_requirements.EvidenceRequirement._validate_capture_intent"
     },
     {
       "description": "Generated artifact output names and paths, consumers, and dependency entries must be unique, and generated artifact consumers must be read-only. Explicit selections must name declared consumer-selectable outputs; SSH artifact consumers must select outputs and every consumer-selectable SSH output must be selected.",

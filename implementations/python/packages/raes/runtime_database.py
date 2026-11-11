@@ -25,16 +25,21 @@ import re
 from typing import Any
 
 from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import (
+    RuntimeSensitivityClassification,
+    coerce_string_list,
+    enforce_observed_value_redaction,
+    parse_optional_bool_or_var,
+    parse_runtime_enum_or_var,
+    reject_duplicates,
+    require_symbol,
+)
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import is_variable_ref, parse_bool_or_var, parse_int_or_var
 
 from raes.runtime_filesystem import redacted_raw_value_schema
-from raes.runtime_vocabulary import GovernedVocabulary
 
-from ._base import (
-    SDLModel,
-    is_variable_ref,
-    parse_bool_or_var,
-    parse_int_or_var,
-)
 from .runtime_database_vocab import (
     ENGINE_TO_PROTOCOLS as _ENGINE_TO_PROTOCOLS,
 )
@@ -46,15 +51,6 @@ from .runtime_database_vocab import (
     DatabaseProtocol,
     DatabaseRoleType,
     DatabaseSettingProvenance,
-)
-from .runtime_filesystem import RuntimeSensitivityClassification
-from .runtime_values import (
-    coerce_string_list,
-    enforce_observed_value_redaction,
-    parse_optional_bool_or_var,
-    parse_runtime_enum_or_var,
-    reject_duplicates,
-    require_symbol,
 )
 
 __all__ = [
@@ -108,9 +104,10 @@ def _db_listen_address_or_var(value: str, *, field_name: str) -> str:
         return value
     try:
         ipaddress.ip_address(value)
-        return value
     except ValueError:
         pass
+    else:
+        return value
     if all(_HOSTNAME_LABEL.match(label) for label in value.split(".")):
         return value
     raise ValueError(f"{field_name} must be '*', an IP address, a hostname, or a Unix socket path")
@@ -199,7 +196,7 @@ class DatabaseSchema(SDLModel):
         return parse_runtime_enum_or_var(v, DatabaseObjectOrigin, field_name="origin")
 
     @model_validator(mode="after")
-    def validate_schema(self) -> "DatabaseSchema":
+    def validate_schema(self) -> DatabaseSchema:
         seen: set[str] = set()
         for table in self.tables:
             if table.table_id in seen:
@@ -233,7 +230,7 @@ class Database(SDLModel):
         return parse_runtime_enum_or_var(v, DatabaseObjectOrigin, field_name="origin")
 
     @model_validator(mode="after")
-    def validate_database(self) -> "Database":
+    def validate_database(self) -> Database:
         seen: set[str] = set()
         for schema in self.schemas:
             if schema.schema_id in seen:
@@ -375,7 +372,7 @@ class DatabaseSetting(SDLModel):
         return parse_runtime_enum_or_var(v, DatabaseSettingProvenance, field_name="provenance")
 
     @model_validator(mode="after")
-    def validate_redacted_value(self) -> "DatabaseSetting":
+    def validate_redacted_value(self) -> DatabaseSetting:
         # Explicit redaction classifications omit raw values; credential-shaped
         # names remain scenario content unless the author marks them withheld.
         enforce_observed_value_redaction(
@@ -424,7 +421,7 @@ class RuntimeDatabaseService(SDLModel):
         return parse_runtime_enum_or_var(v, DatabaseProtocol, field_name="protocol")
 
     @model_validator(mode="after")
-    def validate_service(self) -> "RuntimeDatabaseService":
+    def validate_service(self) -> RuntimeDatabaseService:
         self._reject_duplicate_top_level_ids()
         self._reject_duplicate_nested_object_ids()
         self._reject_duplicate_setting_names()

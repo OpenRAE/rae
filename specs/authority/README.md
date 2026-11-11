@@ -1,9 +1,9 @@
-# Authority Boundary
+# Authority boundary
 
-This directory contains the canonical machine-readable manifest of the
-normative-artifact authority boundary that
+This reference identifies the machine-readable authority manifest.
+The manifest records the normative-artifact boundary decided by
 [ADR-009](../../docs/decisions/adrs/adr-009-normative-artifact-authority-and-repository-structure.md)
-decided in prose.
+in prose.
 
 ## Files
 
@@ -20,10 +20,10 @@ decided in prose.
 
 ## Artifact-family classification
 
-`authority_roots` classify whole directory trees, and `specs/` carries the
-default family `prose`. Some artifacts under a normative root are not prose —
-the agent-usable guidance profile (`specs/agent-guidance/agent-guidance.yaml`,
-AUT-811) is machine-readable governance guidance, not a prose specification.
+`authority_roots` classify whole directory trees.
+The default family for `specs/` is `prose`.
+Some normative artifacts use another family.
+For example, `specs/agent-guidance/agent-guidance.yaml` (AUT-811) is machine-readable governance guidance.
 The `normative_artifact_families` block classifies such artifacts explicitly:
 each entry pins one artifact path to a distinct authority `family` (for
 agent-guidance, `governance-guidance`) so the artifact's authority class is
@@ -31,12 +31,11 @@ decidable from the manifest alone. Such a classified, governed scope is a
 **surface** in the
 [concept-authority](../concept-authority/concept-authority.md) sense.
 
-The classification follows a **most-specific rule**: an artifact path is
-strictly more specific than any root prefix, so an explicit
-`normative_artifact_families[].artifact` entry classifies that exact file and
-the containing root supplies the default family for every other artifact. The
-next governed non-prose artifact is classified by adding one entry here plus a
-focused test in
+The classification follows a **most-specific rule**.
+An artifact path is more specific than a root prefix.
+An explicit `normative_artifact_families[].artifact` entry classifies that exact file.
+The containing root supplies the default family for every other artifact.
+A new governed non-prose artifact needs one manifest entry and a focused test in
 [`test_authority_boundary.py`](../../implementations/python/tests/test_authority_boundary.py);
 no parallel list lives anywhere else in the repo.
 `tools/check_authority_boundary.py` validates each entry's shape, that the

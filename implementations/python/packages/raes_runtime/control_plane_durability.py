@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from raes_contracts.operational_logging import get_logger
 from raes_contracts.runtime_state import OperationState, RuntimeSnapshot
 
 from .control_plane_store import (
@@ -16,6 +17,8 @@ from .control_plane_store import (
 from .control_plane_store_bounded import bounded_store_commit
 from .control_plane_store_compatibility import ControlPlaneStoreCommitAdapter
 
+_LOGGER = get_logger(__name__)
+
 
 class RuntimeDurabilityMixin:
     """Keep live caches aligned with durable state after every store outcome."""
@@ -28,6 +31,8 @@ class RuntimeDurabilityMixin:
 
     def _require_state_writer(self) -> None:
         authority = getattr(self, "_mutation_authority", None)
+        if authority is not None:
+            authority.require_live_child_scope()
         if authority is not None and not authority.owns_current_thread():
             self._poison_runtime_durability()
             raise RuntimeError("terminal publication requires the live state writer")
@@ -138,19 +143,48 @@ class RuntimeDurabilityMixin:
         self,
         committed: SnapshotState,
     ) -> None:
-        records = self._store.load_records()
-        with self._operation_lock:
-            self._snapshot_state = committed
-            self._operations = records
+        try:
+            with self._operation_lock:
+                self._refresh_operation_records()
+                self._snapshot_state = committed
+                from .participant_control_projection import control_projection
+
+                control_projection(self)
+        except BaseException:
+            self._control_state_projection = None
+            self._control_operation_index = None
+            self._poison_runtime_durability()
+            raise
+
+    def _refresh_operation_records(self) -> None:
+        """Consume confirmed record changes, including operation-only commits."""
+        reader = getattr(self._store, "load_operation_changes", None)
+        if reader is None:
+            self._operations = self._store.load_records()
+            self._control_operation_index = None
+            return
+        cursor = getattr(self, "_operation_changes_cursor", None)
+        from .control_plane_store_changes import require_operation_changes
+
+        changes = require_operation_changes(reader(cursor), cursor)
+        if changes.reset:
+            self._operations = dict(changes.records)
+            self._control_operation_index = None
+        else:
+            self._operations.update(changes.records)
+            index = getattr(self, "_control_operation_index", None)
+            if index is not None:
+                for record in changes.records.values():
+                    index.apply(record)
+        self._operation_changes_cursor = changes.cursor
 
     def _reload_derived_state(self) -> None:
         """Rebuild non-authoritative runtime views without mutating store state."""
 
         snapshot_state = self._store.load_snapshot_state()
-        operations = self._store.load_records()
         with self._operation_lock:
+            self._refresh_operation_records()
             self._snapshot_state = snapshot_state
-            self._operations = operations
 
     def _reload_derived_state_if_unpinned(self) -> None:
         """Refresh unless a response projection already owns an exact state cut."""
@@ -182,6 +216,8 @@ class RuntimeDurabilityMixin:
                 if expected_audit not in self._store.read_audit():
                     raise RuntimeError("terminal operation is missing its actor-bound audit")
         except Exception:
+            # Isolation of the store readback: the caller re-raises the original store error.
+            _LOGGER.exception("control-plane durable state could not be reconciled; the runtime requires restart")
             self._poison_runtime_durability()
             error.add_note(
                 "Durable state could not be reconciled after the store error; this runtime is poisoned until restart."
@@ -190,6 +226,9 @@ class RuntimeDurabilityMixin:
         with self._operation_lock:
             self._snapshot_state = snapshot_state
             self._operations = operations
+            self._operation_changes_cursor = None
+            self._control_state_projection = None
+            self._control_operation_index = None
 
 
 __all__ = ("RuntimeDurabilityMixin",)

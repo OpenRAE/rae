@@ -1,0 +1,298 @@
+{
+  "schema_version": "unsupported/v1",
+  "plan": {
+    "schema_version": "admitted-trial-plan/v1",
+    "plan_id": "plan-a",
+    "profiles": {
+      "coordinate_profile": "trial-coordinate-v1",
+      "entry_identity_profile": "trial-entry-identity-v1",
+      "run_identity_profile": "archival-run-identity-v1",
+      "canonicalization_profile": "jcs-sha256-v1",
+      "integrity_profile": "acyclic-digest-chain-v1",
+      "compiler_profile": "trial-compiler-v1",
+      "selection_policy_profile": "experiment-selection-v1",
+      "random_stream_profile": "blake3-xof-v1",
+      "execution_control_profile": "attempt-control-v1",
+      "cleanup_profile": "trial-cleanup-v1"
+    },
+    "input_refs": {
+      "authoring_input_ref": {
+        "ref_kind": "authoring-input",
+        "ref_id": "exp-a",
+        "ref_version": "1",
+        "ref_digest": "sha256:abababababababababababababababababababababababababababababababab",
+        "ref_path": null
+      },
+      "task_ref": {
+        "ref_kind": "task",
+        "ref_id": "task-a",
+        "ref_version": "1"
+      },
+      "task_digest": "sha256:bcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbcbc",
+      "scenario_family_ref": {
+        "ref_kind": "scenario-family",
+        "ref_id": "family-a",
+        "ref_version": "expanded-scenario-family/v1",
+        "ref_digest": "sha256:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
+      },
+      "capture_spec_refs": [],
+      "binding_descriptor_set_ref": {
+        "ref_kind": "other",
+        "ref_id": "bindings-a",
+        "ref_version": "1",
+        "ref_digest": "sha256:efefefefefefefefefefefefefefefefefefefefefefefefefefefefefefefef",
+        "ref_path": null
+      },
+      "study_ref": null,
+      "associated_artifact_set_ref": null
+    },
+    "stochastic_controls": {
+      "control-a": {
+        "control_id": "control-a",
+        "role": "randomization",
+        "value": null,
+        "description": null,
+        "executable_binding": {
+          "profile_ref": {
+            "ref_kind": "profile",
+            "ref_id": "blake3-xof-v1",
+            "ref_version": "random-stream-profile/v1",
+            "ref_digest": null,
+            "ref_path": null
+          },
+          "namespace": "study-namespace",
+          "root_entropy": {
+            "kind": "public-seed",
+            "encoding": "hex-fixed-width",
+            "value": "abababababababababababababababababababababababababababababababab"
+          }
+        }
+      }
+    },
+    "cleanup_plans": {
+      "cleanup-a": {
+        "schema_version": "trial-cleanup-plan/v1",
+        "plan_id": "cleanup-a",
+        "plan_entry_id": "entry-a",
+        "run_id": "run-a",
+        "clean_state": {
+          "mode": "fresh",
+          "boundary_refs": [
+            "range-a"
+          ],
+          "verification_probe_refs": [
+            "probe:fresh"
+          ],
+          "reusable_state_claim_ref": null
+        },
+        "resource_boundaries": {
+          "range-a": {
+            "boundary_id": "range-a",
+            "resource_kind": "range-instance",
+            "owner_ref": "apparatus:range-a",
+            "resource_refs": [
+              "node.vm-a"
+            ]
+          }
+        },
+        "cleanup_obligations": {
+          "destroy-range": {
+            "obligation_id": "destroy-range",
+            "boundary_refs": [
+              "range-a"
+            ],
+            "action_kind": "destroy",
+            "action_profile_ref": null,
+            "triggers": [
+              "success",
+              "failure",
+              "cancellation",
+              "timeout",
+              "abort"
+            ],
+            "requirement": "required",
+            "depends_on": [],
+            "idempotency": "idempotent",
+            "compensation_refs": [],
+            "verification_probe_refs": [
+              "probe:absent"
+            ],
+            "timeout_seconds": 120
+          }
+        },
+        "retry_policy": {
+          "max_attempts": 1,
+          "after_effect_policy": "disallow",
+          "reset_obligation_refs": [],
+          "compensation_refs": []
+        }
+      }
+    },
+    "entries": {
+      "entry-a": {
+        "plan_entry_id": "entry-a",
+        "coordinate": {
+          "condition_id": "baseline",
+          "block_id": null,
+          "replicate_id": null
+        },
+        "run_id": "run-a",
+        "selections": [
+          {
+            "variation_point_id": "point-a",
+            "origin_policy_id": "policy-a",
+            "origin_policy_kind": "fixed",
+            "outcome": {
+              "kind": "member",
+              "member_id": "variant-a"
+            }
+          }
+        ],
+        "bindings": [
+          {
+            "descriptor": {
+              "binding_id": "bind-a",
+              "source_factor_id": "factor-a",
+              "source_factor_level_id": "level-a",
+              "source_condition_id": "baseline",
+              "target": {
+                "plane": "scenario",
+                "scenario_family_id": "family-a",
+                "variation_point_id": "point-b",
+                "target_id": "target-a"
+              },
+              "value_type": "string",
+              "value": {
+                "kind": "literal",
+                "value": "v"
+              },
+              "owner": {
+                "contract_id": "sdl-authoring-input-v1",
+                "contract_version": "1",
+                "validator_id": "scenario-binder",
+                "validator_version": "1"
+              }
+            },
+            "origin": "selection"
+          }
+        ],
+        "stochastic_draws": [
+          {
+            "control_id": "control-a",
+            "address": {
+              "namespace": "study-namespace",
+              "trial_coordinate": {
+                "condition_id": "baseline",
+                "block_id": null,
+                "replicate_id": null
+              },
+              "selection_policy_id": "policy-a",
+              "variation_point_id": "point-a",
+              "draw_purpose": "condition-assignment",
+              "local_coordinate": 0
+            },
+            "transform_id": "bounded-integer",
+            "transform_version": "1",
+            "local_coordinate": 0,
+            "outcome": {
+              "kind": "public-value",
+              "value": "3"
+            },
+            "rejection_attempts": 0,
+            "rejection_exhausted": false
+          }
+        ],
+        "apparatus": {
+          "manifest_refs": [
+            {
+              "ref_kind": "manifest",
+              "ref_id": "backend-a",
+              "ref_version": "backend-manifest/v2",
+              "ref_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "backend",
+                "ref_id": "backend-a",
+                "ref_version": "1",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            }
+          ],
+          "realization_envelope": {
+            "contract_id": "realization-envelope-v1",
+            "envelope_id": "env-a",
+            "schema_version": "realization-envelope/v1",
+            "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "configuration_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+          },
+          "capability_refs": [
+            "cap:isolation"
+          ]
+        },
+        "execution_controls": {
+          "attempt_timeout_seconds": 600,
+          "on_timeout": "cleanup-and-fail",
+          "on_cancellation": "cleanup-and-fail",
+          "cleanup_plan_ref": "cleanup-a"
+        },
+        "instantiation_provenance": {
+          "plan_id": "plan-a",
+          "plan_entry_id": "entry-a",
+          "run_id": "run-a",
+          "scenario_family_id": "family-a"
+        },
+        "entry_digest": "sha256:e1e0533ce89453684a554361eee26f2c561b2675172710cb161358e6f8c67eec"
+      }
+    },
+    "admission": {
+      "admitted_at_stage": "admitted-sealed",
+      "entry_count": 1,
+      "limitations": [],
+      "diagnostics": []
+    },
+    "plan_digest": "sha256:f6484bf975e1e7a2da23ddb1cc8a75964a0e21a992ca8be3b840eea906ecec73"
+  },
+  "plan_entry_id": "entry-a",
+  "execution_attempt_id": "attempt:b1e800b3-c9de-59bb-b0e8-6bab5e1380de",
+  "attempt": 1,
+  "started_at": "2026-11-03T00:00:00+00:00",
+  "deadline": "2026-11-03T00:10:00+00:00",
+  "target_scope": "target:trial",
+  "owner_id": "worker-a",
+  "owner_generation": 1,
+  "instantiated_sdl_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "processor_plan_refs": [
+    {
+      "plan_kind": "provisioning",
+      "artifact_ref": {
+        "ref_kind": "other",
+        "ref_id": "fixture-provisioning",
+        "ref_version": "provisioning-plan-v1",
+        "ref_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "ref_path": null
+      }
+    },
+    {
+      "plan_kind": "orchestration",
+      "artifact_ref": {
+        "ref_kind": "other",
+        "ref_id": "fixture-orchestration",
+        "ref_version": "orchestration-plan-v1",
+        "ref_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "ref_path": null
+      }
+    },
+    {
+      "plan_kind": "evaluation",
+      "artifact_ref": {
+        "ref_kind": "other",
+        "ref_id": "fixture-evaluation",
+        "ref_version": "evaluation-plan-v1",
+        "ref_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "ref_path": null
+      }
+    }
+  ],
+  "effective_parallelism": 1
+}

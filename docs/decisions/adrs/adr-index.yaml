@@ -1,18 +1,15 @@
-# Acceptance-content pin manifest for accepted ADRs (ADR-059).
+# Accepted-ADR manifest (ADR-059).
 #
-# `pin` is the sha256 of each accepted ADR's canonical content (the file
-# with its `## Amendments` section removed, per-line trailing whitespace
-# trimmed). Enforced by tools/check_adr_immutability.py in the `policy` nox
-# session. A substantive change to an accepted ADR must add a `## Amendments`
-# row + update its pin here in the same change, or supersede it with a new ADR.
-hash_algorithm: sha256
+# Each entry names one accepted ADR and mirrors its `## Amendments` refs.
+# tools/check_adr_immutability.py compares each accepted ADR with the base
+# revision: a change to its canonical content must add a `## Amendments` row in
+# the same change, or the ADR is superseded by a new ADR. No content digest is
+# stored; git holds the ADR history (issue #1929).
 adrs:
   - id: ADR-000
     path: docs/decisions/adrs/adr-000-use-adrs.md
-    pin: 9fbb099fd8321b1351c0afd13f7502bc5cd4863c3853a087ba5fbf4940cc8634
   - id: ADR-001
     path: docs/decisions/adrs/adr-001-scenario-description-language.md
-    pin: 29d53078da3314320bca34148440e8ad80a0deb6fc0471177197d2ab90043389
     amendments:
       - date: 2026-07-11
         ref: "#721"
@@ -22,7 +19,6 @@ adrs:
         summary: "Replace native vulnerability and classification sections with generic external concept bindings, preserving native execution semantics, explicit migration, and ordinary participant disclosure."
   - id: ADR-002
     path: docs/decisions/adrs/adr-002-declarative-sdl-objectives.md
-    pin: 9dc73c75d1977822b58b0ce98bf57f2caf7d4fa5c226427f6c4afd0fe9ad08a3
     amendments:
       - date: 2026-07-05
         ref: "#682"
@@ -35,45 +31,37 @@ adrs:
         summary: "Per ADR-109, separate organizational ownership and participant assignment, require declared action contracts, and retain realized-attribution boundaries."
   - id: ADR-003
     path: docs/decisions/adrs/adr-003-workflows-targetable-subobjects-and-enum-variables.md
-    pin: 0039bea0de4e4d5d08ccf300a7fb7516a0ea01977f38f1e2e111409a13e108df
   - id: ADR-004
     path: docs/decisions/adrs/adr-004-sdl-runtime-layer.md
-    pin: 1fbd1578afe343fe869b0298aab24f1d5339db40188cc39a66e38f1dcd98370b
   - id: ADR-006
     path: docs/decisions/adrs/adr-006-workflow-control-language-redesign.md
-    pin: 14565096df37ebc65239db018da85a609701b7978523b44f20d06f189f085900
   - id: ADR-007
     path: docs/decisions/adrs/adr-007-lightweight-formal-methods-policy.md
-    pin: 1ca00bf9c4610117c7cb8c42fe9be828292dfff22828793b32e504bca4379d85
   - id: ADR-008
     path: docs/decisions/adrs/adr-008-processor-layer-and-execution-artifact-boundaries.md
-    pin: 55343496d8dc22a8b7348f1d1197cd9f446d40a0a9af5d9d7b40f0c7cc9a8966
   - id: ADR-009
     path: docs/decisions/adrs/adr-009-normative-artifact-authority-and-repository-structure.md
-    pin: f7a74751a70e8d5d96266e2c45d94b1aafda832afe7b418df819de1cb1983fcc
     amendments:
       - date: 2026-06-14
         ref: "#499"
         summary: "Recorded the section 7 schema-authority milestone as reached (contracts/schemas/ normative; reference implementation proves compatibility; manifest change-ledger governs schema edits)."
+      - date: 2026-11-06
+        ref: "#1929"
+        summary: "Schema-publication records no longer store a `content_hash` or a `last_change` block, and the `schema-change-missing-manifest` rule is removed. Git holds schema history. Breaking-change detection against the base branch and removal tombstones still govern published schemas. The decision text above is unchanged."
   - id: ADR-010
     path: docs/decisions/adrs/adr-010-repository-realignment-order-and-compatibility-policy.md
-    pin: 752d8577e900e9b6257ff0db362c275bf7b26e14162a892dcd9578cbd71717c3
   - id: ADR-011
     path: docs/decisions/adrs/adr-011-narrow-end-to-end-mvp-validation.md
-    pin: b18bc89bddce74a677321b2f5429243907491235266f71a3ba6f02829b32f7c0
   - id: ADR-012
     path: docs/decisions/adrs/adr-012-shared-concept-authority-and-aces-extension-discipline.md
-    pin: 3027ece9635715383318f0deb7ca8b9092631f95959a294034ebeadc5bc488a0
   - id: ADR-013
     path: docs/decisions/adrs/adr-013-participant-episode-lifecycle-boundaries.md
-    pin: aaf414e1da0eb329432562b16ff9e132522e19e8a35933a1c99329b0be27cae8
     amendments:
       - date: 2026-08-02
         ref: "#122"
         summary: "Superseded §6's no-SDL-episode-syntax non-goal for the joint episode+budget design (SEM-222/DSL-120/ACT-623, #122): DSL-120/ACT-623 add an authored episode-structure surface (init, turn structure, terminal/truncation conditions, reset policy) as intent compiling to the existing ParticipantEpisode* contracts; runtime identity, state/reason/action separation, and the schema-first boundary are unchanged."
   - id: ADR-014
     path: docs/decisions/adrs/adr-014-nox-as-canonical-verification-graph.md
-    pin: cecb6398e55a03fd5ec20c3768a1fe09b5c5fba302e878af0b19b4aa0f3d5afa
     amendments:
       - date: 2026-07-31
         ref: "#963"
@@ -87,25 +75,26 @@ adrs:
       - date: 2026-09-22
         ref: "#1348"
         summary: Restricted local defaults, pre-push, changed verification, and completion to targeted feedback; reserved full test suites for CI/CD, superseding earlier local full-regression obligations while preserving required CI and Sonar gates.
+      - date: 2026-10-28
+        ref: "#1672"
+        summary: Narrowed standard interpreter support to CPython 3.14; the required python-compatibility check runs one time in smoke-only mode because the canonical graph runs the hermetic suite on the same interpreter.
   - id: ADR-015
     path: docs/decisions/adrs/adr-015-sdl-processor-layering-and-source-file-size-cap.md
-    pin: bc5038164e535c4d506962e27cee07e720f5c8a77cb17d018dedb3dba927936f
     amendments:
       - date: 2026-07-12
         ref: "#561"
         summary: "Lowered the non-test source-file cap from 600 to 500 lines to align with SonarCloud S104; re-baselined _ADR015_INITIAL_OVERSIZED_FILES and the oversized allowlist to the files over 500 lines at amendment time."
+      - date: 2026-10-30
+        ref: "#1734"
+        summary: "Raised the cap from 500 to 1,000 lines as a backstop to the ADR-117 structural checks; set the SonarCloud S104 maximum to 1001 in a project profile; re-baselined _ADR015_INITIAL_OVERSIZED_FILES to the files over 1,000 lines: none."
   - id: ADR-016
     path: docs/decisions/adrs/adr-016-semantic-layer-scope-and-coverage-model.md
-    pin: ff9a71be7f6d427b88ff26317da36e14b6cc5943418cd941df88dca29033449b
   - id: ADR-017
     path: docs/decisions/adrs/adr-017-conversation-surface-hardening.md
-    pin: 09d78645690d4ae3f416a72380317148662b3f252a96d31bbc28c969f2c7eb81
   - id: ADR-018
     path: docs/decisions/adrs/adr-018-classification-based-assurance-policy.md
-    pin: 168195279ea2e3dafb12d3d308f750af2804bc09700efa3dc258a31cb05e8d2f
   - id: ADR-019
     path: docs/decisions/adrs/adr-019-normative-authority-boundary-manifest.md
-    pin: 872985c045405d0333c80b8b8df718bdc243c0ea778e6c8fdc6d6b0d49a15d75
     amendments:
       - ref: "#100"
       - date: 2026-07-12
@@ -116,7 +105,6 @@ adrs:
         summary: "Removed changelog.d/ from the non-normative roots after release-please replaced the towncrier workflow (GOV-901)."
   - id: ADR-020
     path: docs/decisions/adrs/adr-020-declarative-participant-framing-boundaries.md
-    pin: 37dd453a0c96fe454d5ee2a4a1b9a9e46171a8322d84105d34f42507deb7a8e2
     amendments:
       - date: 2026-06-13
         ref: "#484"
@@ -126,31 +114,26 @@ adrs:
         summary: "Per ADR-109, separate declaration identity from optional affiliations and define direct-first, single-affiliation role resolution."
   - id: ADR-021
     path: docs/decisions/adrs/adr-021-falsification-first-claim-evidence-gate.md
-    pin: 3e6053efd262abdbc37c8804bb066466b4c968dc647bfc605c16b563f6639642
     amendments:
       - date: 2026-06-13
         ref: "#484"
         summary: "Recorded acceptance of the falsification-first claim evidence gate and its ASR-530/#162 linkage."
   - id: ADR-022
     path: docs/decisions/adrs/adr-022-participant-behavior-and-interaction-semantics.md
-    pin: 87557c92a82c413c0e9042a239735ad78b24e73516c58be2249e97159c5dea38
     amendments:
       - date: 2026-06-13
         ref: "#484"
         summary: "Recorded acceptance-time ownership-boundary wording for cross-issue evidence concerns."
   - id: ADR-023
     path: docs/decisions/adrs/adr-023-container-image-build-provenance-surface.md
-    pin: 55aea7a6726bc8942f9df35f83f9d50c3a2e4ffaff091ea47c581f8ef5525133
     amendments:
       - date: 2026-06-13
         ref: "#484"
         summary: "Recorded acceptance-time non-goal wording after the issue #364 Source.build surface shipped."
   - id: ADR-024
     path: docs/decisions/adrs/adr-024-local-identity-inventory-surface.md
-    pin: 74f1a3df1a7c0f8dc6f44ff006abe88b20b9444fa93a736ac20fca1ca800e665
   - id: ADR-025
     path: docs/decisions/adrs/adr-025-container-network-realization-surface.md
-    pin: 5442b545bb5a038500dce5a66a0bccddbeea6449269481c8b4f960d9b6a9f488
     amendments:
       - date: 2026-05-25
         ref: 4b959c3
@@ -160,20 +143,16 @@ adrs:
         summary: "Moved generated network identity and incidental inspect output from authored Node.runtime to evidence while retaining deliberately required network state."
   - id: ADR-026
     path: docs/decisions/adrs/adr-026-application-http-surface-inventory.md
-    pin: 8818f870d79498f3322fd5edb9d2269948d04079ef5fbc7238811911ab7f5373
     amendments:
       - date: 2026-09-18
         ref: "#1298"
         summary: "Separated extensible case-sensitive HTTP wire-method identity from controlled vocabularies while retaining legacy built-in aliases and execution boundaries."
   - id: ADR-027
     path: docs/decisions/adrs/adr-027-container-init-reaper-runtime-surface.md
-    pin: d568a5a77d55b995d23c057ed3ccc56d221509a6068374d3884b2608c926cdea
   - id: ADR-028
     path: docs/decisions/adrs/adr-028-container-seccomp-security-options-surface.md
-    pin: 8798070e5aaa08a1de27686e8fd346030f00c4f3cace56c83602c0f9a312ac39
   - id: ADR-029
     path: docs/decisions/adrs/adr-029-database-logical-state-runtime-surface.md
-    pin: 8210e0a4a35567e18746980db21b37147c74c6d617431cfda5ed775303817968
     amendments:
       - date: 2026-05-30
         ref: d0b4332
@@ -183,20 +162,16 @@ adrs:
         summary: "Preserve omitted protocol knowledge through instantiation while retaining explicit engine/protocol contradiction checks."
   - id: ADR-030
     path: docs/decisions/adrs/adr-030-process-scoped-linux-capability-policy.md
-    pin: d0574426f9b249fa078f364988e309b14d73c03a9f00115ab04e6ddeab76ffa1
   - id: ADR-031
     path: docs/decisions/adrs/adr-031-ssh-server-configuration-surface.md
-    pin: c77a768a27cf1d457aaf143557588e259b550fb5037acd0ea1e4d21026ba7cee
   - id: ADR-032
     path: docs/decisions/adrs/adr-032-directory-domain-identity-runtime-surface.md
-    pin: 518395ad00cd7ef19d9c762c87702eb1677333a76e0d26e5f0d404e6fe20f216
     amendments:
       - date: 2026-05-25
         ref: 5e42bd8
         summary: "Added primary-standards and access-control literature grounding (LDAP/Kerberos/SCIM/SAML/OAuth/OIDC RFCs, NIST SP 800-63C/162/207, RBAC/ABAC) for identity authorities and authority boundaries."
   - id: ADR-033
     path: docs/decisions/adrs/adr-033-scenario-delivery-boundary-for-runtime-node-state.md
-    pin: 43b1b3a868e93ed5c70c0dce268227fda82fc5060d19466b719128d013c976d5
     amendments:
       - date: 2026-07-25
         ref: "#884"
@@ -206,7 +181,6 @@ adrs:
         summary: "Refined participant-discoverable capture versus deliberate authored runtime contract promotion across the six carrier categories."
   - id: ADR-034
     path: docs/decisions/adrs/adr-034-runtime-software-component-inventory.md
-    pin: 4fd19ef7fc5b15cea8ea385fb987ae1ad1ff2723b7c330b635d33f3b13874c48
     amendments:
       - date: 2026-07-13
         ref: "#417"
@@ -214,68 +188,61 @@ adrs:
       - date: 2026-09-12
         ref: "#1205"
         summary: "Adopted generic software refinements, exact-package compatibility, shared final repository/trust identity and independent acquisition/reporting boundaries."
+      - date: 2026-11-05
+        ref: "#1913"
+        summary: "Add a model field to software components and let trials vary it."
   - id: ADR-035
     path: docs/decisions/adrs/adr-035-service-manager-unit-state-runtime-surface.md
-    pin: 7f8f8cd95a368698d7b637fd2ee363be295e4cde7d85a46fe49f01462c03bc07
     amendments:
       - date: 2026-09-17
         ref: "#1297"
         summary: "Separated portable unit identity/native names from the explicitly selected systemd state profile and preserved omission semantics."
   - id: ADR-036
     path: docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md
-    pin: 80274b6f6f7529fdce17d3451acb2201f6ecf07095dbc5f6b36aa81399ddcdd9
+    amendments:
+      - date: 2026-10-31
+        ref: "#1711"
+        summary: "ADR-121 makes raes_contracts the lowest package. It imports no first-party package and owns the shared authored types."
   - id: ADR-037
     path: docs/decisions/adrs/adr-037-runtime-file-service-and-filesystem-presence-semantics.md
-    pin: d58c39b1132fe59dedb53fa389fc9c9bee063c37fca4d30aecff056683550baa
   - id: ADR-038
     path: docs/decisions/adrs/adr-038-runtime-mail-service-logical-state.md
-    pin: e06becb845b360a89afa3921f01705ce08143c8af4df2091b83b7a915c70371d
     amendments:
       - date: 2026-06-06
         ref: 6958fed
         summary: "Added Security and Validation Gates and Guardrails sections: shared enum-or-var parser, secret-classification boundaries, and service-local reference resolution."
   - id: ADR-039
     path: docs/decisions/adrs/adr-039-dns-service-runtime-inventory.md
-    pin: b6cf6dce2611e64e565b80bb25acbbe5dad9d76f0922e9cbaf3bc39d19e8aa80
   - id: ADR-040
     path: docs/decisions/adrs/adr-040-security-monitoring-manager-runtime-inventory.md
-    pin: 57efb0ca019ca74bc0dfa4ff722491813c569c7039236be0af464d9e5730c3aa
   - id: ADR-041
     path: docs/decisions/adrs/adr-041-participant-implementation-manifest-and-provenance.md
-    pin: 62b9c2b348aaa2594086abae91432fc404e95f51255ab793aea32ce45aa1eaad
     amendments:
       - date: 2026-06-06
         ref: 6958fed
         summary: "Added Security and Validation Gates and Guardrails sections: controlled-vocabulary resolution and references/digests as the portable manifest/provenance surface."
   - id: ADR-042
     path: docs/decisions/adrs/adr-042-network-sensor-runtime-monitoring.md
-    pin: d2d244bdd3bbfe2d6eaecc2e69bc73a474f405ae7e1d4d8bbb5dd75dbed7826d
   - id: ADR-043
     path: docs/decisions/adrs/adr-043-runtime-service-listener-surface.md
-    pin: 08e238b1ab607d1aca0ac8a5b3ac6190dc1728de0fb742a145bd662ba17cab6e
     amendments:
       - date: 2026-09-17
         ref: "#1299"
         summary: "Separated partial listener descriptions from complete endpoint admission, preserved presence/default provenance, and retained the narrower ADR-031 SSH service binding."
   - id: ADR-044
     path: docs/decisions/adrs/adr-044-network-detection-engine-runtime-inventory.md
-    pin: 9272830dd30284ab864c62eb7bd74a563403bbfdff59992173d154785d55d3f7
   - id: ADR-045
     path: docs/decisions/adrs/adr-045-security-monitoring-detection-definition-semantics.md
-    pin: aa199dde8b9d5baf3792e8ee4c1b1cca7b16af08041074d96d82fd8ef342179a
   - id: ADR-046
     path: docs/decisions/adrs/adr-046-app-authorization-runtime-inventory.md
-    pin: 884d2600c9f0a12e548f14f7bf523ee9e3daef485a8e999f74cbcf2376e0714d
     amendments:
       - date: 2026-09-13
         ref: "#1207"
         summary: "Separated partial inventory descriptions from selected-operation admission; retained structural and security invariants."
   - id: ADR-047
     path: docs/decisions/adrs/adr-047-scheduled-job-runtime-inventory.md
-    pin: f674658c76e3d4581f8ef64f189e558e6873959b6292081b343bd5c9ae8a6181
   - id: ADR-048
     path: docs/decisions/adrs/adr-048-datastore-service-runtime-inventory.md
-    pin: d3aa84efac0a1e5230cc10c9fc36de774aa1ba9f2b740c8b8c13b064c1c3ef05
     amendments:
       - date: 2026-06-07
         ref: e782722
@@ -288,14 +255,12 @@ adrs:
         summary: "Separated partial inventory descriptions from selected-operation admission; retained structural and security invariants."
   - id: ADR-049
     path: docs/decisions/adrs/adr-049-platform-application-runtime-inventory.md
-    pin: e809d36ab9cb2a475423b0dc1bc9f58999e6c45fbbd4ed9f4c55952ef06f029e
     amendments:
       - date: 2026-07-29
         ref: "#956"
         summary: "Replaced product-category completeness profiles with composable provider-neutral capabilities and retained legacy product/category content fields as deprecated compatible input."
   - id: ADR-050
     path: docs/decisions/adrs/adr-050-forwarding-agent-runtime-inventory.md
-    pin: 885e5dae5461f0c045753dc19a67ea6bdab00df3e03e6838d4f838e0cc33cf34
     amendments:
       - date: 2026-05-31
         ref: e815f27
@@ -308,14 +273,12 @@ adrs:
         summary: "Separated partial inventory descriptions from selected-operation admission; retained structural and security invariants."
   - id: ADR-051
     path: docs/decisions/adrs/adr-051-orchestration-authority-runtime-inventory.md
-    pin: ca10d30da7e47d5dbe3c8285ca44d1a038322525e76b432dbed4ca2d53620aae
     amendments:
       - date: 2026-09-13
         ref: "#1207"
         summary: "Separated partial inventory descriptions from selected-operation admission; retained structural and security invariants."
   - id: ADR-052
     path: docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md
-    pin: 304d33ad2b5e43ccc382d2001625e09039ae920ed924627f16ef02de5dca6227
     amendments:
       - date: 2026-05-31
         ref: d727d84
@@ -325,10 +288,8 @@ adrs:
         summary: "Extended typed relationship handling for scenario-level forwarding agents."
   - id: ADR-053
     path: docs/decisions/adrs/adr-053-sdl-module-composition-for-inventory-backed-scenarios.md
-    pin: e6eae89e31205274087e6c4e775744fba945091cddef1aa5dad3daad47921993
   - id: ADR-054
     path: docs/decisions/adrs/adr-054-participant-runtime-observable-lifecycle.md
-    pin: 77791ebf5e20b3a5f330920fedfc0c361cef193e840d82df2a3f73174744f04a
     amendments:
       - date: 2026-06-13
         ref: "#484"
@@ -338,7 +299,6 @@ adrs:
         summary: "Clarified authored commutativity and merge-rule declarations, conservative serialization, and snapshot commit conflicts."
   - id: ADR-055
     path: docs/decisions/adrs/adr-055-experiment-core-contract-boundary.md
-    pin: 2e6666f2e066700df3dbf38d0592a2f24e062ad4f94d695113824f2ba73ff695
     amendments:
       - date: 2026-06-12
         ref: "#482"
@@ -348,7 +308,6 @@ adrs:
         summary: "ADR-074 realizes the explicit draft/authoring surface anticipated in the Risks section as experiment-authoring-input-v1; the archival contracts are unchanged."
   - id: ADR-056
     path: docs/decisions/adrs/adr-056-runtime-observed-values-and-credential-posture.md
-    pin: fd042c405c3bf9994d998b827e817c86f0ff35245b5a071f9fe86754d281221b
     amendments:
       - date: 2026-07-13
         ref: "#417"
@@ -361,28 +320,32 @@ adrs:
         summary: "Applied the raw-value omission boundary to forwarding-agent realization observation disclosures."
   - id: ADR-057
     path: docs/decisions/adrs/adr-057-runtime-secret-name-classifier-boundaries.md
-    pin: 44c638bf47df8545b8af8a3850476fabc46a4ea42b3a8003b4f9ea1e89f72f49
   - id: ADR-058
     path: docs/decisions/adrs/adr-058-datastore-node-engine-provenance-and-endpoints.md
-    pin: 1a3d389978318de260c1a8b603c62fc49ca340eab120ba5cbdeeb9f12d7cf726
   - id: ADR-059
     path: docs/decisions/adrs/adr-059-adr-amendment-policy-and-pin-gate.md
-    pin: dd089a4cd415280fb87d278b70537d4a1144d2f28198314a22031fc88eaf5ce2
+    amendments:
+      - date: 2026-11-06
+        ref: "#1929"
+        summary: "The manifest no longer stores a per-ADR content pin or a hash algorithm. The gate compares each accepted ADR with the base revision and requires an `## Amendments` row for any canonical-content change; git holds the history."
   - id: ADR-061
     path: docs/decisions/adrs/adr-061-published-schema-evolution-policy.md
-    pin: 08849a676cdaaf21bd1ac425f552d6347032d3f545b9cb5618090d22c56cd5dd
+    amendments:
+      - date: 2026-11-06
+        ref: "#1929"
+        summary: "Publication records no longer store `content_hash`, and the manifest root no longer records `hash_algorithm`. A schema change needs no record edit; git holds the schema history. Breaking-change detection compares each `stable` schema with its base revision directly. Removal tombstones are unchanged."
   - id: ADR-062
     path: docs/decisions/adrs/adr-062-concept-authority-catalog-governance-gate.md
-    pin: b5a15b467977e433fbfff55a1de2b4744faada7dd54ea4806496e8293bedae91
   - id: ADR-064
     path: docs/decisions/adrs/adr-064-experiment-evidence-and-measure-contract-boundary.md
-    pin: 8bd179ba5c14c82b5998f9269d96a0c981cccb870c5b42bd27eb4b636b9c908b
   - id: ADR-065
     path: docs/decisions/adrs/adr-065-experiment-run-provenance-contract-boundary.md
-    pin: 69f90581b2bcedc12bfb7ed8aa688787d7a0d9aa4cc49a90f8c631ecbae8a356
+    amendments:
+      - date: 2026-10-29
+        ref: "#1630"
+        summary: "Record all started work, missing evidence, distinct attempt history, and unchanged retry and safe-reuse authority (#1630)."
   - id: ADR-066
     path: docs/decisions/adrs/adr-066-observability-evidence-plane-separation.md
-    pin: 98945754dae6d7df7eb21dd2a8d9dc938838d514e79fc42af7874dea8b63d764
     amendments:
       - date: 2026-06-23
         ref: "#335"
@@ -395,31 +358,29 @@ adrs:
         summary: "Added binding open-by-default augmentation scope, explicit author restrictions, pre-materialization refusal, and the author-burden rationale."
   - id: ADR-068
     path: docs/decisions/adrs/adr-068-experiment-trials-replication-and-replay-claims.md
-    pin: 12e6d644f7a90d50956964d8f0608737f9b4d8c7627819419a69974184c2781f
     amendments:
       - date: 2026-07-15
         ref: "#652"
         summary: "Clarified that an admitted plan entry preallocates the existing archival run identity and preserves experiment-owned selection without becoming a second trial/run record."
+      - date: 2026-10-29
+        ref: "#1630"
+        summary: "Record all started work, missing evidence, distinct attempt history, and unchanged retry and safe-reuse authority (#1630)."
   - id: ADR-069
     path: docs/decisions/adrs/adr-069-cage-2-replication-architecture.md
-    pin: 305334e5558fb88d1f84317209f0e64d182714ba8e99cdeb5f6781bf3ee384f5
     amendments:
       - date: 2026-07-08
         ref: "#675"
         summary: "ADR-074 adds experiment-authoring-input-v1, giving REP-003 a pre-run home for execution-control facts; it complements the SDL scenario authoring path and adds no CAGE-specific schema."
   - id: ADR-070
     path: docs/decisions/adrs/adr-070-realization-envelope-semantics.md
-    pin: e7480c4849234177b9e11594e56c3f2d9a82c2536c8c9a1cee7ff84d027f35bb
     amendments:
       - date: 2026-07-15
         ref: "#652"
         summary: "Accepted after envelope contract, relation, carriage, posture, and honesty conformance landed; clarified that envelopes govern realizability, not SCE-002 experiment selection, and witness seeds are not experiment randomness."
   - id: ADR-071
     path: docs/decisions/adrs/adr-071-reusable-asset-trust-and-integrity-policy.md
-    pin: d0f0d15945a91e97870d794986d7c7453cea7fade5c74c673d271ceaf05a6b7e
   - id: ADR-073
     path: docs/decisions/adrs/adr-073-scoring-reward-language-scope.md
-    pin: b48e0d4184556ec1da17e58d4ea74197e383fed8bbf70d8069eaa2d978fbb893
     amendments:
       - date: 2026-07-06
         ref: "#682"
@@ -429,20 +390,20 @@ adrs:
         summary: "Per ADR-079, corrected executable conditions from observable facts to probe realizations and moved objective truth to typed propositions/assertions."
   - id: ADR-074
     path: docs/decisions/adrs/adr-074-experiment-authoring-input-contract-boundary.md
-    pin: 415566d82cc3d3ac43687016532b06ef62de85eec7ab37a61d7be9f87f9c53ef
     amendments:
       - date: 2026-07-15
         ref: "#652"
         summary: "Clarified that experiment authoring input is consumed by a separate deterministic trial-compilation/admission boundary and that descriptive stochastic fields are not executable profiles."
   - id: ADR-076
     path: docs/decisions/adrs/adr-076-portable-sdl-identifiers-and-canonical-addresses.md
-    pin: cd28329002c1befb1920f0037c07517adbe3811d15e4f559455d05b893c69203
+    amendments:
+      - date: 2026-11-06
+        ref: "#1929"
+        summary: "The schema-publication change ledger is removed (ADR-061 amendment, #1929). Schema synchronization is governed by the generated-schema check and ADR-061 breaking-change detection."
   - id: ADR-077
     path: docs/decisions/adrs/adr-077-associated-artifact-manifest-boundary.md
-    pin: bbbcb25d36c0b81b4b19198321ae2578e433bc238465397367f5e7dcf3407138
   - id: ADR-078
     path: docs/decisions/adrs/adr-078-closed-sdl-phase-contracts-and-portable-derivation-evidence.md
-    pin: 096e95f3ed269f1e3a01814bcd10bf280109875dc8f1feeaec2955207a2126ed
     amendments:
       - date: 2026-07-12
         ref: "#724"
@@ -452,30 +413,24 @@ adrs:
         summary: "Added the closed descriptive materialized SDL phase, execution-bound provenance and distinct protected archival identity without changing original realization authority."
   - id: ADR-079
     path: docs/decisions/adrs/adr-079-backend-neutral-proposition-and-truth-semantics.md
-    pin: a16e021301c9b411c8efe54ac4933819a50bd10a27d13741cc7ce78d6bffbe14
   - id: ADR-080
     path: docs/decisions/adrs/adr-080-revision-pinned-sdl-lineage-and-provenance-ledger.md
-    pin: 87d11bb6b7e1156c084e92f6c48d01d76f8367149a22f1593fa5ab1cd7150664
     amendments:
       - date: 2026-09-14
         ref: "#1210"
         summary: "Advanced current lineage authority to ledger v2 for the progressive semantic cutover; v1 remains a dated historical record."
   - id: ADR-081
     path: docs/decisions/adrs/adr-081-behavioral-relation-taxonomy-and-claim-discipline.md
-    pin: c8e096b85edb7ca97217a8bb0ac74b8817f966b9cf42b66f114dc3a45ed83a90
   - id: ADR-082
     path: docs/decisions/adrs/adr-082-authored-identity-domain-topology.md
-    pin: 28dc83ea6bef2a9d0dd8eeaee2d7f745e90c6c360dcda7b22b8bd321e24686fc
     amendments:
       - date: 2026-07-24
         ref: "#845"
         summary: "Distinguished topology/readback bindings from an actionable domain-controller placement and fixed controller-before-member/account lifecycle ordering."
   - id: ADR-084
     path: docs/decisions/adrs/adr-084-scenario-variation-and-deterministic-trial-realization.md
-    pin: e4be391affc09e1f0db3c5004fb2dfa0c4138c5c2f98086b3a6b8d341b4fd9d8
   - id: ADR-085
     path: docs/decisions/adrs/adr-085-participant-information-flow-and-control.md
-    pin: e31c5926696581e4af0115b7ba2a28e5ae23d04481baa4a60d73fd5cef5e7cd3
     amendments:
       - ref: "#831"
       - date: 2026-07-26
@@ -483,13 +438,10 @@ adrs:
         summary: "Adopted ADR-095 exact-cut policy, reactive-strategy, and explicit participant-memory semantics and advanced the behavioral taxonomy to revision 3."
   - id: ADR-086
     path: docs/decisions/adrs/adr-086-governed-whole-scenario-satisfiability.md
-    pin: c34101fb3b5ddeba1e11f02666fb7747a38f52784087514ec76867df152aefa0
   - id: ADR-087
     path: docs/decisions/adrs/adr-087-enterprise-identity-and-deployment-tenancy-authoring.md
-    pin: 9654e999d520fb642e1dbeee0ec582902755bff4d5f7d9c0011c3a7a5efa478c
   - id: ADR-088
     path: docs/decisions/adrs/adr-088-initial-service-state-and-native-materialization.md
-    pin: f59495005714ffdac938e73193b3d0c800016ede1e68c1a47f7c702bd8720223
     amendments:
       - date: 2026-07-24
         ref: "#859"
@@ -499,18 +451,21 @@ adrs:
         summary: "Replaced the historical-baseline ontology with the smallest content-owned, evidence-gated service-materialization extension required by the redesigned issue boundary."
   - id: ADR-090
     path: docs/decisions/adrs/adr-090-shared-time-domain-clock-and-progression-authority.md
-    pin: 5b8fa008e2e8c8893e8a0c0376c947ef6f840d1e09fd75d579d36d477219d1e2
     amendments:
       - date: 2026-07-24
         ref: "#117"
         summary: "Replaced a documentation link that the strict Sphinx build could not resolve with its repository-relative path."
   - id: ADR-091
     path: docs/decisions/adrs/adr-091-portable-time-capability-control-and-provenance-contracts.md
-    pin: c2a0e6ac9fb87aa10fbb571b0f70efe0b99520b806f6ffe706f1556b0ec7e84b
   - id: ADR-092
     path: docs/decisions/adrs/adr-092-autonomous-benign-participants-under-shared-time.md
-    pin: 53c3e77d830859eaf873454da7177cdcc94d302a9456d8a5568eebc33dc6329e
     amendments:
+      - date: 2026-11-01
+        ref: "#1829"
+        summary: "Added runtime-owned delivery invocations with independently governed tool actions, shared-time evidence, and durable child settlement."
+      - date: 2026-10-30
+        ref: "#1740"
+        summary: "Added versioned participant tool actions hosted inside an active autonomous invocation."
       - date: 2026-09-21
         ref: "#216"
         summary: "Made backend features conditional and added explicit bounded deadline/dwell admission, evidence, and lifecycle rules."
@@ -528,17 +483,18 @@ adrs:
         summary: "Identified the existing autonomous-participant policy and execution path as the implementation of ACT-605 baseline behavior profiles."
   - id: ADR-094
     path: docs/decisions/adrs/adr-094-authoritative-cross-plane-experiment-bindings.md
-    pin: 90578754323795ca8775c47dd6095752ccb5a769a0f932ebe60abbe1d8954246
+    amendments:
+      - date: 2026-11-06
+        ref: "#1929"
+        summary: "Per-contract `last_change` hashes are removed (ADR-061 amendment, #1929). In-line changes to the affected draft schemas are reviewed in their pull requests and recorded by git history."
   - id: ADR-095
     path: docs/decisions/adrs/adr-095-participant-decision-epoch-state-cut-and-delivery-semantics.md
-    pin: 3628560706a56687051ea42df732c25922d233f51aad3a433f4cb35d5ff019cb
     amendments:
       - date: 2026-09-14
         ref: "#1210"
         summary: "Advanced current lineage authority to ledger v2 for the progressive semantic cutover; v1 remains a dated historical record."
   - id: ADR-096
     path: docs/decisions/adrs/adr-096-identity-cutover-and-historical-record-boundary.md
-    pin: 4d3ccdf376fd6eee58da0831d1215cf0a55ae25d2666d6bf3452978a3d0b3997
     amendments:
       - date: 2026-07-26
         ref: "#908"
@@ -552,15 +508,15 @@ adrs:
       - date: 2026-07-31
         ref: "#963"
         summary: "Rebound the canonical published-schema URI root to https://openrae.github.io/rae/schemas/ after the GitHub organization was renamed from RAESystem to OpenRAE."
+      - date: 2026-11-06
+        ref: "#1929"
+        summary: "Historical records, operational bindings, and generated history records no longer store a content digest. An occurrence count binds each exemption, the generated head stays at zero occurrences, and the live-token rule applies everywhere else, so a record can be amended without a hand-edited digest."
   - id: ADR-098
     path: docs/decisions/adrs/adr-098-portable-artifact-requirement-satisfaction.md
-    pin: cabc306d07b60b7d1c62cf85750a57025651e69f55946261e315d772644309e3
   - id: ADR-099
     path: docs/decisions/adrs/adr-099-participant-relative-predicate-opacity.md
-    pin: 61a5ea9d72a0afa1033d46131913f45b140286b6ddddcb59e0e1f6914b721cb9
   - id: ADR-100
     path: docs/decisions/adrs/adr-100-participant-crossing-bisimulation.md
-    pin: 8a406230189370e90c5fcab4e29459f3bcb7dc71321a7b4da007e7011bf6f4fb
     amendments:
       - date: 2026-09-27
         ref: "#971"
@@ -568,10 +524,18 @@ adrs:
       - date: 2026-10-13
         ref: "#1395"
         summary: "Add the separate two-operation construction profile and projection, history-sensitive retries and bounded completed-result response loss; preserve single-operation evidence and separate equivalence and realization."
+      - date: 2026-10-31
+        ref: "#976"
+        summary: "Record completion of the ordered #971-#976 work and the SEM-232 ACTIVE transition; retained records bind subject-source digests and execution records bind the source revision."
+      - date: 2026-11-06
+        ref: "#1929"
+        summary: "The retained model bundles, corpus and machine-check captures, runtime-mapping captures, their pins, the #975 reproduction records, and the #976 publication are removed with their tooling. CI builds the models and the corpus from the current sources and repeats the decision on every commit; that live check is the only formal evidence. The crossing profiles no longer store source digests."
   - id: ADR-101
     path: docs/decisions/adrs/adr-101-adversarial-participant-flow-control.md
-    pin: 7a579c1f66ee66285465e261f5e740414986c393fd57fbde3c490be3653711b9
     amendments:
+      - date: 2026-10-29
+        ref: "#1008"
+        summary: Separate backend-neutral RAE harness evaluation from concrete backend realization claims.
       - date: 2026-09-06
         ref: "#1068"
         summary: "Clarify modular composition, governed effects and the declared-world boundary under ADR-108 while preserving the security profile and runtime interpreter non-goal."
@@ -583,17 +547,14 @@ adrs:
         summary: "Rebind the #1354 publication reference to ADR-114 after ADR-113 was assigned to #1350; semantics are unchanged."
   - id: ADR-102
     path: docs/decisions/adrs/adr-102-mixed-cross-backend-participant-control.md
-    pin: e00772b8642d117da413cceb3767e865ebaf3cecd55d2d8f04d8d43205d79027
     amendments:
       - date: 2026-09-24
         ref: "#1355"
         summary: "Required executable mixed mappings, bridge and time coordination, independent stage readback, and native staged handoff while preserving historical reference-only meaning."
   - id: ADR-103
     path: docs/decisions/adrs/adr-103-branch-aware-python-coverage-policy.md
-    pin: a44acbc2db1b5349ba316ba0d09bd9b46310db016cb87937b08bc6bc107755aa
   - id: ADR-104
     path: docs/decisions/adrs/adr-104-runtime-control-plane-architecture.md
-    pin: c71f377900dce99190bc1cf08d0d7c93a80fedbb6fcbb0f887cf6b5dc6b49fc6
     amendments:
       - date: 2026-09-03
         ref: "#1151"
@@ -613,16 +574,20 @@ adrs:
       - date: 2026-09-25
         ref: "#1356 follow-up"
         summary: "Clarified SDK method access, optional P2 identity scope, host policy, and the legacy no-resolver projection gap."
+      - date: 2026-10-27
+        ref: "#1660"
+        summary: "Required one runtime authority for the interaction lifetime, reusing control-plane invariants and composing only needed scenario components."
+      - date: 2026-10-28
+        ref: "#1629"
+        summary: "Separated shared engine lifetime from fixed run contexts, preserving resource reservations and authored retry policy across local and Temporal execution."
   - id: ADR-105
     path: docs/decisions/adrs/adr-105-recursive-partial-description-semantics.md
-    pin: e50538c4e03d12ea92ad584322dc8618835f1724ae0086c444fba0527949a01e
     amendments:
       - date: 2026-09-12
         ref: "#1204"
         summary: "Proposed acceptance with bounded compiler/runtime adoption, opt-in joint preparation, prepared portable membership, and the authenticated plan-level profile host. Ratification takes effect on merge."
   - id: ADR-106
     path: docs/decisions/adrs/adr-106-developer-package-and-artifact-management.md
-    pin: 4c4dc68ef5e28a3740e22050b831e8cdc087f3c31e3215c4d4f33bdac055e5df
     amendments:
       - date: 2026-09-06
         ref: "#1229"
@@ -632,7 +597,6 @@ adrs:
         summary: "Narrowed the scope to connected single-maintainer OSS development and ordinary release recovery; retained the original design as history."
   - id: ADR-107
     path: docs/decisions/adrs/adr-107-artifact-promotion-and-release-admission.md
-    pin: a3cdbf6fd69bcc9f96ffd1ca7e7e95340d0a597ee42c4a5c21a96f79d3063d96
     amendments:
       - date: 2026-09-06
         ref: "#1229"
@@ -642,8 +606,10 @@ adrs:
         summary: "Narrowed the scope to connected single-maintainer OSS development and ordinary release recovery; retained the original design as history."
   - id: ADR-108
     path: docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md
-    pin: a104a1150d612fa04c10847d36390d54fd99ce821d96c044b88c32404f7471f5
     amendments:
+      - date: 2026-10-29
+        ref: "#1008"
+        summary: Separate backend-neutral RAE harness evaluation from concrete backend realization claims.
       - date: 2026-09-22
         ref: "#1352"
         summary: "Clarify applicability, dependency invocation, support and phase-independent parent decisions through ADR-111."
@@ -655,26 +621,44 @@ adrs:
         summary: "Rebind the #1354 publication reference to ADR-114 after ADR-113 was assigned to #1350; semantics are unchanged."
   - id: ADR-109
     path: docs/decisions/adrs/adr-109-participant-identity-and-objective-assignment.md
-    pin: 859172f6b8791577059a3215af639210e86267455c8a059f71168e621c0f9c61
     amendments:
       - date: 2026-09-21
         ref: "#1338"
         summary: "Editorial: use the explicit classification-waiver declaration required by the assurance policy gate."
   - id: ADR-110
     path: docs/decisions/adrs/adr-110-reusable-mixed-control-policies-and-occurrences.md
-    pin: 7ea0cfbdb340b8ff8956dd51f9f7f670d9b1e7017599b50d963aa81e554be13f
   - id: ADR-111
     path: docs/decisions/adrs/adr-111-control-applicability-and-effect-decisions.md
-    pin: 74b4ca642fd9b9ed2ca10e2910f89d27859b393d16101c2bf261c826ffe2009e
   - id: ADR-112
     path: docs/decisions/adrs/adr-112-external-inject-triggering-and-execution.md
-    pin: 65e54addfb3a2dba74941f3c8030dec8c7a39661cc5aebb456e59c03af120ea3
   - id: ADR-113
     path: docs/decisions/adrs/adr-113-reusable-execution-machinery.md
-    pin: 6d904befc0d37d44b07ed083d297c7a0e3ba0d520d79f9ddce1999477c78e91d
   - id: ADR-114
     path: docs/decisions/adrs/adr-114-ifc-profile-variability-and-publication.md
-    pin: 432d75b65d0ef06e022b260240fa7b8f99513f568048796b2b3811a1aeefebcb
   - id: ADR-115
     path: docs/decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md
-    pin: d01cea802cfd206bcdc42ad7f92403fd3f070cfc41ecb5b7b7fdf1e5c5798558
+  - id: ADR-116
+    path: docs/decisions/adrs/adr-116-shared-exceptions-and-operational-logging.md
+  - id: ADR-117
+    path: docs/decisions/adrs/adr-117-ratcheted-structural-checks.md
+    amendments:
+      - date: 2026-10-30
+        ref: "#1752"
+        summary: "I6: the adoption commit bounds a baseline that is absent at the base revision. Thus a dev to main promotion can pass."
+      - date: 2026-10-31
+        ref: "#1711"
+        summary: "Checks 4 to 6: private members, imports inside functions and hidden imports. Check 6 applies the layer and module-boundary rules to each dynamic edge. I10 adopts a new counted family."
+  - id: ADR-118
+    path: docs/decisions/adrs/adr-118-shared-primitives-and-injected-wall-clock.md
+  - id: ADR-119
+    path: docs/decisions/adrs/adr-119-consumer-parse-of-supplied-sdl-sources.md
+  - id: ADR-120
+    path: docs/decisions/adrs/adr-120-owned-and-admitted-typed-descriptor-profiles.md
+  - id: ADR-121
+    path: docs/decisions/adrs/adr-121-strict-package-layers.md
+  - id: ADR-122
+    path: docs/decisions/adrs/adr-122-dev-merge-queue.md
+    amendments:
+      - date: 2026-11-11
+        ref: "#2031"
+        summary: "Decision 3: dev uses the CodeQL code scanning rule instead of the CodeQL status check, because code scanning does not post that check on merge groups."

@@ -9,19 +9,19 @@ from enum import Enum
 from pydantic import Field, field_validator, model_validator
 from pydantic.json_schema import GetJsonSchemaHandler, JsonSchemaValue
 from pydantic_core import CoreSchema
-
-from raes.runtime_values import parse_runtime_enum_or_var
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import (
-    SDLModel,
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.identifiers import OptionalPortableIdentifier, PortableIdentifier
+from raes_contracts.runtime_values import parse_ram as _parse_ram
+from raes_contracts.runtime_values import parse_runtime_enum_or_var
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import (
     is_variable_ref,
     normalize_enum_value,
     parse_enum_or_var,
     parse_int_or_var,
 )
+
 from ._classification_guard import LegacyClassificationGuard
-from ._identifiers import OptionalPortableIdentifier, PortableIdentifier
 from ._runtime_service_families import install_runtime_service_family_exports
 from ._source import Source
 from .architectures import (
@@ -97,19 +97,18 @@ from .runtime_configuration import (
     RuntimePublishedPort,
     RuntimeResourceLimits,
     RuntimeRestartPolicy,
-    RuntimeSensitivityClassification,
     RuntimeSoftwareComponent,
     RuntimeSoftwareComponentHash,
     RuntimeSoftwareComponentProvenance,
     RuntimeSoftwareComponentType,
     RuntimeSudoPrincipalKind,
     RuntimeSudoRule,
-    parse_ram,
 )
 
 _RUNTIME_SERVICE_FAMILY_EXPORTS = install_runtime_service_family_exports(globals())
 
 __all__ = [
+    "COMPUTE_ONLY_NODE_FIELDS",
     "AssetValue",
     "AssetValueLevel",
     "ContainerImageBuildProvenance",
@@ -178,7 +177,6 @@ __all__ = [
     "RuntimePublishedPort",
     "RuntimeResourceLimits",
     "RuntimeRestartPolicy",
-    "RuntimeSensitivityClassification",
     "RuntimeSoftwareComponent",
     "RuntimeSoftwareComponentHash",
     "RuntimeSoftwareComponentProvenance",
@@ -186,7 +184,6 @@ __all__ = [
     "RuntimeSudoPrincipalKind",
     "RuntimeSudoRule",
     "ServicePort",
-    "parse_ram",
 ]
 
 MAX_NODE_NAME_LENGTH = 35
@@ -208,7 +205,7 @@ class Resources(SDLModel):
     @field_validator("ram", mode="before")
     @classmethod
     def parse_ram_value(cls, v: str | int) -> int | str:
-        return parse_ram(v)
+        return _parse_ram(v)
 
     @field_validator("cpu", mode="before")
     @classmethod
@@ -290,6 +287,25 @@ class ServicePort(SDLModel):
     @classmethod
     def parse_port_value(cls, v: int | str) -> int | str:
         return parse_int_or_var(v, minimum=1, maximum=65535, field_name="port")
+
+
+# Fields that only a compute node can populate. A switch keeps each at its empty value.
+COMPUTE_ONLY_NODE_FIELDS: tuple[str, ...] = (
+    "source",
+    "resources",
+    "os",
+    "os_distribution",
+    "os_version",
+    "architecture",
+    "features",
+    "conditions",
+    "injects",
+    "roles",
+    "services",
+    "asset_value",
+    "endpoint_persona",
+    "runtime",
+)
 
 
 class Node(LegacyClassificationGuard):
@@ -385,7 +401,7 @@ class Node(LegacyClassificationGuard):
         return parse_enum_or_var(v, EndpointPersona, field_name="endpoint_persona") if v is not None else v
 
     @model_validator(mode="after")
-    def validate_type_constraints(self) -> "Node":
+    def validate_type_constraints(self) -> Node:
         """Switch nodes cannot carry compute-only fields."""
         if self.type != NodeType.SWITCH:
             return self
@@ -412,10 +428,10 @@ class Node(LegacyClassificationGuard):
             "endpoint_persona": self.endpoint_persona is not None,
             "runtime": self.runtime is not None,
         }
-        return [field_name for field_name, is_populated in fields.items() if is_populated]
+        return [field_name for field_name in COMPUTE_ONLY_NODE_FIELDS if fields[field_name]]
 
     @model_validator(mode="after")
-    def validate_unique_service_ports(self) -> "Node":
+    def validate_unique_service_ports(self) -> Node:
         """Concrete compute service bindings must stay uniquely addressable."""
         if self.type != NodeType.COMPUTE:
             return self

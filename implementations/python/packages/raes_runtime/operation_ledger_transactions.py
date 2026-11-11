@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .control_plane_store import AuditEvent, ControlPlaneOperationRecord, _require_same_operation_identity
+from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
+from .control_plane_store_transitions import _require_same_operation_identity
 
 if TYPE_CHECKING:
     from .operation_invocation_ledger import InvocationLedger

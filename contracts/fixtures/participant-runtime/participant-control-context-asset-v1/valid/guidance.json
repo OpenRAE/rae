@@ -1,0 +1,31 @@
+{
+  "asset_id": "privacy-instruction",
+  "asset_version": "one",
+  "content": {
+    "artifact_id": "instruction-one",
+    "checksum": {
+      "algorithm": "sha256",
+      "value": "8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce"
+    },
+    "created_at": "2026-10-26T00:00:00Z",
+    "description": null,
+    "media_type": "text/plain",
+    "role": "documentation",
+    "satisfies_refs": [],
+    "sensitivity": "restricted",
+    "size_bytes": 34,
+    "source": "publisher-reference",
+    "uri": "urn:sha256:8b718e2a26e1f7a98dd6e00e2e70a2b63a18ac4a24e8c4bfc48dbfa88e9f15ce"
+  },
+  "kind": "guidance",
+  "participant_addresses": [],
+  "provenance_refs": [
+    "provenance.authoring"
+  ],
+  "publication_authority_ref": "authorities.publisher",
+  "retention_policy_ref": "retention.governed",
+  "role_refs": [
+    "roles.analyst"
+  ],
+  "schema_version": "participant-control-context-asset/v1"
+}

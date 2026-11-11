@@ -20,7 +20,10 @@ for import_root in (REPO_ROOT, PYTHON_PACKAGES):
     if str(import_root) not in sys.path:
         sys.path.insert(0, str(import_root))
 
-from tools.research_evidence import current_release_path
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
+
+from tools.research_evidence import latest_recorded_release_path
 from tools.policy.common import PolicyFailure, load_bounded_json_object
 from tools.formal_semantic_validation._bundle import validate_bundle
 from tools.formal_semantic_validation._claims import recompute_claim_results
@@ -84,7 +87,7 @@ def _participant_replay_failures(
     releases: list[EvidenceRelease],
     participant_test_runner: ParticipantTestRunner,
 ) -> list[PolicyFailure]:
-    selected = current_release_path([(item.manifest_path, item.manifest) for item in releases], repo_root)
+    selected = latest_recorded_release_path([(item.manifest_path, item.manifest) for item in releases], repo_root)
     latest = next(item for item in releases if item.manifest_path == selected)
     test_refs = _participant_test_refs(latest.protocol)
     replayed, detail = participant_test_runner(repo_root, test_refs)
@@ -107,7 +110,7 @@ def evaluate(
     try:
         releases = load_release_bundles(repo_root)
         load_retest_bundle(repo_root)
-    except (OSError, ValueError) as exc:
+    except (OSError, InvalidInputError) as exc:
         return [_failure("formal-validation-bundle-load", str(exc), MANIFEST_PATH)]
     failures = validate_release_bundles(repo_root, releases)
     if not failures:
@@ -119,7 +122,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=REPO_ROOT)
     args = parser.parse_args()
-    failures = evaluate(args.repo_root.resolve())
+    try:
+        failures = evaluate(args.repo_root.resolve())
+    except (OSError, InvalidInputError) as exc:
+        print(f"formal-semantic-validation: {exc}", file=sys.stderr)
+        return 1
     if failures:
         for failure in failures:
             print(failure.render(), file=sys.stderr)
@@ -129,4 +136,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

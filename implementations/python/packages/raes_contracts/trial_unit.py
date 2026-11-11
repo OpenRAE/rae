@@ -4,29 +4,34 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass, field, replace
-from typing import Annotated, TypeVar
+from typing import Annotated
 
 from pydantic import BaseModel, Field, StrictStr, TypeAdapter, ValidationError
 
-from .admitted_trial_plan_ingress import revalidate_admitted_trial_plan
-from .contracts import (
-    AdmittedExecutionControlModel,
-    AdmittedTrialPlanModel,
+from raes_contracts.contracts.admitted_trial_plan import AdmittedTrialPlanModel
+from raes_contracts.contracts.admitted_trial_plan_components import AdmittedExecutionControlModel
+from raes_contracts.contracts.admitted_trial_plan_ingress import (
+    AdmittedTrialPlanIngressError,
+    revalidate_admitted_trial_plan,
+)
+from raes_contracts.contracts.experiment_bindings import ParticipantConfigurationResultModel
+from raes_contracts.contracts.experiment_evidence import ExperimentEvidenceRecordModel
+from raes_contracts.contracts.realization_plans import (
     EvaluationPlanModel,
-    ExperimentEvidenceRecordModel,
     OrchestrationPlanModel,
-    ParticipantConfigurationResultModel,
     ProvisioningPlanModel,
+)
+from raes_contracts.contracts.trial_cleanup import (
     TrialCleanupPlanModel,
     TrialCleanupReceiptModel,
     validate_trial_cleanup_receipt,
 )
+
 from .operation_lifecycle import OperationAdmissionContext
 from .realization_structure import RealizationRelationStatus, validate_realization_value
 from .runtime_state import OperationReceipt, RuntimeSnapshot
 from .runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
 
-_Model = TypeVar("_Model", bound=BaseModel)
 _IDENTITY = TypeAdapter(Annotated[StrictStr, Field(min_length=1, max_length=256, pattern=r"^\S(?:.*\S)?$")])
 _DIGEST = TypeAdapter(Annotated[StrictStr, Field(pattern=r"^sha256:[a-f0-9]{64}$")])
 MAX_TRIAL_UNIT_ITEMS = 4096
@@ -38,7 +43,7 @@ def _require_bounded(value: object) -> None:
         raise ValueError("trial unit value exceeds portable value limits")
 
 
-def _reconstruct(model_type: type[_Model], value: _Model) -> _Model:
+def _reconstruct[Model: BaseModel](model_type: type[Model], value: Model) -> Model:
     if not isinstance(value, model_type):
         raise TypeError("trial unit requires typed contract values")
     try:
@@ -72,7 +77,11 @@ class TrialUnitRequest:
             _DIGEST.validate_python(self.instantiated_sdl_digest)
         except ValidationError:
             raise ValueError("trial unit identity or SDL digest is invalid") from None
-        admitted = revalidate_admitted_trial_plan(self.plan)
+        try:
+            admitted = revalidate_admitted_trial_plan(self.plan)
+        except AdmittedTrialPlanIngressError as exc:
+            # Value-object checks raise ValueError (E3); the caller translates at its boundary.
+            raise ValueError("Admitted trial plan contract validation failed") from exc
         entry = admitted.entries.get(self.plan_entry_id)
         if entry is None:
             raise ValueError("trial unit entry does not resolve in admitted plan")

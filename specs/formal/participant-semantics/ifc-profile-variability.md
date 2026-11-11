@@ -1,3 +1,4 @@
+<!-- vale RAES.HeadingCase = NO -->
 # IFC profile variability and publication
 
 Semantic amendment: `ifc-profile-variability/rev1`, owned by SEM-233 and
@@ -6,13 +7,18 @@ This defines publication and support obligations. It registers no new portable
 profile, authoring syntax, provider protocol or runtime behavior. The original
 `sem-233/rev1`, `sem-235/rev1` and their published artifacts retain their meaning.
 
-## IFC-01 — Intent, meaning and realization
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+## IFC-01 — intent, meaning and realization
 
 | Boundary | Required information and authority |
 | --- | --- |
 | Authored requirement | Independent confidentiality owners/clauses, allowed audiences and destinations, possible writers and integrity obligations, required release distinctions, sources/flows/sinks, memory scope, minimum guarantees and admissible limitations. An exact governed profile/policy reference may supply these; an author assertion grants no release authority. |
 | Published semantic profile | Exact carrier and encoding, token meaning, order, conservative join, source/default and sink relations, release and non-influence relations, memory scope, unknown behavior, finite bounds and claim limits. |
 | Backend/operator configuration | Installed implementation and configuration identity, admitted principal/source/sink bindings, instrumentation, effective coverage, resources, willingness and independently resolved realization evidence. These instantiate published relations; they cannot redefine them. |
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Keep semantic identity, profile ID/revision/digest, policy, schema content,
 provider protocol, implementation and configuration pins distinct. A role,
@@ -34,7 +40,8 @@ runtime owners, scenario-selected code, plugin discovery and executable profile
 content are unsupported. A new owner outside a published universe requires a
 new governed publication or a separately justified parameter contract.
 
-## IFC-02 — Distinctions that an encoding must preserve
+<!-- vale RAES.HeadingCase = NO -->
+## IFC-02 — distinctions that an encoding must preserve
 
 For security, retain `P(C) × P(I)` and componentwise union. An obligation names
 a revisioned clause, including its owner and independently scoped release
@@ -43,6 +50,8 @@ Bob; B's permits Bob and Carol. A combination retains `{C_A, C_B}`: only Bob
 satisfies both clauses. Joining obligations intersects acceptable audiences;
 it never unions them. Equal current reader sets do not make independently
 releasable owners equivalent.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Likewise, `{I_A, I_B}` records independent unresolved integrity obligations
 from two possible influences. Endorsing A's contribution leaves `I_B` and
@@ -70,13 +79,16 @@ SEM-235 domains in general keep MPC-04's partial order and total conservative
 join. They need not be powersets or satisfy an additional least-upper-bound
 theorem. This security specialization does not narrow those other domains.
 
-## IFC-03 — Propagation and release
+<!-- vale RAES.HeadingCase = NO -->
+## IFC-03 — propagation and Release
 
 Every opaque summary, parse, redaction, trusted edit, argument/control choice,
 retained memory, shared state, handoff and participant/episode crossing carries
 the conservative join of every possible input. Missing coverage is unresolved,
 not an empty input set. Exclusion needs the published non-influence relation
 and its evidence. All historical labels and source/influence refs are immutable.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Declassification discharges only named confidentiality obligations;
 endorsement discharges only named integrity obligations. Independently trusted
@@ -94,10 +106,13 @@ remaining obligations and writer provenance, or publish a distinct supported
 carrier. The existing `integrity:endorsed` token does not mean that all owners
 have endorsed every influence. This amendment does not change that carrier.
 
-## IFC-04 — Admission and negotiation
+<!-- vale RAES.HeadingCase = NO -->
+## IFC-04 — admission and negotiation
 
 Reuse [CA-01–CA-04](control-applicability-and-evaluation.md), API-407 effective
 support and API-424 bindings; do not create a competing strength rank.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 At apparatus admission and the relevant exact cut, establish in order:
 
@@ -124,7 +139,8 @@ supported profile. All prevent the affected mandatory release. A supported
 policy may separately deny a particular flow. Optional advice cannot authorize
 a mandatory IFC operation or hide missing coverage.
 
-## IFC-05 — Admitted strength and execution weakening
+<!-- vale RAES.HeadingCase = NO -->
+## IFC-05 — admitted strength and execution weakening
 
 An admitted bounded guarantee is the guarantee the run promised, within its
 authored constraints. It is not an unexpected downgrade from an implicitly
@@ -132,6 +148,8 @@ perfect implementation. Conversely, a later loss of promised coverage,
 enforcement, authority, freshness or evidence is weakening/failure even if an
 earlier minimum requirement would still have accepted the reduced capability.
 It must be recorded; it cannot silently redefine the admitted binding.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Before each affected external effect or disclosure, revalidate the exact
 binding, current cut and effective guarantees with all incumbent gates. Missing
@@ -147,7 +165,8 @@ memory or authorize replay. Preserve CA-01–CA-09's dependency closure, advice
 limits, scoped state, phase-independent parent decisions, independent effect
 authority and finite causal budgets.
 
-## IFC-06 — Governed publication and exact present limits
+<!-- vale RAES.HeadingCase = NO -->
+## IFC-06 — governed publication and exact present limits
 
 A new finite profile publication must include its full IFC-01 contract,
 separating cases and bounds, conservative propagation and release evidence,
@@ -159,6 +178,8 @@ readers and conformance. Use ADR-009/061's existing publication ledger,
 `schema_bundle()` parity and packaged corpus. A new JSON file or relaxed digest
 check alone is insufficient. Stable breaking contracts require a new contract
 identity; draft mutability never permits silent semantic reinterpretation.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 | Surface at the #1354 design cut | Exact supported meaning and limit |
 | --- | --- |
@@ -176,12 +197,15 @@ unsupported by the current security vocabulary. A concrete contextual encoding
 may be assessed under IFC-02, but none is certified by this delivery. Arbitrary
 cross-profile comparison and automatic conversion remain unsupported.
 
-## IFC-07 — Migration and evidence
+<!-- vale RAES.HeadingCase = NO -->
+## IFC-07 — migration and evidence
 
 The [migration contract](../../../docs/migration/ifc-profile-variability.md)
 governs source/target pins, mappings, authority, loss, retained memory, pending
 work and mixed-revision readers. Unknown old owners cannot be reconstructed
 from coarse labels. New-cut evaluation never rewrites a historical release.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 [Worked cases and verification](../../../docs/research/ifc-profile-variability/cases.md)
 separate a finite design projection, real incumbent parser/governance checks

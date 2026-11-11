@@ -64,6 +64,7 @@ class RuntimeForwardingSourceKind(str, Enum):
     TAILED_PATH = "tailed_path"
     API_PULL = "api_pull"
     QUEUE = "queue"
+    SOCKET = "socket"
     UNKNOWN = "unknown"
     OTHER = "other"
 

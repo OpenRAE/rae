@@ -7,6 +7,14 @@ import json
 import sys
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.operational_logging import run_application  # noqa: E402
+
 _EXACT_SCHEMA_DIRECTORIES = (
     {
         "participant-owner-flow-policy-v1": "profiles",
@@ -18,6 +26,7 @@ _EXACT_SCHEMA_DIRECTORIES = (
         "recursive-realization-constraint-v1": "realization-constraints",
         "backend-realization-preparation-v1": "plans",
         "backend-materialization-attestation-v1": "plans",
+        "backend-runtime-descendants-v1": "plans",
         "backend-augmentation-scope-v1": "plans",
         "materialization-archive-record-v1": "experiment-core",
         "plan-realization-profiles-v1": "plans",
@@ -60,6 +69,13 @@ _EXACT_SCHEMA_DIRECTORIES = (
             "participant-joint-action-record-v1",
             "participant-time-management-context-v1",
             "participant-control-occurrence-v1",
+            "participant-control-context-asset-v1",
+            "participant-control-context-change-v1",
+            "participant-control-context-record-v1",
+            "participant-crossing-evidence-v1",
+            "participant-delivery-invocation-request-v1",
+            "participant-delivery-invocation-context-v1",
+            "participant-delivery-invocation-outcome-v1",
             "participant-control-occurrence-v2",
             "participant-control-selection-v1",
             "participant-control-evaluation-v1",
@@ -156,7 +172,7 @@ def write_schema_bundle(schemas_dir: Path) -> None:
     throwaway directory so it can compare the reference output against the
     published normative schemas without overwriting them.
     """
-    from raes_contracts.contracts import schema_bundle
+    from raes_schemas import schema_bundle
 
     bundle = schema_bundle()
     for name, schema in bundle.items():
@@ -167,7 +183,7 @@ def write_schema_bundle(schemas_dir: Path) -> None:
 
 def _serialize_schema(name: str, schema: dict[str, object]) -> str:
     """Keep large self-contained schemas readable one definition per line."""
-    if name != "materialized-scenario-v1":
+    if name not in {"materialized-scenario-v1", "trial-outcome-v1"}:
         return json.dumps(schema, indent=2, sort_keys=True) + "\n"
 
     def compact(value: object) -> str:
@@ -195,4 +211,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(run_application(main))

@@ -4,8 +4,7 @@ from enum import Enum
 from typing import Annotated
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
-
-from ._base import SDLModel
+from raes_contracts.sdl_model import SDLModel
 
 RelationshipReference = Annotated[str, Field(min_length=1, pattern=r"\S")]
 
@@ -71,7 +70,7 @@ class ParticipantRelationship(SDLModel):
         return refs
 
     @model_validator(mode="after")
-    def validate_control_kind(self) -> "ParticipantRelationship":
+    def validate_control_kind(self) -> ParticipantRelationship:
         if self.control_specification_ref is not None and self.kind not in {
             ParticipantRelationshipKind.DELEGATION,
             ParticipantRelationshipKind.SUPERVISION,

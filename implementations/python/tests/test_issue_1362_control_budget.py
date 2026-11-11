@@ -5,17 +5,38 @@ from time import monotonic
 
 import pytest
 from raes_contracts.contracts import BackendOperationControlModel, backend_operation_request_digest
+from raes_contracts.errors import ConflictError
 from raes_contracts.planning import ProvisioningPlan
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
+from raes_runtime.errors import RuntimeBudgetExhaustedError
 from test_issue_1362_distributed_authority import Dispatcher, worker
 from test_issue_1362_provider_execution import Evidence, Provider, target
 from test_issue_1362_runtime_supervision import supervisor
 
 
+class _Clock:
+    """Move the control-budget clocks only when a test advances them."""
+
+    def __init__(self, monkeypatch):
+        self.now = 1024.0
+        self.wall = datetime.now(UTC)
+        monkeypatch.setattr("raes_runtime.operation_control_budget.monotonic", lambda: self.now)
+
+    def wall_clock(self):
+        return self.wall
+
+    def advance(self, seconds):
+        self.now += seconds
+        self.wall += timedelta(seconds=seconds)
+
+
 def test_a_delayed_control_claim_refuses_expiry_before_consuming_delivery(monkeypatch):
+    clock = _Clock(monkeypatch)
     provider, dispatcher = Provider(), Dispatcher()
-    plane = RuntimeControlPlane(target(provider), distributed_execution=dispatcher, operation_evidence=Evidence())
+    plane = RuntimeControlPlane(
+        target(provider), distributed_execution=dispatcher, operation_evidence=Evidence(), wall_clock=clock.wall_clock
+    )
     try:
         receipt = plane.submit_provisioning(ProvisioningPlan())
         request = dispatcher.commands[0]
@@ -23,17 +44,17 @@ def test_a_delayed_control_claim_refuses_expiry_before_consuming_delivery(monkey
             request.binding, provider.operation_capabilities(), provider.check_operation(request), identity=worker()
         )
         control = plane.cancel_operation(receipt.operation_id, control_id="delayed", identity=supervisor())
-        future = monotonic() + 10
-        monkeypatch.setattr("raes_runtime.operation_control_budget.monotonic", lambda: future)
+        clock.advance(10)
         rejected_identity = worker()
-        with pytest.raises((ValueError, TimeoutError)):
+        with pytest.raises((ConflictError, RuntimeBudgetExhaustedError)):
             plane.claim_worker_control(receipt.operation_id, control.control_id, identity=rejected_identity)
         assert control.control_id not in plane._store.load_records()[receipt.operation_id].invocation.delivered_controls
     finally:
         plane.close()
 
 
-def test_reopened_control_has_no_dispatch_clock_continuity(tmp_path):
+def test_reopened_control_has_no_dispatch_clock_continuity(tmp_path, monkeypatch):
+    clock = _Clock(monkeypatch)
     provider, dispatcher = Provider(), Dispatcher()
     configured = target(provider)
     plane = RuntimeControlPlane(
@@ -41,6 +62,7 @@ def test_reopened_control_has_no_dispatch_clock_continuity(tmp_path):
         store=LocalControlPlaneStore(tmp_path / "ledger"),
         distributed_execution=dispatcher,
         operation_evidence=Evidence(),
+        wall_clock=clock.wall_clock,
     )
     receipt = plane.submit_provisioning(ProvisioningPlan())
     request = dispatcher.commands[0]
@@ -54,19 +76,23 @@ def test_reopened_control_has_no_dispatch_clock_continuity(tmp_path):
         store=LocalControlPlaneStore(tmp_path / "ledger"),
         distributed_execution=Dispatcher(),
         operation_evidence=Evidence(),
+        wall_clock=clock.wall_clock,
     )
     try:
         rejected_identity_1 = worker()
-        with pytest.raises((ValueError, TimeoutError)):
+        with pytest.raises((ConflictError, RuntimeBudgetExhaustedError)):
             plane.claim_worker_control(receipt.operation_id, control.control_id, identity=rejected_identity_1)
         assert control.control_id not in plane._store.load_records()[receipt.operation_id].invocation.delivered_controls
     finally:
         plane.close()
 
 
-def test_worker_observation_returns_a_remaining_grant_without_changing_the_control():
+def test_worker_observation_returns_a_remaining_grant_without_changing_the_control(monkeypatch):
+    clock = _Clock(monkeypatch)
     provider, dispatcher = Provider(), Dispatcher()
-    plane = RuntimeControlPlane(target(provider), distributed_execution=dispatcher, operation_evidence=Evidence())
+    plane = RuntimeControlPlane(
+        target(provider), distributed_execution=dispatcher, operation_evidence=Evidence(), wall_clock=clock.wall_clock
+    )
     try:
         receipt = plane.submit_provisioning(ProvisioningPlan())
         request = dispatcher.commands[0]
@@ -79,16 +105,16 @@ def test_worker_observation_returns_a_remaining_grant_without_changing_the_contr
             action="observe",
             budget={
                 "origin_id": "original",
-                "started_at": (datetime.now(UTC) - timedelta(milliseconds=200)).isoformat(),
+                "started_at": (clock.wall - timedelta(milliseconds=250)).isoformat(),
                 "limit_ms": 1000,
                 "remaining_ms": 1000,
             },
         )
         grant = plane.record_worker_observation(control, identity=worker())
         assert grant.control == control
-        assert 0 < grant.remaining_budget_ms < 800
+        assert grant.remaining_budget_ms == 750
         rejected_identity_2 = worker()
-        with pytest.raises(ValueError):
+        with pytest.raises(ConflictError):
             plane.record_worker_observation(control, identity=rejected_identity_2)
     finally:
         plane.close()
@@ -97,8 +123,11 @@ def test_worker_observation_returns_a_remaining_grant_without_changing_the_contr
 def test_local_delivery_counts_the_time_spent_committing_its_claim(monkeypatch):
     import raes_runtime.operation_provider_control as delivery
 
+    clock = _Clock(monkeypatch)
     provider, dispatcher = Provider(), Dispatcher()
-    plane = RuntimeControlPlane(target(provider), distributed_execution=dispatcher, operation_evidence=Evidence())
+    plane = RuntimeControlPlane(
+        target(provider), distributed_execution=dispatcher, operation_evidence=Evidence(), wall_clock=clock.wall_clock
+    )
     try:
         receipt = plane.submit_provisioning(ProvisioningPlan())
         request = dispatcher.commands[0]
@@ -106,13 +135,11 @@ def test_local_delivery_counts_the_time_spent_committing_its_claim(monkeypatch):
             request.binding, provider.operation_capabilities(), provider.check_operation(request), identity=worker()
         )
         control = plane.cancel_operation(receipt.operation_id, control_id="local-delay", identity=supervisor())
-        now = [monotonic()]
-        monkeypatch.setattr("raes_runtime.operation_control_budget.monotonic", lambda: now[0])
         original = delivery.persist_invocation_update
 
         def slow_commit(*args, **kwargs):
             committed = original(*args, **kwargs)
-            now[0] += 10
+            clock.advance(10)
             return committed
 
         monkeypatch.setattr(delivery, "persist_invocation_update", slow_commit)
@@ -170,7 +197,7 @@ def test_worker_refuses_a_control_grant_exhausted_during_rpc_delivery(monkeypatc
     )
     try:
         if action == "cancel":
-            with pytest.raises(TimeoutError):
+            with pytest.raises(RuntimeBudgetExhaustedError):
                 activities._control(reference, "control-1")
         else:
             assert activities._observe(reference) == "indeterminate"
@@ -200,7 +227,7 @@ def test_expired_observation_is_not_recorded_or_granted():
             },
         )
         rejected_identity_3 = worker()
-        with pytest.raises(TimeoutError):
+        with pytest.raises(RuntimeBudgetExhaustedError):
             plane.record_worker_observation(control, identity=rejected_identity_3)
         assert not plane._store.load_records()[receipt.operation_id].invocation.controls
     finally:

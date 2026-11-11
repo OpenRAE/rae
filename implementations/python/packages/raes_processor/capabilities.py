@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from raes_contracts.apparatus import ApparatusIdentity, ConceptBinding
+from raes_contracts.contracts.participant_tool_support import ProcessorParticipantToolsModel
 from raes_contracts.manifest_authority import (
     validate_processor_supported_contract_versions,
     validate_processor_supported_sdl_versions,
@@ -18,6 +19,7 @@ class ProcessorCapabilitySet:
 
     supported_sdl_versions: frozenset[str] = frozenset()
     supported_features: frozenset[ProcessorFeature] = frozenset()
+    participant_tools: ProcessorParticipantToolsModel | None = None
 
     def __post_init__(self) -> None:
         if not self.supported_sdl_versions:
@@ -27,6 +29,12 @@ class ProcessorCapabilitySet:
         validate_processor_supported_sdl_versions(self.supported_sdl_versions)
         if not self.supported_features:
             raise ValueError("ProcessorCapabilitySet.supported_features must not be empty")
+        if self.participant_tools is not None:
+            object.__setattr__(
+                self,
+                "participant_tools",
+                ProcessorParticipantToolsModel.model_validate(self.participant_tools.model_dump(mode="json")),
+            )
 
 
 @dataclass(frozen=True)

@@ -13,6 +13,7 @@ from raes_contracts.contracts import (
 )
 from raes_contracts.contracts.realization_descriptions import TypedRealizationDescriptionModel
 from raes_contracts.description_projection import readmit_description
+from raes_contracts.json_serialization import sorted_json_text_unicode_finite
 from raes_contracts.observation_demand import (
     ObservationBasis,
     ObservationLifecycleItem,
@@ -102,7 +103,7 @@ def observation_execution_from_payload(payload: object) -> ObservationExecution 
                         ExperimentRealizedFormDisclosureModel.model_validate(item) for item in disclosures
                     ),
                 )
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 execution = None
     return execution
 
@@ -163,9 +164,7 @@ def _realized_form_disclosure(
 
 def _json_value(value: object) -> object:
     try:
-        encoded = json.dumps(
-            value, default=_description_json, ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(",", ":")
-        )
+        encoded = sorted_json_text_unicode_finite(value, default=_description_json)
         return json.loads(encoded)
     except (TypeError, ValueError) as exc:
         raise ValueError("observation result must be JSON-compatible") from exc
@@ -178,7 +177,7 @@ def _description_json(value: object) -> object:
 
 
 def _json_text(value: object) -> str:
-    encoded = json.dumps(value, ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(",", ":"))
+    encoded = sorted_json_text_unicode_finite(value)
     if len(encoded.encode("utf-8")) > 16_384:
         raise ValueError("realization description exceeds the bounded report size")
     return encoded

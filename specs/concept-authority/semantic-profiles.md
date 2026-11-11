@@ -1,4 +1,4 @@
-# Shared Semantic Profiles
+# Shared semantic profiles
 
 ## Scope
 
@@ -9,12 +9,12 @@ Shared semantic profiles declare the compatible concept, contract, and
 behavior assumptions required for interoperable artifact production,
 publication, processing, and runtime operation.
 
-## Decision Record
+## Decision record
 
-[ADR-012](../../docs/decisions/adrs/adr-012-shared-concept-authority-and-raes-extension-discipline.md)
+ADR-012 in the [decision index](../../docs/decisions/adrs/README.md)
 governs this specification.
 
-## Profile Model
+## Profile model
 
 Each semantic profile declares:
 
@@ -42,7 +42,7 @@ binding scopes for `execution`. `authoring` and `exchange` do not currently
 define governed binding surfaces and therefore do not declare
 `required_bindings`.
 
-## Initial Profile
+## Initial profile
 
 The initial GOV-920 profile is:
 
@@ -59,19 +59,17 @@ The reference stack profile is intentionally concrete. It is the first
 repo-owned semantic profile, not a promise that the ecosystem will forever use
 only one profile.
 
-The reference stack requires the native `episodes` concept family in the
-`exchange` and `execution` phases because those phases exchange and execute the
-participant episode state and episode history contracts. Authoring and
-processing do not require the family today. Since ADR-013's amendment, SDL may
-carry an optional `behavior_specifications.*.episode_policy` record of authored
-episode intent (DSL-120). That record compiles to participant metadata, not to
-episode state or history, and the reference processor does not publish
-participant episode state/history contracts as a processing capability. The
-profile therefore records episode coverage through
-`required_contracts` and `required_concept_families`, not through a
-`required_bindings` entry on `capabilities.supported_participant_contracts`;
-that manifest scope also contains implementation, behavior, and provenance
-contracts and is not an episode-only binding surface.
+The reference stack requires the native `episodes` family in `exchange` and `execution`.
+These phases exchange and execute participant episode state and history contracts.
+Authoring and processing do not currently require the family.
+ADR-013's amendment permits an optional `behavior_specifications.*.episode_policy` record of authored episode intent (DSL-120).
+That record compiles to participant metadata, without asserting episode state or history.
+The reference processor does not publish episode state/history contracts as a processing capability.
+
+The profile records episode coverage through `required_contracts` and `required_concept_families`.
+It does not use a `required_bindings` entry on `capabilities.supported_participant_contracts`.
+That manifest scope also contains implementation, behavior, and provenance contracts.
+It is not an episode-only binding surface.
 
 The reference stack requires the native `runtime-inventory` concept family in
 the `authoring` phase because SDL authoring and instantiation carry observed
@@ -81,7 +79,7 @@ the profile records this through `required_concept_families` only: `authoring`
 does not define governed `required_bindings` surfaces, so runtime-inventory
 coverage is not expressed as a binding.
 
-## Machine-Readable Artifacts
+## Machine-readable artifacts
 
 The JSON Schema for semantic profiles is published at:
 
@@ -91,17 +89,20 @@ The valid and invalid fixture corpus for semantic profiles is published under:
 
 `contracts/fixtures/semantic-profile/semantic-profile-v1/`
 
-## UCO Alignment Evidence
+<!-- vale RAES.HeadingCase = NO -->
+## UCO alignment evidence
 
 Semantic profiles compose RAES concept, contract, binding, and behavior
 assumptions; they are not UCO profiles and do not adopt UCO authoring syntax.
-The concept-authority relationship behind the adopted and adapted cyber-domain
-families a profile may require is recorded as machine-checkable evidence in
-`contracts/concept-authority/uco-alignment-v1.json` (schema `uco-alignment/v1`),
-which pins the reviewed UCO version and enumerates each adapted family's
-divergences. See [ADR-012](../../docs/decisions/adrs/adr-012-shared-concept-authority-and-raes-extension-discipline.md).
+`contracts/concept-authority/uco-alignment-v1.json` (schema `uco-alignment/v1`)
+records the concept-authority relationship for adopted and adapted cyber-domain families.
+A profile may require these families.
+The artifact pins the reviewed UCO version and lists each adapted family's divergences.
+See ADR-012 in the [decision index](../../docs/decisions/adrs/README.md).
 
-## Relationship To Other Requirements
+<!-- vale RAES.HeadingCase = YES -->
+
+## Relationship to other requirements
 
 - GOV-917: canonical concept authority
 - GOV-918: cross-artifact concept binding

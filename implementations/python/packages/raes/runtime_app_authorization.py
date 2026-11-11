@@ -17,16 +17,14 @@ password.
 from enum import Enum
 
 from pydantic import Field, field_validator, model_validator
-
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import SDLModel
-from .runtime_values import (
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import (
     coerce_string_list,
     parse_optional_bool_or_var,
     parse_runtime_enum_or_var,
     require_symbol,
 )
+from raes_contracts.sdl_model import SDLModel
 
 __all__ = [
     "RuntimeAppAuthorization",
@@ -147,7 +145,7 @@ class RuntimeAppAuthorizationPrincipal(SDLModel):
         return coerce_string_list(v)
 
     @model_validator(mode="after")
-    def validate_principal(self) -> "RuntimeAppAuthorizationPrincipal":
+    def validate_principal(self) -> RuntimeAppAuthorizationPrincipal:
         _reject_duplicate_values(self.backend_roles, field_name="backend_roles", owner=self.principal_id)
         return self
 
@@ -204,7 +202,7 @@ class RuntimeAppAuthorizationGrant(SDLModel):
         return coerce_string_list(v)
 
     @model_validator(mode="after")
-    def validate_grant(self) -> "RuntimeAppAuthorizationGrant":
+    def validate_grant(self) -> RuntimeAppAuthorizationGrant:
         _reject_duplicate_values(self.actions, field_name="actions", owner=self.grant_id)
         _reject_duplicate_values(self.resource_patterns, field_name="resource_patterns", owner=self.grant_id)
         return self
@@ -231,7 +229,7 @@ class RuntimeAppAuthorizationRoleMapping(SDLModel):
         return coerce_string_list(v)
 
     @model_validator(mode="after")
-    def validate_role_mapping(self) -> "RuntimeAppAuthorizationRoleMapping":
+    def validate_role_mapping(self) -> RuntimeAppAuthorizationRoleMapping:
         _reject_duplicate_values(self.backend_roles, field_name="backend_roles", owner=self.mapping_id)
         _reject_duplicate_values(self.users, field_name="users", owner=self.mapping_id)
         _reject_duplicate_values(self.hosts, field_name="hosts", owner=self.mapping_id)
@@ -283,7 +281,7 @@ class RuntimeAppAuthorization(SDLModel):
         return parse_optional_bool_or_var(v, field_name="auth_enabled")
 
     @model_validator(mode="after")
-    def validate_app_authorization(self) -> "RuntimeAppAuthorization":
+    def validate_app_authorization(self) -> RuntimeAppAuthorization:
         _reject_duplicate_local_ref_ids(self)
         return self
 

@@ -1,4 +1,4 @@
-# Source-Neutral SDL Candidate Synthesis
+# Source-neutral SDL candidate synthesis
 
 ## Scope and ownership
 

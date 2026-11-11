@@ -1,4 +1,4 @@
-# Portable Artifact Requirement Satisfaction
+# Portable artifact requirement satisfaction
 
 Status: normative
 

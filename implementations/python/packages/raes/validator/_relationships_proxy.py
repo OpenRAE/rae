@@ -22,23 +22,24 @@ class _RelationshipsProxyMixin:
             if upstream is None:
                 continue
             label = f"Relationship '{name}'"
-            target_node_name = self._check_proxy_upstream_node_ref(
-                upstream.upstream_node_ref,
-                label,
-                context="proxy_upstream",
-                field_name="upstream_node_ref",
-            )
-            self._check_proxy_upstream_service_ref(
-                upstream.upstream_service_ref,
-                upstream_node_ref=target_node_name or "",
-                relationship_target=rel.target,
-                label=label,
-                context="proxy_upstream",
-                field_name="upstream_service_ref",
-            )
-            route = self._check_proxy_upstream_route_ref(upstream.route_ref, rel.source, label)
-            if route is not None:
-                self._check_proxy_upstream_agreement(upstream, route, label, relationship_target=rel.target)
+            with self._owner(("relationships", name)):
+                target_node_name = self._check_proxy_upstream_node_ref(
+                    upstream.upstream_node_ref,
+                    label,
+                    context="proxy_upstream",
+                    field_name="upstream_node_ref",
+                )
+                self._check_proxy_upstream_service_ref(
+                    upstream.upstream_service_ref,
+                    upstream_node_ref=target_node_name or "",
+                    relationship_target=rel.target,
+                    label=label,
+                    context="proxy_upstream",
+                    field_name="upstream_service_ref",
+                )
+                route = self._check_proxy_upstream_route_ref(upstream.route_ref, rel.source, label)
+                if route is not None:
+                    self._check_proxy_upstream_agreement(upstream, route, label, relationship_target=rel.target)
 
     def _check_proxy_upstream_node_ref(
         self,

@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 
 from raes.canonical import canonical_sdl_digest
 from raes.scenario import ExpandedScenario
-from raes_backend_protocols.capabilities import ObservationCapabilities
+from raes_backend_protocols.backend_manifest import BackendManifest
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
     AdmittedApparatusBindingModel,
@@ -27,13 +27,14 @@ from raes_contracts.contracts.mixed_composition import (
     MixedParticipantCompositionProfileModel,
 )
 from raes_contracts.contracts.mixed_composition_resolution import MixedCompositionResolutionContext
+from raes_contracts.contracts.participant_configuration import ParticipantConfigurationValidator
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.experiment_bindings import (
     ApparatusManifest,
     ApparatusManifestKey,
     ParticipantManifestKey,
 )
-from raes_contracts.participant_configuration import ParticipantConfigurationValidator
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 
 
@@ -42,7 +43,7 @@ class _EntryCompilationAuthority:
     """Per-entry authorities selected once for a compiler invocation."""
 
     descriptors: Mapping[str, ExperimentBindingDescriptorModel] | None
-    observations_by_profile: Mapping[str, tuple[ObservationCapabilities | None, ...]]
+    backends_by_profile: Mapping[str, tuple[BackendManifest, ...]]
     apparatus_manifests_by_profile: Mapping[str, Mapping[ApparatusManifestKey, ApparatusManifest]]
     participant_manifests: Mapping[ParticipantManifestKey, ParticipantImplementationManifestModel]
 
@@ -150,7 +151,7 @@ class TrialCompilationResult:
             raise ValueError("trial compilation result must contain exactly one plan or diagnostics")
 
 
-class CompilationFailure(Exception):
+class CompilationFailure(InvalidInputError):
     """Expected, secret-safe compiler rejection."""
 
     def __init__(self, code: str, address: str, message: str) -> None:

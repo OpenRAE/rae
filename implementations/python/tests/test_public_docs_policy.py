@@ -7,12 +7,11 @@ import os
 import re
 import runpy
 import shlex
-import shutil
+import subprocess
 import sys
 from pathlib import Path
 
 import pytest
-import yaml
 from typer.testing import CliRunner
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -21,8 +20,8 @@ if str(REPO_ROOT) not in sys.path:
 
 from raes import parse_sdl_file  # noqa: E402
 from raes_cli.main import app  # noqa: E402
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel  # noqa: E402
 from raes_contracts.behavioral_relations import validate_behavioral_claim_binding  # noqa: E402
-from raes_contracts.contracts import BehavioralClaimBindingModel  # noqa: E402
 from tools.check_public_docs import (  # noqa: E402
     REQUIRED_PUBLIC_PAGES,
     REQUIRED_PUBLIC_REDIRECTS,
@@ -171,22 +170,6 @@ def test_public_docs_linkcheck_is_bounded_serialized_and_skips_own_repository() 
     assert config["linkcheck_ignore"] == [r"^https://github\.com/(?:RAESystem|OpenRAE)/rae(?:/|$)"]
 
 
-def test_readme_quickstart_matches_checked_in_scenario() -> None:
-    readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
-    match = re.search(
-        r"<!-- quickstart-sdl:start -->\s*```yaml\s*(.*?)\s*```\s*<!-- quickstart-sdl:end -->",
-        readme,
-        re.DOTALL,
-    )
-    assert match is not None
-    readme_scenario = yaml.safe_load(match.group(1))
-    checked_in_scenario = yaml.safe_load(
-        (REPO_ROOT / "docs" / "public" / "_static" / "examples" / "first-scenario.sdl.yaml").read_text(encoding="utf-8")
-    )
-
-    assert readme_scenario == checked_in_scenario
-
-
 def _stated_format_steps(tutorial: str) -> list[tuple[str, int, str]]:
     """Return each console block of the format section with the exit code and output the page states after it."""
     section = tutorial.partition("## Check the file format\n")[2].partition("\n## ")[0]
@@ -219,15 +202,58 @@ def _run_console_block(commands: str) -> tuple[int, str, str]:
 def test_first_scenario_tutorial_shows_real_format_results(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     tutorial = (REPO_ROOT / "docs" / "public" / "tutorials" / "first-scenario.md").read_text(encoding="utf-8")
     steps = _stated_format_steps(tutorial)
-    # The page's paths are relative to the repository root. Run the commands in a copy of `docs/public` so the
-    # file the page tells the reader to create stays out of the repository.
-    shutil.copytree(REPO_ROOT / "docs" / "public", tmp_path / "docs" / "public")
+    # Use the reader's directory, with no checkout paths in the lesson.
     monkeypatch.chdir(tmp_path)
+
+    before_format = tutorial.partition("## Check the file format\n")[0]
+    (tmp_path / "first-scenario.sdl.yaml").write_bytes(
+        (REPO_ROOT / "docs/public/_static/examples/first-scenario.sdl.yaml").read_bytes()
+    )
+    learning_results = []
+    for commands in re.findall(r"```console\n(.*?)```", before_format, re.DOTALL):
+        script = re.fullmatch(r"python - <<'PY'\n(.*?)\nPY\n", commands, re.DOTALL)
+        if script:
+            result = subprocess.run(
+                [sys.executable, "-"],
+                input=script.group(1),
+                cwd=tmp_path,
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=120,
+            )
+            learning_results.append((result.returncode, result.stdout, result.stderr))
+        elif commands.startswith("raes "):
+            learning_results.append(_run_console_block(commands))
+
+    assert learning_results == [
+        (0, "Web RAM: 4 GiB.\n", ""),
+        (0, "", ""),
+        (1, "validate: invalid\n", "error [sdl.validation] SDL semantic validation reported 1 error(s).\n"),
+        (0, "", ""),
+        (0, "validate: success\n", ""),
+    ]
+    recovered = parse_sdl_file(tmp_path / "first-scenario.sdl.yaml")
+    assert recovered.nodes["web"].resources.ram == 4 * 1024**3
+    assert recovered.infrastructure["web"].links == ["lab-network"]
+    assert recovered.advisories == []
 
     outcomes = [_run_console_block(commands) for commands, _, _ in steps]
 
     assert outcomes == [(exit_code, "", output) for _, exit_code, output in steps]
     assert outcomes[-1] == (0, "", ""), "the section must end with a format check that passes"
+    canonical = parse_sdl_file(tmp_path / "canonical.sdl.yaml")
+    assert canonical == recovered
+
+    inspection = tutorial.partition("## Inspect the admitted declarations\n")[2].partition("\n## ")[0]
+    command = re.search(r"```console\n(.*?)```", inspection, re.DOTALL)
+    assert command is not None
+    exit_code, stdout, stderr = _run_console_block(command.group(1))
+    assert (exit_code, stderr) == (0, "")
+    report = json.loads(stdout)
+    assert report["status"] == "success"
+    assert report["payload"]["scenario_name"] == recovered.name
+    assert report["payload"]["declaration_count"] == 5
 
 
 def test_participant_control_claim_example_is_bounded() -> None:

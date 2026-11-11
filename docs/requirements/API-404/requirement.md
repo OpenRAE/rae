@@ -145,6 +145,10 @@ policy choices, recovery and composition limits.
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_issue_972_runtime_mapping.py` (V2 callback-output rejection preserves a safe caller and durable diagnostic)
+- TESTS → TEST `implementations/python/tests/test_issue_301_participant_tool_profiles.py` (Bound action constraints retain refusal with the fixed safe v2 diagnostic)
+- IMPLEMENTS → GITHUB_ISSUE `972` (Safe v2 callback-output rejection during runtime crossing mapping)
+
 - TESTS → TEST `implementations/python/tests/test_issue_1372_review_regressions.py` (C1/C2 original mixed absence authority, linked-resolution quiescence and optional-read timeout isolation)
 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/mixed_backend_invocation.py` (C1/C2 original mixed invocation authority, bounded calls and retained readback facts)
@@ -170,6 +174,7 @@ policy choices, recovery and composition limits.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_temporal.py` (API-404-C2 opaque stable engine delivery and separately bounded control delivery)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/operation_temporal_worker.py` (API-404-C1/C2 current grant checks and independent effect/control activity capacity)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/runtime_resource_ownership.py` (API-404-C1 component ownership across stores and direct manager composition)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_resource_ownership.py` (API-404-C1 active callbacks retain component ownership. Close and reuse remain refused until the callback returns.)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager_lifecycle.py` (API-404-C1 direct manager drain and guarded component handoff)
 - DOCUMENTS → DOCUMENTATION `docs/public/guides/supervised-execution.md` (API-404-C4 explicit supported compositions, policy limits and nonclaims)
 - TESTS → TEST `implementations/python/tests/test_issue_1362_state_authority.py` (API-404-C1 responsive supervision with retained exclusion and copied-context callback guards)
@@ -190,7 +195,7 @@ policy choices, recovery and composition limits.
 - TESTS → TEST `implementations/python/tests/test_issue_1362_review_round_two.py` (API-404-C1/C2/C3 capacity refusal settles acceptance, outer admission retains one allowance, blocked archive work remains physically reserved, and observations join protocol settlement)
 - TESTS → TEST `implementations/python/tests/test_issue_1362_command_privacy.py` (API-404-C1/C2 private exact command commitments protect native and provider persistence while refusing changed credentials)
 - TESTS → TEST `implementations/python/tests/test_issue_1362_observation_retention.py` (API-404-C1/C2 automatic polling preserves cancellation, verified reconciliation and later admission across local execution and durable reopening without discarding consumed authority)
-- TESTS → TEST `implementations/python/tests/test_issue_1362_distributed_integration.py` (API-404-C1/C2/C3 hosted real Temporal/P2/PostgreSQL delivery, control, duplicate and reopening tests)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_distributed_integration.py` (API-404-C2 hosted PostgreSQL ledger process loss never reissues a consumed grant)
 
 - DOCUMENTS → GITHUB_ISSUE `1359` (Enforce the accepted runtime API trust boundary)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1359-runtime-api-trust-boundary-preflight.md` (Administrative-only P2 enforcement guardrails and route authority matrix)
@@ -242,7 +247,7 @@ policy choices, recovery and composition limits.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/runtime_state.py` (Public changed-address validation reused by recovery observations)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/registry.py` (Exact recovery manifest/component presence and signature validation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/registry_target_validation.py` (Focused optional-component and recovery-observer target validation)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager.py` (Recovery-observer composition through registered runtime targets)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/interaction_dispatch.py` (Recovery-observer composition through registered runtime targets)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_recovery.py` (Runtime-owned startup classification, atomic terminalization, quarantine, and linked resolution)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_auth.py` (Operator-only HTTP resolution authorization)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api/_operation_routes.py` (Redacted linked-resolution HTTP endpoint)
@@ -384,7 +389,6 @@ policy choices, recovery and composition limits.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/participant_control_evaluation_history.py` (Append-only evaluation-history invariants in the runtime snapshot)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_snapshots.py` (Durable persistence and absent-carrier classification)
 - TESTS → TEST `implementations/python/tests/test_issue_1069_participant_control_durability.py` (P0 process-loss nonclaims and P1 restart replay)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_snapshot_updates.py` (Participant-control evaluation history in the snapshot update surface)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_plans.py` (Participant-control evaluation history in the published snapshot envelope)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_snapshot_contracts.py` (Runtime ownership of the participant-control evaluation carrier)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_api_models.py` (Participant-control evaluation history in the control-plane projection)
@@ -403,6 +407,7 @@ policy choices, recovery and composition limits.
 - TESTS → TEST `implementations/python/tests/test_issue_1367_inject_execution.py` (Executing fixture, actor isolation, original budget, refusal and typed evidence; not concrete OCI evidence)
 - TESTS → TEST `implementations/python/tests/test_issue_1367_inject_http.py` (Actual HTTP authorization, strict bounded ingress, retry and retained artifact disclosure)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/associated_artifacts.py` (C1 independent bounded artifact content and admitted scenario-reference validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/associated_artifacts.py` (C1 independent bounded artifact content and admitted scenario-reference validation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/backend_operation_validation.py` (C1 shared authored policy capability checks for native and inject commands)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_composition.py` (C1 explicitly installed trusted inject resolver)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_postgresql_mutations.py` (C2 occurrence claim checks within the existing authoritative transaction)
@@ -413,3 +418,16 @@ policy choices, recovery and composition limits.
 - DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-a566be978d1c4991f1cba201477c741e49ef98cca9bb6298de1509873538c337/manifest.json` (Fresh bounded source-bound witness; retained research claim limits)
 - DOCUMENTS → DOCUMENTATION `docs/research/specification-coverage/captures/capture-89feff1317c49aebbc096e7f8cb0a4e2235ea10ae386d15f47e33851b28a742e/manifest.json` (Fresh bounded witness after inject contract refactoring; retained research claim limits)
 - DOCUMENTS → DOCUMENTATION `docs/research/formal-semantic-validation/captures/capture-7f7166d1912b9a05d105277585776c5e773b17446e0cd8b582a33c079d016eb7/manifest.json` (Fresh bounded witness after inject contract refactoring; retained research claim limits)
+- TESTS → TEST `implementations/python/tests/test_issue_1660_runtime_lifetime.py` (One lifetime owner, actor-scoped retries, durable reopening and uncertain-effect exclusion)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_changes.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_history_rows.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_local_cache.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_postgresql_projection.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_sql_changes.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/immutable_history.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/snapshot_histories.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1373_history_prefixes.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1373_durable_history.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1373_operation_changes.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1373_postgresql_history.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1373_history_consumers.py` (Opaque stored records retain runtime shape validation)

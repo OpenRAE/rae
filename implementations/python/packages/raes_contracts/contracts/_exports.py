@@ -3,12 +3,14 @@
 from ._backend_operation_exports import BACKEND_OPERATION_EXPORTS
 from ._candidate_synthesis_exports import CANDIDATE_SYNTHESIS_EXPORTS
 from ._execution_policy_exports import EXECUTION_POLICY_EXPORTS
+from ._experiment_design_exports import __all__ as EXPERIMENT_DESIGN_EXPORTS
 from ._inject_occurrence_exports import INJECT_OCCURRENCE_EXPORTS
 from ._mixed_composition_exports import MIXED_COMPOSITION_EXPORTS
 from ._participant_control_exports import PARTICIPANT_CONTROL_EXPORTS
 from ._runtime_fact_exports import RUNTIME_FACT_EXPORTS
 
 PUBLIC_EXPORTS = [
+    *EXPERIMENT_DESIGN_EXPORTS,
     *EXECUTION_POLICY_EXPORTS,
     *BACKEND_OPERATION_EXPORTS,
     *INJECT_OCCURRENCE_EXPORTS,
@@ -50,12 +52,8 @@ PUBLIC_EXPORTS = [
     "ArtifactAcquisitionTimingModel",
     "ArtifactAvailabilityContext",
     "ArtifactMechanismCapability",
-    "ArtifactRequirementContractModel",
     "ArtifactRequirementAvailability",
-    "ArtifactRequirementSource",
     "ArtifactSatisfactionDisclosureModel",
-    "artifact_requirement_invariant_violations",
-    "validate_artifact_requirement_invariants",
     "AssociatedArtifactManifestModel",
     "AssociatedArtifactParentReferenceModel",
     "AssociatedArtifactSetDigestString",
@@ -214,6 +212,8 @@ PUBLIC_EXPORTS = [
     "LiteralBindingValueModel",
     "ParticipantConfigurationModel",
     "ParticipantConfigurationResultModel",
+    "ParticipantControlContextTargetModel",
+    "ParticipantControlContextConfigurationSelectionModel",
     "ParticipantImplementationBindingTargetModel",
     "RealizedBindingProvenanceModel",
     "ScenarioBindingTargetModel",
@@ -265,6 +265,8 @@ PUBLIC_EXPORTS = [
     "ParticipantActivityOccurrenceProvenanceModel",
     "ParticipantAutonomousExecutionStateModel",
     "ParticipantBehaviorHistoryEventModel",
+    "ParticipantInvocationToolActionCapabilitiesModel",
+    "ParticipantInvocationToolContextModel",
     "ParticipantContextViewModel",
     "ParticipantBoundaryFlowPolicyProfileModel",
     "ParticipantOwnerFlowPolicyProfileModel",
@@ -431,7 +433,6 @@ PUBLIC_EXPORTS = [
     "SCENARIO_INSTANTIATION_REQUEST_SCHEMA_VERSION",
     "SEMANTIC_PROFILE_SCHEMA_VERSION",
     "SEMANTIC_PROJECTION_REPORT_SCHEMA_VERSION",
-    "schema_bundle",
     "SemanticProjectionApplicableCoordinateModel",
     "SemanticProjectionBindingCoordinateModel",
     "SemanticProjectionBindingObservationModel",
@@ -470,7 +471,6 @@ PUBLIC_EXPORTS = [
     "WorkflowStatePredicateFeature",
     "WorkflowStepStateModel",
     "WORKFLOW_STATE_SCHEMA_VERSION",
-    "validate_raes_semantic_invariant_annotations",
     "processor_backend_manifests_are_mutually_compatible",
     "validate_experiment_apparatus_context_against_manifests",
     "validate_experiment_apparatus_context_archival_datetimes",

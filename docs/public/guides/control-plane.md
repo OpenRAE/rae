@@ -1,5 +1,17 @@
 # Serve the runtime control plane
 
+Serve an authenticated administration interface for an existing runtime owner.
+
+## Before you start
+
+Use the Python P2 adapter in RAES 11.0.2.
+Construct one durable P1 core with your installed target, private store, and evidence owners.
+Obtain service credentials through the deployment's approved secret channel.
+You need authority to configure the host, service network, TLS proxy, and store permissions.
+Creating the app does not provision those components.
+Mutation routes permit authorized callers to change runtime state and invoke backend effects.
+Use an isolated target with a verified native cleanup procedure.
+
 The optional P2 HTTP adapter serves one durable P1 control-plane core. It is an
 administration and service interface for a trusted host application. It is not
 a participant API.
@@ -60,6 +72,10 @@ authority. Use it to build a proxy allowlist for your host's outbound calls.
 
 ## Configure service identities
 
+This fragment requires your host's `control_plane` and `secret_store` objects.
+It does not create a standalone server.
+
+<!-- example-skip: Requires a host-owned control plane and deployment secret channel. -->
 ```python
 from raes_runtime import ControlPlaneProfile
 from raes_runtime.control_plane_api import create_control_plane_app
@@ -200,3 +216,23 @@ construction; after any change, startup fails and every request gets a redacted
 `raes_runtime.control_plane_api._auth`. A public probe is GET-only and must
 return no runtime value. Then apply the operation's own subject policy in the
 core. A stream, callback, or export must authorize every item it releases.
+
+
+For complete run history and measured result counts, see [experiment records](experiment-records.md).
+
+## Verify and stop the service
+
+Check `/health/live` and `/health/ready` through the approved service path.
+Then verify that an unknown token receives `401` and an unauthorized role receives `403`.
+Use disposable credentials for refusal checks. Keep their values out of recorded commands and logs.
+A successful health probe does not prove participant authorization or native backend readiness.
+
+If startup refuses worker count or sealed configuration, correct the host configuration before retrying.
+Do not remove authority checks or edit the returned app.
+Stop admission and drain through the existing runtime owner before shutting down the server.
+Closing the service does not destroy native resources.
+Reconcile uncertain operations before native cleanup or resource reuse.
+
+Deployment remains unverified without its proxy, identity, network, store, and native-effect evidence.
+Read the {py:func}`create_control_plane_app() <raes_runtime.control_plane_api.create_control_plane_app>`
+and [participant boundary explanation](../participant-control-explanation.md#keep-four-planes-separate).

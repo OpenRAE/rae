@@ -8,6 +8,7 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from contract_fixtures import load_contract_fixture
 from pydantic import ValidationError
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -19,8 +20,10 @@ from raes_conformance.conformance import (  # noqa: E402
     _fixture_case_diagnostics,
     validate_contract_payload,
 )
-from raes_contracts.contracts import schema_bundle  # noqa: E402
+from raes_contracts import scientific_completeness  # noqa: E402
+from raes_contracts.errors import NotFoundError, OperationalError  # noqa: E402
 from raes_contracts.scientific_completeness import (  # noqa: E402
+    CURRENT_ASSESSMENT_REVISION,
     DeliveryStatus,
     ProfileDisposition,
     ScientificCompletenessAssessmentModel,
@@ -29,6 +32,7 @@ from raes_contracts.scientific_completeness import (  # noqa: E402
     load_scientific_completeness_assessment,
     load_scientific_completeness_taxonomy,
 )
+from raes_schemas import schema_bundle
 from tools.check_scientific_scenario_completeness import (  # noqa: E402
     _validate_contract_evidence,
     _validate_evidence_paths,
@@ -43,15 +47,15 @@ from tools.check_scientific_scenario_completeness import (
 )
 
 TAXONOMY_PATH = REPO_ROOT / "contracts/profiles/scientific-completeness/scientific-scenario-completeness-rev1.json"
-ASSESSMENT_PATH = REPO_ROOT / "contracts/profiles/scientific-completeness/delivery-assessment-2026-07-12.json"
+ASSESSMENT_PATH = REPO_ROOT / "contracts/profiles/scientific-completeness/delivery-assessment-2026-10-31.json"
 
 
 def _taxonomy_payload() -> dict[str, object]:
-    return json.loads(TAXONOMY_PATH.read_text(encoding="utf-8"))
+    return json.loads((TAXONOMY_PATH).read_text(encoding="utf-8"))
 
 
 def _assessment_payload() -> dict[str, object]:
-    return json.loads(ASSESSMENT_PATH.read_text(encoding="utf-8"))
+    return json.loads((ASSESSMENT_PATH).read_text(encoding="utf-8"))
 
 
 def test_rev1_taxonomy_and_assessment_are_valid_and_join_exactly() -> None:
@@ -105,7 +109,7 @@ def test_published_completeness_fixtures_exercise_semantic_validation(
     valid: bool,
 ) -> None:
     path = REPO_ROOT / "contracts/fixtures/profiles" / contract_id / fixture
-    diagnostics = _fixture_case_diagnostics(contract_id, json.loads(path.read_text(encoding="utf-8")))
+    diagnostics = _fixture_case_diagnostics(contract_id, load_contract_fixture(path))
     assert (not diagnostics) is valid
 
 
@@ -231,7 +235,7 @@ def test_external_contract_witnesses_are_exactly_bound_and_conforming() -> None:
             continue
         assert set(item.satisfiability_witness_refs) == set(item.external_contract_refs)
         for contract_id, witness_ref in item.satisfiability_witness_refs.items():
-            payload = json.loads((REPO_ROOT / witness_ref).read_text(encoding="utf-8"))
+            payload = load_contract_fixture(REPO_ROOT / witness_ref)
             assert validate_contract_payload(contract_id, payload) == ()
 
 
@@ -359,3 +363,26 @@ def test_policy_rejects_a_required_deliberate_exclusion() -> None:
     failures = _validate_required_exclusions(load_scientific_completeness_taxonomy(), assessment)
 
     assert {failure.rule_id for failure in failures} == {"scientific-completeness-required-exclusion"}
+
+
+def test_loader_selects_the_reviewed_current_assessment_and_retains_history() -> None:
+    assert load_scientific_completeness_assessment().assessment_revision == CURRENT_ASSESSMENT_REVISION
+    assert load_scientific_completeness_assessment("2026-07-12").assessment_revision == "2026-07-12"
+
+
+def test_loader_refuses_an_unretained_assessment_revision() -> None:
+    with pytest.raises(NotFoundError):
+        load_scientific_completeness_assessment("2099-01-01")
+
+
+def test_loader_refuses_a_packaged_assessment_whose_revision_differs(tmp_path, monkeypatch) -> None:
+    payload = _assessment_payload()
+    payload["assessment_revision"] = "2026-07-12"
+    (tmp_path / f"delivery-assessment-{CURRENT_ASSESSMENT_REVISION}.json").write_text(json.dumps(payload))
+    monkeypatch.setattr(scientific_completeness, "scientific_completeness_root", lambda: tmp_path)
+    load_scientific_completeness_assessment.cache_clear()
+    try:
+        with pytest.raises(OperationalError, match="does not match"):
+            load_scientific_completeness_assessment(CURRENT_ASSESSMENT_REVISION)
+    finally:
+        load_scientific_completeness_assessment.cache_clear()

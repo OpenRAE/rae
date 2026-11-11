@@ -2,27 +2,33 @@
 
 from __future__ import annotations
 
+import sys
 from collections.abc import Callable, Iterator
-from contextlib import contextmanager, suppress
+from contextlib import contextmanager
 from functools import wraps
 from threading import Condition, RLock, local
 from time import monotonic
-from typing import TYPE_CHECKING, Concatenate, ParamSpec, Self, TypeVar
+from typing import TYPE_CHECKING, Concatenate, Self
+
+from raes_contracts.errors import ConflictError, OperationalError
+from raes_contracts.operational_logging import get_logger
+
+from .errors import RuntimeBudgetExhaustedError
 
 if TYPE_CHECKING:
     from .operation_execution_adapter import LocalExecutionAdapter
+    from .runtime_engine import RuntimeEngineResources
 
-_P = ParamSpec("_P")
-_R = TypeVar("_R")
+_LOGGER = get_logger(__name__)
 
 
-def runtime_owned(
-    method: Callable[Concatenate[object, _P], _R],
-) -> Callable[Concatenate[object, _P], _R]:
+def runtime_owned[**P, R](
+    method: Callable[Concatenate[object, P], R],
+) -> Callable[Concatenate[object, P], R]:
     """Keep one public call admitted until its reads or effects are complete."""
 
     @wraps(method)
-    def guarded(control_plane: object, *args: _P.args, **kwargs: _P.kwargs) -> _R:
+    def guarded(control_plane: object, *args: P.args, **kwargs: P.kwargs) -> R:
         runtime_call = getattr(control_plane, "_runtime_call", None)
         if not callable(runtime_call):
             return method(control_plane, *args, **kwargs)
@@ -33,13 +39,13 @@ def runtime_owned(
     return guarded
 
 
-def store_authoritative_state(
-    method: Callable[Concatenate[object, _P], _R],
-) -> Callable[Concatenate[object, _P], _R]:
+def store_authoritative_state[**P, R](
+    method: Callable[Concatenate[object, P], R],
+) -> Callable[Concatenate[object, P], R]:
     """Refresh derived state under the short cache-publication mutex."""
 
     @wraps(method)
-    def guarded(control_plane: object, *args: _P.args, **kwargs: _P.kwargs) -> _R:
+    def guarded(control_plane: object, *args: P.args, **kwargs: P.kwargs) -> R:
         lock = getattr(control_plane, "_operation_lock", None)
         reload_state = getattr(control_plane, "_reload_derived_state_if_unpinned", None)
         if lock is None or not callable(reload_state):
@@ -83,16 +89,35 @@ class RuntimeLifecycleMixin:
         self.close()
 
     def __del__(self) -> None:
-        with suppress(Exception):
+        if sys.is_finalizing():
+            # The execution adapter portal stops at exit, before finalization, so a close has no portal to run on.
+            # The runtime lease finalizer still releases the owner lock.
+            return
+        engine = getattr(self, "_engine", None)
+        if engine is not None and engine._owner() is None:
+            # Cyclic garbage collection clears the weak owner reference of the engine before a finalizer runs.
+            # Every engine close goes through the owner, so this finalizer has no close to attempt.
+            return
+        try:
             self.close()
+        except Exception:
+            # Boundary of the finalizer: the failed close already retained its resources.
+            _LOGGER.exception("runtime control plane finalizer could not close the runtime")
 
     def close(self) -> None:
         """Bound drain and retain ownership until physical callbacks and close settle."""
 
+        engine = getattr(self, "_engine", None)
+        if engine is not None:
+            self._close_engine_context(engine)
+            return
         condition = getattr(self, "_lifecycle_condition", None)
         if condition is None:
             self._close_runtime_lease()
             return
+        claim = getattr(self, "_resource_claim", None)
+        if claim is not None and claim.active_calls:
+            raise ConflictError("runtime callbacks remain active")
         config = getattr(self, "_supervision", None)
         budget = getattr(config, "drain_ms", 2000) / 1000
         deadline = monotonic() + budget
@@ -100,6 +125,9 @@ class RuntimeLifecycleMixin:
             return
         provider_close_started = False
         try:
+            stop_clock = getattr(self, "_stop_participant_clock_driver", None)
+            if stop_clock is not None and not stop_clock():
+                raise RuntimeBudgetExhaustedError("runtime manager clock driver remains active")
             adapter = getattr(self, "_execution_adapter", None)
             self._drain_runtime_calls(condition, adapter, deadline)
             self._close_runtime_dispatcher(adapter, deadline)
@@ -107,7 +135,7 @@ class RuntimeLifecycleMixin:
             self._close_runtime_provider()
             self._close_runtime_lease()
             if adapter is not None and not adapter.close(timeout_ms=max(1, int((deadline - monotonic()) * 1000))):
-                raise TimeoutError("runtime drain has unresolved external calls")
+                raise RuntimeBudgetExhaustedError("runtime drain has unresolved external calls")
             self._release_runtime_resources()
             with condition:
                 self._closed = True
@@ -117,6 +145,15 @@ class RuntimeLifecycleMixin:
             self._abort_runtime_close(condition, provider_close_started)
             raise
 
+    def _close_engine_context(self, engine: RuntimeEngineResources) -> None:
+        if engine.owner is self:
+            engine.close()
+        elif getattr(self, "_runtime_ready", False):
+            engine.retire(self)
+        else:
+            self._close_runtime_provider()
+            self._close_runtime_lease()
+
     def _begin_runtime_close(self, condition: Condition, budget: float) -> bool:
         with condition:
             if self._closed:
@@ -124,7 +161,7 @@ class RuntimeLifecycleMixin:
             if getattr(self._lifecycle_local, "depth", 0):
                 raise RuntimeError("cannot close a runtime control plane from one of its active calls")
             if self._closing and not condition.wait_for(lambda: not self._closing or self._closed, timeout=budget):
-                raise TimeoutError("runtime drain could not be established")
+                raise RuntimeBudgetExhaustedError("runtime drain could not be established")
             if self._closed:
                 return False
             self._closing = True
@@ -137,10 +174,10 @@ class RuntimeLifecycleMixin:
     ) -> None:
         with condition:
             if not condition.wait_for(lambda: self._active_runtime_calls == 0, timeout=max(0, deadline - monotonic())):
-                raise TimeoutError("runtime drain could not be established")
+                raise RuntimeBudgetExhaustedError("runtime drain could not be established")
         remaining_ms = max(1, int((deadline - monotonic()) * 1000))
         if adapter is not None and not adapter.drain(timeout_ms=remaining_ms):
-            raise TimeoutError("runtime drain has unresolved external calls")
+            raise RuntimeBudgetExhaustedError("runtime drain has unresolved external calls")
 
     def _close_runtime_dispatcher(self, adapter: LocalExecutionAdapter | None, deadline: float) -> None:
         dispatcher = getattr(self, "_distributed_execution", None)
@@ -214,9 +251,14 @@ class RuntimeLifecycleMixin:
         with condition:
             depth = getattr(self._lifecycle_local, "depth", 0)
             if self._durability_poisoned:
-                raise RuntimeError("runtime control plane requires restart after a durability reconciliation failure")
+                raise OperationalError(
+                    "runtime control plane requires restart after a durability reconciliation failure"
+                )
             if depth == 0 and (self._closed or self._closing):
-                raise RuntimeError("runtime control plane is closed")
+                raise OperationalError("runtime control plane is closed")
+            engine = getattr(self, "_engine", None)
+            if depth == 0 and engine is not None and (engine.closed or engine.closing):
+                raise OperationalError("runtime engine is closed")
             self._active_runtime_calls += 1
             self._lifecycle_local.depth = depth + 1
         try:
@@ -235,7 +277,7 @@ class RuntimeLifecycleMixin:
 
     def _assert_runtime_owner(self) -> None:
         if self._closed:
-            raise RuntimeError("runtime control plane is closed")
+            raise OperationalError("runtime control plane is closed")
         lease = self._runtime_lease
         assert_owner = getattr(lease, "assert_owner", None)
         if callable(assert_owner):

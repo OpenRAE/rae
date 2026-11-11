@@ -6,8 +6,9 @@ command/source fields never define that proposition's meaning.
 """
 
 from pydantic import Field, model_validator
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import parse_int_or_var
 
-from ._base import SDLModel, parse_int_or_var
 from ._source import Source
 
 
@@ -48,7 +49,7 @@ class Condition(SDLModel):
         return data
 
     @model_validator(mode="after")
-    def validate_command_xor_source(self) -> "Condition":
+    def validate_command_xor_source(self) -> Condition:
         has_command = self.command is not None
         has_interval = self.interval is not None
         has_source = self.source is not None

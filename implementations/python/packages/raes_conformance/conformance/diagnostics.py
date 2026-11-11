@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import re
-from pathlib import Path
 
 from pydantic import ValidationError
 from raes_contracts.diagnostics import Diagnostic, Severity
@@ -52,7 +51,8 @@ def _safe_location(location: tuple[object, ...], *, error_type: str) -> str:
     segments: list[str] = []
     for segment in location:
         rendered = str(segment)
-        if isinstance(segment, int) or rendered.isdigit():
+        # A sequence index has ASCII digits only; str.isdigit() also accepts other Unicode digits.
+        if isinstance(segment, int) or (rendered.isascii() and rendered.isdigit()):
             segments.append(rendered)
         elif attacker_named or not _SAFE_LOCATION_SEGMENT.match(rendered):
             segments.append(_REDACTED_LOCATION_SEGMENT)
@@ -107,7 +107,3 @@ def _diagnostic_payload(diag: Diagnostic) -> dict[str, object]:
         "severity": diag.severity.value if hasattr(diag.severity, "value") else str(diag.severity),
         "message": diag.message,
     }
-
-
-def _load_json(path: Path) -> object:
-    return json.loads(path.read_text(encoding="utf-8"))

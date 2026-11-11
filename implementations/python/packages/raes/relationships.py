@@ -14,8 +14,9 @@ from enum import Enum
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
 from pydantic.json_schema import JsonSchemaValue
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import normalize_enum_value
 
-from ._base import SDLModel, normalize_enum_value
 from .deployment_tenancy import RelationshipCarrierPlacement, RelationshipSharedService
 from .enterprise_identity import RelationshipForestTrust, RelationshipIdentityFederation
 from .identity_domains import RelationshipDomainController, RelationshipDomainJoin
@@ -117,7 +118,7 @@ class Relationship(SDLModel):
         return normalize_enum_value(v)
 
     @model_validator(mode="after")
-    def validate_participant_detail(self) -> "Relationship":
+    def validate_participant_detail(self) -> Relationship:
         if (self.type == RelationshipType.PARTICIPANT) != (self.participant is not None):
             raise ValueError("participant relationship type and participant detail must be declared together")
         if self.participant is not None and (

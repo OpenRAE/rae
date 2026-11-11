@@ -7,21 +7,21 @@ from enum import Enum
 from typing import Annotated
 
 from pydantic import Discriminator, Field, StrictInt, Tag, field_validator, model_validator
-from typing_extensions import TypeAliasType
-
-from ._base import SDLModel
-from ._classification_guard import LegacyClassificationGuard
-from ._identifiers import PortableIdentifier, portable_identifier_map_schema
-from .participant_episode_policy import ParticipantEpisodePolicy
-from .participant_execution import ParticipantAutonomousExecutionPolicy
-from .participant_inject_delivery import ParticipantInjectDelivery
-from .participant_mixed_control_policy import MIXED_CONTROL_POLICY_SEMANTICS, MixedControlPolicy
-from .participant_mixed_control_vocabulary import (
+from raes_contracts.identifiers import PortableIdentifier, portable_identifier_map_schema
+from raes_contracts.participant_inject_delivery import ParticipantInjectDelivery
+from raes_contracts.participant_mixed_control_vocabulary import (
     MixedControlControllerState,
     MixedControlDispositionRules,
     MixedControlOrderStrategy,
     MixedControlTransitionKind,
 )
+from raes_contracts.sdl_model import SDLModel
+
+from ._classification_guard import LegacyClassificationGuard
+from .participant_control_context import ParticipantControlContextReference
+from .participant_episode_policy import ParticipantEpisodePolicy
+from .participant_execution import ParticipantAutonomousExecutionPolicy
+from .participant_mixed_control_policy import MIXED_CONTROL_POLICY_SEMANTICS, MixedControlPolicy
 
 
 class ParticipantBehaviorSpecificationLifecycle(str, Enum):
@@ -35,17 +35,20 @@ class ParticipantBehaviorSpecificationLifecycle(str, Enum):
 _BEHAVIOR_SPEC_EXTENSION_KEY_RE = re.compile(r"^x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*$")
 _BEHAVIOR_SPEC_EXTENSION_POLICIES = frozenset({"closed", "governed-extension"})
 BehaviorSpecificationExtensionScalar = str | int | float | bool | None
-BehaviorSpecificationExtensionValue = TypeAliasType(
-    "BehaviorSpecificationExtensionValue",
+type BehaviorSpecificationExtensionValue = (
     BehaviorSpecificationExtensionScalar
-    | list["BehaviorSpecificationExtensionValue"]
-    | dict[str, "BehaviorSpecificationExtensionValue"],
+    | list[BehaviorSpecificationExtensionValue]
+    | dict[str, BehaviorSpecificationExtensionValue]
 )
 ToolAffordanceReference = Annotated[str, Field(min_length=1, pattern=r"\S")]
 
 
 class ParticipantToolAffordance(SDLModel):
-    """Authored participant-local binding from tool identity to governed behavior."""
+    """Authored participant-local binding from tool identity to governed behavior.
+
+    The optional participant selector (ACT-619) only narrows the owning specification's
+    selection; both lists empty means the binding applies to every selected participant.
+    """
 
     tool_ref: str | None = Field(default=None, min_length=1)
     action_contract_refs: list[ToolAffordanceReference] = Field(
@@ -56,8 +59,14 @@ class ParticipantToolAffordance(SDLModel):
         min_length=1,
         json_schema_extra={"uniqueItems": True},
     )
+    participant_refs: list[ToolAffordanceReference] = Field(
+        default_factory=list, json_schema_extra={"uniqueItems": True}
+    )
+    participant_role_refs: list[ToolAffordanceReference] = Field(
+        default_factory=list, json_schema_extra={"uniqueItems": True}
+    )
 
-    @field_validator("action_contract_refs", "observation_boundary_refs")
+    @field_validator("action_contract_refs", "observation_boundary_refs", "participant_refs", "participant_role_refs")
     @classmethod
     def _require_unique_non_empty_refs(cls, values: list[str]) -> list[str]:
         if any(not value.strip() for value in values):
@@ -269,6 +278,12 @@ class ParticipantBehaviorSpecification(LegacyClassificationGuard):
 
     semantic_version: str = Field(min_length=1, pattern=r"\S")
     lifecycle_state: ParticipantBehaviorSpecificationLifecycle = ParticipantBehaviorSpecificationLifecycle.ACTIVE
+    control_context: dict[PortableIdentifier, ParticipantControlContextReference] = Field(
+        default_factory=dict,
+        max_length=256,
+        exclude_if=lambda value: not value,
+        json_schema_extra={"additionalProperties": False},
+    )
     participant_refs: list[str] = Field(default_factory=list)
     participant_role_refs: list[str] = Field(default_factory=list)
     action_contract_refs: list[str] = Field(default_factory=list)
@@ -360,8 +375,10 @@ class ParticipantBehaviorSpecification(LegacyClassificationGuard):
                 self.realization_profile_ref,
                 self.backend_feature_support_refs,
                 self.evidence_contract_refs,
+                self.control_context,
                 self.tool_affordances,
                 self.participant_inject_deliveries,
+                self.episode_policy,
             )
         ):
             raise ValueError("behavior specifications must aggregate at least one behavior surface reference")

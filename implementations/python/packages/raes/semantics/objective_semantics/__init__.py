@@ -31,6 +31,8 @@ from __future__ import annotations
 
 from collections.abc import Callable, Collection, Mapping
 
+from raes_contracts.graphs import has_cycle
+
 from ..objectives import ObjectiveDependencyRole, ObjectiveWindowAnalysis
 from ._analysis import (
     _analyze_action_constraints,
@@ -39,7 +41,6 @@ from ._analysis import (
     _analyze_success,
     _analyze_targets,
     _analyze_window,
-    _has_cycle,
     _never_unresolved,
     _objective_dependency_graph,
     _ordered_unique,
@@ -173,7 +174,7 @@ def analyze_objective_semantics(
         )
 
     dependency_graph = _objective_dependency_graph(objectives_by_name, unresolved)
-    if dependency_graph and _has_cycle(dependency_graph):
+    if dependency_graph and has_cycle(dependency_graph):
         issues.append(ObjectiveIssue(code="objective.dependency-cycle", objective_name=""))
 
     return ObjectiveSemanticAnalysis(

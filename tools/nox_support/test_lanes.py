@@ -9,13 +9,25 @@ import tempfile
 from pathlib import Path
 
 import nox
+from raes_contracts.errors import InvalidInputError, OperationalError
+from yaml import YAMLError
 
+from tools.check_adr_immutability import ADR_DIR, _coerce_manifest
+from tools.check_adr_immutability import MANIFEST_PATH as ADR_PIN_PATH
+from tools.check_identity_cutover import _load_historical_records
+from tools.documentation_tools import (
+    ensure_doc_tools,
+    ensure_ste,
+    sync_doc_tools_styles,
+)
 from tools.nox_support.config import (
     DEFAULT_SUITE_EXPRESSION,
     DOCS_BUILD_ROOT,
     INSTALLATION_QUALIFICATION_HARNESSES,
     OSV_LOCKFILE_PATH,
     OSV_REPORT_PATH,
+    OSV_TOOLING_LOCKFILE_PATH,
+    OSV_TOOLING_REPORT_PATH,
     PROJECT_ROOT,
     PUBLIC_DOCS_ENTRYPOINTS,
     PUBLIC_DOCS_EXAMPLE_TESTS,
@@ -25,6 +37,8 @@ from tools.nox_support.config import (
 )
 from tools.nox_support.runner import (
     SessionReporter,
+    _chunked,
+    _hygiene_flags,
     _run,
     _run_project_python,
     _run_pytest,
@@ -37,8 +51,11 @@ from tools.osv_scanner_tool import (
     ensure_osv_scanner,
     run_osv_scanner,
 )
-from tools.pytest_shard import read_manifest, verify_shard_partition
+from tools.policy.adr import parse_adr_file
+from tools.policy.common import YAML_CONTENT_FAILURES, load_yaml, safe_repo_path
+from tools.pytest_shard import ShardManifestError, read_manifest, verify_shard_partition
 from tools.vale_tool import ensure_vale
+from tools.verification_plan import _run_git, collect_git_changes
 
 
 def _run_tests(
@@ -59,7 +76,7 @@ def _run_tests(
             *args,
             coverage_file=coverage_file,
             finalize_coverage=finalize_coverage,
-            parallel=parallel,
+            xdist="worksteal" if parallel else None,
         ),
         detail=f"{' '.join(args)} :: {execution}",
     )
@@ -80,6 +97,8 @@ def _run_integration_tests(
     append_coverage: bool = False,
     finalize_coverage: bool = False,
 ) -> None:
+    # Each test module stays on one xdist worker. Module-scoped build, install
+    # and documentation fixtures then run once, as they do in a serial run.
     reporter.run(
         "tests / pytest integration",
         lambda: _run_pytest(
@@ -90,7 +109,9 @@ def _run_integration_tests(
             coverage_file=coverage_file,
             append_coverage=append_coverage,
             finalize_coverage=finalize_coverage,
+            xdist="loadfile",
         ),
+        detail="xdist auto, max 8, loadfile",
     )
 
 
@@ -133,7 +154,7 @@ def _run_shard_tests(
             *args,
             coverage_file=coverage_file,
             finalize_coverage=False,
-            parallel=True,
+            xdist="worksteal",
             extra_env={"PYTHONPATH": str(REPO_ROOT)},
         ),
         detail="deterministic sha256 node-id partition :: xdist within shard",
@@ -159,7 +180,7 @@ def _collect_canonical_nodeids(session: nox.Session) -> list[str]:
         )
     nodeids = [line.strip() for line in (output or "").splitlines() if "::" in line]
     if not nodeids:
-        raise RuntimeError("canonical collection returned no node ids")
+        raise OperationalError("canonical collection returned no node ids")
     return nodeids
 
 
@@ -182,7 +203,7 @@ def _run_coverage_reduce(
     _sync_project(session)
     manifests = [read_manifest(path) for path in sorted(reduce_dir.glob("shard-*.json"))]
     if not manifests:
-        raise RuntimeError(f"no shard manifests found under {reduce_dir}")
+        raise ShardManifestError(f"no shard manifests found under {reduce_dir}")
     canonical = _collect_canonical_nodeids(session)
     reporter.run(
         "coverage / shard completeness proof",
@@ -199,7 +220,17 @@ def _run_coverage_reduce(
 
     def _combine_and_report() -> None:
         with session.chdir(PROJECT_ROOT):
-            _run(session, "uv", "run", "--frozen", "coverage", "combine", "--keep", str(reduce_dir), env=coverage_env)
+            _run(
+                session,
+                "uv",
+                "run",
+                "--frozen",
+                "coverage",
+                "combine",
+                "--keep",
+                str(reduce_dir),
+                env=coverage_env,
+            )
             _write_and_check_coverage(session, coverage_env)
 
     reporter.run(
@@ -228,26 +259,151 @@ def _finalize_parallel_coverage(session: nox.Session, coverage_dir: Path) -> Non
 
 
 def _run_osv_scan(_session: nox.Session, reporter: SessionReporter) -> None:
-    def _scan() -> None:
-        lockfile = OSV_LOCKFILE_PATH
+    def _scan(lockfile: Path, report: Path) -> None:
         if not lockfile.exists():
-            raise RuntimeError(f"osv-scan: tracked lockfile not found: {lockfile.relative_to(REPO_ROOT)}")
+            raise InvalidInputError(f"osv-scan: tracked lockfile not found: {lockfile.relative_to(REPO_ROOT)}")
         binary = ensure_osv_scanner(REPO_ROOT)
-        exit_code = run_osv_scanner(lockfile, OSV_REPORT_PATH, binary=binary)
-        report_rel = OSV_REPORT_PATH.relative_to(REPO_ROOT)
+        exit_code = run_osv_scanner(lockfile, report, binary=binary)
+        report_rel = report.relative_to(REPO_ROOT)
         outcome = classify_osv_exit_code(exit_code)
         if outcome is OSVScanOutcome.FINDINGS:
-            raise RuntimeError(f"osv-scanner reported vulnerabilities (exit code {exit_code}); see {report_rel}")
+            # The scanned lock does not satisfy the vulnerability gate; the caller must correct it.
+            raise InvalidInputError(f"osv-scanner reported vulnerabilities (exit code {exit_code}); see {report_rel}")
         if outcome is OSVScanOutcome.SCANNER_ERROR:
-            raise RuntimeError(
+            raise OperationalError(
                 f"osv-scanner failed with scanner/setup error exit code {exit_code}; report at {report_rel}"
             )
 
-    reporter.run(
-        "osv-scan / uv.lock",
-        _scan,
-        detail=str(OSV_LOCKFILE_PATH.relative_to(REPO_ROOT)),
-    )
+    for label, lockfile, report in (
+        ("uv.lock", OSV_LOCKFILE_PATH, OSV_REPORT_PATH),
+        ("tooling uv.lock", OSV_TOOLING_LOCKFILE_PATH, OSV_TOOLING_REPORT_PATH),
+    ):
+        reporter.run(
+            f"osv-scan / {label}",
+            lambda lockfile=lockfile, report=report: _scan(lockfile, report),
+            detail=str(lockfile.relative_to(REPO_ROOT)),
+        )
+
+
+def _selected_prose_paths(posargs: list[str]) -> list[str]:
+    """Resolve common selection arguments and validate every selected prose path."""
+    staged, base_rev, all_files, explicit = _hygiene_flags(posargs, default_all_files=False)
+    if explicit:
+        paths = explicit
+    elif staged:
+        paths = _run_git(REPO_ROOT, "diff", "--cached", "--name-only", "--diff-filter=d", "-z").split("\0")
+    elif all_files:
+        paths = _run_git(REPO_ROOT, "ls-files", "--cached", "--others", "--exclude-standard", "-z").split("\0")
+    else:
+        paths = [change.path for change in collect_git_changes(REPO_ROOT, base_rev or "HEAD") if change.status != "D"]
+
+    selected: list[str] = []
+    for path in dict.fromkeys(paths):
+        if Path(path).suffix not in {".md", ".rst"}:
+            continue
+        target = safe_repo_path(REPO_ROOT, path)
+        if target is None:
+            raise InvalidInputError("unsafe prose path outside the repository")
+        if not target.is_file():
+            raise InvalidInputError("selected prose path is not a file")
+        selected.append(path)
+    return selected
+
+
+def _frozen_adr_paths(selected: list[str]) -> set[str]:
+    """Return selected ADRs that ADR-059 froze when they left the accepted manifest."""
+    frozen: set[str] = set()
+    for path in selected:
+        candidate = Path(path)
+        if candidate.parent.as_posix() != ADR_DIR or not candidate.name.startswith("adr-"):
+            continue
+        status = parse_adr_file(REPO_ROOT / path)[2]
+        if status == "deprecated" or status.startswith("superseded by "):
+            frozen.add(path)
+    return frozen
+
+
+def _protected_prose_paths(selected: list[str]) -> set[str]:
+    """Read exact protected identities through the existing catalog validators."""
+    try:
+        adrs, failures = _coerce_manifest(load_yaml(REPO_ROOT / ADR_PIN_PATH), ADR_PIN_PATH)
+    except (OSError, YAMLError, InvalidInputError, *YAML_CONTENT_FAILURES) as exc:
+        raise InvalidInputError("protected prose catalog cannot be read") from exc
+    if failures or adrs is None or any(safe_repo_path(REPO_ROOT, entry["path"]) is None for entry in adrs):
+        raise InvalidInputError("protected ADR prose catalog is invalid")
+    records, _bindings, generated, failures = _load_historical_records(REPO_ROOT)
+    if failures:
+        raise InvalidInputError("protected historical prose catalog is invalid")
+    protected = {"CHANGELOG.md", "THIRD_PARTY_NOTICES.md", *records, *generated}
+    protected.update(entry["path"] for entry in adrs)
+    protected.update(_frozen_adr_paths([path for path in selected if path not in protected]))
+    return protected
+
+
+def _run_docs_prose(session: nox.Session, reporter: SessionReporter) -> None:
+    """Lint selected maintained prose; report exact protected identities for review."""
+    selected = _selected_prose_paths(session.posargs)
+    if not selected:
+        reporter.skip("docs / Vale changed prose", "no Markdown or reStructuredText selected")
+        return
+    protected = _protected_prose_paths(selected)
+    excluded = [path for path in selected if path in protected]
+    if excluded:
+        reporter.skip(
+            "docs / protected prose",
+            "manual source/meaning review and Vale stdin checks of new maintained passages required: " + repr(excluded),
+        )
+    maintained = [path for path in selected if path not in protected]
+    if not maintained:
+        return
+
+    binary = ensure_vale(REPO_ROOT)
+    package = ensure_doc_tools(REPO_ROOT)
+    sync_doc_tools_styles(REPO_ROOT, binary, package)
+    project_environment = Path(os.environ.get("UV_PROJECT_ENVIRONMENT", str(PROJECT_ROOT / ".venv")))
+    if not project_environment.is_absolute():
+        project_environment = PROJECT_ROOT / project_environment
+    env = {"PATH": os.pathsep.join((str(project_environment / "bin"), os.environ.get("PATH", "")))}
+
+    def lint() -> None:
+        for batch in _chunked(maintained):
+            _run(
+                session,
+                str(binary),
+                "--no-global",
+                f"--config={REPO_ROOT / '.vale.ini'}",
+                "--glob=*.{md,rst}",
+                "--",
+                *(str(REPO_ROOT / path) for path in batch),
+                env=env,
+            )
+
+    reporter.run("docs / Vale changed prose", lint, detail=f"{len(maintained)} maintained files")
+
+    markdown = [path for path in maintained if Path(path).suffix == ".md"]
+    if markdown:
+        ste = ensure_ste(REPO_ROOT)
+
+        def lint_ste() -> None:
+            for batch in _chunked(markdown):
+                _run(
+                    session,
+                    str(ste),
+                    "lint",
+                    "--config",
+                    str(package / ".ste.yml"),
+                    "--no-baseline",
+                    "--fail-over",
+                    "0",
+                    "--",
+                    *(str(REPO_ROOT / path) for path in batch),
+                )
+
+        reporter.run(
+            "docs / shared STE changed Markdown",
+            lint_ste,
+            detail=f"{len(markdown)} maintained files",
+        )
 
 
 def _run_docs(
@@ -257,6 +413,8 @@ def _run_docs(
     include_external_links: bool = True,
 ) -> None:
     _sync_project(session)
+    _run_docs_prose(session, reporter)
+    sync_doc_tools_styles(REPO_ROOT, ensure_vale(REPO_ROOT), ensure_doc_tools(REPO_ROOT))
     html_dir = DOCS_BUILD_ROOT / "html"
     linkcheck_dir = DOCS_BUILD_ROOT / "linkcheck"
 
@@ -287,9 +445,14 @@ def _run_docs(
         "docs / Vale reader style",
         lambda: _run(
             session,
+            "uv",
+            "run",
+            "--project",
+            str(PROJECT_ROOT),
+            "--frozen",
             str(ensure_vale(REPO_ROOT)),
             "--config=.vale.ini",
-            "--glob=*.md",
+            "--glob=*.{md,rst}",
             *PUBLIC_DOCS_ENTRYPOINTS,
             str(PUBLIC_DOCS_ROOT),
         ),
@@ -381,7 +544,13 @@ def _run_installation_qualification(
         try:
             reporter.run(
                 f"qualification / {name}",
-                lambda: _run(session, sys.executable, str(REPO_ROOT / harness), str(root), *posargs),
+                lambda: _run(
+                    session,
+                    sys.executable,
+                    str(REPO_ROOT / harness),
+                    str(root),
+                    *posargs,
+                ),
                 detail=detail,
             )
         finally:

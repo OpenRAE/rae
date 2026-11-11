@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import TypeVar
 
 from .participant_control import (
     ParticipantApprovalOccurrenceModel,
@@ -42,8 +41,6 @@ from .runtime_facts import (
     RuntimeFactVersionModel,
 )
 
-T = TypeVar("T")
-
 
 def _validate_bindings(
     document: ParticipantFlowControlRelationModel,
@@ -81,7 +78,7 @@ def _validate_runtime_fact_binding(
         raise ValueError("runtime fact binding scope does not match")
 
 
-def _require_by_identity(items: tuple[T, ...], field_name: str, expected: str) -> T:
+def _require_by_identity[T](items: tuple[T, ...], field_name: str, expected: str) -> T:
     item = next((candidate for candidate in items if getattr(candidate, field_name) == expected), None)
     if item is None:
         raise ValueError("runtime fact declaration, version, sink, and event must resolve")

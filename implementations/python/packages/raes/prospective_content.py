@@ -4,6 +4,7 @@ from typing import ClassVar
 
 from ._scenario_instantiation import collect_variable_tokens
 from .scenario import ScenarioContent
+from .validator import SemanticValidator
 
 
 class ProspectiveScenarioContent(ScenarioContent):
@@ -13,7 +14,6 @@ class ProspectiveScenarioContent(ScenarioContent):
 
 
 def admit_prospective_content(payload: dict[str, object]) -> ScenarioContent:
-    from .validator import SemanticValidator
 
     if collect_variable_tokens(payload):
         raise ValueError("prospective SDL cannot contain unresolved variables")

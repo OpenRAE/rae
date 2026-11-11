@@ -1,4 +1,4 @@
-# Reusable Asset Trust, Authenticity, and Integrity
+# Reusable asset trust, authenticity, and integrity
 
 Status: normative
 Requirement: GOV-913 (Trust And Integrity Of Reusable Assets)
@@ -113,11 +113,12 @@ enforcement, when built, consumes and conforms to this policy.
 
 ## 6. Standards basis
 
-The policy model draws on established supply-chain frameworks (recorded in
-ADR-071): SLSA (declarative expectation comparison; resolved-dependency
-provenance), in-toto (digest-bound subjects; authenticity decoupled from
-integrity), TUF (M-of-N thresholds; offline trust roots; delegation), Sigstore
-(identity-bound signing; transparency), the OCI image spec (content-addressable
-descriptors; out-of-band evidence), NIST SP 800-218 SSDF (PS.2 integrity
-verification; PS.3 provenance), and C2PA (hard-binding hashes; signed claims for
-content assets).
+ADR-071 records the supply-chain frameworks behind this policy model:
+
+- SLSA: declarative expectation comparison and resolved-dependency provenance.
+- in-toto: digest-bound subjects and authenticity separate from integrity.
+- TUF: M-of-N thresholds, offline trust roots, and delegation.
+- Sigstore: identity-bound signing and transparency.
+- OCI image specification: content-addressable descriptors and out-of-band evidence.
+- NIST SP 800-218 SSDF: PS.2 integrity verification and PS.3 provenance.
+- C2PA: hard-binding hashes and signed claims for content assets.

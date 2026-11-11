@@ -1,5 +1,12 @@
 # SDL Sections Reference
 
+Cloud projects and accounts use resource scopes within `runtime.identity_authorities`.
+The same owner describes workload identity use and resource-policy attachment.
+`runtime.platform_applications` can describe service-owned secrets, versions and consumer selections.
+These optional descriptions do not imply deployment, effective access or secret disclosure.
+See [cloud resource access](../../../specs/sdl/cloud-resource-access.md)
+and the [cross-project example](../../../examples/scenarios/cloud-resources/cloud-secret-cross-project.sdl.yaml).
+
 A scenario is a YAML document with a required top-level `name`, optional
 top-level metadata and composition fields, and the authoring sections catalogued
 below. Aside from `name`, every top-level field is optional. The normative,
@@ -900,6 +907,39 @@ equal names do not imply a relation. Optional acquisition `refinements` carry
 pinned public profile definitions and bounded values through the existing plan
 host. The target must independently support their semantics before execution.
 
+`model` is an optional field on a software component.
+Use a name that includes a revision when the experiment needs that exact revision.
+The model can be set with a variable and a parameter variation point:
+
+```yaml
+name: model-comparison
+realization: {default: open}
+variables:
+  model_choice:
+    type: string
+    required: true
+    allowed_values: [vendor/model-a@revision-1, vendor/model-b@revision-2]
+nodes:
+  host:
+    type: compute
+    os: linux
+    runtime:
+      software_components:
+        - component_id: controller
+          name: controller
+          model: '${model_choice}'
+variation_points:
+  model-choice:
+    kind: parameter
+    target: {kind: variable, variable: model_choice}
+    domain: {kind: enum, values: [vendor/model-a@revision-1, vendor/model-b@revision-2]}
+```
+
+Each trial SDL keeps its chosen model. The trial admits only that choice.
+The backend cannot replace it with another choice from the source family.
+Omit `model` to let the backend choose it in an open software scope.
+Literal names fix an exact model. Variables follow the existing rules for constrained values.
+
 `runtime.repository_state` separately records shared repository and trust
 identities; component `repository_refs` and repository `trust_ref` resolve there.
 Use `presence: forbidden` for explicit final absence. An internal cache, private
@@ -1339,7 +1379,7 @@ shipping spine that the SIEM/security-monitoring *manager* half
 (`runtime.network_detection_engines`) cannot shape. Each entry is a
 `RuntimeForwardingAgent` with a stable `forwarding_agent_id`, an open
 `agent_kind` spine discriminator (`log_forwarder`, `content_sync`, `unknown`,
-`other`), and typed children: `sources` (tailed path, API pull, or queue inputs),
+`other`), and typed children: `sources` (tailed path, API pull, queue, or listening-socket inputs),
 `transforms` (`passthrough`/`parse`/`ioc_to_rule`), `ship_targets` (downstream
 event-ingest and/or enrollment endpoints), an optional `buffer_policy`
 (queue/back-pressure posture), `reload_channels` (downstream rule-reload sockets),
@@ -1967,7 +2007,7 @@ agents:
     interactive_access:                 # explicit access-carrier availability
       primary-shell:                    # stable participant-local declaration id
         target_ref: user0               # compute-node ref; bare or nodes.user0
-        channel: ssh                    # closed vocabulary: ssh or rdp
+        channel: ssh                    # ssh, rdp, or a typed profile binding
         account_ref: phished-user       # optional; same compute node + starting account
 ```
 
@@ -2003,10 +2043,15 @@ generalises `allowed_subnets`, which remains restricted to switch-backed
 infrastructure.
 
 `interactive_access` is a keyed registry of authored access-carrier
-availability. Each value is closed: `target_ref` resolves to a compute node, `channel` is
-exactly `ssh` or `rdp` (or a whole-field variable before instantiation), and an
-optional `account_ref` resolves to an account on that compute node that is already in the
-participant's `starting_accounts`. The same concrete target/channel pair may
+availability. Each value is closed. `target_ref` resolves to a compute node.
+`channel` is `ssh`, `rdp`, a typed domain-profile binding, or a whole-field variable
+before instantiation. Any other string is a parse error. An optional `account_ref`
+resolves to an account on that compute node that is already in the participant's
+`starting_accounts`. A typed channel uses the owner of
+[ADR-120](../../decisions/adrs/adr-120-owned-and-admitted-typed-descriptor-profiles.md):
+`sdl-authoring-input-v1`, the JSON Pointer of the field, phase `authoring`, use
+`constraint` and context `participant-interactive-access-channel`. Planning refuses
+it unless the target admits its exact profile semantics. The same concrete target/channel pair may
 appear only once per participant after bare/qualified reference normalization;
 different participants may declare it independently. Stable registry keys are
 portable local identifiers and mapping order has no priority or fallback
@@ -2173,21 +2218,89 @@ application of a permission is its own occurrence, and no declaration grants
 live runtime authorization.
 
 The binding reference `behavior_specifications.<spec>.tool_affordances.<id>`
-must be explicitly classified by each referenced observation boundary. Presence
-means authored availability only: visibility, apparatus support, eligibility,
-admission, realization, effects, constraints, and evidence remain on their
-existing contracts and do not follow from the binding. An imported unit's
-`tool_ref` binds the unit's own content, bare or as `content.<name>`, and a bare
-name that the unit gives to two declarations fails composition as it fails in
-the unit alone. See the
+must be explicitly classified by each referenced observation boundary.
+Presence means authored availability only: visibility, apparatus support,
+eligibility, admission, realization, effects, constraints, and evidence remain
+on their existing contracts and do not follow from the binding.
+
+An imported unit's `tool_ref` binds the unit's own content, bare or as
+`content.<name>`. A bare name given to two declarations fails composition,
+as it does in the unit alone. See the
 [tool authoring decision](../../decisions/issue-298-tool-authoring.md).
+
+A participant tool profile is the `tool_affordances` of one behavior
+specification together with that specification's participant and role
+selection. There is no separate profile section. The specification address
+identifies the profile, and each binding keeps its own address. A binding may
+add `participant_refs` and `participant_role_refs`. These selectors only
+narrow the specification's selection:
+
+```yaml
+behavior_specifications:
+  toolkit:
+    semantic_version: "1.0.0"
+    participant_role_refs: [blue, white]
+    action_contract_refs: [scan-active, scan-passive]
+    observation_boundary_refs: [blue-view, white-view]
+    tool_affordances:
+      scanner-blue: {tool_ref: nmap, participant_role_refs: [blue],
+                     action_contract_refs: [scan-active], observation_boundary_refs: [blue-view]}
+      scanner-white: {tool_ref: nmap, participant_role_refs: [white],
+                      action_contract_refs: [scan-passive], observation_boundary_refs: [white-view]}
+```
+
+- A binding is scoped when either selector list is non-empty and unscoped when
+  both are empty. An unscoped binding applies to every participant the
+  specification selects. A scoped binding that resolves to no participant is
+  offered to none.
+- Binding selectors use the specification's participant and role resolution
+  over the whole composed scenario. A binding role selector therefore reaches
+  every participant with that role. If one of them is outside the
+  specification's selection, the binding fails validation, even when that
+  participant was added elsewhere in the scenario. Use binding role selectors
+  under a role-selected specification and explicit `participant_refs`
+  otherwise. Roles stay global across imports, so in a module imported more
+  than once a role-scoped binding over module-local actions fails; use
+  explicit `participant_refs` there.
+- Every participant a binding selects must declare the binding's actions and
+  observation boundaries. Explicit selector refs must use exported names.
+- Bindings add up. A participant receives every binding that selects it, each
+  under its own address, with no order, precedence, merge, or override. Two
+  bindings with the same tool, actions, and boundaries are duplicates even
+  when their selectors differ; write one binding with the combined selector.
+- Roles receive different invocation constraints by binding different action
+  contracts, and different visibility through different observation
+  boundaries. A binding carries no constraint body. Every binding that selects
+  a participant and names an action must share that action's disposition in
+  the participant's projection.
+- Nothing else makes a binding available: not `tool_ref`, installed content,
+  manifest tool expectations, interactive access, visibility, an exposure
+  policy, or an affiliation.
+- A profile does not gate admission. A participant may invoke any action it
+  declares and its specification admits, with or without a binding.
+- A decision surface projected for one participant and one specification
+  carries only that specification's bindings.
+- `participant-decision-surface-v1` refuses a specification that contains a
+  scoped binding; project it with `participant-decision-surface-v2`.
+- `semantic_version` is an authored label. Nothing checks it against the
+  module version or the profile content. Evidence identifies the profile by
+  its address and pins its content through the instantiated-snapshot digest.
+- One profile cannot span participants that need different `behavior_mode`,
+  `autonomous_execution`, `mixed_control`, or `realization_profile_ref`
+  values; declare one specification for each.
+
+See the [tool-profile decision](../../decisions/issue-301-participant-tool-profiles.md)
+and the [migration notes](../../migration/participant-tool-profiles.md).
 
 Compiled behavior specifications use stable
 `participant.behavior-specification.<name>` addresses and preserve dependency
 links to the participant behavior, action contract, observation boundary, and
 outcome-rule runtime addresses. Each nested affordance compiles independently
 at `participant.behavior-specification.<name>.tool-affordance.<id>` with raw
-refs and resolved content/action/observation addresses.
+refs and resolved content/action/observation addresses. A scoped binding also
+records its raw selector refs and resolved participant addresses; an unscoped
+binding records empty selector fields and reaches its specification's scope
+through the specification address.
 
 `participant_inject_deliveries` is a closed, keyed mapping for explicit
 participant-directed delivery. Each binding has exactly one `participant_ref`
@@ -2767,3 +2880,13 @@ contracts. They may reference SDL scenarios or scenario snapshots, but they are
 not SDL sections.
 
 Backend-specific auto-validation mechanics still live outside the SDL. The runtime may use Wazuh queries, command probes, file checks, or other adapters to determine whether an SDL-declared objective or observable condition has been satisfied, but those probe details are not the language itself.
+
+## Participant control context
+
+`control_context_assets` names immutable ACT-620 descriptors.
+Agents and reusable behavior specifications select them through `control_context` slots.
+Each selection states a declaration reference, exact asset reference triple, and selected or withheld intent.
+Declaration and selection grant no visibility, delivery, or permission.
+See the [normative contract](../../../specs/sdl/participant-control-context.md),
+[examples](../../../examples/scenarios/participant-control-context/README.md), and
+[migration guidance](control-context-migration.md).

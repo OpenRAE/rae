@@ -1852,3 +1852,115 @@ workflows:
         assert len(execution_plan.provisioning.operations) > 0
         assert len(execution_plan.orchestration.startup_order) > 0
         assert len(execution_plan.evaluation.startup_order) > 0
+
+
+# --- Issue 1678: exception and logging policy regressions -------------------
+
+
+def test_inventory_predecessor_archive_failure_is_logged_value_free_and_fails_closed(caplog):
+    import logging
+    from types import SimpleNamespace
+
+    from raes_contracts.materialization_inventory import InventoryInvariant
+    from raes_processor.planner.materialization_lineage import InventoryAdmissionError, admitted_inventory_predecessor
+
+    secret = "archive-secret-sentinel-1678"
+
+    class FailingArchive:
+        def read(self, _record):
+            raise RuntimeError(secret)
+
+    record = SimpleNamespace(run_id="run-1", artifact=SimpleNamespace(source="backend"), inventory=object())
+    request = SimpleNamespace(materialization_source=SimpleNamespace(run_id="run-1"))
+    previous = SimpleNamespace(materialization_attestations=(record,))
+    logger_name = "raes_processor.planner.materialization_lineage"
+    manifest = SimpleNamespace(name="backend")
+    archive = FailingArchive()
+    with caplog.at_level(logging.WARNING, logger=logger_name), pytest.raises(InventoryAdmissionError) as raised:
+        admitted_inventory_predecessor(request, manifest, previous, archive)
+
+    assert raised.value.invariant is InventoryInvariant.ARCHIVE
+    assert secret not in str(raised.value)
+    records = [item for item in caplog.records if item.name == logger_name]
+    assert len(records) == 1
+    assert records[0].levelno == logging.ERROR
+    assert secret not in records[0].getMessage()
+    # The archive adapter is foreign code, so the record omits the foreign exception type (H2 isolation).
+    assert "ForeignCodeFailure" in (records[0].exc_text or "")
+    assert "RuntimeError" not in (records[0].exc_text or "")
+    assert secret not in (records[0].exc_text or "")
+
+
+def test_inventory_lineage_refusal_carries_its_invariant_for_the_runtime():
+    from types import SimpleNamespace
+
+    from raes_contracts.errors import InvalidInputError
+    from raes_contracts.materialization_inventory import InventoryInvariant
+    from raes_processor.planner.materialization_lineage import InventoryAdmissionError, validate_inventory_lineage
+
+    report = SimpleNamespace(complete=False, unavailable_evidence=())
+    original_addresses = set()
+    previous = RuntimeSnapshot()
+    with pytest.raises(InventoryAdmissionError) as raised:
+        validate_inventory_lineage(report, None, original_addresses, previous, operation_id=None, resources={})
+
+    assert isinstance(raised.value, InvalidInputError)
+    assert raised.value.invariant is InventoryInvariant.COVERAGE
+
+
+def test_prepared_node_admission_defect_is_not_reported_as_an_inadmissible_completion(monkeypatch):
+    from types import SimpleNamespace
+
+    from raes_contracts.errors import InvalidInputError
+    from raes_processor.planner import prepared_node_admission
+
+    empty = SimpleNamespace(operations=())
+
+    def refuse(_live):
+        raise InvalidInputError("prepared node context failed typed validation")
+
+    monkeypatch.setattr(prepared_node_admission, "validate_prepared_node_semantics", refuse)
+    assert prepared_node_admission.prepared_node_capability_violation(empty, empty, None, RuntimeSnapshot()) == (
+        "Backend preparation selected an inadmissible portable node completion."
+    )
+
+    def defect(_live):
+        raise KeyError("programming defect")
+
+    monkeypatch.setattr(prepared_node_admission, "validate_prepared_node_semantics", defect)
+    snapshot = RuntimeSnapshot()
+    with pytest.raises(KeyError):
+        prepared_node_admission.prepared_node_capability_violation(empty, empty, None, snapshot)
+
+
+def test_prepared_node_inventory_refuses_an_unhashable_proposed_name():
+    from types import SimpleNamespace
+
+    from raes_contracts.errors import InvalidInputError
+    from raes_processor.planner.prepared_node_admission import validate_portable_node_inventory
+
+    entry = SimpleNamespace(
+        address="provision.node.extra",
+        resource_type="node",
+        payload={"name": ["extra"]},
+        ordering_dependencies=(),
+        refresh_dependencies=(),
+    )
+    with pytest.raises(InvalidInputError, match="duplicate names"):
+        validate_portable_node_inventory({entry.address: entry}, set(), None)
+
+
+def test_os_domain_diagnostic_omits_the_parser_exception_text(monkeypatch):
+    from raes_processor.planner import capability_domains
+
+    secret = "os-domain-secret-sentinel-1678"
+
+    def refuse(*_args, **_kwargs):
+        raise ValueError(secret)
+
+    monkeypatch.setattr(capability_domains, "parse_runtime_enum_identity", refuse)
+    value, diagnostic = capability_domains._os_allowed_value("linux", "os_choice", "provision.node.host")
+
+    assert value is None
+    assert diagnostic.code == "provisioner.os-family-variable-domain-invalid"
+    assert secret not in diagnostic.message

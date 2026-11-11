@@ -5,9 +5,10 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from .._base import VARIABLE_TOKEN_RE, is_variable_ref
+from raes_contracts.identifiers import QualifiedName
+from raes_contracts.variable_references import VARIABLE_TOKEN_RE, is_variable_ref
+
 from .._errors import SDLValidationError
-from .._identifiers import QualifiedName
 from .._reference_targetability import purpose_for_domain
 from ..variation import COLLECTION_TARGET_SPECS, REFERENCE_TARGET_SPECS, STRUCTURAL_TARGET_SPECS, TIMING_TARGET_SPECS
 

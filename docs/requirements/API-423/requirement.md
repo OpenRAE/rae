@@ -74,3 +74,14 @@ API-406 and API-409 provide adjacent carriers, but no common contract records th
 - TESTS → TEST `implementations/python/tests/test_public_docs_policy.py` (Executable participant-control public guide claim example)
 - DOCUMENTS → DOCUMENTATION `docs/public/participant-control.md` (Participant input and output control guide)
 - IMPLEMENTS → SPEC `contracts/schemas/profiles/participant-boundary-flow-policy-v1.json` (participant-boundary-flow-policy-v1 published schema)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_crossing_indexes.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_crossing_prefix.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1373_crossing_prefix.py`
+
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check.py` (Issue 974 exact finite model-check evidence; no runtime-realization claim)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check_evidence.py` (Complete carrier, model, projection, source and model-check claim joins)
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-machine-check.md` (Finite relation boundary, security and data flows)
+- TESTS → TEST `implementations/python/tests/test_issue_974_machine_check.py` (Incomplete carriers, source drift, mutation false acceptance and claim promotion are refused)
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#974` (Machine-check finite participant-crossing bisimulation)
+
+- IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-crossing-evidence-v1.json` (Runtime-owned participant delivery tool composition, issue #1829)

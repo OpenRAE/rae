@@ -1,4 +1,14 @@
-# Mixed-backend execution contracts migration
+<a id="mixed-backend-execution-contracts-migration"></a>
+
+# Mixed-backend execution compatibility reference
+
+## Versions and purpose
+
+Source: `Historical MixedEdgeExecutionBinding and MixedHandoffBinding callbacks`.
+Target: `Explicit mixed-backend-execution-binding-v1 and mixed-backend-stage-report-v1 installations`.
+This is a compatibility reference for the Python implementation in RAES 11.0.2.
+The contracts below retain their separate identities and obligations.
+This page does not supply a standalone converter or deployment procedure.
 
 Issue #1371 publishes portable contracts for the executable mixed-backend
 obligations that
@@ -310,7 +320,13 @@ Portable mixed installation currently executes in the local supervised compositi
 A distributed dispatcher combined with these services is refused because remote
 mixed-worker authority is not installed.
 
-### Abstract execution model (FM3)
+`run_mixed_backend_conformance()` probes an installation through this runtime.
+Its cases and evidence rules are in
+[backend conformance](../explain/reference/backend-conformance.md#mixed-backend-capability-probes).
+
+### Abstract execution model
+
+This model is at formal-methods level FM3.
 
 State is `(claimed, dispatched, reports, post_time, native_result, reservation,
 terminal)`. Reports are bounded append-only role-authenticated facts; the request
@@ -327,10 +343,16 @@ independent oracle, exposed by `established_mixed_backend_state()`.
 | Settle | Join contract-established state, shared effect/outcome evidence and native result gates; atomically commit through the owning history CAS. |
 | Interrupt/reopen | Retain consumed authority, known stages and residuals; perform no redispatch or inferred completion. |
 
-Invariants: no effect precedes an admitted ordered grant; no report crosses its
-invocation, producer or subject; no success follows partial execution or missing
-delivery; no backend boolean establishes observation; no phase advances before
-fenced owner readback; no consumed effect runs twice. Runtime witnesses live in
+Invariants:
+
+- No effect precedes an admitted ordered grant.
+- No report crosses its invocation, producer or subject.
+- No success follows partial execution or missing delivery.
+- No backend boolean establishes observation.
+- No phase advances before fenced owner readback.
+- No consumed effect runs twice.
+
+Runtime witnesses live in
 `implementations/python/tests/test_issue_1372_mixed_execution.py`.
 
 ## Limits
@@ -346,3 +368,10 @@ validator can prove.
 These contracts add no generic federation framework, HLA, FMI or HELICS
 support, common clock or physical-OT timing guarantee. They also add no
 exactly-once effects, multi-controller authority or backend equivalence.
+
+## Continue
+
+Use [revised-control migration](revised-control.md) for coordinated adoption.
+Read [mixed participant composition](../explain/reference/mixed-participant-composition.md) for installation and runtime behavior.
+Live probes require the backend owner's permissions, native readback, and cleanup evidence.
+No automatic callback conversion is provided.

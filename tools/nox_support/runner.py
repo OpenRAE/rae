@@ -13,9 +13,11 @@ from pathlib import Path
 from time import perf_counter
 
 import nox
+from raes_contracts.errors import InvalidInputError, OperationalError
 
 from tools.gitleaks_tool import ensure_gitleaks
 from tools.nox_support.config import (
+    CHANGED_MODULE_PYTEST_CODES,
     COVERAGE_JSON_PATH,
     COVERAGE_XML_PATH,
     EXCLUDED_PREFIXES,
@@ -25,6 +27,7 @@ from tools.nox_support.config import (
     RUFF_CONFIG,
     VERIFY_PROJECT_SYNCED_ENV,
 )
+from tools.policy.common import git_paths
 from tools.policy.requirement_scope import RequirementScopeError
 from tools.python_closure_profiles import frozen_tool_command
 from tools.requirement_context import current_requirement_branch, resolve_requirement_context
@@ -53,16 +56,15 @@ class SessionReporter:
     def run(self, name: str, func: Callable[[], None], *, detail: str = "") -> None:
         self._log("START", name, detail)
         started = perf_counter()
+        status = "FAIL"
         try:
             func()
-        except Exception:
+            status = "PASS"
+        finally:
+            # Record the stage outcome; a failure keeps propagating unchanged to nox.
             duration_s = perf_counter() - started
-            self.results.append(StageResult(name=name, status="FAIL", detail=detail, duration_s=duration_s))
-            self._log("FAIL", name, detail, duration_s)
-            raise
-        duration_s = perf_counter() - started
-        self.results.append(StageResult(name=name, status="PASS", detail=detail, duration_s=duration_s))
-        self._log("PASS", name, detail, duration_s)
+            self.results.append(StageResult(name=name, status=status, detail=detail, duration_s=duration_s))
+            self._log(status, name, detail, duration_s)
 
     def skip(self, name: str, reason: str) -> None:
         self.results.append(StageResult(name=name, status="SKIP", detail=reason))
@@ -89,19 +91,13 @@ def _run(
     *args: str,
     silent: bool = False,
     env: dict[str, str] | None = None,
+    success_codes: Sequence[int] | None = None,
 ) -> None:
-    session.run(*args, external=True, silent=silent, env=env)
+    session.run(*args, external=True, silent=silent, env=env, success_codes=success_codes)
 
 
-def _git_lines(*args: str) -> list[str]:
-    proc = subprocess.run(
-        ["git", *args],
-        cwd=REPO_ROOT,
-        text=True,
-        capture_output=True,
-        check=True,
-    )
-    return [line.strip() for line in proc.stdout.splitlines() if line.strip()]
+def _git_paths(command: str, *options: str) -> list[str]:
+    return git_paths(command, *options, repo_root=REPO_ROOT)
 
 
 _EXCLUDE_DELETED_FILTER = "--diff-filter=d"
@@ -109,10 +105,10 @@ _EXCLUDE_DELETED_FILTER = "--diff-filter=d"
 
 def _changed_paths(*, staged: bool = False, base_rev: str | None = None) -> list[str]:
     if staged:
-        return _normalize_paths(_git_lines("diff", "--name-only", _EXCLUDE_DELETED_FILTER, "--cached"))
+        return _normalize_paths(_git_paths("diff", "--name-only", _EXCLUDE_DELETED_FILTER, "--cached"))
     if base_rev:
-        return _normalize_paths(_git_lines("diff", "--name-only", _EXCLUDE_DELETED_FILTER, base_rev, "HEAD"))
-    return _normalize_paths(_git_lines("diff", "--name-only", _EXCLUDE_DELETED_FILTER, "HEAD"))
+        return _normalize_paths(_git_paths("diff", "--name-only", _EXCLUDE_DELETED_FILTER, base_rev, "HEAD"))
+    return _normalize_paths(_git_paths("diff", "--name-only", _EXCLUDE_DELETED_FILTER, "HEAD"))
 
 
 def _sync_project(session: nox.Session) -> None:
@@ -157,7 +153,7 @@ def _run_external_subprocess(*args: str) -> None:
         print(proc.stdout, end="")
     if proc.stderr:
         print(proc.stderr, end="", file=sys.stderr)
-    raise RuntimeError(f"{Path(args[0]).name} failed with exit code {proc.returncode}")
+    raise OperationalError(f"{Path(args[0]).name} failed with exit code {proc.returncode}")
 
 
 def _run_ruff(session: nox.Session, *args: str, project_relative: bool = False) -> None:
@@ -169,23 +165,48 @@ def _run_ruff(session: nox.Session, *args: str, project_relative: bool = False) 
     _run(session, *command, "--config", str(RUFF_CONFIG), *args)
 
 
+_PYTEST_COMMAND = ("uv", "run", "--frozen", "python", "-m", "pytest")
+
+
+def _project_test_args(args: Sequence[str]) -> list[str]:
+    """Make repository-relative test paths relative to the Python project."""
+
+    return [
+        str((REPO_ROOT / arg).relative_to(PROJECT_ROOT)) if arg.startswith("implementations/python/") else arg
+        for arg in args
+    ]
+
+
+def _run_changed_test_modules(session: nox.Session, modules: Sequence[str]) -> None:
+    """Run directly changed test modules, accepting a module whose tests all belong to another lane."""
+
+    _sync_project(session)
+    with session.chdir(PROJECT_ROOT):
+        _run(
+            session,
+            *_PYTEST_COMMAND,
+            *_project_test_args(modules),
+            "-q",
+            success_codes=CHANGED_MODULE_PYTEST_CODES,
+        )
+
+
 def _run_pytest(
     session: nox.Session,
     *args: str,
     coverage_file: Path | None = None,
     append_coverage: bool = False,
     finalize_coverage: bool = False,
-    parallel: bool = False,
+    xdist: str | None = None,
     extra_env: dict[str, str] | None = None,
 ) -> None:
+    """Run pytest in the project; `xdist` names the worker distribution, None runs one process."""
+
     _sync_project(session)
-    normalized_args = [
-        str((REPO_ROOT / arg).relative_to(PROJECT_ROOT)) if arg.startswith("implementations/python/") else arg
-        for arg in args
-    ]
-    command = ["uv", "run", "--frozen", "python", "-m", "pytest"]
-    if parallel:
-        command.extend(["-n", "auto", "--maxprocesses=8", "--dist=worksteal"])
+    normalized_args = _project_test_args(args)
+    command = list(_PYTEST_COMMAND)
+    if xdist is not None:
+        command.extend(["-n", "auto", "--maxprocesses=8", f"--dist={xdist}"])
     coverage_env: dict[str, str] | None = dict(extra_env) if extra_env else None
     if coverage_file is not None:
         coverage_env = {**(coverage_env or {}), "COVERAGE_FILE": str(coverage_file)}
@@ -202,7 +223,7 @@ def _run_pytest(
 def _required_option_value(values: Sequence[str], index: int, option: str) -> str:
     value_index = index + 1
     if value_index >= len(values) or not values[value_index] or values[value_index].startswith("--"):
-        raise ValueError(f"{option} requires a value")
+        raise InvalidInputError(f"{option} requires a value")
     return values[value_index]
 
 
@@ -301,7 +322,7 @@ def _parse_hygiene_posargs(posargs: Sequence[str], *, default_all_files: bool) -
 
 
 def _tracked_repo_paths() -> list[str]:
-    return _normalize_paths(_git_lines("ls-files", "--cached", "--others", "--exclude-standard"))
+    return _normalize_paths(_git_paths("ls-files", "--cached", "--others", "--exclude-standard"))
 
 
 def _normalize_paths(paths: Iterable[str]) -> list[str]:
@@ -382,27 +403,32 @@ def _run_gitleaks_dir_scan(_session: nox.Session, paths: list[str]) -> None:
         )
 
 
-def _enforce_line_coverage(report_path: Path) -> float:
+def _is_count(value: object) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and value >= 0
+
+
+def _line_coverage_totals(report_path: Path) -> tuple[int, int]:
+    """Return the covered line and statement counts of a coverage JSON report."""
     try:
         report = json.loads(report_path.read_text(encoding="utf-8"))
-        totals = report["totals"]
-        covered_lines = totals["covered_lines"]
-        statements = totals["num_statements"]
-    except (OSError, UnicodeError, json.JSONDecodeError, KeyError, TypeError) as exc:
-        raise RuntimeError(f"could not read line coverage totals from {report_path}") from exc
-    if (
-        not isinstance(covered_lines, int)
-        or isinstance(covered_lines, bool)
-        or not isinstance(statements, int)
-        or isinstance(statements, bool)
-        or covered_lines < 0
-        or statements < 0
-        or covered_lines > statements
-    ):
-        raise RuntimeError(f"invalid line coverage totals in {report_path}")
+    # The try holds only the read and the decoder. ValueError covers text that is not UTF-8, malformed
+    # JSON and an integer beyond the interpreter digit limit; RecursionError covers excessive nesting.
+    except (OSError, ValueError, RecursionError) as exc:
+        raise OperationalError(f"could not read line coverage totals from {report_path}") from exc
+    totals = report.get("totals") if isinstance(report, dict) else None
+    if not isinstance(totals, dict) or "covered_lines" not in totals or "num_statements" not in totals:
+        raise OperationalError(f"could not read line coverage totals from {report_path}")
+    covered_lines, statements = totals["covered_lines"], totals["num_statements"]
+    if not (_is_count(covered_lines) and _is_count(statements)) or covered_lines > statements:
+        raise OperationalError(f"invalid line coverage totals in {report_path}")
+    return covered_lines, statements
+
+
+def _enforce_line_coverage(report_path: Path) -> float:
+    covered_lines, statements = _line_coverage_totals(report_path)
     percent = 100.0 if statements == 0 else 100.0 * covered_lines / statements
     if percent + 1e-12 < MINIMUM_LINE_COVERAGE_PERCENT:
-        raise RuntimeError(f"line coverage {percent:.3f}% is below required {MINIMUM_LINE_COVERAGE_PERCENT:.3f}%")
+        raise InvalidInputError(f"line coverage {percent:.3f}% is below required {MINIMUM_LINE_COVERAGE_PERCENT:.3f}%")
     return percent
 
 

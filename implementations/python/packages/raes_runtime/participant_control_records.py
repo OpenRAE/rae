@@ -40,8 +40,9 @@ from raes_contracts.runtime_state import (
     OperationStatus,
     operation_terminal_diagnostics,
 )
+from raes_contracts.snapshot_histories import append_history, seal_history
+from raes_contracts.timestamps import isoformat_z
 
-from .control_plane_execution import _utc_now
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
 from .participant_control_binding import fenced_validation_context
 from .participant_crossing_state_cut import expected_participant_history_heads
@@ -88,17 +89,24 @@ def commit_participant_control_realization(
     participant_address = evaluation.request.context.participant_address
     snapshot = control_plane._snapshot
     history = snapshot.participant_control_evaluation_history
-    if any(record.get("evaluation_id") == transition.evaluation_id for record in history.get(participant_address, ())):
+    if (
+        seal_history("participant_control_evaluation_history", history).find(
+            participant_address, transition.evaluation_id
+        )
+        is not None
+    ):
         return
     closed: ControlPlaneOperationRecord = _closed_carrier(control_plane, claim, transition, state, participant_address)
     control_plane._commit_participant_transition(
         expected_history_heads=expected_participant_history_heads(snapshot, participant_address),
         snapshot=snapshot.with_entries(
             dict(snapshot.entries),
-            participant_control_evaluation_history={
-                **history,
-                participant_address: [*history.get(participant_address, ()), transition.model_dump(mode="json")],
-            },
+            participant_control_evaluation_history=append_history(
+                snapshot,
+                "participant_control_evaluation_history",
+                participant_address,
+                [transition.model_dump(mode="json")],
+            ),
         ),
         record=closed,
         audit_event=_realization_audit(closed, participant_address, transition),
@@ -129,7 +137,7 @@ def _closed_carrier(
             status=replace(
                 carrier.status,
                 state=state,
-                updated_at=_utc_now(),
+                updated_at=isoformat_z(control_plane.wall_clock()),
                 diagnostics=operation_terminal_diagnostics(state, []),
                 changed_addresses=[participant_address],
             ),
@@ -165,7 +173,7 @@ def _linked_carrier(
         }
     )
     operation_id = str(uuid4())
-    timestamp = _utc_now()
+    timestamp = isoformat_z(control_plane.wall_clock())
     running = ControlPlaneOperationRecord(
         receipt=OperationReceipt(
             operation_id=operation_id,

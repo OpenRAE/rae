@@ -13,11 +13,13 @@ from raes_backend_protocols.capability_admission import (
 from raes_backend_protocols.domain_topology import domain_topology_plan_diagnostics
 from raes_backend_protocols.service_materialization import service_materialization_plan_diagnostics
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
+from raes_contracts.contracts import ProcessorManifestV2Model
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
-from raes_contracts.materialization import MaterializationSource
-from raes_contracts.planning import EvaluationPlan, PlanScope, ProvisioningPlan, RuntimeDomain
-from raes_contracts.vocabulary import GeneratedArtifactKind, GeneratedArtifactRegenerationScope
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.materialization import MaterializationReportingScope
+from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, PlanScope, ProvisioningPlan, RuntimeDomain
+from raes_contracts.vocabulary import Closure, GeneratedArtifactKind, GeneratedArtifactRegenerationScope
 
 from ..capture_admission import capture_admission_diagnostics
 from ..compiler.realization_deferred_constraints import resolve_pending_recursive_constraints
@@ -29,6 +31,7 @@ from ..models import (
     RuntimeModel,
     RuntimeSnapshot,
 )
+from ..participant_tool_support import participant_tool_support_diagnostics
 from ..semantics.realization import (
     ApparatusRealizationDefaultResolver,
     artifact_requirement_diagnostics,
@@ -37,9 +40,11 @@ from ..semantics.realization import (
     realization_support_diagnostics,
     resolve_apparatus_realization_defaults,
 )
-from .execution_policy import DomainPlan, attach_execution_policies
+from .descriptor_profiles import descriptor_profile_diagnostics
+from .execution_policy import attach_execution_policies
+from .interaction_context import fresh_evaluation_actions, retained_planning_context
 from .manifest_validation import _validate_manifest
-from .materialization import planned_materialization_source
+from .materialization import attach_materialization_sources
 from .mixed_control_admission import (
     MixedControlPlanningAdmission,
     mixed_control_semantics_diagnostics,
@@ -52,7 +57,7 @@ from .operations import (
 )
 from .ordering import _ordering_cycle_diagnostics
 from .realization_authority import materialize_realization_authority
-from .realization_collections import planned_node_collection, retain_open_collection_nodes
+from .realization_collections import planned_node_collection, retain_open_collection_nodes, retain_reported_descendants
 from .realization_preparation import preparation_authority, preparation_member_diagnostics
 from .realization_profiles import profile_resources
 from .resources import _collect_resources
@@ -127,7 +132,13 @@ def _resolved_realization(
     model: RuntimeModel,
     manifest: BackendManifest,
     apparatus_realization_default: ApparatusRealizationDefaultResolver | None,
-) -> tuple[RuntimeModel, tuple[CompiledRealizationRequirement, ...], tuple[object, ...], list[Diagnostic]]:
+) -> tuple[
+    RuntimeModel,
+    tuple[CompiledRealizationRequirement, ...],
+    tuple[object, ...],
+    list[Diagnostic],
+    dict[tuple[str, str, str], Closure],
+]:
     """Resolve apparatus defaults, lower deferred constraints, and materialize authority."""
 
     apparatus_decisions = resolve_apparatus_realization_defaults(
@@ -151,6 +162,7 @@ def _resolved_realization(
         effective_requirements,
         resolved_authority,
         authority_diagnostics,
+        apparatus_decisions,
     )
 
 
@@ -279,10 +291,8 @@ def _augment_provisioning(
     extra: list[Diagnostic] = []
     if preparation is not None:
         try:
-            preparation = preparation.model_copy(
-                update={"node_collection": planned_node_collection(effective_model, provisioning)}
-            )
-        except (TypeError, ValueError):
+            node_collection = planned_node_collection(effective_model, provisioning)
+        except InvalidInputError:
             extra.append(
                 Diagnostic(
                     code="realization.invalid-node-collection",
@@ -291,6 +301,8 @@ def _augment_provisioning(
                     message="Portable node membership cannot be represented by a bounded collection authority.",
                 )
             )
+        else:
+            preparation = preparation.model_copy(update={"node_collection": node_collection})
     provisioning = retain_open_collection_nodes(
         cast(
             "ProvisioningPlan",
@@ -303,6 +315,9 @@ def _augment_provisioning(
             ),
         )
     )
+    provisioning, inventory_diagnostics = retain_reported_descendants(provisioning, effective_model, snapshot)
+    extra.extend(inventory_diagnostics)
+    provisioning.diagnostics.extend(inventory_diagnostics)
     materialization_diagnostics = service_materialization_plan_diagnostics(
         provisioning,
         manifest.provisioner,
@@ -321,20 +336,24 @@ def _augment_provisioning(
     return provisioning, extra
 
 
-def _with_materialization_source(
-    domain_plan: DomainPlan,
+def _attach_phase_declarations(
     model: RuntimeModel,
-    source: MaterializationSource | None,
-    source_diagnostics: list[Diagnostic],
-    scope_required: bool,
-) -> DomainPlan:
-    return replace(
-        domain_plan,
-        purpose="inspection" if model.materialization_description is not None else domain_plan.purpose,
-        materialization_source=source,
-        augmentation_scope_required=scope_required,
-        diagnostics=[*domain_plan.diagnostics, *source_diagnostics],
-    )
+    manifest: BackendManifest,
+    phases: tuple[ProvisioningPlan, OrchestrationPlan, EvaluationPlan],
+) -> tuple[tuple[ProvisioningPlan, OrchestrationPlan, EvaluationPlan], list[Diagnostic]]:
+    """Attach execution policies and separate safe-state proof in phase order."""
+
+    provisioning, provisioning_diagnostics = attach_execution_policies(model, manifest, phases[0])
+    orchestration, orchestration_diagnostics = attach_execution_policies(model, manifest, phases[1])
+    evaluation, evaluation_diagnostics = attach_execution_policies(model, manifest, phases[2])
+    provisioning = replace(provisioning, safe_states=model.safe_states)
+    orchestration = replace(orchestration, safe_states=model.safe_states)
+    evaluation = replace(evaluation, safe_states=model.safe_states)
+    return (provisioning, orchestration, evaluation), [
+        *provisioning_diagnostics,
+        *orchestration_diagnostics,
+        *evaluation_diagnostics,
+    ]
 
 
 class PlanningOptions(TypedDict, total=False):
@@ -345,6 +364,9 @@ class PlanningOptions(TypedDict, total=False):
     artifact_availability: ArtifactAvailabilityContext | None
     profile_context: DomainProfileResolutionContextModel | None
     mixed_control_admission: MixedControlPlanningAdmission | None
+    refresh_evaluation: bool
+    processor_manifest: ProcessorManifestV2Model | None
+    materialization_reporting: MaterializationReportingScope
 
 
 def plan(
@@ -356,18 +378,22 @@ def plan(
     """Reconcile a compiled runtime model against the current snapshot."""
 
     scope = options.pop("scope", None)
+    materialization_reporting = options.pop("materialization_reporting", "all-phases")
     apparatus_realization_default = options.pop("apparatus_realization_default", None)
     artifact_availability = options.pop("artifact_availability", None)
     profile_context = options.pop("profile_context", None)
     mixed_control_admission = options.pop("mixed_control_admission", None)
+    refresh_evaluation = options.pop("refresh_evaluation", False)
+    if not isinstance(refresh_evaluation, bool):
+        raise TypeError("refresh_evaluation must be a boolean")
+    processor_manifest = options.pop("processor_manifest", None)
     if options:
         raise TypeError("unsupported planning owner context")
     snapshot = snapshot or RuntimeSnapshot()
-    target_name = scope.target_name if scope is not None else None
     run_id = scope.run_id if scope is not None else None
     instantiation_id = scope.instantiation_id if scope is not None else None
-    effective_model, effective_requirements, resolved_authority, authority_diagnostics = _resolved_realization(
-        model, manifest, apparatus_realization_default
+    effective_model, effective_requirements, resolved_authority, authority_diagnostics, apparatus_decisions = (
+        _resolved_realization(model, manifest, apparatus_realization_default)
     )
     resources = _collect_resources(effective_model)
     resources, profile_diagnostics, profile_authority = profile_resources(
@@ -380,6 +406,8 @@ def plan(
     diagnostics = [
         *profile_diagnostics,
         *regeneration_diagnostics,
+        *participant_tool_support_diagnostics(effective_model, manifest, processor_manifest),
+        *descriptor_profile_diagnostics(effective_model, manifest, profile_context),
         *_admission_diagnostics(
             effective_model,
             manifest,
@@ -396,6 +424,8 @@ def plan(
         snapshot,
         effective_requirements,
     )
+    if refresh_evaluation:
+        actions = fresh_evaluation_actions(resources, actions)
 
     provisioning, provisioning_diagnostics = _augment_provisioning(
         _build_provisioning_plan(
@@ -416,33 +446,25 @@ def plan(
     )
     diagnostics.extend(provisioning_diagnostics)
     orchestration = _build_orchestration_plan(resources, actions, deleted_entries, effective_model.observation_demands)
-    evaluation = cast(
-        "EvaluationPlan",
-        replace(
-            _build_evaluation_plan(resources, actions, deleted_entries, effective_model.observation_demands),
-            run_id=run_id,
-            instantiation_id=instantiation_id,
-        ),
+    evaluation = _build_evaluation_plan(resources, actions, deleted_entries, effective_model.observation_demands)
+    evaluation = replace(evaluation, run_id=run_id, instantiation_id=instantiation_id)
+
+    (provisioning, orchestration, evaluation), policy_diagnostics = _attach_phase_declarations(
+        effective_model, manifest, (provisioning, orchestration, evaluation)
     )
-
-    provisioning, policy_diagnostics = attach_execution_policies(effective_model, manifest, provisioning)
-    diagnostics.extend(policy_diagnostics)
-    orchestration, policy_diagnostics = attach_execution_policies(effective_model, manifest, orchestration)
-    diagnostics.extend(policy_diagnostics)
-    evaluation, policy_diagnostics = attach_execution_policies(effective_model, manifest, evaluation)
     diagnostics.extend(policy_diagnostics)
 
-    source, source_diagnostics = planned_materialization_source(model, manifest, scope)
+    (provisioning, orchestration, evaluation), source_diagnostics = attach_materialization_sources(
+        (provisioning, orchestration, evaluation),
+        model,
+        manifest,
+        scope,
+        reporting_scope=materialization_reporting,
+    )
     diagnostics.extend(source_diagnostics)
-    scope_required = (
-        model.realization_instance is not None and model.realization_instance.augmentation_scope is not None
-    )
-    provisioning = _with_materialization_source(provisioning, model, source, source_diagnostics, scope_required)
-    orchestration = _with_materialization_source(orchestration, model, source, source_diagnostics, scope_required)
-    evaluation = _with_materialization_source(evaluation, model, source, source_diagnostics, scope_required)
 
     return ExecutionPlan(
-        target_name=target_name,
+        target_name=scope.target_name if scope is not None else None,
         manifest=manifest,
         base_snapshot=snapshot,
         scenario_name=model.scenario_name,
@@ -453,4 +475,7 @@ def plan(
         observation_owner=_observation_owner(evaluation, orchestration),
         diagnostics=diagnostics,
         artifact_availability=artifact_availability or ArtifactAvailabilityContext(),
+        planning_context=retained_planning_context(
+            model, apparatus_decisions, profile_context, mixed_control_admission, processor_manifest
+        ),
     )

@@ -1478,6 +1478,16 @@
           "required": [
             "required_bindings"
           ]
+        },
+        {
+          "properties": {
+            "required_selections": {
+              "minItems": 1
+            }
+          },
+          "required": [
+            "required_selections"
+          ]
         }
       ],
       "description": "Concrete treatment-condition assignment criteria for study evaluation runs.",
@@ -1555,6 +1565,14 @@
             "$ref": "#/$defs/ExperimentConditionAssignmentReferenceModel"
           },
           "title": "Required Refs",
+          "type": "array"
+        },
+        "required_selections": {
+          "items": {
+            "$ref": "#/$defs/ExperimentScenarioSelectionDescriptorModel"
+          },
+          "maxItems": 256,
+          "title": "Required Selections",
           "type": "array"
         }
       },
@@ -2092,6 +2110,85 @@
       "title": "ExperimentFactorLevelBindingModel",
       "type": "object"
     },
+    "ExperimentFactorLevelEffectsModel": {
+      "additionalProperties": false,
+      "description": "A bounded level contribution across existing owner planes.",
+      "properties": {
+        "bindings": {
+          "items": {
+            "$ref": "#/$defs/ExperimentFactorLevelBindingModel"
+          },
+          "maxItems": 16,
+          "title": "Bindings",
+          "type": "array"
+        },
+        "selections": {
+          "items": {
+            "$ref": "#/$defs/ExperimentFactorLevelSelectionModel"
+          },
+          "maxItems": 16,
+          "title": "Selections",
+          "type": "array"
+        }
+      },
+      "title": "ExperimentFactorLevelEffectsModel",
+      "type": "object"
+    },
+    "ExperimentFactorLevelSelectionModel": {
+      "additionalProperties": false,
+      "description": "One owner-bound typed outcome on an exact composed scenario family.",
+      "properties": {
+        "outcome": {
+          "discriminator": {
+            "mapping": {
+              "literal": "#/$defs/LiteralBindingValueModel",
+              "member": "#/$defs/ExperimentSelectionMemberOutcomeModel",
+              "order": "#/$defs/ExperimentSelectionOrderOutcomeModel",
+              "reference": "#/$defs/ExperimentSelectionReferenceOutcomeModel",
+              "subset": "#/$defs/ExperimentSelectionSubsetOutcomeModel"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LiteralBindingValueModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionReferenceOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionMemberOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionSubsetOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionOrderOutcomeModel"
+            }
+          ],
+          "title": "Outcome"
+        },
+        "owner": {
+          "$ref": "#/$defs/BindingOwnerModel"
+        },
+        "scenario_family_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Scenario Family Digest",
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/ScenarioBindingTargetModel"
+        }
+      },
+      "required": [
+        "target",
+        "scenario_family_digest",
+        "owner",
+        "outcome"
+      ],
+      "title": "ExperimentFactorLevelSelectionModel",
+      "type": "object"
+    },
     "ExperimentFactorialDesignModel": {
       "additionalProperties": false,
       "description": "Explicit crossed dimensions; nonparticipating factors remain descriptive.",
@@ -2175,6 +2272,86 @@
         "condition_bound"
       ],
       "title": "ExperimentFactorialDesignModel",
+      "type": "object"
+    },
+    "ExperimentFactorialTreatmentDesignModel": {
+      "additionalProperties": false,
+      "description": "Typed treatments without changing the scalar factorial profile.",
+      "properties": {
+        "condition_bound": {
+          "maximum": 10000,
+          "minimum": 1,
+          "title": "Condition Bound",
+          "type": "integer"
+        },
+        "factor_ids": {
+          "items": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
+          },
+          "maxItems": 16,
+          "minItems": 1,
+          "title": "Factor Ids",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "level_effects": {
+          "maxProperties": 16,
+          "minProperties": 1,
+          "patternProperties": {
+            "^[a-z0-9]": {
+              "maxProperties": 64,
+              "minProperties": 1,
+              "patternProperties": {
+                "^[a-z0-9]": {
+                  "$ref": "#/$defs/ExperimentFactorLevelEffectsModel"
+                }
+              },
+              "propertyNames": {
+                "maxLength": 64,
+                "minLength": 1,
+                "not": {
+                  "pattern": "[^a-z0-9_-]"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            }
+          },
+          "title": "Level Effects",
+          "type": "object"
+        },
+        "profile": {
+          "const": "factorial-treatments-v1",
+          "title": "Profile",
+          "type": "string"
+        },
+        "target_runs_per_condition": {
+          "maximum": 999999,
+          "minimum": 1,
+          "title": "Target Runs Per Condition",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "profile",
+        "factor_ids",
+        "level_effects",
+        "target_runs_per_condition",
+        "condition_bound"
+      ],
+      "title": "ExperimentFactorialTreatmentDesignModel",
       "type": "object"
     },
     "ExperimentFixedSelectionPolicyModel": {
@@ -3305,6 +3482,111 @@
       ],
       "title": "ExperimentScenarioReferenceModel",
       "type": "object"
+    },
+    "ExperimentScenarioSelectionDescriptorModel": {
+      "additionalProperties": false,
+      "description": "An exact typed selection with its complete treatment source joins.",
+      "properties": {
+        "outcome": {
+          "discriminator": {
+            "mapping": {
+              "literal": "#/$defs/LiteralBindingValueModel",
+              "member": "#/$defs/ExperimentSelectionMemberOutcomeModel",
+              "order": "#/$defs/ExperimentSelectionOrderOutcomeModel",
+              "reference": "#/$defs/ExperimentSelectionReferenceOutcomeModel",
+              "subset": "#/$defs/ExperimentSelectionSubsetOutcomeModel"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/LiteralBindingValueModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionReferenceOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionMemberOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionSubsetOutcomeModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentSelectionOrderOutcomeModel"
+            }
+          ],
+          "title": "Outcome"
+        },
+        "owner": {
+          "$ref": "#/$defs/BindingOwnerModel"
+        },
+        "scenario_family_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Scenario Family Digest",
+          "type": "string"
+        },
+        "selection_id": {
+          "minLength": 1,
+          "title": "Selection Id",
+          "type": "string"
+        },
+        "source_condition_id": {
+          "minLength": 1,
+          "title": "Source Condition Id",
+          "type": "string"
+        },
+        "source_factor_id": {
+          "minLength": 1,
+          "title": "Source Factor Id",
+          "type": "string"
+        },
+        "source_factor_level_id": {
+          "minLength": 1,
+          "title": "Source Factor Level Id",
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/ScenarioBindingTargetModel"
+        }
+      },
+      "required": [
+        "target",
+        "scenario_family_digest",
+        "owner",
+        "outcome",
+        "selection_id",
+        "source_factor_id",
+        "source_factor_level_id",
+        "source_condition_id"
+      ],
+      "title": "ExperimentScenarioSelectionDescriptorModel",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Typed selection identity binds the exact source condition, factor and canonical scenario target. Parent condition, plan and archive validation also checks source levels, family pins and owner joins.",
+          "id": "experiment-selection-treatment-identity-valid",
+          "inputs": [
+            {
+              "contract_id": "experiment-authoring-input-v1",
+              "instance_path": "#/run_plan/allocation/condition_assignments"
+            },
+            {
+              "contract_id": "experiment-study-v1",
+              "instance_path": "#/run_allocation/condition_assignments"
+            },
+            {
+              "contract_id": "admitted-trial-plan-v1",
+              "instance_path": "#/entries"
+            },
+            {
+              "contract_id": "experiment-run-v1",
+              "instance_path": "#/realized_selections"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.contracts.experiment_treatments.ExperimentScenarioSelectionDescriptorModel._validate_identity"
+        }
+      ]
     },
     "ExperimentScenarioSnapshotReferenceModel": {
       "additionalProperties": false,
@@ -4981,13 +5263,28 @@
     "factorial_design": {
       "anyOf": [
         {
-          "$ref": "#/$defs/ExperimentFactorialDesignModel"
+          "discriminator": {
+            "mapping": {
+              "factorial-bindings-v1": "#/$defs/ExperimentFactorialDesignModel",
+              "factorial-treatments-v1": "#/$defs/ExperimentFactorialTreatmentDesignModel"
+            },
+            "propertyName": "profile"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/ExperimentFactorialDesignModel"
+            },
+            {
+              "$ref": "#/$defs/ExperimentFactorialTreatmentDesignModel"
+            }
+          ]
         },
         {
           "type": "null"
         }
       ],
-      "default": null
+      "default": null,
+      "title": "Factorial Design"
     },
     "factors": {
       "additionalProperties": {

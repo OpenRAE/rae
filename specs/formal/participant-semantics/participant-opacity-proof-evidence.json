@@ -8,29 +8,25 @@
   "taxonomy": {
     "taxonomy_id": "raes-behavioral-relations",
     "taxonomy_revision": "rev9",
-    "path": "contracts/concept-authority/history/behavioral-relations-v1-rev9.json",
-    "digest": "sha256:ec893a8464f6ddba89e5848c40dccc864ae555f95996d736dbc8f12d56afb971"
+    "path": "contracts/concept-authority/history/behavioral-relations-v1-rev9.json"
   },
   "profiles": [
     {
       "profile_id": "participant-opacity-theorem-v1",
       "profile_revision": "sem-231-proof/rev1",
-      "path": "contracts/profiles/behavioral-relation/participant-opacity-theorem-v1.json",
-      "digest": "sha256:646a227f3cda814c666a1463c01e9a52c9dc1a89ec811f728da010ee938113bb"
+      "path": "contracts/profiles/behavioral-relation/participant-opacity-theorem-v1.json"
     }
   ],
   "semantic_sources": [
     {
       "requirement": "SEM-230",
       "revision": "policy-noninterference/current",
-      "path": "specs/formal/participant-semantics/information-flow-control.md",
-      "digest": "sha256:22e56877a1e439acdbe4e7c587e186f2420e06f366a4ab5875daa2bc5d63efb9"
+      "path": "specs/formal/participant-semantics/information-flow-control.md"
     },
     {
       "requirement": "SEM-231",
       "revision": "participant-predicate-opacity/rev8-baseline",
-      "path": "specs/formal/participant-semantics/participant-predicate-opacity.md",
-      "digest": "sha256:7322248777fe8aed3a9f276ed3a09187f2c86afeafb1df9f252cbd9f402005df"
+      "path": "specs/formal/participant-semantics/participant-predicate-opacity.md"
     }
   ],
   "dependencies": [
@@ -38,21 +34,18 @@
       "issue": 810,
       "artifact_revision": "adr-081/accepted",
       "path": "docs/decisions/adrs/adr-081-behavioral-relation-taxonomy-and-claim-discipline.md",
-      "digest": "sha256:c8e096b85edb7ca97217a8bb0ac74b8817f966b9cf42b66f114dc3a45ed83a90",
       "evidence_boundary": "The taxonomy and independent assurance axes are authority inputs, not proof premises."
     },
     {
       "issue": 961,
       "artifact_revision": "participant-opacity-baseline-v1@sem-231/rev2",
       "path": "contracts/profiles/behavioral-relation/history/participant-opacity-baseline-v1-sem-231-rev2.json",
-      "digest": "sha256:4b6a38cee8d8a80742f03db0e8ef808f505782e18efe315a1439a549faaceace",
       "evidence_boundary": "The historical finite profile is a regression oracle and is not imported as a theorem premise."
     },
     {
       "issue": 962,
       "artifact_revision": "participant-opacity-model-check-evidence-v1/rev8",
       "path": "contracts/fixtures/formal-analysis/participant-opacity-model-check-evidence-v1/valid/opaque-transition-model.json",
-      "digest": "sha256:074a5a57b445426a37209bcc928a0dd1ba72a6b6709f3524aaef0e7b1bb692f7",
       "evidence_boundary": "The exact finite model-check result is agreement evidence and is not imported as an axiom or proof certificate."
     }
   ],
@@ -244,7 +237,7 @@
   "toolchain": {
     "prover": "Isabelle/HOL",
     "version": "Isabelle2025-2",
-    "archive_url": "https://www.cl.cam.ac.uk/research/hvg/Isabelle/dist/Isabelle2025-2_linux.tar.gz",
+    "archive_url": "https://isabelle.in.tum.de/website-Isabelle2025-2/dist/Isabelle2025-2_linux.tar.gz",
     "archive_sha256": "sha256:a20a507bc7c1270d8be96a9f3fbec06345387789d2dc2c4d3df6260d47bfb33c",
     "archive_bytes": 1228480874,
     "acquire_command": [
@@ -288,57 +281,119 @@
     },
     "tool_sources": [
       {
-        "path": "tools/check_participant_opacity_proof.py",
-        "digest": "sha256:f0120269f98f89de5a4263c3d3c779762a0cbac490a4003356359596372966af"
+        "path": "tools/check_participant_opacity_proof.py"
       },
       {
-        "path": "tools/isabelle_sandbox.py",
-        "digest": "sha256:bb0babaaac2a3df6cfeef3918f751258bb32547b95842420e368d7fe4766fd50"
+        "path": "tools/isabelle_sandbox.py"
       },
       {
-        "path": "tools/isabelle_tool.py",
-        "digest": "sha256:6555b96e612138eb53ffb5642726a084eb9b1c81dc10831662b2f19e71f062f3"
+        "path": "tools/isabelle_tool.py"
       },
       {
-        "path": "tools/maintained_client_acquisition.py",
-        "digest": "sha256:0529ca32a87d33aeca570d659dec8d12d7f3227d38726077a39f344f7cbf2dc0"
+        "path": "tools/bounded_tool_process.py"
       },
       {
-        "path": "tools/tooling_installed_tree.py",
-        "digest": "sha256:84d272f07e970184ba65db7c4ffc2ebbdc4b381cb4a9ee5a1be373a40748a846"
+        "path": "tools/debian_tree_decoder.py"
       },
       {
-        "path": "tools/tooling_policy_gate.py",
-        "digest": "sha256:2a83148d01ad827a2ccdfed8243d0c4abb2b944f57112df12be7b5720d3ec034"
+        "path": "tools/maintained_client_acquisition.py"
       },
       {
-        "path": "tools/verified_tool_installation.py",
-        "digest": "sha256:3edbdd81087951d497f49d8dcb59ea859b13e40819e8492b329a7f5f5e668efe"
+        "path": "tools/tooling_installed_tree.py"
       },
       {
-        "path": "tools/verified_tree_archive.py",
-        "digest": "sha256:f806d12fb0053ee99c5f1fb86397c25a6eeca4b0d8492b1568f3949ad623acc2"
+        "path": "tools/tooling_policy_gate.py"
       },
       {
-        "path": "tools/verified_tree_installation.py",
-        "digest": "sha256:196995ae0b9f309b8350ad62538196286439dc06d4a0b4f5783d9df3fb781092"
+        "path": "tools/verified_tool_installation.py"
       },
       {
-        "path": "tools/verified_tree_manifest.py",
-        "digest": "sha256:a2b512cceddfa9f2c3c3c70511a4f29cd709d8728bfbf13f207aa79b577b96d2"
+        "path": "tools/verified_tree_archive.py"
       },
       {
-        "path": "tools/verified_tree_validation.py",
-        "digest": "sha256:19bacd3659ca0d1b709cf7c1f11510b6048f7116958670a2ec4e9715666bbdcb"
+        "path": "tools/verified_tree_installation.py"
+      },
+      {
+        "path": "tools/verified_tree_manifest.py"
+      },
+      {
+        "path": "tools/verified_tree_validation.py"
+      },
+      {
+        "path": "implementations/tooling/python/pyproject.toml"
+      },
+      {
+        "path": "implementations/tooling/python/uv.lock"
+      },
+      {
+        "path": "implementations/tooling/schemas/admission-policy.schema.json"
+      },
+      {
+        "path": "implementations/tooling/schemas/artifact-lock.schema.json"
+      },
+      {
+        "path": "implementations/tooling/schemas/profiles.schema.json"
+      },
+      {
+        "path": "implementations/tooling/schemas/selector-bindings.schema.json"
+      },
+      {
+        "path": "tools/check_tooling_artifact_policy.py"
+      },
+      {
+        "path": "tools/generate_python_closures.py"
+      },
+      {
+        "path": "tools/generate_python_closures_locks.py"
+      },
+      {
+        "path": "tools/policy/common.py"
+      },
+      {
+        "path": "tools/python_closure_profiles.py"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_actions.py"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_artifacts.py"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_common.py"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_container.py"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_devcontainer.py"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_discovery.py"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_oci.py"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_python.py"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_python_profiles.py"
+      },
+      {
+        "path": "tools/tooling_artifact_policy_selectors.py"
+      },
+      {
+        "path": "tools/tooling_artifact_selection.py"
+      },
+      {
+        "path": "tools/tooling_oci_selection.py"
       }
     ]
   },
   "session": {
     "session_id": "Participant_Opacity",
     "root_path": "specs/formal/participant-semantics/isabelle/ROOT",
-    "root_digest": "sha256:9b1646b56177b1129fffe9a72d44ebf257b0695e446b215ac3eab06fbebcd87e",
     "theory_path": "specs/formal/participant-semantics/isabelle/Participant_Opacity.thy",
-    "theory_digest": "sha256:0d7d268ebabb41ce7f13d167b47e54285ccd10d53f93f0357e4d23f552ee414d",
     "imports": [
       "Main"
     ],
@@ -354,17 +409,6 @@
     ],
     "generated_artifacts": []
   },
-  "kernel_result": {
-    "prover": "Isabelle/HOL",
-    "prover_version": "Isabelle2025-2",
-    "session": "Participant_Opacity",
-    "result": "kernel-checked",
-    "network": "blocked-by-bubblewrap-network-namespace",
-    "filesystem": "allowlisted-runtime-session-and-private-state-only",
-    "locale": "C.UTF-8",
-    "platform_boundary": "linux-x86_64",
-    "result_digest": "sha256:6ad5778c78667a992cca5b958ebc0764f8880115de4ac2f99f22ec6883400325"
-  },
   "independent_reproduction": {
     "command": [
       "uv",
@@ -377,17 +421,6 @@
       "tools.check_participant_opacity_proof"
     ],
     "working_directory": ".",
-    "result": {
-      "prover": "Isabelle/HOL",
-      "prover_version": "Isabelle2025-2",
-      "session": "Participant_Opacity",
-      "result": "kernel-checked",
-      "network": "blocked-by-bubblewrap-network-namespace",
-      "filesystem": "allowlisted-runtime-session-and-private-state-only",
-      "locale": "C.UTF-8",
-      "platform_boundary": "linux-x86_64",
-      "result_digest": "sha256:6ad5778c78667a992cca5b958ebc0764f8880115de4ac2f99f22ec6883400325"
-    },
     "reproduced_on": "2026-07-31"
   },
   "limitations": [

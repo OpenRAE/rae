@@ -12,9 +12,10 @@ def _validate(scenario: Scenario) -> list[str]:
     v = SemanticValidator(scenario)
     try:
         v.validate()
-        return []
     except SDLValidationError as e:
         return e.errors
+    else:
+        return []
 
 
 def _make_scenario(**kwargs) -> Scenario:
@@ -1592,6 +1593,80 @@ class TestVerifyObjectives:
 
 
 class TestVerifyWorkflows:
+    def test_overlapping_branches_preserve_shared_step_visibility(self):
+        scenario = _make_scenario(
+            **self._base_kwargs(),
+            workflows={
+                "overlap": {
+                    "start": "fanout",
+                    "steps": {
+                        "fanout": {"type": "parallel", "branches": ["a", "b"], "join": "joined"},
+                        "a": {"type": "objective", "objective": "validate-release", "on_success": "shared"},
+                        "b": {"type": "objective", "objective": "validate-release", "on_success": "shared"},
+                        "shared": {"type": "objective", "objective": "validate-release", "on_success": "joined"},
+                        "joined": {"type": "join", "next": "inspect"},
+                        "inspect": {
+                            "type": "decision",
+                            "when": {"steps": [{"step": "shared", "outcomes": ["succeeded"]}]},
+                            "then": "finish",
+                            "else": "finish",
+                        },
+                        "finish": {"type": "end"},
+                    },
+                },
+            },
+        )
+        assert not _validate(scenario)
+
+    def test_long_parallel_branch_converges_without_recursive_analysis(self):
+        steps = {
+            f"task-{index}": {
+                "type": "objective",
+                "objective": "validate-release",
+                "on_success": f"task-{index + 1}" if index < 1099 else "joined",
+            }
+            for index in range(1100)
+        }
+        steps.update(
+            fanout={"type": "parallel", "branches": ["task-0", "other"], "join": "joined"},
+            other={"type": "objective", "objective": "validate-release", "on_success": "joined"},
+            joined={"type": "join", "next": "inspect"},
+            inspect={
+                "type": "decision",
+                "when": {"steps": [{"step": "task-0", "outcomes": ["succeeded"]}]},
+                "then": "finish",
+                "else": "finish",
+            },
+            finish={"type": "end"},
+        )
+        scenario = _make_scenario(**self._base_kwargs(), workflows={"long-flow": {"start": "fanout", "steps": steps}})
+        assert not _validate(scenario)
+
+    @pytest.mark.parametrize("cyclic", [False, True])
+    def test_deep_predicate_dependencies_do_not_exhaust_call_stack(self, cyclic):
+        steps = {
+            f"check-{index}": {
+                "type": "decision",
+                "when": {"objectives": ["validate-release"]},
+                "then": f"check-{index + 1}" if index < 1099 else "inspect",
+                "else": f"check-{index + 1}" if index < 1099 else "inspect",
+            }
+            for index in reversed(range(1100))
+        }
+        steps.update(
+            seed={"type": "objective", "objective": "validate-release", "on_success": "check-0"},
+            inspect={
+                "type": "decision",
+                "when": {"steps": [{"step": "seed", "outcomes": ["succeeded"]}]},
+                "then": "seed" if cyclic else "finish",
+                "else": "finish",
+            },
+            finish={"type": "end"},
+        )
+        scenario = _make_scenario(**self._base_kwargs(), workflows={"long-flow": {"start": "seed", "steps": steps}})
+        errors = _validate(scenario)
+        assert any("graph contains a cycle" in error for error in errors) if cyclic else not errors
+
     def _base_kwargs(self) -> dict:
         return {
             "entities": {"blue": {"role": "blue"}},

@@ -14,6 +14,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 from fractions import Fraction
+from typing import Literal
 
 from ..canonical import canonical_json_digest
 from ..operation_lifecycle import OperationState
@@ -324,13 +325,24 @@ def _require_mapped_order(
     grant: MixedBackendTimeGrantStageModel,
     time_model: TimeModelDeclarationModel,
 ) -> None:
+    coordinates = (grant.source_coordinate, grant.destination_coordinate)
+    if mixed_backend_time_comparison(required, time_model, *coordinates) != "ordered":
+        raise ValueError(_UNSUPPORTED_ORDER)
+
+
+def mixed_backend_time_comparison(
+    required: MixedBackendTimeRequirementModel,
+    time_model: TimeModelDeclarationModel,
+    source: TimeCoordinateModel,
+    destination: TimeCoordinateModel,
+) -> Literal["ordered", "incomparable"]:
+    """Return the order that the admitted mapping proves, in exact rational arithmetic within one segment."""
+
     mapping = time_model.mappings.get(required.mapping_ref)
-    source, destination = grant.source_coordinate, grant.destination_coordinate
     if mapping is None or source.segment != destination.segment:
-        raise ValueError(_UNSUPPORTED_ORDER)
+        return "incomparable"
     mapped = Fraction(source.tick * mapping.scale.numerator, mapping.scale.denominator) + mapping.offset_ticks
-    if (mapped, source.microstep) > (destination.tick, destination.microstep):
-        raise ValueError(_UNSUPPORTED_ORDER)
+    return "incomparable" if (mapped, source.microstep) > (destination.tick, destination.microstep) else "ordered"
 
 
 def _require_execution(subject: MixedBackendEdgeBindingModel, execution: MixedBackendExecutionStageModel) -> None:
@@ -474,4 +486,9 @@ def established_mixed_backend_state(
     )
 
 
-__all__ = ["MixedBackendStageContext", "established_mixed_backend_state", "validate_mixed_backend_stage_reports"]
+__all__ = [
+    "MixedBackendStageContext",
+    "established_mixed_backend_state",
+    "mixed_backend_time_comparison",
+    "validate_mixed_backend_stage_reports",
+]

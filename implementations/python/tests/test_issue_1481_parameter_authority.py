@@ -15,15 +15,16 @@ from jsonschema import Draft202012Validator
 from jsonschema import ValidationError as SchemaValidationError
 from pydantic import ValidationError
 from raes import instantiate_scenario, parse_sdl, parse_sdl_file
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes.scenario import InstantiatedScenario
-from raes_contracts.contracts import ProvisioningPlanModel, schema_bundle
-from raes_contracts.plan_projection import provisioning_plan_model
+from raes_contracts.contracts import ProvisioningPlanModel
+from raes_contracts.contracts.plan_projection import provisioning_plan_model
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.realization_structure import evaluate_realization_constraint
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
 from raes_processor.semantics.realization_concerns import project_realization_concern
 from raes_runtime.control_plane_api_models import _provisioning_plan
+from raes_schemas import schema_bundle
 from test_issue_1200_mixed_runtime_constraints import _apply, _fixture
 
 CASES = [
@@ -129,9 +130,9 @@ def test_mailbox_interpolation_preserves_composed_addresses_and_authority(tmp_pa
     _, execution, _ = _planned(scenario)
     assert execution.is_valid, [(d.code, d.message) for d in execution.diagnostics]
     authority = next(a for a in execution.provisioning.realization_authority if a.requirement_kind == kind)
-    fields = authority.constraint_document.root.items[0].fields
-    assert fields["mailboxes"].items[0].fields["address"].kind == ("domain" if finite else "literal")
-    address = fields["mailboxes"].items[0].fields["address"]
+    fields = authority.constraint_document.root.members[0].constraint.fields
+    address = fields["mailboxes"].members[0].constraint.fields["address"]
+    assert address.kind == ("domain" if finite else "literal")
     if finite:
         assert set(address.domain.values) == {"operator@alternate.test", "operator@environment.test"}
     else:

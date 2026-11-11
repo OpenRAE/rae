@@ -1,26 +1,24 @@
-"""SCE-006 isolated batch trial scheduling: deterministic order, sealed-plan
-isolation authority, and immutable execution receipts over the one-entry seam."""
+"""SCE-006 batch trial scheduling: deterministic order, authored parallelism
+bounds, and immutable execution receipts over the one-entry seam."""
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
+from contract_fixtures import load_contract_fixture
 from pydantic import ValidationError
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
     AdmittedTrialPlanModel,
     BatchExecutionReceiptModel,
     validate_batch_execution_receipt,
-    validate_scheduler_isolation_proof,
 )
 from raes_contracts.contracts.trial_cleanup import (
     CleanupObligationResultModel,
-    IsolationDimensionEvidenceModel,
-    SchedulerIsolationProofModel,
     TrialCleanupReceiptModel,
 )
+from raes_contracts.errors import InvalidInputError, NotFoundError
 from raes_processor.trial_scheduler import (
     CANONICAL_ORDER_POLICY_ID,
     AllocatorGrant,
@@ -31,32 +29,10 @@ from raes_processor.trial_scheduler import (
 )
 
 FIXTURES = Path(__file__).resolve().parents[3] / "contracts" / "fixtures" / "plans" / "admitted-trial-plan-v1" / "valid"
-ALL_DIMENSIONS = (
-    "range-instance",
-    "host-capacity",
-    "ports",
-    "storage",
-    "control-plane-locks",
-    "secret-scope",
-    "cleanup",
-)
 
 
 def _plan(name: str) -> AdmittedTrialPlanModel:
-    return AdmittedTrialPlanModel.model_validate(json.loads((FIXTURES / f"{name}.json").read_text(encoding="utf-8")))
-
-
-def _proof(entry_ids: list[str], *, requested_parallelism: int = 2) -> SchedulerIsolationProofModel:
-    return SchedulerIsolationProofModel(
-        schema_version="scheduler-isolation-proof/v1",
-        proof_id="proof-parallel",
-        plan_entry_ids=entry_ids,
-        requested_parallelism=requested_parallelism,
-        dimensions=[
-            IsolationDimensionEvidenceModel(dimension=d, independent=True, evidence_refs=[f"evidence:{d}"])
-            for d in ALL_DIMENSIONS
-        ],
-    )
+    return AdmittedTrialPlanModel.model_validate(load_contract_fixture(FIXTURES / f"{name}.json"))
 
 
 def _resealed_plan(payload: dict) -> AdmittedTrialPlanModel:
@@ -64,6 +40,12 @@ def _resealed_plan(payload: dict) -> AdmittedTrialPlanModel:
     content = {key: value for key, value in payload.items() if key != "plan_digest"}
     payload["plan_digest"] = canonical_json_digest(content)
     return AdmittedTrialPlanModel.model_validate(payload)
+
+
+def _parallel_plan(intent: dict | None = None) -> AdmittedTrialPlanModel:
+    payload = load_contract_fixture(FIXTURES / "two-entry.json")
+    payload["trial_parallelism"] = intent or {"posture": "open"}
+    return _resealed_plan(payload)
 
 
 def _receipt(plan: AdmittedTrialPlanModel, **overrides: object) -> BatchExecutionReceiptModel:
@@ -110,40 +92,36 @@ def test_minimal_plan_is_serial() -> None:
     schedule = plan_batch_schedule(_plan("minimal"))
 
     assert schedule.admitted_parallelism_ceiling == 1
-    assert schedule.isolation_proof_ref is None
     assert schedule.scheduling_policy_id == CANONICAL_ORDER_POLICY_ID
     assert [entry.plan_entry_id for entry in schedule.entries] == ["entry-a"]
     assert [entry.dispatch_ordinal for entry in schedule.entries] == [0]
 
 
-def test_parallel_plan_reports_ceiling_from_sealed_proof() -> None:
-    schedule = plan_batch_schedule(_plan("parallel-isolated"))
+def test_plan_without_trial_parallelism_is_serial() -> None:
+    schedule = plan_batch_schedule(_plan("two-entry"))
+
+    assert (schedule.admitted_parallelism_floor, schedule.admitted_parallelism_ceiling) == (1, 1)
+
+
+def test_open_trial_parallelism_reports_entry_count_ceiling() -> None:
+    schedule = plan_batch_schedule(_parallel_plan())
 
     assert schedule.admitted_parallelism_ceiling == 2
-    assert schedule.isolation_proof_ref == "proof-parallel"
     assert [entry.plan_entry_id for entry in schedule.entries] == ["entry-a", "entry-b"]
     assert [entry.dispatch_ordinal for entry in schedule.entries] == [0, 1]
 
 
-def test_embedded_serial_proof_reports_ceiling_one() -> None:
-    payload = json.loads((FIXTURES / "parallel-isolated.json").read_text(encoding="utf-8"))
-    payload["isolation_proof"] = {
-        "schema_version": "scheduler-isolation-proof/v1",
-        "proof_id": "proof-serial",
-        "plan_entry_ids": ["entry-a", "entry-b"],
-        "requested_parallelism": 1,
-        "dimensions": [],
-    }
-    schedule = plan_batch_schedule(_resealed_plan(payload))
-
-    assert schedule.admitted_parallelism_ceiling == 1
-    assert schedule.isolation_proof_ref is None
+def test_plan_refuses_a_removed_isolation_proof_field() -> None:
+    payload = load_contract_fixture(FIXTURES / "two-entry.json")
+    payload["isolation_proof"] = None
+    with pytest.raises(ValidationError, match="isolation_proof"):
+        _resealed_plan(payload)
 
 
 def test_schedule_is_independent_of_entry_map_order() -> None:
     # SVR-014 / SVR-031: reordering the entries map must not change identity or
     # the dispatch order; canonical order comes from the coordinate.
-    payload = json.loads((FIXTURES / "parallel-isolated.json").read_text(encoding="utf-8"))
+    payload = load_contract_fixture(FIXTURES / "two-entry.json")
     payload["entries"] = dict(reversed(list(payload["entries"].items())))
     schedule = plan_batch_schedule(AdmittedTrialPlanModel.model_validate(payload))
 
@@ -151,7 +129,7 @@ def test_schedule_is_independent_of_entry_map_order() -> None:
 
 
 def test_dispatch_commits_entries_in_canonical_order() -> None:
-    schedule = plan_batch_schedule(_plan("parallel-isolated"))
+    schedule = plan_batch_schedule(_plan("two-entry"))
     calls: list[str] = []
 
     results = dispatch_batch_schedule(schedule, realize=lambda entry_id: (calls.append(entry_id), entry_id.upper())[1])
@@ -189,41 +167,6 @@ def test_canonical_order_ignores_block_id() -> None:
     assert sorted((later, earlier), key=canonical_coordinate_sort_key) == [earlier, later]
 
 
-# --- plan-to-schedule isolation join -----------------------------------------
-
-
-def test_isolation_join_accepts_the_admitted_plan_proof() -> None:
-    plan = _plan("parallel-isolated")
-    assert plan.isolation_proof is not None
-    validate_scheduler_isolation_proof(plan, plan.isolation_proof)
-
-
-def test_isolation_join_accepts_a_serial_proof() -> None:
-    plan = _plan("parallel-isolated")
-    serial_proof = SchedulerIsolationProofModel(
-        schema_version="scheduler-isolation-proof/v1", proof_id="proof-serial", plan_entry_ids=["entry-a"]
-    )
-    validate_scheduler_isolation_proof(plan, serial_proof)
-
-
-def test_isolation_join_rejects_entries_outside_the_plan() -> None:
-    plan = _plan("parallel-isolated")
-    proof = _proof(["entry-a", "entry-absent"])
-    with pytest.raises(ValueError, match="outside the admitted plan"):
-        validate_scheduler_isolation_proof(plan, proof)
-
-
-def test_isolation_join_rejects_resource_sharing_parallel_entries() -> None:
-    payload = json.loads((FIXTURES / "parallel-isolated.json").read_text(encoding="utf-8"))
-    payload["isolation_proof"] = None  # drop the embedded proof so the plan validates as serial
-    payload["cleanup_plans"]["cleanup-b"]["resource_boundaries"]["range-b"]["resource_refs"] = ["node.vm-a"]
-    plan = _resealed_plan(payload)
-    proof = _proof(["entry-a", "entry-b"])
-
-    with pytest.raises(ValueError, match="share resources"):
-        validate_scheduler_isolation_proof(plan, proof)
-
-
 # --- immutable execution receipt: model-level field validation ---------------
 
 
@@ -247,18 +190,8 @@ def test_receipt_requires_a_cleanup_receipt_ref() -> None:
     [
         ({"scheduling_policy_id": "attacker-supplied-policy"}, "trial-coordinate-canonical-v1"),
         ({"execution_attempt_id": "run-a"}, "execution_attempt_id must be distinct"),
-        ({"isolation_proof_ref": "proof-parallel"}, "must not cite an isolation proof"),
-        ({"lease_evidence_refs": ["lease:a"]}, "must not cite live lease evidence"),
-        ({"effective_parallelism": 2, "lease_evidence_refs": ["lease:a"]}, "requires an isolation_proof_ref"),
-        ({"effective_parallelism": 2, "isolation_proof_ref": "proof-parallel"}, "requires live lease_evidence_refs"),
-        (
-            {
-                "effective_parallelism": 2,
-                "isolation_proof_ref": "proof-parallel",
-                "lease_evidence_refs": ["lease:a", "lease:a"],
-            },
-            "lease_evidence_refs must not contain duplicates",
-        ),
+        ({"isolation_proof_ref": "proof-parallel"}, "isolation_proof_ref"),
+        ({"lease_evidence_refs": ["lease:a"]}, "lease_evidence_refs"),
         ({"operation_refs": ["op:a", "op:a"]}, "operation_refs must not contain duplicates"),
     ],
 )
@@ -283,25 +216,9 @@ def test_valid_serial_receipt_validates_with_matching_cleanup() -> None:
         ("minimal", {"plan_digest": "sha256:" + "0" * 64}, {}, "plan_digest must match"),
         ("minimal", {"plan_entry_id": "entry-absent"}, {}, "plan_entry_id does not resolve"),
         ("minimal", {"run_id": "run-other"}, {}, "run_id must match"),
-        ("parallel-isolated", {"dispatch_ordinal": 1}, {}, "does not match the canonical dispatch order"),
-        (
-            "minimal",
-            {"effective_parallelism": 2, "isolation_proof_ref": "proof-parallel", "lease_evidence_refs": ["lease:a"]},
-            {},
-            "requires an admitted plan isolation proof",
-        ),
-        (
-            "parallel-isolated",
-            {"effective_parallelism": 2, "isolation_proof_ref": "wrong-proof", "lease_evidence_refs": ["lease:a"]},
-            {},
-            "isolation_proof_ref must match",
-        ),
-        (
-            "parallel-isolated",
-            {"effective_parallelism": 3, "isolation_proof_ref": "proof-parallel", "lease_evidence_refs": ["lease:a"]},
-            {},
-            "cannot exceed the admitted isolation proof",
-        ),
+        ("two-entry", {"dispatch_ordinal": 1}, {}, "does not match the canonical dispatch order"),
+        ("minimal", {"effective_parallelism": 2}, {}, "outside the admitted bounds"),
+        ("two-entry", {"effective_parallelism": 2}, {}, "outside the admitted bounds"),
         ("minimal", {"cleanup_receipt_ref": "other-cleanup-receipt"}, {}, "cleanup_receipt_ref must match"),
         ("minimal", {}, {"execution_attempt_id": "attempt-2"}, "cleanup receipt identities must match"),
         ("minimal", {}, {"trial_outcome": "failed"}, "trial_outcome must match"),
@@ -377,7 +294,7 @@ def test_build_receipt_rejects_entry_outside_schedule() -> None:
     outcome = AttemptOutcome(
         execution_attempt_id="attempt-1", trial_outcome="succeeded", cleanup_receipt_ref="cleanup-receipt-1"
     )
-    with pytest.raises(ValueError, match="not part of the batch schedule"):
+    with pytest.raises(NotFoundError, match="not part of the batch schedule"):
         build_batch_execution_receipt(schedule, "entry-absent", receipt_id="receipt-1", outcome=outcome)
 
 
@@ -386,8 +303,8 @@ def test_build_receipt_rejects_effective_above_ceiling() -> None:
     outcome = AttemptOutcome(
         execution_attempt_id="attempt-1", trial_outcome="succeeded", cleanup_receipt_ref="cleanup-receipt-1"
     )
-    grant = AllocatorGrant(effective_parallelism=2, lease_evidence_refs=["lease:a"])
-    with pytest.raises(ValueError, match="cannot exceed the schedule's admitted parallelism ceiling"):
+    grant = AllocatorGrant(effective_parallelism=2)
+    with pytest.raises(InvalidInputError, match="cannot exceed the schedule's admitted parallelism ceiling"):
         build_batch_execution_receipt(schedule, "entry-a", receipt_id="receipt-1", outcome=outcome, grant=grant)
 
 
@@ -403,12 +320,11 @@ def test_built_serial_receipt_validates() -> None:
         ),
     )
     assert receipt.effective_parallelism == 1
-    assert receipt.isolation_proof_ref is None
     validate_batch_execution_receipt(plan, receipt, cleanup_receipt=_success_cleanup_receipt())
 
 
 def test_built_parallel_receipt_records_allocator_decision_and_validates() -> None:
-    plan = _plan("parallel-isolated")
+    plan = _parallel_plan()
     schedule = plan_batch_schedule(plan)
     receipt = build_batch_execution_receipt(
         schedule,
@@ -417,10 +333,9 @@ def test_built_parallel_receipt_records_allocator_decision_and_validates() -> No
         outcome=AttemptOutcome(
             execution_attempt_id="attempt-1", trial_outcome="succeeded", cleanup_receipt_ref="cleanup-receipt-1"
         ),
-        grant=AllocatorGrant(effective_parallelism=2, lease_evidence_refs=["lease:a", "lease:b"]),
+        grant=AllocatorGrant(effective_parallelism=2),
     )
     assert receipt.effective_parallelism == 2
-    assert receipt.isolation_proof_ref == "proof-parallel"  # defaulted from the schedule's admitted proof
     assert receipt.dispatch_ordinal == 0
     validate_batch_execution_receipt(plan, receipt, cleanup_receipt=_success_cleanup_receipt())
 
@@ -429,7 +344,7 @@ def test_built_parallel_receipt_records_allocator_decision_and_validates() -> No
 
 
 def test_schema_bundle_publishes_batch_execution_receipt() -> None:
-    from raes_contracts.contracts import schema_bundle
+    from raes_schemas import schema_bundle
 
     bundle = schema_bundle()
     assert "batch-execution-receipt-v1" in bundle
@@ -438,7 +353,7 @@ def test_schema_bundle_publishes_batch_execution_receipt() -> None:
 
 def test_batch_execution_receipt_fixture_corpora_validate() -> None:
     from jsonschema import Draft202012Validator
-    from raes_contracts.contracts import schema_bundle
+    from raes_schemas import schema_bundle
 
     validator = Draft202012Validator(schema_bundle()["batch-execution-receipt-v1"])
     fixture_dir = (
@@ -449,9 +364,9 @@ def test_batch_execution_receipt_fixture_corpora_validate() -> None:
     assert valid, "missing compliant scheduler fixtures"
     assert invalid, "missing contaminating scheduler fixtures"
     for path in valid:
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = load_contract_fixture(path)
         assert not list(validator.iter_errors(payload)), path.name
         BatchExecutionReceiptModel.model_validate(payload)
     for path in invalid:
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = load_contract_fixture(path)
         assert list(validator.iter_errors(payload)), path.name

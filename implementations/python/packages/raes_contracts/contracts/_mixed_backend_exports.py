@@ -26,6 +26,7 @@ from .mixed_backend_stages import (
 from .mixed_backend_transcript import (
     MixedBackendStageContext,
     established_mixed_backend_state,
+    mixed_backend_time_comparison,
     validate_mixed_backend_stage_reports,
 )
 from .mixed_backend_validation import (
@@ -54,6 +55,7 @@ __all__ = [
     "MixedBackendTimeRequirementModel",
     "mixed_backend_binding_reference",
     "established_mixed_backend_state",
+    "mixed_backend_time_comparison",
     "require_mixed_backend_admission",
     "require_mixed_backend_request",
     "validate_mixed_backend_bindings",

@@ -198,14 +198,13 @@
         "repository": "https://isabelle.in.tum.de",
         "release": "Isabelle2025-2",
         "asset": "Isabelle2025-2_linux.tar.gz",
-        "locator_refs": ["official-isabelle-release", "official-isabelle-cambridge-mirror"]
+        "locator_refs": ["official-isabelle-release"]
       },
       "platforms": [
         {
           "platform_id": "linux-x86_64",
           "source_urls": [
-            "https://isabelle.in.tum.de/website-Isabelle2025-2/dist/Isabelle2025-2_linux.tar.gz",
-            "https://www.cl.cam.ac.uk/research/hvg/Isabelle/dist/Isabelle2025-2_linux.tar.gz"
+            "https://isabelle.in.tum.de/website-Isabelle2025-2/dist/Isabelle2025-2_linux.tar.gz"
           ],
           "raw_manifest": [{"path": "Isabelle2025-2_linux.tar.gz", "sha256": "a20a507bc7c1270d8be96a9f3fbec06345387789d2dc2c4d3df6260d47bfb33c", "size": 1228480874}],
           "installed_manifest": [
@@ -411,112 +410,6 @@
       ]
     },
     {
-      "artifact_id": "cpython-3.11",
-      "artifact_class": "bootstrap",
-      "version": "3.11.16",
-      "support_level": "blocking",
-      "owner": "Tooling",
-      "consumers": ["python-compatibility", "bootstrap"],
-      "trust_root_refs": ["actions-python-versions-reviewed-release"],
-      "availability_class": "R",
-      "retention_class": "supported-input",
-      "license": {"spdx": "PSF-2.0", "redistribution": "allowed", "review_ref": "ADR-106"},
-      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
-      "policy_refs": ["artifact-integrity-v1"],
-      "source": {
-        "repository": "https://github.com/actions/python-versions",
-        "release": "3.11.16-31661435402",
-        "asset": "python-3.11.16-{distribution}-{architecture}.tar.gz",
-        "locator_refs": ["official-github-release"]
-      },
-      "platforms": [
-        {
-          "platform_id": "linux-x86_64",
-          "distribution_id": "ubuntu-24.04",
-          "source_urls": ["https://github.com/actions/python-versions/releases/download/3.11.16-31661435402/python-3.11.16-linux-24.04-x64.tar.gz"],
-          "raw_manifest": [{"path": "python-3.11.16-linux-24.04-x64.tar.gz", "sha256": "07b61e35f30861939ff95314297921de8f57cd48f85bb18d777651b3ea45f2ee", "size": 92555692}],
-          "installed_identity": {"implementation": "CPython", "version": "3.11.16", "abi": "cp311", "target": "x86_64-unknown-linux-gnu"},
-          "dependencies": [],
-          "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
-        }
-      ]
-    },
-    {
-      "artifact_id": "cpython-3.12",
-      "artifact_class": "bootstrap",
-      "version": "3.12.14",
-      "support_level": "blocking",
-      "owner": "Tooling",
-      "consumers": ["python-compatibility", "bootstrap"],
-      "trust_root_refs": ["actions-python-versions-reviewed-release"],
-      "availability_class": "R",
-      "retention_class": "supported-input",
-      "license": {"spdx": "PSF-2.0", "redistribution": "allowed", "review_ref": "ADR-106"},
-      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
-      "policy_refs": ["artifact-integrity-v1"],
-      "source": {
-        "repository": "https://github.com/actions/python-versions",
-        "release": "3.12.14-31661455385",
-        "asset": "python-3.12.14-{distribution}-{architecture}.tar.gz",
-        "locator_refs": ["official-github-release"]
-      },
-      "platforms": [
-        {
-          "platform_id": "linux-x86_64",
-          "distribution_id": "ubuntu-22.04",
-          "source_urls": ["https://github.com/actions/python-versions/releases/download/3.12.14-31661455385/python-3.12.14-linux-22.04-x64.tar.gz"],
-          "raw_manifest": [{"path": "python-3.12.14-linux-22.04-x64.tar.gz", "sha256": "e13bd8ab6ca32627711d5611d96737c0e8e84bb37cd3505a76ed9779adefc76e", "size": 95851350}],
-          "installed_identity": {"implementation": "CPython", "version": "3.12.14", "abi": "cp312", "target": "x86_64-unknown-linux-gnu"},
-          "dependencies": [],
-          "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["proof-ubuntu-22.04-x86_64"]
-        },
-        {
-          "platform_id": "linux-x86_64",
-          "distribution_id": "ubuntu-24.04",
-          "source_urls": ["https://github.com/actions/python-versions/releases/download/3.12.14-31661455385/python-3.12.14-linux-24.04-x64.tar.gz"],
-          "raw_manifest": [{"path": "python-3.12.14-linux-24.04-x64.tar.gz", "sha256": "5a03168292516f6dd6dcf630f4bf5369b108abd7c699a7e1db37f1e622257fff", "size": 95088884}],
-          "installed_identity": {"implementation": "CPython", "version": "3.12.14", "abi": "cp312", "target": "x86_64-unknown-linux-gnu"},
-          "dependencies": [],
-          "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
-        }
-      ]
-    },
-    {
-      "artifact_id": "cpython-3.13",
-      "artifact_class": "bootstrap",
-      "version": "3.13.15",
-      "support_level": "blocking",
-      "owner": "Tooling",
-      "consumers": ["python-compatibility", "bootstrap"],
-      "trust_root_refs": ["actions-python-versions-reviewed-release"],
-      "availability_class": "R",
-      "retention_class": "supported-input",
-      "license": {"spdx": "PSF-2.0", "redistribution": "allowed", "review_ref": "ADR-106"},
-      "authenticity": {"status": "absent-reviewed", "decision_ref": "ADR-106"},
-      "policy_refs": ["artifact-integrity-v1"],
-      "source": {
-        "repository": "https://github.com/actions/python-versions",
-        "release": "3.13.15-31064747964",
-        "asset": "python-3.13.15-{distribution}-{architecture}.tar.gz",
-        "locator_refs": ["official-github-release"]
-      },
-      "platforms": [
-        {
-          "platform_id": "linux-x86_64",
-          "distribution_id": "ubuntu-24.04",
-          "source_urls": ["https://github.com/actions/python-versions/releases/download/3.13.15-31064747964/python-3.13.15-linux-24.04-x64.tar.gz"],
-          "raw_manifest": [{"path": "python-3.13.15-linux-24.04-x64.tar.gz", "sha256": "4e544242f8a4ef647a6f511b67f9b00eefc9ef366644e3c40a27a6eff709ae2b", "size": 102312718}],
-          "installed_identity": {"implementation": "CPython", "version": "3.13.15", "abi": "cp313", "target": "x86_64-unknown-linux-gnu"},
-          "dependencies": [],
-          "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
-        }
-      ]
-    },
-    {
       "artifact_id": "cpython-3.14",
       "artifact_class": "bootstrap",
       "version": "3.14.7",
@@ -544,7 +437,7 @@
           "installed_identity": {"implementation": "CPython", "version": "3.14.7", "abi": "cp314", "target": "x86_64-unknown-linux-gnu"},
           "dependencies": [],
           "profile_ids": ["public-linux-x86_64"],
-          "host_profile_ids": ["container-ubuntu-24.04-x86_64", "public-ubuntu-24.04-x86_64"]
+          "host_profile_ids": ["container-ubuntu-24.04-x86_64", "proof-ubuntu-22.04-x86_64", "public-ubuntu-24.04-x86_64"]
         },
         {
           "platform_id": "linux-arm64",
@@ -684,7 +577,7 @@
     {
       "artifact_id": "scorecard-action-image",
       "artifact_class": "oci-image",
-      "version": "2.4.4",
+      "version": "2.5.0",
       "support_level": "blocking",
       "owner": "Security",
       "consumers": ["scorecard-workflow"],
@@ -696,16 +589,16 @@
       "policy_refs": ["oci-input-v1"],
       "source": {
         "repository": "https://github.com/ossf/scorecard-action",
-        "release": "sha256:ae5104dd3cc28466ebeb11144354be4cac4b7ff829654f9fab89021d71c46670",
+        "release": "sha256:1e1481c65fc2407d3fd6ab18a23c741eb4d1c0d9359ebafc4b3ab13aa61d8627",
         "asset": "ghcr.io/ossf/scorecard-action",
         "locator_refs": ["github-container-registry"]
       },
       "platforms": [
         {
           "platform_id": "linux-x86_64",
-          "source_urls": ["https://ghcr.io/v2/ossf/scorecard-action/manifests/sha256:ae5104dd3cc28466ebeb11144354be4cac4b7ff829654f9fab89021d71c46670"],
-          "raw_manifest": [{"path": "scorecard-action-2.4.4-manifest.json", "sha256": "ae5104dd3cc28466ebeb11144354be4cac4b7ff829654f9fab89021d71c46670", "size": 4281}],
-          "installed_identity": {"implementation": "OCI image", "version": "2.4.4", "abi": "oci-manifest-v2", "target": "linux-x86_64"},
+          "source_urls": ["https://ghcr.io/v2/ossf/scorecard-action/manifests/sha256:1e1481c65fc2407d3fd6ab18a23c741eb4d1c0d9359ebafc4b3ab13aa61d8627"],
+          "raw_manifest": [{"path": "scorecard-action-2.5.0-manifest.json", "sha256": "1e1481c65fc2407d3fd6ab18a23c741eb4d1c0d9359ebafc4b3ab13aa61d8627", "size": 4282}],
+          "installed_identity": {"implementation": "OCI image", "version": "2.5.0", "abi": "oci-manifest-v2", "target": "linux-x86_64"},
           "dependencies": [],
           "profile_ids": ["public-linux-x86_64"],
           "host_profile_ids": ["public-ubuntu-24.04-x86_64"]
@@ -956,6 +849,450 @@
           ],
           "host_profile_ids": [
             "public-ubuntu-24.04-x86_64"
+          ]
+        }
+      ]
+    },
+    {
+      "artifact_id": "mcrl2",
+      "artifact_class": "native-tool",
+      "version": "202607.0",
+      "owner": "Proof",
+      "consumers": [
+        "participant-crossing-relation"
+      ],
+      "trust_root_refs": [
+        "adr-106-reviewed-upstream-release"
+      ],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {
+        "spdx": "BSL-1.0",
+        "redistribution": "allowed",
+        "review_ref": "ADR-100"
+      },
+      "authenticity": {
+        "status": "absent-reviewed",
+        "decision_ref": "ADR-106"
+      },
+      "policy_refs": [
+        "artifact-integrity-v1"
+      ],
+      "source": {
+        "repository": "https://github.com/mCRL2org/mCRL2",
+        "release": "mcrl2-202607.0",
+        "asset": "mcrl2-202607.0_x86_64.deb",
+        "locator_refs": [
+          "official-github-release"
+        ]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": [
+            "https://github.com/mCRL2org/mCRL2/releases/download/mcrl2-202607.0/mcrl2-202607.0_x86_64.deb"
+          ],
+          "raw_manifest": [
+            {
+              "path": "mcrl2-202607.0_x86_64.deb",
+              "sha256": "00cb4c347638b3a418fb67c9d67b8d2bf2245e10d4affa4cd993b1c357bde969",
+              "size": 27921814
+            }
+          ],
+          "installed_manifest": [
+            {
+              "path": "usr/bin/ltscompare",
+              "sha256": "b34a7ba73939222886fe6e35c2a1009fd78056369fa06d0b3c48ebfe87ec4d21",
+              "size": 1702080,
+              "executable": true
+            }
+          ],
+          "installed_tree": {
+            "format": "deb",
+            "manifest_sha256": "c0d7d21471aff63c991d53a8c9bea8a16218ecb5ab583271396e8587c2655590",
+            "file_count": 1793,
+            "directory_count": 269,
+            "symlink_count": 0,
+            "expanded_bytes": 83668114
+          },
+          "dependencies": [],
+          "profile_ids": [
+            "model-check-linux-x86_64"
+          ],
+          "host_profile_ids": [
+            "model-check-ubuntu-26.04-x86_64"
+          ]
+        }
+      ]
+    },
+    {
+      "artifact_class": "generic-cli",
+      "owner": "Docs",
+      "consumers": [
+        "documentation-style"
+      ],
+      "trust_root_refs": [
+        "adr-106-reviewed-upstream-release"
+      ],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {
+        "spdx": "MIT",
+        "redistribution": "allowed",
+        "review_ref": "issue-1954"
+      },
+      "authenticity": {
+        "status": "absent-reviewed",
+        "decision_ref": "issue-1954"
+      },
+      "policy_refs": [
+        "artifact-integrity-v1"
+      ],
+      "artifact_id": "doc-tools",
+      "version": "0.1.0",
+      "source": {
+        "repository": "https://github.com/OpenRAE/doc-tools",
+        "release": "v0.1.0",
+        "asset": "doc-tools-0.1.0.tar.gz",
+        "locator_refs": [
+          "official-github-release"
+        ]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": [
+            "https://github.com/OpenRAE/doc-tools/releases/download/v0.1.0/doc-tools-0.1.0.tar.gz"
+          ],
+          "raw_manifest": [
+            {
+              "path": "doc-tools-0.1.0.tar.gz",
+              "sha256": "125104c0cc535698d1cc9bba3e57883bdf9d87db6da346ff583967c4ce42de6c",
+              "size": 34498
+            }
+          ],
+          "installed_manifest": [
+            {
+              "path": "doc-tools-0.1.0/.ste.yml",
+              "sha256": "36c55543243da69876b440a1a53de108c5629e66a4969fc07cab41408bb13ac4",
+              "size": 574
+            },
+            {
+              "path": "doc-tools-0.1.0/LICENSE",
+              "sha256": "7fbd77c1b8b49713634a701cb046b9a957ad3393878244533259dffe810472d6",
+              "size": 1064
+            },
+            {
+              "path": "doc-tools-0.1.0/THIRD_PARTY_NOTICES.md",
+              "sha256": "feadfed58cc8a2d87e524adb97da98db5a0155c8699cdc63a0132692d8f57566",
+              "size": 2012
+            },
+            {
+              "path": "doc-tools-0.1.0/skills/documentation/SKILL.md",
+              "sha256": "145584635ea7287b1d8c9b28c3a2a0bd5794fa80f33944cfb45fdafa15e5234f",
+              "size": 3329
+            },
+            {
+              "path": "doc-tools-0.1.0/skills/documentation/LICENSE",
+              "sha256": "99b511a97bb83dbbc965b58c62f6c2c1eeb9e0e29bfcccab18b8668e8b637895",
+              "size": 1151
+            },
+            {
+              "path": "doc-tools-0.1.0/tools/ste-lint.sh",
+              "sha256": "0fd747a484fb2eea11b9ef2c981b52dee4c0c8370c6dd37633aa8c4ba93d1390",
+              "size": 530,
+              "executable": true
+            },
+            {
+              "path": "doc-tools-0.1.0/tools/install-ste.sh",
+              "sha256": "a1e039054762d7e7fde9115808826a7dd9c901c9481985eaeafc84473630997f",
+              "size": 1969
+            },
+            {
+              "path": "doc-tools-0.1.0/vale/DocTools/AvoidDismissive.yml",
+              "sha256": "4bdaf3c73e673a8871d351a198aced25ff788425208b3cb378443e6976f2af0c",
+              "size": 313
+            },
+            {
+              "path": "doc-tools-0.1.0/vale/DocTools/AvoidHype.yml",
+              "sha256": "08a1571b61fc305475f75bc4a28f439f8c8a780dcacdddaaad6b454127a24a9f",
+              "size": 339
+            },
+            {
+              "path": "doc-tools-0.1.0/vale/DocTools/HeadingPunctuation.yml",
+              "sha256": "717dcfa97dbb8635099f2b6b69e1fed2b0e61fbbbf8449e17d967104601d78d2",
+              "size": 239
+            },
+            {
+              "path": "doc-tools-0.1.0/vale/DocTools/PlainWords.yml",
+              "sha256": "75f97b671feb9eecadc836b0b7e990d9ea4471e9d7f83560bc840d6e035614c2",
+              "size": 419
+            }
+          ],
+          "dependencies": [],
+          "profile_ids": [
+            "public-linux-x86_64"
+          ]
+        },
+        {
+          "platform_id": "linux-arm64",
+          "source_urls": [
+            "https://github.com/OpenRAE/doc-tools/releases/download/v0.1.0/doc-tools-0.1.0.tar.gz"
+          ],
+          "raw_manifest": [
+            {
+              "path": "doc-tools-0.1.0.tar.gz",
+              "sha256": "125104c0cc535698d1cc9bba3e57883bdf9d87db6da346ff583967c4ce42de6c",
+              "size": 34498
+            }
+          ],
+          "installed_manifest": [
+            {
+              "path": "doc-tools-0.1.0/.ste.yml",
+              "sha256": "36c55543243da69876b440a1a53de108c5629e66a4969fc07cab41408bb13ac4",
+              "size": 574
+            },
+            {
+              "path": "doc-tools-0.1.0/LICENSE",
+              "sha256": "7fbd77c1b8b49713634a701cb046b9a957ad3393878244533259dffe810472d6",
+              "size": 1064
+            },
+            {
+              "path": "doc-tools-0.1.0/THIRD_PARTY_NOTICES.md",
+              "sha256": "feadfed58cc8a2d87e524adb97da98db5a0155c8699cdc63a0132692d8f57566",
+              "size": 2012
+            },
+            {
+              "path": "doc-tools-0.1.0/skills/documentation/SKILL.md",
+              "sha256": "145584635ea7287b1d8c9b28c3a2a0bd5794fa80f33944cfb45fdafa15e5234f",
+              "size": 3329
+            },
+            {
+              "path": "doc-tools-0.1.0/skills/documentation/LICENSE",
+              "sha256": "99b511a97bb83dbbc965b58c62f6c2c1eeb9e0e29bfcccab18b8668e8b637895",
+              "size": 1151
+            },
+            {
+              "path": "doc-tools-0.1.0/tools/ste-lint.sh",
+              "sha256": "0fd747a484fb2eea11b9ef2c981b52dee4c0c8370c6dd37633aa8c4ba93d1390",
+              "size": 530,
+              "executable": true
+            },
+            {
+              "path": "doc-tools-0.1.0/tools/install-ste.sh",
+              "sha256": "a1e039054762d7e7fde9115808826a7dd9c901c9481985eaeafc84473630997f",
+              "size": 1969
+            },
+            {
+              "path": "doc-tools-0.1.0/vale/DocTools/AvoidDismissive.yml",
+              "sha256": "4bdaf3c73e673a8871d351a198aced25ff788425208b3cb378443e6976f2af0c",
+              "size": 313
+            },
+            {
+              "path": "doc-tools-0.1.0/vale/DocTools/AvoidHype.yml",
+              "sha256": "08a1571b61fc305475f75bc4a28f439f8c8a780dcacdddaaad6b454127a24a9f",
+              "size": 339
+            },
+            {
+              "path": "doc-tools-0.1.0/vale/DocTools/HeadingPunctuation.yml",
+              "sha256": "717dcfa97dbb8635099f2b6b69e1fed2b0e61fbbbf8449e17d967104601d78d2",
+              "size": 239
+            },
+            {
+              "path": "doc-tools-0.1.0/vale/DocTools/PlainWords.yml",
+              "sha256": "75f97b671feb9eecadc836b0b7e990d9ea4471e9d7f83560bc840d6e035614c2",
+              "size": 419
+            }
+          ],
+          "dependencies": [],
+          "profile_ids": [
+            "public-linux-arm64"
+          ]
+        },
+        {
+          "platform_id": "macos-arm64",
+          "source_urls": [
+            "https://github.com/OpenRAE/doc-tools/releases/download/v0.1.0/doc-tools-0.1.0.tar.gz"
+          ],
+          "raw_manifest": [
+            {
+              "path": "doc-tools-0.1.0.tar.gz",
+              "sha256": "125104c0cc535698d1cc9bba3e57883bdf9d87db6da346ff583967c4ce42de6c",
+              "size": 34498
+            }
+          ],
+          "installed_manifest": [
+            {
+              "path": "doc-tools-0.1.0/.ste.yml",
+              "sha256": "36c55543243da69876b440a1a53de108c5629e66a4969fc07cab41408bb13ac4",
+              "size": 574
+            },
+            {
+              "path": "doc-tools-0.1.0/LICENSE",
+              "sha256": "7fbd77c1b8b49713634a701cb046b9a957ad3393878244533259dffe810472d6",
+              "size": 1064
+            },
+            {
+              "path": "doc-tools-0.1.0/THIRD_PARTY_NOTICES.md",
+              "sha256": "feadfed58cc8a2d87e524adb97da98db5a0155c8699cdc63a0132692d8f57566",
+              "size": 2012
+            },
+            {
+              "path": "doc-tools-0.1.0/skills/documentation/SKILL.md",
+              "sha256": "145584635ea7287b1d8c9b28c3a2a0bd5794fa80f33944cfb45fdafa15e5234f",
+              "size": 3329
+            },
+            {
+              "path": "doc-tools-0.1.0/skills/documentation/LICENSE",
+              "sha256": "99b511a97bb83dbbc965b58c62f6c2c1eeb9e0e29bfcccab18b8668e8b637895",
+              "size": 1151
+            },
+            {
+              "path": "doc-tools-0.1.0/tools/ste-lint.sh",
+              "sha256": "0fd747a484fb2eea11b9ef2c981b52dee4c0c8370c6dd37633aa8c4ba93d1390",
+              "size": 530,
+              "executable": true
+            },
+            {
+              "path": "doc-tools-0.1.0/tools/install-ste.sh",
+              "sha256": "a1e039054762d7e7fde9115808826a7dd9c901c9481985eaeafc84473630997f",
+              "size": 1969
+            },
+            {
+              "path": "doc-tools-0.1.0/vale/DocTools/AvoidDismissive.yml",
+              "sha256": "4bdaf3c73e673a8871d351a198aced25ff788425208b3cb378443e6976f2af0c",
+              "size": 313
+            },
+            {
+              "path": "doc-tools-0.1.0/vale/DocTools/AvoidHype.yml",
+              "sha256": "08a1571b61fc305475f75bc4a28f439f8c8a780dcacdddaaad6b454127a24a9f",
+              "size": 339
+            },
+            {
+              "path": "doc-tools-0.1.0/vale/DocTools/HeadingPunctuation.yml",
+              "sha256": "717dcfa97dbb8635099f2b6b69e1fed2b0e61fbbbf8449e17d967104601d78d2",
+              "size": 239
+            },
+            {
+              "path": "doc-tools-0.1.0/vale/DocTools/PlainWords.yml",
+              "sha256": "75f97b671feb9eecadc836b0b7e990d9ea4471e9d7f83560bc840d6e035614c2",
+              "size": 419
+            }
+          ],
+          "dependencies": [],
+          "profile_ids": [
+            "public-macos-arm64"
+          ]
+        }
+      ]
+    },
+    {
+      "artifact_class": "generic-cli",
+      "owner": "Docs",
+      "consumers": [
+        "documentation-style"
+      ],
+      "trust_root_refs": [
+        "adr-106-reviewed-upstream-release"
+      ],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {
+        "spdx": "MIT",
+        "redistribution": "allowed",
+        "review_ref": "issue-1954"
+      },
+      "authenticity": {
+        "status": "absent-reviewed",
+        "decision_ref": "issue-1954"
+      },
+      "policy_refs": [
+        "artifact-integrity-v1"
+      ],
+      "artifact_id": "ste-cli",
+      "version": "0.10.1",
+      "source": {
+        "repository": "https://github.com/TudorAndrei/ste-cli",
+        "release": "v0.10.1",
+        "asset": "ste-{version}-{system}-{architecture}.tar.gz",
+        "locator_refs": [
+          "official-github-release"
+        ]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": [
+            "https://github.com/TudorAndrei/ste-cli/releases/download/v0.10.1/ste-0.10.1-linux-x64.tar.gz"
+          ],
+          "raw_manifest": [
+            {
+              "path": "ste-0.10.1-linux-x64.tar.gz",
+              "sha256": "d4a9fa77dec2b4623db324fc0951a0a0af6284de3cb42d1717c174bc5762e937",
+              "size": 2049223
+            }
+          ],
+          "installed_manifest": [
+            {
+              "path": "ste",
+              "sha256": "c31060b9b8f205779ad0be74089963e5090823c703c8a7fd79121693f90ff85d",
+              "size": 5050528,
+              "executable": true
+            }
+          ],
+          "dependencies": [],
+          "profile_ids": [
+            "public-linux-x86_64"
+          ]
+        },
+        {
+          "platform_id": "linux-arm64",
+          "source_urls": [
+            "https://github.com/TudorAndrei/ste-cli/releases/download/v0.10.1/ste-0.10.1-linux-arm64.tar.gz"
+          ],
+          "raw_manifest": [
+            {
+              "path": "ste-0.10.1-linux-arm64.tar.gz",
+              "sha256": "f788410fab9302606c80a15cb30925d40cff010e49f7279da17c71db0ec0e08e",
+              "size": 1838116
+            }
+          ],
+          "installed_manifest": [
+            {
+              "path": "ste",
+              "sha256": "a2be0386bec38ed74e2813e6d9380063949e8ee59f97ff98cf19bae1b0ea4d03",
+              "size": 4784288,
+              "executable": true
+            }
+          ],
+          "dependencies": [],
+          "profile_ids": [
+            "public-linux-arm64"
+          ]
+        },
+        {
+          "platform_id": "macos-arm64",
+          "source_urls": [
+            "https://github.com/TudorAndrei/ste-cli/releases/download/v0.10.1/ste-0.10.1-darwin-arm64.tar.gz"
+          ],
+          "raw_manifest": [
+            {
+              "path": "ste-0.10.1-darwin-arm64.tar.gz",
+              "sha256": "9365f616fe7053f8d9b1ec5d40cc92d74ef964ddcd07d24b727cec5937bb6c51",
+              "size": 1894301
+            }
+          ],
+          "installed_manifest": [
+            {
+              "path": "ste",
+              "sha256": "41392d1ce27bb1ae61d9ab29f09c970dd9ed7820a3f81bb7eb1fb82095312e99",
+              "size": 4839906,
+              "executable": true
+            }
+          ],
+          "dependencies": [],
+          "profile_ids": [
+            "public-macos-arm64"
           ]
         }
       ]

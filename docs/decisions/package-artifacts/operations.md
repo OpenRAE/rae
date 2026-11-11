@@ -203,7 +203,7 @@ future implementation, not tests claimed to have passed in the design change.
 |---|---|---|
 | T01 | Fresh public Linux x86_64 runner, empty caches, no enterprise credentials | Bootstrap through trusted native/setup clients; exact locked inputs; full required core/proof checks |
 | T02 | Public local Linux arm64 and macOS arm64 | All four CLI tools execute with matching raw/installed hashes; supported Python wheel/ABI closure works; native Isabelle unsupported diagnosis is explicit |
-| T03 | CPython 3.11–3.14 clean build and install, all declared extras and target ABI | Frozen project/tool closure, hashed isolated build closure, wheel and sdist smokes outside checkout. Preview interpreters do not satisfy release support |
+| T03 | CPython 3.14 clean build and install, all declared extras and target ABI | Frozen project/tool closure, hashed isolated build closure, wheel and sdist smokes outside checkout. Preview interpreters do not satisfy release support |
 | T04 | Fork PR changes tool URL, lock, action or arbitrary install hook and runs malicious code | No private mirror credential, trusted cache write, promotion capability or publication token available; privileged jobs never execute candidate policy/scripts |
 | T05 | 32 processes install same cold CLI/proof object; kill publisher at each durable step | Complete matching installed tree or explicit failure; no partial executable, shared temp collision, stale-marker success or stuck lock; a survivor can finish |
 | T06 | Two users/jobs, hostile symlinks, modified binary, replaced inode, archive traversal/hardlinks/bomb | Reject before execution; preserve OSV protections for all clients; one user cannot populate another's trusted installation |
@@ -370,10 +370,10 @@ distinguish `passed`, `failed`, `unsupported` and `not-run`; a profile is not
 activated from a pending record. Pull-request qualification retains its bounded
 evidence artifact under the exact delivery SHA.
 
-- T01/T03: the blocking CI matrix selects the locked CPython 3.11.16, 3.12.14,
-  3.13.15 and 3.14.7 payloads independently of the pinned setup-action commit,
-  asserts the exact runtime feature line, installs the frozen closure, and runs
-  clean wheel/sdist smokes. The proof-bearing Ubuntu 22.04 lane remains separate.
+- T01/T03: the blocking CI job selects the locked CPython 3.14.7 payload
+  independently of the pinned setup-action commit, asserts the exact runtime
+  feature line, installs the frozen closure, and runs clean wheel/sdist smokes
+  (#1672). The proof-bearing Ubuntu 22.04 lane remains separate.
 - T02/T12: the qualification matrix executes the existing lock-selected
   Conftest, Gitleaks, OSV-Scanner and Vale binaries on the four canonical Linux
   and macOS architectures. It exports the target-specific uv and installed-tool
@@ -538,7 +538,7 @@ Python-owned slices of T03, T10, T11, T13, and T23. Evidence remains explicitly
 scoped; it does not relabel generic, OCI, native, proof, or publication controls
 as qualified.
 
-- T03: the blocking CPython 3.11–3.14 matrix selects an exact closure profile.
+- T03: the blocking CPython 3.14 job selects an exact closure profile.
   Compatibility and release lanes build a direct wheel and an sdist-built wheel
   with the same hash-complete Hatchling constraints, then install and exercise
   each distribution outside the checkout.

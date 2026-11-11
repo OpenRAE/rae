@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import json
 import re
 from collections.abc import Mapping, Sequence
 from functools import partial
 from typing import cast
 
+from raes_contracts.json_serialization import sorted_json_text_unicode
 from raes_contracts.operation_lifecycle import OperationState
 
 _MAX_AUDIT_STRING_LENGTH = 512
@@ -81,6 +81,8 @@ _DETAIL_KEYS_BY_ACTION = {
     "record_participant_crossing": _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS,
     "authorize_participant_action": _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS,
     "admit_participant_action": _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS,
+    "admit_participant_tool_action": _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS,
+    "dispatch_participant_tool_action": _CROSSING_DETAIL_KEYS | _COMPOSED_CROSSING_DETAIL_KEYS,
 }
 _ENUM_DOMAINS = {
     "state": frozenset(state.value for state in OperationState),
@@ -119,7 +121,7 @@ def require_audit_event_fields(
         if not isinstance(key, str) or len(key) > _MAX_DETAIL_KEY_LENGTH or key not in allowed:
             raise ValueError("audit details field is not allowed for this action")
         normalized[key] = _require_detail_value(key, value, details)
-    encoded = json.dumps(normalized, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    encoded = sorted_json_text_unicode(normalized).encode("utf-8")
     if len(encoded) > _MAX_DETAILS_BYTES:
         raise ValueError("audit details exceed the encoded-size bound")
 

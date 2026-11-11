@@ -140,7 +140,7 @@ def normalize_optional_result_failure_v2(
         raise ValueError("mandatory participant control result cannot be normalized as optional")
     try:
         ControlMechanismResultV2Model.model_validate(raw_result)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         pass
     else:
         raise ValueError("optional result is already structurally valid")

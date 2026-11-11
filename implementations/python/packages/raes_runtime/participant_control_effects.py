@@ -28,18 +28,19 @@ from raes_contracts.contracts.participant_control_effects import ControlEffectRe
 from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
 from raes_contracts.contracts.participant_control_results import ControlRealizationBindingModel
 from raes_contracts.contracts.participant_inject_application import ParticipantInjectApplicationModel
-from raes_contracts.participant_control_evaluation_history import participant_control_evaluation_from_payload
+from raes_contracts.errors import AuthorizationError, ConflictError, EvidenceIntegrityError, InvalidInputError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import OperationKind
 
 from .control_plane_mutation import control_plane_mutation, external_control_plane_call
-from .control_plane_store import ControlPlaneOperationRecord
+from .control_plane_store import ControlPlaneOperationRecord, IndeterminateClaimBlocked, NewClaimRejected
+from .errors import RuntimeBudgetExhaustedError
 from .participant_control_intents import ParticipantControlIntent
 from .participant_control_receipts import (
     claim_effect,
     claim_outcome,
     never_dispatched,
     origin_principal,
-    originating_operations,
     owner_record,
     realization,
     require_drain_authority,
@@ -61,6 +62,9 @@ _UNSUPPORTED = "unsupported"
 # owner is an ordering or availability fact recomputed on every drain, and an
 # uncertain outcome stays open on its claim for the incumbent recovery path.
 _RECORDED = frozenset({_APPLIED, _FAILED})
+# The categories an incumbent owner raises when it refuses to admit an effect.
+_OWNER_REFUSALS = (AuthorizationError, ConflictError, EvidenceIntegrityError, InvalidInputError)
+_LOGGER = get_logger(__name__)
 
 
 @dataclass(frozen=True)
@@ -104,7 +108,7 @@ def dispatch_participant_control_effects(
 
     binding = getattr(control_plane, "_participant_control", None)
     if binding is None:
-        raise ValueError("participant control effect dispatch requires a bound participant control configuration")
+        raise ConflictError("participant control effect dispatch requires a bound participant control configuration")
     require_drain_authority(control_plane, participant_address, identity)
     from .participant_control_effect_drain import has_pending_cancellation
 
@@ -116,16 +120,27 @@ def dispatch_participant_control_effects(
             control_plane_mutation(control_plane, OperationKind.PARTICIPANT_CONTROL),
         ):
             _drain_pass(control_plane, binding, participant_address, drain, cancellation_only=True)
+            drain.cancellations.update(drain.outcomes)
     ordinary = ExitStack()
     try:
         ordinary.enter_context(control_plane_mutation(control_plane, OperationKind.PARTICIPANT_CONTROL))
-    except TimeoutError:
+    except TimeoutError, RuntimeBudgetExhaustedError:
         if cancellation_pending:
-            return tuple(drain.outcomes.values())
+            return _ordered_outcomes(control_plane, participant_address, drain)
         raise
     with ordinary:
         _drain_pass(control_plane, binding, participant_address, drain)
-    return tuple(drain.outcomes.values())
+    return _ordered_outcomes(control_plane, participant_address, drain)
+
+
+def _ordered_outcomes(
+    plane: RuntimeControlPlane, participant: str, drain: _DrainState
+) -> tuple[ControlRealizationBindingModel, ...]:
+    from .participant_control_projection import control_projection
+
+    order = control_projection(plane).outcome_order.get(participant, {})
+    keys = sorted(drain.outcomes, key=lambda key: (key not in drain.cancellations, order[key]))
+    return tuple(drain.outcomes[key] for key in keys)
 
 
 def _drain_pass(
@@ -137,21 +152,32 @@ def _drain_pass(
     cancellation_only: bool = False,
 ) -> None:
     from .participant_control_effect_drain import dispatch_v2_effects
+    from .participant_control_projection import control_projection
 
     control_plane._reload_derived_state()
-    history = control_plane._snapshot.participant_control_evaluation_history.get(participant_address, ())
-    retained = [participant_control_evaluation_from_payload(record) for record in history]
+    projection = control_projection(control_plane)
+    retained = tuple(projection.pending.get(participant_address, {}).values())
     evaluations = [record for record in retained if isinstance(record, ParticipantControlEvaluationModel)]
-    origins = originating_operations(control_plane, participant_address)
-    drain.realized.update(_realized_keys(evaluations))
+    from .participant_control_operation_index import operation_index
+
+    origins = operation_index(control_plane).origins
+    if not cancellation_only:
+        drain.outcomes.update(projection.completed.get(participant_address, {}))
+    drain.realized.update(projection.realized.get(participant_address, {}))
     dispatch_v2_effects(control_plane, binding, retained, drain, cancellation_only=cancellation_only)
     if not cancellation_only:
         for evaluation in evaluations:
             phase = admitted_effect_phase(evaluation)
             if phase is not None and not evaluation.realizations:
                 _dispatch_evaluation(
-                    control_plane, binding, evaluation, drain, origin=origins.get(evaluation.evaluation_id), phase=phase
+                    control_plane,
+                    binding,
+                    evaluation,
+                    drain,
+                    origin=origins.get((participant_address, evaluation.evaluation_id)),
+                    phase=phase,
                 )
+    control_projection(control_plane).finish_drain(participant_address, drain)
 
 
 @dataclass
@@ -166,6 +192,7 @@ class _DrainState:
     realized: dict[ControlLogicalEffectKeyModel, ParticipantControlEffectRealization]
     outcomes: dict[ControlLogicalEffectKeyModel, ParticipantControlEffectRealization] = field(default_factory=dict)
     claimants: dict[ControlLogicalEffectKeyModel, ControlPlaneOperationRecord | None] = field(default_factory=dict)
+    cancellations: set[ControlLogicalEffectKeyModel] = field(default_factory=set)
 
 
 def _realized_keys(
@@ -374,11 +401,17 @@ def _submitted_outcome(
 
         with effect_operation_parent(claim.receipt.operation_id):
             _submit(control_plane, claim, request, operation, principal=principal)
-    except Exception as error:
+    except _OWNER_REFUSALS as error:
         if owner_record(control_plane, claim, request) is None:
-            if isinstance(error, (PermissionError, ValueError)):
-                return _FAILED
+            # A claim block of current state is not the owner's refusal; recovery stays open.
+            if isinstance(error, NewClaimRejected | IndeterminateClaimBlocked):
+                raise
+            return _FAILED
+    except Exception:
+        if owner_record(control_plane, claim, request) is None:
             raise
+        # The owner's durable record decides the outcome; the failure after it is still reported.
+        _LOGGER.exception("participant control effect owner failed after it recorded its outcome")
     return claim_outcome(control_plane, claim, request)
 
 
@@ -400,14 +433,16 @@ def _effect_operation(
         else:
             with external_control_plane_call(control_plane):
                 operation = binding.resolver.effect_operation(request, evaluation.request.context)
-    except Exception:
+    # Isolation: the effect-operation resolver is an installed extension; its owner is unsupported.
+    except Exception as exc:
+        _LOGGER.exception("participant control effect-operation resolver failed", exc_info=foreign_failure_record(exc))
         return None
     if not isinstance(operation, ParticipantControlEffectOperation) or operation.kind != request.target.kind:
         return None
     if isinstance(request, ControlEffectRequestV2Model):
         from .participant_control_effect_owners import supports_effect_operation
 
-        origin = control_plane._store.load_records().get(evaluation.commit.receipt.ref)
+        origin = control_plane._operations.get(evaluation.commit.receipt.ref)
         supported = supports_effect_operation(control_plane, request, operation, evaluation.request.context, origin)
     else:
         supported = _binds_request(operation, request, evaluation.request.context)

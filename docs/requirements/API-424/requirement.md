@@ -125,7 +125,7 @@ production provider installation or external release effect.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_effect_composition.py` (Order-independent compatibility and prior logical-claim accounting)
 - TESTS → TEST `implementations/python/tests/test_api_424_review_regressions.py` (Lifecycle ordering, exhausted-budget replay and duplicate-identity permutations)
 
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/participant_flow_policy_profiles.py` (Bounded file reads for the consumed incumbent profile)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_flow_policy_profiles.py` (Bounded file reads for the consumed incumbent profile)
 
 - IMPLEMENTS → CONFIG `contracts/schema-publication/entries/backend-manifest-v2.json`
 - IMPLEMENTS → CONFIG `contracts/schema-publication/entries/backend-profile-v1.json`
@@ -141,6 +141,7 @@ production provider installation or external release effect.
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1072-api-409-control-effect-bindings-preflight.md`
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1072-api-424-provider-contracts-preflight.md`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/observability_plane_semantics.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/observability_planes.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/participant_control_admission.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_protocols/protocols.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/conformance/validators.py`
@@ -203,7 +204,7 @@ production provider installation or external release effect.
 - TESTS → TEST `implementations/python/tests/test_issue_1370_ifc_admission.py` (Finite owner IFC contract and admission evidence)
 - TESTS → TEST `implementations/python/tests/test_issue_1370_ifc_runtime.py` (Finite owner IFC contract and admission evidence)
 
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/bundle.py` (Finite IFC contract publication and inherited flow validation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/schema_contributions.py` (Finite IFC contract publication and inherited flow validation)
 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_flow_control.py` (Finite IFC contract publication and inherited flow validation)
 

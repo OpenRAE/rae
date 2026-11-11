@@ -5,18 +5,24 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
+from raes_contracts.errors import ConflictError
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
 
 from . import control_plane_store as contracts
 from .control_plane_store_history import require_expected_history_heads
-from .control_plane_store_local_codec import encode_payload
+from .control_plane_store_postgresql_projection import (
+    SELECT_LEDGER_OPERATIONS,
+    claim_guard_records,
+    ledger_operation_from_row,
+    save_history,
+)
 from .control_plane_store_revision import (
     SnapshotRevisionConflict,
     SnapshotState,
     next_snapshot_revision,
     require_snapshot_revision,
 )
-from .control_plane_store_snapshots import _snapshot_payload
+from .control_plane_store_snapshots import _canonical_snapshot
 from .inject_claims import require_inject_claim
 from .operation_invocation_ledger import control_record_is_supervisory, supervised_claim_conflicts
 from .operation_ledger_transactions import require_supervision_cut
@@ -49,17 +55,11 @@ def save_snapshot(
     require_participant_autonomous_runtime_snapshot(snapshot)
     expected_state(store, connection, expected_revision)
     revision = next_snapshot_revision(expected_revision)
-    payload, digest = encode_payload(_snapshot_payload(snapshot))
-    connection.execute(
-        "INSERT INTO raes_ledger_state(key, payload, digest, revision) VALUES ('runtime-snapshot', %s, %s, %s) "
-        "ON CONFLICT(key) DO UPDATE SET payload=excluded.payload, digest=excluded.digest, revision=excluded.revision",
-        (payload, digest, revision),
-    )
-    return SnapshotState(snapshot, revision)
+    return save_history(store, connection, snapshot, revision)
 
 
 def find_by_idempotency(
-    store: PostgreSQLControlPlaneStore,
+    _store: PostgreSQLControlPlaneStore,
     connection: Connection[tuple[object, ...]],
     key: str,
     *,
@@ -68,19 +68,18 @@ def find_by_idempotency(
     contracts.require_idempotency_key(key)
     if not key:
         return None
-    candidates = [
-        record
-        for record in store._load_records(connection).values()
-        if record.idempotency_key == key
-        and (
-            context is None
-            or contracts.idempotency_claim_identity(record.receipt.context, key)
-            == contracts.idempotency_claim_identity(context, key)
-        )
-    ]
-    if len(candidates) > 1:
+    if context is None:
+        rows = connection.execute(SELECT_LEDGER_OPERATIONS + "WHERE idempotency_key=%s", (key,)).fetchall()
+    else:
+        rows = connection.execute(
+            SELECT_LEDGER_OPERATIONS + "WHERE actor_id=%s AND operation_kind=%s AND idempotency_key=%s",
+            (context.actor_id, context.operation_kind.value, key),
+        ).fetchall()
+    if len(rows) > 1:
         raise ValueError("idempotency lookup requires immutable context")
-    return candidates[0] if candidates else None
+    if not rows:
+        return None
+    return ledger_operation_from_row(rows[0])
 
 
 def claim_record(
@@ -99,7 +98,11 @@ def claim_record(
         return existing
     if new_claim_blocked:
         contracts._raise_new_claim_block(new_claim_blocked)
-    records = store._load_records(connection)
+    records = (
+        store._load_records(connection)
+        if record.inject_occurrence is not None
+        else {item.receipt.operation_id: item for item in claim_guard_records(connection)}
+    )
     require_inject_claim(record, records.values(), revision=store._load_snapshot_state(connection).revision)
     if (
         store._effect_admission_is_stopped(connection)
@@ -111,7 +114,7 @@ def claim_record(
         record, records.values()
     ):
         contracts._raise_new_claim_block("current-state")
-    prior = records.get(record.receipt.operation_id)
+    prior = _stored_record(store, connection, record.receipt.operation_id)
     if contracts._require_operation_record_transition(prior, record):
         store._upsert_record(connection, record)
         return record
@@ -121,7 +124,7 @@ def claim_record(
 def save_record(
     store: PostgreSQLControlPlaneStore, connection: Connection[tuple[object, ...]], record: ControlPlaneOperationRecord
 ) -> None:
-    existing = store._load_records(connection).get(record.receipt.operation_id)
+    existing = _stored_record(store, connection, record.receipt.operation_id)
     if contracts._require_operation_record_transition(existing, record):
         store._upsert_record(connection, record)
 
@@ -139,7 +142,7 @@ def require_retry(
     contracts._require_terminal_retry_mode(
         current_revision=current.revision, expected_revision=expected_revision, mode=mode
     )
-    if current.snapshot != snapshot:
+    if current.snapshot != _canonical_snapshot(snapshot):
         raise ValueError("terminal retry does not match authoritative snapshot")
     matching = [
         item
@@ -165,12 +168,12 @@ def commit_terminal_operation(
     contracts._require_terminal_commit_mode(mode)
     event = audit_event or contracts.terminal_operation_audit(record)
     contracts._require_terminal_operation_audit(record, event)
-    existing = store._load_records(connection).get(record.receipt.operation_id)
+    existing = _stored_record(store, connection, record.receipt.operation_id)
     if not contracts._require_terminal_operation_transition(existing, record):
         return require_retry(store, connection, snapshot, record, event, mode, expected_revision)
     current = expected_state(store, connection, expected_revision)
     if mode is contracts.TerminalCommitMode.OPERATION_ONLY:
-        if current.snapshot != snapshot:
+        if current.snapshot != _canonical_snapshot(snapshot):
             raise ValueError("operation-only commit cannot change the snapshot")
         committed = current
     else:
@@ -189,11 +192,11 @@ def commit_invocation_transition(
     audit_event: AuditEvent | None,
 ) -> SnapshotState:
     require_supervision_cut(expected, record, audit_event)
-    current = store._load_records(connection).get(expected.receipt.operation_id)
+    current = _stored_record(store, connection, expected.receipt.operation_id)
     if current == record and audit_event in store._load_audits(connection):
         return store._load_snapshot_state(connection)
     if current != expected:
-        raise ValueError("invocation revision conflict")
+        raise ConflictError("invocation revision conflict")
     store._upsert_record(connection, record)
     store._insert_audit(connection, audit_event)
     return store._load_snapshot_state(connection)
@@ -209,7 +212,7 @@ def commit_participant_transition(
     record: ControlPlaneOperationRecord,
     audit_event: AuditEvent | None,
 ) -> SnapshotState:
-    existing = store._load_records(connection).get(record.receipt.operation_id)
+    existing = _stored_record(store, connection, record.receipt.operation_id)
     contracts._require_operation_audit_binding(record, audit_event)
     if existing == record:
         return require_retry(
@@ -228,3 +231,10 @@ def commit_participant_transition(
     store._upsert_record(connection, record)
     store._insert_audit(connection, audit_event)
     return committed
+
+
+def _stored_record(
+    store: PostgreSQLControlPlaneStore, connection: Connection[tuple[object, ...]], identity: str
+) -> ControlPlaneOperationRecord | None:
+    reader = getattr(store, "_load_record", None)
+    return reader(connection, identity) if reader is not None else store._load_records(connection).get(identity)

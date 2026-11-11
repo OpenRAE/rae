@@ -36,6 +36,7 @@ from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.participant_control_coordinates import ControlArtifactReferenceModel
 from raes_contracts.contracts.participant_control_effects import ControlEffectRequestModel
 from raes_contracts.contracts.participant_control_results import ControlRealizationBindingModel
+from raes_contracts.errors import AuthorizationError
 from raes_contracts.operation_lifecycle import OperationAdmissionContext
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -44,8 +45,8 @@ from raes_contracts.runtime_state import (
     OperationState,
     OperationStatus,
 )
+from raes_contracts.timestamps import isoformat_z
 
-from .control_plane_execution import _utc_now
 from .control_plane_security import (
     ControlPlaneIdentity,
     ControlPlaneRole,
@@ -53,10 +54,10 @@ from .control_plane_security import (
     ParticipantControlSubjectBinding,
 )
 from .control_plane_store import (
-    IDEMPOTENCY_CLAIM_CONFLICT,
     ControlPlaneOperationRecord,
     idempotency_claim_identity,
 )
+from .errors import IdempotencyClaimConflictError
 
 if TYPE_CHECKING:
     from raes_contracts.contracts.participant_control_decisions_v2 import ControlEffectRequestV2Model
@@ -109,7 +110,7 @@ def require_drain_authority(control_plane: object, participant_address: str, ide
         reason=reason or "authorized",
     )
     if reason is not None:
-        raise PermissionError("participant control effect dispatch is not authorized: " + reason)
+        raise AuthorizationError("participant control effect dispatch is not authorized: " + reason)
 
 
 def _drain_refusal(control_plane: object, participant_address: str, identity: object) -> str | None:
@@ -134,13 +135,13 @@ def originating_operations(control_plane: object, participant_address: str) -> d
     that left the head unchanged names the same value on both sides.
     """
 
-    key = f"{_CARRIER}:{participant_address}"
-    origins: dict[str, ControlPlaneOperationRecord] = {}
-    for record in control_plane._store.load_records().values():
-        produced = record.result_history_heads.get(key)
-        if produced is not None and record.decision_history_heads.get(key) != produced:
-            origins[produced] = record
-    return origins
+    from .participant_control_operation_index import operation_index
+
+    return {
+        evaluation: record
+        for (participant, evaluation), record in operation_index(control_plane).origins.items()
+        if participant == participant_address
+    }
 
 
 def origin_principal(
@@ -218,7 +219,7 @@ def claim_effect(
 
     context = _effect_claim_context(origin, request)
     operation_id = str(uuid4())
-    timestamp = _utc_now()
+    timestamp = isoformat_z(control_plane.wall_clock())
     from raes_contracts.contracts.participant_control_decisions_v2 import ControlEffectRequestV2Model
 
     record = ControlPlaneOperationRecord(
@@ -243,14 +244,13 @@ def claim_effect(
     )
     try:
         claimed = control_plane._claim_record(record)
-    except ValueError as error:
-        if str(error) == IDEMPOTENCY_CLAIM_CONFLICT:
-            if isinstance(request, ControlEffectRequestV2Model):
-                existing = retained_effect_claim(control_plane, origin, request)
-                if existing is not None:
-                    return EffectClaim(record=existing, fresh=False)
-            return None
-        raise
+    except IdempotencyClaimConflictError:
+        # The store refuses a different request under the same claim identity; other refusals propagate.
+        if isinstance(request, ControlEffectRequestV2Model):
+            existing = retained_effect_claim(control_plane, origin, request)
+            if existing is not None:
+                return EffectClaim(record=existing, fresh=False)
+        return None
     return EffectClaim(record=claimed, fresh=claimed.receipt.operation_id == operation_id)
 
 
@@ -329,13 +329,17 @@ def _find_owner_record(
     *,
     v2: bool,
 ) -> ControlPlaneOperationRecord | None:
-    scopes = {(claim.status.context.actor_id, kind, key)}
+    scopes = [(claim.status.context.actor_id, kind, key)]
     if v2 and kind is OperationKind.PARTICIPANT_CONTROL:
-        scopes.add((claim.status.context.actor_id, OperationKind.PARTICIPANT_CROSSING, key))
+        scopes.append((claim.status.context.actor_id, OperationKind.PARTICIPANT_CROSSING, key))
+    from .participant_control_operation_index import operation_index
+
+    index = operation_index(control_plane)
     return next(
         (
             record
-            for record in control_plane._store.load_records().values()
+            for scope in scopes
+            if (record := index.scoped.get(scope)) is not None
             if record.idempotency_key == key
             and idempotency_claim_identity(record.receipt.context, key) in scopes
             and (not v2 or record.receipt.context.parent_operation_id == claim.receipt.operation_id)

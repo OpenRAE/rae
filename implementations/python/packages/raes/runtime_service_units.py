@@ -28,21 +28,12 @@ from pydantic import (
     model_serializer,
     model_validator,
 )
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import absolute_path_or_var, parse_runtime_enum_or_var, require_symbol
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import is_variable_ref, parse_bool_or_var, parse_int_or_var
 
 from raes.runtime_filesystem import flagged_raw_value_schema, redacted_raw_value_schema
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import (
-    SDLModel,
-    is_variable_ref,
-    parse_bool_or_var,
-    parse_int_or_var,
-)
-from .runtime_values import (
-    absolute_path_or_var,
-    parse_runtime_enum_or_var,
-    require_symbol,
-)
 
 __all__ = [
     "ServiceManagerKind",
@@ -240,7 +231,7 @@ class ServiceUnitExecStart(SDLModel):
         return parse_bool_or_var(v, field_name="command_redacted")
 
     @model_validator(mode="after")
-    def validate_command_shape(self) -> "ServiceUnitExecStart":
+    def validate_command_shape(self) -> ServiceUnitExecStart:
         # Enforce literal-field invariants before deferring on variable refs --
         # otherwise a variable ``command_kind`` or ``command_redacted`` could
         # smuggle a raw secret-bearing command through the model boundary.
@@ -430,7 +421,7 @@ class ServiceManagerUnit(SDLModel):
         return _bounded_text(v, max_len=_STATUS_TEXT_MAX_LEN, field_name=info.field_name)
 
     @model_validator(mode="after")
-    def validate_manager_profile(self) -> "ServiceManagerUnit":
+    def validate_manager_profile(self) -> ServiceManagerUnit:
         manager_is_explicit = "manager_kind" in self.model_fields_set
         manager_is_variable = isinstance(self.manager_kind, str) and is_variable_ref(self.manager_kind)
         if manager_is_explicit and not manager_is_variable:
@@ -448,7 +439,7 @@ class ServiceManagerUnit(SDLModel):
         return self
 
     @model_validator(mode="after")
-    def validate_exit_code_consistency(self) -> "ServiceManagerUnit":
+    def validate_exit_code_consistency(self) -> ServiceManagerUnit:
         # exit_code is meaningful only when result=exit_code (or when result is
         # a deferred variable). Recording an exit code under e.g. result=success
         # is a category error: success has no exit code attached as a fact.

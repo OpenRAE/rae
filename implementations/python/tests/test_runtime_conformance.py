@@ -64,9 +64,13 @@ def test_stub_target_realization_claim_fails_closed_until_its_envelope_is_constr
     assert not report.unsupported_contract_gaps
     assert not report.unsupported_capability_gaps
     feature_cases = [case for case in report.cases if case.capability_feature is not None]
-    assert len(feature_cases) == 6
+    assert len(feature_cases) == 8
     assert all(case.declared_support_level == "unsupported" for case in feature_cases)
-    assert all(case.effective_support_level == "unsupported" for case in feature_cases)
+    assert all(
+        case.effective_support_level
+        == (None if case.capability_feature in {"tool_affordances", "scoped_tool_affordances"} else "unsupported")
+        for case in feature_cases
+    )
     assert all(
         case.finite_scope and "no unexecuted participant behavior" in case.finite_scope for case in feature_cases
     )

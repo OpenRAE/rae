@@ -13,7 +13,7 @@ from multiprocessing import get_context
 from pathlib import Path
 from threading import Barrier as ThreadBarrier
 from threading import Event
-from typing import Any, Protocol, TypeVar
+from typing import Any, Protocol
 
 import httpx
 import pytest
@@ -25,21 +25,21 @@ from raes_contracts.contracts import (
     ParticipantHistoryViewModel,
     ParticipantStatusViewModel,
 )
-from raes_contracts.observation_demand import (
-    ObservationDemandDocument,
-    ObservationDemandRule,
-    ObservationSelector,
-    normalize_observation_demands,
-)
-from raes_contracts.plan_projection import (
+from raes_contracts.contracts.plan_projection import (
     evaluation_plan_model,
     orchestration_plan_model,
     provisioning_plan_model,
 )
+from raes_contracts.errors import ConflictError, NotFoundError, OperationalError
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
+from raes_contracts.observation_demand import (
+    ObservationDemandDocument,
+    ObservationDemandRule,
+    ObservationSelector,
+)
+from raes_contracts.observation_demand_resolution import normalize_observation_demands
 from raes_contracts.planning import ChangeAction, EvaluationPlan, OrchestrationOp, OrchestrationPlan, ProvisioningPlan
 from raes_contracts.runtime_state import (
-    ExplicitnessClass,
-    ExplicitnessProvenance,
     OperationAdmissionContext,
     OperationKind,
     RealizationProvenanceEntry,
@@ -70,10 +70,8 @@ from store_commit_failure_fixtures import fail_sqlite_commit
 
 pytestmark = pytest.mark.control_plane_conformance
 
-_T = TypeVar("_T")
 
-
-def _run(coroutine: Coroutine[Any, Any, _T]) -> _T:
+def _run[T](coroutine: Coroutine[Any, Any, T]) -> T:
     """Run one coroutine without replacing or closing pytest's default loop."""
 
     loop = asyncio.new_event_loop()
@@ -308,7 +306,7 @@ def test_control_plane_api_openapi_documents_explicit_error_responses():
         ),
     ),
 )
-def test_control_plane_api_maps_mutation_value_errors_to_conflict_responses(
+def test_control_plane_api_maps_mutation_conflicts_to_conflict_responses(
     monkeypatch: pytest.MonkeyPatch,
     method_name: str,
     path: str,
@@ -319,7 +317,7 @@ def test_control_plane_api_maps_mutation_value_errors_to_conflict_responses(
     app = create_control_plane_app(control_plane, security=_test_security(target.name))
 
     def conflict(*_args: object, **_kwargs: object) -> None:
-        raise ValueError(IDEMPOTENCY_CLAIM_CONFLICT)
+        raise ConflictError(IDEMPOTENCY_CLAIM_CONFLICT)
 
     monkeypatch.setattr(control_plane, method_name, conflict)
     headers = {
@@ -657,7 +655,7 @@ def test_control_plane_api_redacts_core_conflict_exception_text(
     secret = "token=abcd /var/secrets/store.db SELECT * FROM operations WHERE actor='alice'"
 
     def leaking(*_args: object, **_kwargs: object) -> None:
-        raise ValueError(secret)
+        raise ConflictError(secret)
 
     monkeypatch.setattr(control_plane, method_name, leaking)
     headers = {
@@ -683,7 +681,7 @@ def test_control_plane_api_redacts_participant_execution_state_error_text(
     app = create_control_plane_app(control_plane, security=_test_security(target.name))
 
     def leaking(*_args: object, **_kwargs: object) -> None:
-        raise ValueError("/secret/exec/path backend disclosure detail")
+        raise NotFoundError("/secret/exec/path backend disclosure detail")
 
     monkeypatch.setattr(control_plane, "participant_execution_state", leaking)
 
@@ -892,7 +890,8 @@ def test_control_plane_api_operational_apparatus_summary_requires_read_role():
     assert audits[-1].allowed is False
 
 
-def test_operational_apparatus_summary_snapshots_operations_safely_during_mutation() -> None:
+@pytest.mark.parametrize("incremental", [False, True])
+def test_operational_apparatus_summary_snapshots_operations_safely_during_mutation(incremental) -> None:
     target = create_stub_target()
     control_plane = RuntimeControlPlane(target)
     control_plane._claim_record(_participant_operation_record("existing", "participant.alice"))
@@ -916,8 +915,13 @@ def test_operational_apparatus_summary_snapshots_operations_safely_during_mutati
             super().__setitem__(key, value)
             mutation_completed.set()
 
+    control_plane._refresh_operation_records()
     pausing_records = PausingOperationRecords(control_plane._operations)
-    control_plane._store.load_records = lambda: pausing_records  # type: ignore[method-assign]
+    if incremental:
+        control_plane._operations = pausing_records
+    else:
+        control_plane._store.load_operation_changes = None
+        control_plane._store.load_records = lambda: pausing_records  # type: ignore[method-assign]
 
     with ThreadPoolExecutor(max_workers=2) as executor:
         summary = executor.submit(control_plane.operational_apparatus_summary)
@@ -1083,7 +1087,7 @@ def test_create_control_plane_app_rejects_multi_worker_configuration(
     control_plane = RuntimeControlPlane(target)
     security = _test_security(target.name)
 
-    with pytest.raises(RuntimeError, match="unsupported for a local control-plane store"):
+    with pytest.raises(OperationalError, match="unsupported for a local control-plane store"):
         create_control_plane_app(control_plane, security=security)
 
 

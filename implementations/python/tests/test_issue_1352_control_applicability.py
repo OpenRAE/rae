@@ -95,6 +95,24 @@ def test_optional_failures_are_isolated_but_required_dependencies_block(failure)
     assert {r.slot for r in mandatory.results} == {"advice", "consumer"}
 
 
+def test_an_isolated_resolver_failure_is_logged_without_its_values(caplog: pytest.LogCaptureFixture) -> None:
+    sentinel = "resolver-secret-sentinel"
+
+    def resolve(node, predecessors, cut):
+        raise ValueError(sentinel)
+
+    with caplog.at_level("ERROR", logger=m.__name__):
+        result = m.evaluate((m.Node(Slot("advice", "advice", False)),), (), resolve)
+
+    assert not result.blockers
+    records = [record for record in caplog.records if record.name == m.__name__]
+    assert len(records) == 1
+    assert records[0].getMessage() == "control applicability resolver failed for slot advice"
+    assert "ValueError" in (records[0].exc_text or "")
+    assert sentinel not in records[0].getMessage()
+    assert sentinel not in (records[0].exc_text or "")
+
+
 @pytest.mark.parametrize(
     "loss,limit,accepted", ((0, 0, True), (1, 2, True), (2, 1, False), (1, 0, False), (None, 2, False))
 )

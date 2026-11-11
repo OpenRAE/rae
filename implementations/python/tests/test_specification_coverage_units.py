@@ -4,7 +4,9 @@ from hashlib import sha256
 
 import pytest
 from evidence_test_fixtures import copy_bundle
-from tools.specification_coverage import _artifacts, _protocol
+from pydantic import BaseModel
+from raes_contracts.errors import InvalidInputError
+from tools.specification_coverage import _artifacts, _baseline, _protocol
 from tools.specification_coverage._analysis import recompute_analysis
 
 
@@ -121,7 +123,7 @@ def test_synthetic_request_rejects_a_source_from_another_stratum():
     ]
 
 
-@pytest.mark.parametrize("error", [OSError, ValueError, TypeError])
+@pytest.mark.parametrize("error", [OSError, InvalidInputError])
 def test_artifact_execution_errors_become_explicit_failures(tmp_path, monkeypatch, error):
     def fail(*_args):
         raise error("seeded replay failure")
@@ -139,3 +141,63 @@ def test_artifact_execution_errors_become_explicit_failures(tmp_path, monkeypatc
             "input.yaml",
         )
     ]
+
+
+class _Contract(BaseModel):
+    count: int
+
+
+def test_contract_validation_errors_become_explicit_failures(tmp_path, monkeypatch):
+    def fail(*_args):
+        _Contract.model_validate({"count": "not-a-number"})
+
+    monkeypatch.setattr(_artifacts, "_execute_artifact", fail)
+    failures, executed = [], {}
+    _artifacts._record_artifact_execution(
+        tmp_path,
+        {"artifact_id": "artifact", "kind": "backend-profile"},
+        "a.json",
+        tmp_path / "a.json",
+        executed,
+        failures,
+    )
+    assert executed == {}
+    assert [f.rule_id for f in failures] == ["specification-coverage-artifact-execution"]
+
+
+@pytest.mark.parametrize("error", [ValueError, TypeError, RuntimeError])
+def test_artifact_execution_defects_are_not_reported_as_artifact_failures(tmp_path, monkeypatch, error):
+    def fail(*_args):
+        raise error("seeded defect")
+
+    monkeypatch.setattr(_artifacts, "_execute_artifact", fail)
+    failures, executed = [], {}
+    with pytest.raises(error, match="seeded defect"):
+        _artifacts._record_artifact_execution(
+            tmp_path,
+            {"artifact_id": "artifact", "kind": "sdl"},
+            "input.yaml",
+            tmp_path / "input.yaml",
+            executed,
+            failures,
+        )
+    assert failures == []
+
+
+def test_historical_archive_with_invalid_base64_is_a_digest_failure(tmp_path):
+    digest = "a" * 64
+    archive_folder = tmp_path / "docs/research/specification-coverage/historical-artifacts"
+    archive_folder.mkdir(parents=True)
+    (archive_folder / f"{digest}.json").write_text(
+        '{"artifact_path": "input.yaml", "recovered_from_revision": "' + "0" * 40 + '", "content_base64": "@@@"}',
+        encoding="utf-8",
+    )
+    failures = []
+    _artifacts._historical_artifact_failures(tmp_path, {"sha256": digest, "path": "input.yaml"}, failures)
+    assert [f.rule_id for f in failures] == ["specification-coverage-artifact-digest"]
+
+
+@pytest.mark.parametrize("artifacts", [None, ["not-an-object"], [{"path": "a.yaml", "kind": "sdl"}], [{"path": 1}]])
+def test_unjoinable_artifact_pins_are_refused_as_invalid_input(artifacts):
+    with pytest.raises(InvalidInputError, match="pinned objects"):
+        _baseline._artifacts_by_path({"artifacts": artifacts})

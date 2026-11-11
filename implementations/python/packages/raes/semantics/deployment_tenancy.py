@@ -38,6 +38,7 @@ def _index_cell_members(
                 issue(
                     "deployment-tenancy.cell.node-unbound",
                     f"Deployment cell '{cell_name}' node_ref '{node_ref}' does not resolve to a node",
+                    ("deployment_cells", cell_name),
                 )
             )
             continue
@@ -47,6 +48,7 @@ def _index_cell_members(
                 issue(
                     "deployment-tenancy.cell.node-multiple",
                     f"Node '{node_name}' belongs to multiple deployment cells: {previous}, {cell_name}",
+                    ("nodes", node_name),
                 )
             )
             continue
@@ -66,6 +68,7 @@ def _missing_vm_issues(
         issue(
             "deployment-tenancy.cell.node-missing",
             f"Compute node '{node_name}' must belong to exactly one deployment cell",
+            ("nodes", node_name),
         )
         for node_name, node in nodes.items()
         if getattr(node, "type", None) == NodeType.COMPUTE and node_name not in node_cell
@@ -90,6 +93,7 @@ def _build_cell_index(
                         "deployment-tenancy.cell.tenant-unbound",
                         f"Deployment cell '{cell_name}' tenant_ref '{tenant_ref}' does not resolve "
                         "to a deployment tenant",
+                        ("deployment_cells", cell_name),
                     )
                 )
             else:
@@ -123,6 +127,7 @@ def _relationship_detail_issues(
                 issue(
                     "deployment-tenancy.relationship.detail-required",
                     f"Relationship '{name}' type '{type_name}' requires {expected} detail",
+                    ("relationships", name),
                 )
             )
         for field_name in populated:
@@ -131,6 +136,7 @@ def _relationship_detail_issues(
                     issue(
                         "deployment-tenancy.relationship.detail-mismatch",
                         f"Relationship '{name}' carries {field_name} detail with type '{type_name}'",
+                        ("relationships", name),
                     )
                 )
     return issues
@@ -196,6 +202,7 @@ def _placement_endpoint_issue(
         return issue(
             "deployment-tenancy.placement.endpoint-invalid",
             f"Relationship '{relationship_name}' carrier placement endpoints must resolve to compute nodes",
+            ("relationships", relationship_name),
         )
     return None
 
@@ -209,11 +216,13 @@ def _placement_binding_issues(
     carrier_by_source: Mapping[str, str],
 ) -> list[DeploymentTenancyIssue]:
     issues: list[DeploymentTenancyIssue] = []
+    owner = ("relationships", relationship_name)
     if source == target:
         issues.append(
             issue(
                 "deployment-tenancy.placement.self",
                 f"Relationship '{relationship_name}' cannot place a node on itself",
+                owner,
             )
         )
     previous = carrier_by_source.get(source)
@@ -222,6 +231,7 @@ def _placement_binding_issues(
             issue(
                 "deployment-tenancy.placement.multiple-carriers",
                 f"Node '{source}' has multiple carrier placements",
+                ("nodes", source),
             )
         )
     if not placement_node_allowed(nodes[target], "target"):
@@ -229,6 +239,7 @@ def _placement_binding_issues(
             issue(
                 "deployment-tenancy.placement.target-not-carrier",
                 f"Relationship '{relationship_name}' target '{target}' must have endpoint persona 'carrier'",
+                owner,
             )
         )
     source_cell = cell_index.node_cell.get(source)
@@ -238,6 +249,7 @@ def _placement_binding_issues(
             issue(
                 "deployment-tenancy.placement.cross-cell",
                 f"Relationship '{relationship_name}' carrier placement crosses different deployment cells",
+                owner,
             )
         )
     return issues
@@ -262,6 +274,7 @@ def _placement_graph_issues(
         issue(
             "deployment-tenancy.placement.cycle",
             f"Relationship '{edge_name_by_source[start]}' participates in a carrier placement cycle",
+            ("relationships", edge_name_by_source[start]),
         )
         for start in carrier_by_source
         if _has_placement_cycle(start, carrier_by_source)
@@ -270,6 +283,7 @@ def _placement_graph_issues(
         issue(
             "deployment-tenancy.placement.nested",
             f"Relationship '{edge_name_by_source[source]}' cannot place a node on another placed node",
+            ("relationships", edge_name_by_source[source]),
         )
         for source, target in carrier_by_source.items()
         if target in carrier_by_source

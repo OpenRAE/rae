@@ -24,6 +24,9 @@ ADR-081 governs relation discipline and current tests provide bounded evidence, 
 - TESTS → TEST `implementations/python/tests/test_issue_965_participant_opacity_backend.py` (Backend participant-opacity assurance tests)
 - IMPLEMENTS → GITHUB_ISSUE `965` (Declare and validate backend participant-opacity realization)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/conformance/participant_opacity_probes.py` (Bounded backend participant-opacity conformance runner)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/conformance/participant_opacity_execution.py` (Runner-owned participant-opacity probe execution and measurement)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/conformance/participant_opacity_projection.py` (Participant-opacity transcript projection, normal form, and ownership derivation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/conformance/participant_opacity_types.py` (Participant-opacity probe vocabulary and harness protocol)
 - DOCUMENTS → GITHUB_ISSUE `800` (ASR-535 — Participant Information-Flow And Relation Assurance)
 - DOCUMENTS → GITHUB_ISSUE `794` (Assess and design formal participant I/O control with information-flow and bisimulation semantics)
 - DOCUMENTS → DOCUMENTATION `docs/research/participant-io-control/requirement-disposition.md` (Issue #794 participant information-flow/control requirement disposition)
@@ -58,3 +61,23 @@ ADR-081 governs relation discipline and current tests provide bounded evidence, 
 - IMPLEMENTS → SPEC `contracts/schemas/formal-analysis/participant-opacity-analysis-input-v1.json` (participant-opacity-analysis-input-v1 published schema)
 - IMPLEMENTS → SPEC `contracts/schemas/formal-analysis/participant-opacity-model-check-input-v1.json` (participant-opacity-model-check-input-v1 published schema)
 - IMPLEMENTS → SPEC `contracts/schemas/profiles/behavioral-relation-profile-v1.json` (behavioral-relation-profile-v1 published schema)
+
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#973` (Bounded negative relation evidence with explicit nonclaims)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/counterexample_corpus.py` (Measured decisions and independent witness admission)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/counterexample_witnesses.py` (Measured decisions and independent witness admission)
+- TESTS → TEST `implementations/python/tests/test_issue_973_crossing_corpus.py` (False witness, claim promotion, source and artifact drift rejection)
+- TESTS → TEST `implementations/python/tests/test_issue_973_crossing_witnesses.py` (False witness, claim promotion, source and artifact drift rejection)
+
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check.py` (Issue 974 exact finite model-check evidence; no runtime-realization claim)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check_evidence.py` (Complete carrier, model, projection, source and model-check claim joins)
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-machine-check.md` (Finite relation boundary, security and data flows)
+- TESTS → TEST `implementations/python/tests/test_issue_974_machine_check.py` (Incomplete carriers, source drift, mutation false acceptance and claim promotion are refused)
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#974` (Machine-check finite participant-crossing bisimulation)
+- IMPLEMENTS → CODE_FILE `tools/check_participant_opacity_proof.py` (Exact shared tooling-validator and schema provenance for the existing proof axis)
+
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#975` (Fresh bounded measurement and separate review authority)
+
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#976` (Reproduced finite model-check publication with explicit nonclaims)
+- IMPLEMENTS → DOCUMENTATION `specs/formal/assurance-fulfillment.yaml` (FM3 participant-semantics fulfillment with the finite model-check artifacts)
+- IMPLEMENTS → SPEC `contracts/profiles/scientific-completeness/delivery-assessment-2026-10-31.json` (Assessment evidence without profile promotion)
+- TESTS → TEST `implementations/python/tests/test_issue_976_evidence_identity.py` (Retained evidence stays admissible across apparatus changes and refuses subject changes)

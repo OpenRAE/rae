@@ -425,22 +425,47 @@ def test_scheduler_failure_and_redelivery_never_create_a_replacement():
     assert root.replacement_origin is None
 
 
-def test_replacement_compiler_has_fixed_identity_vectors():
-    request = _replacement_request()
+def _replacement_identity(request, *, status="failed"):
     root = compile_admitted_trial_plan(request).plan
-    run, receipt = _archive(request, root)
+    run, receipt = _archive(request, root, status=status)
     result = _allocate(request, root, run, receipt)
-    vector = json.loads(
-        (REPO_ROOT / "contracts/fixtures/plans/trial-compiler-replacement-v1/identity-vectors.json").read_text()
-    )
+    assert not result.diagnostics
     entry = next(iter(result.plan.entries.values()))
-    assert vector["root_plan_id"] == root.plan_id
-    assert vector["root_plan_digest"] == root.plan_digest
-    for field in ("plan_id", "plan_digest"):
-        assert vector[field] == getattr(result.plan, field)
-    for field in ("plan_entry_id", "run_id", "entry_digest"):
-        assert vector[field] == getattr(entry, field)
-    assert vector["coordinate"] == entry.coordinate.model_dump(mode="json")
+    return {
+        "root_plan": (root.plan_id, root.plan_digest),
+        "parent_run": run.run_id,
+        "plan": (result.plan.plan_id, result.plan.plan_digest),
+        "entry": (entry.plan_entry_id, entry.entry_digest, entry.run_id),
+        "coordinate": entry.coordinate.model_dump(mode="json"),
+    }
+
+
+def test_replacement_identity_is_deterministic_for_the_same_inputs():
+    first = _replacement_identity(_replacement_request())
+    second = _replacement_identity(_replacement_request())
+
+    assert first == second
+
+
+def test_replacement_digest_binds_the_failed_run_and_identity_binds_the_slot():
+    baseline = _replacement_identity(_replacement_request())
+    variant = _replacement_identity(_replacement_request(), status="invalidated")
+
+    # The allocation slot keeps its identity; the plan digest binds the parent run that it replaces.
+    assert variant["plan"][0] == baseline["plan"][0]
+    assert variant["entry"] == baseline["entry"]
+    assert variant["plan"][1] != baseline["plan"][1]
+
+
+def test_replacement_identity_changes_with_the_root_plan():
+    baseline = _replacement_identity(_replacement_request())
+    variant = _replacement_identity(_replacement_request(limit=3))
+
+    assert variant["root_plan"][0] != baseline["root_plan"][0]
+    assert variant["plan"][0] != baseline["plan"][0]
+    assert variant["plan"][1] != baseline["plan"][1]
+    assert variant["entry"][0] != baseline["entry"][0]
+    assert variant["entry"][2] != baseline["entry"][2]
 
 
 def test_exhausted_failed_leaf_is_a_shortfall_when_failed_trials_were_selected():

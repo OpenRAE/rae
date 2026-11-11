@@ -68,7 +68,7 @@ def _profiles(namespace="com.example.private"):
 @pytest.mark.parametrize("namespace", ["org.openrae.standard", "com.example.private"])
 def test_plan_profile_carrier_retains_pins_and_null_safe_authenticated_roundtrip(namespace):
     from raes_contracts.contracts import ProvisioningPlanModel
-    from raes_contracts.plan_projection import provisioning_plan_model, runtime_plan_digest
+    from raes_contracts.contracts.plan_projection import provisioning_plan_model, runtime_plan_digest
     from raes_runtime.control_plane_api_models import _provisioning_plan
     from test_issue_1204_backend_preparation import _request
 
@@ -345,7 +345,7 @@ def test_profile_authority_tampering_cannot_grant_execution(mutation):
 
 def test_profile_binding_explicit_null_survives_plan_codec():
     from raes_contracts.contracts import ProvisioningPlanModel
-    from raes_contracts.plan_projection import provisioning_plan_model, runtime_plan_digest
+    from raes_contracts.contracts.plan_projection import provisioning_plan_model, runtime_plan_digest
     from raes_runtime.control_plane_api_models import _provisioning_plan
     from test_issue_1204_backend_preparation import _request
 
@@ -367,7 +367,7 @@ def test_profile_binding_explicit_null_survives_plan_codec():
 
 def test_profile_host_has_a_closed_published_contract():
     from jsonschema import Draft202012Validator
-    from raes_contracts.contracts import schema_bundle
+    from raes_schemas import schema_bundle
 
     schema = schema_bundle()["plan-realization-profiles-v1"]
     authority, _ = _profiles()
@@ -381,7 +381,7 @@ def test_profile_host_has_a_closed_published_contract():
 @pytest.mark.parametrize("contract_id", ["orchestration-plan-v1", "evaluation-plan-v1"])
 def test_other_runtime_domains_do_not_gain_profile_execution_authority(contract_id):
     from jsonschema import Draft202012Validator
-    from raes_contracts.contracts import schema_bundle
+    from raes_schemas import schema_bundle
 
     binding = _profiles()[0].bindings[0]
     domain, resource_type = (
