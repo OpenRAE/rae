@@ -166,9 +166,7 @@ def _retain_lifecycle_result(
                         code="runtime.participant-episode-result-unverified",
                         domain="participant",
                         address="runtime.control-plane.participant",
-                        message=(
-                            "Returned episode history contradicts the installed policy; reconciliation is required."
-                        ),
+                        message="Returned episode history violates the installed policy; reconciliation is required.",
                     )
                 ],
             )
