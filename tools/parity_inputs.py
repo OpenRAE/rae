@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 import pytest
 
-from tools.parity_support import ARGUMENTS_FILE, Case, digest, encode, runtime_aliases
+from tools.parity_support import ARGUMENTS_FILE, Case, digest, encode, is_native_semantic_fixture, runtime_aliases
 
 INPUT_PREFIX = "input/"
 
@@ -233,8 +233,7 @@ class InputCollector:
                     roots.append(root)
                     inputs = self.directory_inputs(root)
                     if option == "--fixtures-root":
-                        native = root / "sdl/semantic-vectors-v1"
-                        inputs = [path for path in inputs if not path.is_relative_to(native)]
+                        inputs = [path for path in inputs if not is_native_semantic_fixture(path, root)]
                     files.extend(inputs)
         return roots, files
 

@@ -59,7 +59,14 @@ from typer.testing import CliRunner  # noqa: E402
 
 from tools import parity_primitives, parity_shared  # noqa: E402
 from tools.parity_records import case_document  # noqa: E402
-from tools.parity_support import REQUEST_FILE, Case, digest, encode, json_output  # noqa: E402
+from tools.parity_support import (  # noqa: E402
+    REQUEST_FILE,
+    Case,
+    digest,
+    encode,
+    is_native_semantic_fixture,
+    json_output,
+)
 
 CORPUS_DIR = Path("implementations/go/internal/parity/testdata")
 SCHEMA = "raes-parity-corpus/v2"
@@ -237,7 +244,7 @@ def canonical_cases(repo: Path) -> Iterator[Case]:
     for fixture in sorted((repo / "contracts" / "fixtures").rglob(JSON_FILES)):
         # The native semantic runner owns these mixed input/expectation records.
         # Their maintenance must not require Python parity regeneration.
-        if fixture.is_relative_to(repo / "contracts/fixtures/sdl/semantic-vectors-v1"):
+        if is_native_semantic_fixture(fixture, repo / "contracts/fixtures"):
             continue
         name = fixture.relative_to(repo).with_suffix("").as_posix()
         yield Case(

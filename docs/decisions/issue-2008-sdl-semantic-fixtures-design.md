@@ -30,8 +30,9 @@ The retained Python readers use the published directory for their separate parit
 The Python semantic writer and its CI invocation are removed.
 The selection, formatter, import, and temporary corpus checks keep their existing owners.
 The legacy canonical recorder excludes this mixed semantic corpus from its payload discovery.
-The backend-conformance input collector also excludes this family from copied fixture trees.
-It still checks all discovered paths for symbolic links before selection.
+Both backend-conformance copy paths also exclude this family from fixture trees.
+The legacy readers use one shared family selector.
+The copy paths check all discovered paths for symbolic links before selection.
 This keeps future semantic fixture changes independent of Python parity regeneration.
 Existing canonical payload coverage remains unchanged.
 

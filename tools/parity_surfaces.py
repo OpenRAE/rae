@@ -41,6 +41,7 @@ from tools.parity_support import (
     digest,
     encode,
     fixed_clock,
+    is_native_semantic_fixture,
     json_output,
     machine_payload,
     machine_schema,
@@ -215,6 +216,8 @@ def source_cli_cases(repo: Path, sources: list[Path]) -> Iterator[Case]:
 
 
 def reference_cli_cases(repo: Path) -> Iterator[Case]:
+    from tools.parity_inputs import InputCollector
+
     for command, arguments in (
         ("processor manifest", ("processor", "manifest")),
         ("conformance backend", ("conformance", "backend", "--format", "json")),
@@ -225,8 +228,8 @@ def reference_cli_cases(repo: Path) -> Iterator[Case]:
             files = {
                 REPO_PREFIX + path.relative_to(repo).as_posix(): path.read_bytes()
                 for root in roots
-                for path in sorted(root.rglob("*"))
-                if path.suffix in {".json", ".yaml", ".yml"} and path.is_file()
+                for path in InputCollector.directory_inputs(root)
+                if path.is_file() and not is_native_semantic_fixture(path, repo / FIXTURES_ROOT)
             }
             arguments = (
                 *arguments,
@@ -726,7 +729,7 @@ def data_inputs(repo: Path) -> list[Path]:
             if path.is_symlink():
                 raise ValueError("parity data discovery refuses symbolic links")
             # Native semantic checks own this mixed input/expectation inventory.
-            if path.is_relative_to(repo / "contracts/fixtures/sdl/semantic-vectors-v1"):
+            if is_native_semantic_fixture(path, repo / FIXTURES_ROOT):
                 continue
             if path.suffix in {".json", ".yaml", ".yml"} and path.is_file():
                 result.append(path)

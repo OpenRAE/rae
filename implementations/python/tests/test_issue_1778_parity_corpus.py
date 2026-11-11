@@ -236,7 +236,7 @@ def test_canonical_cases_cover_each_json_fixture_and_each_edge_input(repo: Path)
 
 
 def test_native_semantic_vectors_do_not_require_python_canonical_recording(repo: Path) -> None:
-    from tools.parity_surfaces import data_inputs
+    from tools.parity_surfaces import data_inputs, reference_cli_cases
 
     family = "contracts/fixtures/sdl/semantic-vectors-v1/"
     _write(repo, {family + "semantics.json": "{}", family + "semantics-000.json": "[]"})
@@ -246,6 +246,13 @@ def test_native_semantic_vectors_do_not_require_python_canonical_recording(repo:
     inputs = {path.relative_to(repo).as_posix() for path in data_inputs(repo)}
     assert not any(name.startswith(family) for name in inputs)
     assert "contracts/fixtures/family/demo-v1/valid/one.json" in inputs
+    case = next(case for case in reference_cli_cases(repo) if case.command == "conformance backend")
+    assert not any("semantic-vectors-v1" in name for name in case.files)
+    assert "repo/contracts/fixtures/family/demo-v1/valid/one.json" in case.files
+
+    (repo / family / "linked.json").symlink_to(repo / "contracts/fixtures/family/demo-v1/valid/one.json")
+    with pytest.raises(ValueError, match="symbolic links"):
+        list(reference_cli_cases(repo))
 
 
 def test_canonical_results_record_each_form_or_its_refusal() -> None:
