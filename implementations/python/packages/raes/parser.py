@@ -6,16 +6,19 @@ Provides ``parse_sdl()`` as the primary entry point. Handles:
 - Shorthand expansion (``source: "pkg"`` → ``{name: "pkg", version: "*"}``)
 """
 
+from collections.abc import Hashable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal, Unpack
+from typing import Any, Literal, Unpack, cast
 
 from pydantic import ValidationError
+from raes_contracts.variable_references import contains_variable_token, is_variable_ref
 
-from ._base import contains_variable_token, is_variable_ref
-from ._composition_budget import ParsePrivateOptions
+from ._composition_budget import CompositionTraversal, ParsePrivateOptions
 from ._declaration_sources import attach_declaration_sources, semantic_source_diagnostics
 from ._errors import (
+    SDLImportError,
+    SDLImportErrorCode,
     SDLParseDiagnostic,
     SDLParseError,
     SDLSourcePosition,
@@ -44,6 +47,7 @@ from ._source_profile import (
     SDLSourceParseOptions,
 )
 from ._source_validation import _raise_source_limit
+from ._supplied_sources import SuppliedSources
 from ._yaml_loader import SDLSourceLocations, load_sdl_yaml
 from .materialization import MaterializedScenario
 from .scenario import ExpandedScenario, Scenario
@@ -77,16 +81,16 @@ def read_sdl_source(
         raise FileNotFoundError(f"SDL file not found: {path}")
     with path.open("rb") as source:
         raw_bytes = source.read(limits.max_input_bytes + 1)
-    return _source_document_from_bytes(raw_bytes, path=path, limits=limits)
+    return decode_sdl_source(raw_bytes, path=path, limits=limits)
 
 
-def _source_document_from_bytes(
+def decode_sdl_source(
     raw_bytes: bytes,
     *,
     path: Path,
     limits: SDLParserLimits = DEFAULT_PARSER_LIMITS,
 ) -> SDLSourceDocument:
-    """Decode already-captured source bytes with the canonical diagnostics."""
+    """Decode already-captured source bytes with the byte limit and the canonical diagnostics."""
 
     if len(raw_bytes) > limits.max_input_bytes:
         _raise_source_limit(
@@ -245,6 +249,13 @@ def _expand_roles(roles: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+def _names_mapping(names: list[Any], *, node: object, field: str, path: Path | None) -> dict[Any, str]:
+    """Expand a node list shorthand: [a, b] → {a: '', b: ''}; a nested list or mapping is not a name."""
+    if not all(isinstance(name, Hashable) for name in names):
+        raise SDLParseError(f"Node '{node}' {field} list must contain only names", path=path)
+    return dict.fromkeys(names, "")
+
+
 # OCR scoring sections removed from the SDL by ADR-073. Detected up front so
 # authors get a migration pointer instead of a raw "extra fields" error.
 _REMOVED_SCORING_SECTIONS = ("metrics", "evaluations", "tlos", "goals")
@@ -267,68 +278,48 @@ def _reject_removed_scoring_sections(data: dict[str, Any], *, path: Path | None)
     )
 
 
-def _expand_shorthands(data: dict[str, Any]) -> dict[str, Any]:
-    """Apply all shorthand expansions to normalized data."""
-    # Scopes where "source" is a plain string reference, NOT a Source package.
-    _SOURCE_SKIP_SECTIONS = frozenset({"relationships", "agents", "imports", "runtime"})
+# Scopes where "source" is a plain string reference, NOT a Source package.
+_SOURCE_SKIP_SECTIONS = frozenset({"relationships", "agents", "imports", "runtime"})
 
-    def expand_sources_scoped(
-        obj: Any,
-        *,
-        is_hashmap: bool = False,
-        skip: bool = False,
-    ) -> Any:
-        if isinstance(obj, dict):
-            result = {}
-            for k, v in obj.items():
-                if is_hashmap:
-                    result[k] = expand_sources_scoped(
-                        v,
-                        is_hashmap=False,
-                        skip=skip,
-                    )
-                    continue
 
-                child_skip = skip or k in _SOURCE_SKIP_SECTIONS
-                child_is_hashmap = _child_is_hashmap_field(k, v)
-
-                if k == "source" and not skip:
-                    result[k] = _expand_source(v)
-                else:
-                    result[k] = expand_sources_scoped(
-                        v,
-                        is_hashmap=child_is_hashmap,
-                        skip=child_skip,
-                    )
-            return result
-        if isinstance(obj, list):
-            return [
-                expand_sources_scoped(
-                    item,
-                    is_hashmap=is_hashmap,
-                    skip=skip,
-                )
-                for item in obj
-            ]
+def _expand_sources_scoped(obj: object, *, is_hashmap: bool = False, skip: bool = False) -> object:
+    """Expand ``source`` shorthands outside the scopes where ``source`` is a plain reference."""
+    if isinstance(obj, list):
+        return [_expand_sources_scoped(item, is_hashmap=is_hashmap, skip=skip) for item in obj]
+    if not isinstance(obj, dict):
         return obj
+    result = {}
+    for k, v in obj.items():
+        if is_hashmap:
+            result[k] = _expand_sources_scoped(v, skip=skip)
+        elif k == "source" and not skip:
+            result[k] = _expand_source(v)
+        else:
+            child_skip = skip or k in _SOURCE_SKIP_SECTIONS
+            result[k] = _expand_sources_scoped(v, is_hashmap=_child_is_hashmap_field(k, v), skip=child_skip)
+    return result
 
-    data = expand_sources_scoped(data)
 
-    # Expand infrastructure shorthand
-    if "infrastructure" in data and isinstance(data["infrastructure"], dict):
+def _expand_node_shorthands(node_name: object, node_data: dict[str, Any], *, path: Path | None) -> None:
+    """Expand the roles and the feature, condition and inject list shorthands of one node."""
+    if isinstance(node_data.get("roles"), dict):
+        node_data["roles"] = _expand_roles(node_data["roles"])
+    # G6: features/conditions/injects as list -> dict with empty role
+    for field in ("features", "conditions", "injects"):
+        if isinstance(node_data.get(field), list):
+            node_data[field] = _names_mapping(node_data[field], node=node_name, field=field, path=path)
+
+
+def _expand_shorthands(data: dict[str, Any], *, path: Path | None = None) -> dict[str, Any]:
+    """Apply all shorthand expansions to normalized data."""
+    data = _expand_sources_scoped(data)
+    if isinstance(data.get("infrastructure"), dict):
         data["infrastructure"] = _expand_infrastructure(data["infrastructure"])
-
-    # Expand roles and feature/condition/inject list shorthands within nodes
-    if "nodes" in data and isinstance(data["nodes"], dict):
-        for node_data in data["nodes"].values():
+    nodes = data.get("nodes")
+    if isinstance(nodes, dict):
+        for node_name, node_data in nodes.items():
             if isinstance(node_data, dict):
-                if "roles" in node_data:
-                    node_data["roles"] = _expand_roles(node_data["roles"])
-                # G6: features/conditions/injects as list -> dict with empty role
-                for field in ("features", "conditions", "injects"):
-                    if field in node_data and isinstance(node_data[field], list):
-                        node_data[field] = {name: "" for name in node_data[field]}
-
+                _expand_node_shorthands(node_name, node_data, path=path)
     return data
 
 
@@ -381,6 +372,11 @@ def parse_sdl(
         source_key_ranges=source_key_ranges,
     )
     _reject_removed_scoring_sections(data, path=path)
+    traversal = private_options.get("_traversal")
+    if "materialization_provenance" in data and traversal is not None and traversal.sources is not None:
+        raise SDLImportError(
+            SDLImportErrorCode.PHASE_REFUSED, "A supplied root must be an authored scenario.", path=path
+        )
     if "materialization_provenance" in data:
         scenario_cls = MaterializedScenario
     elif data.get("imports"):
@@ -405,7 +401,7 @@ def parse_sdl(
             migration_policy=migration_policy,
             limits=limits,
             source_diagnostics=source_diagnostics,
-            _traversal=private_options.get("_traversal"),
+            _traversal=traversal,
             _declaration_sources=declaration_sources,
         )
         scenario_cls = ExpandedScenario
@@ -438,6 +434,57 @@ def parse_sdl(
         scenario._set_advisories([])
         scenario._set_semantic_validated(False)
     return scenario
+
+
+def parse_sdl_sources(
+    sources: Mapping[str, bytes],
+    root: str,
+    *,
+    source_format: str = SDL_SOURCE_FORMAT,
+    migration_policy: SDLMigrationPolicy | str = SDLMigrationPolicy.REJECT,
+    limits: SDLParserLimits = DEFAULT_PARSER_LIMITS,
+) -> Scenario | ExpandedScenario:
+    """Parse untrusted SDL from caller-supplied bytes (ADR-119).
+
+    The operation reads only ``sources``. It never reads a file, the
+    environment or the network, and it never reads ``raes-trust.yaml``. Each
+    import at each depth must be ``local:``, must have a ``sha256:`` digest pin
+    and must match exactly one record in the ``raes.lock.json`` entry beside its
+    importing document.
+
+    Args:
+        sources: Canonical POSIX relative paths mapped to exact source bytes.
+            The operation copies each value one time.
+        root: The path of the root SDL document in ``sources``.
+        source_format: Versioned concrete-syntax profile identifier.
+        migration_policy: Strict rejection or explicit acceptance of recognized
+            legacy field/merge syntax.
+        limits: Source, lock and composition resource limits.
+
+    Returns:
+        A semantically validated ``Scenario``, or ``ExpandedScenario`` when the
+        root has imports.
+
+    Raises:
+        SDLImportError: An import or a supplied path was refused; ``code`` names why.
+        SDLParseError: The YAML or the structure of a document is not valid.
+        SDLValidationError: Semantic validation found errors.
+    """
+    supplied = SuppliedSources.capture(sources)
+    root_path, root_bytes = supplied.root(root)
+    document = decode_sdl_source(root_bytes, path=root_path, limits=limits)
+    # parse_sdl refuses a materialized root when the traversal carries supplied sources.
+    return cast(
+        Scenario | ExpandedScenario,
+        parse_sdl(
+            document.text,
+            path=root_path,
+            source_format=source_format,
+            migration_policy=migration_policy,
+            limits=limits,
+            _traversal=CompositionTraversal.supplied_root(limits, supplied),
+        ),
+    )
 
 
 def parse_sdl_file(path: Path, **kwargs: Any) -> Scenario | ExpandedScenario | MaterializedScenario:
@@ -481,7 +528,7 @@ def _load_normalized_data(
     if any(not isinstance(key, str) for key in data):
         raise SDLParseError("SDL top-level mapping keys must be strings", path=path)
     _reject_variable_mapping_keys(data)
-    data = _expand_shorthands(data)
+    data = _expand_shorthands(data, path=path)
     migrate_legacy_vm_nodes(
         data,
         path=path,

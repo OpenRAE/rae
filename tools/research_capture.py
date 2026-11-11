@@ -7,11 +7,21 @@ import argparse
 import hashlib
 import json
 import subprocess
+import sys
 from pathlib import Path
 
-from tools.evidence_bundle_index import load_index_records, revision_key
-from tools.policy.common import load_bounded_json_object, safe_repo_path
-from tools.research_evidence import (
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import ConflictError, InvalidInputError  # noqa: E402
+from raes_contracts.operational_logging import run_application  # noqa: E402
+
+from tools.evidence_bundle_index import load_index_records, revision_key  # noqa: E402
+from tools.policy.common import load_bounded_json_object, safe_repo_path  # noqa: E402
+from tools.research_evidence import (  # noqa: E402
     capture_identity,
     current_release_path,
     is_capture,
@@ -41,12 +51,13 @@ def _pinned_capture_documents(root: Path, manifest: dict[str, object]) -> dict[s
     for label in ("protocol", "corpus", "snapshot", "analysis"):
         if f"{label}_path" not in manifest:
             continue
-        path = safe_repo_path(root, manifest[f"{label}_path"])
+        value = manifest[f"{label}_path"]
+        path = safe_repo_path(root, value) if isinstance(value, str) else None
         if path is None or not path.is_file() or path.stat().st_size > 2 * 1024 * 1024:
-            raise ValueError("capture document path is unsafe or oversized")
+            raise InvalidInputError("capture document path is unsafe or oversized")
         content = path.read_bytes()
-        if hashlib.sha256(content).hexdigest() != manifest[f"{label}_sha256"]:
-            raise ValueError("capture document pin is stale")
+        if hashlib.sha256(content).hexdigest() != manifest.get(f"{label}_sha256"):
+            raise InvalidInputError("capture document pin is stale")
         documents[label] = content
     return documents
 
@@ -60,7 +71,7 @@ def _prepare_capture_documents(
 ) -> None:
     overrides = {"snapshot": snapshot_path, "analysis": analysis_path}
     if (snapshot_path is None) != (analysis_path is None):
-        raise ValueError("a fresh capture requires snapshot and analysis together")
+        raise InvalidInputError("a fresh capture requires snapshot and analysis together")
     for label, relative in overrides.items():
         if relative is None:
             continue
@@ -73,7 +84,10 @@ def _prepare_capture_documents(
 
 
 def _normalize_snapshot_reference(manifest: dict[str, object], documents: dict[str, bytes], snapshot_path: str) -> None:
-    analysis = json.loads(documents["analysis"])
+    try:
+        analysis = json.loads(documents["analysis"])
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise InvalidInputError("capture analysis document is not valid UTF-8 JSON") from exc
     claim = analysis.get("claim")
     if isinstance(claim, dict) and isinstance(claim.get("evidence_artifacts"), list):
         claim["evidence_artifacts"] = [
@@ -87,7 +101,7 @@ def _write_capture_documents(root: Path, prefix: str, documents: dict[str, bytes
     folder = root / prefix
     if folder.exists():
         if any((folder / f"{label}.json").read_bytes() != content for label, content in documents.items()):
-            raise ValueError("an immutable capture identity already contains different bytes")
+            raise ConflictError("an immutable capture identity already contains different bytes")
     else:
         folder.mkdir(parents=True)
         for label, content in documents.items():
@@ -105,7 +119,7 @@ def _write_retention_record(root: Path, family: str, identity: str, prefix: str,
     expected = json.dumps(receipt, indent=2, sort_keys=True) + "\n"
     if receipt_path.exists():
         if receipt_path.read_text() != expected:
-            raise ValueError("capture retention record differs from its immutable manifest")
+            raise ConflictError("capture retention record differs from its immutable manifest")
     else:
         with receipt_path.open("x") as stream:
             stream.write(expected)
@@ -122,7 +136,7 @@ def record_capture(
     """Copy a digest-pinned capture without relabeling its immutable observations."""
     records = _records(root, family)
     if template_path not in dict(records):
-        raise ValueError("capture template must be an indexed, admitted evidence manifest")
+        raise InvalidInputError("capture template must be an indexed, admitted evidence manifest")
     manifest = dict(dict(records)[template_path])
     documents = _pinned_capture_documents(root, manifest)
     _prepare_capture_documents(root, manifest, documents, snapshot_path, analysis_path)
@@ -151,13 +165,13 @@ def _validate_publication_receipt(
     revisions: set[object],
     capture_paths: set[object],
 ) -> None:
-    if set(receipt) != {"revision", "capture_path", "capture_sha256"}:
-        raise ValueError("invalid evidence publication receipt")
+    if set(receipt) != {"revision", "capture_path", "capture_sha256"} or not isinstance(receipt["capture_path"], str):
+        raise InvalidInputError("invalid evidence publication receipt")
     number = revision_key(receipt["revision"])
     if receipt_path.name != f"v{number[0]}.json" or number[1:] != (0, 0):
-        raise ValueError("publication receipt filename must match its major release number")
+        raise InvalidInputError("publication receipt filename must match its major release number")
     if receipt["revision"] in revisions or receipt["capture_path"] in capture_paths:
-        raise ValueError("publication receipts must have unique revisions and captures")
+        raise InvalidInputError("publication receipts must have unique revisions and captures")
     revisions.add(receipt["revision"])
     capture_paths.add(receipt["capture_path"])
     capture = safe_repo_path(root, receipt["capture_path"])
@@ -166,7 +180,7 @@ def _validate_publication_receipt(
         or receipt["capture_path"] not in dict(records)
         or hashlib.sha256(capture.read_bytes()).hexdigest() != receipt["capture_sha256"]
     ):
-        raise ValueError("publication receipt has a stale capture pin")
+        raise InvalidInputError("publication receipt has a stale capture pin")
 
 
 def _publication_receipts(
@@ -192,14 +206,14 @@ def publish_capture(root: Path, family: str) -> str:
     """Create a numbered publication receipt on dev; leave the capture unchanged."""
     branch = subprocess.check_output(["git", "-C", str(root), "branch", "--show-current"], text=True).strip()
     if branch != "dev":
-        raise ValueError("numbered evidence publication is allowed only on the dev integration branch")
+        raise ConflictError("numbered evidence publication is allowed only on the dev integration branch")
     if subprocess.check_output(["git", "-C", str(root), "status", "--porcelain"], text=True).strip():
-        raise ValueError("publication requires a clean integrated checkout")
+        raise ConflictError("publication requires a clean integrated checkout")
     records = _records(root, family)
     selected = current_release_path(records, root)
     manifest = dict(records)[selected]
     if not is_capture(manifest.get("revision")):
-        raise ValueError("integration publication requires a content-addressed capture")
+        raise ConflictError("integration publication requires a content-addressed capture")
     path = safe_repo_path(root, selected)
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
     folder = root / "docs/research" / family / "publications"
@@ -229,11 +243,11 @@ def main() -> int:
     parser.add_argument("--snapshot")
     parser.add_argument("--analysis")
     args = parser.parse_args()
-    root = Path(__file__).resolve().parents[1]
+    root = REPO_ROOT
+    if args.action == "record" and args.template is None:
+        parser.error("record requires --template")
     try:
         if args.action == "record":
-            if args.template is None:
-                parser.error("record requires --template")
             path = record_capture(
                 root,
                 args.family,
@@ -243,11 +257,17 @@ def main() -> int:
             )
         else:
             path = publish_capture(root, args.family)
-    except (OSError, ValueError, subprocess.CalledProcessError) as exc:
+    except (
+        OSError,
+        UnicodeDecodeError,
+        InvalidInputError,
+        ConflictError,
+        subprocess.CalledProcessError,
+    ) as exc:
         parser.exit(1, f"{exc}\n")
     print(path)
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

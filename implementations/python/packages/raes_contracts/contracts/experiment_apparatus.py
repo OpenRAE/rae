@@ -8,6 +8,7 @@ from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from ..timestamps import parse_rfc3339_datetime
 from ..versions import (
     BACKEND_MANIFEST_V2_SCHEMA_VERSION,
     EXPERIMENT_APPARATUS_CONTEXT_SCHEMA_VERSION,
@@ -15,16 +16,16 @@ from ..versions import (
     PROCESSOR_MANIFEST_V2_SCHEMA_VERSION,
 )
 from . import experiment_task as _experiment_task
-from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString, _canonical_digest, _parse_rfc3339_datetime
+from .base import ContractModel, NonEmptyString, Rfc3339DateTimeString, casefold_digest
 from .capabilities import ApparatusIdentityModel
 from .experiment_artifacts import (
     ExperimentApparatusCompatibilityReferenceModel,
     ExperimentArtifactRefModel,
     ExperimentMeasurementChannelReferenceModel,
-    _format_reference,
-    _identity_matches_reference,
     _manifest_reference_key,
-    _reference_satisfies_requirement,
+    format_reference,
+    identity_matches_reference,
+    reference_satisfies_requirement,
 )
 from .experiment_capture import ExperimentValidityNoteModel
 from .experiment_disclosure import (
@@ -38,7 +39,7 @@ from .experiment_references import (
 from .manifests import ProcessorManifestV2Model
 from .participant_manifests import BackendManifestV2Model
 from .random_stream import RandomStreamControlBindingModel
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 ExperimentTaskModel = _experiment_task.ExperimentTaskModel
 
@@ -115,7 +116,7 @@ class ExperimentApparatusContextModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_instrument_context(self) -> ExperimentApparatusContextModel:
-        _parse_rfc3339_datetime("declared_at", self.declared_at)
+        parse_rfc3339_datetime("declared_at", self.declared_at)
         processor, backend = _require_processor_and_backend_components(self.components)
         selected_manifest_keys = _validate_selected_manifest_subject_uniqueness(self.selected_manifests)
         canonical_component_manifest_keys = _validate_core_component_manifest_refs(
@@ -163,7 +164,7 @@ class ExperimentApparatusContextModel(ContractModel):
                     },
                 ]
             )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "canonical-apparatus-manifest-selected",
             "The canonical processor and backend component manifest_ref values must be present in selected_manifests; "
@@ -171,7 +172,7 @@ class ExperimentApparatusContextModel(ContractModel):
             validator="raes_contracts.contracts.ExperimentApparatusContextModel._validate_instrument_context",
             inputs=[{"contract_id": "experiment-apparatus-context-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "apparatus-manifest-payload-identity-valid",
             "Canonical processor and backend manifest_ref values must resolve to manifest payloads with matching "
@@ -317,7 +318,7 @@ def _component_identity_satisfies_allowed_refs(
     component: ExperimentApparatusComponentModel,
     allowed_refs: list[ExperimentReferenceModel],
 ) -> bool:
-    return any(_identity_matches_reference(component.identity, allowed_ref) for allowed_ref in allowed_refs)
+    return any(identity_matches_reference(component.identity, allowed_ref) for allowed_ref in allowed_refs)
 
 
 def _apparatus_capability_ids(apparatus_context: ExperimentApparatusContextModel) -> set[str]:
@@ -344,21 +345,21 @@ def _validate_apparatus_context_satisfies_constraints(
         processor,
         apparatus_constraints.allowed_processor_refs,
     ):
-        allowed = ", ".join(_format_reference(reference) for reference in apparatus_constraints.allowed_processor_refs)
+        allowed = ", ".join(format_reference(reference) for reference in apparatus_constraints.allowed_processor_refs)
         raise ValueError(f"run apparatus processor identity must satisfy task allowed_processor_refs: {allowed}")
 
     if apparatus_constraints.allowed_backend_refs and not _component_identity_satisfies_allowed_refs(
         backend,
         apparatus_constraints.allowed_backend_refs,
     ):
-        allowed = ", ".join(_format_reference(reference) for reference in apparatus_constraints.allowed_backend_refs)
+        allowed = ", ".join(format_reference(reference) for reference in apparatus_constraints.allowed_backend_refs)
         raise ValueError(f"run apparatus backend identity must satisfy task allowed_backend_refs: {allowed}")
 
     missing_manifests = sorted(
-        _format_reference(required_manifest)
+        format_reference(required_manifest)
         for required_manifest in apparatus_constraints.required_manifest_refs
         if not any(
-            _reference_satisfies_requirement(selected_manifest, required_manifest)
+            reference_satisfies_requirement(selected_manifest, required_manifest)
             for selected_manifest in apparatus_context.selected_manifests
         )
     )
@@ -398,7 +399,7 @@ def _validate_component_manifest_payload(
     subject_ref = component.manifest_ref.subject_ref
     if subject_ref is None:
         raise ValueError(f"apparatus component '{component_key}' manifest_ref must include subject_ref")
-    if not _identity_matches_reference(manifest.identity, subject_ref):
+    if not identity_matches_reference(manifest.identity, subject_ref):
         raise ValueError(f"apparatus component '{component_key}' manifest_ref subject_ref must match manifest identity")
     _validate_component_manifest_digest_match(
         component_key=component_key,
@@ -419,7 +420,7 @@ def _validate_component_manifest_digest_match(
         raise ValueError(
             f"apparatus component '{component_key}' manifest_ref digest requires a supplied manifest payload digest"
         )
-    if _canonical_digest(manifest_ref.ref_digest) != _canonical_digest(supplied_digest):
+    if casefold_digest(manifest_ref.ref_digest) != casefold_digest(supplied_digest):
         raise ValueError(
             f"apparatus component '{component_key}' manifest_ref digest must match manifest payload digest"
         )

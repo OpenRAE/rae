@@ -8,6 +8,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 import pytest
+from raes_contracts.errors import InvalidInputError
 from tools.check_semantic_coverage import (
     ADR_RELATIVE_PATH,
     CANONICAL_PHASES,
@@ -245,6 +246,25 @@ def test_cli_returns_nonzero_on_failure(tmp_path: Path, capsys: pytest.CaptureFi
 
 def test_cli_returns_zero_when_clean(tmp_path: Path) -> None:
     assert main(["--repo-root", str(_seed_repo(tmp_path))]) == 0
+
+
+def test_coverage_parse_error_is_an_invalid_input_category() -> None:
+    assert issubclass(CoverageParseError, InvalidInputError)
+    assert not issubclass(CoverageParseError, ValueError)
+
+
+def test_cli_reports_an_invalid_policy_exception_as_one_message(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    exceptions = tmp_path / "tools" / "policy" / "exceptions.yaml"
+    exceptions.parent.mkdir(parents=True)
+    exceptions.write_text(
+        "exceptions:\n  - rule_id: coverage-note-missing\n    expires_at: not-a-date\n",
+        encoding="utf-8",
+    )
+
+    assert main(["--repo-root", str(tmp_path)]) == 1
+    assert capsys.readouterr().err == "semantic-coverage: policy exception expires_at must be an ISO date\n"
 
 
 @pytest.mark.integration

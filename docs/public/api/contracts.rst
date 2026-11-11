@@ -1,10 +1,16 @@
-Shared Contracts
+Shared contracts
 ================
 
-The ``raes_contracts`` package owns neutral DTOs and enums shared across
-processor, runtime, backend protocols, conformance, and authoring surfaces.
-These contracts are the typed boundary for backend-facing runtime calls; they
-must not live in runtime or processor implementation modules.
+The ``raes_contracts`` package owns shared data types and enums. The processor,
+runtime, backend protocols, conformance tools, and authoring tools use them.
+They define the typed boundary for runtime calls to backends. Keep them out of
+runtime and processor modules.
+
+For exact portable structures, use the
+`published schema reference for RAES 11.0.2 <https://github.com/OpenRAE/rae/blob/v11.0.2/contracts/schemas/README.md>`_.
+The `normative specification index <https://github.com/OpenRAE/rae/blob/v11.0.2/specs/README.md>`_
+links to required meaning.
+The Python API supplies implementation evidence. It does not replace either authority.
 
 Diagnostics
 -----------
@@ -12,7 +18,7 @@ Diagnostics
 .. automodule:: raes_contracts.diagnostics
    :members:
 
-Artifact Transformation Reports
+Artifact transformation reports
 -------------------------------
 
 .. automodule:: raes_contracts.contracts.artifact_transformations
@@ -24,41 +30,39 @@ Planning
 .. automodule:: raes_contracts.planning
    :members:
 
-Runtime State
+Runtime state
 -------------
 
 .. automodule:: raes_contracts.runtime_state
    :members:
 
-Workflow Results
+Workflow results
 ----------------
 
 .. automodule:: raes_contracts.workflow
    :members:
 
-Evaluation Results
+Evaluation results
 ------------------
 
 .. automodule:: raes_contracts.evaluation
    :members:
 
-Participant Episodes
+Participant episodes
 --------------------
 
 .. automodule:: raes_contracts.participant_episode
    :members:
 
-Participant Implementation Manifests
+Participant implementation manifests
 ------------------------------------
 
 ``ParticipantImplementationManifestModel`` and
 ``ParticipantImplementationProvenanceModel`` live in
 ``raes_contracts.contracts`` with the other published contract models. The
-manifest declares participant implementation identity, capabilities,
-compatibility, decision-surface modes, tool-affordance expectations, and
-constraints. The provenance record preserves the participant implementation,
-selected manifest, selected configuration reference, participant contract
-versions, and decision-surface exposure policy used in a run.
+manifest names the implementation and its supported behavior, limits, and
+tool needs. The provenance record states which implementation, manifest,
+configuration, contract versions, and decision-surface policy a run used.
 
 Mixed-backend execution and readback
 ------------------------------------

@@ -21,7 +21,6 @@ import logging
 import sqlite3
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import TypeVar
 
 import pytest
 import raes_runtime.control_plane_api._health_routes as health_routes
@@ -40,7 +39,6 @@ from starlette.types import Message, Receive, Scope, Send
 
 pytestmark = pytest.mark.control_plane_conformance
 
-_T = TypeVar("_T")
 _LIMIT = 16
 _TOO_LARGE = (413, b'{"detail":"request too large"}')
 _INVALID_LENGTH = (400, b'{"detail":"invalid content-length"}')
@@ -53,7 +51,7 @@ _BEARER = (b"authorization", f"Bearer {_OPERATOR_TOKEN}".encode())
 _DISCONNECT: Message = {"type": "http.disconnect"}
 
 
-def _run(awaitable: Awaitable[_T]) -> _T:
+def _run[T](awaitable: Awaitable[T]) -> T:
     """Run one exchange without replacing or closing pytest's default loop."""
 
     loop = asyncio.new_event_loop()

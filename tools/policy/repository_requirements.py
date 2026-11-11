@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from pathlib import Path
 
 import yaml
+from raes_contracts.errors import InvalidInputError
+from yaml.constructor import ConstructorError, SafeConstructor
 
 _UID = re.compile(r"[A-Z]{3}-\d{3,}")
 _TRACE = re.compile(r"- ([A-Z][A-Z_]*) → ([A-Z][A-Z_]*) `([^`\n]+)`(?: \([^\n]*\))?")
@@ -13,7 +16,7 @@ _MAX_REQUIREMENT_BYTES = 512 * 1024
 _GOVERNED_STATUSES = frozenset({"DRAFT", "ACTIVE", "DEPRECATED", "ARCHIVED"})
 
 
-class RepositoryRequirementError(ValueError):
+class RepositoryRequirementError(InvalidInputError):
     """Required local authority was missing, unsafe or malformed."""
 
 
@@ -23,6 +26,36 @@ class _RequirementLoader(yaml.SafeLoader):
         if len(keys) != len(node.value) or len(keys) != len(set(keys)):
             raise yaml.YAMLError("Requirement metadata keys must be unique scalars.")
         return super().construct_mapping(node, deep=deep)
+
+
+# The safe scalar constructors raise these built-in exceptions, not a YAMLError, for a value
+# that they cannot build: an integer beyond the interpreter digit limit, an impossible date,
+# an empty tagged number, an unknown !!bool word or a !!timestamp value that is not a timestamp.
+_SCALAR_CONSTRUCTION_FAILURES: tuple[tuple[str, Callable[..., object], tuple[type[Exception], ...]], ...] = (
+    ("tag:yaml.org,2002:int", SafeConstructor.construct_yaml_int, (ValueError, IndexError)),
+    ("tag:yaml.org,2002:float", SafeConstructor.construct_yaml_float, (ValueError, IndexError)),
+    ("tag:yaml.org,2002:bool", SafeConstructor.construct_yaml_bool, (KeyError,)),
+    ("tag:yaml.org,2002:timestamp", SafeConstructor.construct_yaml_timestamp, (ValueError, AttributeError)),
+)
+
+
+def _refusing_scalar_constructor(
+    constructor: Callable[..., object],
+    construction_failures: tuple[type[Exception], ...],
+) -> Callable[[_RequirementLoader, yaml.Node], object]:
+    """Report a scalar that the safe constructor cannot build as a constructor error."""
+
+    def construct(loader: _RequirementLoader, node: yaml.Node) -> object:
+        try:
+            return constructor(loader, node)
+        except construction_failures as exc:
+            raise ConstructorError(None, None, "scalar value cannot be constructed", node.start_mark) from exc
+
+    return construct
+
+
+for _tag, _constructor, _failures in _SCALAR_CONSTRUCTION_FAILURES:
+    _RequirementLoader.add_constructor(_tag, _refusing_scalar_constructor(_constructor, _failures))
 
 
 def _metadata(frontmatter: str) -> object:

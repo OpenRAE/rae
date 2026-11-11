@@ -4,11 +4,13 @@ import asyncio
 from threading import Event, Thread
 
 import pytest
+from raes_contracts.errors import OperationalError
 from raes_contracts.operation_lifecycle import OperationKind
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import OperationState
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_mutation import RuntimeMutationAuthority
+from raes_runtime.errors import RuntimeBudgetExhaustedError
 from raes_runtime.operation_supervision_configuration import OperationSupervisionConfiguration
 from test_issue_1362_distributed_authority import Dispatcher, worker
 from test_issue_1362_provider_execution import Evidence, Provider, target
@@ -47,7 +49,7 @@ def test_failed_reacquisition_does_not_grant_a_second_writer(asynchronous):
             else:
                 with authority.mutation(OperationKind.PROVISIONING):
                     outside()
-        except TimeoutError:
+        except RuntimeBudgetExhaustedError:
             effect_unwound.set()
 
     def supervise():
@@ -109,7 +111,9 @@ def test_deadline_classification_can_use_the_single_store_slot():
     plane._expire_backend_invocation = expiry
     try:
         receipt = plane.submit_provisioning(ProvisioningPlan())
-        assert expired.wait(1)
+        # The callback has a five-second admission budget of its own. Allow
+        # that budget and runner scheduling time before checking settlement.
+        assert expired.wait(10)
         assert not failures
         assert plane._store.raw_store.load_records()[receipt.operation_id].status.state is OperationState.CANCELLED
         assert receipt.operation_id not in plane._admitted_backend_requests
@@ -143,7 +147,7 @@ def test_failed_deadline_classification_closes_runtime_authority():
         assert poisoned.wait(1)
         assert plane._durability_poisoned
         rejected_plan = ProvisioningPlan()
-        with pytest.raises(RuntimeError):
+        with pytest.raises(OperationalError):
             plane.submit_provisioning(rejected_plan)
     finally:
         plane.close()
@@ -183,8 +187,17 @@ def test_blocked_worker_admission_leaves_the_single_control_slot_available(block
     from raes_runtime.operation_worker_authority import InvocationGrant
     from test_issue_1360_backend_operations import capabilities, control, request, response
 
+    # Match the watchdog allowance at every layer; this tests lane isolation,
+    # not sub-second scheduling on a shared runner.
+    budget_ms = 10000
     operation = request()
-    entered, release = Event(), Event()
+    operation = operation.model_copy(
+        update={"budget": operation.budget.model_copy(update={"limit_ms": budget_ms, "remaining_ms": budget_ms})}
+    )
+    control_request = control().model_copy(
+        update={"budget": operation.budget, "request_digest": backend_operation_request_digest(operation)}
+    )
+    entered, release, returned = Event(), Event(), Event()
     provider = Provider()
     provider.request = operation
     provider.operation_capabilities = capabilities
@@ -193,8 +206,11 @@ def test_blocked_worker_admission_leaves_the_single_control_slot_available(block
 
     def block(*args):
         entered.set()
-        assert release.wait(3)
-        return original(*args)
+        try:
+            assert release.wait(10)
+            return original(*args)
+        finally:
+            returned.set()
 
     setattr(provider, blocked_method, block)
 
@@ -205,12 +221,12 @@ def test_blocked_worker_admission_leaves_the_single_control_slot_available(block
             return operation
 
         def claim(self, *args):
-            return InvocationGrant(request=operation, remaining_budget_ms=1000)
+            return InvocationGrant(request=operation, remaining_budget_ms=budget_ms)
 
         def get_control(self, *args):
             from raes_runtime.operation_control_budget import ControlDeliveryGrant
 
-            return ControlDeliveryGrant(control=control(), remaining_budget_ms=900)
+            return ControlDeliveryGrant(control=control_request, remaining_budget_ms=budget_ms)
 
         def publish(self, reference, result):
             self.reports.append(result)
@@ -229,8 +245,8 @@ def test_blocked_worker_admission_leaves_the_single_control_slot_available(block
         request_digest=backend_operation_request_digest(operation),
         effect_queue="effect",
         control_queue="control",
-        execution_budget_ms=1000,
-        control_budget_ms=1000,
+        execution_budget_ms=budget_ms,
+        control_budget_ms=budget_ms,
     )
     authority = Authority()
     activities = TemporalOperationActivities(
@@ -250,10 +266,15 @@ def test_blocked_worker_admission_leaves_the_single_control_slot_available(block
             limiter.total_tokens = outer_capacity
         invocation = asyncio.create_task(activities.invoke(reference.model_dump(mode="json")))
         try:
-            assert await asyncio.to_thread(entered.wait, 1)
+            assert await asyncio.to_thread(entered.wait, 5)
+            # Prove control completes while admission remains blocked; the
+            # timeout bounds a deadlock, rather than measuring runner speed.
+            assert not returned.is_set()
             await asyncio.wait_for(
-                activities.control({"reference": reference.model_dump(mode="json"), "control_id": "control-1"}), 0.3
+                activities.control({"reference": reference.model_dump(mode="json"), "control_id": "control-1"}), 5
             )
+            assert not returned.is_set()
+            assert not release.is_set()
             assert provider.cancels == 1
             assert authority.reports[0].message.disposition == "accepted"
         finally:

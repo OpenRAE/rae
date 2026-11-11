@@ -8,11 +8,11 @@ source_refs:
   - docs/explain/sdl/sections.md
 summary: Model workflow behavior as explicit objective, branch, join, retry, call, and end nodes.
 intent: >
-  Keep workflow templates reusable by relying on named control-flow steps and
-  existing workflow semantic validation instead of prose-only sequencing.
+  Use named control-flow steps and existing workflow semantic validation.
+  A prose sequence alone does not define the workflow.
 use_when:
-  - Translating an exercise procedure into workflow steps.
-  - Making branch convergence or terminal states reviewable.
+  - An exercise procedure needs workflow steps.
+  - Branch convergence or terminal states need review.
 authoring_steps:
   - Define the objective names the workflow will execute.
   - Choose the smallest workflow step type that represents each transition.

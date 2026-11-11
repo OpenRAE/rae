@@ -1,5 +1,6 @@
 """Cancellation acceptance and evidenced work outcomes are separate facts."""
 
+from raes_contracts.errors import EvidenceIntegrityError
 from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import OperationKind, OperationState
 from raes_runtime.control_plane_execution import OperationExecutionRequest
@@ -64,7 +65,7 @@ def test_cancelling_a_pending_proposal_records_a_durable_prevention_witness():
 def admitted_attempt(plane, *, native=True):
     from uuid import uuid4
 
-    from raes_runtime.control_plane_execution import _utc_now
+    from raes_contracts.timestamps import isoformat_z
     from raes_runtime.control_plane_supervised_execution import invocation_request
 
     operation_id = str(uuid4())
@@ -87,7 +88,7 @@ def admitted_attempt(plane, *, native=True):
         idempotency_key="action-1",
         request_fingerprint=context.request_commitment,
     )
-    backend = invocation_request(plane, request, operation_id, _utc_now())
+    backend = invocation_request(plane, request, operation_id, isoformat_z(plane.wall_clock()))
     record, _ = claim_accepted(plane, request, backend_request=backend, native=native)
     return record
 
@@ -142,6 +143,7 @@ def test_stored_target_attestations_reject_boolean_coordinates():
     from dataclasses import replace
 
     import pytest
+    from raes_runtime.participant_control_operation_index import operation_index
     from raes_runtime.participant_control_targets import archived_control_targets
 
     with configured_plane()[0] as plane:
@@ -155,8 +157,8 @@ def test_stored_target_attestations_reject_boolean_coordinates():
         record = plane._operations[receipt.operation_id]
         payload = deepcopy(record.result_payload)
         payload["participant_control_available_targets"][0]["available_at"] = False
-        plane._operations[receipt.operation_id] = replace(record, result_payload=payload)
-        with pytest.raises(ValueError):
+        operation_index(plane).apply(replace(record, result_payload=payload))
+        with pytest.raises(EvidenceIntegrityError):
             archived_control_targets(plane, PARTICIPANT)
 
 

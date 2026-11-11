@@ -7,8 +7,8 @@ import pytest
 from raes_backend_protocols.manifest import backend_manifest_v2_model
 from raes_backend_stubs.stubs import StubProvisioner
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.plan_projection import runtime_plan_digest
-from raes_contracts.realization_preparation import preparation_snapshot_digest
+from raes_contracts.contracts.plan_projection import runtime_plan_digest
+from raes_contracts.contracts.realization_preparation import preparation_snapshot_digest
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_operations.run_artifacts import RunMaterializationArchive
 from raes_runtime.backend_calls import _BackendCallContext, _call_backend_apply, _RealizationApplyContext
@@ -169,6 +169,7 @@ def test_manager_returns_the_attestation_through_the_existing_apply_flow(tmp_pat
     manager = RuntimeManager(
         RuntimeTarget(name="attesting", manifest=execution.manifest, provisioner=backend),
         materialization_archive=RunMaterializationArchive(tmp_path),
+        run_scope="run:run-1",
     )
     result = manager.apply(replace(execution, target_name="attesting"))
     assert result.success, result.diagnostics
@@ -185,6 +186,7 @@ def test_cleanup_does_not_require_a_new_materialization_attestation(tmp_path):
     manager = RuntimeManager(
         RuntimeTarget(name="attesting", manifest=execution.manifest, provisioner=backend),
         materialization_archive=RunMaterializationArchive(tmp_path),
+        run_scope="run:run-1",
     )
     applied = manager.apply(replace(execution, target_name="attesting"))
     assert applied.success
@@ -264,7 +266,11 @@ def test_permitted_in_world_addition_is_archived_at_member_granularity(tmp_path)
         tmp_path,
         mutate=mutate,
         realize=True,
-        source="name: augmented\nrealization: {default: open}\nnodes:\n  host: {type: compute}",
+        source=(
+            "name: augmented\nrealization:\n  default: open\n  scopes:\n"
+            "    - {field_pointer: /nodes/host/runtime, posture: closed}\n"
+            "nodes:\n  host: {type: compute}"
+        ),
     )
     assert result.success, result.diagnostics
     from raes import parse_sdl
@@ -279,7 +285,11 @@ def test_truthful_report_does_not_excuse_a_changed_exact_authored_value(tmp_path
         tmp_path,
         mutate=lambda document: document["nodes"]["host"].update(architecture="aarch64"),
         realize=True,
-        source="name: exact\nrealization: {default: open}\nnodes:\n  host: {type: compute, architecture: x86_64}",
+        source=(
+            "name: exact\nrealization:\n  default: open\n  scopes:\n"
+            "    - {field_pointer: /nodes/host/runtime, posture: closed}\n"
+            "nodes:\n  host: {type: compute, architecture: x86_64}"
+        ),
     )
     assert not result.success
     assert any(diagnostic.code != "runtime.materialization-attestation-invalid" for diagnostic in result.diagnostics)

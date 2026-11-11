@@ -1,4 +1,9 @@
-# SDL Specification
+# SDL specification
+
+The [cloud resource and secret-service contract](cloud-resource-access.md)
+extends existing identity and application descriptions with resource scopes,
+identity use, policy attachment, secret versions and consumer selections.
+It does not provide cloud deployment or an IAM policy evaluator.
 
 Status: **normative**. This directory is the language-neutral authority for the
 RAES **Scenario Description Language (SDL)** authoring model and portable
@@ -7,14 +12,13 @@ the ecosystem independent of any reference implementation or code-generation
 pipeline, per [ADR-009](../../docs/decisions/adrs/adr-009-normative-artifact-authority-and-repository-structure.md)
 and the [authority boundary manifest](../authority/authority-boundary.yaml).
 
-The SDL itself is established by
-[ADR-001 (Scenario Description Language)](../../docs/decisions/adrs/adr-001-scenario-description-language.md):
-a backend-agnostic, declarative language for specifying security experiment
-scenarios. This specification states the **authoring model** — the structure of
-an SDL document, how its parts reference one another, how it is parameterised
-and instantiated, and how it is diagnosed — in SDL terms, so that an independent
-implementation can answer structural questions without reading the reference
-Python.
+[ADR-001 (Scenario Description Language)](../../docs/decisions/adrs/adr-001-scenario-description-language.md)
+establishes SDL as a declarative language for security experiment scenarios, independent of a backend.
+This reference defines the **authoring model** in SDL terms.
+It covers document structure, references, parameters, instantiation, and diagnostics.
+An independent implementation can use it without reading the reference Python code.
+For operating steps, use the [authoring guide](../../docs/public/sdl/index.md).
+For reasons behind the split, read the [authority explanation](../../docs/explain/reference/normative-artifact-authority.md).
 
 ## Authority relationship
 
@@ -30,13 +34,11 @@ Three artifact classes describe the SDL, with distinct authority:
    machine-readable normative companion. They are the hand-governed schema
    authority under [ADR-009 §7](../../docs/decisions/adrs/adr-009-normative-artifact-authority-and-repository-structure.md)
    and the [schema publication manifest](../../contracts/schema-publication-manifest.json).
-   The prose and the schemas describe the same language and **MUST** agree; a
-   divergence between them is a defect to be reconciled, not a license for
-   either to override the other. Where this prose states a structural fact
-   (a section's presence, requiredness, or value shape), the applicable
-   `sdl-authoring-input-v1`, `instantiated-scenario-v1`, or
-   `instantiated-scenario-snapshot-v1` or `materialized-scenario-v1` schema is the authoritative enumeration
-   the prose is written to match. The authoring schema validates the normalized
+   The prose and the schemas describe the same language and **MUST** agree.
+   A divergence is a defect to reconcile; neither can override the other.
+   The applicable schema authoritatively enumerates structural facts: section presence, requiredness, and value shape.
+   The schemas are `sdl-authoring-input-v1`, `instantiated-scenario-v1`, `instantiated-scenario-snapshot-v1`, and `materialized-scenario-v1`.
+   This prose is written to match them. The authoring schema validates the normalized
    object, not raw YAML presentation; `document-model.md` §1 and the
    `contracts/fixtures/sdl/sdl-yaml-v1/` corpus define the raw source profile.
 3. **Reference implementations (`implementations/`)** consume both. No Python
@@ -52,31 +54,31 @@ source.
 
 ## Conventions
 
-The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**,
-**SHOULD**, **SHOULD NOT**, **MAY**, and **OPTIONAL** in this specification are
-to be interpreted as described in RFC 2119 and RFC 8174 when, and only when,
-they appear in all capitals.
+RFC 2119 and RFC 8174 define the interpretation of these key words:
+**MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**,
+**SHOULD**, **SHOULD NOT**, **MAY**, and **OPTIONAL**.
+That interpretation applies when, and only when, the words appear in all capitals.
 
-Throughout, *section* means a top-level authoring surface of an SDL document;
-*identifier* means an author-chosen key that names an element; *reference*
-means one element naming another by identifier; and *instantiation* means the
-phase that resolves a parameterised authoring document into a concrete one.
+*Section* means a top-level authoring surface of an SDL document.
+*Identifier* means an author-chosen key that names an element.
+*Reference* means one element naming another by identifier.
+*Instantiation* means the phase that resolves a parameterized authoring document into a concrete one.
 
 ## Document set
 
-The specification is organised as a small set of normative **catalogs** so that
-adding a future SDL section or runtime family is a new row plus its schema and
-tests, rather than a prose rewrite. The catalogs are:
+The specification uses normative **catalogs**.
+A new SDL section or runtime family needs a catalog row, its schema, and its tests.
+The catalogs are:
 
 | File | Catalog | Covers |
 |------|---------|--------|
-| [`document-model.md`](document-model.md) | — | Document encoding, the metadata/composition vs. authoring-section split, requiredness, identifier rules, structural closure, and the normalized -> expanded -> instantiated -> snapshot phases. |
+| [`document-model.md`](document-model.md) | — | Encoding, structure, requiredness, identifiers, closure, document phases, infrastructure, features, and duration values. |
 | [`execution-recovery.md`](execution-recovery.md) | — | Complete lexical execution policies, bounded retry, recovery selection, native plan preservation and explicit admission refusal. |
 | [`sections.md`](sections.md) | **1. Section catalog** | Every top-level field: kind, value shape (map-keyed vs. list-valued vs. scalar), requiredness, key shape, and the sections it references. |
 | [`references.md`](references.md) | **2. Reference-resolution catalog** | Reference forms (bare, qualified, nested runtime-family, workflow-step, module-composed), the resolution algorithm, the fail-closed ambiguity rule, and the cross-section reference-edge catalog. |
 | [`variables-and-instantiation.md`](variables-and-instantiation.md) | **3. Variable / instantiation catalog** | Variable types, defaults, `allowed_values`, `${…}` substitution, the instantiation algorithm, and post-instantiation exclusions. |
 | [`variation-points.md`](variation-points.md) | — | Closed scenario-family variation kinds, bounded domains, typed target slots, structural constraints, composition, and phase behavior. |
-| [`runtime-inventory.md`](runtime-inventory.md) | **4. Runtime-family index** | The node-scoped runtime-inventory index — family key, collection name, primary `<noun>_id`, child-ref collections, owning ADR — and the shared invariants stated once, delegating per-field semantics to the family ADRs. |
+| [`runtime-inventory.md`](runtime-inventory.md) | **4. Runtime-family index** | Node-scoped runtime families: keys, collections, primary `<noun>_id`, child refs, owning ADRs, and shared invariants. Family ADRs own per-field semantics. |
 | [`software-requirements.md`](software-requirements.md) | — | Component outcomes, independent versions, exact-package compatibility, typed acquisition refinements, shared final repository/trust state and separate reporting. |
 | [`recursive-realization-constraints.md`](recursive-realization-constraints.md) | — | The versioned recursive constraint normal form: independent presence, knowledge, closure, identity, sequence/reference, provenance, composition, and bounded relation semantics. |
 | [`authored-domain-topology.md`](authored-domain-topology.md) | — | Authored identity domains, controller/member topology, account domain bindings, compiled ordering, provisioner capability, admission, and readback invariants. |
@@ -101,6 +103,8 @@ An implementer can answer each structural question from the named file alone:
   semantic digest?* → [`document-model.md`](document-model.md) §§1, 5, 7-9.
 - *What is a valid identifier for a user-defined key?* →
   [`document-model.md`](document-model.md).
+- *What do infrastructure and features declare, and which duration values are valid?* →
+  [`document-model.md`](document-model.md) §§10–12.
 - *How does a reference resolve, and what happens when it is dangling or
   ambiguous?* → [`references.md`](references.md), including its checked
   editor-visible edge index and distinct candidate-domain classifications.
@@ -127,10 +131,9 @@ An implementer can answer each structural question from the named file alone:
 
 ## Scope
 
-In scope: the SDL authoring model and portable derived phase contracts —
-document structure, references, variables, instantiation/provenance,
-scenario-family variation declarations, canonical snapshots, the runtime-inventory index, observability/evidence plane
-rules, authored identity-domain topology, and the diagnostic boundary.
+This reference covers the SDL authoring model and portable derived phase contracts.
+These include document structure, references, variables, instantiation/provenance, scenario-family variation declarations, and canonical snapshots.
+They also include the runtime-inventory index, observability/evidence plane rules, authored identity-domain topology, and the diagnostic boundary.
 
 Out of scope: delivery-level concerns (container, infrastructure-as-code, and
 cloud-API mechanics), processor and backend execution contracts, and the
@@ -138,3 +141,5 @@ per-field semantics of each runtime family (owned by the family ADRs and indexed
 here). The normative error-vs-advisory classification criterion is stated in
 [`diagnostics.md` §5](diagnostics.md) (resolving review IMP-3); the
 classification of an individual condition follows from that criterion.
+
+[Participant control-context references](participant-control-context.md) define exact authored asset selections and ADR-094 participant factors.

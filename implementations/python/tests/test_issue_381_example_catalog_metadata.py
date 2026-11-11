@@ -8,8 +8,9 @@ from typing import Any
 
 import pytest
 import yaml
-from raes import load_sdl_fragment
+from raes import SDLParseError, load_sdl_fragment
 from test_example_library_policy import _VALID_BODY, _read_catalog, _seed_repo, _write_catalog
+from tools import example_library_checks
 from tools.check_example_library import evaluate_example_library
 from tools.example_library_checks import sdl_body_source
 
@@ -244,3 +245,26 @@ def test_template_body_source_reads_back_as_the_loaded_body(character: str) -> N
     body = {"name": "scenario-template", "description": f" a {character} b "}
 
     assert load_sdl_fragment(sdl_body_source(body)) == body
+
+
+def test_invalid_template_sdl_is_reported_as_a_policy_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    def reject(_source: str) -> None:
+        raise SDLParseError("template body is not a mapping")
+
+    monkeypatch.setattr(example_library_checks, "parse_sdl", reject)
+
+    failures = example_library_checks.check_template_body({}, dict(_VALID_BODY), "template.yaml")
+
+    assert [failure.rule_id for failure in failures] == ["example-library-template-body"]
+    assert "template body is not a mapping" in failures[0].message
+
+
+def test_a_parser_defect_is_not_reported_as_invalid_sdl(monkeypatch: pytest.MonkeyPatch) -> None:
+    # A defect in the parser must reach the boundary as a failure, never pass as an authoring finding.
+    def defect(_source: str) -> None:
+        raise KeyError("secret-sentinel")
+
+    monkeypatch.setattr(example_library_checks, "parse_sdl", defect)
+
+    with pytest.raises(KeyError, match="secret-sentinel"):
+        example_library_checks.check_template_body({}, dict(_VALID_BODY), "template.yaml")

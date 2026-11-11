@@ -16,10 +16,14 @@ class DomainNodeRole(str, Enum):
 
 @dataclass(frozen=True)
 class DomainTopologyIssue:
-    """Machine-readable authored-topology consistency issue."""
+    """Machine-readable authored-topology consistency issue.
+
+    ``owner`` is the ``(section, name)`` pair of the declaration that the message names first.
+    """
 
     code: str
     message: str
+    owner: tuple[str, str] | None = None
 
 
 @dataclass(frozen=True)
@@ -67,10 +71,10 @@ def resolve_section_ref(ref: object, section: str, declarations: Mapping[str, ob
     return qualified if qualified in declarations else None
 
 
-def topology_issue(code: str, message: str) -> DomainTopologyIssue:
-    """Build a normalized authored-topology issue."""
+def topology_issue(code: str, message: str, owner: tuple[str, str]) -> DomainTopologyIssue:
+    """Build a normalized authored-topology issue of the *owner* declaration."""
 
-    return DomainTopologyIssue(code=code, message=message)
+    return DomainTopologyIssue(code=code, message=message, owner=owner)
 
 
 __all__ = [

@@ -30,8 +30,8 @@ from raes.phase_contracts import (
     SemanticDigest,
 )
 from raes.scenario import ExpandedScenario, InstantiatedScenario, Scenario, ScenarioContent
-from raes_contracts.contracts import schema_bundle
 from raes_processor.compiler import compile_runtime_model
+from raes_schemas import schema_bundle
 
 
 def _digest() -> SemanticDigest:

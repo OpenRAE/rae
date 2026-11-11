@@ -49,6 +49,7 @@ def test_mixed_absence_uses_the_original_installation_and_permits_a_new_handoff(
 
     def refused(request):
         bridge.request = request
+        bridge.requests.append(request)
         bridge.starts += 1
         return bridge.report(request, {"kind": "acknowledgement", "disposition": "refused", "reason": "unavailable"})
 

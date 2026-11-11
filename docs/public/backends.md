@@ -1,51 +1,99 @@
 # Check a backend boundary
 
-Use backend manifests and conformance fixtures to state what an implementation
-accepts and what it can realize.
+Check the packaged fixtures before you integrate a live target.
+RAES owns portable SDL, processing, runtime admission, contracts, and conformance.
+The backend owner manages native resources, credentials, allocation, and teardown.
 
-RAES separates three questions:
+## Before you start
 
-1. Is the SDL document valid?
-2. Can a processor compile the requested meaning?
-3. Can a selected backend realize the compiled request?
+Use Python 3.14 and an installed RAES 11.0.2 package.
+Run `python -m pip install raes==11.0.2` inside your virtual environment if needed.
+Installation contacts your configured package source and writes that environment.
+The fixture check below needs no backend identity or native resource permissions.
+It reads the packaged corpus and does not deploy infrastructure.
 
-A valid scenario can still exceed a backend's declared capabilities. Read the
-backend report and keep unsupported or degraded results with the run evidence.
+## Run the portable fixture check
 
-The repository includes contracts, stubs, and conformance tests. It does not
-ship a concrete deployment backend or a managed environment service. A backend
-distribution, such as [LilRAE](https://github.com/OpenRAE/lilrae), owns
-concrete realization, credentials, allocation, and teardown. RAES 7.0.0 was the
-last release to bundle the reference and libvirt backends. Read the
-[concrete backends migration](https://github.com/OpenRAE/rae/blob/main/docs/migration/concrete-backends.md)
-for the removed imports and commands.
+Run the provisioning-only profile:
 
-Run conformance from an installed release. Use `raes conformance backend` or
-`run_fixture_suite(profile=...)` for fixture conformance of a backend profile.
-Use `run_target_conformance(target)` with your own runtime target to check the
-surface that the target declares. Fixture conformance does not prove a live
-deployment.
+```console
+raes conformance backend --profile provisioning-only --format text
+```
 
-Start with the [backend schemas](https://github.com/OpenRAE/rae/tree/main/contracts/schemas/backend-manifest)
-and the [conformance API](api/contracts.rst).
+The report starts with these results:
 
-Backends can also report what they built as SDL. The runtime saves this record
-with the run. See [SDL run records](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/materialization-attestations.md)
-for the contract and setup.
+```text
+backend conformance: passed
+requested: provisioning-only; achieved: provisioning-only
+native conformance: false
+checks: {'passed': 38, 'failed': 0, 'unsupported': 0}
+```
 
-The optional operation-supervision profile defines requests, progress,
-cancellation and effect reports for backend authors. Read the
-[protocol and migration guide](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/backend-operation-supervision.md).
-These contracts keep unknown effects explicit. Publishing them does not certify
-that a backend can interrupt work or recover after a failure.
+Exit `0` means that the selected finite fixture cases passed.
+Keep the full report, profile digest, case identities, producer version, and limitations.
+It checks published contract examples, including expected refusals.
+It does not check your own manifest.
+It does not certify native execution.
+The Python equivalent is `run_fixture_suite(profile=...)` from `raes_conformance.conformance`.
 
-The [trial unit](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/backend-trial-unit.md) defines a typed
-in-process handoff for one admitted entry. An adapter binds the protocol to an
-injected runtime target. It returns execution observations and separate cleanup
-evidence. The interface does not install a trial executor.
+If the report fails, inspect its diagnostics before integration.
+A missing corpus produces `conformance.fixture-missing` and exit `1`.
+Restore the packaged fixtures or reinstall the matching release.
+Do not remove failing cases or turn fixture success into a native claim.
+No native cleanup is needed for this check.
 
-Mixed-backend bridges, time services and readers can describe one admitted edge
-or handoff with the execution binding and stage report contracts. Read the
-[mixed-backend migration note](https://github.com/OpenRAE/rae/blob/main/docs/migration/mixed-backend-execution.md).
-These reports keep execution, delivery and observation apart. Declaring the
-contracts does not prove support, and the runtime does not read them.
+## Admit your own target
+
+1. Obtain the backend's exact release, manifest, installed components, and native setup instructions.
+2. Validate the scenario through the [SDL procedure](sdl/validate-compile-plan.md).
+3. Plan with the exact manifest through [backend-specific planning](sdl/validate-compile-plan.md#task-cards).
+4. Read every unsupported, degraded, or refused result before authorizing execution.
+
+A valid SDL document can exceed the selected backend's capabilities.
+A manifest claim does not prove that the declared code is installed.
+Start with the [backend-manifest schemas](https://github.com/OpenRAE/rae/tree/v11.0.2/contracts/schemas/backend-manifest)
+and [conformance API reference](api/contracts.rst).
+The [runtime contract reference](https://github.com/OpenRAE/rae/blob/v11.0.2/specs/formal/runtime-contracts/README.md)
+gives exact portable result and capability rules for that release.
+Read its implementation evidence before treating a schema as proof of native support.
+
+`run_target_conformance(target)` exercises the surface of an explicitly supplied runtime target.
+It can invoke target effects. Obtain resource permissions and a verified cleanup procedure before calling it.
+Use the backend owner's approved disposable environment.
+Retain original readback, evidence, failures, and cleanup results in that owner's release gate.
+A documentation fixture check supplies none of those facts.
+
+## Select an external owner
+
+[LilRAE](https://github.com/OpenRAE/lilrae) owns its backend distribution and native lifecycle.
+Choose a LilRAE release with an explicitly supported RAES pairing.
+RAES 7.0.0 was the last release with bundled reference and libvirt backends.
+The [concrete-backend migration](https://github.com/OpenRAE/rae/blob/main/docs/migration/concrete-backends.md)
+records removed imports and commands. RAES supplies no replacement libvirt deployment command.
+
+OpenRAE/env-packs owns pack authoring and distribution.
+Shifter and other adapters retain their own repositories, setup, and evidence boundaries.
+No external backend is qualified by the fixture report above.
+Native integration remains unverified here.
+It needs the exact release pairing and installation.
+It also needs authorized commands, native readback, and cleanup evidence.
+
+## Read runtime artifacts after integration
+
+Use these exact references when your backend implements the corresponding contract:
+
+- [SDL run records](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/materialization-attestations.md): backend-reported realization, retained with the run.
+- [Runtime descendant inventory](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/runtime-descendant-inventory.md): unplanned children and later inventory changes.
+- [Operation supervision](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/backend-operation-supervision.md): progress, cancellation, and uncertain effects.
+- [Trial unit](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/backend-trial-unit.md): one admitted entry's execution and separate cleanup observations.
+- [Mixed-backend adoption](https://github.com/OpenRAE/rae/blob/main/docs/migration/mixed-backend-execution.md): installed bridges, time coordination, and independent stage readers.
+
+Reporting does not establish independent observation, successful interruption, or resource reuse.
+For mixed use, check the [current support table](https://github.com/OpenRAE/rae/blob/main/docs/explain/reference/revised-control-semantics.md)
+before composing services. Controlled test examples do not certify a native backend.
+
+## Finish
+
+You have a fixture report and a bounded route to your target's own qualification.
+Use the target's owner for native teardown after effect reconciliation.
+Read [portability concepts](concepts.md) for the distinction between authored meaning and realized behavior.

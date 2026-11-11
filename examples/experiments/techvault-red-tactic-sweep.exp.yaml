@@ -1,10 +1,8 @@
-# TechVault red-tactic sweep — an authored experiment specification.
-#
-# This is the pre-run authoring/input counterpart to the archival
-# experiment-core outputs (run/study/apparatus-context). It references the
-# separately authored task (experiment-task-v1) and declares the experimental
-# design — apparatus intent, run plan, factors, and intended capture — before
-# any run executes. See specs/formal/experiment-core/ and ADR-074.
+# TechVault red-tactic experiment design.
+# Reference a separately authored experiment-task-v1 task.
+# Declare apparatus intent, run plan, factors, and intended capture before execution.
+# The archival run/study/apparatus-context outputs have a separate contract.
+# See specs/formal/experiment-core/ and ADR-074.
 schema_version: experiment-authoring-input/v1
 spec_id: spec-techvault-red-tactic-sweep-v1
 spec_version: 1.0.0
@@ -13,20 +11,20 @@ description: >-
   Pre-run design comparing aggressive vs stealthy red tactics over the fixed
   TechVault task, with seeded replication.
 
-# The task carries scenario + protocol + metric definitions; reference it by id.
+# Reference the task by ID. It owns scenario, protocol, and metric definitions.
 task_ref:
   ref_kind: task
   ref_id: task-techvault-red-team-v1
   ref_version: 1.0.0
 
-# Optionally pin the intended scenario snapshot the design targets.
+# An intended scenario snapshot pin is optional.
 intended_scenario_ref:
   ref_kind: scenario-snapshot
   ref_id: scenario-techvault
   ref_version: "2026-05-26"
   ref_digest: sha256:1111111111111111111111111111111111111111111111111111111111111111
 
-# Declared apparatus intent (planned, not the run-scoped observed context).
+# This is planned apparatus intent. Observed run context has a separate record.
 apparatus_intent:
   required_capabilities:
     - workflow-results

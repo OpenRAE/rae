@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import base64
+import binascii
 import hashlib
 import re
 from dataclasses import asdict
 from pathlib import Path
 
+from pydantic import ValidationError
+from raes_contracts.errors import InvalidInputError
+
 from tools.policy.common import PolicyFailure, load_bounded_json_object, safe_repo_path
-from tools.research_evidence import surface_digest
 from tools.specification_coverage._keys import (
     _ARTIFACT_KEYS,
     _IMPLEMENTATION_SURFACE_KEYS,
@@ -22,6 +25,8 @@ from tools.specification_coverage._primitives import (
     _bounded_list,
     _exact_keys,
     _failure,
+    _hashable,
+    _member,
     _record_ids,
     _sha256,
 )
@@ -32,16 +37,18 @@ def _surface_entry_failures(
     surface: dict[str, object],
     failures: list[PolicyFailure],
     path: str,
-    *,
-    replay_current: bool = True,
 ) -> None:
     surface_id = surface.get("surface_id")
-    expected_path = IMPLEMENTATION_SURFACE_PATHS.get(surface_id)
+    hashable_id = _hashable(surface_id)
+    expected_path = IMPLEMENTATION_SURFACE_PATHS.get(surface_id) if hashable_id else None
     recorded_path = surface.get("path")
-    if recorded_path not in {
-        expected_path,
-        HISTORICAL_IMPLEMENTATION_SURFACE_PATHS.get(surface_id),
-    }:
+    if not _member(
+        recorded_path,
+        {
+            expected_path,
+            HISTORICAL_IMPLEMENTATION_SURFACE_PATHS.get(surface_id) if hashable_id else None,
+        },
+    ):
         failures.append(
             _failure(
                 "specification-coverage-implementation-identity",
@@ -61,13 +68,7 @@ def _surface_entry_failures(
         )
         return
     expected_sha = surface.get("content_sha256")
-    current_valid = True
-    if replay_current:
-        try:
-            current_valid = recorded_path == expected_path and expected_sha == surface_digest(repo_root, expected_path)
-        except (OSError, ValueError):
-            current_valid = False
-    if not isinstance(expected_sha, str) or not _SHA256_RE.fullmatch(expected_sha) or not current_valid:
+    if not isinstance(expected_sha, str) or not _SHA256_RE.fullmatch(expected_sha):
         failures.append(
             _failure(
                 "specification-coverage-implementation-identity",
@@ -82,8 +83,6 @@ def _validate_implementation_surfaces(
     snapshot: dict[str, object],
     failures: list[PolicyFailure],
     path: str,
-    *,
-    replay_current: bool = True,
 ) -> None:
     surfaces = _bounded_list(
         snapshot.get("implementation_surfaces"),
@@ -117,7 +116,7 @@ def _validate_implementation_surfaces(
             label=f"implementation_surfaces[{index}]",
             path=path,
         ):
-            _surface_entry_failures(repo_root, surface, failures, path, replay_current=replay_current)
+            _surface_entry_failures(repo_root, surface, failures, path)
 
 
 def _execute_sdl_artifact(path: Path) -> dict[str, object]:
@@ -138,7 +137,7 @@ def _execute_sdl_artifact(path: Path) -> dict[str, object]:
         if str(getattr(diagnostic.severity, "value", diagnostic.severity)).lower() == "error"
     ]
     if error_diagnostics:
-        raise ValueError("compiled artifact contains error diagnostics")
+        raise InvalidInputError("compiled artifact contains error diagnostics")
     return {
         "authored": authored.model_dump(mode="json", by_alias=True),
         "semantic": authored.model_dump(mode="json", by_alias=True),
@@ -162,7 +161,7 @@ def _executed_contract_payload(kind: str, payload: dict[str, object]) -> dict[st
         from raes_contracts.backend_profiles import BackendProfileModel
 
         return {"profile-manifest": BackendProfileModel.model_validate(payload).model_dump(mode="json", by_alias=True)}
-    raise ValueError(f"unsupported artifact kind {kind!r}")
+    raise InvalidInputError(f"unsupported artifact kind {kind!r}")
 
 
 def _execute_artifact(repo_root: Path, kind: str, path: Path) -> dict[str, object]:
@@ -221,7 +220,7 @@ def _record_artifact_execution(
         return
     try:
         executed[artifact_path] = _execute_artifact(repo_root, kind, resolved)
-    except (OSError, ValueError, TypeError) as exc:
+    except (OSError, InvalidInputError, ValidationError) as exc:
         failures.append(
             _failure(
                 "specification-coverage-artifact-execution",
@@ -306,7 +305,7 @@ def _historical_artifact_failures(repo_root: Path, artifact: dict[str, object], 
     path = artifact.get("path")
     try:
         if not isinstance(digest, str) or not _SHA256_RE.fullmatch(digest):
-            raise ValueError("invalid historical source pin")
+            raise InvalidInputError("invalid historical source pin")
         archive = load_bounded_json_object(
             repo_root,
             f"docs/research/specification-coverage/historical-artifacts/{digest}.json",
@@ -318,12 +317,14 @@ def _historical_artifact_failures(repo_root: Path, artifact: dict[str, object], 
             or not isinstance(archive.get("recovered_from_revision"), str)
             or not re.fullmatch(r"[0-9a-f]{40}", archive["recovered_from_revision"])
             or not isinstance(archive.get("content_base64"), str)
+            # b64decode() refuses non-ASCII text with a plain ValueError, not binascii.Error.
+            or not archive["content_base64"].isascii()
         ):
-            raise ValueError("invalid historical archive")
+            raise InvalidInputError("invalid historical archive")
         content = base64.b64decode(archive["content_base64"], validate=True)
         if hashlib.sha256(content).hexdigest() != digest:
-            raise ValueError("archive bytes differ from the frozen source pin")
-    except (OSError, ValueError):
+            raise InvalidInputError("archive bytes differ from the frozen source pin")
+    except OSError, InvalidInputError, binascii.Error:
         failures.append(
             _failure(
                 "specification-coverage-artifact-digest",

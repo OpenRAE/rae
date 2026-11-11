@@ -10,8 +10,13 @@ import subprocess
 import sys
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
 
 from tools.policy.common import (
     PolicyFailure,
@@ -333,6 +338,18 @@ def main() -> int:
         uid, scope = resolve_requirement_context(REPO_ROOT, current_branch(REPO_ROOT), args.requirement_uid)
     except RequirementScopeError as exc:
         return emit_failures([PolicyFailure("requirement-scope-invalid", str(exc))], as_json=args.json)
+    try:
+        status = _evaluate_context(args, paths, uid, scope)
+    except InvalidInputError as exc:
+        # A malformed governance input, such as a policy exception date, is a message, not a traceback.
+        print(f"requirement-governance: {exc}", file=sys.stderr)
+        return 1
+    return status
+
+
+def _evaluate_context(
+    args: argparse.Namespace, paths: list[str], uid: str | None, scope: RequirementScope | None
+) -> int:
     if scope is not None:
         return evaluate_configured_governance(
             paths,
@@ -357,4 +374,4 @@ def _evaluate_legacy_context(args: argparse.Namespace, paths: list[str], uid: st
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

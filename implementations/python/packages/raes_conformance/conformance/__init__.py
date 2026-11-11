@@ -8,12 +8,28 @@ imports directly; internal modules never import this facade.
 from __future__ import annotations
 
 from raes_conformance.conformance.fixture_suite import run_fixture_suite
+from raes_conformance.conformance.mixed_backend_cases import MIXED_BACKEND_CASES, MixedBackendCase
+from raes_conformance.conformance.mixed_backend_probes import run_mixed_backend_conformance
+from raes_conformance.conformance.mixed_backend_types import (
+    MixedBackendCaseBinding,
+    MixedBackendCondition,
+    MixedBackendProbeHarness,
+    MixedBackendProbeRequest,
+    MixedBackendSubject,
+    MixedCompositionProbeConfiguration,
+    MixedControlProbeConfiguration,
+)
+from raes_conformance.conformance.modular_control import (
+    modular_control_obligations,
+    run_modular_control_conformance,
+)
 from raes_conformance.conformance.observability import (
     observability_evidence_conformance_diagnostics,
 )
 from raes_conformance.conformance.participant_episode_structure import (
     participant_episode_structure_conformance_diagnostics,
 )
+from raes_conformance.conformance.processor import ProcessorConformanceProbe, run_processor_conformance
 from raes_conformance.conformance.profiles import (
     BackendCapabilityProfile,
     BackendProfileSelector,
@@ -26,6 +42,7 @@ from raes_conformance.conformance.report import (
     ConformanceCaseResult,
     backend_conformance_report_payload,
 )
+from raes_conformance.conformance.report_text import backend_conformance_report_text
 from raes_conformance.conformance.semantics import (
     _fixture_case_diagnostics as _fixture_case_diagnostics,
 )
@@ -47,20 +64,35 @@ from raes_conformance.conformance.validators import (
 )
 
 __all__ = [
+    "ProcessorConformanceProbe",
+    "run_processor_conformance",
+    "backend_conformance_report_text",
+    "MIXED_BACKEND_CASES",
     "BackendCapabilityProfile",
     "BackendConformanceReport",
     "BackendProfileSelector",
     "ConformanceCaseResult",
+    "MixedBackendCase",
+    "MixedBackendCaseBinding",
+    "MixedBackendCondition",
+    "MixedBackendProbeHarness",
+    "MixedBackendProbeRequest",
+    "MixedBackendSubject",
+    "MixedCompositionProbeConfiguration",
+    "MixedControlProbeConfiguration",
     "backend_conformance_report_payload",
     "contract_payload_root",
     "contract_validation_strength",
     "fixtures_root",
+    "modular_control_obligations",
     "observability_evidence_conformance_diagnostics",
     "participant_episode_structure_conformance_diagnostics",
     "profile_for_manifest",
     "profiles_root",
     "required_contracts",
     "run_fixture_suite",
+    "run_mixed_backend_conformance",
+    "run_modular_control_conformance",
     "run_target_conformance",
     "supported_contract_ids",
     "validate_contract_payload",

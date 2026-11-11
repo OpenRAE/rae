@@ -1,6 +1,7 @@
 """Engine delivery and scoped service identity never recreate effect authority."""
 
 import pytest
+from raes_contracts.errors import AuthorizationError, ConflictError
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import OperationState
 from raes_runtime.control_plane import RuntimeControlPlane
@@ -47,7 +48,7 @@ def test_distributed_delivery_requires_a_current_confirmed_grant_and_cannot_clai
         admission = provider.check_operation(request)
         rejected_capabilities = provider.operation_capabilities()
         rejected_identity = worker("foreign-worker")
-        with pytest.raises(PermissionError):
+        with pytest.raises(AuthorizationError):
             plane.claim_backend_invocation(
                 request.binding, rejected_capabilities, admission, identity=rejected_identity
             )
@@ -60,7 +61,7 @@ def test_distributed_delivery_requires_a_current_confirmed_grant_and_cannot_clai
         assert plane.get_operation(receipt.operation_id).state is OperationState.RUNNING
         rejected_capabilities_1 = provider.operation_capabilities()
         rejected_identity_1 = worker()
-        with pytest.raises(ValueError):
+        with pytest.raises(ConflictError):
             plane.claim_backend_invocation(
                 request.binding, rejected_capabilities_1, admission, identity=rejected_identity_1
             )
@@ -79,7 +80,7 @@ def test_owner_replacement_or_missing_clock_continuity_cannot_authorize_dispatch
         rejected_capabilities_2 = provider.operation_capabilities()
         rejected_admission = provider.check_operation(request)
         rejected_identity_2 = worker()
-        with pytest.raises((RuntimeError, ValueError)):
+        with pytest.raises(ConflictError):
             plane.claim_backend_invocation(
                 request.binding, rejected_capabilities_2, rejected_admission, identity=rejected_identity_2
             )

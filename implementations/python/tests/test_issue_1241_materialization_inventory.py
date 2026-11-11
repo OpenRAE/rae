@@ -4,6 +4,7 @@ from copy import deepcopy
 from dataclasses import replace
 
 import pytest
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.planner import admit_materialization_submission
 from test_issue_1241_materialization_context import attesting_plan
@@ -58,7 +59,7 @@ def test_replica_cardinality_is_bounded_before_enumerating_indices(monkeypatch):
         raise AssertionError("cardinality must be checked before allocating indices")
 
     monkeypatch.setattr(admission, "range", bounded_range, raising=False)
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidInputError):
         admit_materialization_submission(
             result.materialization_attestation, request, execution.manifest, previous, result.snapshot
         )
@@ -90,8 +91,46 @@ def test_later_phase_checks_retained_safe_inventory_without_revealing_values(pha
     request = replace(getattr(execution, phase), operation_id=phase)
     report = reporter.report(request, previous, ApplyResult(True, previous)).materialization_attestation
     if tampered:
-        with pytest.raises(ValueError, match="outside its operation domain"):
+        with pytest.raises(InvalidInputError, match="outside its operation domain"):
             admit_materialization_submission(report, request, execution.manifest, previous, previous)
     else:
         admitted = admit_materialization_submission(report, request, execution.manifest, previous, previous)
         assert "value_commitment" not in admitted.sdl
+
+
+def test_runtime_artifact_evidence_is_not_compared_with_the_described_sdl():
+    execution, _ = attesting_plan("name: augmented\nrealization: {default: open}\nnodes:\n  host: {type: compute}")
+    request = replace(execution.provisioning, operation_id="reported-operation")
+    previous = RuntimeSnapshot()
+    result = ReportingProvisioner(execution.manifest, lambda document: None, realize=True).apply(request, previous)
+    entry = result.snapshot.entries["provision.node.host"]
+    evidence = {**entry.payload, "artifact_satisfaction": {"requirement_id": "runtime-owned"}}
+    actual = result.snapshot.with_entries({entry.address: replace(entry, payload=evidence)})
+    admit_materialization_submission(result.materialization_attestation, request, execution.manifest, previous, actual)
+    other = {**entry.payload, "unexpected": True}
+    actual = result.snapshot.with_entries({entry.address: replace(entry, payload=other)})
+    with pytest.raises(InvalidInputError):
+        admit_materialization_submission(
+            result.materialization_attestation, request, execution.manifest, previous, actual
+        )
+
+
+def test_runtime_artifact_evidence_is_ignored_in_every_compared_scope():
+    from raes_contracts.planning import PlannedResource, RuntimeDomain
+    from raes_contracts.runtime_state import SnapshotEntry
+    from raes_processor.planner.materialization_admission import _materialized_entry_matches
+
+    payload = {"name": "rules", "spec": {"target": "host", "path": "/etc/rules"}}
+    resource = PlannedResource(
+        address="provision.content.rules",
+        domain=RuntimeDomain.PROVISIONING,
+        resource_type="content-placement",
+        payload=payload,
+    )
+    entry = SnapshotEntry(
+        address=resource.address,
+        domain=RuntimeDomain.PROVISIONING,
+        resource_type="content-placement",
+        payload={**payload, "artifact_satisfaction": {"requirement_id": "runtime-owned"}},
+    )
+    assert _materialized_entry_matches(entry, resource)

@@ -6,11 +6,15 @@ trusted: an artifact counts only once the published schema has been run over it.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Hashable
 from pathlib import Path
 
 import yaml
 from jsonschema import Draft202012Validator
+from jsonschema.exceptions import SchemaError
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.json_pointer import array_index
+from referencing.exceptions import Unresolvable
 
 from tools.policy.common import PolicyFailure, load_bounded_json_object, load_yaml, safe_repo_path
 from tools.schema_coverage._keys import (
@@ -73,7 +77,15 @@ def declares_contract(payload: object, forms: frozenset[str]) -> bool:
     than dragging its carrier through the wrong schema.
     """
 
-    return isinstance(payload, dict) and payload.get("schema_version") in forms
+    schema_version = payload.get("schema_version") if isinstance(payload, dict) else None
+    # An object or list schema_version has no hash, and it names no contract.
+    return isinstance(schema_version, Hashable) and schema_version in forms
+
+
+def _delivered_artifacts(entry: dict[str, object]) -> list[object]:
+    artifacts = entry.get("delivered_artifacts")
+    # Only a list carries artifact records; a scalar or an object carries none.
+    return artifacts if isinstance(artifacts, list) else []
 
 
 def formal_artifact_paths(repo_root: Path) -> tuple[frozenset[str], list[PolicyFailure]]:
@@ -89,20 +101,22 @@ def formal_artifact_paths(repo_root: Path) -> tuple[frozenset[str], list[PolicyF
         return frozenset(), []
     try:
         document = load_yaml(path)
-    except (OSError, yaml.YAMLError):
+    except OSError, UnicodeDecodeError, yaml.YAMLError, InvalidInputError:
+        # load_yaml() raises InvalidInputError for a value it cannot construct and for excessive nesting.
         failure = PolicyFailure(
             CATALOG_RULE_ID,
             "assurance fulfillment map is not readable valid YAML",
             ASSURANCE_FULFILLMENT_RELATIVE_PATH,
         )
         return frozenset(), [failure]
-    entries = document.get("entries")
+    # A map without its structure delivers no artifact, the same as malformed entries.
+    entries = document.get("entries") if isinstance(document, dict) else None
     delivered = (
         {
             artifact["path"]
             for entry in entries
             if isinstance(entry, dict)
-            for artifact in (entry.get("delivered_artifacts") or [])
+            for artifact in _delivered_artifacts(entry)
             if isinstance(artifact, dict) and isinstance(artifact.get("path"), str)
         }
         if isinstance(entries, list)
@@ -137,6 +151,9 @@ def check_source_path(repo_root: Path, relative_path: object) -> str | None:
     )
 
 
+_INVALID_SCHEMA_REASON = "published schema is not a valid JSON Schema: {schema_path}"
+
+
 def _definition_wrapper(root: dict[str, object], schema_pointer: str) -> tuple[dict[str, object] | None, str | None]:
     """Wrap one published ``$defs`` entry so its ``$ref`` resolves locally."""
 
@@ -145,6 +162,20 @@ def _definition_wrapper(root: dict[str, object], schema_pointer: str) -> tuple[d
     if not isinstance(definitions, dict) or name not in definitions:
         return None, f"schema pointer names no published definition: {schema_pointer}"
     return {"$schema": root.get("$schema", METASCHEMA), "$defs": definitions, "$ref": schema_pointer}, None
+
+
+def _published_schema(
+    repo_root: Path, schema_path: str, schema_pointer: str | None
+) -> tuple[dict[str, object] | None, str | None]:
+    """Read the published schema, or one of its published ``$defs``, or return why it is unusable."""
+
+    try:
+        root = load_bounded_json_object(repo_root, schema_path, max_bytes=MAX_SCHEMA_BYTES)
+    except InvalidInputError:
+        return None, f"published schema is not a readable bounded JSON object: {schema_path}"
+    if schema_pointer is None:
+        return root, None
+    return _definition_wrapper(root, schema_pointer)
 
 
 def _published_validator(
@@ -156,14 +187,15 @@ def _published_validator(
     the named sub-schema resolves without any network or registry lookup.
     """
 
+    schema, reason = _published_schema(repo_root, schema_path, schema_pointer)
+    if reason is not None:
+        return None, reason
     try:
-        root = load_bounded_json_object(repo_root, schema_path, max_bytes=MAX_SCHEMA_BYTES)
-    except ValueError:
-        return None, f"published schema is not a readable bounded JSON object: {schema_path}"
-    if schema_pointer is None:
-        return Draft202012Validator(root), None
-    wrapper, reason = _definition_wrapper(root, schema_pointer)
-    return (None, reason) if reason is not None else (Draft202012Validator(wrapper), None)
+        # A malformed keyword or regular expression otherwise fails inside validation.
+        Draft202012Validator.check_schema(schema)
+    except SchemaError:
+        return None, _INVALID_SCHEMA_REASON.format(schema_path=schema_path)
+    return Draft202012Validator(schema), None
 
 
 def _conformance_reason(validator: Draft202012Validator, payload: object, relative_path: str) -> str | None:
@@ -183,7 +215,13 @@ def _validated(
     relative_path: str,
 ) -> str | None:
     validator, reason = _published_validator(repo_root, schema_path, schema_pointer)
-    return reason if reason is not None else _conformance_reason(validator, payload, relative_path)
+    if reason is not None:
+        return reason
+    try:
+        return _conformance_reason(validator, payload, relative_path)
+    except Unresolvable:
+        # check_schema() does not resolve references, so a dangling $ref fails during validation.
+        return _INVALID_SCHEMA_REASON.format(schema_path=schema_path)
 
 
 def _bounded_document(
@@ -193,7 +231,7 @@ def _bounded_document(
 
     try:
         return load_bounded_json_object(repo_root, relative_path, max_bytes=max_bytes), None
-    except ValueError:
+    except InvalidInputError:
         return None, f"{label} source is not a readable bounded JSON object: {relative_path}"
 
 
@@ -243,8 +281,8 @@ def resolve_pointer(payload: object, pointer: str) -> tuple[object, bool]:
         token = raw_token.replace("~1", "/").replace("~0", "~")
         if isinstance(node, dict) and token in node:
             node = node[token]
-        elif isinstance(node, list) and token.isdigit() and int(token) < len(node):
-            node = node[int(token)]
+        elif isinstance(node, list) and (index := array_index(token, len(node))) is not None:
+            node = node[index]
         else:
             return None, False
     return node, True

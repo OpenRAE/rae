@@ -6,13 +6,12 @@ requirement_refs: [AUT-806]
 source_refs:
   - examples/scenarios/satcom-release-poisoning.sdl.yaml
   - docs/decisions/adrs/adr-073-scoring-reward-language-scope.md
-summary: Represent study-style examples through propositions, assertions, and explicit probe bindings while keeping graded scoring in the experiment/evaluator plane.
+summary: Connect propositions, assertions, and probe bindings in a study-style example. Keep graded scoring in the experiment/evaluator plane.
 intent: >
-  Make study-like examples reusable by connecting participant activity to
-  backend-neutral propositions, assertions, evidence requirements, and workflow
-  protocol. Graded scoring,
-  reward, and interpretation live in the experiment/evaluator plane
-  (experiment-* contracts) per ADR-073, not in the SDL.
+  Connect participant activity to backend-neutral propositions, assertions,
+  evidence requirements, and workflow protocol. Graded scoring, reward, and
+  interpretation belong to the experiment/evaluator plane under ADR-073.
+  The experiment-* contracts own these concerns.
 use_when:
   - A study needs a repeatable, observable definition of participant success.
   - Reviewers need to see how evidence and a probe binding support an asserted proposition.
@@ -22,7 +21,7 @@ authoring_steps:
   - Bind a condition probe to the proposition when an executable check is needed.
   - Reference a postcondition or invariant assertion from objective success.
   - Drive the objective from a workflow protocol step.
-  - Carry any graded scoring or reward in the experiment/evaluator plane, not the SDL.
+  - Put graded scoring and reward in the experiment/evaluator plane.
 validation:
   - command: parse_sdl_file
     expected: proposition, assertion, evidence, objective, and workflow references resolve with no removed scoring surfaces.

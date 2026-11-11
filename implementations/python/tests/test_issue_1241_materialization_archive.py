@@ -6,6 +6,7 @@ import stat
 
 import pytest
 from raes import parse_sdl
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError, InvalidInputError
 from test_issue_1241_materialized_sdl import materialized_payload
 
 
@@ -39,7 +40,7 @@ def test_archive_refuses_a_conflicting_republication_without_overwriting(tmp_pat
     path = tmp_path / first.reference.ref_path
     original = path.read_bytes()
     conflicting = json.dumps(materialized_payload(description="different"))
-    with pytest.raises(ValueError):
+    with pytest.raises(ConflictError):
         archive.publish(conflicting)
     assert path.read_bytes() == original
 
@@ -50,7 +51,7 @@ def test_archive_rejects_untrusted_run_paths_before_writing(tmp_path, run_id):
     payload = materialized_payload()
     payload["materialization_provenance"]["run_id"] = run_id
     content = json.dumps(payload)
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidInputError):
         archive.publish(content)
     assert not list(tmp_path.iterdir())
 
@@ -62,7 +63,7 @@ def test_archive_refuses_symlinked_run_directories(tmp_path):
     (tmp_path / "archive").mkdir()
     (tmp_path / "archive" / "runs").symlink_to(outside, target_is_directory=True)
     content = json.dumps(materialized_payload())
-    with pytest.raises((OSError, ValueError)):
+    with pytest.raises(EvidenceIntegrityError):
         archive.publish(content)
     assert not list(outside.iterdir())
 
@@ -75,5 +76,5 @@ def test_archive_refuses_an_existing_symlink_artifact(tmp_path):
     artifact.rename(saved)
     artifact.symlink_to(saved)
     content = json.dumps(materialized_payload())
-    with pytest.raises((OSError, ValueError)):
+    with pytest.raises(EvidenceIntegrityError):
         archive.publish(content)

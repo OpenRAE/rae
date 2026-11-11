@@ -10,22 +10,14 @@ surface; nothing here is implicitly compiled into an account placement.
 from enum import Enum
 
 from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import absolute_path_or_var, coerce_string_list, parse_runtime_enum_or_var
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import is_variable_ref, parse_bool_or_var, parse_int_or_var
 
 from raes.runtime_filesystem import flagged_raw_value_schema
-from raes.runtime_vocabulary import GovernedVocabulary
 
-from ._base import (
-    SDLModel,
-    is_variable_ref,
-    parse_bool_or_var,
-    parse_int_or_var,
-)
 from .runtime_filesystem import RuntimeFilesystemStability
-from .runtime_values import (
-    absolute_path_or_var,
-    coerce_string_list,
-    parse_runtime_enum_or_var,
-)
 
 __all__ = [
     "RuntimeIdentityProvenance",
@@ -192,7 +184,7 @@ class RuntimeSudoRule(SDLModel):
         return parse_bool_or_var(v, field_name=info.field_name)
 
     @model_validator(mode="after")
-    def validate_redacted_commands(self) -> "RuntimeSudoRule":
+    def validate_redacted_commands(self) -> RuntimeSudoRule:
         if self.command_redacted is True and self.commands:
             raise ValueError("redacted sudo rules must omit commands")
         return self
@@ -207,7 +199,7 @@ class RuntimeLocalIdentityInventory(SDLModel):
     description: str = ""
 
     @model_validator(mode="after")
-    def validate_unique_identity_records(self) -> "RuntimeLocalIdentityInventory":
+    def validate_unique_identity_records(self) -> RuntimeLocalIdentityInventory:
         seen_usernames: set[str] = set()
         for user in self.users:
             if user.username in seen_usernames:

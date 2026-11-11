@@ -12,11 +12,16 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
 
 from pydantic import ValidationError
 from raes._runtime_service_families import RUNTIME_SERVICE_FAMILIES
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.json_pointer import array_index
+from raes_contracts.operational_logging import run_application
 from raes_contracts.provenance import SDL_LINEAGE_LEDGER_FILENAME, LineageDisposition, SDLLineageLedgerModel
 
 from tools.check_schema_publication import load_schema_publication_catalog
@@ -46,10 +51,31 @@ def _failure(rule: str, message: str, path: str = LEDGER_PATH) -> PolicyFailure:
 
 
 def _load_json(repo_root: Path, rel_path: str) -> object:
+    """Read a repository JSON artifact; raise InvalidInputError when it is missing or unsafe.
+
+    ``InvalidInputError`` also reports an integer beyond the interpreter digit
+    limit and nesting beyond the decoder depth. ``json.JSONDecodeError``,
+    ``UnicodeDecodeError`` and ``OSError`` report an artifact that exists but
+    cannot be decoded or read.
+    """
+
     path = safe_repo_path(repo_root, rel_path)
     if path is None or not path.is_file():
-        raise ValueError(f"missing or unsafe repository artifact {rel_path!r}")
-    return json.loads(path.read_text(encoding="utf-8"))
+        raise InvalidInputError(f"missing or unsafe repository artifact {rel_path!r}")
+
+    def bounded_integer(literal: str) -> int:
+        # The decoder passes only JSON integer literals, so int() fails only beyond the interpreter digit limit.
+        try:
+            return int(literal)
+        except ValueError as exc:
+            raise InvalidInputError(f"{rel_path!r} contains an integer beyond the digit limit") from exc
+
+    text = path.read_text(encoding="utf-8")
+    try:
+        return json.loads(text, parse_int=bounded_integer)
+    except RecursionError as exc:
+        # Without a depth limit, the recursive decoder stops at the interpreter recursion limit.
+        raise InvalidInputError(f"{rel_path!r} nests beyond the JSON decoder depth") from exc
 
 
 def _canonical_subjects(repo_root: Path) -> set[str]:
@@ -57,11 +83,11 @@ def _canonical_subjects(repo_root: Path) -> set[str]:
     concepts = _load_json(repo_root, CONCEPT_FAMILIES_PATH)
     references = _load_json(repo_root, REFERENCE_MODELS_PATH)
     if not isinstance(schema, dict) or not isinstance(schema.get("properties"), dict):
-        raise ValueError("authoring schema has no properties catalog")
+        raise InvalidInputError("authoring schema has no properties catalog")
     if not isinstance(concepts, dict) or not isinstance(concepts.get("families"), dict):
-        raise ValueError("concept-family catalog has no families")
+        raise InvalidInputError("concept-family catalog has no families")
     if not isinstance(references, dict) or not isinstance(references.get("models"), dict):
-        raise ValueError("reference-model catalog has no models")
+        raise InvalidInputError("reference-model catalog has no models")
     subjects = {f"sdl-field:{name}" for name in schema["properties"]}
     subjects.update(f"runtime-family:{family.collection_name}" for family in RUNTIME_SERVICE_FAMILIES)
     subjects.update(f"concept-family:{name}" for name in concepts["families"])
@@ -79,8 +105,8 @@ def _resolve_json_pointer(document: object, pointer: str) -> bool:
         part = raw_part.replace("~1", "/").replace("~0", "~")
         if isinstance(current, dict) and part in current:
             current = current[part]
-        elif isinstance(current, list) and part.isdigit() and int(part) < len(current):
-            current = current[int(part)]
+        elif isinstance(current, list) and (position := array_index(part, len(current))) is not None:
+            current = current[position]
         else:
             return False
     return True
@@ -91,7 +117,7 @@ def _validate_authorities(repo_root: Path, ledger: SDLLineageLedgerModel) -> lis
     cache: dict[str, object] = {}
     try:
         manifest = load_schema_publication_catalog(repo_root)
-    except ValueError:
+    except UnicodeDecodeError, InvalidInputError:
         manifest = None
     if not isinstance(manifest, dict) or not isinstance(manifest.get("schemas"), list):
         return [
@@ -138,8 +164,8 @@ def _validate_authorities(repo_root: Path, ledger: SDLLineageLedgerModel) -> lis
             )
             continue
         try:
-            document = cache.setdefault(artifact, json.loads(path.read_text(encoding="utf-8")))
-        except (OSError, json.JSONDecodeError):
+            document = cache.setdefault(artifact, _load_json(repo_root, artifact))
+        except OSError, UnicodeDecodeError, json.JSONDecodeError, InvalidInputError:
             failures.append(
                 _failure(
                     "lineage-authority-invalid",
@@ -221,9 +247,10 @@ def _validate_claim_pointers(repo_root: Path, boundaries: set[tuple[str, str]]) 
             continue
         try:
             document = _load_json(repo_root, artifact)
-            resolved = _resolve_json_pointer(document, pointer)
-        except (OSError, ValueError):
+        except OSError, UnicodeDecodeError, json.JSONDecodeError, InvalidInputError:
             resolved = False
+        else:
+            resolved = _resolve_json_pointer(document, pointer)
         if not resolved:
             failures.append(
                 _failure("lineage-claim-pointer-missing", f"claim pointer {pointer!r} does not resolve in {artifact}")
@@ -303,12 +330,12 @@ def evaluate(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
     try:
         payload = _load_json(repo_root, LEDGER_PATH)
         ledger = SDLLineageLedgerModel.model_validate(payload)
-    except (ValueError, json.JSONDecodeError, ValidationError) as exc:
+    except (UnicodeDecodeError, json.JSONDecodeError, InvalidInputError, ValidationError) as exc:
         return [_failure("lineage-ledger-invalid", f"ledger validation failed: {exc}")]
     failures: list[PolicyFailure] = []
     try:
         expected = _canonical_subjects(repo_root)
-    except (ValueError, json.JSONDecodeError) as exc:
+    except (UnicodeDecodeError, json.JSONDecodeError, InvalidInputError) as exc:
         return [_failure("lineage-canonical-catalog-invalid", str(exc))]
     actual = {subject.subject_id for subject in ledger.subjects if subject.disposition is LineageDisposition.CURRENT}
     missing = sorted(expected - actual)
@@ -348,4 +375,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

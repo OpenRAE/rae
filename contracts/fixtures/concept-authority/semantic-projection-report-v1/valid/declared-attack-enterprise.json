@@ -37,7 +37,6 @@
       "projection_policy_revision": null
     },
     "predicate_profile": {
-      "adapter_digest": "sha256:004320f89a2b1e98f410d22da593ebb9246e21d1051522ab5e5e41f8e4a59fa1",
       "adapter_id": "declared-owner-adapter",
       "adapter_version": "1",
       "allow_approximate_bindings": true,
@@ -45,7 +44,6 @@
       "configuration_axis": "applicable",
       "predicate_id": "declared",
       "producer_contract_id": "sdl-authoring-input-v1",
-      "profile_digest": "sha256:a399f706c10c4129e299cb6a54d8f7d0b5cea8013729c3cde318a86831185d30",
       "profile_id": "semantic-projection-declared-approximate-lossy/v1",
       "profile_version": "1",
       "state_axis": "not-applicable",
@@ -80,7 +78,6 @@
     },
     "transformations": []
   },
-  "frame_digest": "sha256:edb18329d2551a8d60006b23b0b38d31ea107f3e83cb7cc22ea9bd059dbe80f7",
   "rows": [
     {
       "bindings": [],
@@ -253,12 +250,9 @@
   "summary": {
     "ambiguous_count": 0,
     "excluded_count": 14,
-    "frame_digest": "sha256:edb18329d2551a8d60006b23b0b38d31ea107f3e83cb7cc22ea9bd059dbe80f7",
     "gap_count": 0,
     "included_denominator": 1,
     "predicate_id": "declared",
-    "predicate_profile_digest": "sha256:a399f706c10c4129e299cb6a54d8f7d0b5cea8013729c3cde318a86831185d30",
-    "qualified_fraction": "declared:1/1@sha256:edb18329d2551a8d60006b23b0b38d31ea107f3e83cb7cc22ea9bd059dbe80f7",
     "unknown_count": 0,
     "witness_count": 1
   }

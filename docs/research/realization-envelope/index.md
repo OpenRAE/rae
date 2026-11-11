@@ -1,9 +1,9 @@
-# Realization Envelope Research Notes
+# Realization envelope research notes
 
 These notes support issue #667. They are research and design evidence for the
 realization-envelope semantics; they are not contract authority by themselves.
 
-The normative decision is the proposed ADR at
+The accepted decision is recorded in
 [`ADR-070`](../../decisions/adrs/adr-070-realization-envelope-semantics.md).
 The formal semantic boundary is `specs/formal/realization/envelope-semantics.md`.
 

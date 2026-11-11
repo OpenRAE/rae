@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from .behavioral_authority_errors import unsupported_authority_as_value_error
 from .behavioral_relation_profiles import (
     ActiveOpacityStrategyModel,
     BehavioralRelationProfileModel,
@@ -245,17 +246,17 @@ def validate_participant_opacity_runtime_enforcement(
     catalog: BehavioralRelationCatalogModel | None = None,
     profile: BehavioralRelationProfileModel | None = None,
 ) -> ParticipantOpacityRuntimeEnforcementBindingModel:
-    """Resolve an exact finite profile and reject incomplete runtime coverage."""
+    """Resolve an exact finite profile and reject incomplete runtime coverage.
 
-    catalog = load_behavioral_relation_catalog_revision(binding.taxonomy_revision) if catalog is None else catalog
-    profile = (
-        load_behavioral_relation_profile_revision(
-            binding.profile_id,
-            binding.profile_revision,
-        )
-        if profile is None
-        else profile
-    )
+    A binding that names an unpackaged revision fails with ``ValueError`` (E3).
+    A damaged packaged authority raises ``BehavioralAuthorityArtifactError``.
+    """
+
+    with unsupported_authority_as_value_error("participant opacity runtime binding names an unsupported authority"):
+        if catalog is None:
+            catalog = load_behavioral_relation_catalog_revision(binding.taxonomy_revision)
+        if profile is None:
+            profile = load_behavioral_relation_profile_revision(binding.profile_id, binding.profile_revision)
     validate_behavioral_claim_binding(binding.claim, catalog=catalog, profile=profile)
     if support.binding != binding:
         raise ValueError("participant opacity runtime support does not match the durable binding")

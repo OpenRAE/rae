@@ -11,9 +11,9 @@ from pydantic import ValidationError
 from raes import SDLInstantiationError, SDLParseError, instantiate_scenario, parse_sdl
 from raes.nodes import RuntimeAptPackageRepository as NodeRuntimeAptPackageRepository
 from raes.runtime_configuration import RuntimeAptPackageRepository, RuntimeConfiguration, RuntimePackage
-from raes_contracts.contracts import schema_bundle
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.semantics.realization_concerns import project_realization_concern
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURE_ROOT = REPO_ROOT / "contracts" / "fixtures" / "sdl" / "runtime-package-repository-v1"

@@ -6,13 +6,18 @@ from collections.abc import Mapping
 from typing import Annotated, Any, Literal
 
 from pydantic import ConfigDict, Field, model_validator
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
+
+from raes_contracts.contracts.mixed_runtime_history import iter_mixed_runtime_snapshot_violations
+from raes_contracts.contracts.participant_outcome_history import require_outcome_envelope
+from raes_contracts.contracts.participant_temporal_history import require_participant_temporal_history
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
+from raes_contracts.planning import RealizationPreparationAuthority
 
 from ..addressing import CompiledAddress
 from ..artifact_requirements import ArtifactSatisfactionDisclosureModel
 from ..bounded_domains import DomainDescriptor
 from ..compute_substrate import validate_compute_substrate_constraint, validate_planned_substrate_targets
-from ..materialization import require_materialization_records
+from ..materialization_inventory import InventoryIdentity
 from ..observation_demand import EffectiveObservationDemand
 from ..planning import (
     RealizationAuthorityMode,
@@ -20,9 +25,13 @@ from ..planning import (
     RuntimeDomain,
     require_plan_operation_identity,
 )
-from ..realization_preparation import RealizationPreparationAuthority
 from ..realization_profiles import PlanProfileAuthority
-from ..realization_structure import RealizationConstraintDocument, RealizationStructure
+from ..realization_structure import (
+    RealizationConstraintDocument,
+    RealizationStructure,
+    validate_realization_constraint_document,
+)
+from ..runtime_value_limits import PLAN_AUTHORITY_LIMITS
 from ..versions import RUNTIME_SNAPSHOT_SCHEMA_VERSION
 from ..vocabulary import ObservationStrength, RealizationVerificationScope
 from .base import ContractModel, NonEmptyString
@@ -33,7 +42,11 @@ from .execution_state import (
     WorkflowExecutionStateModel,
     WorkflowHistoryEventModel,
 )
-from .materialization_attestation import MaterializationArchiveRecord, MaterializationPlanModel
+from .materialization_attestation import (
+    MaterializationArchiveRecord,
+    MaterializationPlanModel,
+    require_materialization_records,
+)
 from .mixed_runtime import MixedCompositionRuntimeEventModel, MixedCompositionRuntimeStateModel
 from .operating_systems import ObservedOperatingSystemIdentityModel
 from .participant_control import ParticipantControlOccurrenceModel
@@ -214,6 +227,10 @@ class ResolvedRealizationAuthorityModel(ContractModel):
             raise ValueError("realization authority cannot carry two independently editable structures")
         if (self.constraint_document is None) != (self.constraint_binding is None):
             raise ValueError("recursive authority requires its source binding")
+        if self.constraint_document is not None:
+            admitted = validate_realization_constraint_document(self.constraint_document, limits=PLAN_AUTHORITY_LIMITS)
+            if not admitted.conformant:
+                raise ValueError(admitted.diagnostics[0].message)
         self._require_mode_bounds()
         self._require_resolution_source()
         bound_keys = [(bound.identity_digest, bound.value_pointer) for bound in self.bounds]
@@ -243,6 +260,8 @@ class ResolvedRealizationAuthorityModel(ContractModel):
 
 
 class ProvisioningPlanModel(MaterializationPlanModel):
+    inventory_attempt_id: InventoryIdentity | None = Field(default=None, exclude_if=lambda value: value is None)
+    inventory_refresh: bool = Field(default=False, strict=True, exclude_if=lambda value: not value)
     operations: list[PlanOperationModel] = Field(default_factory=list)
     diagnostics: list[dict[str, Any]] = Field(default_factory=list)
     realization_authority: list[ResolvedRealizationAuthorityModel]
@@ -426,9 +445,6 @@ class RuntimeSnapshotEnvelopeModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_entry_addresses(self) -> RuntimeSnapshotEnvelopeModel:
-        from ..mixed_runtime_history import iter_mixed_runtime_snapshot_violations
-        from ..participant_temporal import require_participant_temporal_history
-
         require_participant_temporal_history(self)
 
         if list(
@@ -480,7 +496,6 @@ class RuntimeSnapshotEnvelopeModel(ContractModel):
         for participant_address, records in self.information_state_history.items():
             if any(record.participant_address != participant_address for record in records):
                 raise ValueError("Information-state history map key must equal embedded participant_address")
-        from ..participant_outcome_history import require_outcome_envelope
 
         require_outcome_envelope(self)
         validate_execution_service_budget_projection(

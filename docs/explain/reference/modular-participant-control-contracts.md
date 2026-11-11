@@ -15,10 +15,11 @@ define revised coverage, predecessor-input, state and parent/effect meaning.
 The v1 runtime boundary documented below does not implement that amendment. In
 particular, its whole-selection applicability check cannot express disjoint
 sink subsets of one apparatus; profile presence alone does not prove required
-slot coverage; provider/v1 carries no fresh predecessor results; optional
-failures can block composition; and phase handling can mark a subsequent
-parent-targeted denial eligible. The existing verification map is bounded
-legacy evidence, not proof that those gaps are repaired in the runtime.
+slot coverage; provider/v1 carries no fresh predecessor results; and optional failures can block composition.
+Historical v1 evaluation records can retain phase-dependent eligibility claims.
+Fresh legacy parent deny/withhold is enforced before execution, as described below.
+The v1 verification map remains bounded legacy evidence.
+The explicit v2 runtime path below implements the revised applicability relation.
 
 The amendment keeps the full admitted apparatus, records coverage at each cut,
 evaluates typed slot/stage dependencies, isolates genuinely optional failure,

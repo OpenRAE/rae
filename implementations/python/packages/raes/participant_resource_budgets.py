@@ -5,10 +5,10 @@ from __future__ import annotations
 from enum import Enum
 
 from pydantic import Field, field_validator, model_validator
+from raes_contracts.contracts.participant_resource_types import require_quantity_semantics
 from raes_contracts.domain_profiles import DomainProfileCoordinateModel
-
-from ._base import SDLModel
-from ._identifiers import PortableIdentifier
+from raes_contracts.identifiers import PortableIdentifier
+from raes_contracts.sdl_model import SDLModel
 
 
 class ParticipantResourceOwnerKind(str, Enum):
@@ -83,7 +83,6 @@ class ParticipantResourceBudgetDimension(SDLModel):
 
     @model_validator(mode="after")
     def _validate_dimension(self) -> ParticipantResourceBudgetDimension:
-        from raes_contracts.contracts.participant_resource_types import require_quantity_semantics
 
         require_quantity_semantics(
             getattr(self.resource_kind, "value", self.resource_kind), self.unit, self.accounting_mode.value

@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import typer
+from raes_contracts.errors import RaesError
 from raes_runtime.control_plane_store_maintenance import (
     DestinationConflictPolicy,
     LocalStoreMaintenanceOperation,
@@ -34,8 +35,10 @@ def _run_maintenance(
             backup_path=backup_path,
             conflict_policy=(DestinationConflictPolicy.REPLACE if replace else DestinationConflictPolicy.REFUSE),
         )
-    except Exception:
-        typer.echo(f"control-plane-store-{operation.value}-failed")
+    # Maintenance refuses an option value, a path, a store file or the store state with a category.
+    # The fixed label keeps paths and store details out of the output; unexpected failures reach the entry point.
+    except RaesError:
+        typer.echo(f"control-plane-store-{operation.value}-failed", err=True)
         raise typer.Exit(code=1) from None
     typer.echo(f"control-plane-store-{operation.value}-succeeded")
 

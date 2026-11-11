@@ -56,8 +56,8 @@ dependencies outside the checkout. A verified local smoke wheelhouse is a test
 input, not support for complete disconnected development. Enterprise/offline
 package contexts and redundant tool-wheelhouse manifests are retired.
 
-Project smoke targets remain Linux x86_64 CPython 3.11–3.14, Linux arm64 CPython
-3.14 and macOS arm64 CPython 3.14. Separating the TLS fixture does not restore
+Project smoke targets remain Linux x86_64, Linux arm64 and macOS arm64 CPython
+3.14. Separating the TLS fixture does not restore
 Intel Mac support: #1268's patched runtime dependency/binary-closure limitation
 still needs a tested resolution. No vulnerable pins or new platform claims are
 introduced. Frozen resolution does not imply bit-reproducible native builds.
@@ -90,6 +90,13 @@ daemon's platform/content identity. Unique concurrent-run names and teardown
 remain; mirror/pre-seeded distribution and mandatory OCI export/import do not.
 The connected AWS smokes preserve verified VM/bootstrap bytes and SSH identity
 without staging a complete Python wheelhouse or requiring native snapshots.
+
+The mCRL2 model checker uses the same verified-tree installer with an admitted
+Debian carrier. Its `model-check-ubuntu-26.04-x86_64` host profile declares the
+native decoder, limiter, runtime libraries and Bubblewrap prerequisites.
+Acquisition is explicit; comparison verifies the whole installed tree and runs
+with fixed arguments in an offline sandbox. See the
+[crossing corpus instructions](../formal/participant_crossing/README.md).
 
 ## Release evidence and current scope
 

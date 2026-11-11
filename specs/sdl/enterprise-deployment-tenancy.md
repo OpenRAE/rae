@@ -1,4 +1,4 @@
-# Enterprise Identity and Deployment Tenancy
+# Enterprise identity and deployment tenancy
 
 This extension adds portable authoring intent for enterprise forests, identity
 facades, endpoint personas, deployment tenants and cells, carrier placement,
@@ -66,9 +66,8 @@ tenant-scoped workload identity. Mutable state references resolve to existing
 state cannot receive conflicting owners, and reset ownership follows mutable
 state ownership. `stateless` forbids shared-service-owned state;
 `tenant_partitioned` requires shared-service-owned state and reset generation.
-An ordinary relationship from a node or named service in one cell to a named
-service in another cell is admitted only when the caller's tenant has an
-explicit `uses_shared_service` binding to that exact target service. Identity,
+An ordinary relationship can connect a node or named service in one cell to a named service in another cell.
+Admission requires an explicit `uses_shared_service` binding from the caller's tenant to that exact target service. Identity,
 topology, placement, and generic infrastructure edges never grant that access.
 
 ## Composition and realization boundary

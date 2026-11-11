@@ -6,9 +6,12 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
+from raes_contracts.json_pointer import pointer_tokens
 from yaml.nodes import MappingNode, Node, ScalarNode
 
 from ._errors import (
+    SDLImportError,
+    SDLImportErrorCode,
     SDLParseDiagnostic,
     SDLParseError,
     SDLSourceRange,
@@ -85,12 +88,15 @@ def load_sdl_yaml(
             not isinstance(constructed, dict)
             or constructed.get("semantic_revision") != source_options.required_semantic_revision
         ):
-            raise SDLParseError("Imported source must carry the selected semantic revision.", path=path)
-        return constructed
-    except SDLParseError:
-        raise
+            raise SDLImportError(
+                SDLImportErrorCode.REVISION_MISMATCH,
+                "Imported source must carry the selected semantic revision.",
+                path=path,
+            )
     except yaml.YAMLError as exc:
         raise yaml_parse_error(exc, path=path) from exc
+    else:
+        return constructed
     finally:
         if loader is not None:
             loader.dispose()
@@ -127,11 +133,10 @@ def compose_sdl_yaml(
             source_diagnostics=source_diagnostics,
             source_locations=SDLSourceLocations(value_ranges=source_ranges),
         )
-        return root
-    except SDLParseError:
-        raise
     except yaml.YAMLError as exc:
         raise yaml_parse_error(exc, path=path) from exc
+    else:
+        return root
     finally:
         if loader is not None:
             loader.dispose()
@@ -193,4 +198,4 @@ def _decode_pointer(pointer: str) -> list[str]:
         return []
     if not pointer.startswith("/"):
         raise ValueError("base_pointer must be an RFC 6901 pointer")
-    return [token.replace("~1", "/").replace("~0", "~") for token in pointer[1:].split("/")]
+    return list(pointer_tokens(pointer))

@@ -25,12 +25,12 @@ from collections.abc import Mapping
 
 from hypothesis import given, settings
 from hypothesis import strategies as st
-from raes.semantics.workflow import (
+from raes_contracts.workflow import validate_workflow_step_result_contract
+from raes_contracts.workflow.semantics import (
     branch_closure,
     validate_workflow_step_result,
     workflow_step_semantic_contract,
 )
-from raes_contracts.workflow import validate_workflow_step_result_contract
 
 # --------------------------------------------------------------------------- #
 # branch_closure: workflow-graph state-machine semantics                      #

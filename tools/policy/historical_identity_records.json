@@ -1,13 +1,11 @@
 {
   "schema_version": "historical-identity-records/v3",
-  "hash_algorithm": "sha256",
   "generated_history_records": [
     {
       "path": "CHANGELOG.md",
       "record_class": "generated-release-history",
       "rationale": "release-please rewrites this file on every release, inserting each new section above the existing ones, so a whole-file pin cannot hold. The classified tail carries the release notes published before the RAES identity cutover and is pinned exactly; everything release-please writes above it is held to the live-tree rule of zero retired identity occurrences.",
       "occurrences": 297,
-      "content_sha256": "b3106e6e633e4045124ca19307c57c10efbfc87ccbb4048f415f0c4acbefcb3f",
       "classified_suffix_bytes": 150639
     }
   ],
@@ -16,15 +14,13 @@
       "path": ".ground-control.yaml",
       "binding_class": "external-service-project-key",
       "rationale": "Retains the existing service-owned Ground Control and SonarCloud project designations without treating them as current RAES product identity.",
-      "occurrences": 2,
-      "content_sha256": "d0310fda7659a7b3ebd4834727adb1d20c5a522ef90ad13b13c51ce1d0763928"
+      "occurrences": 2
     },
     {
       "path": "sonar-project.properties",
       "binding_class": "external-service-project-key",
       "rationale": "Retains the existing service-owned SonarCloud project designation without treating it as current RAES product identity.",
-      "occurrences": 2,
-      "content_sha256": "5b8c7c913712a23af97b45f21ee69296cbce3b0787647517c60d733cf058d00c"
+      "occurrences": 2
     }
   ],
   "records": [
@@ -32,1758 +28,1507 @@
       "path": "contracts/provenance/sdl-lineage-ledger-v1.json",
       "record_class": "provenance-record",
       "rationale": "Preserves append-only lineage observations recorded before the RAES identity cutover.",
-      "occurrences": 349,
-      "content_sha256": "5f1731f1ddde34108d0d253a2363a85fac19b36d4f0797c866cd60b44d71b939"
+      "occurrences": 349
     },
     {
       "path": "contracts/schema-publication/tombstones/\u0061ces-semantic-invariants-v1.json",
       "record_class": "provenance-record",
       "rationale": "Preserves the publication tombstone proving removal of the retired schema path during the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "e25b48b502dc0ec3b804493b7d31f6c290de1430fec19d2f35d75ad3123df7f5"
+      "occurrences": 1
     },
     {
       "path": "docs/decisions/adrs/README.md",
       "record_class": "historical-index",
       "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
-      "occurrences": 4,
-      "content_sha256": "ee05e4673c9322d82a6abccd9289566c00de36a117e02882a3313e11ea4b06f1"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/adrs/adr-000-use-adrs.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "9fbb099fd8321b1351c0afd13f7502bc5cd4863c3853a087ba5fbf4940cc8634"
+      "occurrences": 1
     },
     {
       "path": "docs/decisions/adrs/adr-001-scenario-description-language.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "5d48629b8d1f8cdc9350777f30a2f99f742dcf80a39b75738f08a490032c7e73"
+      "occurrences": 3
     },
     {
       "path": "docs/decisions/adrs/adr-004-sdl-runtime-layer.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "1fbd1578afe343fe869b0298aab24f1d5339db40188cc39a66e38f1dcd98370b"
+      "occurrences": 3
     },
     {
       "path": "docs/decisions/adrs/adr-009-normative-artifact-authority-and-repository-structure.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 7,
-      "content_sha256": "557dc1e25c3d9abecb7b3bd8b5bbeb272e907cba04125b59a3e9b71d321b6e07"
+      "occurrences": 7
     },
     {
       "path": "docs/decisions/adrs/adr-010-repository-realignment-order-and-compatibility-policy.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 22,
-      "content_sha256": "752d8577e900e9b6257ff0db362c275bf7b26e14162a892dcd9578cbd71717c3"
+      "occurrences": 22
     },
     {
       "path": "docs/decisions/adrs/adr-012-shared-concept-authority-and-\u0061ces-extension-discipline.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 18,
-      "content_sha256": "3027ece9635715383318f0deb7ca8b9092631f95959a294034ebeadc5bc488a0"
+      "occurrences": 18
     },
     {
       "path": "docs/decisions/adrs/adr-015-sdl-processor-layering-and-source-file-size-cap.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 27,
-      "content_sha256": "4f638d54b3fb6d3a7ce7689088e6b474114265784b9554e3bc92622703778401"
+      "occurrences": 27
     },
     {
       "path": "docs/decisions/adrs/adr-016-semantic-layer-scope-and-coverage-model.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "ff9a71be7f6d427b88ff26317da36e14b6cc5943418cd941df88dca29033449b"
+      "occurrences": 6
     },
     {
       "path": "docs/decisions/adrs/adr-020-declarative-participant-framing-boundaries.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "d01d21a33b0a96349d7f8e2b125f744a8a1496279090995e08c0e02adc04fe4c"
+      "occurrences": 3
     },
     {
       "path": "docs/decisions/adrs/adr-021-falsification-first-claim-evidence-gate.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "87754f6f5ecac0c988734c57c61e07f36950177a84eb0719bb28fe0c7afd6b21"
+      "occurrences": 3
     },
     {
       "path": "docs/decisions/adrs/adr-022-participant-behavior-and-interaction-semantics.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 9,
-      "content_sha256": "8b56907d3778638cb3a4974b29248437174febf133a35da9e6a4f0cad7a84b83"
+      "occurrences": 9
     },
     {
       "path": "docs/decisions/adrs/adr-023-container-image-build-provenance-surface.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "21628953ac41a6933dae33df8ef6cd4bc2c88598b48f34d782bced3395630024"
+      "occurrences": 1
     },
     {
       "path": "docs/decisions/adrs/adr-025-container-network-realization-surface.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "2f0287dbbfdf0e4d31a1128608a28fa9bf960a2c0f410f222cda4cd7347d52ca"
+      "occurrences": 5
     },
     {
       "path": "docs/decisions/adrs/adr-026-application-http-surface-inventory.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "ff2126c02f616a4fb55bcc75d80c706c9be49baea6f124652b5345ee81f28d64"
+      "occurrences": 3
     },
     {
       "path": "docs/decisions/adrs/adr-027-container-init-reaper-runtime-surface.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "d568a5a77d55b995d23c057ed3ccc56d221509a6068374d3884b2608c926cdea"
+      "occurrences": 1
     },
     {
       "path": "docs/decisions/adrs/adr-028-container-seccomp-security-options-surface.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "8798070e5aaa08a1de27686e8fd346030f00c4f3cace56c83602c0f9a312ac39"
+      "occurrences": 2
     },
     {
       "path": "docs/decisions/adrs/adr-029-database-logical-state-runtime-surface.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1207 partial-description amendment.",
-      "occurrences": 4,
-      "content_sha256": "d74b730739d5a28bb39943257599183a535cfda3f5167d5918d11a7514e89e9e"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/adrs/adr-030-process-scoped-linux-capability-policy.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "d0574426f9b249fa078f364988e309b14d73c03a9f00115ab04e6ddeab76ffa1"
+      "occurrences": 2
     },
     {
       "path": "docs/decisions/adrs/adr-031-ssh-server-configuration-surface.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "c77a768a27cf1d457aaf143557588e259b550fb5037acd0ea1e4d21026ba7cee"
+      "occurrences": 2
     },
     {
       "path": "docs/decisions/adrs/adr-032-directory-domain-identity-runtime-surface.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "f6ab961eebb57326f45d3f22efcda13d320ede8c315dfdb18f5dd7446f5e4dc9"
+      "occurrences": 3
     },
     {
       "path": "docs/decisions/adrs/adr-033-scenario-delivery-boundary-for-runtime-node-state.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 9,
-      "content_sha256": "88b6581ea4b966c834d14e243f291195f48804451b424cc4ef6840185ddd42d0"
+      "occurrences": 9
     },
     {
       "path": "docs/decisions/adrs/adr-034-runtime-software-component-inventory.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "9e0b0e452f1cb8661c0aa09b3c4a9d3ab3d3c61a0bf1d67af8ec74b421715343"
+      "rationale": "Preserves the accepted pre-cutover architecture decision while registering the issue-1913 model-field amendment under ADR-059.",
+      "occurrences": 3
     },
     {
       "path": "docs/decisions/adrs/adr-035-service-manager-unit-state-runtime-surface.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1297 native service-manager contract amendment.",
-      "occurrences": 3,
-      "content_sha256": "79ef7d91b9efc4e31e217a5916d1fe64f1b688b10c0bd758028b20e7f92ae66b"
+      "occurrences": 3
     },
     {
       "path": "docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 18,
-      "content_sha256": "80274b6f6f7529fdce17d3451acb2201f6ecf07095dbc5f6b36aa81399ddcdd9"
+      "occurrences": 18
     },
     {
       "path": "docs/decisions/adrs/adr-037-runtime-file-service-and-filesystem-presence-semantics.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "d58c39b1132fe59dedb53fa389fc9c9bee063c37fca4d30aecff056683550baa"
+      "occurrences": 6
     },
     {
       "path": "docs/decisions/adrs/adr-039-dns-service-runtime-inventory.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "b6cf6dce2611e64e565b80bb25acbbe5dad9d76f0922e9cbaf3bc39d19e8aa80"
+      "occurrences": 5
     },
     {
       "path": "docs/decisions/adrs/adr-040-security-monitoring-manager-runtime-inventory.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "57efb0ca019ca74bc0dfa4ff722491813c569c7039236be0af464d9e5730c3aa"
+      "occurrences": 5
     },
     {
       "path": "docs/decisions/adrs/adr-041-participant-implementation-manifest-and-provenance.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "b0408c4f5f6d18b83e61a81dbadcf4d7b147d8056a9740990b8195cb6ab3d538"
+      "occurrences": 1
     },
     {
       "path": "docs/decisions/adrs/adr-042-network-sensor-runtime-monitoring.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "d2d244bdd3bbfe2d6eaecc2e69bc73a474f405ae7e1d4d8bbb5dd75dbed7826d"
+      "occurrences": 1
     },
     {
       "path": "docs/decisions/adrs/adr-043-runtime-service-listener-surface.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "7c213f1ed7450bb5b4b1c918a5897b2ba07f940cd9c84b0d43832620dd6b0748"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/adrs/adr-044-network-detection-engine-runtime-inventory.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "9272830dd30284ab864c62eb7bd74a563403bbfdff59992173d154785d55d3f7"
+      "occurrences": 2
     },
     {
       "path": "docs/decisions/adrs/adr-045-security-monitoring-detection-definition-semantics.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "aa199dde8b9d5baf3792e8ee4c1b1cca7b16af08041074d96d82fd8ef342179a"
+      "occurrences": 5
     },
     {
       "path": "docs/decisions/adrs/adr-046-app-authorization-runtime-inventory.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1207 partial-description amendment.",
-      "occurrences": 1,
-      "content_sha256": "161877426d4ae9a5911339e8870da2ff9123edff4951012270120eb2edbe917c"
+      "occurrences": 1
     },
     {
       "path": "docs/decisions/adrs/adr-048-datastore-service-runtime-inventory.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1207 partial-description amendment.",
-      "occurrences": 4,
-      "content_sha256": "4837aa0306ad1bed716532e9929bcd20ad4e8597e4fc68feb13d9b78b5091063"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/adrs/adr-053-sdl-module-composition-for-inventory-backed-scenarios.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 17,
-      "content_sha256": "e6eae89e31205274087e6c4e775744fba945091cddef1aa5dad3daad47921993"
+      "occurrences": 17
     },
     {
       "path": "docs/decisions/adrs/adr-054-participant-runtime-observable-lifecycle.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 20,
-      "content_sha256": "19e18d246b9fc3679fd433ef1e05730f0badac0d76fb6442edaa90cce392e012"
+      "occurrences": 20
     },
     {
       "path": "docs/decisions/adrs/adr-055-experiment-core-contract-boundary.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 11,
-      "content_sha256": "f0b2cc703f80ea4221b8122d9ef83b447ce64cacdb55a4cbeb496d52c5b276e7"
+      "occurrences": 11
     },
     {
       "path": "docs/decisions/adrs/adr-057-runtime-secret-name-classifier-boundaries.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "44c638bf47df8545b8af8a3850476fabc46a4ea42b3a8003b4f9ea1e89f72f49"
+      "occurrences": 2
     },
     {
       "path": "docs/decisions/adrs/adr-058-datastore-node-engine-provenance-and-endpoints.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "1a3d389978318de260c1a8b603c62fc49ca340eab120ba5cbdeeb9f12d7cf726"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/adrs/adr-062-concept-authority-catalog-governance-gate.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "b5a15b467977e433fbfff55a1de2b4744faada7dd54ea4806496e8293bedae91"
+      "occurrences": 3
     },
     {
       "path": "docs/decisions/adrs/adr-063-reference-emulation-backend.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 13,
-      "content_sha256": "620a55b1f25b0b16cc61d97b3f82bf61ede68788ec8addf42f56093776c194ae"
+      "occurrences": 13
     },
     {
       "path": "docs/decisions/adrs/adr-065-experiment-run-provenance-contract-boundary.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "c1367c7aaa834b73fcd5d992d0ed8a406af24196d11321e8f8ccb4912e7f2683"
+      "rationale": "Preserves pre-cutover identity occurrences in the accepted decision, including the authorized issue-1630 complete experiment accounting amendment.",
+      "occurrences": 1
     },
     {
       "path": "docs/decisions/adrs/adr-066-observability-evidence-plane-separation.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1242 open-by-default augmentation-scope amendment.",
-      "occurrences": 1,
-      "content_sha256": "938ce2443ce7bd9e5cfa151d9740610ac23fa4338efa48c3cb022c7543bab24a"
+      "occurrences": 1
     },
     {
       "path": "docs/decisions/adrs/adr-068-experiment-trials-replication-and-replay-claims.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "82bedbc4d5ab7652f35a1458f34a8052133fdb93258a8e0b26ce9e144672db0f"
+      "rationale": "Preserves pre-cutover identity occurrences in the accepted decision, including the authorized issue-1630 complete experiment accounting amendment.",
+      "occurrences": 2
     },
     {
       "path": "docs/decisions/adrs/adr-069-cage-2-replication-architecture.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 40,
-      "content_sha256": "254616acfe5ea7635dd8ba842b555e9cbec47fb1efd384229b7a99018ea74d8e"
+      "occurrences": 40
     },
     {
       "path": "docs/decisions/adrs/adr-070-realization-envelope-semantics.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "52df22e8ab0ca15af289a8e83f9321909a2f3f3d95457914af8642afa14eb8ec"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/adrs/adr-071-reusable-asset-trust-and-integrity-policy.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "d0f0d15945a91e97870d794986d7c7453cea7fade5c74c673d271ceaf05a6b7e"
+      "occurrences": 3
     },
     {
       "path": "docs/decisions/adrs/adr-073-scoring-reward-language-scope.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 8,
-      "content_sha256": "0b940649c56cd23549415b740812b9e43ce8951c1360375e6d158b42e1f1a53e"
+      "occurrences": 8
     },
     {
       "path": "docs/decisions/adrs/adr-074-experiment-authoring-input-contract-boundary.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "feecd0225bb38cbee986aaee9e13f88af0a4777f041bb931c32e7d96dc54f44b"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/adrs/adr-076-portable-sdl-identifiers-and-canonical-addresses.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 7,
-      "content_sha256": "cd28329002c1befb1920f0037c07517adbe3811d15e4f559455d05b893c69203"
+      "occurrences": 7
     },
     {
       "path": "docs/decisions/adrs/adr-077-associated-artifact-manifest-boundary.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "bbbcb25d36c0b81b4b19198321ae2578e433bc238465397367f5e7dcf3407138"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/adrs/adr-078-closed-sdl-phase-contracts-and-portable-derivation-evidence.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves historical identity occurrences in the accepted decision, including the recorded issue-1241 materialization-attestation amendment.",
-      "occurrences": 9,
-      "content_sha256": "79863d36552359aa5a238a549ba9eac9b7d058cbe0ad054db639cffdc597036a"
+      "occurrences": 9
     },
     {
       "path": "docs/decisions/adrs/adr-079-backend-neutral-proposition-and-truth-semantics.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 7,
-      "content_sha256": "a16e021301c9b411c8efe54ac4933819a50bd10a27d13741cc7ce78d6bffbe14"
+      "occurrences": 7
     },
     {
       "path": "docs/decisions/adrs/adr-080-revision-pinned-sdl-lineage-and-provenance-ledger.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "447de0aaaaa3cdcf2db5f0ca621ecdbb540b7d725fd605c9d5d5b5d37d939f58"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/adrs/adr-081-behavioral-relation-taxonomy-and-claim-discipline.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "c8e096b85edb7ca97217a8bb0ac74b8817f966b9cf42b66f114dc3a45ed83a90"
+      "occurrences": 3
     },
     {
       "path": "docs/decisions/adrs/adr-084-scenario-variation-and-deterministic-trial-realization.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 10,
-      "content_sha256": "e4be391affc09e1f0db3c5004fb2dfa0c4138c5c2f98086b3a6b8d341b4fd9d8"
+      "occurrences": 10
     },
     {
       "path": "docs/decisions/adrs/adr-085-participant-information-flow-and-control.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "a4df034f1ed75f63119d8b56dbcc34b5fee6c6c81822c0d7c507ef2290078684"
+      "occurrences": 5
     },
     {
       "path": "docs/decisions/adrs/adr-086-governed-whole-scenario-satisfiability.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 10,
-      "content_sha256": "c34101fb3b5ddeba1e11f02666fb7747a38f52784087514ec76867df152aefa0"
+      "occurrences": 10
     },
     {
       "path": "docs/decisions/adrs/adr-088-initial-service-state-and-native-materialization.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "624bb07801d7953254f4aea0bc32c2aa4f310b8e02c065b19357dff0b75a0400"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/adrs/adr-090-shared-time-domain-clock-and-progression-authority.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "906cee83f21f777487eb93c1ba7aafa1470ff4277072cce09a33044eab0d8c56"
+      "occurrences": 1
     },
     {
       "path": "docs/decisions/adrs/adr-091-portable-time-capability-control-and-provenance-contracts.md",
       "record_class": "accepted-adr",
       "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "c2a0e6ac9fb87aa10fbb571b0f70efe0b99520b806f6ffe706f1556b0ec7e84b"
+      "occurrences": 1
     },
     {
       "path": "docs/decisions/adrs/adr-092-autonomous-benign-participants-under-shared-time.md",
       "record_class": "accepted-adr",
-      "rationale": "Preserves an accepted architecture decision as written before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "f7837743e16cd93631f44df5992e90daf6a5e48c270683504ea518ab21c291fc"
+      "rationale": "Preserves pre-cutover identity occurrences in the accepted decision, including the authorized issue-1740 invocation tool-action and issue-1829 delivery invocation amendments.",
+      "occurrences": 1
     },
     {
       "path": "docs/decisions/adrs/adr-093-raes-rename-and-compatibility-boundaries.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves the superseded compatibility-era decision that ADR-096 replaced at the RAES hard-cut boundary.",
-      "occurrences": 18,
-      "content_sha256": "6ad17d9a9fcfda6bf0ab7a19839a32230213457ebd79682df45a074b7a71702d"
+      "occurrences": 18
     },
     {
       "path": "docs/decisions/adrs/adr-index.yaml",
       "record_class": "historical-index",
-      "rationale": "Indexes immutable pre-cutover ADR titles, paths, pins, and amendment summaries without making them current identity surfaces.",
-      "occurrences": 4,
-      "content_sha256": "713ce0c184fdeb7a07aeaa1c87095225e1bc5793a8461f25df2a96141b60c247"
+      "rationale": "Preserves pre-cutover ADR identity entries while registering the authorized issue-1630, issue-1008 and issue-1740 amendments, the PR-1752 ADR-117 amendment, the issue-976 ADR-100 amendment, the issue-1711 ADR-036 and ADR-117 amendments and their pins, and the issue-1829 ADR-092 amendment pin. Registers the issue-1913 ADR-034 amendment and its acceptance pin.",
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/cage-2-replication-design.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 40,
-      "content_sha256": "645c482dda2a14e6501a0ff76d18027b15225ce8c0a31d31674faa5fc47118b5"
+      "occurrences": 40
     },
     {
       "path": "docs/decisions/issue-100-asr-519-libvirt-realization-envelope-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "c6221b3e980c7190d7d650400663112fc5a4e282c439db84c700c5dde8826e3e"
+      "occurrences": 2
     },
     {
       "path": "docs/decisions/issue-115-gov-913-reusable-asset-trust-integrity-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 15,
-      "content_sha256": "bb65ae700c6bcd7689d2876ff0f2152f90049e35484d7e986354c4ae8a894749"
+      "occurrences": 15
     },
     {
       "path": "docs/decisions/issue-117-sem-227-shared-time-model-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "eb16d3fc16cd4f387d69cd17fe23dce22e5b50dc4401fe34a8e54ce9f2b0b7c7"
+      "occurrences": 1
     },
     {
       "path": "docs/decisions/issue-118-api-421-time-contracts-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "2cd9da67fbafefcba247ea02e97ad3851a3f5099d73c2dbf7cfc2d97b5d2018a"
+      "occurrences": 1
     },
     {
       "path": "docs/decisions/issue-119-sem-219-220-226-participant-decision-surface-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 11,
-      "content_sha256": "add67ecbcaa3601c952780e3089a2f7ded656dcaaec1d0ca6597e12e75ffb879"
+      "occurrences": 11
     },
     {
       "path": "docs/decisions/issue-12-oci-resource-limits-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 7,
-      "content_sha256": "9e95372fa6ff2432fae40af6e186b2a69f0f2f4a45d3f374a4b4ad98d8dbf44c"
+      "occurrences": 7
     },
     {
       "path": "docs/decisions/issue-13-oci-tar-extraction-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "544f9311dda2fd2f9108a8edcd4286f65de2b89714e3cdc0d20e7e90da3443f6"
+      "occurrences": 6
     },
     {
       "path": "docs/decisions/issue-14-oci-config-integrity-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 9,
-      "content_sha256": "ff39b1815b3020194228f27ba892f2f187b5aaf3e489c4a1d45954cec6bf55bb"
+      "occurrences": 9
     },
     {
       "path": "docs/decisions/issue-164-standardized-configurable-specification-coverage-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 11,
-      "content_sha256": "eb318f33593846b06b47249b74d174c8fcdff4e54630cc84f8d150b8889eb84a"
+      "occurrences": 11
     },
     {
       "path": "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 20,
-      "content_sha256": "2dbdcbd096cdc1deef6f4f1de87b0a471bb1914845f0e293c88ea95aab11cf7d"
+      "occurrences": 20
     },
     {
       "path": "docs/decisions/issue-178-researcher-accessibility-protocol-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "88a883e38fdbdea05744b952b6d39e5697411ffde6a6087eb99082cfd4519dd4"
+      "occurrences": 6
     },
     {
       "path": "docs/decisions/issue-196-run-313-reference-processor-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 27,
-      "content_sha256": "4f1e400d387024cd6f87c47c960ef66a9ab760df4685a3f8d4d4ee47bb09d4bb"
+      "occurrences": 27
     },
     {
       "path": "docs/decisions/issue-197-run-314-reference-emulation-backend-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 16,
-      "content_sha256": "f678d7511a71be789d649062314c074756a64ab187cc1d13a048715d190bfa62"
+      "occurrences": 16
     },
     {
       "path": "docs/decisions/issue-206-act-606-behavior-specifications-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "168dc82f592e5af82efee7dab7c975724ca3eae4601b1f2423f31a36b6361cc9"
+      "occurrences": 6
     },
     {
       "path": "docs/decisions/issue-208-act-608-behavior-modes-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "fcf0d07ec837e57c4c0943d11a276f63756366ead055223399f4e2c59e8258c1"
+      "occurrences": 5
     },
     {
       "path": "docs/decisions/issue-209-act-609-offensive-behavior-vocabularies-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 13,
-      "content_sha256": "53c9ec83edd185dfd26e55e999f95f90389f6f4171d1fb79cebee9a504d9ffcf"
+      "occurrences": 13
     },
     {
       "path": "docs/decisions/issue-210-act-610-defensive-behavior-vocabularies-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 11,
-      "content_sha256": "59d6daaa5c88d7735342ef6cf42c74532a7c672f1cd29650db4caeb08b485e0b"
+      "occurrences": 11
     },
     {
       "path": "docs/decisions/issue-248-sem-216-boundary-semantics-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "2a474a806dd6461e38e2028ba9810bb8a66b7015e79d8046f41d86575875618b"
+      "occurrences": 2
     },
     {
       "path": "docs/decisions/issue-251-act-617-mixed-control-participant-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 8,
-      "content_sha256": "742bfe731094b06d6886314f13de98df6d54acb2baf8e009bceb4d54ad14fd77"
+      "occurrences": 8
     },
     {
       "path": "docs/decisions/issue-252-api-409-participant-intervention-contracts-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 7,
-      "content_sha256": "48e5abe526d3ac9608b1c4983e2832fac00d5a702bef66f43645581047c61c55"
+      "occurrences": 7
     },
     {
       "path": "docs/decisions/issue-258-asr-511-layered-validation-profiles-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 9,
-      "content_sha256": "4f8e1f0c432057ebb29f642b529ec4a70f7d5b2fe55e7b2400559c9ecfa0d2df"
+      "occurrences": 9
     },
     {
       "path": "docs/decisions/issue-259-asr-515-validation-strength-disclosure-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "7c7b0a56ee16964e5f9d6b293ee3ce4c85e541be7130193558768e3ddb55c043"
+      "occurrences": 6
     },
     {
       "path": "docs/decisions/issue-274-exp-718-controlled-randomness-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 7,
-      "content_sha256": "8c2b070968a8715312134c6677103f6f39330ad95440e1077aba9125cc4dc212"
+      "occurrences": 7
     },
     {
       "path": "docs/decisions/issue-294-sem-219-participant-tool-affordance-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 10,
-      "content_sha256": "a0401e55f93f741b3aca0941f5abe9e240bf7d35a16e5a41f8c693f5a5608908"
+      "occurrences": 10
     },
     {
       "path": "docs/decisions/issue-296-sem-226-participant-exposure-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 12,
-      "content_sha256": "4c6028cadabe1d80e8047fbf4560b5308a265affbe1a93ae06fcf5fc8fc0722a"
+      "occurrences": 12
     },
     {
       "path": "docs/decisions/issue-303-act-622-participant-action-space-modes-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "33f81a1f9e2495698f0b93278ff9906dbaa4a3a2502ecb2a37e618f660babde5"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/issue-334-sem-224-observability-plane-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "075d12d80888102d84b71fcead72a17dad79ce56b62a9951911a083035417e64"
+      "occurrences": 3
     },
     {
       "path": "docs/decisions/issue-336-dsl-123-scenario-native-observability-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "436c7141fc93c94dcc0c720dd6b2a6a7a2ba2ae8388f3331bb9875d142f90a0f"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/issue-337-dsl-124-authored-evidence-requirements-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "76268dd79c36e803bbd7b35f00cc528c50aa684c90427c257425d9903a65ed58"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/issue-338-run-316-operational-apparatus-observability-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 8,
-      "content_sha256": "5daff621cfc4da4feedf60dc8dc29e014db4d2a6b32f4588c5eb069732031eab"
+      "occurrences": 8
     },
     {
       "path": "docs/decisions/issue-339-api-419-observation-augmentation-disclosure-contracts-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "5ad2f84b7e329fb0db7c709ef4a1707211818214b447f5d885e029fe2be83962"
+      "occurrences": 5
     },
     {
       "path": "docs/decisions/issue-34-osv-scanner-ci-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "c4e473b9db2f73b7c5ad2321073ca769f24e5bdc2757b399e5152ff012c09c12"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/issue-340-asr-525-observability-conformance-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "7fc4498d20cc440e1c2241dec817c74ee14ac548ae61f9c6fd594f0565972151"
+      "occurrences": 5
     },
     {
       "path": "docs/decisions/issue-346-dsl-language-evaluation-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "91a3aec493edda6e88db68e5023f26a38d8bbfcb8061dc22869bd9c3953ceb68"
+      "occurrences": 6
     },
     {
       "path": "docs/decisions/issue-39-processor-models-package-split-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 11,
-      "content_sha256": "6eced1b002523de4922ce6fcd3c4f55accb3c542643c203c00a1df4d612b9717"
+      "occurrences": 11
     },
     {
       "path": "docs/decisions/issue-41-compiler-package-split-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 21,
-      "content_sha256": "468775c090ddd4bbd69deded9a701479132f364e61b8ad629d1d467e0b7765c5"
+      "occurrences": 21
     },
     {
       "path": "docs/decisions/issue-417-runtime-contract-observation-boundary-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 7,
-      "content_sha256": "1102bf844159a14400ed76bf9162821d30fceffd673d9cf905c9843074fdeddc"
+      "occurrences": 7
     },
     {
       "path": "docs/decisions/issue-42-validator-package-split-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 26,
-      "content_sha256": "58087b00eee3459115fa4cca8af4b9a481d741023f08079fa80db307a946dbde"
+      "occurrences": 26
     },
     {
       "path": "docs/decisions/issue-43-contracts-package-split-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 18,
-      "content_sha256": "1aa9a0cb76c20d1c4e304af29123c8539ab5d256998535a63f1be96ba1329f11"
+      "occurrences": 18
     },
     {
       "path": "docs/decisions/issue-44-planner-package-split-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 29,
-      "content_sha256": "beaf758a241f56d1b47077f474452b089d83fbe8b8a87aace523c5323bd100bd"
+      "occurrences": 29
     },
     {
       "path": "docs/decisions/issue-491-sem-218-runtime-realization-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 8,
-      "content_sha256": "23e9307a1ab2f5fe3ec4398b71b39ea89ff7f1a9912d585c9971ece5e86977d0"
+      "occurrences": 8
     },
     {
       "path": "docs/decisions/issue-495-uco-alignment-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 12,
-      "content_sha256": "eda343bacdd4e2738d33bda423d88b56cbf1a6a2450d89509cd5f728116cf9a9"
+      "occurrences": 12
     },
     {
       "path": "docs/decisions/issue-496-catalog-governance-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "f0c5a1017da60db2ec19db51f9d425696d1426b522f192d6382046b2d2d1e634"
+      "occurrences": 3
     },
     {
       "path": "docs/decisions/issue-499-schema-authority-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "ff4616cf84adb02745a1ac31530cfaee55837bad88c77c14ab1b219b6b666497"
+      "occurrences": 2
     },
     {
       "path": "docs/decisions/issue-501-validation-corpus-schema-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "80ae42e9703cdf9af0b9172a8ef1bbcc048088c58ec8d4b9aed4277c4ca9ce07"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/issue-505-error-advisory-boundary-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "68bb2e44b916a04368757a0a4b6201712283b378b7865aa13313457a404d3dcf"
+      "occurrences": 1
     },
     {
       "path": "docs/decisions/issue-506-determinism-witness-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "df1282deff14e620e0ff0dd759ec7c5ec4c823f7fb453918392d4c1c4af7373d"
+      "occurrences": 5
     },
     {
       "path": "docs/decisions/issue-508-related-work-comparison-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 9,
-      "content_sha256": "b1b27491d126a4c241c37a137cad42bceb8484e4ef168fdd488e229fd72874e0"
+      "occurrences": 9
     },
     {
       "path": "docs/decisions/issue-537-contract-corpus-packaging-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "eebc85db5ec63488d1c240fa4ffec112cf8f1dc77b4b15f44f86958abe889fd3"
+      "occurrences": 6
     },
     {
       "path": "docs/decisions/issue-539-realization-posture-cascade-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 11,
-      "content_sha256": "22d71381e6be0df280ef9ab641fc54dad7a8df20aad16a2417e0bf5b4c1f57b7"
+      "occurrences": 11
     },
     {
       "path": "docs/decisions/issue-551-import-lockfile-portability-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 8,
-      "content_sha256": "745fa02f0be6ca03cfd8e1174b57ed7befd5641f635c4b8c3f02b3b81c7ee169"
+      "occurrences": 8
     },
     {
       "path": "docs/decisions/issue-567-pr-title-guard-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "e3e79f5714985c8c6a06fe6c74720491c9d567813a22ea4855dfa52ef71714b6"
+      "occurrences": 3
     },
     {
       "path": "docs/decisions/issue-598-paper-reference-scenario-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "900446d4d84b274108e7470546b0e44a5cb12f0b112c423ea5841da164ae33e6"
+      "occurrences": 2
     },
     {
       "path": "docs/decisions/issue-599-participant-implementation-binding-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "4f620b1677be3f8b7091be66e22611ca5e51d0a6c28764ba670ddfd21f7e5746"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/issue-600-paper-demonstration-corpus-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 15,
-      "content_sha256": "4c1b4efef3ab8dbd125c68ac65fe6571855e4a4d8a1a30601358793bb1035afe"
+      "occurrences": 15
     },
     {
       "path": "docs/decisions/issue-601-libvirt-provisioning-backend-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 17,
-      "content_sha256": "9168fc762bd6c31f03af1608b738e3e7fd453028ca1eb2b9419953f8e4911648"
+      "occurrences": 17
     },
     {
       "path": "docs/decisions/issue-601-techvault-live-verification.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "9227381c5d8570266ad8ca076b2d75d727b02dac92c93b2ea3e46645a57e0df4"
+      "occurrences": 2
     },
     {
       "path": "docs/decisions/issue-602-libvirt-backend-manifest-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 14,
-      "content_sha256": "8f6bfd7c6da0c850a0dac220dabe29507314b62ea9127632428ea03487e0c466"
+      "occurrences": 14
     },
     {
       "path": "docs/decisions/issue-603-libvirt-apply-realization-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 18,
-      "content_sha256": "a0dfe5af5595c619f7e03e1e6beca1305e116a220d62feb4fbab71876d9bbcd9"
+      "occurrences": 18
     },
     {
       "path": "docs/decisions/issue-604-libvirt-reconciliation-teardown-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 14,
-      "content_sha256": "e95ccfe2a1d00c40cb549cd7df561be8dae470649192c5b3c19d7b3379aac2c9"
+      "occurrences": 14
     },
     {
       "path": "docs/decisions/issue-605-libvirt-envelope-diagnostics-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 9,
-      "content_sha256": "9cad36f4e3f5987b77ed0d6d35d7460b5c755683c9bec803c93a7e607ee9e151"
+      "occurrences": 9
     },
     {
       "path": "docs/decisions/issue-606-libvirt-conformance-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 8,
-      "content_sha256": "542db8ecf0ce279a97af53768f560480c08ced133a97bc45abc60cfa1123672d"
+      "occurrences": 8
     },
     {
       "path": "docs/decisions/issue-609-plan-inspection-cli-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 22,
-      "content_sha256": "8990305b8eaeef7f93680edfe21ff4d5a028d930f7fb994894e238ed08d19111"
+      "occurrences": 22
     },
     {
       "path": "docs/decisions/issue-614-libvirt-participant-runtime.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 16,
-      "content_sha256": "a20c03726ed81eb1206df8835cb9208d2b3788d69aba1bce5194412a42c85aaa"
+      "occurrences": 16
     },
     {
       "path": "docs/decisions/issue-615-libvirt-paper-evidence-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 7,
-      "content_sha256": "c17b4cc798ed6a90d71096306f89eb8753b8e5346c14b60d377956d1043a0c3b"
+      "occurrences": 7
     },
     {
       "path": "docs/decisions/issue-635-rep-001-cage-2-replication-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 39,
-      "content_sha256": "9b6e5521142e23a867204a40bdbf89cc1936e9ca90315e9e85c7eaf118fa44e0"
+      "occurrences": 39
     },
     {
       "path": "docs/decisions/issue-652-sce-002-variation-trial-realization-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 13,
-      "content_sha256": "46f1297d7b3db0b598e2d02334b0d413a97d2b0485e14dfe92d3e629bf792669"
+      "occurrences": 13
     },
     {
       "path": "docs/decisions/issue-653-sce-004-goal-oriented-tool-flexible-steps-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 8,
-      "content_sha256": "010f65d39c7359bd11b60d3b1423a172a5c2e302b7741c46e5303da5b0a4a06e"
+      "occurrences": 8
     },
     {
       "path": "docs/decisions/issue-655-dsl-variable-system-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 8,
-      "content_sha256": "d2f77754fd659e5d121fac63424e9f92ba885237f9f232179bf603161521d35b"
+      "occurrences": 8
     },
     {
       "path": "docs/decisions/issue-658-sce-007-clean-state-cleanup-contracts-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 9,
-      "content_sha256": "ee330ef1c46781a89df3bb8ea5a14d706253a9df36b03244fd838aca9ad581ab"
+      "occurrences": 9
     },
     {
       "path": "docs/decisions/issue-663-target-conformance-provisioning-scope-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "9be7a123ad3ad3d0ee1e8ec433268d878865e6e9ca4b952de5430255f7acab28"
+      "occurrences": 5
     },
     {
       "path": "docs/decisions/issue-667-realization-envelope-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 10,
-      "content_sha256": "b77946d65d53b84c49e99f53c344b4aac9b244fd6f78a6717fb4b2be64c9b70b"
+      "occurrences": 10
     },
     {
       "path": "docs/decisions/issue-668-envelope-relation-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "30344208e771a3700524a6499cab8ec706b662059b11640ec42af9b31c7957b3"
+      "occurrences": 3
     },
     {
       "path": "docs/decisions/issue-670-rename-paper-identifiers.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 11,
-      "content_sha256": "6427656cfde11ba275565199f468b339e24ef66e7eae727e5f5892b97297673c"
+      "occurrences": 11
     },
     {
       "path": "docs/decisions/issue-714-asr-519-techvault-realization-disclosure-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 10,
-      "content_sha256": "28cb8fb672781a70355aa05c87130f3cdd7e17c5502d84f28af3bdc4ab1f766c"
+      "occurrences": 10
     },
     {
       "path": "docs/decisions/issue-715-asr-519-guest-observed-libvirt-probes-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 9,
-      "content_sha256": "60e0c789276d7a183fb658a99150e2ec5e8e80b84a6894323bc555b547d1a572"
+      "occurrences": 9
     },
     {
       "path": "docs/decisions/issue-716-asr-519-realization-honesty-conformance-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 25,
-      "content_sha256": "20337c233c089e6b69d76cdb4c7a06817740d219a794857a6992acda5ab372cc"
+      "occurrences": 25
     },
     {
       "path": "docs/decisions/issue-721-dsl-105-canonical-sdl-yaml-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 8,
-      "content_sha256": "387de231efc1079ec4654ff6db2bba5de238ac7b071bd97a9e4bfd716c724b8e"
+      "occurrences": 8
     },
     {
       "path": "docs/decisions/issue-722-normative-sdl-catalog-parity-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "07a91eebc75939f4b7688f2366411bb6f0297c5a142b59bc75a1a4a3690cc631"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/issue-724-instantiated-phase-contract-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "a317cb2f9998ec0e0cb951f834d94fc63bd3f65ca5dcdd2320861c2b28e59211"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/issue-725-objective-truth-semantics-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 8,
-      "content_sha256": "e79879d29133add7de5ea576565648bb25727124d4f7d9d1249b54913865bae2"
+      "occurrences": 8
     },
     {
       "path": "docs/decisions/issue-726-sdl-lineage-provenance-ledger-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 11,
-      "content_sha256": "641aa444ca460885fc596d7339764453267b59afe641224cedd0ec9b91e86245"
+      "occurrences": 11
     },
     {
       "path": "docs/decisions/issue-727-scientific-scenario-completeness-profile-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "bf9a2d52eb83329b4e1e303ea73a328c635be324faeebc01499714d1fdd4b2f8"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/issue-728-reproducible-related-work-comparison-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 16,
-      "content_sha256": "caa28e274d5ab9088bd5319dd9bc131163b3119c0308b381d11949273590914f"
+      "occurrences": 16
     },
     {
       "path": "docs/decisions/issue-73-dsl-115-specificity-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 7,
-      "content_sha256": "8ae71cc610506394ef71b76c2919c78ecffbc8523c0b751557f22a8ef53fc845"
+      "occurrences": 7
     },
     {
       "path": "docs/decisions/issue-738-associated-artifact-manifests-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 21,
-      "content_sha256": "41a65ceff5f9f5946e9cd4e9fe2ee81c74d2ee5b5bf2b9ae454b12cfa704eedf"
+      "occurrences": 21
     },
     {
       "path": "docs/decisions/issue-747-behavioral-relation-taxonomy-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 18,
-      "content_sha256": "fdaeff16f9063c582293c536d17da3a707c825d1ad1c269f3aff1452c642f49d"
+      "occurrences": 18
     },
     {
       "path": "docs/decisions/issue-748-node-services-reachability-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "1bb1a06b074ca51bec8a25a4238c9fbc400727430501583a22590feee5319634"
+      "occurrences": 6
     },
     {
       "path": "docs/decisions/issue-760-sem-218-provenance-preservation-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "41e53f9fc2dcd8e0c5b158e75e0d26223a147497d451f224551add7eb441e9ee"
+      "occurrences": 2
     },
     {
       "path": "docs/decisions/issue-763-authored-domain-topology-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "e1302eea9496ddafa245fefe4dda6e1da2658c3b64faa418061accdad181ba52"
+      "occurrences": 6
     },
     {
       "path": "docs/decisions/issue-767-explicitness-provenance-identity-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "058545fc879bb5cbe082d804c5ca3546688a803275a1ccffab4955c7238d5329"
+      "occurrences": 2
     },
     {
       "path": "docs/decisions/issue-776-domain-topology-realizer-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "bf77f1ddbe95e24e2dfa718e2158055a8527a951b693d6486920f6849b72521e"
+      "occurrences": 5
     },
     {
       "path": "docs/decisions/issue-780-dsl-435-stateful-realization-resources-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "2d852a319b6c2d8f87c40d97563f939893d1242cc71c20e39c48fc90cb5c73fa"
+      "occurrences": 2
     },
     {
       "path": "docs/decisions/issue-791-sce-004-runtime-fact-bindings-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 9,
-      "content_sha256": "c3170f1d162f4e5a10cf8c6b7b0c9688b1c26087044863ed46c742b84eeb784c"
+      "occurrences": 9
     },
     {
       "path": "docs/decisions/issue-794-participant-io-control-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 10,
-      "content_sha256": "d3648deb13319cd9129dc1bd2f8ce53bdbf5360af6e61fb4a0d9208e01b84e68"
+      "occurrences": 10
     },
     {
       "path": "docs/decisions/issue-796-sem-230-participant-information-flow-control-semantics-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "1019ddad07c6a9a7a0148e93d37773ebe61e83a97dc538d96e199800bbeda684"
+      "occurrences": 5
     },
     {
       "path": "docs/decisions/issue-797-dsl-142-participant-inject-delivery-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "1f5c23c34f2fb2c07ff5d72cc47f9c7b3091a945d39da1df15d3dfe7ef470794"
+      "occurrences": 2
     },
     {
       "path": "docs/decisions/issue-798-api-423-participant-crossing-contracts-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "7e239530e04aa560e654714a7ace8bd58173d2c3f115aeb39c936bb505735bac"
+      "occurrences": 5
     },
     {
       "path": "docs/decisions/issue-805-participant-interactive-access-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "c5e5931ccf2e63e4e475b221ed1c1eb6201dc9e00a9092da1a62a1260c407681"
+      "occurrences": 5
     },
     {
       "path": "docs/decisions/issue-826-whole-scenario-satisfiability-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 20,
-      "content_sha256": "3824915cccb24d930827cc94db285125fdd247c31d14e102ad7f0be89475d5e1"
+      "occurrences": 20
     },
     {
       "path": "docs/decisions/issue-827-typed-exploit-path-semantics-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 13,
-      "content_sha256": "932ca609f9b1f352ca222a1cee6dcdf02476389c2762f36e0bc4c3485a173727"
+      "occurrences": 13
     },
     {
       "path": "docs/decisions/issue-845-domain-controller-placement-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "13d81f20bc8bd41567a33945dd60f17187302cc015953a044119ce1ba176b31c"
+      "occurrences": 5
     },
     {
       "path": "docs/decisions/issue-849-network-namespace-sharing-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 7,
-      "content_sha256": "2774b6ac47776d224e7da64a7b68792713c59cdf840a7028a61455164f26dc02"
+      "occurrences": 7
     },
     {
       "path": "docs/decisions/issue-857-dsl-143-enterprise-identity-deployment-tenancy-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "426d136b3512e3f748c18498eb245b52aa2ddb12524b5eb82ac5ed22bb91ac75"
+      "occurrences": 1
     },
     {
       "path": "docs/decisions/issue-859-dsl-436-initial-service-state-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "b83b0e2caeb66582831e4dca0ea5d5930d5fb00d8ad085da78f9a752ee9c7bda"
+      "occurrences": 6
     },
     {
       "path": "docs/decisions/issue-861-dsl-437-benign-participant-execution-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "3b4759eb34f176640c733f88787034eb39119207a088cba7bb705cf9611bc425"
+      "occurrences": 2
     },
     {
       "path": "docs/decisions/issue-866-raes-rename-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 35,
-      "content_sha256": "e31f6abf62b78567a9037c0589af0c036ba27f80dbc090d91a9703b941ade77e"
+      "occurrences": 35
     },
     {
       "path": "docs/decisions/issue-884-raes-python-import-hard-cut-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 13,
-      "content_sha256": "69c5c0a8dd29d9b68d18f33f673ea1c595a9bc163f312c8cca8a3dd4b5423a3a"
+      "occurrences": 13
     },
     {
       "path": "docs/decisions/issue-884-reframe-raes-documentation-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "11f1c861de6d908b1a3d4a3c3eb07de757aaabbef2996ab414a880e3e2d44a31"
+      "occurrences": 2
     },
     {
       "path": "docs/decisions/issue-90-gov-901-903-versioning-governance-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 17,
-      "content_sha256": "6add3268c3f0f3a96a76ce5e2e7dc74ad17b69d131dfe44282ee043fe7235071"
+      "occurrences": 17
     },
     {
       "path": "docs/decisions/issue-903-experiment-binding-contracts-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "3128021de32125f2d8ce6270e1386c2c8cc5dd3af45514fb8e335a17c9469940"
+      "occurrences": 2
     },
     {
       "path": "docs/decisions/issue-907-raes-env-packs-naming-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves the dated issue preflight and its base-synchronization correction as historical identity-cutover evidence.",
-      "occurrences": 4,
-      "content_sha256": "82c441869cca975874236fa02946298bb4dbf70ecd04336550652193673e0022"
+      "occurrences": 4
     },
     {
       "path": "docs/decisions/issue-97-asr-511-515-validation-strength-disclosure-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "fe7a6c46f384539709ccb2795781d166164f256247497e06ffa9acfde47fa8d8"
+      "occurrences": 3
     },
     {
       "path": "docs/decisions/sem-213-temporal-participant-preflight.md",
       "record_class": "dated-design-record",
       "rationale": "Preserves a completed, dated design or architecture-preflight record from before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "05258d1baff5dcf8fcdf4a29a7a4e41647fa00cc1f1dcd3df4af160c156c9a28"
+      "occurrences": 2
     },
     {
       "path": "docs/research/behavioral-relations/conflation-audit-2026-07-13.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "503f5f52fd7cc7c13aa9c5dfdc9d650660225601e94c4b5efe2ffa6f38d75628"
+      "occurrences": 1
     },
     {
       "path": "docs/research/dsl-language-evaluation/analysis-accessibility-v1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "1e076dbff24026d2717cfaec7934c1309f525c461ed6a102d1f48dfae5ff61c6"
+      "occurrences": 6
     },
     {
       "path": "docs/research/dsl-language-evaluation/analysis-v1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 7,
-      "content_sha256": "45976ab8a64721f8211b8db3073046d6740adebf102d2c23da11f4ea529de6a2"
+      "occurrences": 7
     },
     {
       "path": "docs/research/dsl-language-evaluation/bundle-manifest.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 9,
-      "content_sha256": "bc87bcf7b873d2b1a5b62b78a216843c7aa505333c03157da0780706c49b4285"
+      "occurrences": 9
     },
     {
       "path": "docs/research/dsl-language-evaluation/execution-snapshot-accessibility-v1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 23,
-      "content_sha256": "21a0f4d290b9237270ffe4a12c542329bed01025d483dc708074c9256a0bb52a"
+      "occurrences": 23
     },
     {
       "path": "docs/research/dsl-language-evaluation/execution-snapshot-v1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 15,
-      "content_sha256": "498c3172bbc0711271023d243755113ccfed67b85a662e0deb1c917ac0546ad4"
+      "occurrences": 15
     },
     {
       "path": "docs/research/dsl-language-evaluation/index.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 7,
-      "content_sha256": "e838b5efcb28f38b8e0a7e1b1485121c9e3b8f514a896becee449cc98c3a0bc1"
+      "occurrences": 7
     },
     {
       "path": "docs/research/dsl-language-evaluation/protocol-v1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 27,
-      "content_sha256": "af3252212815185ee4a9d4001875be30152d11c4b46dac3e7ed86109ccd94b7f"
+      "occurrences": 27
     },
     {
       "path": "docs/research/dsl-language-evaluation/protocol-v2.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 48,
-      "content_sha256": "bcbdcc2e45c5e4c056424e1568417e55f4dbacf2ffab41520c91d2d7dcb3a6bc"
+      "occurrences": 48
     },
     {
       "path": "docs/research/experiment-core/2026-05-26-search-log.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "a890796bd594d97b9e7237c015d0e620f40e95bc3b4aaf5d8818dc8e4a38b521"
+      "occurrences": 6
     },
     {
       "path": "docs/research/experiment-core/cyber-range-scientific-instrument.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "357c306608e023c20692d8c2edd459e0f692b62508dc4caf862670e58c459534"
+      "occurrences": 6
     },
     {
       "path": "docs/research/experiment-core/design-criteria-for-exp-701-705.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 8,
-      "content_sha256": "b9302b484567b73f6293cba4d4fb472c690072f58a514c8fceffc98205a315f8"
+      "occurrences": 8
     },
     {
       "path": "docs/research/experiment-core/issue-105-exp-706-712-reproducibility-replay-preflight-guardrails.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "0f22063bec38ba96edadc52182ee8d3238f62003c9b23fb547537fb6e401ba9d"
+      "occurrences": 5
     },
     {
       "path": "docs/research/experiment-core/issue-233-exp-707-capture-spec-preflight-guardrails.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "2f9a2a71a682576a9007c09b2d008aa999d32718a3e8e32c3d98a3c80600ac8b"
+      "occurrences": 4
     },
     {
       "path": "docs/research/experiment-core/issue-234-exp-708-evidence-record-preflight-guardrails.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "76272f80477ef1111c2554ab6fc32a60aaa3fa9a5015fd827ce4ad27e21b84f7"
+      "occurrences": 2
     },
     {
       "path": "docs/research/experiment-core/issue-235-exp-709-derived-measure-preflight-guardrails.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "a9366d93a0aec1949801667c4548d0ae5488e433c295dc86ff5aa24ae493a4f9"
+      "occurrences": 2
     },
     {
       "path": "docs/research/experiment-core/issue-238-exp-720-run-provenance-preflight-guardrails.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "3a392ed2b29207e813c6ddf4ae745cddfde03d838ecac40a5029a3770a76d53b"
+      "occurrences": 6
     },
     {
       "path": "docs/research/experiment-core/issue-239-exp-722-realized-form-preflight-guardrails.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "565592e9435f8ff4f9d0772d55ded1d819fd950edc81f1179085a945d7338aa3"
+      "occurrences": 1
     },
     {
       "path": "docs/research/experiment-core/issue-267-exp-706-trial-replication-preflight-guardrails.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "969005f1323f501db4d8051bcd41cd45d21b6d5d4bfa06cb3421ddf2e55fe61a"
+      "occurrences": 3
     },
     {
       "path": "docs/research/experiment-core/issue-342-exp-732-evidence-source-augmentation-provenance-preflight-guardrails.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "ca4183410de43e5fee01ce4ec730cdf3cfa86dba918a9c46d3224ab212785819"
+      "occurrences": 3
     },
     {
       "path": "docs/research/experiment-core/issue-88-evidence-measure-preflight-guardrails.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "b056dce5dd81c255dabdd4541a96272fcfb53bf888cc10f3dcb68274aec28a9f"
+      "occurrences": 4
     },
     {
       "path": "docs/research/experiment-core/ml-experiment-rigor.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 10,
-      "content_sha256": "2e2062d354968fdb3355c163960be0b15baefbb4663b00b7d8ce6ec7fb8baeb2"
+      "occurrences": 10
     },
     {
       "path": "docs/research/experiment-core/preflight-guardrails.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "26df33cf24fbc9e7ca90be2c94d827e79cadf528b4b7dcb28bd63bd8c687340a"
+      "occurrences": 3
     },
     {
       "path": "docs/research/experiment-core/provenance-and-data-format-supports.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 10,
-      "content_sha256": "3275f81bd801a50ca2e944e9d5208ff8a49dfd361de71fc347f12806ae4e0cad"
+      "occurrences": 10
     },
     {
       "path": "docs/research/experiment-core/traceability-matrix-exp-701-705.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 7,
-      "content_sha256": "57191fc0a863a8c50752ed94487e53359a586890d49262c143c7ee1b9e939e34"
+      "occurrences": 7
     },
     {
       "path": "docs/research/formal-semantic-validation/analysis-v1.1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "91c83666ee9099d8c8484a1ce6e3ce30f858d050a066cfb2bb342375fcbb6642"
+      "occurrences": 6
     },
     {
       "path": "docs/research/formal-semantic-validation/analysis-v1.2.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "dd2966c96e2daf0b97107e90557438f89b150d1976297d6a0f4216a28f2336d8"
+      "occurrences": 6
     },
     {
       "path": "docs/research/formal-semantic-validation/analysis-v1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "0930f0369cdc574a4aba64559727c7a4ffb6513ce06136ae683d765bc71b93fa"
+      "occurrences": 6
     },
     {
       "path": "docs/research/formal-semantic-validation/corpus/manifest-v1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "89019de409f23f20f6136e305da0cef618ec3add6a3372628fe610008ead9b31"
+      "occurrences": 2
     },
     {
       "path": "docs/research/formal-semantic-validation/corpus/semantic-valid.sdl.yaml",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "a074d75b1b420a47a740703deaff45c20ec1c5d846f660412929bc69ab0efb19"
+      "occurrences": 1
     },
     {
       "path": "docs/research/formal-semantic-validation/execution-snapshot-v1.1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 19,
-      "content_sha256": "815ad32527478e1e9056c8e64419f83b0086ab1509c7df21cf5863b2d565cd46"
+      "occurrences": 19
     },
     {
       "path": "docs/research/formal-semantic-validation/execution-snapshot-v1.2.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 19,
-      "content_sha256": "6aa1cc1499ece9f51a165b4d31365a22c400339df6cccf0282baae1f22117472"
+      "occurrences": 19
     },
     {
       "path": "docs/research/formal-semantic-validation/execution-snapshot-v1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 19,
-      "content_sha256": "e061530e05ed00a2ae68ce3c5760c1011223e48e7c2e8a1b8e2068718674e2bc"
+      "occurrences": 19
     },
     {
       "path": "docs/research/formal-semantic-validation/protocol-v1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "cda5d300dfb9ec553cbc86538eaaf4a8ef43dfa59a14c1dcc113a56cfac8d826"
+      "occurrences": 3
     },
     {
       "path": "docs/research/formal-semantic-validation/satisfiability-analysis-v1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "194399bf85c05b2a6cd9aacc1590486f9ca051d2fa08b6b5bb56ddc85c8b33cf"
+      "occurrences": 3
     },
     {
       "path": "docs/research/formal-semantic-validation/satisfiability-execution-snapshot-v1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 8,
-      "content_sha256": "330c9aa41d3d7c388d82e5639bbeebfa98cb11156bea61ad8970297560d2e373"
+      "occurrences": 8
     },
     {
       "path": "docs/research/initial-service-state-precedents-2026-07-24.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "3934b85e585250be7e5e6eafc7199b3e9c567ef858a68bba32c85479df9d13c5"
+      "occurrences": 6
     },
     {
       "path": "docs/research/lineage/source-audit-2026-07-12.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 26,
-      "content_sha256": "4156b85b9989ea7c14a523fc3633db38b3e6aa8f6a2f5cac43858313e06f4434"
+      "occurrences": 26
     },
     {
       "path": "docs/research/participant-backend-contracts/index.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "a0c2c3b1f2980a53a607127c5ccdd8093e0074f1ba53bfeeacaa95a1ad02c72b"
+      "occurrences": 1
     },
     {
       "path": "docs/research/participant-backend-contracts/preflight-guardrails.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "3c8151865af05542620256c34d28bb353c71b8c45a5713235689cec2cea53dc9"
+      "occurrences": 1
     },
     {
       "path": "docs/research/participant-backend-contracts/prior-art-and-design-criteria.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 11,
-      "content_sha256": "0543af2a8df39ee64aefa9116964717c6825e7cf375c8a69a9754afb2233d367"
+      "occurrences": 11
     },
     {
       "path": "docs/research/participant-interactive-access/index.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "299321015a07c9ad703f7ec5c023cf08787b72cf92091e149a2f08ee4a3fcf9a"
+      "occurrences": 5
     },
     {
       "path": "docs/research/participant-io-control/adoption-design.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 2,
-      "content_sha256": "602649f2083f1337422d483c016ad2c59067751e56123f216dce98893620f191"
+      "occurrences": 2
     },
     {
       "path": "docs/research/participant-io-control/adoption-program.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "3f8f0205e502add9603834f46fe1931314678429dc3a5b2083d9314bca7d3a50"
+      "occurrences": 1
     },
     {
       "path": "docs/research/participant-io-control/current-state-assessment.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 10,
-      "content_sha256": "21cae879bfbd4f35a45b936e6200aa698248eeeb5a5ec37512dfc1f3708ce338"
+      "occurrences": 10
     },
     {
       "path": "docs/research/participant-io-control/requirement-disposition.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "7d19d3be360630bc9f50b171323d0cf824e4e48aeae1ad1351aa0621149aca49"
+      "occurrences": 1
     },
     {
       "path": "docs/research/primary/index.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "15cea19fee65485e2b03091c53620f676010186d8134361db39765b4f13fbeca"
+      "occurrences": 1
     },
     {
       "path": "docs/research/primary/literature/cyber-range-scenario-survey.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 3,
-      "content_sha256": "a00392d29fd7bad14d77109a0cb26adcc8c371eb839a65715e3922cbdd426e6d"
+      "occurrences": 3
     },
     {
       "path": "docs/research/realization-envelope/prior-art-and-design-criteria.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 13,
-      "content_sha256": "b57c40323557bf759479176faecec6e4bb7bda074195df27a5feaf91922e87a9"
+      "occurrences": 13
     },
     {
       "path": "docs/research/related-work-comparison/analysis-v1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 32,
-      "content_sha256": "88c5821702918bd43e0f4766a871d3215fdcc90a7c43a3df336278feaf8809d3"
+      "occurrences": 32
     },
     {
       "path": "docs/research/related-work-comparison/extraction-snapshot-2026-07-13.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 86,
-      "content_sha256": "8c1cb84c36d05e47bf73995400c53018e3759178a431213328cebc306f2dc281"
+      "occurrences": 86
     },
     {
       "path": "docs/research/related-work-comparison/index.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "1c394b7bfc8d1b91cd8637f7b0c8f2f2ba90a0caa0e15da61ec09785e4bf041f"
+      "occurrences": 5
     },
     {
       "path": "docs/research/related-work-comparison/protocol-v1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 7,
-      "content_sha256": "75ad031c493aa7637daa8304291b7c4e8353c208a22fa257997df77438471a1d"
+      "occurrences": 7
     },
     {
       "path": "docs/research/related-work-comparison/search-log.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 6,
-      "content_sha256": "6497be8d5cf8acbf7b76e3534823414e3a955e724fbb5032558a43c951c6a776"
+      "occurrences": 6
     },
     {
       "path": "docs/research/scenario-variation-trial-realization/index.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "c4157960afaa820ef61f5e3005349d77a0048ff934a20bddecb6053a1b4cb50f"
+      "occurrences": 1
     },
     {
       "path": "docs/research/scenario-variation-trial-realization/prior-art-and-design-criteria.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 19,
-      "content_sha256": "bddccb5c1651b76552601e6c22ebf6d2de118afed85685896a881b0389eff304"
+      "occurrences": 19
     },
     {
       "path": "docs/research/scoring-scope/index.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "1b6c07fd7c4594fdee584277166a0e63f878b3c1b5aef9c7e98abc89ffdbdbcb"
+      "occurrences": 1
     },
     {
       "path": "docs/research/scoring-scope/prior-art-and-design-criteria.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 7,
-      "content_sha256": "df17af636d5f8c798c5df346b61adb92dc645f5635e56f9339a34381149de2c6"
+      "occurrences": 7
     },
     {
       "path": "docs/research/scoring-scope/scoring-surface-inventory.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "1581f185528d6c9b995207120007c687d0f9ea92c9ca0f923fa12325cf8641d5"
+      "occurrences": 4
     },
     {
       "path": "docs/research/specification-coverage/analysis-v1.1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "4d2f8580b5be899430190d9acedb0ac1e74d4eb0a7c306aba8f00f2162914744"
+      "occurrences": 5
     },
     {
       "path": "docs/research/specification-coverage/analysis-v1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 5,
-      "content_sha256": "2726197378910018f62a64e63aae09d4799161acf999ddff971c47dd19f61e0b"
+      "occurrences": 5
     },
     {
       "path": "docs/research/specification-coverage/bundles/\u0061ces-standardized-specification-coverage-8bf12ee-v1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "975a9daaf1a4673b5ddfbf92c0c498562c1f3e129a0811babf39660ebbdd9a14"
+      "occurrences": 1
     },
     {
       "path": "docs/research/specification-coverage/bundles/\u0061ces-standardized-specification-coverage-9347f64-v1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 1,
-      "content_sha256": "4020a1d56c7fe2831cec59ea64a12bbda9d38ccd94f93b916dd90f1a28f17fcb"
+      "occurrences": 1
     },
     {
       "path": "docs/research/specification-coverage/execution-snapshot-v1.1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 13,
-      "content_sha256": "a05cc0d9a0ee221769d2dee1bc480819ab109476e67289d24254c2483cbad659"
+      "occurrences": 13
     },
     {
       "path": "docs/research/specification-coverage/execution-snapshot-v1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 13,
-      "content_sha256": "da1e41eed08512909328a267607577526787f1956d800ba9fcfff707f2bec62b"
+      "occurrences": 13
     },
     {
       "path": "docs/research/specification-coverage/protocol-v1.json",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 12,
-      "content_sha256": "e97a19e643e94c9e589dca823a63c6ce49d3329fe2a3cb888ab630838ed93125"
+      "occurrences": 12
     },
     {
       "path": "docs/research/time-model/prior-art-and-design-criteria.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 11,
-      "content_sha256": "403db824d4359a88d1f19989fcc15a489fbcdf5d1e6d49572710884f721eb349"
+      "occurrences": 11
     },
     {
       "path": "docs/research/validation-admission-profiles/traceability-matrix-asr-511-515.md",
       "record_class": "research-record",
       "rationale": "Preserves preregistered, frozen, dated, or lineage-bearing research evidence from before the RAES identity cutover.",
-      "occurrences": 4,
-      "content_sha256": "778711fccb5b5912a6fd106d080b4eac9dd354e4ccd4574204274fea653fecbc"
+      "occurrences": 4
     },
     {
       "path": "specs/evolution/deprecation-records.yaml",
       "record_class": "lifecycle-record",
       "rationale": "Preserves the exact retired distribution identifier in its governed deprecation and removal record.",
-      "occurrences": 2,
-      "content_sha256": "27a57b598257bdcb6e78322fbe932020f977ae4de7da81c7d8fbf266d4e14e0c"
+      "occurrences": 2
     }
   ]
 }

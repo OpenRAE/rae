@@ -22,12 +22,18 @@ closed enrollment lattice because they intentionally carry no raw value field.
 """
 
 from pydantic import ConfigDict, Field, ValidationInfo, field_validator, model_validator
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.identifiers import require_qualified_identifier
+from raes_contracts.runtime_values import (
+    enforce_observed_value_redaction,
+    parse_runtime_enum_or_var,
+    require_symbol,
+)
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import is_variable_ref, parse_int_or_var
 
 from raes.runtime_filesystem import redacted_raw_value_schema
-from raes.runtime_vocabulary import GovernedVocabulary
 
-from ._base import SDLModel, is_variable_ref, parse_int_or_var
-from ._identifiers import require_qualified_identifier
 from .runtime_forwarding_agent_vocab import (
     RuntimeForwardingAgentImplementation,
     RuntimeForwardingAgentKind,
@@ -44,11 +50,6 @@ from .runtime_forwarding_agent_vocab import (
 )
 from .runtime_forwarding_buffer import RuntimeForwardingBufferPolicy
 from .runtime_security_monitoring import RuntimeSecurityMonitoringListenerRole
-from .runtime_values import (
-    enforce_observed_value_redaction,
-    parse_runtime_enum_or_var,
-    require_symbol,
-)
 
 __all__ = [
     "RelationshipForwardingEdge",
@@ -88,7 +89,7 @@ _REDACTED_SETTING_CLASSIFICATIONS = (
 
 
 class RuntimeForwardingSource(SDLModel):
-    """An observed forwarder input source (tailed path, API pull, or queue)."""
+    """An observed forwarder input source (tailed path, API pull, queue, or listening socket)."""
 
     source_id: str
     kind: GovernedVocabulary[RuntimeForwardingSourceKind] = RuntimeForwardingSourceKind.UNKNOWN
@@ -255,7 +256,7 @@ class RuntimeForwardingSetting(SDLModel):
         return parse_runtime_enum_or_var(v, RuntimeForwardingSettingClassification, field_name="classification")
 
     @model_validator(mode="after")
-    def validate_setting(self) -> "RuntimeForwardingSetting":
+    def validate_setting(self) -> RuntimeForwardingSetting:
         enforce_observed_value_redaction(
             owner_label=f"forwarding setting '{self.setting_id}'",
             value=self.value,
@@ -312,7 +313,7 @@ class RuntimeForwardingAgent(SDLModel):
         return parse_runtime_enum_or_var(v, RuntimeForwardingAgentOwnershipRole, field_name="ownership_role")
 
     @model_validator(mode="after")
-    def validate_forwarding_agent(self) -> "RuntimeForwardingAgent":
+    def validate_forwarding_agent(self) -> RuntimeForwardingAgent:
         self._reject_duplicate_local_ref_ids()
         return self
 
@@ -400,7 +401,7 @@ class RelationshipForwardingEdge(SDLModel):
         return parse_runtime_enum_or_var(v, RuntimeForwardingParseFormat, field_name="parse_format")
 
     @model_validator(mode="after")
-    def validate_enrollment_identity(self) -> "RelationshipForwardingEdge":
+    def validate_enrollment_identity(self) -> RelationshipForwardingEdge:
         # The enrollment identity is secret-bearing by construction: a present
         # ref must be classified ``redacted`` / ``operator_secret`` so a raw
         # credential never lands in the model. A ``${var}`` classification is

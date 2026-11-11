@@ -1,9 +1,12 @@
+<!-- vale RAES.HeadingCase = NO -->
 # Participant-local outcomes (ACT-618)
 
 ACT-618 extends the SEM-215 interpretation owner. A participant outcome is a
 local claim about declared criteria at an observation cut. Action completion,
 local outcome, objective satisfaction, evaluation, reward and episode termination
 remain distinct; none implicitly establishes a status at another layer.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ## Existing coverage and added behavior
 

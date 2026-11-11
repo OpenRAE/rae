@@ -104,5 +104,5 @@ def require_inject_resolver(resolver: InjectExecutionResolver | None) -> None:
     for name, count in (("admit", 5), ("revalidate", 2), ("resolve_outcome", 3)):
         try:
             signature(getattr(resolver, name)).bind(*(object() for _ in range(count)))
-        except (AttributeError, TypeError, ValueError):
+        except AttributeError, TypeError, ValueError:
             raise TypeError("inject execution requires its installed typed resolution methods") from None

@@ -31,6 +31,7 @@ from raes_contracts.contracts import (
     validate_participant_flow_control_resolved_context,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import OperationReceipt, OperationState, operation_terminal_diagnostics
 
 from .control_plane_mutation import external_control_plane_call
@@ -39,6 +40,8 @@ from .participant_crossing_action import combined_crossing_audit
 from .participant_crossing_commit import commit_prepared_crossing, participant_crossing_permitted
 from .participant_crossing_mediation import PreparedParticipantCrossing
 from .participant_crossing_state_cut import participant_history_head_refs
+
+_LOGGER = get_logger(__name__)
 
 
 class ParticipantFlowSinkResolver(Protocol):
@@ -182,9 +185,13 @@ def _resolve_flow_sink_relation(
                 sink_kind=sink_kind,
                 expected_history_head_refs=head_refs,
             )
-    except Exception:
-        # Fail closed for every resolver failure (BaseException such as
+    except Exception as exc:
+        # Isolation: fail closed for every resolver failure (BaseException such as
         # KeyboardInterrupt/SystemExit still propagates by design).
+        _LOGGER.exception(
+            "participant flow-sink resolver failed; the final sink stays unresolved",
+            exc_info=foreign_failure_record(exc),
+        )
         return _denied(ParticipantFlowFinalDisposition.UNRESOLVED, "flow-sink-unresolved")
     if not isinstance(resolution, ParticipantFlowSinkResolution):
         return _denied(ParticipantFlowFinalDisposition.UNRESOLVED, "flow-sink-unresolved")
@@ -199,7 +206,9 @@ def _validated_flow_sink_relation(
             resolution.relation,
             lambda _document, _scope: resolution.context,
         )
-    except Exception:
+    # The published validator refuses a relation with TypeError or ValueError and
+    # isolates host failures itself.
+    except TypeError, ValueError:
         return _denied(ParticipantFlowFinalDisposition.UNRESOLVED, "flow-sink-context-invalid")
     return resolution
 

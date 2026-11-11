@@ -28,6 +28,7 @@ from ._operating_scope_index import operating_scope_aliases
 from ._reference_targetability import ReferencePurpose, canonical_purposes, is_eligible, section_declaration_kind
 from ._relationship_endpoint_policy import relationship_endpoint_purposes
 from ._source_profile import DEFAULT_PARSER_LIMITS
+from .composition import expand_sdl_modules
 from .parser import _load_normalized_data
 from .scenario import ExpandedScenario, Scenario, ScenarioContent
 
@@ -114,8 +115,6 @@ def document_context(data: dict[str, Any], path: Path | None = None) -> Document
 def _composed_data(data: dict[str, Any], path: Path, sources: dict[str, DeclarationSource]) -> dict[str, Any] | None:
     """Compose local imports with the existing gates; registry imports are refused, never fetched."""
 
-    from .composition import expand_sdl_modules
-
     try:
         composed, _provenance = expand_sdl_modules(
             deepcopy(data),
@@ -123,7 +122,7 @@ def _composed_data(data: dict[str, Any], path: Path, sources: dict[str, Declarat
             _traversal=CompositionTraversal.local_root(DEFAULT_PARSER_LIMITS),
             _declaration_sources=sources,
         )
-    except (SDLError, ValueError):
+    except SDLError, ValidationError:
         sources.clear()
         return None
     return composed

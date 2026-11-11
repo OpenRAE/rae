@@ -1385,6 +1385,17 @@
         "artifact": {
           "$ref": "#/$defs/ExperimentArtifactRefModel"
         },
+        "inventory": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeInventoryReport"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "operation_id": {
           "minLength": 1,
           "title": "Operation Id",
@@ -3412,6 +3423,21 @@
           ],
           "default": null,
           "title": "Interaction Ref"
+        },
+        "invocation_tool_context": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantInvocationToolContextModel"
+            },
+            {
+              "$ref": "#/$defs/ParticipantDeliveryToolContextModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Invocation Tool Context"
         },
         "joint_action_set_id": {
           "anyOf": [
@@ -7071,6 +7097,76 @@
       "title": "ParticipantDecisionSurfaceSequenceCutModel",
       "type": "object"
     },
+    "ParticipantDeliveryToolContextModel": {
+      "additionalProperties": false,
+      "description": "Tool correlation with an invocation of a retained delivery, not an outer action.",
+      "properties": {
+        "admission_ordinal": {
+          "minimum": 0,
+          "title": "Admission Ordinal",
+          "type": "integer"
+        },
+        "delivery_operation_ref": {
+          "minLength": 1,
+          "title": "Delivery Operation Ref",
+          "type": "string"
+        },
+        "execution_generation": {
+          "minimum": 0,
+          "title": "Execution Generation",
+          "type": "integer"
+        },
+        "execution_scope_ref": {
+          "minLength": 1,
+          "title": "Execution Scope Ref",
+          "type": "string"
+        },
+        "invocation_id": {
+          "minLength": 1,
+          "title": "Invocation Id",
+          "type": "string"
+        },
+        "semantics": {
+          "const": "participant-invocation-tool-actions/v2",
+          "title": "Semantics",
+          "type": "string"
+        },
+        "settlement": {
+          "enum": [
+            "completed",
+            "withheld",
+            "indeterminate"
+          ],
+          "title": "Settlement",
+          "type": "string"
+        },
+        "tool_affordance_address": {
+          "minLength": 1,
+          "title": "Tool Affordance Address",
+          "type": "string"
+        },
+        "tool_call_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Tool Call Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "semantics",
+        "invocation_id",
+        "delivery_operation_ref",
+        "tool_affordance_address",
+        "tool_call_id",
+        "admission_ordinal",
+        "settlement",
+        "execution_scope_ref",
+        "execution_generation"
+      ],
+      "title": "ParticipantDeliveryToolContextModel",
+      "type": "object"
+    },
     "ParticipantDenialOccurrenceModel": {
       "additionalProperties": false,
       "description": "Denial of exactly one proposal revision.",
@@ -9558,6 +9654,76 @@
         "intervention_ref"
       ],
       "title": "ParticipantInterventionOccurrenceV2Model",
+      "type": "object"
+    },
+    "ParticipantInvocationToolContextModel": {
+      "additionalProperties": false,
+      "description": "Issue #1740 correlation of one tool action with its enclosing autonomous invocation.",
+      "properties": {
+        "admission_ordinal": {
+          "minimum": 0,
+          "title": "Admission Ordinal",
+          "type": "integer"
+        },
+        "execution_generation": {
+          "minimum": 0,
+          "title": "Execution Generation",
+          "type": "integer"
+        },
+        "execution_scope_ref": {
+          "minLength": 1,
+          "title": "Execution Scope Ref",
+          "type": "string"
+        },
+        "invocation_action_contract_address": {
+          "minLength": 1,
+          "title": "Invocation Action Contract Address",
+          "type": "string"
+        },
+        "invocation_action_instance_id": {
+          "minLength": 1,
+          "title": "Invocation Action Instance Id",
+          "type": "string"
+        },
+        "semantics": {
+          "const": "participant-invocation-tool-actions/v1",
+          "title": "Semantics",
+          "type": "string"
+        },
+        "settlement": {
+          "enum": [
+            "completed",
+            "withheld",
+            "indeterminate"
+          ],
+          "title": "Settlement",
+          "type": "string"
+        },
+        "tool_affordance_address": {
+          "minLength": 1,
+          "title": "Tool Affordance Address",
+          "type": "string"
+        },
+        "tool_call_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$",
+          "title": "Tool Call Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "semantics",
+        "invocation_action_instance_id",
+        "invocation_action_contract_address",
+        "tool_affordance_address",
+        "tool_call_id",
+        "admission_ordinal",
+        "settlement",
+        "execution_scope_ref",
+        "execution_generation"
+      ],
+      "title": "ParticipantInvocationToolContextModel",
       "type": "object"
     },
     "ParticipantJointActionAccessSetModel": {
@@ -15400,6 +15566,254 @@
       "title": "RuntimeClockStateModel",
       "type": "object"
     },
+    "RuntimeConcernSelection": {
+      "additionalProperties": false,
+      "description": "A choice claim naming an admitted concern, never a provenance ledger write.",
+      "properties": {
+        "address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Address",
+          "type": "string"
+        },
+        "field_path": {
+          "maxLength": 4096,
+          "minLength": 1,
+          "title": "Field Path",
+          "type": "string"
+        },
+        "requirement_kind": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Requirement Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address",
+        "field_path",
+        "requirement_kind"
+      ],
+      "title": "RuntimeConcernSelection",
+      "type": "object"
+    },
+    "RuntimeDescendantBinding": {
+      "additionalProperties": false,
+      "description": "Stable causal identity; topology and ownership remain separate facts.",
+      "properties": {
+        "address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Address",
+          "type": "string"
+        },
+        "creation": {
+          "$ref": "#/$defs/RuntimeInventoryEvidence"
+        },
+        "lifecycle": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeInventoryEvidence"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "native_identity_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Native Identity Digest",
+          "type": "string"
+        },
+        "parent_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Parent Address",
+          "type": "string"
+        },
+        "parent_instance_index": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Parent Instance Index",
+          "type": "integer"
+        },
+        "source_address": {
+          "maxLength": 2048,
+          "minLength": 3,
+          "not": {
+            "pattern": "[^a-z0-9_.-]"
+          },
+          "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)(?:\\.(?:[a-z0-9][a-z0-9_-]{0,63}|__private))+$",
+          "title": "Source Address",
+          "type": "string"
+        },
+        "state": {
+          "default": "active",
+          "enum": [
+            "active",
+            "terminated",
+            "autoremoved"
+          ],
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "address",
+        "parent_address",
+        "source_address",
+        "native_identity_digest",
+        "creation"
+      ],
+      "title": "RuntimeDescendantBinding",
+      "type": "object"
+    },
+    "RuntimeInventoryEvidence": {
+      "additionalProperties": false,
+      "description": "Producer-scoped native receipt identity, not independent observation.",
+      "properties": {
+        "attempt_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "evidence_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Evidence Digest",
+          "type": "string"
+        },
+        "operation_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "run_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "operation_id",
+        "attempt_id",
+        "evidence_digest"
+      ],
+      "title": "RuntimeInventoryEvidence",
+      "type": "object"
+    },
+    "RuntimeInventoryReport": {
+      "additionalProperties": false,
+      "description": "Complete bounded producer inventory, joined to the descriptive SDL bytes.",
+      "properties": {
+        "attempt_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "backend_selections": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RuntimeConcernSelection"
+          },
+          "maxItems": 4096,
+          "title": "Backend Selections",
+          "type": "array"
+        },
+        "complete": {
+          "title": "Complete",
+          "type": "boolean"
+        },
+        "contract_id": {
+          "const": "backend-runtime-descendants-v1",
+          "default": "backend-runtime-descendants-v1",
+          "title": "Contract Id",
+          "type": "string"
+        },
+        "descendants": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RuntimeDescendantBinding"
+          },
+          "maxItems": 4096,
+          "title": "Descendants",
+          "type": "array"
+        },
+        "run_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "scope": {
+          "const": "/nodes",
+          "default": "/nodes",
+          "title": "Scope",
+          "type": "string"
+        },
+        "sequence": {
+          "maximum": 2147483647,
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "source_digest": {
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Source Digest",
+          "type": "string"
+        },
+        "target_scope": {
+          "maxLength": 256,
+          "minLength": 8,
+          "pattern": "^target:[^\\s\\x00-\\x1f]+$",
+          "title": "Target Scope",
+          "type": "string"
+        },
+        "unavailable_evidence": {
+          "default": [],
+          "items": {
+            "pattern": "^sha256:[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Unavailable Evidence",
+          "type": "array"
+        }
+      },
+      "required": [
+        "attempt_id",
+        "sequence",
+        "complete",
+        "source_digest",
+        "run_id",
+        "target_scope"
+      ],
+      "title": "RuntimeInventoryReport",
+      "type": "object"
+    },
     "SnapshotEntryModel": {
       "additionalProperties": false,
       "properties": {
@@ -16400,7 +16814,7 @@
         }
       ],
       "level": "error",
-      "validator": "raes_contracts.participant_temporal.require_participant_temporal_history"
+      "validator": "raes_contracts.contracts.participant_temporal_history.require_participant_temporal_history"
     }
   ],
   "x-raes-semantic-profile": {

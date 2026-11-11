@@ -100,12 +100,10 @@ from raes.nodes import (
     RuntimeProcessRole,
     RuntimePublishedPort,
     RuntimeRestartPolicy,
-    RuntimeSensitivityClassification,
     RuntimeSoftwareComponentProvenance,
     RuntimeSoftwareComponentType,
     RuntimeSudoPrincipalKind,
     RuntimeSudoRule,
-    parse_ram,
 )
 from raes.objectives import Objective, ObjectiveSuccess, ObjectiveWindow
 from raes.orchestration import (
@@ -120,6 +118,7 @@ from raes.orchestration import (
     parse_duration,
 )
 from raes.vulnerabilities import Vulnerability
+from raes_contracts.runtime_values import RuntimeSensitivityClassification, parse_ram
 
 # ---------------------------------------------------------------------------
 # Source

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from tools.sdl_catalog_parity._expectations_cloud import CLOUD_RESOURCE_EXPECTATIONS
 from tools.sdl_catalog_parity._paths import (
     _DANGLING,
     _DANGLING_CYCLIC,
@@ -26,6 +27,18 @@ _EXECUTION_POLICY_VALIDATOR = (
 _FATAL_DANGLING = "fatal dangling"
 
 EXPECTATIONS_PART_3: dict[str, tuple[str, str, str, str]] = {
+    **{
+        source: (
+            "assertions",
+            _SEMANTIC,
+            "fatal unless observed positive postconditions cover each exact target",
+            "[safe-state resolution](../../implementations/python/packages/raes/observation_scope.py)",
+        )
+        for source in (
+            "safe_state.default.assertion_refs[]",
+            "safe_state.scopes[].state.assertion_refs[]",
+        )
+    },
     "execution_policy.default.clock_ref": (
         "clocks",
         _SEMANTIC,
@@ -412,3 +425,5 @@ EXPECTATIONS_PART_3: dict[str, tuple[str, str, str, str]] = {
         _WORKFLOW_SEMANTICS,
     ),
 }
+
+EXPECTATIONS_PART_3.update(CLOUD_RESOURCE_EXPECTATIONS)

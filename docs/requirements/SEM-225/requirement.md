@@ -20,6 +20,13 @@ If processors or backends add instrumentation or other augmentation, the ecosyst
 
 ## Traceability
 
+- TESTS → TEST `implementations/python/tests/test_issue_1649_runtime_descendants.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_admission.py`
+
+- IMPLEMENTS → GITHUB_ISSUE `1649` (Runtime descendant reports and refresh)
+- IMPLEMENTS → SPEC `contracts/schemas/profiles/backend-profile-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/snapshots/runtime-snapshot-v1.json`
+
 - IMPLEMENTS → GITHUB_ISSUE `1242` (Binding open-by-default author scope and pre-materialization refusal)
 - IMPLEMENTS → SPEC `specs/sdl/augmentation-scope.md` (Author burden rationale, scoped permission, pure preparation and refusal contract)
 - IMPLEMENTS → SPEC `contracts/provenance/sdl-lineage-ledger-v2.json` (Native lineage registration for the author scope field)
@@ -127,22 +134,23 @@ If processors or backends add instrumentation or other augmentation, the ecosyst
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/parser.py` (Closed descriptive SDL phase, parsing, rendering and semantic identity)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_stubs/manifest.py` (Keep unsupported attestation contracts out of the stub declaration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/conformance/validators.py` (Declare structural validation strength for materialization contracts)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_snapshot_updates.py` (Neutral attestation, source, plan, result and archive contract integration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/associated_artifacts.py` (Neutral attestation, source, plan, result and archive contract integration)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/associated_artifacts.py` (Neutral attestation, source, plan, result and archive contract integration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/__init__.py` (Neutral attestation, source, plan, result and archive contract integration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_exports.py` (Neutral attestation, source, plan, result and archive contract integration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/artifact_transformations.py` (Neutral attestation, source, plan, result and archive contract integration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/associated_artifacts.py` (Neutral attestation, source, plan, result and archive contract integration)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/bundle.py` (Neutral attestation, source, plan, result and archive contract integration)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/schema_contributions.py` (Neutral attestation, source, plan, result and archive contract integration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_artifacts.py` (Neutral attestation, source, plan, result and archive contract integration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_disclosure.py` (Neutral attestation, source, plan, result and archive contract integration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_references.py` (Neutral attestation, source, plan, result and archive contract integration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/experiment_run.py` (Neutral attestation, source, plan, result and archive contract integration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_plans.py` (Neutral attestation, source, plan, result and archive contract integration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/schema_constraints.py` (Neutral attestation, source, plan, result and archive contract integration)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/schema_contributions.py` (Neutral attestation, source, plan, result and archive contract integration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/schema_invariants.py` (Neutral attestation, source, plan, result and archive contract integration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/manifest_authority.py` (Neutral attestation, source, plan, result and archive contract integration)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/plan_projection.py` (Neutral attestation, source, plan, result and archive contract integration)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/plan_projection.py` (Neutral attestation, source, plan, result and archive contract integration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/planning.py` (Neutral attestation, source, plan, result and archive contract integration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/runtime_state.py` (Neutral attestation, source, plan, result and archive contract integration)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/__init__.py` (Descriptive compilation, scoped inventory and authenticated plan provenance)
@@ -162,10 +170,11 @@ If processors or backends add instrumentation or other augmentation, the ecosyst
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_execution.py` (Attestation admission, execution isolation and durable runtime-owned references)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_plan_authorization.py` (Attestation admission, execution isolation and durable runtime-owned references)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/control_plane_store_snapshots.py` (Attestation admission, execution isolation and durable runtime-owned references)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager.py` (Attestation admission, execution isolation and durable runtime-owned references)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/interaction.py` (Attestation admission, execution isolation and durable runtime-owned references)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager_plan_admission.py` (Attestation admission, execution isolation and durable runtime-owned references)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_action_validation.py` (Attestation admission, execution isolation and durable runtime-owned references)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_execution_control.py` (Attestation admission, execution isolation and durable runtime-owned references)
 - TESTS → TEST `implementations/python/tests/test_backend_manifest.py` (Materialization delivery and boundary regression coverage)
 - TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (Source-bound replay of retained research claims)
 - TESTS → TEST `implementations/python/tests/test_specification_coverage.py` (Source-bound replay of retained research claims)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/interaction_dispatch.py` (Preserve phase augmentation authority and materialization results)

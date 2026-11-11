@@ -35,7 +35,7 @@ def _participant_action_result_grounded_refs(action_result: ParticipantActionRes
     return refs
 
 
-def _event_attribution_grounded_refs(event: "ParticipantBehaviorHistoryEvent") -> set[str]:
+def _event_attribution_grounded_refs(event: ParticipantBehaviorHistoryEvent) -> set[str]:
     refs: set[str] = {event.action_instance_id}
     if event.action_contract_address is not None:
         refs.add(event.action_contract_address)

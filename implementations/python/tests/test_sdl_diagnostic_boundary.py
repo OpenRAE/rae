@@ -23,8 +23,10 @@ pass.
 from __future__ import annotations
 
 import ast
+import logging
 from pathlib import Path
 
+import pytest
 import raes.validator as validator_module
 
 
@@ -179,3 +181,25 @@ def test_lint_detects_synthetic_violations() -> None:
     assert "unregistered-advisory-pass:_warn_orphan" in violations
     assert "collect-advisories-not-invoked-in-validate" in violations
     assert "advisory-pass-invoked-outside-collect:_verify_indirect" in violations
+
+
+def test_load_scenario_returns_advisories_without_logging_their_content(
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Advisories reach the caller on the scenario; the log keeps only counts (ADR-116 rules E8, L3, L6)."""
+
+    from raes.scenarios import load_scenario
+
+    path = tmp_path / "scenario.yaml"
+    path.write_text(
+        "name: advisory-scenario\nnodes:\n  secret-node-name: {type: compute, os: linux}\n", encoding="utf-8"
+    )
+    with caplog.at_level(logging.DEBUG, logger="raes.scenarios"):
+        scenario = load_scenario(path)
+
+    assert len(scenario.advisories) == 1
+    records = [record for record in caplog.records if record.name == "raes.scenarios"]
+    assert [record.levelno for record in records] == [logging.INFO]
+    assert "secret-node-name" not in records[0].getMessage()
+    assert "with 1 advisories and 0 source diagnostics" in records[0].getMessage()

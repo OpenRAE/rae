@@ -10,19 +10,10 @@ from enum import Enum
 from typing import Any
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
-
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import (
-    SDLModel,
-    is_variable_ref,
-    parse_int_or_var,
-)
-from .runtime_values import (
-    coerce_string_list,
-    ip_address_or_var,
-    parse_runtime_enum_or_var,
-)
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import coerce_string_list, ip_address_or_var, parse_runtime_enum_or_var
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import is_variable_ref, parse_int_or_var
 
 __all__ = [
     "RuntimeNetworkBackendDetail",
@@ -168,7 +159,7 @@ class RuntimeNetworkEndpoint(SDLModel):
         return coerce_string_list(v)
 
     @model_validator(mode="after")
-    def validate_unique_names(self) -> "RuntimeNetworkEndpoint":
+    def validate_unique_names(self) -> RuntimeNetworkEndpoint:
         for field_name in ("aliases", "dns_names"):
             values = getattr(self, field_name)
             if len(values) != len(set(values)):
@@ -190,7 +181,7 @@ class RuntimeNetworkRealization(SDLModel):
     description: str = ""
 
     @model_validator(mode="after")
-    def validate_unique_network_records(self) -> "RuntimeNetworkRealization":
+    def validate_unique_network_records(self) -> RuntimeNetworkRealization:
         seen_networks: set[str] = set()
         for endpoint in self.endpoints:
             if endpoint.network in seen_networks:

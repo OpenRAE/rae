@@ -24,6 +24,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Protocol
 
+from raes_contracts.canonical import canonical_contract_digest, canonical_json_digest
 from raes_contracts.contracts import (
     ExperimentEvidenceRecordModel,
     ExperimentRunEvidenceInputs,
@@ -31,7 +32,6 @@ from raes_contracts.contracts import (
     ExperimentTaskModel,
     validate_experiment_run_against_task,
 )
-from raes_contracts.satisfiability import canonical_contract_digest, canonical_json_digest
 
 from .repeatability_types import (
     RepeatabilityConsistencyEvidence,

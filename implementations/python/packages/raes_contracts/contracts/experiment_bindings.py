@@ -20,6 +20,9 @@ from pydantic import (
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
+from raes_contracts.canonical import canonical_contract_digest
+
+from .._sealing import sealing_active
 from ..secret_references import SecretReferenceId
 from ..versions import (
     EXPERIMENT_BINDING_DESCRIPTORS_V1_SCHEMA_VERSION,
@@ -27,7 +30,8 @@ from ..versions import (
 )
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
 from .capabilities import ApparatusIdentityModel
-from .schema_invariants import _add_raes_invariant
+from .participant_control_context import ParticipantControlContextAssetReferenceModel
+from .schema_invariants import add_raes_invariant
 
 
 class BindingScalarType(str, Enum):
@@ -57,10 +61,7 @@ class SecretReferenceBindingValueModel(ContractModel):
     reference_id: SecretReferenceId
 
 
-BindingValue = Annotated[
-    LiteralBindingValueModel | SecretReferenceBindingValueModel,
-    Field(discriminator="kind"),
-]
+BindingValue = Annotated[LiteralBindingValueModel | SecretReferenceBindingValueModel, Field(discriminator="kind")]
 
 
 class ScenarioBindingTargetModel(ContractModel):
@@ -137,6 +138,43 @@ class BindingOwnerModel(ContractModel):
     validator_version: NonEmptyString
 
 
+ControlContextSlotId = Annotated[
+    str,
+    Field(
+        min_length=1,
+        max_length=64,
+        pattern=r"^[a-z0-9][a-z0-9_-]*$",
+        json_schema_extra={"not": {"pattern": "[^a-z0-9_-]"}},
+    ),
+]
+ControlContextDeclarationRef = Annotated[
+    str,
+    Field(
+        min_length=1,
+        max_length=1024,
+        pattern=r"^control_context_assets\.[a-z0-9][a-z0-9_-]*(?:\.[a-z0-9][a-z0-9_-]*)*$",
+        json_schema_extra={"not": {"pattern": "[^a-z0-9_.-]"}},
+    ),
+]
+
+
+class ParticipantControlContextTargetModel(ContractModel):
+    """Manifest-owned finite domain of exact public SDL asset references."""
+
+    slot_id: ControlContextSlotId
+    references: dict[ControlContextDeclarationRef, ParticipantControlContextAssetReferenceModel] = Field(
+        min_length=1, max_length=256, json_schema_extra={"additionalProperties": False}
+    )
+
+
+class ParticipantControlContextConfigurationSelectionModel(ContractModel):
+    """Pin retained in the sealed configuration, independently of current catalogs."""
+
+    slot_id: ControlContextSlotId
+    declaration_ref: ControlContextDeclarationRef
+    asset_ref: ParticipantControlContextAssetReferenceModel
+
+
 class ConfigurationTargetDeclarationModel(ContractModel):
     """One scalar target admitted by an owning portable manifest."""
 
@@ -146,9 +184,16 @@ class ConfigurationTargetDeclarationModel(ContractModel):
     allowed_value_kinds: list[Literal["literal", "secret-reference"]] = Field(min_length=1)
     sensitivity: Literal["public", "internal", "restricted", "secret"]
     default: LiteralBindingValueModel | None = None
+    control_context: ParticipantControlContextTargetModel | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
     @model_validator(mode="after")
     def _validate_target_declaration(self) -> ConfigurationTargetDeclarationModel:
+        if self.control_context is not None and (
+            self.value_type != "string" or self.allowed_value_kinds != ["literal"]
+        ):
+            raise ValueError("control-context targets require literal strings")
         if len(self.aliases) != len(set(self.aliases)):
             raise ValueError("configuration target aliases must be unique")
         if self.target_id in self.aliases:
@@ -157,13 +202,17 @@ class ConfigurationTargetDeclarationModel(ContractModel):
             raise ValueError("allowed_value_kinds must be unique")
         if self.sensitivity == "secret" and self.allowed_value_kinds != ["secret-reference"]:
             raise ValueError("secret configuration targets admit only secret-reference values")
-        if self.default is not None:
-            if self.sensitivity == "secret":
-                raise ValueError("secret configuration targets must not declare portable defaults")
-            if "literal" not in self.allowed_value_kinds:
-                raise ValueError("a literal default requires literal values to be allowed")
-            self.validate_value(self.default)
+        self._validate_default()
         return self
+
+    def _validate_default(self) -> None:
+        if self.default is None:
+            return
+        if self.sensitivity == "secret":
+            raise ValueError("secret configuration targets must not declare portable defaults")
+        if "literal" not in self.allowed_value_kinds:
+            raise ValueError("a literal default requires literal values to be allowed")
+        self.validate_value(self.default)
 
     @model_serializer(mode="wrap")
     def _serialize_optional_default(
@@ -176,6 +225,12 @@ class ConfigurationTargetDeclarationModel(ContractModel):
         return payload
 
     def validate_value(self, value: BindingValue) -> None:
+        if self.control_context is not None and (
+            not isinstance(value, LiteralBindingValueModel)
+            or type(value.value) is not str
+            or value.value not in self.control_context.references
+        ):
+            raise ValueError("control-context reference is outside the pinned target domain")
         if value.kind not in self.allowed_value_kinds:
             raise ValueError(f"configuration target {self.target_id!r} rejects value kind {value.kind!r}")
         if isinstance(value, LiteralBindingValueModel):
@@ -275,7 +330,7 @@ class ExperimentBindingDescriptorSetModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "binding-descriptors-canonical-targets-injective",
             "Binding ids must be unique and target resolution must be injective within each source condition.",
@@ -308,9 +363,18 @@ class RealizedConfigurationValueModel(ContractModel):
     value_type: BindingScalarType
     origin: Literal["default", "override"]
     value: BindingValue
+    control_context_selection: ParticipantControlContextConfigurationSelectionModel | None = Field(
+        default=None, exclude_if=lambda value: value is None
+    )
 
     @model_validator(mode="after")
     def _validate_value_type(self) -> RealizedConfigurationValueModel:
+        if self.control_context_selection is not None and (
+            self.value_type != "string"
+            or not isinstance(self.value, LiteralBindingValueModel)
+            or self.value.value != self.control_context_selection.declaration_ref
+        ):
+            raise ValueError("control-context selection must match its literal reference")
         if isinstance(self.value, LiteralBindingValueModel):
             if not _binding_value_matches_type(self.value.value, self.value_type):
                 raise ValueError("realized configuration value does not match value_type")
@@ -336,6 +400,13 @@ class ParticipantConfigurationModel(ContractModel):
             raise ValueError("participant configuration values must be ordered by canonical target id")
         if len(target_ids) != len(set(target_ids)):
             raise ValueError("participant configuration values must have unique canonical target ids")
+        slots = [
+            entry.control_context_selection.slot_id
+            for entry in self.values
+            if entry.control_context_selection is not None
+        ]
+        if len(slots) != len(set(slots)):
+            raise ValueError("control-context configuration slots must be unique")
         return self
 
 
@@ -353,9 +424,8 @@ class ParticipantConfigurationResultModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_configuration_digest(self) -> ParticipantConfigurationResultModel:
-        from ..satisfiability import canonical_contract_digest
 
-        if self.configuration_digest != canonical_contract_digest(self.configuration):
+        if not sealing_active() and self.configuration_digest != canonical_contract_digest(self.configuration):
             raise ValueError("configuration_digest must match the canonical normalized configuration")
         return self
 
@@ -367,7 +437,7 @@ class ParticipantConfigurationResultModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "participant-configuration-digest-valid",
             "The configuration digest must be the RFC 8785/JCS digest of the complete normalized configuration.",
@@ -420,6 +490,8 @@ __all__ = [
     "PARTICIPANT_CONFIGURATION_RESULT_V1_SCHEMA_VERSION",
     "ParticipantConfigurationModel",
     "ParticipantConfigurationResultModel",
+    "ParticipantControlContextConfigurationSelectionModel",
+    "ParticipantControlContextTargetModel",
     "ParticipantImplementationBindingTargetModel",
     "RealizedBindingProvenanceModel",
     "RealizedConfigurationValueModel",

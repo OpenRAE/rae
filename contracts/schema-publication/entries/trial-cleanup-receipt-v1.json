@@ -1,10 +1,5 @@
 {
   "contract_id": "trial-cleanup-receipt-v1",
   "schema_path": "contracts/schemas/control-plane/trial-cleanup-receipt-v1.json",
-  "stability": "draft",
-  "content_hash": "4fbc57ec63e76ef5ee447d1ed1984db5ef289c3c9abe80014c972dc8295c3a17",
-  "last_change": {
-    "summary": "Separated required-result coverage from successful-cleanup validation so truthful failed, partial, unsupported, or unverified cleanup receipts validate for issue #1612.",
-    "content_hash": "4fbc57ec63e76ef5ee447d1ed1984db5ef289c3c9abe80014c972dc8295c3a17"
-  }
+  "stability": "draft"
 }

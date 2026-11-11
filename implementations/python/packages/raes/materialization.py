@@ -6,7 +6,7 @@ from typing import ClassVar
 
 from pydantic import ConfigDict, Field, model_validator
 from raes_contracts.realization_structure import validate_realization_value
-from raes_contracts.runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
+from raes_contracts.runtime_value_limits import MATERIALIZATION_VALUE_LIMITS
 
 from ._scenario_instantiation import collect_variable_tokens, resolve_json_pointer
 from .materialization_provenance import MaterializationProvenance
@@ -38,7 +38,7 @@ class MaterializedScenario(ScenarioContent):
                 continue
             try:
                 resolve_json_pointer(content, origin.field_pointer)
-            except (KeyError, IndexError, TypeError, ValueError):
+            except KeyError, IndexError, TypeError, ValueError:
                 raise ValueError("materialization origin must resolve to supplied SDL content") from None
         if any(binding.node_name not in self.nodes for binding in self.materialization_provenance.resource_bindings):
             raise ValueError("materialization resource binding must resolve to a node")
@@ -51,7 +51,7 @@ def admit_materialized_scenario(scenario: MaterializedScenario) -> MaterializedS
     from .validator import SemanticValidator
 
     content = {name: getattr(scenario, name) for name in ScenarioContent.model_fields}
-    if not validate_realization_value(content, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS, python_carriers=True).conformant:
+    if not validate_realization_value(content, limits=MATERIALIZATION_VALUE_LIMITS, python_carriers=True).conformant:
         raise ValueError("materialized SDL exceeds portable bounds")
     admitted = MaterializedScenario.model_validate(scenario.model_dump(mode="json", exclude_unset=True))
     admitted._set_declaration_sources(scenario.declaration_sources)

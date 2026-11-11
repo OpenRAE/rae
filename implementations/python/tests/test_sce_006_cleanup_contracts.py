@@ -15,8 +15,13 @@ from raes_backend_protocols.capabilities import (
     require_cleanup_plan_capability,
 )
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model, backend_manifest_payload
+from raes_backend_protocols.trial_control_admission import require_trial_control_capability
 from raes_backend_stubs.stubs import create_stub_manifest
-from raes_contracts.contracts import BackendManifestV2Model, CleanupCapabilitiesModel, schema_bundle
+from raes_contracts.contracts import (
+    AdmittedExecutionControlModel,
+    BackendManifestV2Model,
+    CleanupCapabilitiesModel,
+)
 from raes_contracts.contracts.trial_cleanup import (
     CleanStateClaimModel,
     CleanStateRequirementModel,
@@ -24,18 +29,17 @@ from raes_contracts.contracts.trial_cleanup import (
     CleanupObligationResultModel,
     CleanupResourceBoundaryModel,
     ExecutionRetryPolicyModel,
-    IsolationDimensionEvidenceModel,
-    SchedulerIsolationProofModel,
     TrialCleanupPlanModel,
     TrialCleanupReceiptModel,
     validate_trial_cleanup_receipt,
 )
+from raes_contracts.errors import ConflictError
+from raes_schemas import schema_bundle
 
 FIXTURES_ROOT = Path(__file__).resolve().parents[3] / "contracts" / "fixtures"
 FIXTURE_GROUPS = {
     "trial-cleanup-plan-v1": "plans",
     "trial-cleanup-receipt-v1": "control-plane",
-    "scheduler-isolation-proof-v1": "control-plane",
 }
 
 
@@ -580,80 +584,6 @@ def test_reset_retry_policy_rejects_non_retry_capable_reset_obligations(
         )
 
 
-def _dimension(dimension: str) -> IsolationDimensionEvidenceModel:
-    return IsolationDimensionEvidenceModel(
-        dimension=dimension,
-        independent=True,
-        evidence_refs=[f"evidence:{dimension}"],
-    )
-
-
-def test_scheduler_isolation_defaults_to_serial_without_parallel_proof() -> None:
-    proof = SchedulerIsolationProofModel(
-        schema_version="scheduler-isolation-proof/v1",
-        proof_id="proof-serial",
-        plan_entry_ids=["trial-entry-a"],
-    )
-
-    assert proof.requested_parallelism == 1
-    assert proof.dimensions == []
-
-
-def test_parallel_scheduler_requires_every_isolation_dimension() -> None:
-    dimensions = [_dimension("range-instance")]
-    with pytest.raises(ValidationError, match="parallel isolation proof requires dimensions"):
-        SchedulerIsolationProofModel(
-            schema_version="scheduler-isolation-proof/v1",
-            proof_id="proof-parallel",
-            plan_entry_ids=["trial-entry-a", "trial-entry-b"],
-            requested_parallelism=2,
-            dimensions=dimensions,
-        )
-
-
-def test_parallel_scheduler_accepts_complete_independent_evidence() -> None:
-    required = (
-        "range-instance",
-        "host-capacity",
-        "ports",
-        "storage",
-        "control-plane-locks",
-        "secret-scope",
-        "cleanup",
-    )
-    proof = SchedulerIsolationProofModel(
-        schema_version="scheduler-isolation-proof/v1",
-        proof_id="proof-parallel",
-        plan_entry_ids=["trial-entry-a", "trial-entry-b"],
-        requested_parallelism=2,
-        dimensions=[_dimension(dimension) for dimension in required],
-    )
-
-    assert proof.requested_parallelism == 2
-
-
-def test_parallel_scheduler_requires_secret_scope_isolation() -> None:
-    # SCE-006 governs secret scope as a required parallel isolation dimension; a
-    # proof carrying every other dimension but omitting secret-scope must fail.
-    without_secret_scope = (
-        "range-instance",
-        "host-capacity",
-        "ports",
-        "storage",
-        "control-plane-locks",
-        "cleanup",
-    )
-    dimensions = [_dimension(dimension) for dimension in without_secret_scope]
-    with pytest.raises(ValidationError, match="secret-scope"):
-        SchedulerIsolationProofModel(
-            schema_version="scheduler-isolation-proof/v1",
-            proof_id="proof-parallel",
-            plan_entry_ids=["trial-entry-a", "trial-entry-b"],
-            requested_parallelism=2,
-            dimensions=dimensions,
-        )
-
-
 def test_contracts_forbid_unbounded_metadata_and_secret_payload_fields() -> None:
     payload = _plan().model_dump(mode="json")
     payload["environment"] = {"TOKEN": "secret"}
@@ -662,17 +592,13 @@ def test_contracts_forbid_unbounded_metadata_and_secret_payload_fields() -> None
         TrialCleanupPlanModel.model_validate(payload)
 
 
-def test_schema_bundle_publishes_cleanup_and_isolation_contracts() -> None:
+def test_schema_bundle_publishes_cleanup_contracts_without_an_isolation_proof() -> None:
     bundle = schema_bundle()
 
-    assert {
-        "trial-cleanup-plan-v1",
-        "trial-cleanup-receipt-v1",
-        "scheduler-isolation-proof-v1",
-    } <= set(bundle)
+    assert {"trial-cleanup-plan-v1", "trial-cleanup-receipt-v1"} <= set(bundle)
+    assert "scheduler-isolation-proof-v1" not in bundle
     assert bundle["trial-cleanup-plan-v1"]["additionalProperties"] is False
     assert bundle["trial-cleanup-receipt-v1"]["additionalProperties"] is False
-    assert bundle["scheduler-isolation-proof-v1"]["additionalProperties"] is False
 
 
 def test_cleanup_capability_requires_both_plan_and_receipt_contracts() -> None:
@@ -738,7 +664,7 @@ def _manifest_with_cleanup(cleanup: CleanupCapabilities | None) -> BackendManife
 def test_cleanup_plan_admission_requires_declared_backend_capability() -> None:
     manifest = _manifest_with_cleanup(None)
     plan = _plan()
-    with pytest.raises(ValueError, match="backend does not declare cleanup capabilities"):
+    with pytest.raises(ConflictError, match="backend does not declare cleanup capabilities"):
         require_cleanup_plan_capability(manifest, plan)
 
 
@@ -748,13 +674,44 @@ def test_cleanup_plan_admission_rejects_unsupported_action_and_probe_method() ->
     plan = _plan()
     unsupported_action = replace(base, supported_action_kinds=frozenset({"reset"}))
     action_manifest = _manifest_with_cleanup(unsupported_action)
-    with pytest.raises(ValueError, match="unsupported cleanup action kinds: destroy"):
+    with pytest.raises(ConflictError, match="unsupported cleanup action kinds: destroy"):
         require_cleanup_plan_capability(action_manifest, plan)
 
     unsupported_probe = replace(base, supported_verification_methods=frozenset({"receipt"}))
     probe_manifest = _manifest_with_cleanup(unsupported_probe)
-    with pytest.raises(ValueError, match="unsupported cleanup verification methods: probe"):
+    with pytest.raises(ConflictError, match="unsupported cleanup verification methods: probe"):
         require_cleanup_plan_capability(probe_manifest, plan)
+
+
+_REUSABLE_CLEAN_STATE = CleanStateRequirementModel(
+    mode="declared-reusable",
+    boundary_refs=["range-a"],
+    verification_probe_refs=["probe:range-fresh"],
+    reusable_state_claim_ref="claim:range-a",
+)
+
+
+@pytest.mark.parametrize(
+    ("cleanup_change", "plan_change", "message"),
+    [
+        ({"supports_reusable_state": False}, {"clean_state": _REUSABLE_CLEAN_STATE}, "declared reusable state"),
+        (
+            {"supports_reusable_state": False, "supports_residual_state_disclosure": False},
+            {},
+            "residual-state disclosure",
+        ),
+    ],
+)
+def test_cleanup_plan_admission_rejects_unsupported_state_semantics(
+    cleanup_change: dict[str, bool], plan_change: dict[str, object], message: str
+) -> None:
+    base = create_stub_manifest().cleanup
+    assert base is not None
+    manifest = _manifest_with_cleanup(replace(base, **cleanup_change))
+
+    plan = _plan(**plan_change)
+    with pytest.raises(ConflictError, match=message):
+        require_cleanup_plan_capability(manifest, plan)
 
 
 def test_cleanup_plan_admission_accepts_supported_required_cleanup() -> None:
@@ -763,9 +720,26 @@ def test_cleanup_plan_admission_accepts_supported_required_cleanup() -> None:
     require_cleanup_plan_capability(manifest, _plan())
 
 
+def test_trial_control_admission_refuses_undeclared_operation_guarantees() -> None:
+    controls = AdmittedExecutionControlModel(
+        attempt_timeout_seconds=60,
+        on_timeout="cancel",
+        on_cancellation="abort",
+        cleanup_plan_ref="cleanup-plan-a",
+    )
+
+    manifest = create_stub_manifest()
+    plan = _plan()
+    with pytest.raises(ConflictError, match="required trial operation guarantees"):
+        require_trial_control_capability(manifest, controls, plan)
+    require_trial_control_capability(
+        create_stub_manifest(), controls.model_copy(update={"on_timeout": "abort"}), _plan()
+    )
+
+
 @pytest.mark.parametrize(
     "contract_id",
-    ["trial-cleanup-plan-v1", "trial-cleanup-receipt-v1", "scheduler-isolation-proof-v1"],
+    ["trial-cleanup-plan-v1", "trial-cleanup-receipt-v1"],
 )
 def test_cleanup_contract_fixture_corpora_validate(contract_id: str) -> None:
     validator = Draft202012Validator(schema_bundle()[contract_id])

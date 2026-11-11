@@ -335,3 +335,13 @@ def test_exception_waiver_suppresses_failure(tmp_path: Path) -> None:
 
 def test_main_passes_on_good_catalog(tmp_path: Path) -> None:
     assert main(["--repo-root", str(_seed_repo(tmp_path))]) == 0
+
+
+def test_main_reports_a_malformed_waiver_date_as_a_message(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    seeded = _seed_repo(tmp_path, adrs={"adr-001.md": "Governs `assets` only.\n"})
+    exceptions = "exceptions:\n  - rule_id: concept-authority-family-adr-missing\n    expires_at: not-a-date\n"
+    (seeded / "tools" / "policy").mkdir(parents=True, exist_ok=True)
+    (seeded / "tools" / "policy" / "exceptions.yaml").write_text(exceptions, encoding="utf-8")
+
+    assert main(["--repo-root", str(seeded)]) == 1
+    assert "concept-authority-governance: policy exception expires_at must be an ISO date" in capsys.readouterr().err

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+import rfc8785
 from pydantic import ValidationError
 from raes_contracts.canonical import canonical_json_bytes
 from raes_contracts.contracts import (
@@ -14,16 +15,18 @@ from raes_contracts.contracts import (
     ExperimentSelectionSubsetOutcomeModel,
     LiteralBindingValueModel,
 )
-from raes_contracts.experiment_bindings import ScenarioBindingResolution
+from raes_contracts.contracts.experiment_treatments import ExperimentScenarioSelectionDescriptorModel
+from raes_contracts.experiment_bindings import ExperimentBindingTargetError, ScenarioBindingResolution
 
 from ._declarations import build_declaration_index
-from ._errors import SDLInstantiationError
+from ._errors import SDLInstantiationError, SDLSelectionError
 from ._selection_provenance import reconcile_selection_provenance
 from .experiment_selection import validate_selection_outcome
+from .family_admission import has_modified_omitted_default
 from .instantiate import instantiate_scenario
 from .phase_contracts import TrialInstantiationProvenance
 from .scenario import ExpandedScenario, InstantiatedScenario
-from .selected_structure import apply_structural_writes, structural_owner, structural_writes
+from .selected_structure import apply_structural_writes, structural_target_path, structural_writes
 from .variation import (
     COLLECTION_TARGET_SPECS,
     REFERENCE_TARGET_SPECS,
@@ -70,9 +73,7 @@ def _canonical_target_id(family: ExpandedScenario, point: VariationPoint) -> str
     if isinstance(target, VariableTarget):
         target_id = f"variables.{target.variable}"
     elif isinstance(target, StructuralTarget):
-        owner = structural_owner(family, target.owner)
-        slot = str(getattr(target.slot, "value", target.slot))
-        target_id = f"nodes.{owner}.{slot.removeprefix('nodes.')}"
+        target_id = ".".join(structural_target_path(family, target))
     elif isinstance(target, ReferenceTarget):
         owner_section, _ = REFERENCE_TARGET_SPECS[target.slot]
         owner = _canonical_owner_address(family, target.owner, owner_section)
@@ -105,6 +106,25 @@ class ExpandedScenarioBindingTargetResolver:
         _require_family(family)
         self._family = family
 
+    def validate_selection(self, descriptor: ExperimentScenarioSelectionDescriptorModel) -> None:
+        """Admit a typed treatment through the same SDL owner and canonical targets.
+
+        A refused treatment raises ``SDLSelectionError`` (ADR-116).
+        """
+        from .canonical import canonical_sdl_digest
+
+        target = descriptor.target
+        point = self._family.variation_points.get(target.variation_point_id)
+        if (
+            target.scenario_family_id != self._family.name
+            or descriptor.scenario_family_digest != canonical_sdl_digest(self._family).value
+            or point is None
+            or target.target_id != _canonical_target_id(self._family, point)
+            or descriptor.owner != _SDL_BINDING_OWNER
+        ):
+            raise SDLSelectionError("selection treatment does not match its authoritative SDL target")
+        validate_selection_outcome(point, descriptor.outcome)
+
     def resolve(
         self,
         scenario_family_id: str,
@@ -112,15 +132,17 @@ class ExpandedScenarioBindingTargetResolver:
         supplied_target_id: str,
     ) -> ScenarioBindingResolution:
         if scenario_family_id != self._family.name:
-            raise ValueError("scenario binding target family does not match the admitted family")
+            raise ExperimentBindingTargetError("scenario binding target family does not match the admitted family")
         point = self._family.variation_points.get(variation_point_id)
         if point is None:
-            raise ValueError("scenario binding target variation point is not declared")
+            raise ExperimentBindingTargetError("scenario binding target variation point is not declared")
         if isinstance(point, (SubsetVariationPoint, OrderVariationPoint)) or isinstance(point.target, StructuralTarget):
-            raise ValueError("structural and collection variation points are not scalar binding targets")
+            raise ExperimentBindingTargetError(
+                "structural and collection variation points are not scalar binding targets"
+            )
         canonical_target_id = _canonical_target_id(self._family, point)
         if supplied_target_id != canonical_target_id:
-            raise ValueError("scenario binding target id is not the canonical SDL target")
+            raise ExperimentBindingTargetError("scenario binding target id is not the canonical SDL target")
         return ScenarioBindingResolution(
             canonical_target_id=canonical_target_id,
             value_type=_point_value_type(self._family, point),
@@ -149,7 +171,7 @@ def _resolve_relation_point(family: ExpandedScenario, reference: str) -> str:
         if rendered == point_id or rendered == point_id.rsplit(".", 1)[-1]
     )
     if len(matches) != 1:
-        raise ValueError("selection relation point must resolve exactly once")
+        raise SDLSelectionError("selection relation point must resolve exactly once")
     return matches[0]
 
 
@@ -171,7 +193,7 @@ def _validate_relation(
     )
     if violation:
         relation_kind = "requires" if required else "excludes"
-        raise ValueError(
+        raise SDLSelectionError(
             f"selection for variation point '{owner_point}' member '{owner_member}' violates {relation_kind}"
         )
 
@@ -219,7 +241,7 @@ def _owner_payload(
     section = payload.get(owner_section)
     owner = section.get(owner_name) if isinstance(section, dict) else None
     if not isinstance(owner, dict):
-        raise ValueError("variation target owner payload is unavailable")
+        raise SDLSelectionError("variation target owner payload is unavailable")
     return owner
 
 
@@ -273,7 +295,7 @@ def _resolved_reference_value(
     ):
         value = point.alternatives[outcome.member_id].reference
     else:
-        raise ValueError("variation outcome does not resolve to a canonical reference value")
+        raise SDLSelectionError("variation outcome does not resolve to a canonical reference value")
     return value
 
 
@@ -287,7 +309,7 @@ def _resolved_collection_value(
         outcome,
         (ExperimentSelectionSubsetOutcomeModel, ExperimentSelectionOrderOutcomeModel),
     ):
-        raise ValueError("variation outcome does not resolve to a canonical collection value")
+        raise SDLSelectionError("variation outcome does not resolve to a canonical collection value")
     references = [point.members[member_id].reference for member_id in outcome.member_ids]
     owner_section, _ = COLLECTION_TARGET_SPECS[point.target.slot]
     current = _owner_payload(payload, family, point.target.owner, owner_section).get(
@@ -314,7 +336,7 @@ def _resolved_target_value(
     elif isinstance(target, LogicalTimingTarget) and isinstance(outcome, LiteralBindingValueModel):
         value = outcome.value
     else:
-        raise ValueError("variation outcome does not resolve to a canonical target value")
+        raise SDLSelectionError("variation outcome does not resolve to a canonical target value")
     return value
 
 
@@ -347,12 +369,17 @@ def _resolved_point_writes(
 def _record_target_write(
     writes: dict[tuple[str, ...], tuple[type[object], bytes]], path: tuple[str, ...], value: object
 ) -> bool:
-    fingerprint = (type(value), canonical_json_bytes(value))
+    try:
+        encoded = canonical_json_bytes(value)
+    except rfc8785.CanonicalizationError as exc:
+        # A selected value with an integer outside the I-JSON range has no canonical form to compare.
+        raise SDLSelectionError("a selected variation value has no canonical JSON form") from exc
+    fingerprint = (type(value), encoded)
     prior = writes.get(path)
     if prior is not None and prior != fingerprint:
-        raise ValueError("multiple variation points resolve conflicting values for one canonical target")
+        raise SDLSelectionError("multiple variation points resolve conflicting values for one canonical target")
     writes[path] = fingerprint
-    return len(path) == 3 and path[0] == "nodes" and path[2] == "presence" and value is False
+    return len(path) == 3 and path[2] == "presence" and value is False
 
 
 def _validate_target_writes(
@@ -361,15 +388,26 @@ def _validate_target_writes(
     outcomes: Mapping[str, object],
 ) -> None:
     writes: dict[tuple[str, ...], tuple[type[object], bytes]] = {}
-    absent: set[str] = set()
+    absent: set[tuple[str, ...]] = set()
     for point_id in sorted(family.variation_points):
         point = family.variation_points[point_id]
         resolved = _resolved_point_writes(payload, family, point, outcomes[point_id])
         for path, value in resolved.items():
             if _record_target_write(writes, path, value):
-                absent.add(path[1])
-    if any(path[0] == "nodes" and path[1] in absent and path[2:] != ("presence",) for path in writes):
-        raise ValueError("node absence conflicts with a descendant variation write")
+                absent.add(path[:2])
+    if any(path[:2] in absent and path[2:] != ("presence",) for path in writes):
+        raise SDLSelectionError("declaration absence conflicts with a descendant variation write")
+    if any(path[:length] in writes for path in writes for length in range(3, len(path))):
+        raise SDLSelectionError("a collection variation write conflicts with a descendant variation write")
+
+
+def _selection_payload(family: ExpandedScenario) -> dict[str, object]:
+    """Rebuild the family with field presence, so selection keeps omitted fields absent."""
+
+    if has_modified_omitted_default(family):
+        # An exclude-unset reconstruction would silently discard this value.
+        raise SDLSelectionError("scenario family has a modified omitted default; re-admit the family before selection")
+    return family.model_dump(mode="python", by_alias=True, exclude_unset=True)
 
 
 def select_scenario_family(
@@ -389,12 +427,12 @@ def select_scenario_family(
             details.append("missing: " + ", ".join(missing))
         if unknown:
             details.append("unknown: " + ", ".join(unknown))
-        raise ValueError("complete scenario-family selection required (" + "; ".join(details) + ")")
+        raise SDLSelectionError("complete scenario-family selection required (" + "; ".join(details) + ")")
     for point_id in sorted(family.variation_points):
         validate_selection_outcome(family.variation_points[point_id], outcomes[point_id])
     _validate_cross_point_relations(family, outcomes)
 
-    payload = family.model_dump(mode="python", by_alias=True)
+    payload = _selection_payload(family)
     _validate_target_writes(payload, family, outcomes)
     parameters: dict[str, object] = {}
     for point_id in sorted(family.variation_points):
@@ -402,6 +440,10 @@ def select_scenario_family(
         outcome = outcomes[point_id]
         if isinstance(point, ParameterVariationPoint) and isinstance(outcome, LiteralBindingValueModel):
             parameters[point.target.variable] = outcome.value
+            # A selected experimental factor is fixed for this trial, while its
+            # original family retains the complete admissible domain.
+            payload["variables"][point.target.variable]["allowed_values"] = [outcome.value]
+            payload["variables"][point.target.variable]["default"] = outcome.value
         else:
             _apply_structural_outcome(payload, family, point, outcome)
     payload["variation_points"] = {}
@@ -415,7 +457,7 @@ def select_scenario_family(
             trial_provenance=trial_provenance,
         )
     except (SDLInstantiationError, ValidationError) as exc:
-        raise ValueError("selected scenario failed whole-scenario semantic admission") from exc
+        raise SDLSelectionError("selected scenario failed whole-scenario semantic admission") from exc
 
 
-__all__ = ["ExpandedScenarioBindingTargetResolver", "select_scenario_family"]
+__all__ = ["ExpandedScenarioBindingTargetResolver", "SDLSelectionError", "select_scenario_family"]

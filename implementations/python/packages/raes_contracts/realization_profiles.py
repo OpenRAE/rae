@@ -190,7 +190,7 @@ def profile_authority_violation(authority: object, context: object) -> str | Non
 
     try:
         _require_authority(authority, context)
-    except (AttributeError, TypeError, ValueError, RecursionError):
+    except AttributeError, TypeError, ValueError, RecursionError:
         return _REFUSAL
     return None
 
@@ -221,7 +221,7 @@ def profile_selection_violation(authority: object, bindings: object, context: ob
                 raise ValueError(_REFUSAL)
         if not admit_domain_profile_bindings(bindings, context, policy=_POLICY).admitted:
             raise ValueError(_REFUSAL)
-    except (AttributeError, TypeError, ValueError, RecursionError):
+    except AttributeError, TypeError, ValueError, RecursionError:
         return _REFUSAL
     return None
 

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
+from raes_contracts.json_pointer import pointer_from_tokens
 from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
 
-from ._declaration_sources import model_pointer
 from ._declarations import DeclarationIndex
 
 
@@ -21,7 +21,7 @@ def indexed_definitions(root: Node, index: DeclarationIndex) -> list[dict[str, A
             definition = {
                 "path": location.pointer,
                 "range": location.source_range.as_dict(),
-                "composed_path": model_pointer(tokens),
+                "composed_path": pointer_from_tokens(tokens),
                 "module_id": location.module_id,
                 "namespace": list(location.namespace),
                 "content_digest": location.content_digest,
@@ -33,7 +33,7 @@ def indexed_definitions(root: Node, index: DeclarationIndex) -> list[dict[str, A
             if node is None:
                 continue
             definition = {
-                "path": model_pointer(tokens),
+                "path": pointer_from_tokens(tokens),
                 "range": {
                     "start": {"line": node.start_mark.line + 1, "column": node.start_mark.column + 1},
                     "end": {"line": node.end_mark.line + 1, "column": node.end_mark.column + 1},

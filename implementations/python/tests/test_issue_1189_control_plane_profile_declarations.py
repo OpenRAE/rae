@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.errors import ConflictError
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_api import create_control_plane_app
 from raes_runtime.control_plane_profiles import (
@@ -144,7 +145,7 @@ def test_selected_p0_uses_canonical_declaration_and_binds_one_scope() -> None:
     finally:
         first.close()
     other_target = replace(create_stub_target(), name="other")
-    with pytest.raises(ValueError, match="store scope"):
+    with pytest.raises(ConflictError, match="store scope"):
         RuntimeControlPlane(
             other_target,
             store=store,
@@ -170,7 +171,7 @@ def test_selected_p0_store_has_one_active_owner_and_releases_it_on_close() -> No
     second = None
     try:
         target = create_stub_target()
-        with pytest.raises(RuntimeError, match="already has a runtime owner"):
+        with pytest.raises(ConflictError, match="already has a runtime owner"):
             second = RuntimeControlPlane(target, store=store, profile=ControlPlaneProfile.P0)
     finally:
         if second is not None:

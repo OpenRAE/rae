@@ -19,12 +19,17 @@ nox.options.reuse_existing_virtualenvs = True
 nox.options.sessions = ["verify-fast-feedback"]
 
 REPO_ROOT = Path(__file__).resolve().parent
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
 import sys
 
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError
 
 from tools.nox_support.compatibility_lanes import _run_python_compatibility
+from tools.nox_support.machine_check_lane import run_machine_check
 from tools.nox_support.config import (
     CONTRACT_TRIGGER_PREFIXES,
     COVERAGE_REDUCE_DIR_ENV,
@@ -54,6 +59,7 @@ from tools.nox_support.runner import (
     SessionReporter,
     _paths_trigger,
     _requirement_aware_policy_args,
+    _run_changed_test_modules,
     _run_pytest,
     _sync_project,
 )
@@ -62,6 +68,7 @@ from tools.nox_support.test_lanes import (
     _run_coverage_reduce,
     _run_docs,
     _run_docs_linkcheck,
+    _run_docs_prose,
     _run_fuzz,
     _run_integration_tests,
     _run_osv_scan,
@@ -117,6 +124,18 @@ def participant_opacity_proof(session: nox.Session) -> None:
     reporter = SessionReporter(session, "participant-opacity-proof")
     try:
         _run_participant_opacity_proof(session, reporter)
+    finally:
+        reporter.summary()
+
+
+@nox.session(name="participant-crossing-machine-check")
+def participant_crossing_machine_check(session: nox.Session) -> None:
+    """Build and check the complete finite decision without synchronization or acquisition."""
+    reporter = SessionReporter(session, "participant-crossing-machine-check")
+    try:
+        if session.posargs:
+            session.error("The participant-crossing machine check takes no arguments.")
+        run_machine_check(session, reporter)
     finally:
         reporter.summary()
 
@@ -214,6 +233,17 @@ def docs_local(session: nox.Session) -> None:
         reporter.summary()
 
 
+@nox.session(name="docs-prose")
+def docs_prose(session: nox.Session) -> None:
+    """Run the existing style linter on selected maintained prose only."""
+    reporter = SessionReporter(session, "docs-prose")
+    try:
+        _sync_project(session)
+        _run_docs_prose(session, reporter)
+    finally:
+        reporter.summary()
+
+
 @nox.session(name="docs-links")
 def docs_links(session: nox.Session) -> None:
     """Check external documentation links; intended for the dedicated CI job."""
@@ -258,7 +288,7 @@ def hook_pre_commit(session: nox.Session) -> None:
         if changed_tests:
             reporter.run(
                 "tests / directly changed pytest modules",
-                lambda: _run_pytest(session, *changed_tests, "-q"),
+                lambda: _run_changed_test_modules(session, changed_tests),
                 detail=" ".join(changed_tests),
             )
         elif _paths_trigger(changed, FULL_TEST_TRIGGER_PREFIXES):
@@ -316,14 +346,14 @@ def verify_changed(session: nox.Session) -> None:
 def _required_coverage_file() -> Path:
     value = os.environ.get(VERIFY_COVERAGE_FILE_ENV)
     if not value:
-        raise RuntimeError(f"{VERIFY_COVERAGE_FILE_ENV} is required for an orchestrated coverage lane")
+        raise InvalidInputError(f"{VERIFY_COVERAGE_FILE_ENV} is required for an orchestrated coverage lane")
     return Path(value)
 
 
 def _required_env(name: str) -> str:
     value = os.environ.get(name)
     if not value:
-        raise RuntimeError(f"{name} is required for this shard-orchestrated session")
+        raise InvalidInputError(f"{name} is required for this shard-orchestrated session")
     return value
 
 
@@ -332,7 +362,8 @@ def _required_env_int(name: str) -> int:
     try:
         return int(value)
     except ValueError as exc:
-        raise RuntimeError(f"{name} must be an integer, got {value!r}") from exc
+        # The environment value stays out of the message (rule E7).
+        raise InvalidInputError(f"{name} must be an integer") from exc
 
 
 @nox.session(name="verify-static-lane")

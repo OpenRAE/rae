@@ -1,7 +1,6 @@
 """Expose requested policy unchanged and reject unsupported selected realizations."""
 
 from dataclasses import replace
-from typing import TypeVar
 
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.diagnostics import Diagnostic
@@ -10,10 +9,8 @@ from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, Provision
 
 from ..models.runtime_model import RuntimeModel
 
-DomainPlan = TypeVar("DomainPlan", ProvisioningPlan, OrchestrationPlan, EvaluationPlan)
 
-
-def attach_execution_policies(
+def attach_execution_policies[DomainPlan: (ProvisioningPlan, OrchestrationPlan, EvaluationPlan)](
     model: RuntimeModel, manifest: BackendManifest, domain_plan: DomainPlan
 ) -> tuple[DomainPlan, list[Diagnostic]]:
     diagnostics = []

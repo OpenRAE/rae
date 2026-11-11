@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import replace
 from textwrap import dedent
 
-from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, RuntimeDomain
+from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, PlanScope, RuntimeDomain
 from raes_processor.models import ExecutionPlan
 from raes_processor.reference import ScenarioInput, run_reference_processor
 from raes_runtime.registry import RuntimeTarget
@@ -62,10 +62,11 @@ def target_probe_execution_plan(
     target: RuntimeTarget,
     *,
     provisioning_only: bool,
+    scope: PlanScope | None = None,
 ) -> ExecutionPlan:
     """Build the valid composite plan authorized for a target probe."""
 
-    execution_plan = run_reference_processor(scenario, target.manifest).execution_plan
+    execution_plan = run_reference_processor(scenario, target.manifest, scope=scope).execution_plan
     if not provisioning_only:
         return execution_plan
     return replace(

@@ -1,25 +1,27 @@
-SDL Semantics
+SDL semantics
 =============
 
-The ``raes.semantics`` subpackage holds SDL-language semantic rules —
-objective-window analysis, the workflow step-type contract, branch closure, and
-the (pure) workflow step-result validator — used by the SDL validator, by the
-processor at compile time, and by the processor runtime.
+The ``raes.semantics`` package holds SDL rules, such as objective-window checks.
+The SDL validator uses these rules. The processor uses them when it compiles
+and runs a scenario.
 
-Per ADR-015 these helpers live with the SDL package because ``raes``
-defines the language; they depend only on the standard library and have no
-import-time coupling to ``raes_processor``.
+These helpers live in the SDL package because ``raes`` defines the language
+(ADR-015). They use only the standard library and do not import
+``raes_processor``.
+
+All layers share workflow step types, branch closure, and step-result checks.
+These rules live in ``raes_contracts.workflow.semantics`` (ADR-121).
 
 .. currentmodule:: raes.semantics
 
-Objective Semantics
+Objective semantics
 -------------------
 
 .. automodule:: raes.semantics.objectives
    :members:
 
-Workflow Semantics
+Workflow semantics
 ------------------
 
-.. automodule:: raes.semantics.workflow
+.. automodule:: raes_contracts.workflow.semantics
    :members:

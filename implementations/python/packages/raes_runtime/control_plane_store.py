@@ -20,12 +20,15 @@ from raes_contracts.runtime_state import (
     OperationState,
     OperationStatus,
     RuntimeSnapshot,
-    is_operation_transition_allowed,
-    operation_transition_diagnostic,
 )
 
 from .control_plane_audit import require_audit_event_fields
-from .operation_invocation_ledger import InvocationLedger, require_invocation_transition, require_record_invocation
+from .control_plane_store_transitions import (
+    _require_operation_record_identity,
+    _require_operation_record_transition,
+    _require_terminal_operation_transition,
+)
+from .operation_invocation_ledger import InvocationLedger
 from .operation_reconciliation_ledger import InvocationReconciliation
 from .control_plane_store_revision import (
     SnapshotRevisionConflict,
@@ -33,6 +36,8 @@ from .control_plane_store_revision import (
 )
 from . import control_plane_store_history as _store_history
 from . import control_plane_store_types as _store_types
+from raes_contracts.errors import ConflictError, InvalidInputError
+from .errors import IdempotencyClaimConflictError
 
 ParticipantCrossingHistoryPresence = _store_types.ParticipantCrossingHistoryPresence
 TerminalCommitMode = _store_types.TerminalCommitMode
@@ -144,32 +149,6 @@ class ControlPlaneOperationRecord:
 
 
 INTERRUPTED_OPERATION_DIAGNOSTIC_CODE = "runtime.control-plane.operation-interrupted"
-_NON_TERMINAL_OPERATION_STATES = {OperationState.ACCEPTED, OperationState.RUNNING}
-
-
-def _require_operation_record_identity(record: ControlPlaneOperationRecord) -> None:
-    from .inject_claims import require_delivery_record, require_inject_record
-
-    if record.receipt.operation_id != record.status.operation_id:
-        raise ValueError("operation receipt and status identities do not match")
-    if record.receipt.domain != record.status.domain:
-        raise ValueError("operation receipt and status domains do not match")
-    if record.receipt.submitted_at != record.status.submitted_at:
-        raise ValueError("operation receipt and status submission times do not match")
-    if record.receipt.context != record.status.context:
-        raise ValueError("operation receipt and status contexts do not match")
-    if not record.receipt.accepted:
-        raise ValueError("denied operation receipts cannot be persisted")
-    require_record_invocation(record)
-    require_inject_record(record)
-    require_delivery_record(record)
-    from .participant_control_effect_evidence import require_effect_claim_payload
-
-    require_effect_claim_payload(record)
-    if record.reconciliation is not None:
-        InvocationReconciliation.model_validate(record.reconciliation.model_dump(mode="json"))
-        if record.status.context.parent_operation_id != record.reconciliation.request.binding.operation_id:
-            raise ValueError("reconciliation parent binding mismatch")
 
 
 def idempotency_claim_identity(
@@ -187,7 +166,7 @@ def require_idempotency_key(key: str) -> str:
     if not isinstance(key, str):
         raise TypeError("Idempotency-Key must be a string")
     if key and (len(key) > _MAX_IDEMPOTENCY_KEY_LENGTH or any(character < "!" or character > "~" for character in key)):
-        raise ValueError("Idempotency-Key must be 1-256 visible ASCII characters")
+        raise InvalidInputError("Idempotency-Key must be 1-256 visible ASCII characters")
     return key
 
 
@@ -214,97 +193,24 @@ def _require_same_idempotency_replay(
         or not fingerprint_matches
         or candidate.decision_history_heads not in (existing.decision_history_heads, existing.result_history_heads)
     ):
-        raise ValueError(IDEMPOTENCY_CLAIM_CONFLICT)
+        raise IdempotencyClaimConflictError(IDEMPOTENCY_CLAIM_CONFLICT)
 
 
 def _raise_new_claim_block(block: NewClaimBlock) -> None:
     if block == "current-state":
         raise NewClaimRejected
     if block == "indeterminate":
-        raise RuntimeError("indeterminate operation requires resolution before effectful mutation")
+        raise IndeterminateClaimBlocked("indeterminate operation requires resolution before effectful mutation")
     if block == "stale-base-snapshot":
-        raise ValueError("explicit base snapshot does not match the authoritative runtime snapshot")
+        raise ConflictError("explicit base snapshot does not match the authoritative runtime snapshot")
 
 
-class NewClaimRejected(RuntimeError):
+class NewClaimRejected(ConflictError):
     """Signal that current state forbids creation after incumbent resolution."""
 
 
-def _require_same_operation_identity(
-    existing: ControlPlaneOperationRecord,
-    replacement: ControlPlaneOperationRecord,
-) -> None:
-    from .inject_claims import require_inject_transition
-
-    _require_operation_record_identity(existing)
-    _require_operation_record_identity(replacement)
-    require_inject_transition(existing, replacement)
-    if (
-        existing.inject_delivery != replacement.inject_delivery
-        or existing.inject_delivery_control != replacement.inject_delivery_control
-    ):
-        raise ValueError("inject delivery binding is immutable")
-    require_invocation_transition(existing.invocation, replacement.invocation)
-    if existing.reconciliation is not None and existing.reconciliation != replacement.reconciliation:
-        raise ValueError("reconciliation evidence is immutable")
-    if existing.receipt != replacement.receipt:
-        raise ValueError("operation receipt is immutable after its durable claim")
-    if (
-        existing.status.schema_version,
-        existing.status.operation_id,
-        existing.status.domain,
-        existing.status.submitted_at,
-        existing.status.context,
-        existing.idempotency_key,
-        existing.request_fingerprint,
-    ) != (
-        replacement.status.schema_version,
-        replacement.status.operation_id,
-        replacement.status.domain,
-        replacement.status.submitted_at,
-        replacement.status.context,
-        replacement.idempotency_key,
-        replacement.request_fingerprint,
-    ):
-        raise ValueError("operation identity is immutable after its durable claim")
-
-
-def _require_operation_record_transition(
-    existing: ControlPlaneOperationRecord | None,
-    replacement: ControlPlaneOperationRecord,
-) -> bool:
-    """Validate creation, transition, or exact retry through one authority."""
-
-    _require_operation_record_identity(replacement)
-    if existing is None:
-        if replacement.status.state not in {OperationState.ACCEPTED, OperationState.RUNNING}:
-            raise ValueError("new operation record requires an accepted or running status")
-        return True
-    _require_same_operation_identity(existing, replacement)
-    if existing == replacement:
-        return False
-    if not is_operation_transition_allowed(existing.status.state, replacement.status.state):
-        diagnostic = operation_transition_diagnostic(existing.status.state, replacement.status.state)
-        raise ValueError(f"{diagnostic.code}: {diagnostic.message}")
-    return True
-
-
-def _require_terminal_operation_transition(
-    existing: ControlPlaneOperationRecord | None,
-    replacement: ControlPlaneOperationRecord,
-) -> bool:
-    """Validate a terminal transition and return whether it changes the record."""
-
-    if replacement.status.state in _NON_TERMINAL_OPERATION_STATES:
-        raise ValueError("terminal operation commit requires a terminal status")
-    try:
-        return _require_operation_record_transition(existing, replacement)
-    except ValueError as exc:
-        if "immutable" in str(exc):
-            raise
-        if existing is not None and existing.status.state not in _NON_TERMINAL_OPERATION_STATES:
-            raise ValueError("a terminal operation record cannot be rewritten") from exc
-        raise
+class IndeterminateClaimBlocked(ConflictError):
+    """An unresolved indeterminate operation blocks a new claim; recovery stays open."""
 
 
 def terminal_operation_audit(record: ControlPlaneOperationRecord) -> AuditEvent:
@@ -452,7 +358,7 @@ def require_operation_record_scopes(
     for record in records.values():
         context = record.status.context
         if (context.target_scope, context.run_scope) != (target_scope, run_scope):
-            raise RuntimeError("persisted operation scope does not match control-plane runtime admission")
+            raise ConflictError("persisted operation scope does not match control-plane runtime admission")
 
 
 from .control_plane_store_memory import InMemoryControlPlaneStore  # noqa: E402
@@ -483,7 +389,9 @@ __all__ = [
     "TerminalCommitMode",
     "_require_expected_control_head",
     "_require_expected_history_heads",
+    "_require_operation_record_transition",
     "_require_same_idempotency_replay",
+    "_require_terminal_operation_transition",
     "_snapshot_from_payload",
     "_snapshot_payload",
     "participant_crossing_history_presence",

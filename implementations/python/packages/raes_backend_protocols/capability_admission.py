@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Protocol
 
+from raes_contracts.errors import ConflictError
+
 from .capabilities import (
     OBSERVATION_CAPABILITY_REQUIRED_CONTRACTS,
     PARTICIPANT_RUNTIME_BEHAVIOR_FEATURE_SCOPE,
@@ -434,11 +436,11 @@ def require_time_model_capability(
     manifest: BackendManifest,
     declaration: TimeModelDeclarationModel,
 ) -> None:
-    """Fail admission when a backend cannot honor the portable time model."""
+    """Raise ``ConflictError`` when a backend cannot honor the portable time model."""
 
     gaps = time_model_capability_gaps(manifest, declaration)
     if gaps:
-        raise ValueError("; ".join(gaps))
+        raise ConflictError("; ".join(gaps))
 
 
 def _required_cleanup_actions(plan: TrialCleanupPlanModel) -> set[str]:
@@ -463,15 +465,15 @@ def _required_cleanup_probe_methods(plan: TrialCleanupPlanModel) -> set[str]:
 def _require_supported_cleanup_values(label: str, required: set[str], supported: frozenset[str]) -> None:
     unsupported = sorted(required - supported)
     if unsupported:
-        raise ValueError(f"unsupported cleanup {label}: {', '.join(unsupported)}")
+        raise ConflictError(f"unsupported cleanup {label}: {', '.join(unsupported)}")
 
 
 def require_cleanup_plan_capability(manifest: BackendManifest, plan: TrialCleanupPlanModel) -> None:
-    """Fail admission when a backend cannot satisfy a portable cleanup plan."""
+    """Raise ``ConflictError`` when a backend cannot satisfy a portable cleanup plan."""
 
     cleanup = manifest.cleanup
     if cleanup is None:
-        raise ValueError("backend does not declare cleanup capabilities")
+        raise ConflictError("backend does not declare cleanup capabilities")
 
     _require_supported_cleanup_values("action kinds", _required_cleanup_actions(plan), cleanup.supported_action_kinds)
     _require_supported_cleanup_values(
@@ -479,10 +481,10 @@ def require_cleanup_plan_capability(manifest: BackendManifest, plan: TrialCleanu
     )
 
     if plan.clean_state.mode == "declared-reusable" and not cleanup.supports_reusable_state:
-        raise ValueError("backend does not support declared reusable state")
+        raise ConflictError("backend does not support declared reusable state")
     required_cleanup = any(obligation.requirement == "required" for obligation in plan.cleanup_obligations.values())
     if required_cleanup and not cleanup.supports_residual_state_disclosure:
-        raise ValueError("required cleanup needs backend residual-state disclosure")
+        raise ConflictError("required cleanup needs backend residual-state disclosure")
 
 
 __all__ = [

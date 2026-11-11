@@ -117,10 +117,46 @@ tracked in #1573 (rename of nested service and content-item refs), #1574
 other reference families outside behavior authority scopes). #1498 retains
 agent-field authoring checks; tool-reference authoring is covered here.
 
+## Residual gap: typed descriptor profiles
+
+Date: 2026-10-31. Delivery: DSL-117 and SEM-218.
+
+Since #1278, `interactive_access.<id>.channel` also accepts a typed
+domain-profile binding. Validation and compilation accepted the binding with
+any owner, context and value, and no component admitted it. The facade
+protocol, forest trust type, and federation protocol and mapping intent had the
+same gap. [ADR-120](adrs/adr-120-owned-and-admitted-typed-descriptor-profiles.md)
+records the fix:
+
+- The SDL field owns the binding. The owner is `sdl-authoring-input-v1`, the
+  JSON Pointer of the field, phase `authoring`, use `constraint`, and the
+  concept family and context of the field.
+- The compiler carries each typed descriptor binding. Planning and runtime plan
+  admission admit it against the profile context of the target, or refuse the
+  plan before mutation.
+
+A typed channel therefore selects a channel only when the target installs the
+exact profile semantics. It grants no connection, login, account or credential.
+
+Migration. No published schema changes. For each typed binding at one of the
+five descriptor fields:
+
+- Set the owner to the values of ADR-120 §2. Validation rejects any other
+  owner, such as an owner copied from a provisioning selection.
+- Plan against a target whose profile context admits the profile in the context
+  of the field. Without one, use the built-in string value.
+
+Built-in string values are unchanged.
+
+Since #1576, `raes/composition/_tool_affordance.py` holds the `tool_ref` and
+relation rewrite that this record describes. `raes/composition/_behavior.py`
+calls it for each affordance. The rule is unchanged.
+
 ## Requirement governance
 
 `docs/governance/requirement-scopes/298.json` binds every delivery file to
-DSL-117 on the existing issue branch. The language phase owns this decision
+DSL-117 on the existing issue branch. The descriptor-profile gate is also bound
+to SEM-218. The language phase owns this decision
 record and scope manifest, and the requirement's own record is covered by the
 existing exact-owner rule. Governance is required locally and in CI, rather
 than skipped pending the broader ownership work in #1510.

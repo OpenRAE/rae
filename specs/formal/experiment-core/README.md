@@ -1,10 +1,14 @@
-# Experiment Core Formal Specification
+# Experiment core formal specification
 
-This domain specifies the EXP-701 through EXP-705 experiment-core contract
-boundary plus the EXP-706 trial/replication interpretation, the EXP-707,
-EXP-708, EXP-709, and EXP-715 evidence/measure extension, the EXP-710,
-EXP-720, and EXP-722 run provenance extension, and the EXP-712
-reproducibility/replay claim-support interpretation:
+This reference defines the EXP-701 through EXP-705 experiment-core contract boundary.
+It also defines these extensions and interpretations:
+
+- EXP-706: trial/replication interpretation.
+- EXP-707, EXP-708, EXP-709, and EXP-715: evidence/measure extension.
+- EXP-710, EXP-720, and EXP-722: run provenance extension.
+- EXP-712: reproducibility/replay claim support.
+
+The contract set includes:
 
 - `experiment-task-v1`
 - `experiment-apparatus-context-v1`
@@ -27,9 +31,12 @@ before execution. It is the authoring counterpart to the archival run, study,
 and apparatus-context outputs, analogous to how `sdl-authoring-input-v1` is the
 authored counterpart to `instantiated-scenario-v1`.
 
-## FM Classification
+<!-- vale RAES.HeadingCase = NO -->
+## FM classification
 
 Classification: FM2, Semantic Graph / Constraint.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Rationale:
 
@@ -43,7 +50,7 @@ Rationale:
   generated JSON Schemas, fixtures, and unit tests. It does not introduce an
   FM3 runtime state machine.
 
-## Authoritative Artifacts
+## Authoritative artifacts
 
 - Normative prose: this directory.
 - Architecture decisions:
@@ -60,18 +67,16 @@ Rationale:
 - Schema generation: `tools/generate_contract_schemas.py`.
 - Fixture corpus: `contracts/fixtures/experiment-core/`.
 
-Published JSON Schemas are the portable structural contract. They declare draft
-2020-12 schema identity explicitly. Semantic graph constraints that standard
-JSON Schema cannot portably enforce are declared under the RAES semantic-
-invariant profile through `x-raes-semantic-profile` and `x-raes-invariants`
-metadata. Each invariant records a stable id, severity, validator, and input
-contract/path set; the annotation shape is published as
-`raes-semantic-invariants-v1` and is validated during schema generation.
-Examples include metric key equality, task/run protocol binding, run time
-ordering, result-evidence reference resolution, capture-requirement key
-resolution, raw evidence content disclosure, derived-measure source evidence
-requirements, run provenance traceability, realized-form disclosure, study
-metric grounding, and manifest-selection and manifest-payload consistency.
+Published JSON Schemas are the portable structural contract.
+They explicitly declare draft 2020-12 identity.
+The RAES semantic-invariant profile declares graph constraints that standard JSON Schema cannot portably enforce.
+It uses `x-raes-semantic-profile` and `x-raes-invariants` metadata.
+Each invariant records a stable id, severity, validator, and input contract/path set.
+The `raes-semantic-invariants-v1` schema publishes the annotation shape, which schema generation validates.
+
+Examples include metric key equality, task/run protocol binding, run time ordering, and result-evidence reference resolution.
+Other examples are capture-requirement key resolution, raw evidence content disclosure, and derived-measure source evidence requirements.
+They also include run provenance traceability, realized-form disclosure, study metric grounding, and manifest-selection and manifest-payload consistency.
 
 ## Definitions
 
@@ -104,7 +109,7 @@ Tasks may carry `observation_demands` using the shared
 `observation-demand-v1` contract. This is demand policy, not captured evidence
 and not a realization constraint.
 
-### Apparatus Context
+### Apparatus context
 
 Execution apparatus context is the instrument setup for a run. It captures or
 references:
@@ -192,20 +197,72 @@ shared `task_ref`, and a compatible `scenario_snapshot_ref`. A repeated run
 MUST NOT be represented by mutating one run record, by a tag, or by a backend
 operation/workflow/episode identifier.
 
-Archival run records require a completed time interval, clock context, at least
-one evidence artifact, and at least one result summary. Reported result
-summaries must identify the metric, carry a value, and link to evidence. Every
-result-summary evidence reference must resolve to an artifact id in the same
-run's `evidence_artifacts` set. Cross-artifact task/run validation also checks
-that run apparatus satisfies task apparatus constraints, that run result metric
-ids are declared by the task evaluation protocol, and that task and metric
-evidence requirements resolve through capture requirements and evidence records
-to emitted artifact bytes. Artifact ids and `satisfies_refs` entries alone do
-not prove satisfaction. If a task or metric evidence requirement carries digest
-or path metadata, the validated binding MUST satisfy those fields with its
-concrete checksum and URI/path.
+Complete archival run records require a completed time interval, clock context, at least one evidence artifact, and at least one result summary.
+Each result summary must identify the metric, carry a value, and link to evidence.
+Each result-summary evidence reference must resolve to an artifact id in the same run's `evidence_artifacts` set.
 
-### Run Traceability
+Cross-artifact task/run validation checks these relations:
+
+- Run apparatus satisfies task apparatus constraints.
+- The task evaluation protocol declares the run result metric ids.
+- Task and metric evidence requirements resolve through capture requirements and evidence records to emitted artifact bytes.
+
+Artifact ids and `satisfies_refs` entries alone do not prove satisfaction.
+If a task or metric evidence requirement carries digest or path metadata, the validated binding MUST satisfy those fields.
+It uses its concrete checksum and URI/path to satisfy them.
+
+### Complete accounting of started work
+
+Every started admitted entry MUST remain represented under its allocated `run_id`.
+Authored retries MUST retain distinct attempt IDs within that run.
+Transport redelivery MUST NOT create a new run or attempt.
+A fresh replacement MUST retain its separate run ID and predecessor lineage.
+
+`record_state` defaults to `archival` for existing records.
+An explicit `partial` record MUST include `execution_accounting`.
+Partial records MAY lack an end time, apparatus context, evidence artifacts, or traceability.
+They MUST NOT invent missing facts or claim a successful scientific outcome.
+Each attempt records its known execution, capture, and cleanup state.
+An absent cleanup receipt MUST NOT imply successful cleanup.
+Unknown or running execution MUST NOT establish an end time.
+A run's start MUST match its first attempt start.
+Complete accounting MUST include each attempt's cleanup receipt.
+Archival execution accounting MUST include trial provenance and agree on plan and entry identities, attempt membership, operation references, cleanup references, and terminal attempt.
+Both record states MUST preserve admitted participant configurations, attempt limits, and exact cleanup receipt contents.
+Deterministic plans MAY have no stochastic controls; no control or parameter is invented to fill a field.
+Legacy records without typed accounting retain their non-empty parameter and control requirements.
+
+A missing or withheld result MAY have no evidence reference.
+A reported result MUST carry evidence references and pass the existing evidence checks.
+Partial records MUST NOT mint `ValidatedRunEvidence`.
+Evidence history above the scientific proof limit MUST remain retained through exact versioned references and protected source records.
+History retention MUST NOT enlarge the scientific proof limit.
+A valid measured result and a cleanup failure MAY coexist.
+Scientific outcome MUST come from the evaluation owner rather than execution status or measurement presence.
+Absent evaluation MUST remain `not-evaluated`.
+Successful execution MAY have a failed or inconclusive scientific outcome.
+Neither record storage nor evidence acceptance grants retry or resource-reuse permission.
+
+Study snapshots MAY pin an authored `definition_ref` with its original version and digest.
+That reference MUST identify the same study.
+Inherited study evidence relations keep the authored definition as their scope authority.
+Authoritative consumers MUST resolve that exact definition and verify unchanged inherited policy and evidence relations.
+Generated membership MUST reference exact stored run versions.
+The study MUST preserve intended target counts and disclose failed evidence checks or shortfalls.
+Accounting MUST distinguish runs, attempts, retries, replacements, and unresolved work.
+Metrics MUST state their observed and missing populations; missing values MUST NOT become implicit zeroes.
+Metric eligibility and study membership MUST use the same replacement-aware population.
+Replaced parents MUST remain in complete accounting but MUST NOT enter the eligible analysis population.
+Enabled replacement policies MUST use replacement-aware validation even when replacement history is empty.
+All archive paths MUST respect retained artifact version ownership and reject changed bytes before publication.
+Each writer MUST retain its exact candidate before external archive I/O and resume those bytes after an uncertain write.
+Additional accounting versions MAY pin an original run through `derived_from_refs` when scientific facts and prior lineage match exactly.
+Scientific checks and study evaluation membership MUST remain bound to the original exact artifact version.
+Original scientific versions MUST be resolvable from either runtime archive path; additional accounting versions MUST NOT create ambiguous competing originals.
+Accounting lineage MUST NOT transfer scientific proof to a new version or authorize changed scientific facts.
+Archive publication MUST retain referenced scientific versions and replacement history alongside additional accounting versions.
+
+### Run traceability
 
 Run traceability is the EXP-710 path from the run to the evidence and claims
 that interpret it. The `experiment-run-v1` `traceability` block binds:
@@ -228,7 +285,7 @@ available for review. It does not guarantee executable replay, artifact
 dereference, hidden backend-state reconstruction, or derived-result
 recomputation.
 
-### Evidence Source And Augmentation Provenance
+### Evidence source and augmentation provenance
 
 EXP-732 uses the existing run as the archival join point. Preserve the authored
 SDL carrier at a pinned revision as well as the instantiated scenario snapshot;
@@ -270,7 +327,7 @@ Archival callers must retain the referenced immutable artifacts. Unsupported,
 partial, or withheld capture stays disclosed without claiming satisfaction.
 The validator never dereferences locators or reads host paths.
 
-### Realized Form Disclosure
+### Realized form disclosure
 
 Realized-form disclosure is the EXP-722 record of concrete forms chosen for
 concerns left open by the authored scenario, task, or apparatus declaration.
@@ -294,7 +351,7 @@ basis, backend identity, bounded value summary, integrity statement, and
 evidence-record references. It does not expose an internal protected-value
 carrier as a second public disclosure contract.
 
-### Capture Specification
+### Capture specification
 
 Each capture requirement may carry the same scoped `observation_demand` rule.
 The capture requirement still owns its source, window, channel, sensitivity,
@@ -316,7 +373,7 @@ what evidence should be captured for an experiment scope. It binds:
 A capture specification is not proof that capture occurred. It is an intent and
 review surface that raw evidence records can cite.
 
-### Evidence Record
+### Evidence record
 
 An experiment evidence record is the raw EXP-708 evidence surface. It binds:
 
@@ -332,7 +389,7 @@ An experiment evidence record is the raw EXP-708 evidence surface. It binds:
 Evidence records MUST NOT carry metric ids, computed values, scores, or
 evaluation decisions. Those belong in derived measures or run summaries.
 
-### Derived Measure
+### Derived measure
 
 An experiment derived measure is the EXP-709 interpreted output surface. It
 binds:
@@ -347,7 +404,7 @@ binds:
 Derived measures MUST NOT stand in for raw observations. Their reviewability
 depends on following `source_evidence_refs` back to evidence records.
 
-### Backend Observation Capability
+### Backend observation capability
 
 The optional EXP-715 `backend-manifest-v2` `capabilities.observation` block
 declares whether a backend can support observation/evidence collection
@@ -364,7 +421,7 @@ bounded coverage). Admission binds a compiled scenario selector to one
 unambiguous most-specific pattern; adapter registration does not depend on a
 scenario-specific serialized selector key.
 
-### Study Or Collection
+### Study or collection
 
 A study groups tasks, runs, results, evidence, reports, and analysis artifacts
 for comparison, benchmarking, replication, or collection management. A
@@ -383,18 +440,14 @@ Studies carry accountable analysis context:
 - validity notes;
 - report and export artifact refs.
 
-For EXP-706, replications, cohorts, benchmarks, comparisons, and controlled
-variation are study allocation semantics. They are expressed through
-evaluation-run membership groupings, declared factors and factor levels,
-blocking factors, condition assignments, `target_runs_per_condition`,
-`replication_policy`, `stopping_rule`, and the analysis plan. Condition
-assignment evidence must be grounded in auditable run-level facts such as
-participant implementation provenance, processor/backend identity, apparatus
-context, selected manifests, capability declarations, measurement channels,
-task/scenario snapshot identity, non-opaque parameters, and stochastic
-controls.
+For EXP-706, replications, cohorts, benchmarks, comparisons, and controlled variation are study allocation semantics.
+They use evaluation-run membership groupings, declared factors and levels, blocking factors, and condition assignments.
+They also use `target_runs_per_condition`, `replication_policy`, `stopping_rule`, and the analysis plan.
+Condition assignment evidence must be grounded in auditable run-level facts.
+These include participant implementation provenance, processor/backend identity, apparatus context, selected manifests, and capability declarations.
+They also include measurement channels, task/scenario snapshot identity, non-opaque parameters, and stochastic controls.
 
-### Experiment Authoring Input
+### Experiment authoring input
 
 An experiment authoring input is the pre-run *specification* of an experiment,
 distinct from the archival run/study/apparatus-context records it will later
@@ -489,8 +542,10 @@ validator runs regardless of the embedding contract.
 18. `experiment-run-v1` is the canonical run provenance record. RAES MUST NOT
     publish a parallel run-provenance root schema for the same archival run
     facts unless a later ADR supersedes this boundary.
-19. Run traceability MUST link at least one capture specification and at least
-    one evidence record. Claim refs MUST be grounded by derived-measure refs.
+19. Complete archival run traceability MUST link at least one capture specification
+    and at least one evidence record. An explicit partial run MAY lack those facts.
+    It MUST carry typed execution accounting and MUST NOT claim evidence satisfaction.
+    Claim refs MUST be grounded by derived-measure refs.
 20. Realized-form disclosures MUST carry a realized reference or a realized
     value summary. Processor-realized disclosures MUST be attributed to a
     processor reference, and backend-realized disclosures MUST be attributed to
@@ -551,6 +606,7 @@ validator runs regardless of the embedding contract.
     order, or logical-timing domain. Exhaustive and sampled populations MUST be
     finite and exactly bounded.
 
+<!-- vale RAES.HeadingCase = NO -->
 ### Factorial condition generation (EXP-719)
 
 `factorial_design` is an optional authoring child under
@@ -561,6 +617,8 @@ those levels. Templates reuse the binding contract's target, value, scalar
 type, and owner shapes for scenario and participant implementation planes.
 One level may bind multiple targets. Apparatus bindings retain their separate
 authority. No target is inferred from a parameter name.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Before materialization, reject more than 16 dimensions, 64 levels per
 dimension, 16 bindings per level, the declared `condition_bound` (at most
@@ -596,13 +654,112 @@ participant configuration digest, selected implementation/manifest, and the
 allocation control. Existing ref/parameter and difficulty criteria continue
 to apply.
 
+#### Typed factorial treatments (`factorial-treatments-v1`)
+
+This profile adds typed scenario selections beside scalar bindings.
+The `factorial-bindings-v1` profile retains its existing meanings and bytes.
+The new profile replaces `level_bindings` with `level_effects`.
+Each declared factor level contains `bindings`, `selections`, or both.
+Bindings reuse the existing scalar template.
+Each level MUST contribute between one and sixteen combined effects.
+No factor, level, participant, node, model, prompt, or environment name has special meaning.
+
+A selection template contains these fields:
+
+| Field | Authority |
+| --- | --- |
+| `target` | Existing scenario target: family id, variation-point id, canonical owner target id, and `plane: scenario` |
+| `scenario_family_digest` | Exact composed family SHA-256 commitment |
+| `owner` | Existing contract and validator identity/version record |
+| `outcome` | Existing discriminated literal, reference, member, subset, or order outcome |
+
+An SDL alternative MUST use a `member` outcome with its declared member id.
+A member id MUST NOT become a scalar string binding.
+The family retains the member's typed payload.
+Node presence with coupled runtime inventory therefore needs one member selection.
+The experiment does not copy node or inventory definitions.
+Scalar node configuration uses declared SDL parameters.
+Structural configuration uses only the reviewed slots in
+[SDL variation points](../../sdl/variation-points.md#4-typed-target-slots).
+Packages, environment entries, filesystem entries, and nested structural writes remain unsupported.
+New slots require justification and admission at their owning SDL model.
+
+Generated `required_selections` retain each selection template and add
+`selection_id`, `source_factor_id`, `source_factor_level_id`, and `source_condition_id`.
+All source joins MUST match the enclosing assignment and declared factors.
+The selection id is `selection-` followed by the full JCS/SHA-256 hexadecimal digest of
+`[condition_id, factor_id, target.canonical_key()]`.
+The condition and scalar binding identity formulas remain unchanged.
+Selection-only conditions retain `explicit-required` without dummy descriptors or parameters.
+Supplied allocation and binding materializations MUST equal the generated result.
+Serialization preserves both design intent and generated criteria.
+
+Factor effects and invariant fixed policies MUST cover every family point exactly once in every condition.
+Accompanying policies MUST have `kind: fixed`, `purpose: fixed-configuration`, and `output_bound: 1`.
+They MUST NOT carry `binding_descriptor_refs` or invented factor provenance.
+Other accompanying policy kinds fail closed.
+Duplicate point selections fail even when their values agree.
+This includes overlap between fixed policies, scalar scenario bindings, and typed selections.
+Bindings also retain canonical target and alias collision checks.
+
+Owner admission MUST check the exact family, point, canonical target, owner, and outcome domain together.
+All choices apply against the unchanged composed family.
+Different points retain SDL's existing write agreement rules.
+Node absence conflicts with descendant writes.
+Coupled and separate inventory writes may agree on the same collection.
+Unequal writes fail.
+Whole-scenario validation checks constraints, surviving references, participant applicability, and realization requirements.
+One invalid Cartesian combination MUST reject the entire design.
+No condition may be omitted, resampled, renamed, or relabelled.
+
+The existing limits on dimensions, levels, conditions, and logical runs still apply.
+Combined work across logical runs MUST NOT exceed 10000.
+Each scalar binding costs one work unit.
+Each selection costs one plus its subset or order member count.
+Fixed selections contribute the same cost in every logical run.
+The bound uses each factor's maximum level cost before Cartesian expansion.
+Expanded authoring serialization MUST NOT exceed 8 MiB.
+Producers check a conservative upper bound before condition construction.
+The public authoring loader retains its 64 KiB input limit.
+Compiler entry, domain, plan-byte, and diagnostic limits remain separate and binding.
+
+Distinctness MUST compare effective scenario content and complete participant values after owner admission.
+Participant defaults apply in every condition, including conditions without overrides.
+Source labels, member labels, policy ids, and default/override provenance do not prove different effects.
+Typed member identities remain in provenance even when effective effects compare equal.
+
+Admitted selections embed the exact descriptor in `treatment`.
+Their point and outcome MUST agree with that descriptor.
+The plan records `profiles.treatment_profile: factorial-treatments-v1`.
+The descriptor's family id and digest MUST match the plan's pinned family.
+Its condition MUST match the entry coordinate.
+Conflicting source levels for one factor fail.
+Existing coordinate, entry, and archival run identity profiles retain their meanings.
+The new field is absent from legacy serialization.
+
+Archival runs carry exact descriptors in `realized_selections`.
+Study matching requires every `required_selections` descriptor, including its complete source joins.
+Plan-aware matching requires the exact admitted descriptor set.
+Omission, substitution, and relabelling fail even when the selected member is equal.
+These records state realized claims, not independent proof of execution.
+Existing participant configuration preserves ACT-620 asset and content commitments.
+Existing secret-reference bindings retain opaque references without secret resolution.
+Resolved secrets MUST NOT enter these records, digests, diagnostics, or fixtures.
+
+The reference compiler supports this profile through owner admission, complete scenario selection, sealing, and replay.
+Manual authoring allocations with `required_selections` still require this factorial profile.
+The public one-entry realizer verifies the supplied authoring selection sets.
+Source-aware readmission recompiles separately trusted original inputs and compares the complete sealed plan.
+Plan-only reload verifies internal consistency; it cannot authenticate unavailable original intent.
+See the [public example](../../../docs/explain/reference/typed-factorial-example.md).
+
 `run_plan.allocation_policy` names the executable randomized allocation
 procedure and stochastic control. Descriptive `allocation_method` and
 `blocking_factors` do not execute allocation. The exact plan-scope algorithm,
 sealed record, replay rules, and dispatch/receipt joins are specified in
 [trial realization](../scenario-variation-trial-realization/README.md#designed-compiler-and-allocation-profiles-exp-719).
 
-### Provenance
+### provenance
 
 1. Experiment artifacts MUST have stable identifiers and schema versions.
 2. Evidence-bearing artifact references MUST include media type, URI, checksum,
@@ -695,7 +852,7 @@ sealed record, replay rules, and dispatch/receipt joins are specified in
     apparatus limitations recorded in the relevant run, evidence, derived
     measure, disclosure, and study artifacts.
 
-### Closed-World Contracts
+### Closed-world contracts
 
 1. Published contracts MUST be closed-world Pydantic `ContractModel` shapes.
 2. JSON Schemas MUST be generated through `schema_bundle()` and
@@ -708,7 +865,7 @@ sealed record, replay rules, and dispatch/receipt joins are specified in
    but MUST NOT claim full RAES experiment-core conformance until the RAES
    semantic validators named by `x-raes-invariants` have been applied.
 
-### Security And Redaction
+### Security and redaction
 
 1. Experiment-core records are not a credential, traceback, process-argument, or
    raw backend-inspect transport. v1 automated enforcement covers the
@@ -724,7 +881,7 @@ sealed record, replay rules, and dispatch/receipt joins are specified in
    request-size, audit, idempotency, response-model, and redacted-error
    patterns.
 
-## Literature-Based Criteria
+## Literature-based criteria
 
 The research notes in `docs/research/experiment-core/` provide the evidence
 base. The most load-bearing criteria are:
@@ -740,7 +897,7 @@ base. The most load-bearing criteria are:
 - Empirical software engineering and simulation V&V: validity threats,
   treatments, controls, replication, calibration, and uncertainty context.
 
-## Non-Goals
+## Non-goals
 
 - Runtime execution.
 - Run persistence.

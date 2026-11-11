@@ -13,6 +13,7 @@ import raes_runtime.control_plane_store_maintenance as maintenance_module
 from fastapi.testclient import TestClient
 from raes_backend_stubs.stubs import create_stub_target
 from raes_cli.main import app as cli_app
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError, OperationalError
 from raes_contracts.planning import ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
     OperationAdmissionContext,
@@ -281,7 +282,7 @@ def test_maintenance_requires_exclusive_lease_and_exact_scope(tmp_path: Path) ->
         run_scope="run:ops",
     )
     try:
-        with pytest.raises(RuntimeError, match="exactly one worker"):
+        with pytest.raises(ConflictError, match="exactly one worker"):
             maintain_local_control_plane_store(
                 operation=LocalStoreMaintenanceOperation.BACKUP,
                 store_path=source,
@@ -292,7 +293,7 @@ def test_maintenance_requires_exclusive_lease_and_exact_scope(tmp_path: Path) ->
     finally:
         active.close()
 
-    with pytest.raises(RuntimeError, match="scope does not match"):
+    with pytest.raises(ConflictError, match="scope does not match"):
         maintain_local_control_plane_store(
             operation=LocalStoreMaintenanceOperation.CHECK,
             store_path=source,
@@ -310,7 +311,8 @@ def test_check_does_not_initialize_an_unbound_existing_database(tmp_path: Path) 
     database.chmod(0o600)
     original_bytes = database.read_bytes()
 
-    with pytest.raises((RuntimeError, ValueError, sqlite3.DatabaseError)):
+    # An unbound empty database is not in WAL mode, so maintenance refuses it before it reads any table.
+    with pytest.raises(OperationalError, match="requires WAL journal mode") as caught:
         maintain_local_control_plane_store(
             operation=LocalStoreMaintenanceOperation.CHECK,
             store_path=store_path,
@@ -318,6 +320,7 @@ def test_check_does_not_initialize_an_unbound_existing_database(tmp_path: Path) 
             run_scope="run:ops",
         )
 
+    assert type(caught.value) is OperationalError
     assert database.read_bytes() == original_bytes
     with sqlite3.connect(database) as connection:
         assert connection.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall() == []
@@ -334,7 +337,7 @@ def test_maintenance_refuses_a_source_not_in_wal_mode_without_mutating_it(
     with sqlite3.connect(database) as connection:
         assert connection.execute("PRAGMA journal_mode=DELETE").fetchone() == ("delete",)
 
-    with pytest.raises(RuntimeError, match="WAL"):
+    with pytest.raises(OperationalError, match="WAL"):
         maintain_local_control_plane_store(
             operation=operation,
             store_path=source,
@@ -361,7 +364,7 @@ def test_backup_and_restore_refuse_implicit_destination_replacement(tmp_path: Pa
         run_scope="run:ops",
     )
 
-    with pytest.raises(FileExistsError):
+    with pytest.raises(ConflictError, match="backup destination already exists"):
         maintain_local_control_plane_store(
             operation=LocalStoreMaintenanceOperation.BACKUP,
             store_path=source,
@@ -371,7 +374,7 @@ def test_backup_and_restore_refuse_implicit_destination_replacement(tmp_path: Pa
         )
 
     _create_local_store(restored)
-    with pytest.raises(FileExistsError):
+    with pytest.raises(ConflictError, match="restore destination already exists"):
         maintain_local_control_plane_store(
             operation=LocalStoreMaintenanceOperation.RESTORE,
             store_path=restored,
@@ -409,7 +412,7 @@ def test_backup_replace_rejects_existing_destination_sidecars(tmp_path: Path, su
     sidecar.write_bytes(b"stale")
     sidecar.chmod(0o600)
 
-    with pytest.raises(RuntimeError, match="stale SQLite sidecar"):
+    with pytest.raises(OperationalError, match="stale SQLite sidecar"):
         maintain_local_control_plane_store(
             operation=LocalStoreMaintenanceOperation.BACKUP,
             store_path=source,
@@ -485,7 +488,7 @@ def test_failed_restore_keeps_the_backup_and_destination_authoritative(tmp_path:
     destination = restored / "control-plane.sqlite3"
     destination_bytes = destination.read_bytes()
 
-    with pytest.raises(ValueError):
+    with pytest.raises(EvidenceIntegrityError, match="audit event failed its durable contract check"):
         maintain_local_control_plane_store(
             operation=LocalStoreMaintenanceOperation.RESTORE,
             store_path=restored,
@@ -526,7 +529,7 @@ def test_restore_publication_failure_preserves_existing_wal_store(
         original_replace(source_path, destination_path)
 
     monkeypatch.setattr(maintenance_module.os, "replace", fail_publication)
-    with pytest.raises(OSError, match="injected publication failure"):
+    with pytest.raises(OperationalError, match="filesystem operation failed") as caught:
         maintain_local_control_plane_store(
             operation=LocalStoreMaintenanceOperation.RESTORE,
             store_path=restored,
@@ -536,6 +539,7 @@ def test_restore_publication_failure_preserves_existing_wal_store(
             conflict_policy=DestinationConflictPolicy.REPLACE,
         )
 
+    assert str(caught.value.__cause__) == "injected publication failure"
     assert database.read_bytes() == original_bytes
     with sqlite3.connect(database) as connection:
         assert connection.execute("PRAGMA journal_mode").fetchone() == ("wal",)
@@ -584,7 +588,7 @@ def test_restore_fsync_failure_rolls_back_published_destination(
         original_fsync(path)
 
     monkeypatch.setattr(maintenance_module, "_fsync_regular_file", fail_once)
-    with pytest.raises(OSError, match="injected fsync failure"):
+    with pytest.raises(OperationalError, match="filesystem operation failed") as caught:
         maintain_local_control_plane_store(
             operation=LocalStoreMaintenanceOperation.RESTORE,
             store_path=restored,
@@ -594,6 +598,7 @@ def test_restore_fsync_failure_rolls_back_published_destination(
             conflict_policy=DestinationConflictPolicy.REPLACE,
         )
 
+    assert str(caught.value.__cause__) == "injected fsync failure"
     assert failed
     with sqlite3.connect(database) as connection:
         assert connection.execute("PRAGMA journal_mode").fetchone() == ("wal",)
@@ -643,7 +648,7 @@ def test_unconfirmed_restore_rollback_keeps_destination_exclusively_owned(
     monkeypatch.setattr(maintenance_module, "_fsync_regular_file", fail_publication_fsync_once)
     held_leases = maintenance_module._UNCERTAIN_RESTORE_LEASES
     try:
-        with pytest.raises(RuntimeError, match="rollback could not be confirmed"):
+        with pytest.raises(OperationalError, match="rollback could not be confirmed"):
             maintain_local_control_plane_store(
                 operation=LocalStoreMaintenanceOperation.RESTORE,
                 store_path=restored,
@@ -652,7 +657,7 @@ def test_unconfirmed_restore_rollback_keeps_destination_exclusively_owned(
                 run_scope="run:ops",
                 conflict_policy=DestinationConflictPolicy.REPLACE,
             )
-        with pytest.raises(RuntimeError, match="already has a runtime owner"):
+        with pytest.raises(ConflictError, match="already has a runtime owner"):
             maintain_local_control_plane_store(
                 operation=LocalStoreMaintenanceOperation.CHECK,
                 store_path=restored,
@@ -680,7 +685,7 @@ def test_restore_refuses_stale_destination_sidecars_before_publication(tmp_path:
     stale_sidecar.write_bytes(b"stale")
     stale_sidecar.chmod(0o600)
 
-    with pytest.raises(RuntimeError, match="stale SQLite sidecar"):
+    with pytest.raises(OperationalError, match="stale SQLite sidecar"):
         maintain_local_control_plane_store(
             operation=LocalStoreMaintenanceOperation.RESTORE,
             store_path=restored,
@@ -715,7 +720,7 @@ def test_restore_rejects_symlink_sidecars_before_sqlite_connect(
     target = backup if sidecar_owner == "backup" else restored / "control-plane.sqlite3"
     Path(f"{target}-wal").symlink_to(protected)
 
-    with pytest.raises(RuntimeError, match="symlink"):
+    with pytest.raises(OperationalError, match="symlink"):
         maintain_local_control_plane_store(
             operation=LocalStoreMaintenanceOperation.RESTORE,
             store_path=restored,
@@ -784,9 +789,50 @@ def test_runtime_store_cli_failure_redacts_paths_and_provider_errors(tmp_path: P
     )
 
     assert result.exit_code == 1
-    assert result.stdout == "control-plane-store-check-failed\n"
-    assert sentinel not in result.stdout
-    assert "scope does not match" not in result.stdout
+    # The failure label is an error message, so it goes to stderr and stdout stays empty.
+    assert result.stdout == ""
+    assert result.stderr == "control-plane-store-check-failed\n"
+    assert sentinel not in result.output
+    assert "scope does not match" not in result.output
+
+
+@pytest.mark.parametrize("arguments", [["--run-scope", "not-a-run-scope"], ["--target", ""]])
+def test_runtime_store_cli_rejected_option_values_use_the_failure_label(tmp_path: Path, arguments: list[str]) -> None:
+    source = tmp_path / "source-store"
+    _create_local_store(source)
+    options = {"--target": "stub", "--run-scope": "run:ops"}
+    options.update(dict(zip(arguments[::2], arguments[1::2], strict=True)))
+
+    result = CliRunner().invoke(
+        cli_app,
+        ["runtime", "store", "check", str(source), *(item for pair in options.items() for item in pair)],
+    )
+
+    assert result.exit_code == 1
+    assert (result.stdout, result.stderr) == ("", "control-plane-store-check-failed\n")
+
+
+@pytest.mark.parametrize("defect", [KeyError, ValueError])
+def test_runtime_store_cli_does_not_report_an_unexpected_failure_as_a_refusal(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    defect: type[Exception],
+) -> None:
+    import raes_cli.runtime as runtime_commands
+
+    def _defect(**_options: object) -> None:
+        raise defect("SECRET-DEFECT-DETAIL")
+
+    monkeypatch.setattr(runtime_commands, "maintain_local_control_plane_store", _defect)
+    result = CliRunner().invoke(
+        cli_app,
+        ["runtime", "store", "check", str(tmp_path / "store"), "--target", "stub", "--run-scope", "run:ops"],
+    )
+
+    # The defect reaches the application boundary, which logs it and exits 70 in the installed command.
+    assert type(result.exception) is defect
+    assert "control-plane-store-check-failed" not in result.output
+    assert "SECRET-DEFECT-DETAIL" not in result.output
 
 
 def test_audit_creation_rejects_unbounded_or_nested_details() -> None:
@@ -892,7 +938,7 @@ def test_schema_v4_audit_history_is_validated_before_v5_upgrade(
 
     target = create_stub_target()
     store = LocalControlPlaneStore(store_path)
-    with pytest.raises(ValueError):
+    with pytest.raises(EvidenceIntegrityError, match="audit event failed its durable contract check"):
         RuntimeControlPlane(target, store=store, run_scope="run:ops")
 
     with sqlite3.connect(database) as connection:

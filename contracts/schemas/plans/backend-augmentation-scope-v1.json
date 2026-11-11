@@ -54,7 +54,7 @@
       "type": "string"
     },
     "content": {
-      "maxLength": 1048576,
+      "maxLength": 4194304,
       "minLength": 1,
       "title": "Content",
       "type": "string"

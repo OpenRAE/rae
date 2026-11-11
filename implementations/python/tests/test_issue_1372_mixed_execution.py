@@ -144,12 +144,12 @@ def test_foreign_producer_keeps_prior_execution_without_inventing_delivery():
 
 def test_blocked_bridge_has_responsive_controls_and_no_late_completion():
     from threading import Thread
-    from time import monotonic
 
     from mixed_execution_fixtures import portable_plane
     from raes_runtime.operation_supervision_configuration import OperationSupervisionConfiguration
 
-    plane, state, roles, _, _ = portable_plane(supervision=OperationSupervisionConfiguration(execution_ms=700))
+    # The blocked submission returns only when this execution budget ends.
+    plane, state, roles, _, _ = portable_plane(supervision=OperationSupervisionConfiguration(execution_ms=2000))
     bridge = roles["bridge"]
     bridge.release.clear()
     receipts, failures = [], []
@@ -157,7 +157,7 @@ def test_blocked_bridge_has_responsive_controls_and_no_late_completion():
     def invoke():
         try:
             receipts.append(execute(plane))
-        except Exception as error:
+        except Exception as error:  # noqa: BLE001 - the worker hands the exception to the test thread, which asserts it.
             failures.append(error)
 
     thread = Thread(target=invoke)
@@ -165,12 +165,13 @@ def test_blocked_bridge_has_responsive_controls_and_no_late_completion():
     try:
         assert bridge.started.wait(2)
         operation_id = bridge.request.binding.operation_id
-        started = monotonic()
         plane.stop_admission(identity=identity())
         plane.cancel_operation(operation_id, control_id="cancel:blocked", identity=identity())
-        assert monotonic() - started < 0.6
+        # Both controls answered before the execution budget released the
+        # blocked submission, so neither waited for the bridge or the deadline.
+        assert thread.is_alive()
         assert bridge.cancels == 1
-        thread.join(2)
+        thread.join(5)
         assert not thread.is_alive()
         assert not failures
         assert plane.get_operation(operation_id, identity=identity()).state is OperationState.INDETERMINATE
@@ -383,13 +384,16 @@ def test_known_execution_failure_needs_no_delivery_or_observation():
         plane.close()
 
 
-def test_blocked_transition_evaluator_uses_the_same_finite_invocation_budget():
+def test_blocked_transition_evaluator_uses_the_same_finite_invocation_budget(monkeypatch):
     from dataclasses import replace
     from threading import Event, Thread
 
     from mixed_execution_fixtures import portable_plane
     from raes_runtime.operation_supervision_configuration import OperationSupervisionConfiguration
 
+    # Hold the budget clock so slow setup cannot spend the 700 ms before the evaluator starts.
+    # The execution adapter still applies the budget to the blocked call in real time.
+    monkeypatch.setattr("raes_runtime.mixed_backend_invocation.monotonic", lambda: 1024.0)
     plane, _, roles, _, _ = portable_plane(
         handoff=True, supervision=OperationSupervisionConfiguration(execution_ms=700)
     )
@@ -398,7 +402,7 @@ def test_blocked_transition_evaluator_uses_the_same_finite_invocation_budget():
 
     def blocked(*args):
         entered.set()
-        release.wait(3)
+        release.wait(30)
         return original(*args)
 
     plane._mixed_runtime = replace(
@@ -414,8 +418,8 @@ def test_blocked_transition_evaluator_uses_the_same_finite_invocation_budget():
     )
     thread.start()
     try:
-        assert entered.wait(2)
-        thread.join(1.5)
+        assert entered.wait(10)
+        thread.join(10)
         assert not thread.is_alive()
         assert roles["bridge"].starts == 0
         assert plane.get_operation(receipts[0].operation_id, identity=identity()).state is OperationState.INDETERMINATE

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from raes.explicitness import ExplicitnessClass
 from raes.runtime_resource_limits import (
     process_resource_limit_capability_admits,
     process_resource_limit_identity_digest,
@@ -16,6 +15,7 @@ from raes_contracts.apparatus import (
 )
 from raes_contracts.bounded_domains import scalar_in_domain
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.planning import ChangeAction, ProvisioningPlan
 from raes_contracts.realization_structure import (
     RealizationRelationStatus,
@@ -27,6 +27,7 @@ from raes_contracts.runtime_state import (
     RealizationProvenanceEntry,
     RuntimeSnapshot,
 )
+from raes_contracts.runtime_value_limits import PLAN_AUTHORITY_LIMITS
 from raes_contracts.vocabulary import observation_requirement_satisfied
 
 from .realization_compute_substrate import evaluate_compute_substrate
@@ -83,13 +84,7 @@ def _evaluate_non_compute_registered_realization(
     op = declared_ops.get(requirement.address)
     if requirement.explicitness is None or path is None or op is None or op.action is ChangeAction.DELETE:
         return None, None
-    if requirement.requirement_kind in OPERATING_SYSTEM_REQUIREMENT_KINDS:
-        realized_value = _observed_operating_system_value(requirement, returned_snapshot)
-    else:
-        snapshot_entry = returned_snapshot.entries.get(requirement.address)
-        realized_value = (
-            concern_value(snapshot_entry.payload, path) if snapshot_entry is not None else MISSING_CONCERN_VALUE
-        )
+    realized_value = realized_concern_value(requirement, returned_snapshot)
     if requirement.structure_error:
         result = silent_approximation_diagnostic(requirement), None
     elif (
@@ -109,12 +104,48 @@ def _evaluate_non_compute_registered_realization(
     return result
 
 
+def realized_concern_value(requirement: CompiledRealizationRequirement, returned_snapshot: RuntimeSnapshot) -> object:
+    """Read one registered concern without treating omission as emptiness."""
+
+    if requirement.requirement_kind in OPERATING_SYSTEM_REQUIREMENT_KINDS:
+        return _observed_operating_system_value(requirement, returned_snapshot)
+    path = CONCERN_PAYLOAD_PATH.get(requirement.requirement_kind)
+    snapshot_entry = returned_snapshot.entries.get(requirement.address)
+    if path is None or snapshot_entry is None:
+        return MISSING_CONCERN_VALUE
+    return concern_value(snapshot_entry.payload, path)
+
+
+def _left_empty_without_readback(
+    requirement: CompiledRealizationRequirement,
+    realized_value: object,
+    returned_snapshot: RuntimeSnapshot,
+) -> bool:
+    """Accept an authored-empty concern left empty without a readback claim.
+
+    Omission or an empty report earns no provenance regardless of capability.
+    Reported members and matching observations still require corroboration.
+    """
+
+    return (
+        requirement.authored_empty
+        and (realized_value is MISSING_CONCERN_VALUE or realized_value == [])
+        and matching_observation(requirement, returned_snapshot) is None
+    )
+
+
 def _evaluate_open_realization(
     requirement: CompiledRealizationRequirement,
     realized_value: object,
     returned_snapshot: RuntimeSnapshot,
     manifest: BackendManifest | None,
 ) -> tuple[Diagnostic | None, RealizationProvenanceEntry | None]:
+    if _left_empty_without_readback(requirement, realized_value, returned_snapshot):
+        return None, None
+    if realized_value is MISSING_CONCERN_VALUE and (
+        requirement.verification_scope is not None or requirement.required_observation_strength is not None
+    ):
+        return invalid_observation_diagnostic(requirement), None
     diagnostic: Diagnostic | None = None
     provenance: RealizationProvenanceEntry | None = None
     if realized_value is not MISSING_CONCERN_VALUE:
@@ -165,7 +196,7 @@ def _project_declared_realization(
             declared_value,
             recursive=requirement.constraint_document is not None,
         )
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         projection = MISSING_CONCERN_VALUE
     return projection
 
@@ -204,7 +235,9 @@ def _projected_constraints_rejected(
 ) -> bool:
     if requirement.constraint_document is not None:
         return (
-            evaluate_realization_constraint(requirement.constraint_document, realized_projection).status
+            evaluate_realization_constraint(
+                requirement.constraint_document, realized_projection, limits=PLAN_AUTHORITY_LIMITS
+            ).status
             is not RealizationRelationStatus.CONFORMANT
         )
     if requirement.structure is not None and not structure_matches(
@@ -331,7 +364,8 @@ def _process_limit_projection_maps(
     try:
         declared = _process_limit_projection_map(declared_projection)
         realized = _process_limit_projection_map(realized_projection)
-    except (TypeError, ValueError):
+    except ValueError:
+        # The limit identity owner refuses a malformed record with ValidationError (E3).
         return invalid_observation_diagnostic(requirement), {}, {}
     diagnostic = None
     if declared.keys() != realized.keys():
@@ -410,7 +444,8 @@ def _process_limit_projection_admitted(
             any(process_resource_limit_capability_admits(capability, item) for capability in capabilities)
             for item in realized_projection
         )
-    except (TypeError, ValueError):
+    except ValueError:
+        # The limit owner refuses a malformed record with ValidationError (E3).
         admitted = False
     return admitted
 

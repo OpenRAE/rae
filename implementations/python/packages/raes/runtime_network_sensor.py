@@ -3,16 +3,14 @@
 from enum import Enum
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
-
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import SDLModel
-from .runtime_values import (
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import (
     coerce_string_list,
     parse_runtime_enum_or_var,
     require_symbol,
     validate_absolute_paths,
 )
+from raes_contracts.sdl_model import SDLModel
 
 __all__ = [
     "RuntimeNetworkSensor",
@@ -150,7 +148,7 @@ class RuntimeNetworkSensor(SDLModel):
         return validate_absolute_paths(v, field_name=info.field_name)
 
     @model_validator(mode="after")
-    def validate_unique_refs(self) -> "RuntimeNetworkSensor":
+    def validate_unique_refs(self) -> RuntimeNetworkSensor:
         _reject_duplicate_values(
             self.capture_interfaces,
             field_name="capture_interfaces",

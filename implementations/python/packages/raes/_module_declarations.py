@@ -1,9 +1,12 @@
 """Authored module descriptors and import declarations."""
 
 from pydantic import Field, field_validator, model_validator
-
-from ._base import SDLModel
-from ._identifiers import PortableIdentifier, require_module_identifier, require_portable_identifier
+from raes_contracts.identifiers import (
+    PortableIdentifier,
+    require_module_identifier,
+    require_portable_identifier,
+)
+from raes_contracts.sdl_model import SDLModel
 
 
 class ModuleDescriptor(SDLModel):
@@ -16,7 +19,7 @@ class ModuleDescriptor(SDLModel):
     description: str = ""
 
     @model_validator(mode="after")
-    def validate_descriptor(self) -> "ModuleDescriptor":
+    def validate_descriptor(self) -> ModuleDescriptor:
         require_module_identifier(self.id)
         if len(self.parameters) != len(set(self.parameters)):
             raise ValueError("module.parameters must be unique")
@@ -50,7 +53,7 @@ class ImportDecl(SDLModel):
         return value
 
     @model_validator(mode="after")
-    def validate_source_fields(self) -> "ImportDecl":
+    def validate_source_fields(self) -> ImportDecl:
         if not self.source and not self.path:
             raise ValueError("Import requires either 'source' or deprecated 'path'")
         if self.source and self.path:

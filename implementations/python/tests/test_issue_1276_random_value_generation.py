@@ -24,6 +24,12 @@ from raes.stateful_resources import (
 )
 from raes_backend_protocols.provisioner_capabilities import ProvisionerCapabilities
 from raes_contracts.contracts import ProvisionerCapabilitiesModel
+from raes_contracts.contracts.plan_projection import (
+    evaluation_plan_model,
+    provisioning_plan_model,
+    runtime_plan_digest,
+)
+from raes_contracts.errors import ConflictError
 from raes_contracts.vocabulary import GeneratedArtifactKind
 
 
@@ -930,11 +936,6 @@ class TestDirectPlanContentAdmission:
 
 # --- run-identity plumbing through published models + digest (finding #2) -----
 
-from raes_contracts.plan_projection import (  # noqa: E402
-    evaluation_plan_model,
-    provisioning_plan_model,
-    runtime_plan_digest,
-)
 from raes_contracts.planning import EvaluationPlan, ProvisioningPlan  # noqa: E402
 from raes_runtime.control_plane_api_models import _provisioning_plan  # noqa: E402
 
@@ -980,23 +981,29 @@ class TestRuntimeApplyResume:
         # plan/apply path end to end (issue #1276).
         base = create_stub_target()
         target = replace(base, manifest=_with_random_value_support(base.manifest))
-        manager = RuntimeManager(target)
+        with RuntimeManager(target, run_scope="run:r1") as manager:
+            first = manager.plan(scenario, run_scope=PlanScope(run_id="r1"))
+            assert not [d for d in first.diagnostics if d.is_error], [d.message for d in first.diagnostics]
+            assert _flag_action(first) == "create"
+            assert manager.apply(first).success
+            assert _FLAG_ARTIFACT_ADDRESS in manager.snapshot.entries
 
-        first = manager.plan(scenario, run_scope=PlanScope(run_id="r1"))
-        assert not [d for d in first.diagnostics if d.is_error], [d.message for d in first.diagnostics]
-        assert _flag_action(first) == "create"
-        assert manager.apply(first).success
-        assert _FLAG_ARTIFACT_ADDRESS in manager.snapshot.entries
+            # The same run retains its generated-value binding.
+            resume = manager.plan(scenario, run_scope=PlanScope(run_id="r1"))
+            assert _flag_action(resume) == "unchanged"
+            assert manager.apply(resume).success
 
-        # Same-run resume reconciles UNCHANGED, so a backend retains the value.
-        resume = manager.plan(scenario, run_scope=PlanScope(run_id="r1"))
-        assert _flag_action(resume) == "unchanged"
-        assert manager.apply(resume).success
+            # A changed plan identity cannot retarget an admitted runtime.
+            new_run = manager.plan(scenario, run_scope=PlanScope(run_id="r2"))
+            assert _flag_action(new_run) == "update"
+            with pytest.raises(ConflictError, match="run scope"):
+                manager.apply(new_run)
+            assert manager.destroy().success
 
-        # A new authoritative run reconciles as UPDATE, so a backend regenerates.
-        new_run = manager.plan(scenario, run_scope=PlanScope(run_id="r2"))
-        assert _flag_action(new_run) == "update"
-        assert manager.apply(new_run).success
+        with RuntimeManager(target, run_scope="run:r2") as manager:
+            new_run = manager.plan(scenario, run_scope=PlanScope(run_id="r2"))
+            assert _flag_action(new_run) == "create"
+            assert manager.apply(new_run).success
 
 
 # --- module composition namespaces new artifact references (finding: security)
@@ -1094,3 +1101,85 @@ class TestCompositionNamespacing:
         ]
         assert len(sources) == 1
         assert sources[0].generated_artifact == "shared.flag"
+
+
+# --- prepared-node reconstruction rejoins content placements (issue #1955) ----
+
+from raes_contracts.errors import InvalidInputError  # noqa: E402
+from raes_processor.planner.prepared_node_semantics import validate_prepared_node_semantics  # noqa: E402
+from raes_processor.planner.resources import _collect_resources  # noqa: E402
+
+_CONTENT_ARTIFACT_ADDRESS = "provision.generated-artifact.techvault-flag"
+_CONTENT_PLACEMENT_ADDRESS = "provision.content.flag-file"
+
+
+def _content_live():
+    return _collect_resources(compile_runtime_model(parse_sdl(_content_scenario(_VALID_CONTENT))))
+
+
+class TestPreparedNodeContentPlacement:
+    def test_prepared_context_accepts_declared_content_placement(self) -> None:
+        validate_prepared_node_semantics(_content_live())
+
+    def test_prepared_context_rejects_absent_content_placement(self) -> None:
+        live = _content_live()
+        del live[_CONTENT_PLACEMENT_ADDRESS]
+        with pytest.raises(InvalidInputError, match="typed validation"):
+            validate_prepared_node_semantics(live)
+
+    def test_prepared_context_rejects_mismatched_content_binding(self) -> None:
+        live = _content_live()
+        spec = live[_CONTENT_PLACEMENT_ADDRESS].payload["spec"]
+        spec["text_from"] = {**spec["text_from"], "output": "other"}
+        with pytest.raises(InvalidInputError, match="typed validation"):
+            validate_prepared_node_semantics(live)
+
+    def test_prepared_context_rejects_unknown_content_output(self) -> None:
+        live = _content_live()
+        live[_CONTENT_ARTIFACT_ADDRESS].payload["spec"]["content_consumers"][0]["output"] = "ghost"
+        with pytest.raises(InvalidInputError, match="typed validation"):
+            validate_prepared_node_semantics(live)
+
+    def test_prepared_context_rejects_producer_private_content_output(self) -> None:
+        live = _content_live()
+        live[_CONTENT_ARTIFACT_ADDRESS].payload["spec"]["outputs"][0]["disposition"] = "producer_private"
+        with pytest.raises(InvalidInputError, match="typed validation"):
+            validate_prepared_node_semantics(live)
+
+    def test_unchanged_text_from_plan_reaches_backend_apply(self) -> None:
+        from raes_backend_stubs.stubs import StubProvisioner, create_stub_target
+        from raes_contracts.contracts.realization_preparation import RealizationPreparation
+        from raes_runtime.manager import RuntimeManager
+
+        base = create_stub_target()
+        manifest = _with_random_value_support(base.manifest)
+        manifest = replace(
+            manifest,
+            supported_contract_versions=manifest.supported_contract_versions | {"backend-realization-preparation-v1"},
+        )
+
+        class Preparing(StubProvisioner):
+            prepares = applies = 0
+
+            def prepare(self, request, previous):
+                self.prepares += 1
+                return RealizationPreparation.for_request(request, previous, operations=tuple(request.operations))
+
+            def apply(self, request, previous):
+                self.applies += 1
+                return super().apply(request, previous)
+
+        backend = Preparing(manifest.realization_envelope)
+        target = replace(base, manifest=manifest, provisioner=backend)
+        scenario = parse_sdl(_content_scenario(_VALID_CONTENT))
+        execution = plan(
+            compile_runtime_model(scenario), manifest, scope=PlanScope(target_name=target.name, run_id="r1")
+        )
+        assert execution.is_valid, [d.message for d in execution.diagnostics]
+        with RuntimeManager(target, run_scope="run:r1") as manager:
+            result = manager.apply(execution)
+        assert result.success, [(d.code, d.address) for d in result.diagnostics]
+        assert (backend.prepares, backend.applies) == (1, 1)
+        artifact = result.snapshot.entries[_CONTENT_ARTIFACT_ADDRESS].payload["spec"]
+        assert "value" not in artifact
+        assert artifact["content_consumers"][0]["target_address"] == _CONTENT_PLACEMENT_ADDRESS

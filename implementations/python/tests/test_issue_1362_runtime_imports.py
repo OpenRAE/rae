@@ -9,6 +9,7 @@ import pytest
 @pytest.mark.parametrize(
     "statement",
     [
+        pytest.param("import raes_contracts.artifact_requirements", marks=pytest.mark.integration),
         "import raes_runtime.manager",
         "import raes_runtime.control_plane",
         "from raes_runtime import RuntimeManager",

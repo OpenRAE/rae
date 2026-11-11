@@ -125,3 +125,6 @@ explicit matching installed-owner admission retains its refusal.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/observation_execution.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1069_participant_control_durability.py`
 - TESTS → TEST `implementations/python/tests/test_issue_1434_typed_runtime_domain.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_control_episode_prefix.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/participant_control_archive_projection.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1373_occurrence_prefix.py`

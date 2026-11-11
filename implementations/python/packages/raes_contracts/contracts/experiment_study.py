@@ -2,20 +2,23 @@
 
 from __future__ import annotations
 
+import json
 from typing import Literal
 
 from pydantic import Field, GetJsonSchemaHandler, SerializerFunctionWrapHandler, model_serializer, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
-from .base import ContractModel, NonEmptyString, PositiveInteger, UnitIntervalFloat
+from ..json_serialization import sorted_json_text
+from .base import ContractModel, NonEmptyString, PositiveInteger, UnitIntervalFloat, casefold_digest
 from .experiment_artifacts import ExperimentConditionAssignmentReferenceModel
 from .experiment_bindings import ExperimentBindingDescriptorModel, ExperimentBindingDescriptorSetModel
 from .experiment_references import (
     ExperimentConditionAssignmentParameterModel,
     ExperimentReferenceModel,
 )
-from .schema_invariants import _add_raes_invariant
+from .experiment_treatments import ExperimentScenarioSelectionDescriptorModel, validate_selection_descriptor_set
+from .schema_invariants import add_raes_invariant
 
 
 class ExperimentStudyMembershipModel(ContractModel):
@@ -127,6 +130,9 @@ class ExperimentConditionAssignmentModel(ContractModel):
     required_refs: list[ExperimentConditionAssignmentReferenceModel] = Field(default_factory=list)
     required_parameters: list[ExperimentConditionAssignmentParameterModel] = Field(default_factory=list)
     required_bindings: list[ExperimentBindingDescriptorModel] = Field(default_factory=list, max_length=256)
+    required_selections: list[ExperimentScenarioSelectionDescriptorModel] = Field(
+        default_factory=list, max_length=256, exclude_if=lambda value: not value
+    )
     description: NonEmptyString | None = None
 
     @model_serializer(mode="wrap")
@@ -138,10 +144,17 @@ class ExperimentConditionAssignmentModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_run_level_criteria(self) -> ExperimentConditionAssignmentModel:
-        if not self.required_refs and not self.required_parameters and not self.required_bindings:
+        if not any((self.required_refs, self.required_parameters, self.required_bindings, self.required_selections)):
             raise ValueError(
-                "condition assignments must include required_refs or required_parameters or required_bindings"
+                "condition assignments must include required_refs or required_parameters "
+                "or required_bindings or required_selections"
             )
+        self._validate_treatment_sources()
+        if self.difficulty_condition != "fixed" and self.difficulty_policy_id is None:
+            raise ValueError("adaptive and scaffolded conditions require difficulty_policy_id")
+        return self
+
+    def _validate_treatment_sources(self) -> None:
         if self.required_bindings:
             ExperimentBindingDescriptorSetModel(descriptors=self.required_bindings)
             for binding in self.required_bindings:
@@ -150,9 +163,13 @@ class ExperimentConditionAssignmentModel(ContractModel):
                     or self.factor_levels.get(binding.source_factor_id) != binding.source_factor_level_id
                 ):
                     raise ValueError("condition required bindings must match their factor/level/condition assignment")
-        if self.difficulty_condition != "fixed" and self.difficulty_policy_id is None:
-            raise ValueError("adaptive and scaffolded conditions require difficulty_policy_id")
-        return self
+        validate_selection_descriptor_set(self.required_selections, self.required_bindings)
+        for selection in self.required_selections:
+            if (
+                selection.source_condition_id != self.condition_id
+                or self.factor_levels.get(selection.source_factor_id) != selection.source_factor_level_id
+            ):
+                raise ValueError("condition required selections must match their factor/level/condition assignment")
 
     @classmethod
     def __get_pydantic_json_schema__(
@@ -167,6 +184,7 @@ class ExperimentConditionAssignmentModel(ContractModel):
                 {"required": ["required_refs"], "properties": {"required_refs": {"minItems": 1}}},
                 {"required": ["required_parameters"], "properties": {"required_parameters": {"minItems": 1}}},
                 {"required": ["required_bindings"], "properties": {"required_bindings": {"minItems": 1}}},
+                {"required": ["required_selections"], "properties": {"required_selections": {"minItems": 1}}},
             ]
         )
         json_schema.setdefault("allOf", []).append(
@@ -206,6 +224,51 @@ def _validate_condition_factor_levels(
                 )
 
 
+def _condition_assignment_run_criteria_signature(
+    assignment: ExperimentConditionAssignmentModel,
+) -> tuple[object, ...]:
+    reference_signature = tuple(
+        sorted(
+            (
+                reference.ref_kind,
+                reference.ref_id,
+                reference.ref_version,
+                casefold_digest(reference.ref_digest),
+                reference.ref_path,
+            )
+            for reference in assignment.required_refs
+        )
+    )
+    parameter_signature = tuple(
+        sorted(
+            (
+                parameter.name,
+                parameter.value_kind,
+                type(parameter.value).__name__,
+                sorted_json_text(parameter.value),
+            )
+            for parameter in assignment.required_parameters
+        )
+    )
+    return (
+        reference_signature,
+        parameter_signature,
+        assignment.difficulty_condition,
+        assignment.difficulty_policy_id,
+        tuple(
+            sorted(
+                json.dumps(binding.realization_payload(), sort_keys=True) for binding in assignment.required_bindings
+            )
+        ),
+        tuple(
+            sorted(
+                json.dumps(selection.realization_payload(), sort_keys=True)
+                for selection in assignment.required_selections
+            )
+        ),
+    )
+
+
 class ExperimentRunAllocationPlanModel(ContractModel):
     """Structured run allocation, replication, and assignment plan."""
 
@@ -242,8 +305,6 @@ class ExperimentRunAllocationPlanModel(ContractModel):
         return self
 
     def _validate_distinct_condition_criteria(self) -> None:
-        from .experiment_conditions import _condition_assignment_run_criteria_signature
-
         factor_levels_by_signature: dict[tuple[tuple[str, str], ...], list[str]] = {}
         criteria_by_signature: dict[tuple[object, ...], list[str]] = {}
         for condition_id, assignment in self.condition_assignments.items():
@@ -282,7 +343,7 @@ class ExperimentRunAllocationPlanModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "run-allocation-condition-assignments-valid",
             "Run-allocation compared_conditions, condition_assignments keys, embedded condition ids, blocking "
@@ -353,7 +414,7 @@ class ExperimentAnalysisPlanModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "analysis-plan-substantive-methods-required",
             "Analysis plans must name metrics plus structured statistical, uncertainty, multiplicity, "

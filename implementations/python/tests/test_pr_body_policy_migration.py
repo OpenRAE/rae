@@ -25,6 +25,7 @@ def _run_boundary(
     missing: bool = False,
     fetch_fails: bool = False,
     current: bool = False,
+    body: str | None = "",
 ) -> subprocess.CompletedProcess[str]:
     workflow = yaml.safe_load((ROOT / ".github/workflows/pr-body-policy.yml").read_text())
     step = next(
@@ -58,7 +59,7 @@ def _run_boundary(
     # Use the running test interpreter without relying on host python aliases.
     (fake_bin / "python").symlink_to(sys.executable)
     event = tmp_path / "event.json"
-    event.write_text(json.dumps({"pull_request": {"body": "", "user": {"login": "dependabot[bot]"}}}))
+    event.write_text(json.dumps({"pull_request": {"body": body, "user": {"login": "dependabot[bot]"}}}))
     env = {
         **os.environ,
         "PATH": f"{fake_bin}:{os.environ['PATH']}",
@@ -79,8 +80,10 @@ def _run_boundary(
     )
 
 
-def test_exact_pinned_migration_executes_replacement(tmp_path: Path) -> None:
-    result = _run_boundary(tmp_path)
+# GitHub sends an empty pull request description as null, not "" (#1525).
+@pytest.mark.parametrize("body", ["", None])
+def test_exact_pinned_migration_executes_replacement(tmp_path: Path, body: str | None) -> None:
+    result = _run_boundary(tmp_path, body=body)
     assert result.returncode == 0, result.stderr + result.stdout
     assert "exempt trusted automation" in result.stdout
 
@@ -97,8 +100,9 @@ def test_unknown_base_still_executes_only_its_own_validator(tmp_path: Path) -> N
     assert result.returncode == 23
 
 
-def test_migrated_base_needs_no_download(tmp_path: Path) -> None:
-    result = _run_boundary(tmp_path, current=True, fetch_fails=True)
+@pytest.mark.parametrize("body", ["", None])
+def test_migrated_base_needs_no_download(tmp_path: Path, body: str | None) -> None:
+    result = _run_boundary(tmp_path, current=True, fetch_fails=True, body=body)
     assert result.returncode == 0, result.stderr + result.stdout
     assert "exempt trusted automation" in result.stdout
 

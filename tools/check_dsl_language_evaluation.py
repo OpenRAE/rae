@@ -18,8 +18,13 @@ from collections.abc import Mapping
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
+
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
 
 from tools.policy.common import (
     PolicyFailure,
@@ -85,7 +90,7 @@ def _manifest_claim_binding(repo_root: Path, analysis: dict[str, object]) -> obj
             if isinstance(entry[0].get("claim_binding"), Mapping)
             and entry[0]["claim_binding"].get("claim_id") == claim_id
         )
-    except (OSError, ValueError, StopIteration):
+    except OSError, InvalidInputError, StopIteration:
         return None
 
 
@@ -142,12 +147,14 @@ def _load_bundle_entry(
     entry: dict[str, object],
 ) -> tuple[dict[str, object], dict[str, object], dict[str, object], dict[str, object]]:
     if set(entry) != _BUNDLE_ENTRY_KEYS:
-        raise ValueError(f"bundle entry fields must exactly match {sorted(_BUNDLE_ENTRY_KEYS)}; got {sorted(entry)}")
+        raise InvalidInputError(
+            f"bundle entry fields must exactly match {sorted(_BUNDLE_ENTRY_KEYS)}; got {sorted(entry)}"
+        )
     paths: list[str] = []
     for field in ("protocol_path", "snapshot_path", "analysis_path"):
         value = entry[field]
         if not isinstance(value, str) or safe_repo_path(repo_root, value) is None:
-            raise ValueError(f"bundle entry contains unsafe {field}")
+            raise InvalidInputError(f"bundle entry contains unsafe {field}")
         paths.append(value)
     protocol, snapshot, analysis = (
         load_bounded_json_object(repo_root, path, max_bytes=_MAX_FILE_BYTES) for path in paths
@@ -162,28 +169,28 @@ def load_bundles(
 
     manifest = load_bounded_json_object(repo_root, MANIFEST_PATH, max_bytes=_MAX_FILE_BYTES)
     if set(manifest) != _MANIFEST_KEYS:
-        raise ValueError(
+        raise InvalidInputError(
             f"{MANIFEST_PATH!r} fields must exactly match {sorted(_MANIFEST_KEYS)}; got {sorted(manifest)}"
         )
     supplemental = manifest["supplemental_bundles"]
     if not isinstance(supplemental, list) or len(supplemental) > 32:
-        raise ValueError(f"{MANIFEST_PATH!r} supplemental_bundles must be a list with at most 32 entries")
+        raise InvalidInputError(f"{MANIFEST_PATH!r} supplemental_bundles must be a list with at most 32 entries")
     primary = {field: manifest[field] for field in _BUNDLE_ENTRY_KEYS}
     entries = [primary]
     for index, entry in enumerate(supplemental):
         if not isinstance(entry, dict):
-            raise ValueError(f"{MANIFEST_PATH!r} supplemental_bundles[{index}] must be an object")
+            raise InvalidInputError(f"{MANIFEST_PATH!r} supplemental_bundles[{index}] must be an object")
         entries.append(entry)
     bundle_ids = [entry.get("bundle_id") for entry in entries]
     if any(not _valid_id(bundle_id) for bundle_id in bundle_ids) or len(bundle_ids) != len(set(bundle_ids)):
-        raise ValueError(f"{MANIFEST_PATH!r} bundle ids must be unique stable ids")
+        raise InvalidInputError(f"{MANIFEST_PATH!r} bundle ids must be unique stable ids")
     return [_load_bundle_entry(repo_root, entry) for entry in entries]
 
 
 def evaluate(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
     try:
         bundles = load_bundles(repo_root)
-    except (OSError, ValueError) as exc:
+    except (OSError, InvalidInputError) as exc:
         return [_failure("dsl-evaluation-bundle-invalid", str(exc), MANIFEST_PATH)]
     failures: list[PolicyFailure] = []
     for entry, protocol, snapshot, analysis in bundles:
@@ -195,7 +202,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true", help="Emit failures as JSON")
     args = parser.parse_args()
-    failures = evaluate(REPO_ROOT)
+    try:
+        failures = evaluate(REPO_ROOT)
+    except (OSError, InvalidInputError) as exc:
+        print(f"dsl-language-evaluation: {exc}", file=sys.stderr)
+        return 1
     if args.json:
         print(
             json.dumps(
@@ -218,4 +229,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

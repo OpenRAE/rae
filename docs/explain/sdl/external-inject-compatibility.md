@@ -60,8 +60,10 @@ manifest and per-contract entries, change hashes, generated-bundle parity and
 all embedded occurrence/snapshot consumers. The selected #1367 runtime adoption
 uses these published carriers without changing their schemas and begins no
 deprecation/removal window. Its [operator guide](../../public/guides/external-injects.md)
-describes opt-in OCI execution, refusal boundaries, internal record migrations
-and concrete CI evidence.
+describes injected provider installation, refusal boundaries, internal record migrations,
+and separate world and participant outcomes. RAE ships no executing deployment provider.
+Its [executable examples](../../examples/revised-control.md) test RAE through controlled providers.
+Concrete provider qualification belongs to its backend distribution.
 
 Adoption evidence must exercise actual HTTP/embedder/store/backend consumers:
 unauthorized trigger and receipt reads, malformed/oversized/secret-bearing input,

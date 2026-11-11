@@ -30,6 +30,15 @@ from tools.sdl_catalog_parity._paths import (
 )
 
 EXPECTATIONS_PART_2: dict[str, tuple[str, str, str, str]] = {
+    **{
+        f"{section}.*.control_context.*.declaration_ref": (
+            "control_context_assets",
+            "semantic validation and instantiation",
+            "fatal missing, ambiguous, incompatible, stale, or competing selection",
+            "[control-context semantics](../../implementations/python/packages/raes/participant_control_context.py)",
+        )
+        for section in ("agents", "behavior_specifications")
+    },
     "agents.*.affiliations[]": (
         "entities",
         _SEMANTIC,
@@ -238,6 +247,21 @@ EXPECTATIONS_PART_2: dict[str, tuple[str, str, str, str]] = {
         "observation_boundaries",
         _SEMANTIC,
         "fatal dangling, outside the owner/participant, or without explicit view classification",
+        _BEHAVIOR_SEMANTICS,
+    ),
+    "behavior_specifications.*.tool_affordances.*.participant_refs[]": (
+        "agents",
+        _SEMANTIC,
+        "fatal dangling, outside the owning behavior specification, or an authored `__private` segment",
+        _BEHAVIOR_SEMANTICS,
+    ),
+    "behavior_specifications.*.tool_affordances.*.participant_role_refs[]": (
+        "derived:agent_roles",
+        _SEMANTIC,
+        (
+            "fatal unless at least one participant has the role and every participant "
+            "with the role is inside the owning behavior specification"
+        ),
         _BEHAVIOR_SEMANTICS,
     ),
     "behavior_specifications.*.participant_inject_deliveries.*.participant_ref": (

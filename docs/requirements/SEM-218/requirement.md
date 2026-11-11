@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-04-05T00:54:58.405111Z
-updated_at: 2026-10-21T00:00:00Z
+updated_at: 2026-10-31T00:00:00Z
 ---
 
 # SEM-218 — Explicitness And Realization Semantics
@@ -20,6 +20,60 @@ The ecosystem shall define semantics distinguishing binding author declarations 
 Current state: identified gap. Honest portability requires normative semantics for what is binding, what may be realized later, and when approximation is forbidden.
 
 ## Traceability
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/realization_cleanup.py` (Failed inventory keeps authority checks without claiming successful readback)
+- TESTS → TEST `implementations/python/tests/test_issue_1805_open_concern_disclosure.py` (Omitted open reports fail through compiled, portable, and runtime boundaries)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1805-open-concern-disclosure-design.md` (Explicit open readback and failed inventory architecture)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/backend_node_provenance.py` (Shared backend-introduced node concern provenance)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/prepared_node_provenance.py` (Prepared membership concern and dedicated realization disclosure)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/backend_apply_results.py` (Accepted runtime ledger assembly and provenance preservation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_node_defaults.py` (Typed default comparison preserves supplied concern values and closed authority)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/artifact_requirements.py` (Artifact satisfaction contracts use neutral base primitives)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/artifact_requirement_contract.py` (Artifact satisfaction contracts use neutral base primitives)
+- TESTS → TEST `implementations/python/tests/test_issue_1697_preparation_provenance.py` (Prepared addition provenance, failure, lifecycle, persistence and native proposal integrity)
+- TESTS → TEST `implementations/python/tests/test_issue_1099_compiler_explicitness_performance.py` (Explicitness snapshot preserves runtime and plan semantics with one reconstruction)
+- TESTS → TEST `implementations/python/tests/test_issue_1697_preparation_reporting.py` (First-party preparation with materialization, descendant reporting, refresh and deletion)
+- TESTS → TEST `implementations/python/tests/test_issue_1697_prepared_artifact_provenance.py` (Prepared artifact disclosure retains satisfaction checks)
+- TESTS → TEST `implementations/python/tests/test_issue_1362_runtime_imports.py` (Artifact carriers remain importable before the contract facade)
+- DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1697-prepared-provenance-design.md` (Prepared provenance architecture, security and data flows)
+
+- TESTS → TEST `implementations/python/tests/test_issue_1653_cloud_lifecycle.py` (Cloud constraints, observation separation and unsupported execution)
+
+- TESTS → TEST `implementations/python/tests/runtime_descendant_fixtures.py`
+
+- IMPLEMENTS → GITHUB_ISSUE `1649` (Runtime descendant reports and refresh)
+- IMPLEMENTS → SPEC `contracts/schemas/backend-manifest/backend-manifest-v2.json`
+- IMPLEMENTS → SPEC `contracts/schemas/experiment-core/experiment-run-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/experiment-core/materialization-archive-record-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/plans/backend-runtime-descendants-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/plans/evaluation-plan-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/plans/orchestration-plan-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/plans/provisioning-plan-v1.json`
+- IMPLEMENTS → SPEC `contracts/schemas/sdl/materialized-scenario-v1.json`
+- IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1649-runtime-descendants-design.md`
+- IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1649-runtime-descendants-preflight.md`
+- IMPLEMENTS → DOCUMENTATION `docs/decisions/issue-1649-runtime-descendants-verification.md`
+- IMPLEMENTS → DOCUMENTATION `docs/explain/reference/runtime-descendant-inventory.md`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/materialization_provenance.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/materialization_attestation.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/materialization.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/materialization_inventory.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/planned_realization_constraint.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/materialization.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/materialization_admission.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/materialization_inventory.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/materialization_lineage.py`
+- TESTS → TEST `implementations/python/tests/test_backend_manifest.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_admission.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_bounds.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_contracts.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_durability.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_http.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_inventory_provenance.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_runtime_descendants.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1649_supervised_inventory.py`
+- IMPLEMENTS → SPEC `specs/formal/runtime-contracts/backend-result-admission.md`
 
 - TESTS → TEST `implementations/python/tests/test_issue_1638_credential_realization_observations.py` (Observed OPEN, constrained and EXACT values with account credentials)
 
@@ -196,8 +250,8 @@ Current state: identified gap. Honest portability requires normative semantics f
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_exports.py` (Process-limit contract exports)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/capabilities.py` (Process-limit capability contract model)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/vocabulary.py` (Governed process-limit resource and scope vocabulary)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_envelope_carrier.py` (Selected-configuration binding for typed process-limit capability domains)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/provisioning.py` (Process-limit constraint provenance compilation)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_envelope.py` (Selected-configuration binding for typed process-limit capability domains)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/compiler/provisioning.py` (Supplied concern presence and process-limit provenance compilation)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/semantics/realization_process_limits.py` (Typed process-limit admission and constraint semantics)
 - TESTS → TEST `implementations/python/tests/test_issue_1066_runtime_resource_limits.py` (Absent, exact, constrained, open, unsupported, substituted, excess, and evidence conformance)
 - IMPLEMENTS → GITHUB_ISSUE `1078` (Complete SEM-218 boundary coverage across RuntimeConfiguration)
@@ -228,15 +282,16 @@ Current state: identified gap. Honest portability requires normative semantics f
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_domain_profile_schema_identity.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/compute_substrate.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/backend_preparation.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/bundle.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/schema_contributions.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_plans.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/schema_constraints.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/schema_contributions.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/snapshot_entry.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/manifest_authority.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/plan_projection.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/plan_projection.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/planning.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_collections.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_preparation.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_preparation.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_profiles.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_binding.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_common.py`
@@ -330,3 +385,14 @@ Current state: identified gap. Honest portability requires normative semantics f
 - TESTS → TEST `implementations/python/tests/test_stub_backend_provenance.py` (Runtime-recorded realization provenance on the stub target)
 - IMPLEMENTS → SPEC `contracts/schemas/plans/backend-realization-preparation-v1.json` (backend-realization-preparation-v1 published schema)
 - IMPLEMENTS → SPEC `contracts/schemas/plans/plan-realization-profiles-v1.json` (plan-realization-profiles-v1 published schema)
+- IMPLEMENTS → GITHUB_ISSUE `298` (Typed descriptor profiles are owned by their field and admitted by the target)
+- IMPLEMENTS → ADR `docs/decisions/adrs/adr-120-owned-and-admitted-typed-descriptor-profiles.md` (Owned and admitted typed descriptor profiles)
+- IMPLEMENTS → SPEC `specs/sdl/profile-selections.md` (Descriptor ownership and admission)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/descriptor_profiles.py` (Descriptor host table, owner validation and target admission)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/validator/_sections.py` (Descriptor owner validation pass)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/composition/_profiles.py` (Descriptor owners renamed with their declaration on import)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/descriptor_profiles.py` (Planning refusal of unadmitted descriptor profiles)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/manager_plan_admission.py` (Runtime refusal of unadmitted descriptor profiles)
+- TESTS → TEST `implementations/python/tests/test_issue_298_descriptor_profiles.py` (Descriptor owner, composition, planning and runtime admission)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_scope_index.py` (Budgeted evaluation-local scope lookup)
+- TESTS → TEST `implementations/python/tests/test_issue_1759_runtime_constraint_budget.py` (Default-budget application conformance and finite scope work)

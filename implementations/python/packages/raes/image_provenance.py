@@ -18,19 +18,20 @@ from enum import Enum
 from typing import Any
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
-
-from raes.runtime_filesystem import redacted_raw_value_schema
-
-from ._base import SDLModel, parse_int_or_var
-from .runtime_configuration import RuntimeEnvironmentValueClassification
-from .runtime_values import (
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import (
     absolute_path_or_var,
     coerce_string_list,
     enforce_observed_value_redaction,
     parse_optional_bool_or_var,
     parse_runtime_enum_or_var,
 )
-from .runtime_vocabulary import GovernedVocabulary
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import parse_int_or_var
+
+from raes.runtime_filesystem import redacted_raw_value_schema
+
+from .runtime_configuration import RuntimeEnvironmentValueClassification
 
 __all__ = [
     "ContainerImageBuildProvenance",
@@ -196,7 +197,7 @@ class ImageBuildArg(SDLModel):
         )
 
     @model_validator(mode="after")
-    def validate_redacted_value(self) -> "ImageBuildArg":
+    def validate_redacted_value(self) -> ImageBuildArg:
         enforce_observed_value_redaction(
             owner_label=f"build argument '{self.name}'",
             value=self.value,
@@ -250,7 +251,7 @@ class ImageEnvironmentDefault(SDLModel):
         )
 
     @model_validator(mode="after")
-    def validate_redacted_value(self) -> "ImageEnvironmentDefault":
+    def validate_redacted_value(self) -> ImageEnvironmentDefault:
         enforce_observed_value_redaction(
             owner_label=f"image environment variable '{self.name}'",
             value=self.value,
@@ -311,7 +312,7 @@ class ImageConfig(SDLModel):
         return absolute_path_or_var(v, field_name="working_directory") if v else v
 
     @model_validator(mode="after")
-    def validate_unique_default_environment(self) -> "ImageConfig":
+    def validate_unique_default_environment(self) -> ImageConfig:
         seen: set[str] = set()
         for variable in self.default_environment:
             if variable.name in seen:
@@ -348,7 +349,7 @@ class ImageSourceInput(SDLModel):
         return absolute_path_or_var(v, field_name="destination_path") if v else v
 
     @model_validator(mode="after")
-    def validate_checksum_pair(self) -> "ImageSourceInput":
+    def validate_checksum_pair(self) -> ImageSourceInput:
         if self.checksum and not self.checksum_algorithm:
             raise ValueError("checksum requires checksum_algorithm")
         if self.checksum_algorithm and not self.checksum:
@@ -392,7 +393,7 @@ class ImageAttestation(SDLModel):
         return parse_runtime_enum_or_var(v, ImageAttestationType, field_name="attestation_type")
 
     @model_validator(mode="after")
-    def validate_status_verification(self) -> "ImageAttestation":
+    def validate_status_verification(self) -> ImageAttestation:
         if self.status == ImageAttestationStatus.ABSENT and self.verification == ImageVerificationStatus.VERIFIED:
             raise ValueError("an absent attestation cannot have a verified verification result")
         return self
@@ -414,7 +415,7 @@ class ContainerImageBuildProvenance(SDLModel):
     description: str = ""
 
     @model_validator(mode="after")
-    def validate_unique_entries(self) -> "ContainerImageBuildProvenance":
+    def validate_unique_entries(self) -> ContainerImageBuildProvenance:
         seen_build_args: set[str] = set()
         for build_arg in self.build_args:
             if build_arg.name in seen_build_args:

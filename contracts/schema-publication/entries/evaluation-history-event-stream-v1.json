@@ -1,10 +1,5 @@
 {
   "contract_id": "evaluation-history-event-stream-v1",
   "schema_path": "contracts/schemas/control-plane/evaluation-history-event-stream-v1.json",
-  "stability": "draft",
-  "content_hash": "684167d87bc9b3eaa2945b386b7b0fc4d9e0008097aabbd42853c0245fc44571",
-  "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "684167d87bc9b3eaa2945b386b7b0fc4d9e0008097aabbd42853c0245fc44571"
-  }
+  "stability": "draft"
 }

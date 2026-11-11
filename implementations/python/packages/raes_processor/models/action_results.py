@@ -4,9 +4,13 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
-from raes.participant_behavior import ParticipantEffectClass, ParticipantFailureClass, ParticipantPreconditionClass
 from raes_contracts.contracts.participant_resource_budgets import ParticipantResourceMeasurementModel
 from raes_contracts.contracts.participant_temporal import ParticipantTemporalEvidenceModel
+from raes_contracts.participant_action_semantics import (
+    ParticipantEffectClass,
+    ParticipantFailureClass,
+    ParticipantPreconditionClass,
+)
 from raes_contracts.participant_behavior import ParticipantActionPreconditionStatus, ParticipantActionResultStatus
 
 from .behavior_resources import (
@@ -34,7 +38,7 @@ class ParticipantActionPreconditionResult:
     diagnostics: tuple[str, ...] = ()
 
     @classmethod
-    def from_payload(cls, payload: Mapping[str, Any]) -> "ParticipantActionPreconditionResult":
+    def from_payload(cls, payload: Mapping[str, Any]) -> ParticipantActionPreconditionResult:
         if not isinstance(payload, Mapping):
             raise TypeError("participant action precondition result must be a mapping")
         missing = [
@@ -132,7 +136,7 @@ class ParticipantActionEffectResult:
     diagnostics: tuple[str, ...] = ()
 
     @classmethod
-    def from_payload(cls, payload: Mapping[str, Any]) -> "ParticipantActionEffectResult":
+    def from_payload(cls, payload: Mapping[str, Any]) -> ParticipantActionEffectResult:
         if not isinstance(payload, Mapping):
             raise TypeError("participant action effect result must be a mapping")
         missing = [key for key in ("effect_id", "effect_class", "description") if key not in payload]
@@ -260,7 +264,7 @@ class ParticipantActionResult:
     resource_measurements: tuple[ParticipantResourceMeasurementModel, ...] = ()
 
     @classmethod
-    def from_payload(cls, payload: Mapping[str, Any]) -> "ParticipantActionResult":
+    def from_payload(cls, payload: Mapping[str, Any]) -> ParticipantActionResult:
         _validate_action_result_required_fields(payload)
         status_raw = payload.get("status")
         failure_raw = payload.get("failure_class")

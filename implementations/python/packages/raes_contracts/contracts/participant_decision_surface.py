@@ -7,14 +7,13 @@ from typing import Annotated, Literal
 from pydantic import Field, GetJsonSchemaHandler, StrictInt, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
-from typing_extensions import TypeAliasType
 
 from .base import ContractModel, NonEmptyString
 from .participant_context import ParticipantContextViewModel
 from .participant_decision_surface_exposure import (
     ParticipantDecisionSurfaceExposureBindingModel,
 )
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 ParticipantDecisionSurfaceVisibility = Literal[
     "observable",
@@ -25,13 +24,9 @@ ParticipantDecisionSurfaceVisibility = Literal[
 ]
 ParticipantDecisionSurfaceEligibility = Literal["eligible", "ineligible", "unknown", "unsupported"]
 ParticipantDecisionSurfaceSupport = Literal["supported", "unsupported", "unknown"]
-ParticipantDecisionSurfaceArgumentScalar = TypeAliasType(
-    "ParticipantDecisionSurfaceArgumentScalar",
-    str | int | float | bool,
-)
-ParticipantDecisionSurfaceArgumentValue = TypeAliasType(
-    "ParticipantDecisionSurfaceArgumentValue",
-    ParticipantDecisionSurfaceArgumentScalar | list[ParticipantDecisionSurfaceArgumentScalar],
+type ParticipantDecisionSurfaceArgumentScalar = str | int | float | bool
+type ParticipantDecisionSurfaceArgumentValue = (
+    ParticipantDecisionSurfaceArgumentScalar | list[ParticipantDecisionSurfaceArgumentScalar]
 )
 
 
@@ -379,7 +374,7 @@ class ParticipantDecisionSurfaceModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "decision-surface-entry-reference-agreement",
             "Candidate, constrained-form, and open-ended action references must resolve to action entries and "
@@ -387,7 +382,7 @@ class ParticipantDecisionSurfaceModel(ContractModel):
             validator="raes_contracts.contracts.ParticipantDecisionSurfaceModel._validate_surface_relations",
             inputs=[{"contract_id": "participant-decision-surface-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "decision-surface-presentation-not-lifecycle-evidence",
             "Surface membership or presentation carries no selection, admission, execution, result, or outcome fact; "
@@ -395,7 +390,7 @@ class ParticipantDecisionSurfaceModel(ContractModel):
             validator="raes_contracts.contracts.ParticipantDecisionSurfaceModel",
             inputs=[{"contract_id": "participant-decision-surface-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "decision-surface-sem226-item-exposure-agreement",
             "Every serialized context, action, and affordance reference must have one participant-, audience-, "

@@ -39,11 +39,10 @@ Requirement inventory expansion. Participant behavior needs explicit local outco
 ## Traceability
 
 - IMPLEMENTS → GITHUB_ISSUE `218` (Complete participant-local outcome categories and state)
-- IMPLEMENTS → CODE `implementations/python/packages/raes/participant_local_outcome.py`
-- IMPLEMENTS → CODE `implementations/python/packages/raes/participant_outcome_semantics.py`
+- IMPLEMENTS → CODE `implementations/python/packages/raes_contracts/participant_outcome_semantics.py`
 - IMPLEMENTS → CODE `implementations/python/packages/raes/semantics/participant_outcome.py`
 - IMPLEMENTS → CODE `implementations/python/packages/raes_contracts/contracts/participant_outcomes.py`
-- IMPLEMENTS → CODE `implementations/python/packages/raes_contracts/participant_outcome_history.py`
+- IMPLEMENTS → CODE `implementations/python/packages/raes_contracts/contracts/participant_outcome_history.py`
 - IMPLEMENTS → CODE `implementations/python/packages/raes_runtime/participant_outcome_state.py`
 - IMPLEMENTS → CODE `implementations/python/packages/raes_runtime/participant_outcome_control.py`
 - IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-outcome-report-v2.json`

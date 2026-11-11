@@ -1,14 +1,17 @@
 """Typed keyword configuration for the runtime control plane."""
 
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import Protocol, TypedDict
 
 from raes_backend_protocols.inject_execution import InjectExecutionResolver, require_inject_resolver
-from raes_contracts.contracts import ParticipantInformationStateContextResolver
-from raes_contracts.materialization import MaterializationArchive
+from raes_contracts.contracts import ExperimentStochasticControlModel, ParticipantInformationStateContextResolver
+from raes_contracts.contracts.backend_operation import OperationGuarantee
+from raes_contracts.contracts.materialization_attestation import MaterializationArchive
+from raes_contracts.contracts.trial_controls import OperationSupervisionCapabilitiesModel
 from raes_contracts.planning import PlanScope
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.timestamps import WallClock, utc_now
 from raes_processor.models import ParticipantBehaviorSpecificationRuntime, RuntimeModel
 
 from .control_plane_profiles import ControlPlaneProfile
@@ -52,6 +55,9 @@ class ControlPlaneOptions(TypedDict, total=False):
     inject_execution: InjectExecutionResolver | None
     mixed_control: MixedControlRuntimeBinding | None
     inject_delivery: ParticipantInjectRuntimeBinding | None
+    stochastic_controls: Iterable[ExperimentStochasticControlModel]
+    required_operation_guarantees: tuple[OperationGuarantee, ...]
+    wall_clock: WallClock
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -76,8 +82,17 @@ class ControlPlaneConfiguration:
     inject_execution: InjectExecutionResolver | None = None
     mixed_control: MixedControlRuntimeBinding | None = None
     inject_delivery: ParticipantInjectRuntimeBinding | None = None
+    stochastic_controls: Iterable[ExperimentStochasticControlModel] = ()
+    required_operation_guarantees: tuple[OperationGuarantee, ...] = ()
+    wall_clock: WallClock = utc_now
 
     def __post_init__(self) -> None:
+        if not callable(self.wall_clock):
+            raise TypeError("wall_clock must be a callable that returns an aware UTC datetime")
+        guarantees = OperationSupervisionCapabilitiesModel(
+            name="runtime-run", guarantees=self.required_operation_guarantees
+        )
+        object.__setattr__(self, "required_operation_guarantees", guarantees.guarantees)
         if (
             self.distributed_execution is not None
             and self.mixed_runtime is not None
