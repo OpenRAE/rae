@@ -14,7 +14,8 @@ updated_at: 2026-04-05T01:39:32.895216Z
 
 ## Statement
 
-The language shall support authored participant episode structure, including initialization, turn or interaction structure, termination conditions, truncation conditions, and reset-related declarations where tasks or experiments require them.
+The language shall support authored participant episode structure, including initialization, turn or interaction structure, termination conditions, truncation conditions, and reset-related declarations.
+This applies where tasks or experiments require them.
 
 ## Rationale
 
@@ -46,7 +47,7 @@ Primary-source refresh shows that participant-supporting ecosystems frequently t
 - IMPLEMENTS → SPEC `contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json` (DSL-120 governed instantiated scenario snapshot schema)
 - IMPLEMENTS → SPEC `contracts/schemas/sdl/materialized-scenario-v1.json` (DSL-120 governed materialized scenario schema)
 - IMPLEMENTS → SPEC `contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json` (DSL-120 governed satisfiability evidence schema)
-- DOCUMENTS → DOCUMENTATION `docs/explain/sdl/sections.md` (DSL-120 episode policy authoring guide)
+- DOCUMENTS → DOCUMENTATION `docs/explain/sdl/participant-episode-structure.md` (DSL-120 episode policy authoring guide)
 - TESTS → TEST `implementations/python/tests/test_issue_307_dsl_120_participant_episode_policy.py` (DSL-120 authoring, validation, composition, compilation, and schema tests; no episode execution)
 - TESTS → TEST `implementations/python/tests/test_issue_307_policy_ownership.py` (DSL-120 requirement-governance route and ownership bounds)
 - TESTS → TEST `implementations/python/tests/test_formal_semantic_validation.py` (DSL-120 current formal capture: the compiled episode-policy map changes only the compile controls' digests)

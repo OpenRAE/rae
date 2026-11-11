@@ -308,8 +308,10 @@ class RuntimeRunContext(
             return self._snapshot
 
     @property
+    @runtime_owned
     def participant_episode(self) -> ParticipantEpisodeRuntimeBinding | None:
         """Return the explicitly installed episode policy binding, when present."""
+        self._assert_runtime_owner()
         return self._participant_episode
 
     @property

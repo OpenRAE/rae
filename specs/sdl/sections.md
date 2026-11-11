@@ -220,6 +220,11 @@ never as authored SDL.
 
 ## Participant episode structure
 
+The [episode structure guide](../../docs/explain/sdl/participant-episode-structure.md)
+explains the authored policy and runtime binding.
+The [episode lineage note](../../docs/explain/sdl/participant-episode-lineage.md)
+records the prior concepts and the limits of the claim.
+
 `behavior_specifications.*.episode_policy` is an optional, closed record of
 authored episode intent (DSL-120) for the participants that its behavior
 specification selects. Its design authority is the
@@ -257,7 +262,9 @@ A condition holds only when every assertion it names holds. Every condition
 and the reset policy name the evidence requirements that together back the
 transition. Semantic validation requires each named requirement to be
 declared; it does not check which record the requirement captures.
-`interrupted` is never authored, because interruption is externally induced. A participant is governed by at most one episode policy,
+`interrupted` is never authored, because interruption is externally induced.
+
+A participant is governed by at most one episode policy,
 because realized episodes are keyed by participant. The record holds
 references only. It rejects realized episode coordinates such as episode
 identity, lifecycle status, timestamps, sequence numbers, and decision epochs.
@@ -274,16 +281,17 @@ Episode structure is a first-class member of the behavior specification
 aggregate (ACT-623). An episode policy may be the only behavior surface a
 specification aggregates. It attaches to participants of every behavior mode.
 The autonomous execution profile cannot carry one, so episode structure never
-depends on that profile. The compiled aggregate names its member through
+depends on that profile.
+
+The compiled aggregate names its member through
 `episode_policy_address`. Turns are ordered by the decision epoch, while the
 episode `sequence_number` orders episode instances only. The structure
 describes observable episodes and does not imply that a participant exposes
 an internal reasoning loop.
 
 Conformance compares recorded ADR-013 episode history with the compiled
-structure. For a governed participant, a terminal reason other than
-`interrupted` must come from an authored condition, and a recorded reset or
-restart must be one that the reset policy admits. A policy without a
+structure. For a governed participant, a terminal reason other than `interrupted` must come from an authored condition.
+A recorded reset or restart must be one that the reset policy admits. A policy without a
 `reset_policy` admits any recorded reset or restart. This check reads recorded
 history only. It does not evaluate conditions or claim that a backend enforces
 the policy.

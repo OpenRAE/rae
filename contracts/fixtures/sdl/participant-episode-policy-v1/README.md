@@ -3,6 +3,9 @@
 These fixtures exercise the DSL-120 authored participant episode surface,
 `behavior_specifications.*.episode_policy`.
 
+The [episode structure guide](../../../../docs/explain/sdl/participant-episode-structure.md)
+explains these declarations and the runtime binding.
+
 - `valid/analyst-shift-episode.yaml` declares initialization, decision-epoch
   turn structure, a completion and a timeout terminal condition, a truncation
   condition, and a reset policy for a non-autonomous participant. It must pass

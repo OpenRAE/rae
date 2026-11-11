@@ -6,12 +6,6 @@ match: $sentence
 exceptions:
   - ACT-623
   - DSL-120
-  - SEM-235
-  - OCR
-  - DNS
-  - DSL
-  - DEM
-  - FOM
   - API
   # The vocabulary lists lowercase 'backend', so a heading's first word needs this exception.
   - Backend

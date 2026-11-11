@@ -10,6 +10,7 @@ This change adds no state machine, endpoint, or schema family.
 `raes_runtime.participant_episode_binding` owns `ParticipantEpisodeRuntimeBinding`.
 The binding takes a compiled model. It also takes one manifest selection per governed participant.
 It reuses the existing manifest, selection, and selection validator.
+
 The binding checks the original compiler context.
 It rejects missing, unsupported, or duplicate selections.
 
@@ -73,6 +74,7 @@ Tests run lifecycle calls and check reset lineage.
 They reject missing contracts, duplicate bindings, and forged compiler context.
 Runner tests pass in invalid history and require a failing report.
 Negative tests also cover missing evidence and absent episode support.
+
 Mutation checks remove admission and runner checks one at a time.
 The matching tests must fail.
 Full verification runs in the PR's isolated CI.
@@ -86,10 +88,11 @@ The three targeted mutations were killed by test assertions.
 They removed pre-effect admission, manifest digest checks, and runner policy observation.
 File-local policy, requirement governance, catalog parity, and schema checks pass.
 The design passes Vale with the repository configuration.
-Maintained guide edits preserve existing heading links and technical terms.
+The large existing guides remain unchanged.
+Episode guidance uses focused pages under `docs/explain/sdl/`.
 
 The reference pages retain exact contract terms and source titles.
-Their reading scores exceed the prose threshold: fixture 15.02, lineage 16.63, sections 13.05, ACT-623 12.04, and DSL-120 14.05.
+Initial reading scores were fixture 15.02, lineage 12.14, structure 12.56, ACT-623 12.04, and DSL-120 14.05.
 Exact-file metric exceptions preserve those terms. Other writing checks remain enabled.
 Headings use sentence case while preserving acronyms and existing anchor names.
 Sources are the compiled policy, runtime binding, shared history check, and target-runner tests named above.

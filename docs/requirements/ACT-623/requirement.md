@@ -32,7 +32,7 @@ Primary-source refresh shows that participant behavior is often organized as bou
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/conformance/diagnostics.py` (ACT-623 episode-structure conformance diagnostic code)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_conformance/conformance/__init__.py` (ACT-623 episode-structure conformance facade export)
 - IMPLEMENTS → SPEC `specs/sdl/sections.md` (ACT-623 first-class episode structure and conformance contract)
-- DOCUMENTS → DOCUMENTATION `docs/explain/sdl/sections.md` (ACT-623 first-class episode structure guide)
+- DOCUMENTS → DOCUMENTATION `docs/explain/sdl/participant-episode-structure.md` (ACT-623 first-class episode structure guide)
 - TESTS → TEST `implementations/python/tests/test_issue_309_act_623_participant_episode_structure.py` (ACT-623 cross-kind attachment, aggregate membership, published-schema placement, conformance refusal of a participant governed by two compiled policies, and recorded-history conformance tests)
 - TESTS → TEST `implementations/python/tests/test_conformance_facade_parity.py` (ACT-623 conformance facade export parity)
 - TESTS → TEST `implementations/python/tests/test_issue_309_policy_ownership.py` (ACT-623 requirement-governance route, ownership bounds, and the stacked DSL-120 bindings)
@@ -63,3 +63,4 @@ Primary-source refresh shows that participant behavior is often organized as bou
 - IMPLEMENTS → SPEC `specs/formal/participant-behavior-model/README.md` (ACT-623 first-class aggregate member)
 - TESTS → TEST `implementations/python/tests/test_issue_1885_explicitness_work.py` (ACT-623 preserves unchanged compilation fingerprints)
 - TESTS → TEST `implementations/python/tests/test_issue_219_participant_semantic_coverage.py` (ACT-623 model and formal aggregate parity)
+- TESTS → TEST `implementations/python/tests/test_issue_989_versioned_evidence.py` (ACT-623 absent intent normalization retains the full capture dimension)

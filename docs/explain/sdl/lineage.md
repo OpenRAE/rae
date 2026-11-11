@@ -1,4 +1,4 @@
-# Lineage and prior work
+# Lineage and Prior Work
 
 RAES is not designed as a clean-room language. It is a consolidation layer over
 cyber range SDLs, adversary emulation formats, agent-evaluation environments,
@@ -19,7 +19,7 @@ and records directional compatibility and notice disposition. An influence
 listed on this page is not, by itself, a claim that RAES adopted syntax,
 semantics, examples, or code from that source.
 
-## Specification surface
+## Specification Surface
 
 - [Open Cyber Range SDL](https://documentation.opencyberrange.ee/docs/sdl/reference/)
   is the closest direct SDL precedent. RAES starts from its author-facing
@@ -39,7 +39,7 @@ semantics, examples, or code from that source.
   between concrete YAML syntax, semantic models, validation, compilation, and
   runtime contracts.
 
-## Scenario concepts
+## Scenario Concepts
 
 - [CACAO Security Playbooks v2.0](https://docs.oasis-open.org/cacao/security-playbooks/v2.0/security-playbooks-v2.0.pdf)
   informs variables, objective composition, workflow graph structure, and the
@@ -69,7 +69,7 @@ therefore remain evidence even when an SDL model could otherwise represent the
 same scalar shape. Deliberate authoring is the only promotion into scenario
 requirements.
 
-## Directory, domain, and identity authority semantics
+## Directory, Domain, And Identity Authority Semantics
 
 The `runtime.identity_authorities` surface is issue #401's response to an
 observed gap in APTL's TechVault AD inventory. It is not a clean-room
@@ -149,7 +149,7 @@ and Swiler plus Oberkampf/Roy/Sargent on
 should state what it can preserve and compare rather than smuggle
 backend/vendor assumptions into an ambiguous field.
 
-## Enterprise identity and deployment-tenancy authoring
+## Enterprise Identity And Deployment-Tenancy Authoring
 
 The authored enterprise extension in
 [ADR-087](../../decisions/adrs/adr-087-enterprise-identity-and-deployment-tenancy-authoring.md)
@@ -196,7 +196,7 @@ materialization; realized-form disclosures and evidence still own claims that
 the declared identity, placement, isolation, authentication, state, and reset
 properties actually occurred.
 
-## DNS service runtime semantics
+## DNS Service Runtime Semantics
 
 The `runtime.dns_services` surface is issue #426's response to an observed
 gap for DNS authoritative and recursive runtime inventory. It is not a clone
@@ -245,7 +245,7 @@ This follows the same validation posture used elsewhere in SDL: the model
 states which protocol facts it can preserve, and it leaves server-specific
 syntax as evidence rather than smuggling that syntax into untyped fields.
 
-## Security-monitoring manager runtime semantics
+## Security-Monitoring Manager Runtime Semantics
 
 The `runtime.security_monitoring_managers` surface is issue #428's response to
 an observed gap for SIEM and security-monitoring manager inventory. It is not a
@@ -296,7 +296,7 @@ are stable enough to compare, target, and validate; keep vendor-specific
 configuration, telemetry, rule-engine execution, and raw rule syntax as
 evidence or downstream translation concerns.
 
-## Generic runtime service listener semantics
+## Generic Runtime Service Listener Semantics
 
 The `runtime.service_listeners` surface is issue #431's response to an
 observed gap in APTL's MISP container inventory. It is not a replacement for
@@ -351,7 +351,7 @@ observed data or evidence unless the author explicitly uses them in bounded ref
 fields. A wildcard bind address inside a container or node namespace is not
 automatically host-public; host exposure remains `runtime.network.published_ports`.
 
-## Network detection engine runtime semantics
+## Network Detection Engine Runtime Semantics
 
 The `runtime.network_detection_engines` surface is issue #430's response to an
 observed gap for IDS/NDR engine inventory. It is not a Suricata clone and does
@@ -381,7 +381,7 @@ RAES relies on prior work in four ways:
   config files, and backend inspect payloads remain evidence artifacts or
   downstream translation inputs. The SDL stores bounded inventory and refs.
 
-## Application-internal authorization semantics
+## Application-Internal Authorization Semantics
 
 The `runtime.app_authorizations` surface is the SCN-010 response to the
 most-replicated expressivity gap in the corpus: application-internal RBAC that
@@ -423,7 +423,7 @@ RAES relies on prior work in four ways:
   (`none` / `redacted` / `operator_secret`), and the model has no field that can
   hold a raw secret.
 
-## Scheduled-job cadence semantics
+## Scheduled-Job Cadence Semantics
 
 The `runtime.scheduled_jobs` surface is the SCN-010 response to the gap for
 recurring node-scoped work (gap IDs MISP-DSS-02 / TIP-004) that
@@ -459,7 +459,7 @@ RAES relies on prior work in four ways:
   (`last_run` / `next_run` / `last_result`) as monitoring evidence rather than
   control intent.
 
-## Non-relational datastore semantics
+## Non-Relational Datastore Semantics
 
 The `runtime.datastore_services` surface is the SCN-010 (DSL-132) response to a
 gap for the participant-observable logical state of *non-relational* datastores
@@ -525,7 +525,7 @@ across the search-cluster tech class (OpenSearch http/transport, Cassandra
 native/internode, Redis client/cluster-bus), which is why RAES types an
 engine-neutral `role` taxonomy rather than engine-named address fields.
 
-## Security-platform application semantics
+## Security-Platform Application Semantics
 
 The `runtime.platform_applications` surface is the SCN-010 (DSL-133) response to
 a gap for the declared logical state of participant-visible platform
@@ -592,7 +592,7 @@ and evidence only. The lineage is inspirational rather than a derivation or
 compatibility claim; the normative authority remains the RAES contract and
 ADR-049.
 
-## Forwarding and intel-sync agent semantics
+## Forwarding And Intel-Sync Agent Semantics
 
 The `runtime.forwarding_agents` surface is the SCN-010 (DSL-136) response to a
 gap for the participant-observable agent-side shipping state — the
@@ -641,7 +641,7 @@ RAES relies on prior work in four ways:
   classification lattice, while forwarding settings use explicit redaction
   classifications rather than name-derived omission.
 
-## Container-spawn orchestration-authority semantics
+## Container-Spawn Orchestration-Authority Semantics
 
 The `runtime.orchestration_authorities` surface is the SCN-010 (DSL-137) response
 to a gap for the participant-observable authority to *spawn* containers/workloads
@@ -686,7 +686,7 @@ RAES relies on prior work in four ways:
   contract is referenced through `control_interface_ref`, never duplicating the
   control-interface shell.
 
-## File-sharing and resource-access semantics
+## File-Sharing And Resource-Access Semantics
 
 The `runtime.file_services` surface is issue #421's response to a gap
 observed while encoding the APTL TechVault fileshare container. It is not
@@ -742,7 +742,7 @@ Oberkampf/Roy, and Sargent's V&V sources cited above are the methodological
 backing — what a model can or cannot represent must be explicit so
 downstream completeness/conformance checks can act on it.
 
-## Mail-service logical state semantics
+## Mail-Service Logical State Semantics
 
 The `runtime.mail_services` surface is issue #420's response to a gap observed
 while encoding the APTL TechVault mailserver container. It is not a clone of
@@ -794,7 +794,7 @@ The result preserves the same V&V posture as database and file-service runtime
 surfaces: RAES states which mail concepts are stable enough to compare and
 which dynamic queue/log/config details remain evidence or bounded settings.
 
-## Participant semantics
+## Participant Semantics
 
 - [OpenAI Gym](https://arxiv.org/abs/1606.01540),
   [Gymnasium](https://arxiv.org/abs/2407.17032),
@@ -979,38 +979,6 @@ which dynamic queue/log/config details remain evidence or bounded settings.
   Because it only binds already governed carriers and does not change their
   normative derivation or compatibility claims, the SDL lineage ledger and
   source audit remain unchanged.
-- DSL-120 composes the incumbent `episodes` concept-family lineage, the
-  Gymnasium and OpenAI Gym episode notion recorded in
-  `specs/concept-authority/reference-models.md`, with the existing
-  proposition/assertion, shared-time, action-contract, and evidence lineages.
-  The exact RAES mapping is `ParticipantBehaviorSpecification.episode_policy`:
-  a versioned record of initialization assertions, decision-epoch turn
-  structure, completion and timeout terminal conditions, truncation
-  conditions, and a reset policy with admitted control actions, an ADR-095
-  participant-memory scope, and, for an episode-local reset, its reset
-  authority. Each participant has at most one such policy, and each condition
-  maps to exactly one ADR-013 terminal reason and names the evidence
-  requirements that back the transition. Termination and truncation stay
-  distinct, as the lineage separates an end reached by the task's own dynamics
-  from an imposed early stop; interruption is never authored. The record
-  rejects realized episode coordinates, which remain on the ADR-013
-  participant episode contracts.
-- DSL-120 delivery evidence is the governed SDL schemas and publication
-  entries, the valid/invalid participant episode policy fixtures, and
-  `implementations/python/tests/test_issue_307_dsl_120_participant_episode_policy.py`.
-  This delivers authoring, composition, semantic and post-instantiation
-  validation, deterministic compilation to `participant.episode-policy.<name>`,
-  and schema compatibility. It does not claim episode execution, condition
-  evaluation, reset handling, evidence capture, backend realization, or
-  Gymnasium API compatibility. Because it only binds already governed carriers
-  and does not change their normative derivation or compatibility claims, the
-  SDL lineage ledger and source audit remain unchanged.
-- ACT-623 makes that policy a first-class member of the behavior specification
-  aggregate for every participant kind and checks recorded ADR-013 episode
-  history against it in `raes_conformance`. Its evidence is the standalone and
-  autonomous-profile fixtures and
-  `implementations/python/tests/test_issue_309_act_623_participant_episode_structure.py`.
-  It introduces no external derivation, so the ledger remains unchanged.
 - DSL-437 composes the incumbent participant and time lineages rather than
   introducing a live-activity ontology. CybORG and the Gymnasium, PettingZoo,
   and OpenSpiel family remain precedents for agents, actions, observations,
@@ -1430,7 +1398,7 @@ which dynamic queue/log/config details remain evidence or bounded settings.
   participant internals, benchmark validity, or full replay guarantees from that
   history alone.
 
-## Benchmark and experiment lineage
+## Benchmark And Experiment Lineage
 
 - [Cybench](https://arxiv.org/abs/2408.08926) and
   [AutoPenBench](https://arxiv.org/abs/2410.03225) inform RAES's treatment of
@@ -1492,7 +1460,7 @@ These are semantic design precedents, not source-code, schema, or wire-format
 derivations, so the normative SDL subject ledger and third-party notice
 disposition do not change.
 
-## DSL evaluation lineage
+## DSL Evaluation Lineage
 
 - [Do Software Languages Engineers Evaluate their Languages?](https://arxiv.org/abs/1109.6794),
   Mernik, Heering, and Sloane's
@@ -1506,7 +1474,7 @@ disposition do not change.
   authoring accessibility, formal validation, and participant semantics, but it
   is not discharged by any of those alone.
 
-## Runtime, time, and causality
+## Runtime, Time, And Causality
 
 - [TENA](https://www.trmc.osd.mil/tena-about.html) and the current
   [IEEE High Level Architecture framework (IEEE Std 1516-2025)](https://standards.ieee.org/ieee/1516/6687/)
@@ -1542,7 +1510,7 @@ disposition do not change.
   [Chockler-Halpern responsibility and blame](https://doi.org/10.1613/jair.1391)
   extends this to graded multi-cause attribution.
 
-### Cyber DEM and cyber FOM adopted and out of scope
+### Cyber DEM And Cyber FOM: Adopted And Out Of Scope
 
 [SISO Cyber DEM](https://cdn.ymaws.com/www.sisostandards.org/resource/resmgr/standards_products/siso-std-025-2023_cyberdem.pdf)
 (SISO-STD-025-2023) and the
@@ -1570,7 +1538,7 @@ federation object model derived from it.
   surface is partial and explicitly incomplete. This is detailed in the
   [Related-Work Comparison](related-work-comparison.md).
 
-### Mixed simulation, emulation, and operational composition
+### Mixed Simulation, Emulation, And Operational Composition
 
 Issue #813 adds an edition-pinned composition lineage:
 
@@ -1628,7 +1596,7 @@ providers do not become multiple acting controllers. Leases, simultaneous
 scoped owners, and joint/fused control require a later versioned authority
 profile.
 
-## Adversary emulation and security knowledge
+## Adversary Emulation And Security Knowledge
 
 - [MITRE ATT&CK](https://www.mitre.org/news-insights/publication/mitre-attck-design-and-philosophy),
   MITRE CALDERA, Atomic Red Team, and OpenC2 are adversary-emulation and
@@ -1642,7 +1610,7 @@ profile.
   structure. RAES uses that style for observations and evidence without making
   raw telemetry equal to participant-visible state.
 
-## What RAES adds
+## What RAES Adds
 
 RAES separates authored scenario meaning, processor/runtime contracts, backend
 realization, participant implementations, live state, and archival
@@ -1651,7 +1619,7 @@ actions, observations, visibility, causality, temporal behavior, and outcomes
 must be portable across human, AI-agent, scripted, simulated, and hybrid
 participants without collapsing into any one backend or learning API.
 
-### Shared time authority
+### Shared Time Authority
 
 The RAES shared time model has explicit external lineage but is not a translated
 copy of any one framework:
@@ -1672,7 +1640,7 @@ ordinary SDL subject references, canonical compilation, and segment-preserving
 runtime control. It does not claim ROS, FMI, HLA, TENA, or OpenSCENARIO
 conformance through those generic declarations.
 
-### Adversarial participant flow and control
+### Adversarial Participant Flow And Control
 
 - The older cyber lineage establishes the portable core beneath the recent
   agent-control systems. [Denning's lattice model](https://doi.org/10.1145/360051.360056)
