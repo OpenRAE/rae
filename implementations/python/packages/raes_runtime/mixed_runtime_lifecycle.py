@@ -160,7 +160,7 @@ def _retain_lifecycle_result(
             # durable attempt and exclusion rather than claiming a rollback.
             result = ApplyResult(
                 False,
-                control_plane._snapshot,
+                control_plane.snapshot,
                 diagnostics=[
                     Diagnostic(
                         code="runtime.participant-episode-result-unverified",

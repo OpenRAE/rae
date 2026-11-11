@@ -19,6 +19,7 @@ Its existing mutation owner checks reset actions and terminal reasons before dis
 The backend still owns the ADR-013 lifecycle calls.
 Those calls initialize, reset, restart, or end an episode.
 The binding also checks restored history and successful backend results.
+
 Both ordinary and mixed dispatch check returned history before accepting success.
 If the returned history violates the policy after dispatch, the operation remains indeterminate.
 The control plane retains the admitted snapshot and the mixed lifecycle attempt for reconciliation.
