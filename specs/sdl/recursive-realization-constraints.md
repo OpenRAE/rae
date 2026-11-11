@@ -47,6 +47,9 @@ backend-owned value and is separate from evidence or reporting.
 
 ## 2. Records, scopes and closure
 
+The [posture and closure mapping](sections.md#realization-posture-and-closure)
+separates value constraints from closure and preserves each vocabulary's resolution rules.
+
 A record names recursive field constraints. Closure is local to that record and
 has three postures: `open`, `closed`, or `undefined`. Every concrete posture
 MUST name both its semantic universe and profile revision. Closed means no
@@ -60,10 +63,12 @@ are invalid.
 An inherited open scope covers unspecified descendants without
 materializing one waiver per field. Explicit descendants are still evaluated,
 and a locally closed child remains closed without closing its parent or sibling.
+
 Scope overlays are evaluated even when their path crosses an additional member
 or delegated subtree that has no materialized constraint node.
-
-A descendant scope supplies structural meaning to its addressed member. If the available keyed or sequence shape cannot interpret a collection address, the result is `unsupported`, not silent acceptance. An unselected effective closure
+A descendant scope supplies structural meaning to its addressed member.
+If the available keyed or sequence shape cannot interpret a collection address, the result is `unsupported`, not silent acceptance.
+An unselected effective closure
 also returns `unsupported`, not conformance.
 
 ## 3. Collections and identities
@@ -78,7 +83,9 @@ and must conform when present. A forbidden identity must not match.
 
 Missing,
 non-scalar, duplicate, or ambiguous identities are invalid. Collection
-cardinality and the presence of declared members are independent. Open closure
+cardinality and the presence of declared members are independent.
+
+Open closure
 permits additional modeled members in the collection's universe; closed closure
 does not.
 
@@ -124,9 +131,10 @@ exact value inside a domain normalizes to that exact value.
 Conflicting exact
 typed values produce `nonconformant`; input or import order never chooses a
 winner. Constraints that cannot be safely folded remain a canonically ordered
-`all-of`. The refinement helper recognizes a candidate when conjunction with
-the baseline leaves the candidate unchanged.
+`all-of`.
 
+The refinement helper recognizes a candidate when conjunction with
+the baseline leaves the candidate unchanged.
 It MUST return `unsupported`
 rather than inventing a relation for incompatible profiles or unresolved
 semantics.
@@ -150,7 +158,11 @@ MUST NOT become a second editable authority.
 
 ## 5. Bounded outcomes
 
-Every normalization, evaluation, composition, refinement and compatibility conversion receives positive limits. These bound recursive depth, nodes, operations, collection members, identity work, definition hops, scalar size, and emitted diagnostics. Constraint nodes, optional or forbidden children, domains,
+Every normalization, evaluation, composition, refinement and compatibility conversion receives positive limits.
+These limits cover recursive depth, nodes, operations, collection members, identity work,
+definition hops, scalar size, and emitted diagnostics.
+
+Constraint nodes, optional or forbidden children, domains,
 closures, scopes, aliases, profiles, origins, definitions and actual values are
 admitted before their related work. Identity canonicalization is charged before
 each keyed lookup or rewrite.
@@ -230,7 +242,9 @@ declared level. Literal normalization does not synthesize an OS, image, package,
 filesystem, network mechanism, or observation request beneath it.
 
 This contract does not change universal envelope subsumption or select and
-deliver a backend witness (#1204). It does not migrate public software authoring (#1205), define realization reporting (#1209), or negotiate all legacy compatibility boundaries (#1210). It supplies no integrated conformance (#1211) and selects no observation, retention or export demand (#1212).
+deliver a backend witness (#1204).
+It does not migrate public software authoring (#1205), define realization reporting (#1209), or negotiate all legacy compatibility boundaries (#1210).
+It supplies no integrated conformance (#1211) and selects no observation, retention or export demand (#1212).
 
 ## Descriptive projection and explicit promotion
 
@@ -239,7 +253,9 @@ granting them author authority. Coverage-aware assessment MUST retain the existi
 conformant, nonconformant, unresolved, invalid, unsupported and limit-exceeded
 outcomes. A supplied scalar or positive absence can contradict an explicit
 constraint. Missing fields in a partial report cannot prove violation or
-satisfaction. A whole-description conformance claim requires complete recursive coverage of the same named universe/profile, compatible windows and no unresolved facts or limitations. These checks precede invocation of the existing realization evaluator.
+satisfaction. A whole-description conformance claim requires complete recursive
+coverage of the same named universe/profile.
+It requires compatible windows and no unresolved facts or limitations before invoking the existing realization evaluator.
 
 Promotion is a pure operation that selects known, supported scalar facts by
 identity and creates a new recursive author-constraint artifact. It MUST preserve
