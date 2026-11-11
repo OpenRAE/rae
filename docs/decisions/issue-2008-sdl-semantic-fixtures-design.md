@@ -35,6 +35,9 @@ The legacy readers use one shared family selector.
 The copy paths check all discovered paths for symbolic links before selection.
 This keeps future semantic fixture changes independent of Python parity regeneration.
 Existing canonical payload coverage remains unchanged.
+The full admission reference inventory also excludes this exact family directory.
+Native semantic tests check its contents and inventory instead.
+Other contract fixtures and recorded exclusions retain their complete inventory checks.
 
 ## Security and data flows
 
@@ -90,6 +93,12 @@ This covers disk writes on busy CI hosts.
 It checks the first final state before the store reopens.
 It keeps its checks for retained stages, reservations, and no repeated effects.
 Runtime deadlines and the tests that check them stay the same.
+
+The binding allocation test uses the standard Go benchmark bytes-per-operation metric.
+Each iteration creates a fresh substitution and copy budget.
+This averages fixed scratch allocation costs on busy CI hosts.
+The allocation threshold and refusal checks stay the same.
+A targeted mutation must still detect buffer allocation before budget refusal.
 
 ## References and review
 
