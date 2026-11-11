@@ -10,11 +10,16 @@ the destroy delete plan names the predecessor's envelope.
 from __future__ import annotations
 
 from dataclasses import replace
+from unittest.mock import Mock
 
 import pytest
 from raes import parse_sdl
-from raes_contracts.runtime_state import OperationState, RuntimeSnapshot
-from raes_reference_backend import create_reference_backend_target
+from raes_backend_stubs.stubs import StubProvisioner, create_stub_target
+from raes_contracts.planning import ProvisioningPlan
+from raes_contracts.realization_envelope import RealizationEnvelopeIdentityModel
+from raes_contracts.runtime_state import ApplyResult, OperationState, RuntimeSnapshot
+from raes_processor.planner import realization_authority as authority
+from raes_runtime.backend_calls import _call_backend_apply
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.manager import RuntimeManager
 
@@ -30,26 +35,19 @@ _WITH_WEB = (
     + _LAB
     + "  web: {count: 1, links: [lab]}\n"
 )
-_ENVELOPE_ADDRESS = "runtime.snapshot.realization-envelope"
-# Control-plane operation statuses carry the portable JSON-Pointer form of the same address.
-_PORTABLE_ENVELOPE_ADDRESS = "/" + _ENVELOPE_ADDRESS
+_ENVELOPE_ADDRESS = "/runtime.snapshot.realization-envelope"
+_MISMATCH_CODE = "realization.authority-envelope-mismatch"
 
 
-def _forged(envelope):
+def _forged(envelope: RealizationEnvelopeIdentityModel) -> RealizationEnvelopeIdentityModel:
     return envelope.model_copy(update={"configuration_digest": _FORGED})
 
 
-class _ForgesEnvelope:
-    """Delegates to the reference provisioner; successful results carry a forged configuration digest."""
-
-    def __init__(self, inner):
-        self._inner = inner
-
-    def __getattr__(self, name):
-        return getattr(self._inner, name)
+class _ForgesEnvelope(StubProvisioner):
+    """Keep the existing stub behavior and change only its returned envelope."""
 
     def apply(self, plan, snapshot):
-        result = self._inner.apply(plan, snapshot)
+        result = super().apply(plan, snapshot)
         if not result.success:
             return result
         forged = _forged(plan.realization_envelope)
@@ -59,17 +57,17 @@ class _ForgesEnvelope:
 
 
 def _target(*, forged: bool):
-    target = create_reference_backend_target()
-    return replace(target, provisioner=_ForgesEnvelope(target.provisioner)) if forged else target
+    target = create_stub_target()
+    return replace(target, provisioner=_ForgesEnvelope(target.manifest.realization_envelope)) if forged else target
 
 
 def _honest_snapshot():
     """Return the snapshot an honest network-only apply commits."""
 
-    manager = RuntimeManager(_target(forged=False))
-    assert manager.apply(manager.plan(parse_sdl(_NETWORK_ONLY))).success
-    assert manager.snapshot.realization_envelope is not None
-    return manager.snapshot
+    with RuntimeManager(_target(forged=False)) as manager:
+        assert manager.apply(manager.plan(parse_sdl(_NETWORK_ONLY))).success
+        assert manager.snapshot.realization_envelope is not None
+        return manager.snapshot
 
 
 def _refusal_addresses(diagnostics) -> set[str]:
@@ -78,59 +76,109 @@ def _refusal_addresses(diagnostics) -> set[str]:
 
 @pytest.mark.parametrize("scenario", [_NETWORK_ONLY, _WITH_WEB], ids=["network-only", "compute-node"])
 def test_manager_refuses_an_unbound_realization_envelope(scenario):
-    manager = RuntimeManager(_target(forged=True))
+    with RuntimeManager(_target(forged=True)) as manager:
+        result = manager.apply(manager.plan(parse_sdl(scenario)))
 
-    result = manager.apply(manager.plan(parse_sdl(scenario)))
-
-    assert result.success is False
-    assert _ENVELOPE_ADDRESS in _refusal_addresses(result.diagnostics)
-    assert manager.snapshot.realization_envelope is None
-    assert manager.snapshot.entries == {}
+        assert result.success is False
+        assert _ENVELOPE_ADDRESS in _refusal_addresses(result.diagnostics)
+        assert manager.snapshot.realization_envelope is None
+        assert manager.snapshot.entries == {}
 
 
 @pytest.mark.parametrize("applied", [False, True], ids=["empty-predecessor", "applied-predecessor"])
 def test_control_plane_keeps_the_predecessor_envelope(applied):
     predecessor = _honest_snapshot() if applied else RuntimeSnapshot()
     target = _target(forged=True)
-    control = RuntimeControlPlane(target, initial_snapshot=predecessor)
-    try:
-        execution = RuntimeManager(target).plan(parse_sdl(_NETWORK_ONLY), snapshot=control.snapshot)
+    with RuntimeControlPlane(target, initial_snapshot=predecessor) as control:
+        execution = control.plan(parse_sdl(_NETWORK_ONLY))
         control.register_planner_produced_plan(execution)
         status = control.get_operation(control.submit_provisioning(execution.provisioning).operation_id)
         snapshot = control.snapshot
-    finally:
-        control.close()
 
     assert status.state is OperationState.FAILED
-    assert _PORTABLE_ENVELOPE_ADDRESS in _refusal_addresses(status.diagnostics)
+    assert _ENVELOPE_ADDRESS in _refusal_addresses(status.diagnostics)
     assert snapshot.realization_envelope == predecessor.realization_envelope
     assert snapshot.entries == predecessor.entries
 
 
-@pytest.mark.parametrize(
-    ("forged_result", "foreign_predecessor"),
-    [(True, False), (False, True)],
-    ids=["forged-teardown-result", "predecessor-names-another-envelope"],
-)
-def test_destroy_refuses_a_teardown_envelope_other_than_the_predecessor(forged_result, foreign_predecessor):
+def test_destroy_refuses_a_forged_teardown_result():
     predecessor = _honest_snapshot()
+    with RuntimeManager(_target(forged=True), initial_snapshot=predecessor) as manager:
+        result = manager.destroy()
+
+        assert result.success is False
+        assert _ENVELOPE_ADDRESS in _refusal_addresses(result.diagnostics)
+        assert manager.snapshot == predecessor
+
+
+@pytest.mark.parametrize("foreign_predecessor", [False, True], ids=["matching-envelope", "foreign-envelope"])
+def test_destroy_checks_the_envelope_before_effects_and_on_retry(foreign_predecessor):
+    target = _target(forged=False)
+    live_addresses: set[str] = set()
+    apply = target.provisioner.apply
+
+    def apply_with_effects(plan, snapshot):
+        result = apply(plan, snapshot)
+        if result.success:
+            live_addresses.clear()
+            live_addresses.update(result.snapshot.entries)
+        return result
+
+    target.provisioner.apply = Mock(wraps=apply_with_effects)
+    with RuntimeManager(target) as manager:
+        applied = manager.apply(manager.plan(parse_sdl(_NETWORK_ONLY)))
+        assert applied.success, applied.diagnostics
+        predecessor = manager.snapshot
+    assert live_addresses == set(predecessor.entries)
+    assert live_addresses
     if foreign_predecessor:
-        predecessor = predecessor.with_entries(
-            dict(predecessor.entries), realization_envelope=_forged(predecessor.realization_envelope)
-        )
-    manager = RuntimeManager(_target(forged=forged_result), initial_snapshot=predecessor)
+        predecessor = replace(predecessor, realization_envelope=_forged(predecessor.realization_envelope))
+    target.provisioner.apply.reset_mock()
 
-    result = manager.destroy()
+    with RuntimeManager(target, initial_snapshot=predecessor) as manager:
+        for _ in range(2):
+            result = manager.destroy()
 
-    assert result.success is False
-    assert _ENVELOPE_ADDRESS in _refusal_addresses(result.diagnostics)
-    assert manager.snapshot.realization_envelope == predecessor.realization_envelope
-    assert manager.snapshot.entries == predecessor.entries
+            assert live_addresses == set(manager.snapshot.entries), "teardown changed resources before refusal"
+            assert result.success is not foreign_predecessor, result.diagnostics
+            if foreign_predecessor:
+                assert _MISMATCH_CODE in {diagnostic.code for diagnostic in result.diagnostics}
+                assert manager.snapshot == predecessor
+                target.provisioner.apply.assert_not_called()
+            else:
+                assert live_addresses == set()
+
+
+def test_destroy_regression_detects_a_disabled_envelope_check(monkeypatch):
+    """The effects assertion must kill a mutation that skips manifest admission."""
+
+    monkeypatch.setattr(authority, "_manifest_authority_diagnostic", lambda *_: None)
+    with pytest.raises(AssertionError, match="teardown changed resources before refusal"):
+        test_destroy_checks_the_envelope_before_effects_and_on_retry(True)
 
 
 def test_honest_apply_binds_the_selected_envelope():
-    manager = RuntimeManager(_target(forged=False))
-    execution = manager.plan(parse_sdl(_NETWORK_ONLY))
+    with RuntimeManager(_target(forged=False)) as manager:
+        execution = manager.plan(parse_sdl(_NETWORK_ONLY))
 
-    assert manager.apply(execution).success
-    assert manager.snapshot.realization_envelope == execution.provisioning.realization_envelope
+        assert manager.apply(execution).success
+        assert manager.snapshot.realization_envelope == execution.provisioning.realization_envelope
+
+
+@pytest.mark.parametrize("selected", [False, True], ids=["no-envelope", "selected-envelope"])
+@pytest.mark.parametrize("returned", ["selected", "predecessor", "other"])
+def test_result_envelope_binding_keeps_existing_compatibility(selected, returned):
+    identity = create_stub_target().manifest.realization_envelope.identity
+    predecessor = RuntimeSnapshot(realization_envelope=_forged(identity))
+    other = identity.model_copy(update={"configuration_digest": "sha256:" + "e" * 64})
+    envelopes = {"selected": identity, "predecessor": predecessor.realization_envelope, "other": other}
+    plan = ProvisioningPlan(realization_envelope=identity if selected else None)
+
+    def apply(plan, snapshot):
+        return ApplyResult(True, replace(snapshot, realization_envelope=envelopes[returned]))
+
+    result = _call_backend_apply(apply, plan, predecessor, address="runtime.test", snapshot=predecessor)
+
+    assert result.success is (not selected or returned != "other"), result.diagnostics
+    if not result.success:
+        assert result.snapshot == predecessor

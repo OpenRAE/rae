@@ -125,7 +125,7 @@ def _runtime_owned_violation(
         ),
         (
             unbound_envelope,
-            "runtime.snapshot.realization-envelope",
+            _carrier_address("realization_envelope"),
             "Backend returned a realization envelope bound to neither the submitted plan nor its predecessor.",
         ),
     )
