@@ -1,9 +1,11 @@
-# Catalog 2 — Reference-Resolution Catalog
+<!-- vale RAES.HeadingCase = NO -->
+# Catalog 2 — reference-resolution catalog
 
-This catalog defines how one SDL element names another: the reference forms, the
-resolution algorithm, the fail-closed ambiguity rule, the treatment of
-unresolved variable placeholders, and the catalog of cross-section reference
-edges with their failure semantics.
+This reference defines how one SDL element names another.
+It covers reference forms, resolution, fail-closed ambiguity, and unresolved variable placeholders.
+Its cross-section edge catalog gives the failure semantics for each reference.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 References are resolved during **semantic validation**, after structural parsing
 and module expansion ([document-model.md §7](document-model.md)). Reference
@@ -15,10 +17,9 @@ A reference is a string that names a target element. Five forms exist:
 
 1. **Bare** — a single identifier, e.g. `web_db`. Resolved within the section(s)
    the referencing field expects.
-2. **Qualified** — a dotted path that names the section and identifier
-   explicitly, e.g. `conditions.system_online`, or a deeper path that addresses
-   a nested element, e.g. `nodes.web1.services.httpd`. Used to address an element
-   unambiguously, or to address an element that has no bare form.
+2. **Qualified** — a dotted path names the section and identifier explicitly, for example `conditions.system_online`.
+   A deeper path names a nested element, for example `nodes.web1.services.httpd`.
+   This form identifies an element unambiguously or names one with no bare form.
 3. **Nested runtime-family** — a qualified path into a node's runtime inventory:
    `nodes.<node>.runtime.<collection>.<id>` and, for child collections,
    `…<collection>.<id>.<child-collection>.<child-id>` to any depth the family
@@ -27,17 +28,15 @@ A reference is a string that names a target element. Five forms exist:
    Used by objective windows. The workflow portion may be a composition-generated
    qualified name and the step is exactly one portable local-id segment
    ([document-model.md §6](document-model.md)).
-5. **Module-composed (namespaced)** — after a module import is expanded, imported
-   elements are addressed under their import namespace, and node segments are
-   rewritten to their namespaced form. Module-composed references resolve against
-   the expanded document
+5. **Module-composed (namespaced)** — after expansion, imported elements use their import namespace.
+   Node segments use their namespaced form.
+   Module-composed references resolve against the expanded document
    ([ADR-053](../../docs/decisions/adrs/adr-053-sdl-module-composition-for-inventory-backed-scenarios.md)).
 
 Dots are path syntax, never authored identifier content. A dotted node key in a
-raw or normalized authoring object is invalid. A dotted node segment seen after
-composition is a validated namespace path and is carried structurally until the
-canonical renderer produces the external string; it is not recovered with a
-longest-match rule.
+raw or normalized authoring object is invalid. A dotted node segment after composition is a validated namespace path.
+It stays structural until the canonical renderer produces the external string.
+A longest-match rule does not recover it.
 
 ## 2. Resolution algorithm
 
@@ -45,32 +44,32 @@ longest-match rule.
    referencing field accepts.
 2. A field defines its **candidate set** — the section or sections a value may
    name. Some fields accept a single section (e.g. an objective's `success` →
-   `assertions`); others accept a set of targetable sections (e.g. an
-   objective's `target`, a relationship's `source`/`target`). The candidate set
-   is part of each field's definition and is reflected in the edge catalog (§5).
+   `assertions`); others accept the declarations their reference purpose
+   admits (e.g. an objective's `targets`, a relationship's `source`/`target`;
+   §7). The candidate set is part of each field's definition and is reflected in
+   the edge catalog (§5).
 3. A **bare** reference resolves against the candidate set. A **qualified**
    reference resolves by exact lookup of the typed canonical address and
    **MUST** match it exactly. Implementations **MUST NOT** discover ownership by
-   `split`, `partition`, `rsplit`, longest-prefix guessing, declaration order,
+   string splitting, partitioning, longest-prefix guessing, declaration order,
    or first match. Compact aliases such as `<qualified-workflow>.<step>` are
    constructed and resolved from declared workflow/step pairs.
-4. Some targetable candidate sets are deliberately restricted. For example, an
-   objective `target` excludes the `variables`, `objectives`, and `workflows`
-   prefixes; an agent `operating_scope` is restricted to compute nodes,
-   switch-backed infrastructure, services, and content. A reference outside its
-   field's candidate set does not resolve and fails as dangling (§4).
+4. Purpose candidate sets are deliberately restricted (§7). Objective `targets` admit participants, organizations, resources, relationships, propositions, and assertions.
+   Action targets exclude propositions and assertions.
+   An agent `operating_scope` admits only compute nodes, switch-backed infrastructure, services, and content. A
+   reference outside its field's candidate set does not resolve and fails as
+   dangling (§4).
 5. Resolution is **declaration-based**: only declared elements are resolution
    targets. There is no implicit creation of a target by referencing it.
-6. Alias lookup occurs only after the canonical declaration index has retained
-   kind and provenance for every declaration and rejected address collisions.
+6. The canonical declaration index first retains each declaration's kind and provenance and rejects address collisions.
+   Alias lookup occurs only after these checks.
    A set or map that has already erased a duplicate rendering is not evidence of
    uniqueness.
 
 ## 3. Unresolved variable placeholders
 
-1. A field whose value is a variable placeholder (`${name}`) is **not** resolved
-   as a reference during authoring-time semantic validation; the placeholder
-   stands for a value not yet bound.
+1. During authoring-time semantic validation, a variable placeholder (`${name}`) is **not** resolved as a reference.
+   It stands for a value not yet bound.
 2. The only requirement on an unresolved placeholder at authoring time is that
    `name` **MUST** be a declared variable
    ([variables-and-instantiation.md](variables-and-instantiation.md)). A
@@ -161,12 +160,14 @@ probe implementations; propositions and assertions carry portable truth.
 | `agents` | starting assertions | `assertions` (preconditions) |
 | `agents` | actions / observation boundaries | `action_contracts` / `observation_boundaries` |
 | `action_contracts` | interaction related-action | `action_contracts` |
+| `action_contracts` | interaction target / effect target refs | eligible action targets (§7) |
+| `action_contracts` | interaction shared-state refs | eligible shared state (§7) |
 | `observation_boundaries` | view-rule information refs | own observable/hidden/evidence refs |
-| `behavior_specifications` | tool-affordance tool/action/observation refs | `content` / `action_contracts` / `observation_boundaries` |
+| `behavior_specifications` | tool-affordance tool/action/observation/participant-selector refs | `content` / `action_contracts` / `observation_boundaries` / `agents` / effective roles |
 | `behavior_specifications` | tool-affordance visibility identity | own nested affordance declaration, classified by each referenced observation boundary |
 | `objectives` | assignment / owner (independent) | `agents` / flattened `entities` respectively |
 | `objectives` | action constraint | `action_contracts`; also available to the assigned participant, if any |
-| `objectives` | target | targetable elements (excl. `variables`/`objectives`/`workflows`) |
+| `objectives` | targets | eligible objective subjects (§7) |
 | `objectives` | success criteria | `assertions` (invariants/postconditions, [ADR-079](../../docs/decisions/adrs/adr-079-backend-neutral-proposition-and-truth-semantics.md)) |
 | `objectives` | window | `stories`/`scripts`/`events`/`workflows` (with closure rules) |
 | `objectives` | depends_on | `objectives` (acyclic) |
@@ -187,8 +188,8 @@ probe implementations; propositions and assertions carry portable truth.
 
 | Source | Field | Target |
 |--------|-------|--------|
-| `evidence_requirements` | source refs | targetable elements, including scenario-native observability runtime-family refs |
-| `evidence_requirements` | scope refs | targetable elements |
+| `evidence_requirements` | source refs | eligible observation subjects (§7), including scenario-native observability runtime-family refs |
+| `evidence_requirements` | scope refs | eligible observation subjects (§7) |
 | `evidence_requirements` | channel refs | targetable elements |
 | `evidence_requirements` | trigger / boundary refs | targetable elements |
 
@@ -220,17 +221,25 @@ join is unreferenced.
 any role-bearing refs
 ([ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md)):
 
-| Subtype | Endpoints / role refs resolve to |
-|---------|----------------------------------|
-| generic | targetable elements (`source`/`target`) |
-| `database_access` | `source` → an `applications` element; `target` → a `database_services` element; role ref → a declared role on the target |
-| `mail_access` | `target` → a `mail_services` element; listener/mailbox/domain refs → declared children of that mail service |
-| `forwarding_edge` | `forwarder_ref` → exactly one `forwarding_agents` element (node-scoped or scenario-level); protocol/role MUST agree with a declared ship target |
-| `service_integration` | consumer/engine refs → `platform_applications`; auth-principal ref → a declared app-authorization on the engine's node |
-| `proxy_upstream` | upstream → a resolved runtime application/endpoint |
-| `participant` | `source` / `target` → distinct declared agents; optional refinements → existing participant, action, objective, authority, scope, observation and mixed-control declarations ([participant relationships](participant-relationships.md)) |
-| `domain_controller_for` | `source` → a compute node; `target` → an `identity_domains` entry |
-| `joins_domain` | `source` → a compute node; `target` → an `identity_domains` entry; controller refs → controller nodes for the same domain |
+| Subtype | Endpoints / role refs resolve to | Endpoint purposes (`source` / `target`, §7) |
+|---------|----------------------------------|----------------------------------|
+| generic | eligible relationship endpoints (`source`/`target`, §7) | `relationship_endpoint` / `relationship_endpoint` |
+| `database_access` | `source` → an `applications` element; `target` → a `database_services` element or one of its `databases`; role ref → a declared role on the target | `runtime_application_endpoint` / `database_endpoint` |
+| `mail_access` | `target` → a `mail_services` element; listener/mailbox/domain refs → declared children of that mail service | `relationship_endpoint` / `mail_service_endpoint` |
+| `forwarding_edge` | `forwarder_ref` → exactly one `forwarding_agents` element (node-scoped or scenario-level); protocol/role MUST agree with a declared ship target | `relationship_endpoint` / `relationship_endpoint` |
+| `service_integration` | consumer/engine refs → `platform_applications`; auth-principal ref → a declared app-authorization on the engine's node | `relationship_endpoint` / `relationship_endpoint` |
+| `proxy_upstream` | upstream → a resolved runtime application/endpoint | `relationship_endpoint` / `relationship_endpoint` |
+| `participant` | `source` / `target` → distinct declared agents that resolve unambiguously among relationship endpoints (§7); optional refinements → existing participant, action, objective, authority, scope, observation and mixed-control declarations ([participant relationships](participant-relationships.md)) | `participant_endpoint` / `participant_endpoint` |
+| `domain_controller_for` | `source` → a compute node; `target` → an `identity_domains` entry | `node_endpoint` / `identity_domain_endpoint` |
+| `joins_domain` | `source` → a compute node; `target` → an `identity_domains` entry; controller refs → controller nodes for the same domain | `node_endpoint` / `identity_domain_endpoint` |
+| `forest_trusts` | `source` / `target` → two distinct `identity_forests` entries ([enterprise deployment tenancy](enterprise-deployment-tenancy.md)) | `identity_forest_endpoint` / `identity_forest_endpoint` |
+| `directory_federates_to` | `source` → one `identity_domains` or `identity_forests` entry; `target` → one `identity_facades` entry | `identity_authority_endpoint` / `identity_facade_endpoint` |
+| `placed_on_carrier` | `source` / `target` → two compute nodes; the target carries the carrier persona | `node_endpoint` / `node_endpoint` |
+| `uses_shared_service` | `source` → a `deployment_tenants` entry; `target` → a named node service, `nodes.<node>.services.<name>` | `deployment_tenant_endpoint` / `node_service_endpoint` |
+
+A relationship's endpoints must satisfy the endpoint purposes of its type and of
+every typed detail it carries (§7). The purposes check declaration kinds only.
+Each subtype's validator retains attribute rules for compute nodes, carrier personas, distinct forests, and shared deployment cells.
 
 ### Variables
 
@@ -248,8 +257,9 @@ relation's resolved point.
 | Source | Field | Target |
 |--------|-------|--------|
 | `variation_points` | parameter target variable | `variables` |
-| `variation_points` | reference/collection/timing target owner | slot-declared owner section |
+| `variation_points` | reference/collection/timing/structural target owner | slot-declared owner section |
 | `variation_points` | governed allowed refs and alternative/subset/order member refs | slot-declared candidate section |
+| `variation_points` | resource consumer selector node | `nodes` |
 | `variation_points` | requires/excludes point | `variation_points` |
 | `variation_points` | requires/excludes members | members of the resolved point |
 | `variation_points` | precedence/fixed-position members | members of the owning order point |
@@ -263,240 +273,470 @@ occurrence/result and, for direction/intervention, its accepted control
 application. These are versioned adoption obligations, not new source fields
 or permission to weaken the legacy reference rows below.
 
-Mixed-control and participant-inject rows in this index describe the current
-fixed-coordinate SDL fields. The
-[reusable semantic amendment](../formal/participant-semantics/reusable-mixed-control.md)
-requires a separate permission reference and exact occurrence-context join,
-acting-source controller authority, independent control/disclosure policy pins
-and typed order/time coordinates. These are adopted only through the explicit
-[producer/reader boundary](../../docs/migration/reusable-mixed-control.md), not
-by reinterpreting these existing reference rows or accepting undeclared fields.
+The `mixed_control.transitions` rows and the flat `control_*` delivery rows in
+this index describe the legacy fixed-coordinate fields, which keep their
+original meaning. The `controller_states` rows cover both forms. The
+`mixed_control.permitted_transitions`, `mixed_control.script_steps` and nested
+delivery `control` rows describe the reusable form of the
+[semantic amendment](../formal/participant-semantics/reusable-mixed-control.md),
+selected only by `semantics: mixed-control-policy-occurrence/rev1`. Each of
+those refs names a reusable permission. The join from a delivery to one exact
+accepted control occurrence is an API-409 owner check, not an SDL reference
+edge. The [producer/reader boundary](../../docs/migration/reusable-mixed-control.md)
+keeps the two forms apart.
 
 This index gives every cross-section or cross-declaration authoring reference a
-stable candidate-domain token. Registered node-runtime inventories and their
-local child edges remain governed by the family index in
-[`runtime-inventory.md`](runtime-inventory.md); relationship fields that cross
-from a top-level section into those inventories are listed here. `targetable`
-means the declaration index excluding `variables`, `evidence_requirements`,
-`objectives`, and `workflows`; it is not a synonym for every named object.
-`declared`, `derived:*`, `runtime:*`, `vocabulary:*`, `registry:*`, `contract:*`,
-and `opaque:*` name deliberately distinct resolution mechanisms and **MUST NOT**
-be collapsed into a generic symbol lookup.
+stable candidate-domain token. The family index in [`runtime-inventory.md`](runtime-inventory.md) governs registered node-runtime inventories and their local child edges.
+This page lists relationship fields that cross from top-level sections into those inventories. `declared`,
+`targetable`, and each `eligible:<purpose>` token name a reference purpose
+whose eligible declaration kinds §7 defines; `targetable` is not a synonym for
+every named object. `declared`, `derived:*`, `runtime:*`, `vocabulary:*`,
+`registry:*`, `contract:*`, and `opaque:*` name deliberately distinct
+resolution mechanisms and **MUST NOT** be collapsed into a generic symbol
+lookup.
 
 "Normative owner" points only to language-neutral prose or an accepted ADR.
-"Implementation evidence" points to the independently maintained reference
-implementation check. An implementation link is evidence of conformance, never
-the source of the row's normative meaning.
+The index is independent of implementation file locations.
 
-| Source path | Candidate domain | Resolution phase | Failure | Normative owner | Implementation evidence |
-| --- | --- | --- | --- | --- | --- |
-| `nodes.*.features[]` | `features` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) | [node validator](../../implementations/python/packages/raes/validator/_nodes_infra_network.py) |
-| `nodes.*.features.*` | `derived:node_roles` | semantic validation | fatal dangling role when non-empty | [reference rules](#5-cross-section-reference-edge-catalog) | [node validator](../../implementations/python/packages/raes/validator/_nodes_infra_network.py) |
-| `nodes.*.conditions[]` | `conditions` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) | [node validator](../../implementations/python/packages/raes/validator/_nodes_infra_network.py) |
-| `nodes.*.conditions.*` | `derived:node_roles` | semantic validation | fatal dangling role when non-empty | [reference rules](#5-cross-section-reference-edge-catalog) | [node validator](../../implementations/python/packages/raes/validator/_nodes_infra_network.py) |
-| `conditions.*.proposition` | `propositions` | semantic validation | fatal dangling or ambiguous when present | [proposition semantics](../formal/objectives/proposition-and-assertion-semantics.md) | [proposition validator](../../implementations/python/packages/raes/validator/_propositions.py) |
-| `propositions.*.subjects[]` | `targetable` | semantic validation | fatal dangling or ambiguous | [proposition semantics](../formal/objectives/proposition-and-assertion-semantics.md) | [proposition validator](../../implementations/python/packages/raes/validator/_propositions.py) |
-| `propositions.*.evidence_requirements[]` | `evidence_requirements` | semantic validation | fatal dangling or ambiguous | [proposition semantics](../formal/objectives/proposition-and-assertion-semantics.md) | [proposition validator](../../implementations/python/packages/raes/validator/_propositions.py) |
-| `assertions.*.proposition` | `propositions` | semantic validation | fatal dangling or ambiguous | [proposition semantics](../formal/objectives/proposition-and-assertion-semantics.md) | [proposition validator](../../implementations/python/packages/raes/validator/_propositions.py) |
-| `nodes.*.injects[]` | `injects` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) | [node validator](../../implementations/python/packages/raes/validator/_nodes_infra_network.py) |
-| `nodes.*.injects.*` | `derived:node_roles` | semantic validation | fatal dangling role when non-empty | [reference rules](#5-cross-section-reference-edge-catalog) | [node validator](../../implementations/python/packages/raes/validator/_nodes_infra_network.py) |
-| `nodes.*.roles.*.entities[]` | `entities` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) | [section validator](../../implementations/python/packages/raes/validator/_sections.py) |
-| `infrastructure.*.$key` | `nodes` | semantic validation | fatal when no same-named node exists | [reference rules](#5-cross-section-reference-edge-catalog) | [infrastructure validator](../../implementations/python/packages/raes/validator/_nodes_infra_network.py) |
-| `infrastructure.*.links[]` | `infrastructure` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) | [infrastructure validator](../../implementations/python/packages/raes/validator/_nodes_infra_network.py) |
-| `infrastructure.*.properties[].*` | `infrastructure` | semantic validation | fatal unless the key names a linked switch-backed entry | [reference rules](#5-cross-section-reference-edge-catalog) | [infrastructure validator](../../implementations/python/packages/raes/validator/_nodes_infra_network.py) |
-| `infrastructure.*.acls[].from_net` | `infrastructure` | semantic validation | fatal unless the target is switch-backed | [reference rules](#5-cross-section-reference-edge-catalog) | [infrastructure validator](../../implementations/python/packages/raes/validator/_nodes_infra_network.py) |
-| `infrastructure.*.acls[].to_net` | `infrastructure` | semantic validation | fatal unless the target is switch-backed | [reference rules](#5-cross-section-reference-edge-catalog) | [infrastructure validator](../../implementations/python/packages/raes/validator/_nodes_infra_network.py) |
-| `infrastructure.*.dependencies[]` | `infrastructure` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) | [infrastructure validator](../../implementations/python/packages/raes/validator/_nodes_infra_network.py) |
-| `features.*.dependencies[]` | `features` | semantic validation | fatal dangling, ambiguous, or cyclic | [reference rules](#5-cross-section-reference-edge-catalog) | [section validator](../../implementations/python/packages/raes/validator/_sections.py) |
-| `entities.*.events[]` | `events` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) | [section validator](../../implementations/python/packages/raes/validator/_sections.py) |
-| `injects.*.from_entity` | `entities` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) | [section validator](../../implementations/python/packages/raes/validator/_sections.py) |
-| `injects.*.to_entities[]` | `entities` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) | [section validator](../../implementations/python/packages/raes/validator/_sections.py) |
-| `events.*.assertions[]` | `assertions` | semantic validation | fatal dangling, ambiguous, or non-precondition role | [proposition semantics](../formal/objectives/proposition-and-assertion-semantics.md) | [proposition validator](../../implementations/python/packages/raes/validator/_propositions.py) |
-| `events.*.injects[]` | `injects` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) | [section validator](../../implementations/python/packages/raes/validator/_sections.py) |
-| `scripts.*.events[]` | `events` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) | [section validator](../../implementations/python/packages/raes/validator/_sections.py) |
-| `stories.*.scripts[]` | `scripts` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) | [section validator](../../implementations/python/packages/raes/validator/_sections.py) |
-| `content.*.target` | `nodes` | semantic validation | fatal unless target is a compute node | [initial service state](initial-service-state.md) | [content validator](../../implementations/python/packages/raes/validator/_content_objectives.py) |
-| `content.*.service_materialization.target_service_ref` | `derived:node_services` | semantic validation | fatal unless the exact service exists on the content target compute node | [initial service state](initial-service-state.md) | [service materialization validator](../../implementations/python/packages/raes/validator/_service_materialization.py) |
-| `content.*.service_materialization.shared_service_relationship_ref` | `relationships` | semantic validation | fatal unless a matching typed shared-service relationship owns cross-tenant mutable state/reset | [initial service state](initial-service-state.md) | [service materialization validator](../../implementations/python/packages/raes/validator/_service_materialization.py) |
-| `content.*.service_materialization.ordering_content_refs[]` | `content` | semantic validation and planner ordering | fatal dangling, self, or cyclic dependency | [initial service state](initial-service-state.md) | [content compiler](../../implementations/python/packages/raes_processor/compiler/placement.py) |
-| `content.*.service_materialization.readback_assertion_refs[]` | `assertions` | semantic validation | fatal unless each ref is an observed-state postcondition | [initial service state](initial-service-state.md) | [service materialization validator](../../implementations/python/packages/raes/validator/_service_materialization.py) |
-| `content.*.service_materialization.evidence_requirement_refs[]` | `evidence_requirements` | semantic validation | fatal unless each ref exists and every readback proposition requires it | [initial service state](initial-service-state.md) | [service materialization validator](../../implementations/python/packages/raes/validator/_service_materialization.py) |
-| `content.*.service_materialization.observation_boundary_refs[]` | `observation_boundaries` | semantic validation | fatal dangling ref | [initial service state](initial-service-state.md) | [service materialization validator](../../implementations/python/packages/raes/validator/_service_materialization.py) |
-| `generated_artifacts.*.consumers[].node` | `nodes` | structural model validation | fatal dangling or ambiguous | [stateful resources](stateful-resources.md) | [scenario model](../../implementations/python/packages/raes/scenario.py) |
-| `generated_artifacts.*.ordering_dependencies[]` | `generated_artifacts,persistent_volumes` | structural model and planner graph validation | fatal dangling, ambiguous, or cyclic | [stateful resources](stateful-resources.md) | [scenario model](../../implementations/python/packages/raes/scenario.py) |
-| `generated_artifacts.*.refresh_dependencies[]` | `generated_artifacts,persistent_volumes` | structural model validation | fatal dangling or ambiguous | [stateful resources](stateful-resources.md) | [scenario model](../../implementations/python/packages/raes/scenario.py) |
-| `persistent_volumes.*.consumers[].node` | `nodes` | structural model validation | fatal dangling or ambiguous | [stateful resources](stateful-resources.md) | [scenario model](../../implementations/python/packages/raes/scenario.py) |
-| `persistent_volumes.*.ordering_dependencies[]` | `generated_artifacts,persistent_volumes` | structural model and planner graph validation | fatal dangling, ambiguous, or cyclic | [stateful resources](stateful-resources.md) | [scenario model](../../implementations/python/packages/raes/scenario.py) |
-| `persistent_volumes.*.refresh_dependencies[]` | `generated_artifacts,persistent_volumes` | structural model validation | fatal dangling or ambiguous | [stateful resources](stateful-resources.md) | [scenario model](../../implementations/python/packages/raes/scenario.py) |
-| `accounts.*.domain_ref` | `identity_domains` | semantic validation | fatal dangling, ambiguous, or inconsistent topology | [authored domain topology](authored-domain-topology.md) | [domain topology semantics](../../implementations/python/packages/raes/semantics/domain_topology.py) |
-| `identity_domains.*.authority_account_ref` | `accounts` | semantic validation | fatal dangling, ambiguous, or authority outside domain controllers | [authored domain topology](authored-domain-topology.md) | [domain topology semantics](../../implementations/python/packages/raes/semantics/domain_topology.py) |
-| `identity_forests.*.root_domain_ref` | `identity_domains` | semantic validation | fatal dangling or root outside declared membership | [enterprise identity and deployment tenancy](enterprise-deployment-tenancy.md) | [enterprise identity semantics](../../implementations/python/packages/raes/semantics/enterprise_identity.py) |
-| `identity_forests.*.domain_refs[]` | `identity_domains` | semantic validation | fatal dangling, duplicate, or domain in multiple forests | [enterprise identity and deployment tenancy](enterprise-deployment-tenancy.md) | [enterprise identity semantics](../../implementations/python/packages/raes/semantics/enterprise_identity.py) |
-| `identity_facades.*.service_ref` | `targetable` | semantic validation | fatal unless target is a named compute service | [enterprise identity and deployment tenancy](enterprise-deployment-tenancy.md) | [enterprise identity semantics](../../implementations/python/packages/raes/semantics/enterprise_identity.py) |
-| `deployment_cells.*.tenant_ref` | `deployment_tenants` | semantic validation | fatal dangling or ambiguous | [enterprise identity and deployment tenancy](enterprise-deployment-tenancy.md) | [deployment tenancy semantics](../../implementations/python/packages/raes/semantics/deployment_tenancy.py) |
-| `deployment_cells.*.node_refs[]` | `nodes` | semantic validation | fatal dangling, duplicate, or node in multiple cells | [enterprise identity and deployment tenancy](enterprise-deployment-tenancy.md) | [deployment tenancy semantics](../../implementations/python/packages/raes/semantics/deployment_tenancy.py) |
-| `accounts.*.node` | `nodes` | semantic validation | fatal unless target is a compute node | [reference rules](#5-cross-section-reference-edge-catalog) | [account validator](../../implementations/python/packages/raes/validator/_content_objectives.py) |
-| `relationships.*.source` | `targetable` | semantic validation | fatal dangling or ambiguous; subtype may narrow domain | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) | [relationship validator](../../implementations/python/packages/raes/validator/_relationships.py) |
-| `relationships.*.target` | `targetable` | semantic validation | fatal dangling or ambiguous; subtype may narrow domain | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) | [relationship validator](../../implementations/python/packages/raes/validator/_relationships.py) |
-| `relationships.*.participant.source_action_refs[]` | `action_contracts` | semantic validation and instantiation | fatal dangling, duplicate alias, or action unavailable to source | [participant relationships](participant-relationships.md) | [participant relationship validator](../../implementations/python/packages/raes/validator/_participant_relationships.py) |
-| `relationships.*.participant.target_action_refs[]` | `action_contracts` | semantic validation and instantiation | fatal dangling, duplicate alias, or action unavailable to target | [participant relationships](participant-relationships.md) | [participant relationship validator](../../implementations/python/packages/raes/validator/_participant_relationships.py) |
-| `relationships.*.participant.objective_refs[]` | `objectives` | semantic validation and instantiation | fatal dangling, duplicate alias, or unrelated objective owner | [participant relationships](participant-relationships.md) | [participant relationship validator](../../implementations/python/packages/raes/validator/_participant_relationships.py) |
-| `relationships.*.participant.behavior_specification_refs[]` | `behavior_specifications` | semantic validation and instantiation | fatal dangling, duplicate alias, or unrelated participant binding | [participant relationships](participant-relationships.md) | [participant relationship validator](../../implementations/python/packages/raes/validator/_participant_relationships.py) |
-| `relationships.*.participant.authority_basis_refs[]` | `any` | semantic validation and instantiation | fatal dangling, ambiguous, duplicate alias, or wider than source authority | [participant relationships](participant-relationships.md) | [participant relationship validator](../../implementations/python/packages/raes/validator/_participant_relationships.py) |
-| `relationships.*.participant.scope_refs[]` | `targetable` | semantic validation and instantiation | fatal duplicate alias or outside spatial/resource scope of either endpoint or selected control policy | [participant relationships](participant-relationships.md) | [participant relationship validator](../../implementations/python/packages/raes/validator/_participant_relationships.py) |
-| `relationships.*.participant.observation_boundary_refs[]` | `observation_boundaries` | semantic validation and instantiation | fatal dangling, duplicate alias, or unavailable source observation | [participant relationships](participant-relationships.md) | [participant relationship validator](../../implementations/python/packages/raes/validator/_participant_relationships.py) |
-| `relationships.*.participant.control_specification_ref` | `behavior_specifications` | semantic validation and instantiation | fatal missing mixed-control policy or contradictory controller direction/scope | [participant relationships](participant-relationships.md) | [participant relationship validator](../../implementations/python/packages/raes/validator/_participant_relationships.py) |
-| `relationships.*.database_access.role_ref` | `derived:database_roles` | semantic validation | fatal outside the target database service | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) | [relationship validator](../../implementations/python/packages/raes/validator/_relationships.py) |
-| `relationships.*.mail_access.listener_ref` | `derived:mail_listeners` | semantic validation | fatal outside the target mail service | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) | [mail validator](../../implementations/python/packages/raes/validator/_runtime_mail.py) |
-| `relationships.*.mail_access.mailbox_ref` | `derived:mailboxes` | semantic validation | fatal outside the target mail service | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) | [mail validator](../../implementations/python/packages/raes/validator/_runtime_mail.py) |
-| `relationships.*.mail_access.domain_ref` | `derived:mail_domains` | semantic validation | fatal outside the target mail service | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) | [mail validator](../../implementations/python/packages/raes/validator/_runtime_mail.py) |
-| `relationships.*.forwarding_edge.forwarder_ref` | `runtime:forwarding_agents` | semantic validation | fatal dangling or ambiguous across scenario and node scopes | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) | [relationship validator](../../implementations/python/packages/raes/validator/_relationships.py) |
-| `relationships.*.service_integration.consumer_ref` | `runtime:platform_applications` | semantic validation | fatal dangling or ambiguous | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) | [relationship validator](../../implementations/python/packages/raes/validator/_relationships.py) |
-| `relationships.*.service_integration.engine_ref` | `runtime:platform_applications` | semantic validation | fatal dangling or ambiguous | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) | [relationship validator](../../implementations/python/packages/raes/validator/_relationships.py) |
-| `relationships.*.service_integration.auth_principal_ref` | `derived:engine_authorization_principals` | semantic validation | fatal outside the engine authorization scope | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) | [relationship validator](../../implementations/python/packages/raes/validator/_relationships.py) |
-| `relationships.*.proxy_upstream.route_ref` | `derived:source_application_routes` | semantic validation | fatal outside the source application | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) | [proxy relationship validator](../../implementations/python/packages/raes/validator/_relationships_proxy.py) |
-| `relationships.*.proxy_upstream.upstream_node_ref` | `nodes` | semantic validation | fatal dangling or ambiguous | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) | [proxy relationship validator](../../implementations/python/packages/raes/validator/_relationships_proxy.py) |
-| `relationships.*.proxy_upstream.upstream_service_ref` | `derived:upstream_node_services` | semantic validation | fatal without a resolvable upstream node and service | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) | [proxy relationship validator](../../implementations/python/packages/raes/validator/_relationships_proxy.py) |
-| `relationships.*.domain_join.controller_refs[]` | `nodes` | semantic validation | fatal dangling, ambiguous, or controller outside target domain | [authored domain topology](authored-domain-topology.md) | [domain topology semantics](../../implementations/python/packages/raes/semantics/domain_topology.py) |
-| `relationships.*.shared_service.mutable_state_refs[]` | `persistent_volumes` | semantic validation | fatal dangling or conflicting state ownership | [enterprise identity and deployment tenancy](enterprise-deployment-tenancy.md) | [deployment tenancy semantics](../../implementations/python/packages/raes/semantics/deployment_tenancy.py) |
-| `agents.*.affiliations[]` | `entities` | semantic validation | fatal dangling or ambiguous | [participant identity](participant-identity.md) | [participant validator](../../implementations/python/packages/raes/validator/_content_objectives.py) |
-| `agents.*.actions[]` | `action_contracts` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) | [participant semantics](../../implementations/python/packages/raes/semantics/participant_behavior/__init__.py) |
-| `agents.*.starting_accounts[]` | `accounts` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) | [participant validator](../../implementations/python/packages/raes/validator/_content_objectives.py) |
-| `agents.*.interactive_access.*.target_ref` | `nodes` | semantic validation | fatal dangling, ambiguous, or non-compute target | [participant semantics](../formal/participant-semantics/README.md) | [participant interactive-access semantics](../../implementations/python/packages/raes/semantics/participant_interactive_access.py) |
-| `agents.*.interactive_access.*.account_ref` | `accounts` | semantic validation | fatal dangling, same-node mismatch, or outside participant starting accounts | [participant semantics](../formal/participant-semantics/README.md) | [participant interactive-access semantics](../../implementations/python/packages/raes/semantics/participant_interactive_access.py) |
-| `agents.*.starting_assertions[]` | `assertions` | semantic validation | fatal dangling, ambiguous, or non-precondition role | [participant semantics](../formal/participant-semantics/README.md) | [proposition validator](../../implementations/python/packages/raes/validator/_propositions.py) |
-| `agents.*.initial_knowledge.hosts[]` | `nodes` | semantic validation | fatal unless the target is a compute node | [participant semantics](../formal/participant-semantics/README.md) | [participant validator](../../implementations/python/packages/raes/validator/_content_objectives.py) |
-| `agents.*.initial_knowledge.subnets[]` | `infrastructure` | semantic validation | fatal unless the target is switch-backed | [participant semantics](../formal/participant-semantics/README.md) | [participant validator](../../implementations/python/packages/raes/validator/_content_objectives.py) |
-| `agents.*.initial_knowledge.services[]` | `derived:node_services` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) | [participant validator](../../implementations/python/packages/raes/validator/_content_objectives.py) |
-| `agents.*.initial_knowledge.accounts[]` | `accounts` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) | [participant validator](../../implementations/python/packages/raes/validator/_content_objectives.py) |
-| `agents.*.allowed_subnets[]` | `infrastructure` | semantic validation | fatal unless the target is switch-backed | [participant semantics](../formal/participant-semantics/README.md) | [participant validator](../../implementations/python/packages/raes/validator/_content_objectives.py) |
-| `agents.*.authority_anchors[]` | `declared` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) | [participant validator](../../implementations/python/packages/raes/validator/_content_objectives.py) |
-| `agents.*.operating_scope[]` | `derived:operating_scope` | semantic validation | fatal dangling or ambiguous outside compute nodes, switch-backed infrastructure, services, and content | [participant semantics](../formal/participant-semantics/README.md) | [participant validator](../../implementations/python/packages/raes/validator/_content_objectives.py) |
-| `agents.*.observation_boundaries[]` | `observation_boundaries` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) | [participant semantics](../../implementations/python/packages/raes/semantics/participant_behavior/__init__.py) |
-| `action_contracts.*.interactions.*.related_actions[]` | `action_contracts` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) | [participant semantics](../../implementations/python/packages/raes/semantics/participant_behavior/__init__.py) |
-| `action_contracts.*.interactions.*.target` | `targetable` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) | [participant validator](../../implementations/python/packages/raes/validator/_content_objectives.py) |
-| `action_contracts.*.interactions.*.shared_state_refs[]` | `targetable` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) | [participant validator](../../implementations/python/packages/raes/validator/_content_objectives.py) |
-| `action_contracts.*.temporal_contracts.*.backend_disclosure_refs[]` | `derived:backend_timing_disclosures` | structural validation | fatal dangling local disclosure id | [participant semantics](../formal/participant-semantics/README.md) | [temporal model](../../implementations/python/packages/raes/participant_temporal_semantics.py) |
-| `action_contracts.*.backend_timing_disclosures.*.affected_temporal_ids[]` | `derived:temporal_contracts` | structural validation | fatal dangling local temporal id | [participant semantics](../formal/participant-semantics/README.md) | [temporal model](../../implementations/python/packages/raes/participant_temporal_semantics.py) |
-| `observation_boundaries.*.view_rules.*.information_ref` | `derived:boundary_information` | semantic validation | fatal outside declared boundary information | [participant semantics](../formal/participant-semantics/README.md) | [participant semantics](../../implementations/python/packages/raes/semantics/participant_behavior/__init__.py) |
-| `observation_boundaries.*.view_rules.*.evidence_refs[]` | `derived:boundary_evidence` | semantic validation | fatal outside declared boundary evidence | [participant semantics](../formal/participant-semantics/README.md) | [participant semantics](../../implementations/python/packages/raes/semantics/participant_behavior/__init__.py) |
-| `observation_boundaries.*.view_transitions.*.information_ref` | `derived:boundary_view_rules` | semantic validation | fatal without a matching view rule | [participant semantics](../formal/participant-semantics/README.md) | [participant semantics](../../implementations/python/packages/raes/semantics/participant_behavior/__init__.py) |
-| `observation_boundaries.*.view_transitions.*.evidence_refs[]` | `derived:boundary_evidence` | semantic validation | fatal outside declared boundary evidence | [participant semantics](../formal/participant-semantics/README.md) | [participant semantics](../../implementations/python/packages/raes/semantics/participant_behavior/__init__.py) |
-| `outcome_interpretation_rules.*.source_bindings.*.ref` | `action_contracts,objectives,workflows` | semantic validation | fatal dangling for SDL-bound layers | [participant semantics](../formal/participant-semantics/README.md) | [outcome semantics](../../implementations/python/packages/raes/semantics/participant_outcome.py) |
-| `outcome_interpretation_rules.*.target_bindings.*.ref` | `objectives,workflows` | semantic validation | fatal dangling for SDL-bound layers | [participant semantics](../formal/participant-semantics/README.md) | [outcome semantics](../../implementations/python/packages/raes/semantics/participant_outcome.py) |
-| `behavior_specifications.*.participant_refs[]` | `agents` | semantic validation | fatal dangling or ambiguous | [behavior model](../formal/participant-behavior-model/README.md) | [behavior semantics](../../implementations/python/packages/raes/semantics/participant_behavior/__init__.py) |
-| `behavior_specifications.*.participant_role_refs[]` | `derived:agent_roles` | semantic validation | fatal unless bound by a referenced participant | [behavior model](../formal/participant-behavior-model/README.md) | [behavior semantics](../../implementations/python/packages/raes/semantics/participant_behavior/__init__.py) |
-| `behavior_specifications.*.action_contract_refs[]` | `action_contracts` | semantic validation | fatal dangling or ambiguous | [behavior model](../formal/participant-behavior-model/README.md) | [behavior semantics](../../implementations/python/packages/raes/semantics/participant_behavior/__init__.py) |
-| `behavior_specifications.*.observation_boundary_refs[]` | `observation_boundaries` | semantic validation | fatal dangling or ambiguous | [behavior model](../formal/participant-behavior-model/README.md) | [behavior semantics](../../implementations/python/packages/raes/semantics/participant_behavior/__init__.py) |
-| `behavior_specifications.*.outcome_interpretation_rule_refs[]` | `outcome_interpretation_rules` | semantic validation | fatal dangling or ambiguous | [behavior model](../formal/participant-behavior-model/README.md) | [behavior semantics](../../implementations/python/packages/raes/semantics/participant_behavior/__init__.py) |
-| `behavior_specifications.*.authority_scope_refs[]` | `targetable` | semantic validation | fatal dangling or ambiguous | [behavior model](../formal/participant-behavior-model/README.md) | [behavior validator](../../implementations/python/packages/raes/validator/_content_objectives.py) |
-| `behavior_specifications.*.tool_affordances.*.tool_ref` | `content` | semantic validation | fatal dangling, ambiguous, or outside the `scenario-content` tools-and-artifacts reference model | [participant semantics](../formal/participant-semantics/README.md) | [tool-affordance validator](../../implementations/python/packages/raes/validator/_participant_tool_affordances.py) |
-| `behavior_specifications.*.tool_affordances.*.action_contract_refs[]` | `action_contracts` | semantic validation | fatal dangling, outside the owning behavior specification, or outside a resolved participant | [participant semantics](../formal/participant-semantics/README.md) | [behavior semantics](../../implementations/python/packages/raes/semantics/participant_behavior/__init__.py) |
-| `behavior_specifications.*.tool_affordances.*.observation_boundary_refs[]` | `observation_boundaries` | semantic validation | fatal dangling, outside the owner/participant, or without explicit view classification | [participant semantics](../formal/participant-semantics/README.md) | [behavior semantics](../../implementations/python/packages/raes/semantics/participant_behavior/__init__.py) |
-| `behavior_specifications.*.participant_inject_deliveries.*.participant_ref` | `agents` | semantic validation | fatal dangling or outside the owning behavior specification | [participant semantics](../formal/participant-semantics/README.md) | [participant-inject delivery validator](../../implementations/python/packages/raes/validator/_participant_inject_deliveries.py) |
-| `behavior_specifications.*.participant_inject_deliveries.*.inject_ref` | `injects` | semantic validation | fatal dangling or outside the anchored event occurrence | [participant semantics](../formal/participant-semantics/README.md) | [participant-inject delivery validator](../../implementations/python/packages/raes/validator/_participant_inject_deliveries.py) |
-| `behavior_specifications.*.participant_inject_deliveries.*.occurrence.event_ref` | `events` | semantic validation | fatal dangling or not containing the bound inject | [participant semantics](../formal/participant-semantics/README.md) | [participant-inject delivery validator](../../implementations/python/packages/raes/validator/_participant_inject_deliveries.py) |
-| `behavior_specifications.*.participant_inject_deliveries.*.occurrence.script_ref` | `scripts` | semantic validation | fatal dangling or not containing the anchored event | [participant semantics](../formal/participant-semantics/README.md) | [participant-inject delivery validator](../../implementations/python/packages/raes/validator/_participant_inject_deliveries.py) |
-| `behavior_specifications.*.participant_inject_deliveries.*.occurrence.story_ref` | `stories` | semantic validation | fatal dangling or not containing the anchored script | [participant semantics](../formal/participant-semantics/README.md) | [participant-inject delivery validator](../../implementations/python/packages/raes/validator/_participant_inject_deliveries.py) |
-| `behavior_specifications.*.participant_inject_deliveries.*.source_item_ref` | `targetable` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) | [participant-inject delivery validator](../../implementations/python/packages/raes/validator/_participant_inject_deliveries.py) |
-| `behavior_specifications.*.participant_inject_deliveries.*.result_item_ref` | `targetable` | semantic validation | fatal dangling, ambiguous, hidden, or unclassified at the participant boundary | [participant semantics](../formal/participant-semantics/README.md) | [participant-inject delivery validator](../../implementations/python/packages/raes/validator/_participant_inject_deliveries.py) |
-| `behavior_specifications.*.participant_inject_deliveries.*.observation_boundary_ref` | `observation_boundaries` | semantic validation | fatal dangling or outside the owner/participant | [participant semantics](../formal/participant-semantics/README.md) | [participant-inject delivery validator](../../implementations/python/packages/raes/validator/_participant_inject_deliveries.py) |
-| `behavior_specifications.*.participant_inject_deliveries.*.temporal_constraint_refs[]` | `temporal_constraints` | semantic validation | fatal dangling or not binding this delivery declaration | [participant semantics](../formal/participant-semantics/README.md) | [participant-inject delivery validator](../../implementations/python/packages/raes/validator/_participant_inject_deliveries.py) |
-| `behavior_specifications.*.participant_inject_deliveries.*.evidence_requirement_refs[]` | `evidence_requirements` | semantic validation | fatal dangling or not binding this delivery declaration | [participant semantics](../formal/participant-semantics/README.md) | [participant-inject delivery validator](../../implementations/python/packages/raes/validator/_participant_inject_deliveries.py) |
-| `behavior_specifications.*.participant_inject_deliveries.*.control_transition_ref` | `derived:mixed_control_local_ids` | structural and semantic validation | fatal dangling, wrong-kind, or incomplete control agreement | [participant semantics](../formal/participant-semantics/README.md) | [participant-inject delivery validator](../../implementations/python/packages/raes/validator/_participant_inject_deliveries.py) |
-| `behavior_specifications.*.participant_inject_deliveries.*.controller_ref` | `agents` | semantic validation | fatal disagreement with the selected control-transition target controller | [participant semantics](../formal/participant-semantics/README.md) | [participant-inject delivery validator](../../implementations/python/packages/raes/validator/_participant_inject_deliveries.py) |
-| `behavior_specifications.*.participant_inject_deliveries.*.control_authority_scope_refs[]` | `targetable` | semantic validation | fatal dangling, ambiguous, or disagreement with the selected target-state scope | [participant semantics](../formal/participant-semantics/README.md) | [participant-inject delivery validator](../../implementations/python/packages/raes/validator/_participant_inject_deliveries.py) |
-| `behavior_specifications.*.participant_inject_deliveries.*.control_evidence_refs[]` | `targetable` | semantic validation | fatal dangling, control disagreement, or absent evidence-requirement coverage | [participant semantics](../formal/participant-semantics/README.md) | [participant-inject delivery validator](../../implementations/python/packages/raes/validator/_participant_inject_deliveries.py) |
-| `behavior_specifications.*.behavior_mode` | `vocabulary:behavior_mode` | structural validation | fatal invalid vocabulary value | [behavior model](../formal/participant-behavior-model/README.md) | [behavior model](../../implementations/python/packages/raes/participant_behavior/__init__.py) |
-| `behavior_specifications.*.mixed_control.participant_ref` | `agents` | semantic validation | fatal unless owned by the enclosing behavior specification | [behavior model](../formal/participant-behavior-model/README.md) | [behavior validator](../../implementations/python/packages/raes/validator/_mixed_control.py) |
-| `behavior_specifications.*.mixed_control.controller_states.*.controller_ref` | `agents-or-self` | semantic validation | fatal operator/role/identity impersonation or dangling agent | [behavior model](../formal/participant-behavior-model/README.md) | [behavior validator](../../implementations/python/packages/raes/validator/_mixed_control.py) |
-| `behavior_specifications.*.mixed_control.controller_states.*.authority_basis_refs[]` | `derived:controller_authority_anchors` | semantic validation | fatal dangling, ambiguous, or authority widening | [behavior model](../formal/participant-behavior-model/README.md) | [behavior validator](../../implementations/python/packages/raes/validator/_mixed_control.py) |
-| `execution_policy.default.clock_ref` | `clocks` | semantic validation | fatal dangling | [execution and recovery](execution-recovery.md) | [execution-policy validator](../../implementations/python/packages/raes/validator/_execution_policy.py) |
-| `execution_policy.default.evidence_refs[]` | `evidence_requirements` | semantic validation | fatal dangling | [execution and recovery](execution-recovery.md) | [execution-policy validator](../../implementations/python/packages/raes/validator/_execution_policy.py) |
-| `execution_policy.scopes[].policy.clock_ref` | `clocks` | semantic validation | fatal dangling | [execution and recovery](execution-recovery.md) | [execution-policy validator](../../implementations/python/packages/raes/validator/_execution_policy.py) |
-| `execution_policy.scopes[].policy.evidence_refs[]` | `evidence_requirements` | semantic validation | fatal dangling | [execution and recovery](execution-recovery.md) | [execution-policy validator](../../implementations/python/packages/raes/validator/_execution_policy.py) |
-| `clocks.*.time_domain_ref` | `time_domains` | semantic validation | fatal dangling | [shared time model](../formal/time-model/README.md) | [time-model validator](../../implementations/python/packages/raes/validator/_time_model.py) |
-| `time_domain_mappings.*.source_domain_ref` | `time_domains` | semantic validation | fatal dangling, duplicate, or cyclic mapping | [shared time model](../formal/time-model/README.md) | [time-model validator](../../implementations/python/packages/raes/validator/_time_model.py) |
-| `time_domain_mappings.*.target_domain_ref` | `time_domains` | semantic validation | fatal dangling, duplicate, or cyclic mapping | [shared time model](../formal/time-model/README.md) | [time-model validator](../../implementations/python/packages/raes/validator/_time_model.py) |
-| `time_progression_policies.*.clock_ref` | `clocks` | semantic validation | fatal dangling or incompatible reset/replay lifecycle | [shared time model](../formal/time-model/README.md) | [time-model validator](../../implementations/python/packages/raes/validator/_time_model.py) |
-| `temporal_constraints.*.clock_ref` | `clocks` | semantic validation | fatal dangling | [shared time model](../formal/time-model/README.md) | [time-model validator](../../implementations/python/packages/raes/validator/_time_model.py) |
-| `temporal_constraints.*.subject_refs[]` | `targetable` | semantic validation | fatal dangling or ambiguous | [shared time model](../formal/time-model/README.md) | [time-model validator](../../implementations/python/packages/raes/validator/_time_model.py) |
-| `behavior_specifications.*.mixed_control.controller_states.*.scope_refs[]` | `derived:behavior-and-controller-scope` | semantic validation | fatal dangling, ambiguous, or scope widening | [behavior model](../formal/participant-behavior-model/README.md) | [behavior validator](../../implementations/python/packages/raes/validator/_mixed_control.py) |
-| `behavior_specifications.*.mixed_control.controller_states.*.evidence_refs[]` | `declared` | semantic validation | fatal dangling or ambiguous | [behavior model](../formal/participant-behavior-model/README.md) | [behavior validator](../../implementations/python/packages/raes/validator/_mixed_control.py) |
-| `behavior_specifications.*.mixed_control.transitions.*.from_state_ref` | `derived:mixed_control_local_ids` | structural and semantic validation | fatal dangling, stale, reversed, or ambiguously ordered local ref | [behavior model](../formal/participant-behavior-model/README.md) | [behavior model](../../implementations/python/packages/raes/participant_behavior_specification.py) |
-| `behavior_specifications.*.mixed_control.transitions.*.to_state_ref` | `derived:mixed_control_local_ids` | structural and semantic validation | fatal dangling, stale, reversed, or ambiguously ordered local ref | [behavior model](../formal/participant-behavior-model/README.md) | [behavior model](../../implementations/python/packages/raes/participant_behavior_specification.py) |
-| `behavior_specifications.*.mixed_control.transitions.*.proposal_ref` | `derived:mixed_control_local_ids` | structural and semantic validation | fatal dangling, stale, reversed, or ambiguously ordered local ref | [behavior model](../formal/participant-behavior-model/README.md) | [behavior model](../../implementations/python/packages/raes/participant_behavior_specification.py) |
-| `behavior_specifications.*.mixed_control.transitions.*.evidence_refs[]` | `declared` | semantic validation | fatal dangling, ambiguous, or silent handoff | [behavior model](../formal/participant-behavior-model/README.md) | [behavior validator](../../implementations/python/packages/raes/validator/_mixed_control.py) |
-| `behavior_specifications.*.mixed_control.transitions.*.completion_evidence_refs[]` | `declared` | semantic validation | fatal dangling, ambiguous, or silent handoff | [behavior model](../formal/participant-behavior-model/README.md) | [behavior validator](../../implementations/python/packages/raes/validator/_mixed_control.py) |
-| `behavior_specifications.*.realization_profile_ref` | `opaque:realization_profile` | structural validation | fatal invalid reference shape; resolution belongs to realization | [behavior model](../formal/participant-behavior-model/README.md) | [behavior model](../../implementations/python/packages/raes/participant_behavior/__init__.py) |
-| `behavior_specifications.*.backend_feature_support_refs[]` | `registry:behavior_features` | semantic validation | fatal unsupported feature identifier | [behavior model](../formal/participant-behavior-model/README.md) | [behavior semantics](../../implementations/python/packages/raes/semantics/participant_behavior/__init__.py) |
-| `behavior_specifications.*.evidence_contract_refs[]` | `contract:participant_evidence` | semantic validation | fatal unknown contract identifier | [behavior model](../formal/participant-behavior-model/README.md) | [behavior semantics](../../implementations/python/packages/raes/semantics/participant_behavior/__init__.py) |
-| `evidence_requirements.*.source_refs[]` | `targetable` | semantic validation | fatal dangling or ambiguous | [evidence authoring](observability-and-evidence.md) | [evidence validator](../../implementations/python/packages/raes/validator/_evidence_requirements.py) |
-| `evidence_requirements.*.scope_refs[]` | `targetable` | semantic validation | fatal dangling or ambiguous | [evidence authoring](observability-and-evidence.md) | [evidence validator](../../implementations/python/packages/raes/validator/_evidence_requirements.py) |
-| `evidence_requirements.*.channel_refs[]` | `targetable` | semantic validation | fatal dangling or ambiguous | [evidence authoring](observability-and-evidence.md) | [evidence validator](../../implementations/python/packages/raes/validator/_evidence_requirements.py) |
-| `evidence_requirements.*.trigger_ref` | `targetable` | semantic validation | fatal dangling or ambiguous | [evidence authoring](observability-and-evidence.md) | [evidence validator](../../implementations/python/packages/raes/validator/_evidence_requirements.py) |
-| `evidence_requirements.*.boundary_ref` | `targetable` | semantic validation | fatal dangling or ambiguous | [evidence authoring](observability-and-evidence.md) | [evidence validator](../../implementations/python/packages/raes/validator/_evidence_requirements.py) |
-| `variation_points.*.target.variable` | `variables` | semantic validation | fatal dangling or wrong variable type | [variation points](variation-points.md) | [variation validator](../../implementations/python/packages/raes/validator/_variation.py) |
-| `variation_points.*.target.owner` | `targetable` | semantic validation | fatal dangling or wrong slot owner type | [variation points](variation-points.md) | [variation validator](../../implementations/python/packages/raes/validator/_variation.py) |
-| `variation_points.*.domain.allowed_refs[]` | `targetable` | semantic validation | fatal dangling or wrong slot candidate type | [variation points](variation-points.md) | [variation validator](../../implementations/python/packages/raes/validator/_variation.py) |
-| `variation_points.*.alternatives.*.reference` | `targetable` | semantic validation | fatal dangling or wrong slot candidate type | [variation points](variation-points.md) | [variation validator](../../implementations/python/packages/raes/validator/_variation.py) |
-| `variation_points.*.members.*.reference` | `targetable` | semantic validation | fatal dangling or wrong slot candidate type | [variation points](variation-points.md) | [variation validator](../../implementations/python/packages/raes/validator/_variation.py) |
-| `variation_points.*.alternatives.*.requires[].point` | `variation_points` | semantic validation | fatal dangling or ambiguous | [variation points](variation-points.md) | [variation validator](../../implementations/python/packages/raes/validator/_variation.py) |
-| `variation_points.*.alternatives.*.requires[].members[]` | `derived:variation_members` | semantic validation | fatal outside the resolved variation point | [variation points](variation-points.md) | [variation validator](../../implementations/python/packages/raes/validator/_variation.py) |
-| `variation_points.*.alternatives.*.excludes[].point` | `variation_points` | semantic validation | fatal dangling or ambiguous | [variation points](variation-points.md) | [variation validator](../../implementations/python/packages/raes/validator/_variation.py) |
-| `variation_points.*.alternatives.*.excludes[].members[]` | `derived:variation_members` | semantic validation | fatal outside the resolved variation point | [variation points](variation-points.md) | [variation validator](../../implementations/python/packages/raes/validator/_variation.py) |
-| `variation_points.*.members.*.requires[].point` | `variation_points` | semantic validation | fatal dangling or ambiguous | [variation points](variation-points.md) | [variation validator](../../implementations/python/packages/raes/validator/_variation.py) |
-| `variation_points.*.members.*.requires[].members[]` | `derived:variation_members` | semantic validation | fatal outside the resolved variation point | [variation points](variation-points.md) | [variation validator](../../implementations/python/packages/raes/validator/_variation.py) |
-| `variation_points.*.members.*.excludes[].point` | `variation_points` | semantic validation | fatal dangling or ambiguous | [variation points](variation-points.md) | [variation validator](../../implementations/python/packages/raes/validator/_variation.py) |
-| `variation_points.*.members.*.excludes[].members[]` | `derived:variation_members` | semantic validation | fatal outside the resolved variation point | [variation points](variation-points.md) | [variation validator](../../implementations/python/packages/raes/validator/_variation.py) |
-| `variation_points.*.precedence[].before` | `derived:variation_members` | structural validation | fatal outside the owning order point | [variation points](variation-points.md) | [variation validator](../../implementations/python/packages/raes/validator/_variation.py) |
-| `variation_points.*.precedence[].after` | `derived:variation_members` | structural validation | fatal outside the owning order point | [variation points](variation-points.md) | [variation validator](../../implementations/python/packages/raes/validator/_variation.py) |
-| `variation_points.*.fixed_positions.*.$key` | `derived:variation_members` | structural validation | fatal outside the owning order point | [variation points](variation-points.md) | [variation validator](../../implementations/python/packages/raes/validator/_variation.py) |
-| `objectives.*.assigned_participant` | `agents` | semantic validation | fatal dangling or ambiguous | [objective semantics](../formal/objectives/declarative-objective-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |
-| `objectives.*.owner` | `entities` | semantic validation | fatal dangling or ambiguous | [objective semantics](../formal/objectives/declarative-objective-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |
-| `objectives.*.actions[]` | `action_contracts` | semantic validation | fatal undeclared contract or outside assigned participant actions | [objective semantics](../formal/objectives/declarative-objective-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |
-| `objectives.*.targets[]` | `targetable` | semantic validation | fatal dangling or ambiguous | [objective semantics](../formal/objectives/declarative-objective-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |
-| `objectives.*.success.assertions[]` | `assertions` | semantic validation | fatal dangling, ambiguous, or precondition role | [proposition semantics](../formal/objectives/proposition-and-assertion-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |
-| `objectives.*.depends_on[]` | `objectives` | semantic validation | fatal dangling, ambiguous, or cyclic | [objective semantics](../formal/objectives/declarative-objective-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |
-| `objectives.*.window.stories[]` | `stories` | semantic validation | fatal dangling or ambiguous | [objective semantics](../formal/objectives/declarative-objective-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |
-| `objectives.*.window.scripts[]` | `scripts` | semantic validation | fatal dangling or outside referenced stories | [objective semantics](../formal/objectives/declarative-objective-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |
-| `objectives.*.window.events[]` | `events` | semantic validation | fatal dangling or outside referenced scripts | [objective semantics](../formal/objectives/declarative-objective-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |
-| `objectives.*.window.workflows[]` | `workflows` | semantic validation | fatal dangling or ambiguous | [objective semantics](../formal/objectives/declarative-objective-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |
-| `objectives.*.window.steps[]` | `workflow_steps` | semantic validation | fatal malformed, dangling, or outside referenced workflows | [objective semantics](../formal/objectives/declarative-objective-semantics.md) | [objective semantics](../../implementations/python/packages/raes/semantics/objective_semantics/__init__.py) |
-| `workflows.*.start` | `workflow_steps` | semantic validation | fatal dangling step | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.when.assertions[]` | `assertions` | semantic validation | fatal dangling, ambiguous, or non-precondition role | [proposition semantics](../formal/objectives/proposition-and-assertion-semantics.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.when.objectives[]` | `objectives` | semantic validation | fatal dangling or ambiguous | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.when.steps.*.step` | `workflow_steps` | semantic validation | fatal dangling, self-referential, non-executable, or unavailable before evaluation | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.cases.*.when.assertions[]` | `assertions` | semantic validation | fatal dangling, ambiguous, or non-precondition role | [proposition semantics](../formal/objectives/proposition-and-assertion-semantics.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.cases.*.when.objectives[]` | `objectives` | semantic validation | fatal dangling or ambiguous | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.cases.*.when.steps.*.step` | `workflow_steps` | semantic validation | fatal dangling, self-referential, non-executable, or unavailable before evaluation | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.objective` | `objectives` | semantic validation | fatal dangling or ambiguous | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.procedure_ref` | `action_contracts` | semantic validation | fatal dangling or non-procedure granularity | [goal-oriented step semantics](../formal/workflows/goal-oriented-steps.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.scaffold_refs[]` | `observation_boundaries` | semantic validation | fatal dangling or scaffold-incompatible boundary | [goal-oriented step semantics](../formal/workflows/goal-oriented-steps.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.allowed_action_families[]` | `action_contracts` | semantic validation | fatal dangling or non-aggregate granularity | [goal-oriented step semantics](../formal/workflows/goal-oriented-steps.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.next` | `workflow_steps` | semantic validation | fatal dangling, cyclic, or unreachable | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.on_success` | `workflow_steps` | semantic validation | fatal dangling, cyclic, or unreachable | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.on_failure` | `workflow_steps` | semantic validation | fatal dangling, cyclic, or unreachable | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.on_exhausted` | `workflow_steps` | semantic validation | fatal dangling, cyclic, or unreachable | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.then` | `workflow_steps` | semantic validation | fatal dangling, cyclic, or unreachable | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.else` | `workflow_steps` | semantic validation | fatal dangling, cyclic, or unreachable | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.cases.*.next` | `workflow_steps` | semantic validation | fatal dangling, cyclic, or unreachable | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.default` | `workflow_steps` | semantic validation | fatal dangling, cyclic, or unreachable | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.branches[]` | `workflow_steps` | semantic validation | fatal dangling or outside a closed parallel branch | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.join` | `workflow_steps` | semantic validation | fatal dangling, non-join, multiply owned, or outside branch closure | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.workflow` | `workflows` | semantic validation | fatal dangling or cyclic | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
-| `workflows.*.steps.*.compensate_with` | `workflows` | semantic validation | fatal dangling, cyclic, or invalid as a compensation target | [workflow semantics](../formal/workflows/state-machine.md) | [workflow validator](../../implementations/python/packages/raes/validator/_workflows_verify.py) |
+| Source path | Candidate domain | Resolution phase | Failure | Normative owner |
+| --- | --- | --- | --- | --- |
+| `nodes.*.features[]` | `features` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `nodes.*.features.*` | `derived:node_roles` | semantic validation | fatal dangling role when non-empty | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `nodes.*.conditions[]` | `conditions` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `nodes.*.conditions.*` | `derived:node_roles` | semantic validation | fatal dangling role when non-empty | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `conditions.*.proposition` | `propositions` | semantic validation | fatal dangling or ambiguous when present | [proposition semantics](../formal/objectives/proposition-and-assertion-semantics.md) |
+| `propositions.*.subjects[]` | `eligible:observation_subject` | semantic validation | fatal dangling or ambiguous | [proposition semantics](../formal/objectives/proposition-and-assertion-semantics.md) |
+| `propositions.*.evidence_requirements[]` | `evidence_requirements` | semantic validation | fatal dangling or ambiguous | [proposition semantics](../formal/objectives/proposition-and-assertion-semantics.md) |
+| `assertions.*.proposition` | `propositions` | semantic validation | fatal dangling or ambiguous | [proposition semantics](../formal/objectives/proposition-and-assertion-semantics.md) |
+| `nodes.*.injects[]` | `injects` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `nodes.*.injects.*` | `derived:node_roles` | semantic validation | fatal dangling role when non-empty | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `nodes.*.roles.*.entities[]` | `entities` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `infrastructure.*.$key` | `nodes` | semantic validation | fatal when no same-named node exists | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `infrastructure.*.links[]` | `infrastructure` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `infrastructure.*.properties[].*` | `infrastructure` | semantic validation | fatal unless the key names a linked switch-backed entry | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `infrastructure.*.acls[].from_net` | `infrastructure` | semantic validation | fatal unless the target is switch-backed | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `infrastructure.*.acls[].to_net` | `infrastructure` | semantic validation | fatal unless the target is switch-backed | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `infrastructure.*.dependencies[]` | `infrastructure` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `features.*.dependencies[]` | `features` | semantic validation | fatal dangling, ambiguous, or cyclic | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `entities.*.events[]` | `events` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `injects.*.from_entity` | `entities` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `injects.*.to_entities[]` | `entities` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `events.*.assertions[]` | `assertions` | semantic validation | fatal dangling, ambiguous, or non-precondition role | [proposition semantics](../formal/objectives/proposition-and-assertion-semantics.md) |
+| `events.*.injects[]` | `injects` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `scripts.*.events[]` | `events` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `stories.*.scripts[]` | `scripts` | semantic validation | fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `content.*.target` | `nodes` | semantic validation | fatal unless target is a compute node | [initial service state](initial-service-state.md) |
+| `content.*.service_materialization.target_service_ref` | `derived:node_services` | semantic validation | fatal unless the exact service exists on the content target compute node | [initial service state](initial-service-state.md) |
+| `content.*.service_materialization.shared_service_relationship_ref` | `relationships` | semantic validation | fatal unless a matching typed shared-service relationship owns cross-tenant mutable state/reset | [initial service state](initial-service-state.md) |
+| `content.*.service_materialization.ordering_content_refs[]` | `content` | semantic validation and planner ordering | fatal dangling, self, or cyclic dependency | [initial service state](initial-service-state.md) |
+| `content.*.service_materialization.readback_assertion_refs[]` | `assertions` | semantic validation | fatal unless each ref is an observed-state postcondition | [initial service state](initial-service-state.md) |
+| `content.*.service_materialization.evidence_requirement_refs[]` | `evidence_requirements` | semantic validation | fatal unless each ref exists and every readback proposition requires it | [initial service state](initial-service-state.md) |
+| `content.*.service_materialization.observation_boundary_refs[]` | `observation_boundaries` | semantic validation | fatal dangling ref | [initial service state](initial-service-state.md) |
+| `generated_artifacts.*.consumers[].node` | `nodes` | structural model validation | fatal dangling or ambiguous | [stateful resources](stateful-resources.md) |
+| `generated_artifacts.*.ordering_dependencies[]` | `generated_artifacts,persistent_volumes` | structural model and planner graph validation | fatal dangling, ambiguous, or cyclic | [stateful resources](stateful-resources.md) |
+| `generated_artifacts.*.refresh_dependencies[]` | `generated_artifacts,persistent_volumes` | structural model validation | fatal dangling or ambiguous | [stateful resources](stateful-resources.md) |
+| `persistent_volumes.*.consumers[].node` | `nodes` | structural model validation | fatal dangling or ambiguous | [stateful resources](stateful-resources.md) |
+| `persistent_volumes.*.ordering_dependencies[]` | `generated_artifacts,persistent_volumes` | structural model and planner graph validation | fatal dangling, ambiguous, or cyclic | [stateful resources](stateful-resources.md) |
+| `persistent_volumes.*.refresh_dependencies[]` | `generated_artifacts,persistent_volumes` | structural model validation | fatal dangling or ambiguous | [stateful resources](stateful-resources.md) |
+| `accounts.*.domain_ref` | `identity_domains` | semantic validation | fatal dangling, ambiguous, or inconsistent topology | [authored domain topology](authored-domain-topology.md) |
+| `identity_domains.*.authority_account_ref` | `accounts` | semantic validation | fatal dangling, ambiguous, or authority outside domain controllers | [authored domain topology](authored-domain-topology.md) |
+| `identity_forests.*.root_domain_ref` | `identity_domains` | semantic validation | fatal dangling or root outside declared membership | [enterprise identity and deployment tenancy](enterprise-deployment-tenancy.md) |
+| `identity_forests.*.domain_refs[]` | `identity_domains` | semantic validation | fatal dangling, duplicate, or domain in multiple forests | [enterprise identity and deployment tenancy](enterprise-deployment-tenancy.md) |
+| `identity_facades.*.service_ref` | `targetable` | semantic validation | fatal unless target is a named compute service | [enterprise identity and deployment tenancy](enterprise-deployment-tenancy.md) |
+| `deployment_cells.*.tenant_ref` | `deployment_tenants` | semantic validation | fatal dangling or ambiguous | [enterprise identity and deployment tenancy](enterprise-deployment-tenancy.md) |
+| `deployment_cells.*.node_refs[]` | `nodes` | semantic validation | fatal dangling, duplicate, or node in multiple cells | [enterprise identity and deployment tenancy](enterprise-deployment-tenancy.md) |
+| `accounts.*.node` | `nodes` | semantic validation | fatal unless target is a compute node | [reference rules](#5-cross-section-reference-edge-catalog) |
+| `relationships.*.source` | `eligible:relationship_endpoint` | semantic validation | fatal dangling or ambiguous; subtype may narrow domain | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) |
+| `relationships.*.target` | `eligible:relationship_endpoint` | semantic validation | fatal dangling or ambiguous; subtype may narrow domain | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) |
+| `relationships.*.participant.source_action_refs[]` | `action_contracts` | semantic validation and instantiation | fatal dangling, duplicate alias, or action unavailable to source | [participant relationships](participant-relationships.md) |
+| `relationships.*.participant.target_action_refs[]` | `action_contracts` | semantic validation and instantiation | fatal dangling, duplicate alias, or action unavailable to target | [participant relationships](participant-relationships.md) |
+| `relationships.*.participant.objective_refs[]` | `objectives` | semantic validation and instantiation | fatal dangling, duplicate alias, or unrelated objective owner | [participant relationships](participant-relationships.md) |
+| `relationships.*.participant.behavior_specification_refs[]` | `behavior_specifications` | semantic validation and instantiation | fatal dangling, duplicate alias, or unrelated participant binding | [participant relationships](participant-relationships.md) |
+| `relationships.*.participant.authority_basis_refs[]` | `eligible:authority_anchor` | semantic validation and instantiation | fatal dangling, ambiguous, duplicate alias, or wider than source authority | [participant relationships](participant-relationships.md) |
+| `relationships.*.participant.scope_refs[]` | `derived:operating_scope` | semantic validation and instantiation | fatal duplicate alias or outside spatial/resource scope of either endpoint or selected control policy | [participant relationships](participant-relationships.md) |
+| `relationships.*.participant.observation_boundary_refs[]` | `observation_boundaries` | semantic validation and instantiation | fatal dangling, duplicate alias, or unavailable source observation | [participant relationships](participant-relationships.md) |
+| `relationships.*.participant.control_specification_ref` | `behavior_specifications` | semantic validation and instantiation | fatal missing mixed-control policy or contradictory controller direction/scope | [participant relationships](participant-relationships.md) |
+| `relationships.*.database_access.role_ref` | `derived:database_roles` | semantic validation | fatal outside the target database service | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) |
+| `relationships.*.mail_access.listener_ref` | `derived:mail_listeners` | semantic validation | fatal outside the target mail service | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) |
+| `relationships.*.mail_access.mailbox_ref` | `derived:mailboxes` | semantic validation | fatal outside the target mail service | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) |
+| `relationships.*.mail_access.domain_ref` | `derived:mail_domains` | semantic validation | fatal outside the target mail service | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) |
+| `relationships.*.forwarding_edge.forwarder_ref` | `runtime:forwarding_agents` | semantic validation | fatal dangling or ambiguous across scenario and node scopes | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) |
+| `relationships.*.service_integration.consumer_ref` | `runtime:platform_applications` | semantic validation | fatal dangling or ambiguous | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) |
+| `relationships.*.service_integration.engine_ref` | `runtime:platform_applications` | semantic validation | fatal dangling or ambiguous | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) |
+| `relationships.*.service_integration.auth_principal_ref` | `derived:engine_authorization_principals` | semantic validation | fatal outside the engine authorization scope | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) |
+| `relationships.*.proxy_upstream.route_ref` | `derived:source_application_routes` | semantic validation | fatal outside the source application | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) |
+| `relationships.*.proxy_upstream.upstream_node_ref` | `nodes` | semantic validation | fatal dangling or ambiguous | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) |
+| `relationships.*.proxy_upstream.upstream_service_ref` | `derived:upstream_node_services` | semantic validation | fatal without a resolvable upstream node and service | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) |
+| `relationships.*.domain_join.controller_refs[]` | `nodes` | semantic validation | fatal dangling, ambiguous, or controller outside target domain | [authored domain topology](authored-domain-topology.md) |
+| `relationships.*.shared_service.mutable_state_refs[]` | `persistent_volumes` | semantic validation | fatal dangling or conflicting state ownership | [enterprise identity and deployment tenancy](enterprise-deployment-tenancy.md) |
+| `agents.*.affiliations[]` | `entities` | semantic validation | fatal dangling or ambiguous | [participant identity](participant-identity.md) |
+| `agents.*.actions[]` | `action_contracts` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) |
+| `agents.*.starting_accounts[]` | `accounts` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) |
+| `agents.*.control_context.*.declaration_ref` | `control_context_assets` | semantic validation and instantiation | fatal missing, ambiguous, incompatible, stale, or competing selection | [control-context references](participant-control-context.md) |
+| `behavior_specifications.*.control_context.*.declaration_ref` | `control_context_assets` | semantic validation and instantiation | fatal missing, ambiguous, incompatible, stale, or competing selection | [control-context references](participant-control-context.md) |
+| `agents.*.interactive_access.*.target_ref` | `nodes` | semantic validation | fatal dangling, ambiguous, or non-compute target | [participant semantics](../formal/participant-semantics/README.md) |
+| `agents.*.interactive_access.*.account_ref` | `accounts` | semantic validation | fatal dangling, same-node mismatch, or outside participant starting accounts | [participant semantics](../formal/participant-semantics/README.md) |
+| `agents.*.starting_assertions[]` | `assertions` | semantic validation | fatal dangling, ambiguous, or non-precondition role | [participant semantics](../formal/participant-semantics/README.md) |
+| `agents.*.initial_knowledge.hosts[]` | `nodes` | semantic validation | fatal unless the target is a compute node | [participant semantics](../formal/participant-semantics/README.md) |
+| `agents.*.initial_knowledge.subnets[]` | `infrastructure` | semantic validation | fatal unless the target is switch-backed | [participant semantics](../formal/participant-semantics/README.md) |
+| `agents.*.initial_knowledge.services[]` | `derived:node_services` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) |
+| `agents.*.initial_knowledge.accounts[]` | `accounts` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) |
+| `agents.*.allowed_subnets[]` | `infrastructure` | semantic validation | fatal unless the target is switch-backed | [participant semantics](../formal/participant-semantics/README.md) |
+| `agents.*.authority_anchors[]` | `eligible:authority_anchor` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) |
+| `agents.*.operating_scope[]` | `derived:operating_scope` | semantic validation | fatal dangling or ambiguous outside compute nodes, switch-backed infrastructure, services, and content | [participant semantics](../formal/participant-semantics/README.md) |
+| `agents.*.observation_boundaries[]` | `observation_boundaries` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) |
+| `action_contracts.*.interactions.*.related_actions[]` | `action_contracts` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) |
+| `action_contracts.*.interactions.*.target` | `eligible:action_target` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) |
+| `action_contracts.*.interactions.*.shared_state_refs[]` | `eligible:shared_state` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) |
+| `action_contracts.*.effects.*.target_refs[]` | `eligible:action_target` | semantic validation | fatal dangling or ambiguous when it names a declaration; other refs are boundary information | [reference purposes](#7-reference-purposes-and-eligibility) |
+| `action_contracts.*.temporal_contracts.*.backend_disclosure_refs[]` | `derived:backend_timing_disclosures` | structural validation | fatal dangling local disclosure id | [participant semantics](../formal/participant-semantics/README.md) |
+| `action_contracts.*.backend_timing_disclosures.*.affected_temporal_ids[]` | `derived:temporal_contracts` | structural validation | fatal dangling local temporal id | [participant semantics](../formal/participant-semantics/README.md) |
+| `observation_boundaries.*.view_rules.*.information_ref` | `derived:boundary_information` | semantic validation | fatal outside declared boundary information | [participant semantics](../formal/participant-semantics/README.md) |
+| `observation_boundaries.*.view_rules.*.evidence_refs[]` | `derived:boundary_evidence` | semantic validation | fatal outside declared boundary evidence | [participant semantics](../formal/participant-semantics/README.md) |
+| `observation_boundaries.*.view_transitions.*.information_ref` | `derived:boundary_view_rules` | semantic validation | fatal without a matching view rule | [participant semantics](../formal/participant-semantics/README.md) |
+| `observation_boundaries.*.view_transitions.*.evidence_refs[]` | `derived:boundary_evidence` | semantic validation | fatal outside declared boundary evidence | [participant semantics](../formal/participant-semantics/README.md) |
+| `outcome_interpretation_rules.*.source_bindings.*.ref` | `action_contracts,objectives,workflows` | semantic validation | fatal dangling for SDL-bound layers | [participant semantics](../formal/participant-semantics/README.md) |
+| `outcome_interpretation_rules.*.target_bindings.*.ref` | `objectives,workflows` | semantic validation | fatal dangling for SDL-bound layers | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.participant_refs[]` | `agents` | semantic validation | fatal dangling or ambiguous | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.participant_role_refs[]` | `derived:agent_roles` | semantic validation | fatal unless bound by a referenced participant | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.action_contract_refs[]` | `action_contracts` | semantic validation | fatal dangling or ambiguous | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.observation_boundary_refs[]` | `observation_boundaries` | semantic validation | fatal dangling or ambiguous | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.outcome_interpretation_rule_refs[]` | `outcome_interpretation_rules` | semantic validation | fatal dangling or ambiguous | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.authority_scope_refs[]` | `eligible:authority_scope` | semantic validation | fatal dangling or ambiguous | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.tool_affordances.*.tool_ref` | `content` | semantic validation | fatal dangling, ambiguous, or outside the `scenario-content` tools-and-artifacts reference model | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.tool_affordances.*.action_contract_refs[]` | `action_contracts` | semantic validation | fatal dangling, outside the owning behavior specification, or outside a resolved participant | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.tool_affordances.*.observation_boundary_refs[]` | `observation_boundaries` | semantic validation | fatal dangling, outside the owner/participant, or without explicit view classification | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.tool_affordances.*.participant_refs[]` | `agents` | semantic validation | fatal dangling, outside the owning behavior specification, or an authored `__private` segment | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.tool_affordances.*.participant_role_refs[]` | `derived:agent_roles` | semantic validation | fatal unless at least one participant has the role and every participant with the role is inside the owning behavior specification | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.participant_inject_deliveries.*.participant_ref` | `agents` | semantic validation | fatal dangling or outside the owning behavior specification | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.participant_inject_deliveries.*.inject_ref` | `injects` | semantic validation | fatal dangling or outside the anchored event occurrence | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.participant_inject_deliveries.*.occurrence.event_ref` | `events` | semantic validation | fatal dangling or not containing the bound inject | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.participant_inject_deliveries.*.occurrence.script_ref` | `scripts` | semantic validation | fatal dangling or not containing the anchored event | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.participant_inject_deliveries.*.occurrence.story_ref` | `stories` | semantic validation | fatal dangling or not containing the anchored script | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.participant_inject_deliveries.*.source_item_ref` | `targetable` | semantic validation | fatal dangling or ambiguous | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.participant_inject_deliveries.*.result_item_ref` | `targetable` | semantic validation | fatal dangling, ambiguous, hidden, or unclassified at the participant boundary | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.participant_inject_deliveries.*.observation_boundary_ref` | `observation_boundaries` | semantic validation | fatal dangling or outside the owner/participant | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.participant_inject_deliveries.*.temporal_constraint_refs[]` | `temporal_constraints` | semantic validation | fatal dangling or not binding this delivery declaration | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.participant_inject_deliveries.*.evidence_requirement_refs[]` | `evidence_requirements` | semantic validation | fatal dangling or not binding this delivery declaration | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.participant_inject_deliveries.*.control_transition_ref` | `derived:mixed_control_local_ids` | structural and semantic validation | fatal dangling, wrong-kind, or incomplete control agreement | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.participant_inject_deliveries.*.controller_ref` | `agents` | semantic validation | fatal disagreement with the selected control-transition target controller | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.participant_inject_deliveries.*.control_authority_scope_refs[]` | `eligible:authority_scope` | semantic validation | fatal dangling, ambiguous, or disagreement with the selected target-state scope | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.participant_inject_deliveries.*.control_evidence_refs[]` | `targetable` | semantic validation | fatal dangling, control disagreement, or absent evidence-requirement coverage | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.participant_inject_deliveries.*.control.permitted_transition_ref` | `derived:mixed_control_local_ids` | semantic validation | fatal dangling, wrong-kind, or cross-form binding | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.participant_inject_deliveries.*.control.controller_ref` | `derived:source-state-controller` | semantic validation | fatal unless the permitted transition's source-state controller | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.participant_inject_deliveries.*.control.authority_scope_refs[]` | `derived:source-state-scope` | semantic validation | fatal dangling, ambiguous, or widening the source-state scope | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.participant_inject_deliveries.*.control.evidence_refs[]` | `targetable` | semantic validation | fatal outside the transition and source-state evidence, or absent evidence-requirement coverage | [participant semantics](../formal/participant-semantics/README.md) |
+| `behavior_specifications.*.behavior_mode` | `vocabulary:behavior_mode` | structural validation | fatal invalid vocabulary value | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.mixed_control.participant_ref` | `agents` | semantic validation | fatal unless owned by the enclosing behavior specification | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.mixed_control.controller_states.*.controller_ref` | `agents-or-self` | semantic validation | fatal operator/role/identity impersonation or dangling agent | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.mixed_control.controller_states.*.authority_basis_refs[]` | `derived:controller_authority_anchors` | semantic validation | fatal dangling, ambiguous, or authority widening | [behavior model](../formal/participant-behavior-model/README.md) |
+| `safe_state.default.assertion_refs[]` | `assertions` | semantic validation | fatal unless observed positive postconditions cover each exact target | [safe state](safe-state.md) |
+| `safe_state.scopes[].state.assertion_refs[]` | `assertions` | semantic validation | fatal unless observed positive postconditions cover each exact target | [safe state](safe-state.md) |
+| `execution_policy.default.clock_ref` | `clocks` | semantic validation | fatal dangling | [execution and recovery](execution-recovery.md) |
+| `execution_policy.default.evidence_refs[]` | `evidence_requirements` | semantic validation | fatal dangling | [execution and recovery](execution-recovery.md) |
+| `execution_policy.scopes[].policy.clock_ref` | `clocks` | semantic validation | fatal dangling | [execution and recovery](execution-recovery.md) |
+| `execution_policy.scopes[].policy.evidence_refs[]` | `evidence_requirements` | semantic validation | fatal dangling | [execution and recovery](execution-recovery.md) |
+| `clocks.*.time_domain_ref` | `time_domains` | semantic validation | fatal dangling | [shared time model](../formal/time-model/README.md) |
+| `time_domain_mappings.*.source_domain_ref` | `time_domains` | semantic validation | fatal dangling, duplicate, or cyclic mapping | [shared time model](../formal/time-model/README.md) |
+| `time_domain_mappings.*.target_domain_ref` | `time_domains` | semantic validation | fatal dangling, duplicate, or cyclic mapping | [shared time model](../formal/time-model/README.md) |
+| `time_progression_policies.*.clock_ref` | `clocks` | semantic validation | fatal dangling or incompatible reset/replay lifecycle | [shared time model](../formal/time-model/README.md) |
+| `temporal_constraints.*.clock_ref` | `clocks` | semantic validation | fatal dangling | [shared time model](../formal/time-model/README.md) |
+| `temporal_constraints.*.subject_refs[]` | `declared` | semantic validation | fatal dangling or ambiguous | [shared time model](../formal/time-model/README.md) |
+| `behavior_specifications.*.mixed_control.controller_states.*.scope_refs[]` | `derived:behavior-and-controller-scope` | semantic validation | fatal dangling, ambiguous, or scope widening | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.mixed_control.controller_states.*.evidence_refs[]` | `declared` | semantic validation | fatal dangling or ambiguous | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.mixed_control.transitions.*.from_state_ref` | `derived:mixed_control_local_ids` | structural and semantic validation | fatal dangling, stale, reversed, or ambiguously ordered local ref | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.mixed_control.transitions.*.to_state_ref` | `derived:mixed_control_local_ids` | structural and semantic validation | fatal dangling, stale, reversed, or ambiguously ordered local ref | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.mixed_control.transitions.*.proposal_ref` | `derived:mixed_control_local_ids` | structural and semantic validation | fatal dangling, stale, reversed, or ambiguously ordered local ref | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.mixed_control.transitions.*.evidence_refs[]` | `declared` | semantic validation | fatal dangling, ambiguous, or silent handoff | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.mixed_control.transitions.*.completion_evidence_refs[]` | `declared` | semantic validation | fatal dangling, ambiguous, or silent handoff | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.mixed_control.permitted_transitions.*.from_state_ref` | `derived:mixed_control_local_ids` | structural and semantic validation | fatal dangling local ref, revoked source, or disjoint window | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.mixed_control.permitted_transitions.*.to_state_ref` | `derived:mixed_control_local_ids` | structural and semantic validation | fatal dangling local ref, revoked destination, disjoint window, or controller change outside a handoff | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.mixed_control.permitted_transitions.*.evidence_refs[]` | `declared` | semantic validation | fatal dangling or ambiguous | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.mixed_control.permitted_transitions.*.completion_evidence_refs[]` | `declared` | structural and semantic validation | fatal dangling, ambiguous, or absent on a handoff | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.mixed_control.script_steps[].permitted_transition_ref` | `derived:mixed_control_local_ids` | structural validation | fatal dangling local ref | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.mixed_control.script_steps[].target_step_ref` | `derived:mixed_control_local_ids` | semantic validation | fatal unless an earlier step produces exactly one eligible target | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.realization_profile_ref` | `opaque:realization_profile` | structural validation | fatal invalid reference shape; resolution belongs to realization | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.backend_feature_support_refs[]` | `registry:behavior_features` | semantic validation | fatal unsupported feature identifier | [behavior model](../formal/participant-behavior-model/README.md) |
+| `behavior_specifications.*.evidence_contract_refs[]` | `contract:participant_evidence` | semantic validation | fatal unknown contract identifier | [behavior model](../formal/participant-behavior-model/README.md) |
+| `evidence_requirements.*.source_refs[]` | `eligible:observation_subject` | semantic validation | fatal dangling or ambiguous | [evidence authoring](observability-and-evidence.md) |
+| `evidence_requirements.*.scope_refs[]` | `eligible:observation_subject` | semantic validation | fatal dangling or ambiguous | [evidence authoring](observability-and-evidence.md) |
+| `evidence_requirements.*.channel_refs[]` | `targetable` | semantic validation | fatal dangling or ambiguous | [evidence authoring](observability-and-evidence.md) |
+| `evidence_requirements.*.trigger_ref` | `targetable` | semantic validation | fatal dangling or ambiguous | [evidence authoring](observability-and-evidence.md) |
+| `evidence_requirements.*.boundary_ref` | `targetable` | semantic validation | fatal dangling or ambiguous | [evidence authoring](observability-and-evidence.md) |
+| `variation_points.*.target.variable` | `variables` | semantic validation | fatal dangling or wrong variable type | [variation points](variation-points.md) |
+| `variation_points.*.target.owner` | `targetable` | semantic validation | fatal dangling or wrong slot owner type | [variation points](variation-points.md) |
+| `variation_points.*.domain.allowed_refs[]` | `targetable` | semantic validation | fatal dangling or wrong slot candidate type | [variation points](variation-points.md) |
+| `variation_points.*.alternatives.*.reference` | `targetable` | semantic validation | fatal dangling or wrong slot candidate type | [variation points](variation-points.md) |
+| `variation_points.*.members.*.reference` | `targetable` | semantic validation | fatal dangling or wrong slot candidate type | [variation points](variation-points.md) |
+| `variation_points.*.alternatives.*.requires[].point` | `variation_points` | semantic validation | fatal dangling or ambiguous | [variation points](variation-points.md) |
+| `variation_points.*.alternatives.*.requires[].members[]` | `derived:variation_members` | semantic validation | fatal outside the resolved variation point | [variation points](variation-points.md) |
+| `variation_points.*.alternatives.*.excludes[].point` | `variation_points` | semantic validation | fatal dangling or ambiguous | [variation points](variation-points.md) |
+| `variation_points.*.alternatives.*.excludes[].members[]` | `derived:variation_members` | semantic validation | fatal outside the resolved variation point | [variation points](variation-points.md) |
+| `variation_points.*.members.*.requires[].point` | `variation_points` | semantic validation | fatal dangling or ambiguous | [variation points](variation-points.md) |
+| `variation_points.*.members.*.requires[].members[]` | `derived:variation_members` | semantic validation | fatal outside the resolved variation point | [variation points](variation-points.md) |
+| `variation_points.*.members.*.excludes[].point` | `variation_points` | semantic validation | fatal dangling or ambiguous | [variation points](variation-points.md) |
+| `variation_points.*.members.*.excludes[].members[]` | `derived:variation_members` | semantic validation | fatal outside the resolved variation point | [variation points](variation-points.md) |
+| `variation_points.*.precedence[].before` | `derived:variation_members` | structural validation | fatal outside the owning order point | [variation points](variation-points.md) |
+| `variation_points.*.precedence[].after` | `derived:variation_members` | structural validation | fatal outside the owning order point | [variation points](variation-points.md) |
+| `variation_points.*.fixed_positions.*.$key` | `derived:variation_members` | structural validation | fatal outside the owning order point | [variation points](variation-points.md) |
+| `objectives.*.assigned_participant` | `agents` | semantic validation | fatal dangling or ambiguous | [objective semantics](../formal/objectives/declarative-objective-semantics.md) |
+| `objectives.*.owner` | `entities` | semantic validation | fatal dangling or ambiguous | [objective semantics](../formal/objectives/declarative-objective-semantics.md) |
+| `objectives.*.actions[]` | `action_contracts` | semantic validation | fatal undeclared contract or outside assigned participant actions | [objective semantics](../formal/objectives/declarative-objective-semantics.md) |
+| `objectives.*.targets[]` | `eligible:objective_subject` | semantic validation | fatal dangling or ambiguous | [objective semantics](../formal/objectives/declarative-objective-semantics.md) |
+| `objectives.*.success.assertions[]` | `assertions` | semantic validation | fatal dangling, ambiguous, or precondition role | [proposition semantics](../formal/objectives/proposition-and-assertion-semantics.md) |
+| `objectives.*.depends_on[]` | `objectives` | semantic validation | fatal dangling, ambiguous, or cyclic | [objective semantics](../formal/objectives/declarative-objective-semantics.md) |
+| `objectives.*.window.stories[]` | `stories` | semantic validation | fatal dangling or ambiguous | [objective semantics](../formal/objectives/declarative-objective-semantics.md) |
+| `objectives.*.window.scripts[]` | `scripts` | semantic validation | fatal dangling or outside referenced stories | [objective semantics](../formal/objectives/declarative-objective-semantics.md) |
+| `objectives.*.window.events[]` | `events` | semantic validation | fatal dangling or outside referenced scripts | [objective semantics](../formal/objectives/declarative-objective-semantics.md) |
+| `objectives.*.window.workflows[]` | `workflows` | semantic validation | fatal dangling or ambiguous | [objective semantics](../formal/objectives/declarative-objective-semantics.md) |
+| `objectives.*.window.steps[]` | `workflow_steps` | semantic validation | fatal malformed, dangling, or outside referenced workflows | [objective semantics](../formal/objectives/declarative-objective-semantics.md) |
+| `workflows.*.start` | `workflow_steps` | semantic validation | fatal dangling step | [workflow semantics](../formal/workflows/state-machine.md) |
+| `workflows.*.steps.*.when.assertions[]` | `assertions` | semantic validation | fatal dangling, ambiguous, or non-precondition role | [proposition semantics](../formal/objectives/proposition-and-assertion-semantics.md) |
+| `workflows.*.steps.*.when.objectives[]` | `objectives` | semantic validation | fatal dangling or ambiguous | [workflow semantics](../formal/workflows/state-machine.md) |
+| `workflows.*.steps.*.when.steps.*.step` | `workflow_steps` | semantic validation | fatal dangling, self-referential, non-executable, or unavailable before evaluation | [workflow semantics](../formal/workflows/state-machine.md) |
+| `workflows.*.steps.*.cases.*.when.assertions[]` | `assertions` | semantic validation | fatal dangling, ambiguous, or non-precondition role | [proposition semantics](../formal/objectives/proposition-and-assertion-semantics.md) |
+| `workflows.*.steps.*.cases.*.when.objectives[]` | `objectives` | semantic validation | fatal dangling or ambiguous | [workflow semantics](../formal/workflows/state-machine.md) |
+| `workflows.*.steps.*.cases.*.when.steps.*.step` | `workflow_steps` | semantic validation | fatal dangling, self-referential, non-executable, or unavailable before evaluation | [workflow semantics](../formal/workflows/state-machine.md) |
+| `workflows.*.steps.*.objective` | `objectives` | semantic validation | fatal dangling or ambiguous | [workflow semantics](../formal/workflows/state-machine.md) |
+| `workflows.*.steps.*.procedure_ref` | `action_contracts` | semantic validation | fatal dangling or non-procedure granularity | [goal-oriented step semantics](../formal/workflows/goal-oriented-steps.md) |
+| `workflows.*.steps.*.scaffold_refs[]` | `observation_boundaries` | semantic validation | fatal dangling or scaffold-incompatible boundary | [goal-oriented step semantics](../formal/workflows/goal-oriented-steps.md) |
+| `workflows.*.steps.*.allowed_action_families[]` | `action_contracts` | semantic validation | fatal dangling or non-aggregate granularity | [goal-oriented step semantics](../formal/workflows/goal-oriented-steps.md) |
+| `workflows.*.steps.*.next` | `workflow_steps` | semantic validation | fatal dangling, cyclic, or unreachable | [workflow semantics](../formal/workflows/state-machine.md) |
+| `workflows.*.steps.*.on_success` | `workflow_steps` | semantic validation | fatal dangling, cyclic, or unreachable | [workflow semantics](../formal/workflows/state-machine.md) |
+| `workflows.*.steps.*.on_failure` | `workflow_steps` | semantic validation | fatal dangling, cyclic, or unreachable | [workflow semantics](../formal/workflows/state-machine.md) |
+| `workflows.*.steps.*.on_exhausted` | `workflow_steps` | semantic validation | fatal dangling, cyclic, or unreachable | [workflow semantics](../formal/workflows/state-machine.md) |
+| `workflows.*.steps.*.then` | `workflow_steps` | semantic validation | fatal dangling, cyclic, or unreachable | [workflow semantics](../formal/workflows/state-machine.md) |
+| `workflows.*.steps.*.else` | `workflow_steps` | semantic validation | fatal dangling, cyclic, or unreachable | [workflow semantics](../formal/workflows/state-machine.md) |
+| `workflows.*.steps.*.cases.*.next` | `workflow_steps` | semantic validation | fatal dangling, cyclic, or unreachable | [workflow semantics](../formal/workflows/state-machine.md) |
+| `workflows.*.steps.*.default` | `workflow_steps` | semantic validation | fatal dangling, cyclic, or unreachable | [workflow semantics](../formal/workflows/state-machine.md) |
+| `workflows.*.steps.*.branches[]` | `workflow_steps` | semantic validation | fatal dangling or outside a closed parallel branch | [workflow semantics](../formal/workflows/state-machine.md) |
+| `workflows.*.steps.*.join` | `workflow_steps` | semantic validation | fatal dangling, non-join, multiply owned, or outside branch closure | [workflow semantics](../formal/workflows/state-machine.md) |
+| `workflows.*.steps.*.workflow` | `workflows` | semantic validation | fatal dangling or cyclic | [workflow semantics](../formal/workflows/state-machine.md) |
+| `workflows.*.steps.*.compensate_with` | `workflows` | semantic validation | fatal dangling, cyclic, or invalid as a compensation target | [workflow semantics](../formal/workflows/state-machine.md) |
+| `nodes.*.runtime.network_detection_engines[].rule_sources[].generated_by` | `runtime:forwarding_agents` | semantic validation | fatal dangling or ambiguous across scenario and node scopes | [runtime inventory](runtime-inventory.md#2-family-index) |
+| `nodes.*.runtime.identity_authorities[].resource_scopes[].parent_ref` | `runtime:resource_scopes` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.identity_authorities[].resource_scopes[].audit_logs[].exempted_principal_refs[]` | `runtime:subjects` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.identity_authorities[].subjects[].resource_scope_ref` | `runtime:resource_scopes` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.identity_authorities[].identity_uses[].workload_ref` | `derived:cloud-workload` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.identity_authorities[].identity_uses[].principal_ref` | `runtime:subjects` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.identity_authorities[].identity_uses[].source_principal_ref` | `runtime:subjects` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.identity_authorities[].policies[].resource_access.attachment_ref` | `derived:cloud-resource` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.identity_authorities[].policies[].resource_access.inherited_from_ref` | `runtime:policies` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.identity_authorities[].policies[].resource_access.bindings[].principal_refs[]` | `runtime:subjects` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.identity_authorities[].policies[].resource_access.bindings[].resource_refs[]` | `derived:cloud-resource` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.identity_authorities[].policies[].resource_access.bindings[].role_ref` | `runtime:subjects` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.identity_authorities[].access_observations[].principal_ref` | `runtime:subjects` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.identity_authorities[].access_observations[].resource_ref` | `derived:cloud-resource` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.identity_authorities[].access_observations[].context_refs[]` | `derived:cloud-resource` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.platform_applications[].resource_scope_ref` | `runtime:resource_scopes` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.platform_applications[].cloud_limits[].resource_scope_ref` | `runtime:resource_scopes` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.platform_applications[].secrets[].resource_scope_ref` | `runtime:resource_scopes` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.platform_applications[].secrets[].encryption_key_ref` | `derived:cloud-resource` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.platform_applications[].secrets[].reset_owner_ref` | `derived:cloud-resource` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.platform_applications[].secrets[].deletion_owner_ref` | `derived:cloud-resource` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.platform_applications[].secrets[].versions[].payload_content_ref` | `content` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.platform_applications[].secrets[].consumers[].consumer_ref` | `derived:cloud-workload` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.platform_applications[].secrets[].consumers[].version_ref` | `runtime:versions` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
+| `nodes.*.runtime.platform_applications[].secrets[].consumers[].resolved_version_ref` | `runtime:versions` | semantic validation | fatal dangling, wrong kind, or conflicting ancestry | [cloud resource access](cloud-resource-access.md) |
 
-The index is compared by exact source path, domain, phase, failure semantics,
-and implementation evidence against the checked reference contract, and its
-completion-aware subset is compared with language-service metadata. Adding,
+The checked reference contract is compared with the index by exact source path, domain, phase, failure semantics, and implementation evidence.
+The completion-aware subset is compared with language-service metadata. Adding,
 removing, or renaming an edge on only one surface fails the repository contract
 gate; a matching row count cannot hide a different edge.
+## 7. Reference purposes and eligibility
+
+Each purpose-bearing reference field declares one purpose.
+Most purposes admit declarations by category.
+Operating scope and typed relationship endpoint purposes admit explicit declaration kinds.
+A typed relationship endpoint must satisfy every applicable endpoint purpose.
+Eligibility is never inferred by excluding sections.
+
+Every indexed declaration kind has exactly one category or is explicitly unreferenceable.
+The index detects canonical address collisions for scenario identity, node roles, workflow steps, and `outcome_interpretation_rules` entries.
+Fields that name those declarations use their own domains.
+A kind without a decision is eligible for no purpose, and the declaration index refuses to register it.
+Before any field can name a new referenceable kind, that kind needs an explicit category.
+
+Every runtime family and child registration **MUST** explicitly select its
+reviewed reference policy. The current `world-resource` decision assigns the
+resource category; omission or an unsupported decision is rejected. Adding a
+family or child does not inherit a decision from its parent. Family-qualified
+endpoint purposes still distinguish identically named children in different
+families. A different category or purpose decision requires an explicit policy
+amendment.
+
+| Category | Declaration kinds |
+| --- | --- |
+| participant | `agents` |
+| organization | `entities`, including nested entities |
+| resource | `nodes` and their services, `infrastructure` and named ACLs, `content` and content items, `accounts`, `identity_domains`, `identity_forests`, `identity_facades`, `deployment_tenants`, `deployment_cells`, `persistent_volumes`, `generated_artifacts`, `features`, `forwarding_agents`, and every registered runtime-inventory family and child record |
+| relationship | `relationships` |
+| proposition | `propositions`, `assertions` |
+| probe | `conditions` |
+| narrative | `injects`, `events`, `scripts`, `stories` |
+| behavior | `action_contracts`, `observation_boundaries`, `behavior_specifications`, participant inject deliveries |
+| variation | `variation_points` |
+| support | `evidence_requirements`, `time_domains`, `clocks`, `time_domain_mappings`, `time_progression_policies`, `temporal_constraints`, `objectives`, `workflows`, `variables`, tool affordances, variation alternatives and members |
+
+| Purpose (domain token) | Reference fields | Eligible declarations | Resolves among |
+| --- | --- | --- | --- |
+| `declared` | declared-reference fields such as temporal-constraint subjects (which also accept workflow steps) and mixed-control evidence refs | every category | `declared` |
+| `targetable` | remaining general target fields, such as identity-facade services, inject-delivery items, and evidence channel, trigger, and boundary refs | every category except support | `targetable` |
+| `eligible:objective_subject` | objective `targets[]` and the `objectives.targets` variation slot | participant, organization, resource, relationship, proposition | `targetable` |
+| `eligible:action_target` | interaction `target`, effect `target_refs[]` | participant, organization, resource, relationship | `targetable` |
+| `eligible:shared_state` | interaction `shared_state_refs[]` | resource, relationship | `targetable` |
+| `eligible:relationship_endpoint` | generic relationship `source` and `target` | every category except support; typed types and details narrow it (§5) | `eligible:relationship_endpoint` |
+| `eligible:participant_endpoint` | `source` and `target` of a `participant` relationship | participant | `eligible:relationship_endpoint` |
+| `eligible:node_endpoint` | `domain_controller_for` and `joins_domain` `source`, both `placed_on_carrier` endpoints | `node` | `eligible:relationship_endpoint` |
+| `eligible:identity_domain_endpoint` | `domain_controller_for` and `joins_domain` `target` | `identity_domains` | `eligible:relationship_endpoint` |
+| `eligible:identity_forest_endpoint` | both `forest_trusts` endpoints | `identity_forests` | `eligible:relationship_endpoint` |
+| `eligible:identity_authority_endpoint` | `directory_federates_to` `source` | `identity_domains`, `identity_forests` | `eligible:relationship_endpoint` |
+| `eligible:identity_facade_endpoint` | `directory_federates_to` `target` | `identity_facades` | `eligible:relationship_endpoint` |
+| `eligible:deployment_tenant_endpoint` | `uses_shared_service` `source` | `deployment_tenants` | `eligible:relationship_endpoint` |
+| `eligible:node_service_endpoint` | `uses_shared_service` `target` | `service` | `eligible:relationship_endpoint` |
+| `eligible:runtime_application_endpoint` | `database_access` `source` | `runtime-applications` | `eligible:relationship_endpoint` |
+| `eligible:database_endpoint` | `database_access` `target` | `runtime-database_services`, `runtime-database_services.databases` | `eligible:relationship_endpoint` |
+| `eligible:mail_service_endpoint` | `mail_access` `target` | the `mail_services` record and every registered child | `eligible:relationship_endpoint` |
+| `eligible:observation_subject` | proposition `subjects[]`, evidence `source_refs[]` and `scope_refs[]`, observation-demand component refs | every category except support | `eligible:observation_subject` |
+| `eligible:authority_anchor` | agent `authority_anchors[]`, participant-relationship and mixed-control `authority_basis_refs[]` | every category | `eligible:authority_anchor` |
+| `eligible:authority_scope` | behavior `authority_scope_refs[]`, mixed-control state `scope_refs[]` (which must then stay within the behavior's authority scope and the controller's operating scope, so §6 lists it as `derived:behavior-and-controller-scope`), delivery `control_authority_scope_refs[]` | participant, organization, resource, relationship, behavior | `targetable` |
+| `eligible:safe_state_target` | safe-state scope resolution | nodes, named node services, top-level database, DNS, file, mail, and datastore services | `eligible:safe_state_target` |
+| `derived:operating_scope` | agent `operating_scope[]`, participant-relationship `scope_refs[]` | compute nodes, switch-backed infrastructure, node services, content, and content items | `derived:operating_scope` |
+
+The typed relationship endpoint purposes admit declaration kinds, not
+categories. A runtime record is named by its family.
+A runtime child's eligibility kind is `runtime-<family>.<child path>`, for example `runtime-mail_services.listeners`.
+A `mail_access` target admits a mail listener but not a security-monitoring manager listener. The published
+declaration kind (`runtime-listeners`) does not change. The `mail_access` target rule covers the family and admits a mail child registered later.
+
+The application and database rules name their records.
+They do not admit a later child of those families.
+
+Every relationship type and typed detail field has one endpoint decision:
+
+| Type or detail field | Decision | `source` | `target` |
+| --- | --- | --- | --- |
+| `authenticates_with` type | generic | — | — |
+| `trusts` type | generic | — | — |
+| `federates_with` type | generic | — | — |
+| `connects_to` type | generic | — | — |
+| `depends_on` type | generic | — | — |
+| `manages` type | generic | — | — |
+| `replicates_to` type | generic | — | — |
+| `domain_controller_for` type | own rule | `node_endpoint` | `identity_domain_endpoint` |
+| `joins_domain` type | own rule | `node_endpoint` | `identity_domain_endpoint` |
+| `forest_trusts` type | own rule | `identity_forest_endpoint` | `identity_forest_endpoint` |
+| `directory_federates_to` type | own rule | `identity_authority_endpoint` | `identity_facade_endpoint` |
+| `placed_on_carrier` type | own rule | `node_endpoint` | `node_endpoint` |
+| `uses_shared_service` type | own rule | `deployment_tenant_endpoint` | `node_service_endpoint` |
+| `participant` type | own rule | `participant_endpoint` | `participant_endpoint` |
+| `domain_controller` detail | bound to `domain_controller_for` | `node_endpoint` | `identity_domain_endpoint` |
+| `domain_join` detail | bound to `joins_domain` | `node_endpoint` | `identity_domain_endpoint` |
+| `forest_trust` detail | bound to `forest_trusts` | `identity_forest_endpoint` | `identity_forest_endpoint` |
+| `identity_federation` detail | bound to `directory_federates_to` | `identity_authority_endpoint` | `identity_facade_endpoint` |
+| `carrier_placement` detail | bound to `placed_on_carrier` | `node_endpoint` | `node_endpoint` |
+| `shared_service` detail | bound to `uses_shared_service` | `deployment_tenant_endpoint` | `node_service_endpoint` |
+| `participant` detail | bound to `participant` | `participant_endpoint` | `participant_endpoint` |
+| `database_access` detail | own rule | `runtime_application_endpoint` | `database_endpoint` |
+| `mail_access` detail | own rule | — | `mail_service_endpoint` |
+| `forwarding_edge` detail | generic | — | — |
+| `service_integration` detail | generic | — | — |
+| `proxy_upstream` detail | generic | — | — |
+
+A dash leaves that side on `relationship_endpoint`. A bound detail selects its type's rule, which validation already pairs with it.
+In an unfinished document, a detail written before its `type` narrows completion as the type would. A
+relationship type or detail field without a decision is refused when a
+relationship is checked.
+
+Rules:
+
+1. A bare reference resolves among declarations in its purpose's "Resolves among" domain.
+   The single match must be eligible for the purpose.
+   A typed relationship endpoint must satisfy every applicable endpoint purpose. A bare name that a refused declaration in that domain shares
+   therefore stays ambiguous: narrowing only refuses references. A participant endpoint resolves among relationship-endpoint candidates and then requires an agent.
+   A bare name shared with an organization or resource stays ambiguous. Qualified references resolve by exact canonical
+   address (§2).
+2. A reference that names only declarations its purpose does not admit fails as
+   dangling (§4). When semantic validation uses the shared named-reference check, the diagnostic appends the declarations that the reference names.
+   If the purpose admits neither every declaration (`declared`) nor every targetable declaration (`targetable`), the diagnostic also names the purpose. A typed relationship endpoint names each
+   endpoint purpose that its single match fails, for example `... does not
+   reference any defined element eligible as an identity forest endpoint; it
+   names conditions.alive`. An ambiguous bare name lists the eligible
+   candidates, then those that the purpose refuses. Participant endpoints, operating scopes, and variation candidates report their own diagnostics.
+   An inject delivery's control scope must equal its target controller state's scope.
+3. An effect `target_refs[]` entry that names no declaration is
+   observation-boundary information; recorded action results check it against
+   the participant's observation boundary. An entry that names a declaration
+   **MUST** name an eligible action target.
+   Recognition uses the complete declaration index, including the explicitly
+   unreferenceable scenario, node-role, workflow-step, and outcome-rule kinds.
+   Importing a module or substituting a variable cannot turn one of these
+   known declarations into opaque boundary information.
+4. Eligibility decides only what a reference may name. Naming a participant as an action target or objective subject does not make it act.
+   Naming an organization, proposition, or resource grants no participation, authority, visibility, or execution permission. Propositions and assertions
+   are objective subjects but neither action targets, shared state, nor
+   authority scopes.
+5. Composition rewrites purpose-bearing references under the import namespace,
+   and instantiation rechecks substituted values against the same purpose.
+   This includes infrastructure ACL networks and security-monitoring detection
+   definitions' `source_artifact_ref` (`declared`). Editor completion, navigation,
+   and diagnostics consume the same purposes and resolvers. Completion offers one unambiguous spelling per eligible declaration.
+   It selects endpoint purposes from the relationship type and typed details.
+   Its context names every selected purpose (`eligible:<p1>+<p2>` for a conjunction).
+   It selects a variation owner's section and a candidate's section or purpose from the point's target slot.
+   These rules also apply to documents that do not yet validate. Completion and navigation resolve against one declaration index.
+   For a structurally valid document, they use its semantic index.
+   Otherwise, the same builder indexes top-level entries that validate individually, plus the names of other top-level entries. Navigation reports a declaration occurrence only when the field's resolver resolves the value to exactly that declaration in that index.
+   An ambiguous or refused value is an occurrence of none. Only declarations in that index determine ambiguity.
+   A declaration inside an entry that fails individual validation is absent from the index.
+   Completion does not offer it, navigation reports no occurrence of it, and it does not make a spelling ambiguous.
+   Once the entry validates, a spelling shared with another declaration is ambiguous. Operating scope resolves nothing until the
+   document validates.
+6. Relationship completion applies the subtype owner's attributes and known
+   contextual constraints after kind filtering: distinct participants and
+   forests, compute nodes, carrier persona and deployment cell, and selected
+   mixed-control controller-state scope. In a valid context, every offered
+   candidate passes semantic validation when inserted. In incomplete contexts,
+   known bounds still apply; unrelated existing errors do not become new
+   restrictions on this field. Completion does not grant authority or repair
+   another field's invalid identity.
+7. Navigation derives nested declaration definitions from their typed model
+   paths. Composition retains original declaration provenance: fragment file,
+   authored key or identifier range, original JSON pointer, module identity,
+   import namespace, and fragment content digest. Imported definitions report the original location and composed model path.
+   Owner-labelled semantic diagnostics retain the original location and canonical composed address.
+   Locations are captured during loading and expansion, never guessed by a
+   separate editor import walker. This location metadata is not scenario
+   authority and is not serialized into portable scenario artifacts.
+
+### Runtime projection of authority and operating scopes
+
+The compiler resolves each authored reference with the declaration index and
+the field's purpose before projecting its canonical identity to a runtime
+address. Operating scope uses its derived alias map, including bare service
+and subnet names. A same-named service must not make a validated bare node
+authority scope disappear.
+
+| Declaration surface | Runtime projection |
+| --- | --- |
+| Node and its infrastructure | Node deployment or network address |
+| Node service | Service address |
+| Content and content item | Content or item address |
+| Account, feature, action contract, observation boundary, behavior specification | Corresponding compiled runtime address |
+| Generated artifact, persistent volume, participant inject delivery | Corresponding compiled resource or delivery address |
+| Participant, entity, relationship, identity domain/forest/facade, deployment tenant/cell, infrastructure ACL, forwarding-agent inventory, nested runtime inventory | Semantic reference only; no independently addressable scope projection |
+
+Every authored scope remains in the compiled raw reference list. A documented
+semantic-only scope constrains that semantic record and yields no runtime
+address or dependency. It does not grant runtime enforcement or permission.
+Runtime-addressable scopes must project to the identity validation selected;
+the compiler must not independently broaden aliases or silently drop an
+ambiguous projection.
 
 ## Extending the reference catalog
 
 A new reference edge is added by defining the field's candidate set, adding a
-row here, and enforcing it in the reference implementation and tests. New
-runtime-family child refs follow the nested runtime-family form (§1.3)
-automatically once registered in the family index
-([runtime-inventory.md](runtime-inventory.md)); they do not need bespoke prose.
+row here, and enforcing it in the reference implementation and tests. A new
+declaration kind is added with an explicit category in §7. New runtime-family child refs require an explicit policy decision at registration.
+They then follow the nested runtime-family form (§1.3) in the family index ([runtime-inventory.md](runtime-inventory.md)).
+They do not need bespoke prose.

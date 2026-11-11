@@ -1,8 +1,8 @@
 """Read the existing addressed constraints at the portable plan boundary."""
 
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.planning import ProvisioningPlan
 from raes_contracts.runtime_state import RealizationProvenanceEntry, RuntimeSnapshot
 

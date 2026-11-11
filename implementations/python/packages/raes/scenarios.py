@@ -2,18 +2,20 @@
 
 from __future__ import annotations
 
-import logging
 from pathlib import Path
+
+from raes_contracts.errors import RaesError
+from raes_contracts.operational_logging import get_logger
 
 from ._errors import SDLParseError, SDLValidationError
 from ._source_profile import SDLMigrationPolicy
 from .parser import parse_sdl_file
 from .scenario import Scenario
 
-log = logging.getLogger("raes.scenarios")
+log = get_logger(__name__)
 
 
-class ScenarioError(Exception):
+class ScenarioError(RaesError):
     """Base exception for all scenario operations."""
 
 
@@ -55,21 +57,15 @@ def load_scenario(
     except SDLValidationError as exc:
         raise ScenarioValidationError(str(exc), path=path) from exc
 
-    for advisory in scenario.advisories:
-        log.warning("Scenario '%s' advisory: %s", scenario.name, advisory)
-    for diagnostic in scenario.source_diagnostics:
-        start = diagnostic.primary_range.start
-        log.warning(
-            "Scenario '%s' source advisory [%s] at %s:%d:%d (%s)",
-            scenario.name,
-            diagnostic.code,
-            diagnostic.source or path,
-            start.line,
-            start.column,
-            diagnostic.pointer or "/",
-        )
-
-    log.info("Loaded scenario '%s' from %s", scenario.name, path)
+    # Advisories and source diagnostics are returned on the scenario for the caller to report
+    # (ADR-116 rules E8, L3, L6), so the lifecycle record carries only their counts.
+    log.info(
+        "Loaded scenario '%s' from %s with %d advisories and %d source diagnostics",
+        scenario.name,
+        path,
+        len(scenario.advisories),
+        len(scenario.source_diagnostics),
+    )
     return scenario
 
 

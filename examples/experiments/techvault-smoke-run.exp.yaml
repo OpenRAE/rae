@@ -1,8 +1,7 @@
-# TechVault smoke run — a minimal single-condition experiment specification.
-#
-# The simplest authored design: no compared conditions or random selection,
-# just a small replication count via target_run_count. Useful as a pre-run smoke check
-# before committing to a full sweep. See ADR-074.
+# TechVault smoke-run design.
+# Declare a small replication count through target_run_count.
+# This design compares no conditions and selects nothing randomly.
+# It is a pre-run input, not an observed smoke-test result. See ADR-074.
 schema_version: experiment-authoring-input/v1
 spec_id: spec-techvault-smoke-run-v1
 spec_version: 1.0.0
@@ -21,5 +20,5 @@ run_plan:
     turn_order: sequential
     max_steps: 100
     termination_rule: Terminate each episode after 100 logical steps (fixed horizon).
-  # Exactly one of allocation / target_run_count. Here: a simple run count.
+  # Specify exactly one of allocation and target_run_count. This example uses a run count.
   target_run_count: 5

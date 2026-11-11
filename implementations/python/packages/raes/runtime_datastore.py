@@ -22,10 +22,11 @@ semantic validator) — this surface carries no embedded principal/role/grant.
 """
 
 from pydantic import Field, field_validator, model_validator
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import coerce_string_list, parse_runtime_enum_or_var, require_symbol
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import is_variable_ref
 
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import SDLModel, is_variable_ref
 from .runtime_datastore_partitions import (
     RuntimeDatastoreCluster,
     RuntimeDatastoreEnginePlugin,
@@ -49,11 +50,6 @@ from .runtime_datastore_vocab import (
     RuntimeDatastoreSettingProvenance,
     RuntimeDatastoreSettingScope,
     RuntimeDatastoreTransportSecurityMode,
-)
-from .runtime_values import (
-    coerce_string_list,
-    parse_runtime_enum_or_var,
-    require_symbol,
 )
 
 __all__ = [
@@ -153,7 +149,7 @@ class RuntimeDatastoreService(SDLModel):
         return _coerce_manifest_entries(v, id_field="mapping_id")
 
     @model_validator(mode="after")
-    def validate_datastore_service(self) -> "RuntimeDatastoreService":
+    def validate_datastore_service(self) -> RuntimeDatastoreService:
         self._reject_duplicate_string_lists()
         _reject_duplicate_local_ref_ids(self)
         self._reject_incompatible_partition_kinds()

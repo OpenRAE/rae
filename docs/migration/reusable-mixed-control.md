@@ -1,129 +1,214 @@
-# Reusable mixed-control compatibility and migration
+<a id="reusable-mixed-control-compatibility-and-migration"></a>
 
-This is the adoption contract for
+# Reusable mixed-control compatibility reference
+
+This reference applies to Python RAES 11.0.2.
+The source is fixed-coordinate declarations and `participant-control-occurrence-v1`.
+The target is `mixed-control-policy-occurrence/rev1` with `participant-control-occurrence-v2`.
+Each contract keeps its own identity and obligations.
+
 [ADR-110](../decisions/adrs/adr-110-reusable-mixed-control-policies-and-occurrences.md)
-and [MC-01–MC-09](../../specs/formal/participant-semantics/reusable-mixed-control.md).
-It publishes rules, not a working migrator, new parser form or wire schema.
+and [MC-01–MC-09](../../specs/formal/participant-semantics/reusable-mixed-control.md) own the adoption rules.
+The [finite-script converter](mixed-control-finite-script-conversion.md) supplies the supported source conversion.
+The compiler accepts explicit reusable-policy and finite-script forms.
+API-409 v2 carries their occurrences.
+
+After #1364, the compiler and API-409 v2 reader are available.
+An explicitly configured RUN-310 control owner can execute reusable applications.
+It can retain evidenced cancellation outcomes.
+See [reusable participant control](../explain/reference/reusable-participant-control.md) for installation and original-policy recovery.
+That reference gives the supported-path boundary too.
+Ordinary planning and unsupported delivery/consumer paths still refuse unsupported work.
+This does not establish coordinated adoption by every backend or consumer.
 
 ## Producer and reader boundary
 
-`mixed-control-policy-occurrence/rev1` identifies the new semantic decision.
-Existing `MixedControlTransition` declarations and
-`participant-control-occurrence-v1` / wire `1.0.0` retain their fixed-coordinate
-interpretation. A suffix is not a stability promise: the current publication
-is draft under ADR-061. Historical meaning remains protected regardless.
+`mixed-control-policy-occurrence/rev1` names the new semantic decision.
+Existing `MixedControlTransition` declarations keep their fixed-coordinate meaning.
+So do `participant-control-occurrence-v1` records with wire `1.0.0`.
+A suffix does not promise stability.
+The current publication is draft under ADR-061.
+Historical meaning remains protected regardless.
 
-Adoption requires explicit, closed authoring/compiled and occurrence/snapshot
-interpretation discriminants. A new occurrence lineage must carry the changed
-meaning; do not reinterpret historical v1 data through optional fields or
-default values. Policy revision, semantic pin, wire discriminator, schema hash
-and store version remain independently recorded. The following matrix is the
-required adoption behavior, not a claim that a new reader already ships:
+Adoption needs explicit, closed interpretation discriminants.
+They must cover authoring/compiled and occurrence/snapshot carriers.
+A new occurrence lineage must carry the changed meaning.
+Optional fields and defaults cannot reinterpret historical v1 data.
+Record policy revision, semantic pin, and wire discriminator separately.
+Keep schema hash and store version separate too.
 
-| Producer artifact | Existing reader | Reader implementing the amendment |
-| --- | --- | --- |
-| Legacy fixed-coordinate policy and v1 occurrence | Existing semantics/checks | Dispatch to retained legacy interpretation and pinned compiled policy. |
-| Explicit reusable-policy or finite-script under the new semantic pin | Reject unsupported form/version | Validate declared form; instantiate fresh exact occurrence coordinates. |
-| Revised accepted/rejected occurrence shapes | Reject unsupported lineage | Resolve pinned policy, kind/target/cut and truthful disposition before use. |
-| Archive containing episodes of both forms | Reject unsupported episodes for reconstruction; do not reinterpret | Select each episode's exact reader and policy, preserving archive order and evidence. |
-| A new live episode with unsupported compiler, runtime or downstream consumer | Refuse admission | Refuse admission until every selected path supports the required semantics/ranges. |
+### Legacy policy and v1 occurrence
 
-Structural acceptance alone is neither semantic compatibility nor operational
-interoperability. Unknown interpretation cannot fall back to the latest reader,
-a generic dictionary, a matching version string or ordinary environment inject.
+Existing readers keep their original semantics and checks.
+Readers that implement the amendment use the retained legacy meaning and pinned compiled policy.
+
+### New policy forms
+
+Existing readers reject unsupported forms or versions.
+Readers that implement the amendment validate explicit reusable-policy or finite-script under its new semantic pin.
+They instantiate fresh coordinates for each occurrence.
+Those coordinates must be exact.
+
+### New occurrence shapes
+
+Existing readers reject unsupported lineage for revised accepted/rejected occurrences.
+Readers that implement the amendment resolve the pinned policy before use.
+They check kind, target, cut, and truthful disposition too.
+
+### Mixed archives
+
+Existing readers refuse reconstruction of unsupported episodes.
+They must not reinterpret them.
+Readers that implement the amendment select each episode's exact reader and policy.
+They keep archive order and evidence.
+
+### New live episodes
+
+An unsupported compiler, runtime, or downstream consumer prevents admission.
+Every selected path must support the required semantics and ranges.
+This holds for both reader types.
+
+Accepting a shape does not establish semantic compatibility.
+It does not establish operational interoperability.
+Unknown meaning cannot fall back to the latest reader or a generic dictionary.
+A matching version string or ordinary environment inject is not a fallback.
 
 ## Authoring conversion
 
-Retaining legacy authoring is a valid compatibility path; it remains finite.
-An explicit source-preserving conversion to **finite-script** is permitted only
-when every accepted legacy trace constraint is preserved: initial state,
-from/to states, kind, controller/authority, targets/proposal links, exact
-revisions, order, windows, evidence and finite extent. A unique total order does
-not by itself prove a single executable sequence: legacy graph validation can
-establish revision pairs along different declarations. If there is no proven
-equivalent sequence, stop conversion and require an author decision.
+Keeping legacy authoring is valid. It remains finite.
+Source-preserving conversion to **finite-script** must keep every accepted legacy trace constraint.
+These constraints include initial state and from/to states.
+They include kind, controller, authority, targets, and proposal links.
+They also include exact revisions, order, windows, evidence, and finite extent.
 
-In particular, a converter must reject automatic conversion when:
+A unique total order alone does not prove one executable sequence.
+Legacy graph validation can establish revision pairs along different declarations.
+Without a proven equivalent sequence, stop conversion and require an author decision.
 
-- an approval/direction also changes controller identity, contrary to the new
-  handoff-only transfer rule;
-- acting-source and destination-authority joins disagree;
-- an order value was implicitly treated as a clock tick without an admitted
-  mapping, or a required historical validity/evidence basis is unavailable;
-- target identity/revision or finite branch/sequence intent is ambiguous; or
-- delivery/control policy identity was conflated by equal revision strings.
+A converter must refuse automatic conversion in these cases:
 
-An author can explicitly restructure those cases, recording source digest,
-decisions and resulting semantic pin. They are semantic changes, not a claimed
-equivalent rewrite. A legacy approval that moved control may need separate
-handoff and approval applications with separately admitted order/evidence.
+- Approval or direction also changes controller identity.
+  The new rule permits transfer only through handoff.
+- Acting-source and destination-authority joins disagree.
+- Order was treated as a clock tick without an admitted mapping.
+- Required historical validity or evidence is unavailable.
+- Target identity/revision or finite branch/sequence intent is ambiguous.
+- Equal revision strings conflated delivery and control policy identities.
 
-Converting a finite declaration to **reusable-policy** always changes the
-permitted trace set and requires an explicit author decision. Removing fixed
-revisions or copying the same edge into a cycle does not authorize that change.
-Do not deduce new authority, clock mappings or future completion receipts.
+An author can explicitly restructure these cases.
+Record the source digest, decisions, and resulting semantic pin.
+Those changes are semantic changes, not equivalent rewrites.
+A legacy approval that moved control may need separate handoff and approval applications.
+Each needs its own admitted order.
+Each needs its own admitted evidence too.
+
+A finite declaration's permitted trace set always changes when it becomes **reusable-policy**.
+It needs an explicit author decision.
+Removing fixed revisions does not authorize that change.
+Neither does copying the same edge into a cycle.
+Do not infer new authority or clock mappings.
+Do not infer future completion receipts.
 Keep transformed-proposal lineage and all original source artifacts.
 
 ## Occurrences, snapshots and ongoing episodes
 
-Never rewrite historical IDs, actual order, revisions, dispositions, controller
-attribution, evidence or markings. Do not renumber an occurrence revision to
-match a state revision: the former may count records across rejections and
-episodes. V1 non-handoff history can depend on the original compiled transition
-for its resulting state; retain that dependency and its content pin.
+Never rewrite historical IDs, actual order, revisions, or dispositions.
+Never rewrite controller attribution, evidence, or markings.
+Do not renumber an occurrence revision to match a state revision.
+Occurrence revisions may count records across rejections and episodes.
+V1 non-handoff history can depend on its original compiled transition.
+That transition can determine the resulting state.
+Keep that dependency and its content pin.
 
-Historical v1 rejection records keep their original assertions even where the
-new rejected-attempt shape can represent more truthful attempted/evaluated
-coordinates. Conversion cannot manufacture evidence that an old record omitted.
-Old delivery bindings keep their original equality and destination-state rules;
-the new source-controller and independent-policy rules do not apply retroactively.
+Historical v1 rejection records keep their original assertions.
+The new rejected-attempt shape may express attempted/evaluated coordinates.
+It can express them more truthfully than the old shape.
+It does not change old records.
+Conversion cannot manufacture missing historical evidence.
+Old delivery bindings keep their original equality and destination-state rules.
+The new source-controller rules do not apply retroactively.
+Neither do the new independent-policy rules.
 
-Live policy or interpretation upgrade inside an episode is unsupported. Drain
-or terminate through the incumbent lifecycle, preserve indeterminate effects
-for reconciliation, then explicitly admit a new episode with the selected
-supported policy. Initialization must validate its authority and mark the
-predecessor relation; copying a policy address is insufficient. Process recovery
-keeps the existing episode and store keys. Exact old retries remain historical
-receipt lookups under current access authorization; a new episode does not
-create a new namespace for the same principal/operation/client key.
+A live policy cannot be upgraded inside an episode.
+Its meaning cannot be upgraded there either.
+Drain or stop through the existing lifecycle.
+Keep indeterminate effects for reconciliation.
+Then explicitly admit a new episode with the selected supported policy.
+Initialization must validate its authority.
+It must mark the predecessor relation too.
+Copying a policy address is insufficient.
 
-Mixed-episode archives require per-episode pins and complete original context.
-An archive reader verifies each episode using its own interpretation. It may
-not fabricate a single contiguous controller-state revision across episodes.
-If a reader lacks a historical policy, authority/cut evidence or format, it
-reports reconstruction as unsupported/unverifiable and preserves the bytes.
+Process recovery keeps the existing episode and store keys.
+Exact old retries look up historical receipts.
+Current access authorization still applies.
+A new episode does not create a new namespace for the same principal/operation/client key.
+
+Mixed-episode archives need per-episode pins and complete original context.
+The reader verifies each episode using its own meaning.
+It must not invent one contiguous controller-state revision across episodes.
+The reader may lack historical policy, authority/cut evidence, or format.
+It then reports reconstruction as unsupported/unverifiable.
+Keep the bytes.
 
 ## Coordinated adoption and publication
 
-The implementation boundary is one coherent slice across these incumbents:
+The change must cover the existing owners together.
+SDL owners cover closed models, safe parsing, and semantic references.
+They cover variable instantiation and composition rewriting too.
+Compiler children stay typed and deterministic.
 
-1. Closed SDL models, safe parsing, semantic references, variable instantiation,
-   composition rewriting and deterministic typed compiler children.
-2. API-409 occurrence and rejected-attempt carriers/contextual joins, RUN-310
-   target eligibility, state fold and exact-cut atomic history/receipt/audit.
-3. DSL-142 directed-delivery declarations and actual control-application joins,
-   independent disclosure-policy resolution and delivery consumption/evidence.
-4. API-423/SEM-233 crossing joins, API-424 effects and range/ref limits, SEM-234
-   provider/phase links, conformance readers and runtime snapshot recovery.
+API-409 owns occurrences and rejected-attempt carriers.
+It owns their contextual joins too.
+RUN-310 checks which targets are eligible.
+It owns the state fold too.
+It keeps history, receipt, and audit atomic at the exact cut.
+DSL-142 covers directed-delivery declarations.
+It also covers the actual joins to control applications.
+It covers independent disclosure-policy resolution.
+It covers delivery consumption and evidence too.
 
-Capability admission must reject a selected path that lacks the new semantics;
-do not weaken incumbent validators to make it accept new data. In particular,
-an ordinary DSL-142 disclosure with identical source/result refs is not silently
-converted to an API-424 inject effect requiring a fresh produced result.
+API-423/SEM-233 owns crossing joins.
+API-424 owns effects and range/ref limits.
+SEM-234 owns provider/phase links.
+Adoption also covers conformance readers.
+It covers runtime snapshot recovery too.
 
-Govern all affected embedded schemas, including SDL authoring, instantiated
-scenario, instantiated-scenario snapshot, materialized scenario and
-satisfiability evidence, plus direct control occurrences and runtime snapshots.
-Use the existing publication manifest's per-contract records, `last_change`
-hashes, removal tombstones when applicable and `schema_bundle()` parity under
-ADR-009/061. No schema is changed or removed by this design delivery; no
-deprecation/removal window begins here. No package version or release history
-is edited by this decision.
+Capability admission must reject selected paths that lack the new semantics.
+Do not weaken existing validators to accept new data.
+A DSL-142 disclosure may have identical source/result refs.
+That does not silently convert it to an API-424 inject effect.
+Such an effect requires a fresh produced result.
 
-Required adoption evidence includes two cycles through the same compiled edge
-in one real episode; all-kind positive/negative contextual validation; exact
-concurrent/stale/authority/time/target rejection; finite-script bounds; mixed
-archive replay with old policy pins; unchanged legacy fixtures; failed atomic
-commit and lost-response retry; and exact directed-delivery joins at the actual
-final sink. The bounded design model is not a substitute for those consumer
-tests or backend evidence.
+Use the existing rules to govern every embedded schema affected by this change.
+These include SDL authoring and instantiated scenario.
+They include instantiated-scenario snapshot, materialized scenario, and satisfiability evidence too.
+Include direct control occurrences and runtime snapshots too.
+Use existing publication records for contract identity, schema path, and stability.
+They contain no hash or change summary.
+Resolve required schema-content pins from exact artifacts at a pinned release or Git revision.
+Use the owning protocol's digest rule.
+Git records schema history.
+Use removal tombstones when applicable and `schema_bundle()` parity under ADR-009/061.
+
+This design delivery changes or removes no schema.
+It starts no deprecation/removal window.
+It edits no package version or release history.
+
+Required adoption evidence covers:
+
+- Two cycles through the same compiled edge in one real episode.
+- Positive and negative context checks for every kind.
+- Exact concurrent, stale, authority, time, and target rejection.
+- Finite-script bounds.
+- Mixed archive replay with old policy pins.
+- Unchanged legacy fixtures.
+- Failed atomic commit and lost-response retry.
+- Exact directed-delivery joins at the actual final sink.
+
+The bounded design model cannot replace consumer tests or backend evidence.
+
+## Continue
+
+Use [finite-script conversion](mixed-control-finite-script-conversion.md) for local conversion.
+Use [revised-control migration](revised-control.md) to coordinate installed readers and owners.
+Read [reusable participant control](../explain/reference/reusable-participant-control.md) for runtime behavior.

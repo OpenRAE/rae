@@ -6,14 +6,14 @@ import sys
 import tomllib
 from fnmatch import fnmatch
 from pathlib import Path
+from typing import Any
 
 import pytest
 import yaml
 from tools.tooling_artifact_policy_actions import action_failures
 
 
-def _check(tmp_path: Path, workflow: dict) -> set[str]:
-    path = ".github/workflows/test.yml"
+def _check(tmp_path: Path, workflow: dict[str | bool, Any], path: str = ".github/workflows/test.yml") -> set[str]:
     target = tmp_path / path
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(yaml.safe_dump(workflow), encoding="utf-8")
@@ -51,6 +51,73 @@ def test_mutable_executable_is_rejected(tmp_path: Path, workflow: dict, uses: st
 def test_pull_request_cannot_acquire_publishing_permissions(tmp_path: Path, workflow: dict, permissions) -> None:
     workflow["jobs"]["test"]["permissions"] = permissions
     assert "tooling-action-permissions" in _check(tmp_path, workflow)
+
+
+def _codeql_workflow() -> dict[str | bool, Any]:
+    root = Path(__file__).resolve().parents[3]
+    return yaml.safe_load((root / ".github/workflows/codeql.yml").read_text())
+
+
+def test_codeql_has_a_narrow_scan_result_boundary(tmp_path: Path) -> None:
+    assert _check(tmp_path, _codeql_workflow(), ".github/workflows/codeql.yml") == set()
+
+
+def test_codeql_boundary_does_not_apply_to_another_workflow(tmp_path: Path) -> None:
+    assert "tooling-action-permissions" in _check(tmp_path, _codeql_workflow())
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        "extra-write",
+        "command",
+        "foreign-action",
+        "build",
+        "call",
+        "target",
+        "secret",
+        "runner",
+        "mutable",
+        "extra-input",
+    ],
+)
+def test_codeql_scanning_cannot_expand_its_privilege(tmp_path: Path, change: str) -> None:
+    workflow = _codeql_workflow()
+    job = workflow["jobs"]["analyze"]
+    if change == "extra-write":
+        job["permissions"]["contents"] = "write"
+    elif change == "command":
+        job["steps"].append({"run": "echo custom command"})
+    elif change == "foreign-action":
+        job["steps"][1]["uses"] = "unrelated/action@" + "a" * 40
+    elif change == "build":
+        job["steps"][1]["with"]["build-mode"] = "autobuild"
+    elif change in {"call", "target"}:
+        workflow[True]["workflow_call" if change == "call" else "pull_request_target"] = {}
+    elif change == "secret":
+        job["env"] = {"TOKEN": "${{ secrets.TOKEN }}"}
+    elif change == "runner":
+        job["runs-on"] = "self-hosted"
+    elif change == "mutable":
+        job["steps"][1]["uses"] = "github/codeql-action/init@v4"
+    else:
+        job["steps"][1]["with"]["queries"] = "+unreviewed/query-pack"
+    assert "tooling-action-permissions" in _check(tmp_path, workflow, ".github/workflows/codeql.yml")
+
+
+@pytest.mark.parametrize(
+    ("key", "value"),
+    [
+        ("env", {"TOKEN": "${{ github.token }}"}),
+        ("run", "echo custom command"),
+        ("if", "always()"),
+        ("continue-on-error", True),
+    ],
+)
+def test_codeql_steps_cannot_override_the_scan_boundary(tmp_path: Path, key: str, value: object) -> None:
+    workflow = _codeql_workflow()
+    workflow["jobs"]["analyze"]["steps"][1][key] = value
+    assert "tooling-action-permissions" in _check(tmp_path, workflow, ".github/workflows/codeql.yml")
 
 
 def _finalization_workflow() -> dict:
@@ -134,11 +201,18 @@ def test_checkout_must_not_persist_credentials(tmp_path: Path, workflow: dict) -
         ("docs/explain/sdl/runtime.md", False),
         ("CHANGELOG.md", False),
         ("tools/verified_tool_installation.py", True),
+        ("tools/sdl_catalog_parity/_expectations_cloud.py", False),
+        ("tools/check_generated_schemas.py", False),
+        ("tools/devcontainer_setup.py", False),
+        ("tools/tooling_policy_gate.py", True),
+        ("tools/verified_tree_validation.py", True),
+        ("tools/python_closure.py", True),
+        ("tools/tool_versions.py", True),
         ("tools/bootstrap_profile.py", True),
         ("tools/maintained_client_acquisition.py", True),
         ("implementations/tooling/artifacts.lock.json", True),
         ("implementations/python/uv.lock", True),
-        (".devcontainer/Dockerfile", True),
+        (".devcontainer/Dockerfile", False),
         (".github/workflows/bootstrap-qualification.yml", True),
     ],
 )
@@ -198,10 +272,10 @@ def test_proof_workflow_retains_only_the_harness_output_it_produces() -> None:
     assert uploads == ["proof-input-qualification.json"]
 
 
-def test_interpreter_workflow_has_no_upload_without_an_evidence_producer() -> None:
+def test_distribution_workflow_has_no_upload_without_an_evidence_producer() -> None:
     root = Path(__file__).resolve().parents[3]
     workflow = yaml.safe_load((root / ".github/workflows/ci.yml").read_text())
-    steps = workflow["jobs"]["interpreters"]["steps"]
+    steps = workflow["jobs"]["distribution"]["steps"]
     assert any("-s python-compatibility" in step.get("run", "") for step in steps)
     assert not any(step.get("uses", "").startswith("actions/upload-artifact@") for step in steps)
 
@@ -221,38 +295,6 @@ def test_development_container_uses_native_signed_package_sources() -> None:
     assert "--allow-unauthenticated" not in dockerfile
     assert "apt-get update" in dockerfile
     assert "USER raes" in dockerfile
-
-
-def test_release_container_lane_has_no_same_job_export_import() -> None:
-    root = Path(__file__).resolve().parents[3]
-    workflow = yaml.safe_load((root / ".github/workflows/release-please.yml").read_text())
-    job = workflow["jobs"]["integration-docker-release"]
-    commands = "\n".join(step.get("run", "") for step in job["steps"])
-    assert "oci_release_image.py export" not in commands
-    assert "oci_release_image.py import" not in commands
-    required = next(step for step in job["steps"] if step.get("name") == "Require real-container release integration")
-    assert required["env"]["RAES_DOCKER_INTEGRATION_REQUIRED"] == "1"
-    assert "RAES_OCI_SOURCE_CLASS" not in required["env"]
-
-
-@pytest.mark.parametrize("mode", ["mirror", "preseeded"])
-def test_retired_oci_modes_do_not_silently_enable_public_network(mode: str) -> None:
-    from tools.oci_release_image import ImageAdmissionError, resolve_source
-
-    with pytest.raises(ImageAdmissionError, match="source-class"):
-        resolve_source({"RAES_OCI_SOURCE_CLASS": mode, "RAES_OCI_MIRROR_REPOSITORY": "mirror.invalid/alpine"})
-
-
-@pytest.mark.parametrize("script", ["run_aws_smoke.sh", "run_aws_guest_certify.sh"])
-def test_online_aws_smokes_do_not_preseed_a_complete_python_wheelhouse(script: str) -> None:
-    root = Path(__file__).resolve().parents[3]
-    text = (root / "tools/real-daemon" / script).read_text()
-    assert "snapshot.ubuntu.com" not in text
-    assert "Check-Valid-Until: no" not in text
-    assert "stage/wheelhouse" not in text
-    assert "--require-hashes" in text
-    assert "--build-constraints" in text
-    assert "--frozen" in text
 
 
 def test_release_inventory_reads_only_its_native_workflow_graph(tmp_path: Path) -> None:
@@ -301,7 +343,7 @@ def test_selection_launcher_sanitizes_environment_and_failure(monkeypatch: pytes
         if host
         else {"artifact_id": "tool", "version": "1", "platform_id": "linux-x86_64", "profile_id": "public-linux-x86_64"}
     )
-    with pytest.raises(RuntimeError) as caught:
+    with pytest.raises(tooling_policy_gate.ArtifactPolicyError) as caught:
         validator(["python", "validator"], **selection)
     assert "fixture-credential" not in str(caught.value)
     assert "candidate-url" not in str(caught.value)

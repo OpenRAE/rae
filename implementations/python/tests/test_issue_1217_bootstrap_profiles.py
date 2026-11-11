@@ -15,6 +15,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from raes_contracts.errors import InvalidInputError, OperationalError
 from tools import bootstrap_profile, maintained_client_acquisition
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -31,17 +32,15 @@ def test_checked_in_host_profiles_join_locked_payloads_and_evidence() -> None:
         "public-linux-arm64",
         "public-macos-arm64",
         "proof-ubuntu-22.04-x86_64",
+        "model-check-ubuntu-26.04-x86_64",
         "container-ubuntu-24.04-x86_64",
-        "live-runner-ubuntu-24.04-x86_64",
     }
     proof = profiles["proof-ubuntu-22.04-x86_64"]
     assert proof["proof_support"] == "linux-x86_64-required"
     assert {"bubblewrap", "fontconfig", "fonts", "locale-c-utf-8"} <= set(proof["required_capability_ids"])
     assert proof["host_security_control_changes"] == "prohibited"
     linux = profiles["public-ubuntu-24.04-x86_64"]
-    assert {"container-cli", "container-daemon", "libvirt-client", "libvirt-daemon", "qemu", "kvm-access"} <= set(
-        linux["optional_capability_ids"]
-    )
+    assert {"container-cli", "container-daemon"} <= set(linux["optional_capability_ids"])
     for profile in profiles.values():
         assert "offline_kit" not in profile
         assert "qualification_record_ids" not in profile
@@ -52,29 +51,23 @@ def test_checked_in_host_profiles_join_locked_payloads_and_evidence() -> None:
 def test_standard_python_and_uv_payloads_are_exact_and_preview_is_advisory() -> None:
     lock = json.loads((REPO_ROOT / "implementations/tooling/artifacts.lock.json").read_text(encoding="utf-8"))
     artifacts = {item["artifact_id"]: item for item in lock["artifacts"]}
-    expected = {
-        "cpython-3.11": "3.11.16",
-        "cpython-3.12": "3.12.14",
-        "cpython-3.13": "3.13.15",
-        "cpython-3.14": "3.14.7",
+    assert {artifact_id for artifact_id in artifacts if artifact_id.startswith("cpython-")} == {
+        "cpython-3.14",
+        "cpython-3.14t",
     }
-    for artifact_id, version in expected.items():
-        artifact = artifacts[artifact_id]
-        assert artifact["version"] == version
-        assert artifact["support_level"] == "blocking"
-        assert all(item["installed_identity"]["version"] == version for item in artifact["platforms"])
-    assert {(item["platform_id"], item["distribution_id"]) for item in artifacts["cpython-3.14"]["platforms"]} == {
+    artifact = artifacts["cpython-3.14"]
+    assert artifact["version"] == "3.14.7"
+    assert artifact["support_level"] == "blocking"
+    assert all(item["installed_identity"]["version"] == "3.14.7" for item in artifact["platforms"])
+    assert {(item["platform_id"], item["distribution_id"]) for item in artifact["platforms"]} == {
         ("linux-x86_64", "ubuntu-24.04"),
         ("linux-arm64", "ubuntu-24.04"),
         ("macos-arm64", "macos-15"),
     }
-    assert {
-        item["distribution_id"]
-        for item in artifacts["cpython-3.12"]["platforms"]
-        if item["platform_id"] == "linux-x86_64"
-    } == {"ubuntu-22.04", "ubuntu-24.04"}
+    linux = next(item for item in artifact["platforms"] if item["platform_id"] == "linux-x86_64")
+    assert "proof-ubuntu-22.04-x86_64" in linux["host_profile_ids"]
     assert artifacts["cpython-3.14t"]["support_level"] == "advisory"
-    assert artifacts["uv"]["version"] == "0.12.4"
+    assert artifacts["uv"]["version"] == "0.13.4"
     assert {item["platform_id"] for item in artifacts["uv"]["platforms"]} == {
         "linux-x86_64",
         "linux-arm64",
@@ -86,21 +79,15 @@ def test_workflow_action_source_and_payload_selectors_are_separate() -> None:
     import yaml
 
     ci = yaml.safe_load((REPO_ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
-    matrix = ci["jobs"]["interpreters"]["strategy"]["matrix"]["python"]
-    assert matrix == [
-        {"feature": "3.11", "payload": "3.11.16", "closure": "public-linux-x86_64-cp311-all-extras"},
-        {"feature": "3.12", "payload": "3.12.14", "closure": "public-linux-x86_64-cp312-all-extras"},
-        {"feature": "3.13", "payload": "3.13.15", "closure": "public-linux-x86_64-cp313-all-extras"},
-        {"feature": "3.14", "payload": "3.14.7", "closure": "public-linux-x86_64-cp314-all-extras"},
-    ]
-    job = ci["jobs"]["interpreters"]
-    assert job["env"]["UV_PYTHON"] == "${{ matrix.python.payload }}"
-    assert job["env"]["RAES_EXPECTED_PYTHON"] == "${{ matrix.python.feature }}"
-    assert job["env"]["RAES_PYTHON_CLOSURE_PROFILE"] == "${{ matrix.python.closure }}"
+    job = ci["jobs"]["distribution"]
+    assert "strategy" not in job
+    assert job["env"]["UV_PYTHON"] == "3.14.7"
+    assert job["env"]["RAES_EXPECTED_PYTHON"] == "3.14"
+    assert job["env"]["RAES_PYTHON_CLOSURE_PROFILE"] == "public-linux-x86_64-cp314-all-extras"
     setup_python = next(step for step in job["steps"] if str(step.get("uses", "")).startswith("actions/setup-python@"))
     setup_uv = next(step for step in job["steps"] if str(step.get("uses", "")).startswith("astral-sh/setup-uv@"))
-    assert setup_python["with"]["python-version"] == "${{ matrix.python.payload }}"
-    assert setup_uv["with"]["version"] == "0.12.4"
+    assert setup_python["with"]["python-version"] == "3.14.7"
+    assert setup_uv["with"]["version"] == "0.13.4"
     assert "@" in setup_python["uses"]
     assert len(setup_python["uses"].rsplit("@", 1)[1].split()[0]) == 40
 
@@ -108,7 +95,7 @@ def test_workflow_action_source_and_payload_selectors_are_separate() -> None:
 def test_every_setup_action_uses_an_exact_admitted_payload() -> None:
     import yaml
 
-    allowed_python = {"3.11.16", "3.12.14", "3.13.15", "3.14.7", "3.14.7t", "${{ matrix.python.payload }}"}
+    allowed_python = {"3.14.7", "3.14.7t"}
     for path in sorted((REPO_ROOT / ".github/workflows").glob("*.yml")):
         workflow = yaml.safe_load(path.read_text(encoding="utf-8"))
         for job in workflow.get("jobs", {}).values():
@@ -119,7 +106,7 @@ def test_every_setup_action_uses_an_exact_admitted_payload() -> None:
                 if uses.startswith("actions/setup-python@"):
                     assert step.get("with", {}).get("python-version") in allowed_python, path
                 if uses.startswith("astral-sh/setup-uv@"):
-                    assert step.get("with", {}).get("version") == "0.12.4", path
+                    assert step.get("with", {}).get("version") == "0.13.4", path
 
 
 def test_qualification_and_python_consumers_select_reviewed_host_labels() -> None:
@@ -196,6 +183,7 @@ def test_curl_qualification_uses_fixed_hardened_argv() -> None:
     assert argv[:2] == ["/usr/bin/curl", "--disable"]
     assert argv[argv.index("--proto") : argv.index("--proto") + 2] == ["--proto", "=https"]
     assert argv[argv.index("--proto-redir") : argv.index("--proto-redir") + 2] == ["--proto-redir", "=https"]
+    assert [arg for arg in argv if arg.startswith("--http")] == ["--http1.1"]
     assert "--insecure" not in argv
     assert "--location-trusted" not in argv
     assert "--retry-all-errors" not in argv
@@ -672,7 +660,7 @@ def test_bootstrap_python_install_extracts_only_the_locked_relocatable_archive(
     installed = kit_root / result["path"] / "bin/python3.14"
     assert installed.read_bytes() == b"relocatable-python"
     archive.write_bytes(archive.read_bytes() + b"tampered")
-    with pytest.raises(ValueError, match="differs from the validated lock"):
+    with pytest.raises(InvalidInputError, match="differs from the validated lock"):
         bootstrap_profile.install_python_payload("host-a", kit_root, "cpython-3.14")
 
 
@@ -731,7 +719,7 @@ def test_bootstrap_payload_fetch_uses_the_validated_exact_raw_object(
         return {"outcome": "passed", "reason_code": "curl-transfer-qualified"}
 
     monkeypatch.setattr(bootstrap_profile, "run_curl_qualification", fake_transfer)
-    with pytest.raises(ValueError, match="locator is not approved"):
+    with pytest.raises(InvalidInputError, match="locator is not approved"):
         bootstrap_profile.fetch_bootstrap_payloads("host-a", kit_root, ("uv",), locator_ref="unapproved")
     assert not (kit_root / "archives").exists()
     result = bootstrap_profile.fetch_bootstrap_payloads("host-a", kit_root, ("uv",), locator_ref=locator_ref)
@@ -743,7 +731,7 @@ def test_bootstrap_payload_fetch_uses_the_validated_exact_raw_object(
             "size": len(payload),
         }
     ]
-    with pytest.raises(ValueError, match="already exists"):
+    with pytest.raises(InvalidInputError, match="already exists"):
         bootstrap_profile.fetch_bootstrap_payloads("host-a", kit_root, ("uv",), locator_ref=locator_ref)
 
     tampered_root = tmp_path / "tampered-kit"
@@ -768,7 +756,7 @@ def test_bootstrap_payload_fetch_uses_the_validated_exact_raw_object(
 
     monkeypatch.setattr(bootstrap_profile, "run_curl_qualification", fake_tampered_transfer)
     tampered_target = tampered_root / "archives/uv/uv.tar.gz"
-    with pytest.raises(ValueError, match="failed exact verification"):
+    with pytest.raises(OperationalError, match="failed exact verification"):
         bootstrap_profile.fetch_bootstrap_payloads("host-a", tampered_root, ("uv",), locator_ref=locator_ref)
     assert not tampered_target.exists()
 
@@ -803,7 +791,7 @@ class _CurlFixture(BaseHTTPRequestHandler):
                     self.wfile.write(b"x")
                     self.wfile.flush()
                     time.sleep(0.25)
-            except (BrokenPipeError, ConnectionResetError):
+            except BrokenPipeError, ConnectionResetError:
                 pass
             return
         if self.path == "/redirect":
@@ -815,7 +803,7 @@ class _CurlFixture(BaseHTTPRequestHandler):
         self.end_headers()
         try:
             self.wfile.write(b"ok" if self.path in {"/small", "/retry429", "/retry503"} else b"x" * 4096)
-        except (BrokenPipeError, ConnectionResetError):
+        except BrokenPipeError, ConnectionResetError:
             return
 
 
@@ -859,6 +847,9 @@ def _https_fixture(tmp_path: Path) -> tuple[ThreadingHTTPServer, Path]:
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     context.minimum_version = ssl.TLSVersion.TLSv1_2
     context.load_cert_chain(cert_path, key_path)
+    # Offer HTTP/2 first, as most download hosts do (#1475). http.server speaks only HTTP/1.x, so a client that
+    # accepted h2 would fail every transfer here.
+    context.set_alpn_protocols(["h2", "http/1.1"])
     server.socket = context.wrap_socket(server.socket, server_side=True)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     return server, cert_path

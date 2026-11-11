@@ -6,14 +6,13 @@ requirement_refs: [AUT-806]
 source_refs:
   - examples/scenarios/hospital-ransomware-surgery-day.sdl.yaml
   - docs/explain/sdl/validation.md
-summary: Keep scenario examples useful by making every cross-reference resolve through the current SDL validator.
+summary: Resolve every scenario reference through the current SDL validator.
 intent: >
-  Authors can copy a scenario skeleton and replace names while preserving the
-  parser-backed relationship between nodes, entities, agents, objectives, and
-  workflows.
+  Copy a scenario skeleton and replace names. Keep valid references between
+  nodes, entities, agents, objectives, and workflows.
 use_when:
-  - Building a new scenario from a small validated starting point.
-  - Reviewing whether a scenario example is still a positive corpus artifact.
+  - A new scenario needs a small validated starting point.
+  - A positive corpus example needs review.
 authoring_steps:
   - Start with a complete SDL document that parses without semantic errors.
   - Give every reusable surface a stable identifier before adding references.

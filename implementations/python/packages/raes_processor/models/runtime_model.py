@@ -8,13 +8,17 @@ from raes.scenario import InstantiatedScenario
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
+from raes_contracts.contracts import ProcessorManifestV2Model
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.domain_profiles import DomainProfileBindingModel, DomainProfileResolutionContextModel
 from raes_contracts.evaluation import EvaluationExecutionContract, EvaluationResultContract
 from raes_contracts.execution_policy import EffectiveExecutionPolicy
 from raes_contracts.observation_demand import EffectiveObservationDemand
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.safe_state import ResolvedSafeState
+from raes_contracts.vocabulary import Closure
 
 from raes_processor.semantics.realization import CompiledRealizationAuthority, CompiledRealizationRequirement
 
@@ -69,10 +73,10 @@ class ObjectiveRuntime(ResolvedResource):
     window_step_refs: tuple[str, ...] = ()
     window_step_workflow_addresses: tuple[str, ...] = ()
     window_references: tuple[ObjectiveWindowReferenceRuntime, ...] = ()
-    result_contract: "EvaluationResultContract" = field(
+    result_contract: EvaluationResultContract = field(
         default_factory=lambda: EvaluationResultContract(resource_type="objective")
     )
-    execution_contract: "EvaluationExecutionContract" = field(
+    execution_contract: EvaluationExecutionContract = field(
         default_factory=lambda: EvaluationExecutionContract(resource_type="objective")
     )
 
@@ -111,6 +115,7 @@ class RuntimeModel:
     """
 
     scenario_name: str
+    safe_states: tuple[ResolvedSafeState, ...] = field(default=(), kw_only=True)
     execution_policies: dict[str, tuple[EffectiveExecutionPolicy, ...]] = field(default_factory=dict)
     feature_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)
     condition_templates: dict[str, RuntimeTemplate] = field(default_factory=dict)
@@ -162,8 +167,12 @@ class RuntimeModel:
     materialization_description: MaterializedScenario | None = None
     observation_demands: tuple[EffectiveObservationDemand, ...] = ()
     profile_authority: PlanProfileAuthority | None = None
+    # ADR-120: every typed descriptor selection, in field order. Planning and
+    # runtime plan admission admit each one against the target profile context.
+    descriptor_profile_bindings: tuple[DomainProfileBindingModel, ...] = ()
 
     def __post_init__(self) -> None:
+        self._require_admissible_channels()
         owners: dict[str, str] = {}
         address_map_fields = (
             "networks",
@@ -212,6 +221,28 @@ class RuntimeModel:
         if len(capability_keys) != len(set(capability_keys)):
             raise ValueError("RuntimeModel capability constraints must address unique fields")
 
+    def _require_admissible_channels(self) -> None:
+        """Keep every compiled typed channel inside the descriptor admission tuple (ADR-120)."""
+
+        for behavior in self.participant_behaviors.values():
+            for access in behavior.interactive_access:
+                if (
+                    isinstance(access.channel, DomainProfileBindingModel)
+                    and access.channel not in self.descriptor_profile_bindings
+                ):
+                    raise ValueError("RuntimeModel typed channel is missing from its descriptor profile bindings")
+
+
+@dataclass(frozen=True)
+class PlanningContext:
+    """Original compiled input and frozen apparatus choices for later planning."""
+
+    model: RuntimeModel
+    apparatus_decisions: dict[tuple[str, str, str], Closure]
+    profile_context: DomainProfileResolutionContextModel | None = None
+    mixed_control_model: RuntimeModel | None = None
+    processor_manifest: ProcessorManifestV2Model | None = None
+
 
 @dataclass(frozen=True)
 class ExecutionPlan:
@@ -219,7 +250,7 @@ class ExecutionPlan:
 
     target_name: str | None
     manifest: BackendManifest
-    base_snapshot: "RuntimeSnapshot"
+    base_snapshot: RuntimeSnapshot
     scenario_name: str
     model: RuntimeModel
     provisioning: ProvisioningPlan
@@ -230,6 +261,7 @@ class ExecutionPlan:
     artifact_availability: ArtifactAvailabilityContext = field(
         default_factory=ArtifactAvailabilityContext,
     )
+    planning_context: PlanningContext | None = None
 
     @property
     def is_valid(self) -> bool:
@@ -240,6 +272,14 @@ def resource_payload(resource: ResolvedResource) -> dict[str, Any]:
     """Convert a compiled resource to a stable planner payload."""
 
     payload = asdict(resource)
+    if isinstance(resource, (ParticipantBehaviorRuntime, ParticipantBehaviorSpecificationRuntime)):
+        if resource.control_context:
+            payload["control_context"] = [
+                {**asdict(selection), "asset_ref": selection.asset_ref.model_dump(mode="json")}
+                for selection in resource.control_context
+            ]
+        else:
+            payload.pop("control_context", None)
     payload.pop("address", None)
     payload.pop("ordering_dependencies", None)
     payload.pop("refresh_dependencies", None)

@@ -5,8 +5,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
+from raes_contracts.errors import RaesError
+from raes_contracts.operational_logging import get_logger
+
 from .control_plane_recovery import unresolved_indeterminate_operation_ids_from_records
 from .control_plane_store import RuntimeAdmittedControlPlaneStore
+
+_LOGGER = get_logger(__name__)
 
 
 class ControlPlaneHealthStatus(str, Enum):
@@ -50,13 +55,7 @@ def control_plane_readiness(control_plane: object) -> ControlPlaneHealth:
             reasons.append("closed")
         store = control_plane._store
         lease = control_plane._runtime_lease
-        if isinstance(store, RuntimeAdmittedControlPlaneStore):
-            try:
-                if lease is None:
-                    raise RuntimeError
-                lease.assert_owner()
-            except Exception:
-                reasons.append("lease-unavailable")
+        requires_lease = isinstance(getattr(store, "raw_store", store), RuntimeAdmittedControlPlaneStore)
 
         with control_plane._operation_lock:
             records = dict(control_plane._operations)
@@ -67,9 +66,32 @@ def control_plane_readiness(control_plane: object) -> ControlPlaneHealth:
         ):
             reasons.append("recovery-required")
 
-        deduplicated = tuple(dict.fromkeys(reasons))
-        status = ControlPlaneHealthStatus.READY if not deduplicated else ControlPlaneHealthStatus.UNREADY
-        return ControlPlaneHealth(status=status, reasons=deduplicated)
+    if requires_lease and not _lease_available(control_plane, lease):
+        reasons.append("lease-unavailable")
+    if getattr(control_plane, "_effect_admission_stopped", False):
+        reasons.append("effect-admission-stopped")
+    deduplicated = tuple(dict.fromkeys(reasons))
+    status = ControlPlaneHealthStatus.READY if not deduplicated else ControlPlaneHealthStatus.UNREADY
+    return ControlPlaneHealth(status=status, reasons=deduplicated)
+
+
+def _lease_available(control_plane: object, lease: object | None) -> bool:
+    """Confirm the runtime lease; a probe reports any failure as unready."""
+
+    if lease is None:
+        return False
+    try:
+        control_plane._assert_runtime_owner()
+    except RaesError:
+        # A closed runtime, a lost lease or an exhausted check budget is an expected unready state.
+        available = False
+    except Exception:
+        # Isolation of the store lease check: readiness reports it without failing the probe.
+        _LOGGER.exception("control-plane readiness could not confirm the runtime lease")
+        available = False
+    else:
+        available = True
+    return available
 
 
 __all__ = (

@@ -7,9 +7,11 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from contract_fixtures import load_contract_fixture
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes_conformance.conformance import _validate_payload
+from raes_contracts.canonical import canonical_contract_digest
 from raes_contracts.contracts import (
     BackendManifestV2Model,
     ConfigurationTargetDeclarationModel,
@@ -23,18 +25,18 @@ from raes_contracts.contracts import (
     ParticipantImplementationSelectionModel,
     ProcessorManifestV2Model,
     RealizedBindingProvenanceModel,
-    schema_bundle,
 )
-from raes_contracts.experiment_bindings import (
-    ScenarioBindingResolution,
-    validate_experiment_binding_targets,
-)
-from raes_contracts.participant_configuration import (
+from raes_contracts.contracts.participant_configuration import (
     ConfigurationOverrideModel,
     realize_participant_configuration,
     validate_participant_configuration_selection,
 )
-from raes_contracts.satisfiability import canonical_contract_digest
+from raes_contracts.experiment_bindings import (
+    ExperimentBindingTargetError,
+    ScenarioBindingResolution,
+    validate_experiment_binding_targets,
+)
+from raes_schemas import schema_bundle
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 _PARTICIPANT_MANIFEST_FIXTURE = (
@@ -186,7 +188,7 @@ def test_secret_reference_rejects_host_locator_shapes(reference_id: str) -> None
 
 
 def _participant_manifest_payload() -> dict[str, object]:
-    payload = json.loads(_PARTICIPANT_MANIFEST_FIXTURE.read_text(encoding="utf-8"))
+    payload = load_contract_fixture(_PARTICIPANT_MANIFEST_FIXTURE)
     for contract_id in ["experiment-binding-descriptors-v1", "participant-configuration-result-v1"]:
         if contract_id not in payload["supported_contract_versions"]:
             payload["supported_contract_versions"].append(contract_id)
@@ -607,6 +609,18 @@ def test_experiment_spec_rejects_binding_factor_level_mismatch() -> None:
         ExperimentSpecModel.model_validate(payload)
 
 
+@pytest.mark.parametrize("invalid", ["factor", "level"])
+def test_explicit_binding_mode_rejects_invalid_unjoined_condition_factor(invalid: str) -> None:
+    payload = _experiment_spec_payload_with_bindings()
+    if invalid == "level":
+        payload["factors"]["unjoined"] = {"name": "Extra factor", "factor_kind": "other", "levels": ["valid"]}
+    assignment = payload["run_plan"]["allocation"]["condition_assignments"]["cond-stealthy"]
+    assignment["factor_levels"]["unjoined"] = "invalid"
+
+    with pytest.raises(ValidationError, match="must reference declared factor"):
+        ExperimentSpecModel.model_validate(payload)
+
+
 def test_experiment_spec_fails_closed_when_explicit_bindings_are_required_but_absent() -> None:
     payload = _experiment_spec_payload_with_bindings()
     del payload["binding_descriptors"]
@@ -661,7 +675,7 @@ def test_apparatus_manifests_publish_typed_configuration_targets(
     model_type: type[ProcessorManifestV2Model] | type[BackendManifestV2Model],
     fixture_path: Path,
 ) -> None:
-    payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+    payload = load_contract_fixture(fixture_path)
     payload["supported_contract_versions"].append("experiment-binding-descriptors-v1")
     payload["configuration_registry"] = {
         "owner": {
@@ -851,7 +865,7 @@ def _processor_manifest_payload_with_registry() -> dict[str, object]:
         / "valid"
         / "reference.json"
     )
-    payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+    payload = load_contract_fixture(fixture_path)
     payload["supported_contract_versions"].append("experiment-binding-descriptors-v1")
     payload["configuration_registry"] = {
         "owner": {
@@ -985,7 +999,7 @@ def test_scenario_binding_admission_rejects_resolver_contract_mismatch(
 ) -> None:
     descriptors = ExperimentBindingDescriptorSetModel.model_validate(_scenario_binding_payload())
 
-    with pytest.raises(ValueError, match=message):
+    with pytest.raises(ExperimentBindingTargetError, match=message):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=resolver,
@@ -998,7 +1012,7 @@ def test_scenario_binding_admission_rejects_literal_for_secret_target() -> None:
     descriptors = ExperimentBindingDescriptorSetModel.model_validate(_scenario_binding_payload())
     scenario_resolver = _SecretLiteralScenarioResolver()
 
-    with pytest.raises(ValueError, match="secret scenario targets"):
+    with pytest.raises(ExperimentBindingTargetError, match="secret scenario targets"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1015,7 +1029,7 @@ def test_binding_admission_rejects_miskeyed_participant_manifest_identity() -> N
     scenario_resolver = _ScenarioResolver()
     participant_manifests = _participant_manifest_map(manifest)
 
-    with pytest.raises(ValueError, match="identity must match"):
+    with pytest.raises(ExperimentBindingTargetError, match="identity must match"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1032,7 +1046,7 @@ def test_binding_admission_rejects_participant_manifest_without_registry() -> No
     scenario_resolver = _ScenarioResolver()
     participant_manifests = _participant_manifest_map(manifest)
 
-    with pytest.raises(ValueError, match="no configuration target registry"):
+    with pytest.raises(ExperimentBindingTargetError, match="no configuration target registry"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1049,7 +1063,7 @@ def test_binding_admission_rejects_participant_target_owner_mismatch() -> None:
     scenario_resolver = _ScenarioResolver()
     participant_manifests = _participant_manifest_map(manifest)
 
-    with pytest.raises(ValueError, match="owner"):
+    with pytest.raises(ExperimentBindingTargetError, match="owner"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1067,7 +1081,7 @@ def test_binding_admission_rejects_participant_target_value_type_mismatch() -> N
     scenario_resolver = _ScenarioResolver()
     participant_manifests = _participant_manifest_map(manifest)
 
-    with pytest.raises(ValueError, match="value_type"):
+    with pytest.raises(ExperimentBindingTargetError, match="value_type"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1084,7 +1098,7 @@ def test_binding_admission_rejects_miskeyed_apparatus_manifest_identity() -> Non
     scenario_resolver = _ScenarioResolver()
     apparatus_manifests = _apparatus_manifest_map(manifest)
 
-    with pytest.raises(ValueError, match="identity and kind must match"):
+    with pytest.raises(ExperimentBindingTargetError, match="identity and kind must match"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1108,7 +1122,7 @@ def test_binding_admission_rejects_apparatus_manifest_without_registry() -> None
     scenario_resolver = _ScenarioResolver()
     apparatus_manifests = _apparatus_manifest_map(manifest)
 
-    with pytest.raises(ValueError, match="no configuration target registry"):
+    with pytest.raises(ExperimentBindingTargetError, match="no configuration target registry"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1125,7 +1139,7 @@ def test_binding_admission_rejects_apparatus_kind_mismatch() -> None:
     scenario_resolver = _ScenarioResolver()
     apparatus_manifests = _apparatus_manifest_map(manifest, component_kind="backend")
 
-    with pytest.raises(ValueError, match="identity and kind must match"):
+    with pytest.raises(ExperimentBindingTargetError, match="identity and kind must match"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1142,7 +1156,7 @@ def test_binding_admission_rejects_unknown_participant_target_without_cross_plan
     scenario_resolver = _ScenarioResolver()
     participant_manifests = _participant_manifest_map(manifest)
 
-    with pytest.raises(ValueError, match="unknown configuration target"):
+    with pytest.raises(ExperimentBindingTargetError, match="unknown configuration target"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1162,7 +1176,7 @@ def test_binding_admission_rejects_alias_and_canonical_duplicate_after_resolutio
     scenario_resolver = _ScenarioResolver()
     participant_manifests = _participant_manifest_map(manifest)
 
-    with pytest.raises(ValidationError, match="duplicate canonical target"):
+    with pytest.raises(ExperimentBindingTargetError, match="duplicate canonical target"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1181,7 +1195,7 @@ def test_scenario_binding_admission_enforces_owner_declared_value_disposition() 
     descriptors = ExperimentBindingDescriptorSetModel.model_validate(payload)
     scenario_resolver = _ScenarioResolver()
 
-    with pytest.raises(ValueError, match="value kind"):
+    with pytest.raises(ExperimentBindingTargetError, match="value kind"):
         validate_experiment_binding_targets(
             descriptors,
             scenario_resolver=scenario_resolver,
@@ -1242,7 +1256,7 @@ def test_binding_contract_roots_are_published_and_registered(
         else "participant-implementation-configuration"
     )
     schema_path = _REPO_ROOT / "contracts" / "schemas" / schema_family / f"{contract_id}.json"
-    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    schema = json.loads((schema_path).read_text(encoding="utf-8"))
     assert not list(Draft202012Validator(schema).iter_errors(payload))
 
 
@@ -1262,9 +1276,9 @@ def test_binding_contract_fixture_corpora_are_nonempty_and_enforced(contract_id:
     assert valid_paths
     assert invalid_paths
     for path in valid_paths:
-        assert not _validate_payload(contract_id, json.loads(path.read_text(encoding="utf-8")))
+        assert not _validate_payload(contract_id, load_contract_fixture(path))
     for path in invalid_paths:
-        assert _validate_payload(contract_id, json.loads(path.read_text(encoding="utf-8")))
+        assert _validate_payload(contract_id, load_contract_fixture(path))
 
 
 def test_binding_schemas_disclose_semantic_invariants_and_explicit_mode_conditionals() -> None:

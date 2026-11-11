@@ -428,9 +428,10 @@ def _validate(scenario) -> list[str]:
 
     try:
         SemanticValidator(scenario).validate()
-        return []
     except SDLValidationError as e:
         return e.errors
+    else:
+        return []
 
 
 def _scenario_with_units(units: list[dict], *, fs_inventory: list[dict] | None = None, nodes: dict | None = None):

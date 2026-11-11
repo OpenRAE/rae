@@ -406,7 +406,7 @@ def test_positive_probes_fail_closed_for_non_constructive_envelope() -> None:
 def _probe_is_out_of_envelope(payload: dict, env: RealizationEnvelopeModel) -> bool:
     try:
         instance = instantiate_scenario(Scenario.model_validate(payload))
-    except (ValidationError, SDLValidationError, SDLInstantiationError):
+    except ValidationError, SDLValidationError, SDLInstantiationError:
         # invalid SDL is never a member; any other exception is a real bug and must propagate
         return True
     return not member(instance, env).holds

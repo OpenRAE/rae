@@ -16,3 +16,11 @@ Read these limits before you choose RAES for a study or an app.
 
 Use backend reports, test results, provenance, and evidence to state the limits
 of a result.
+
+The runtime can run installed mixed paths and staged handoffs.
+The tests use controlled providers. They check bounded RAE behavior.
+Reusable control with mixed runtime remains unsupported.
+Remote dispatch with local mixed services is also refused.
+Two passing paths do not prove that they work together.
+Read the [control support reference](https://github.com/OpenRAE/rae/blob/dev/docs/explain/reference/revised-control-semantics.md)
+for the selected bindings and evidence limits.

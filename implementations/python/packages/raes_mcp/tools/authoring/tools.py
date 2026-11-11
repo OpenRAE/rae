@@ -287,8 +287,11 @@ def _parse_parameters(parameters_json: str) -> dict[str, object] | str:
 
     try:
         params = json.loads(parameters_json)
-    except json.JSONDecodeError as exc:
-        return f"Invalid JSON in parameters_json: {exc}"
+    except (ValueError, RecursionError) as exc:
+        # JSONDecodeError names the syntax error; the decoder raises a plain ValueError beyond the
+        # integer digit limit and RecursionError beyond its depth.
+        detail = exc if isinstance(exc, json.JSONDecodeError) else "the document exceeds the decoder limits."
+        return f"Invalid JSON in parameters_json: {detail}"
     if not isinstance(params, dict):
         return "parameters_json must be a JSON object (dictionary)."
     return params

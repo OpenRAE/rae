@@ -1113,3 +1113,32 @@ imports:
         assert workflow.execution_contract.compensation_ordering == "reverse_completion"
         assert workflow.execution_contract.compensation_failure_policy == "record_and_continue"
         assert not model.diagnostics
+
+
+def test_exposure_resolver_failure_is_logged_value_free_and_is_not_a_validation_refusal(caplog):
+    import logging
+
+    from raes_contracts.errors import OperationalError
+    from raes_processor.models.participant_exposure_policy import _resolve_authorization
+
+    secret = "resolver-secret-sentinel-1678"
+
+    def failing_resolver(**_kwargs):
+        raise RuntimeError(secret)
+
+    logger_name = "raes_processor.models.participant_exposure_policy"
+    with (
+        caplog.at_level(logging.WARNING, logger=logger_name),
+        pytest.raises(OperationalError, match="authorization resolution failed") as raised,
+    ):
+        _resolve_authorization(authorization_record_ref="authz-1", item_ref="item-1", resolver=failing_resolver)
+
+    assert not isinstance(raised.value, ValueError)
+    assert secret not in str(raised.value)
+    records = [item for item in caplog.records if item.name == logger_name]
+    assert len(records) == 1
+    assert records[0].levelno == logging.ERROR
+    assert secret not in records[0].getMessage()
+    # The resolver is host code, so the record keeps only the RAES frames (ADR-116, H2).
+    assert "ForeignCodeFailure" in (records[0].exc_text or "")
+    assert secret not in (records[0].exc_text or "")

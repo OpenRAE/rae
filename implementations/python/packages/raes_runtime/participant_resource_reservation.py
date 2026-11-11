@@ -243,7 +243,7 @@ def _apply_reservation(
     checked: _ReservationCheck,
 ) -> None:
     if checked.current is None or checked.physical_pool is None:
-        raise AssertionError("validated reservation must include budget and pool state")
+        raise RuntimeError("validated reservation must include budget and pool state")
     current = checked.current
     event_id = _event_id(mutation.operation_id, current.state_ref)
     event = ParticipantResourceBudgetEventModel(

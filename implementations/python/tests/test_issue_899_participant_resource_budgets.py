@@ -31,7 +31,6 @@ from raes_backend_protocols.participant_resource_budgets import (
     ParticipantResourcePoolCapacity,
 )
 from raes_backend_stubs.stubs import create_stub_target
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.contracts.participant_resource_budgets import (
     ParticipantResourceBudgetEventModel,
     ParticipantResourceBudgetPolicyModel,
@@ -51,6 +50,7 @@ from raes_runtime.participant_resource_budgets import (
     initialize_participant_resource_budgets,
     reserve_participant_resources,
 )
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 

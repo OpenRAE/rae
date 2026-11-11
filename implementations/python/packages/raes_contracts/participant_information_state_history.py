@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 from pydantic import ValidationError
 
-from .contracts import (
+from raes_contracts.contracts.participant_information_state import (
     ParticipantInformationStateContextResolver,
     ParticipantInformationStateRecordModel,
     validate_participant_information_state_resolved_context,
@@ -116,7 +116,7 @@ def _record_context_violation(
                     information_state_context_resolver,
                     context_scope,
                 )
-            except (TypeError, ValueError):
+            except TypeError, ValueError:
                 violation = (record_path, "information-state contextual validation failed")
     return violation
 

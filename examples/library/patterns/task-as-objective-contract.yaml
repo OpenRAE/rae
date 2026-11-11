@@ -8,15 +8,16 @@ source_refs:
   - docs/explain/sdl/limitations.md
 summary: Represent current task templates as objective contracts with explicit actors, targets, and success criteria.
 intent: >
-  Provide a reusable task authoring path using current SDL surfaces while the
-  repository does not expose a first-class tasks section.
+  Author a task through current SDL declarations.
+  The repository exposes no first-class tasks section.
 use_when:
   - A user-facing task can be expressed as one objective with measurable success.
   - The task target can be named through existing SDL target references.
 authoring_steps:
   - Create or reuse the participant agent that owns the task.
   - Define the task target as a targetable SDL reference.
-  - Add a condition, metric, evaluation, TLO, or goal that proves completion.
+  - Reference a postcondition assertion over a completion proposition from objective success.
+  - Bind a condition probe to the proposition when an executable check is needed.
   - Place the objective in a workflow when task order matters.
 validation:
   - command: parse_sdl_file

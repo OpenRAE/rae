@@ -14,6 +14,10 @@ from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 
+from deterministic_participant_fixtures import (
+    build_implementation_manifest,
+    build_implementation_selection,
+)
 from raes.participant_behavior_specification import MixedControlTransitionKind
 from raes_backend_protocols.backend_manifest import BackendManifest
 from raes_backend_protocols.capabilities import (
@@ -21,19 +25,15 @@ from raes_backend_protocols.capabilities import (
     ParticipantFeatureSupport,
 )
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingGateDisposition,
     ParticipantCrossingOperation,
     ParticipantCrossingPolicyReferenceModel,
     ParticipantCrossingSubjectReferenceModel,
 )
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
-from raes_operations.deterministic_participant_fixtures import (
-    build_implementation_manifest,
-    build_implementation_selection,
-)
 from raes_processor.models import (
     MixedControlControllerStateRuntime,
     MixedControlDispositionRulesRuntime,

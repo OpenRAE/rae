@@ -102,6 +102,15 @@ def _write_yaml(path: Path, value: dict[str, Any]) -> None:
     path.write_text(yaml.safe_dump(value, sort_keys=False), encoding="utf-8")
 
 
+def _entry_metadata(validation_status: str, sdl_sections: list[str]) -> dict[str, Any]:
+    return {
+        "validation_status": validation_status,
+        "sdl_sections": sdl_sections,
+        "intended_user": "sdl-author",
+        "limits": ["Policy-test fixture; it makes no support claim."],
+    }
+
+
 def _seed_repo(tmp_path: Path) -> Path:
     catalog: dict[str, Any] = {
         "library": "raes-example-pattern-library",
@@ -121,10 +130,23 @@ def _seed_repo(tmp_path: Path) -> Path:
                     "id": f"{surface}-worked",
                     "path": worked_path,
                     "source_refs": ["examples/README.md"],
+                    **_entry_metadata("guidance", ["objectives"]),
                 }
             ],
-            "templates": [{"id": f"{surface}-template", "path": template_path}],
-            "patterns": [{"id": f"{surface}-pattern", "path": pattern_path}],
+            "templates": [
+                {
+                    "id": f"{surface}-template",
+                    "path": template_path,
+                    **_entry_metadata("validated", ["nodes", "objectives", "workflows"]),
+                }
+            ],
+            "patterns": [
+                {
+                    "id": f"{surface}-pattern",
+                    "path": pattern_path,
+                    **_entry_metadata("guidance", ["objectives"]),
+                }
+            ],
         }
         worked_file = tmp_path / worked_path
         worked_file.parent.mkdir(parents=True, exist_ok=True)
@@ -139,6 +161,7 @@ def _seed_repo(tmp_path: Path) -> Path:
                 "requirement_refs": [REQUIREMENT_REF],
                 "source_refs": ["docs/explain/sdl/sections.md"],
                 "summary": f"Reusable {surface} template for policy tests.",
+                "validation": [{"command": "python tools/check_example_library.py", "expected": "exits 0"}],
                 "body": dict(_VALID_BODY, name=f"{surface}-template"),
             },
         )

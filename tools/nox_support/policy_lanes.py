@@ -39,6 +39,7 @@ _WORKING_TREE_POLICY_STAGES: tuple[tuple[str, str], ...] = (
     ("policy / agent guidance profile", "tools/check_agent_guidance.py"),
     ("policy / example library catalog", "tools/check_example_library.py"),
     ("policy / published schema coverage", "tools/check_schema_coverage.py"),
+    ("policy / published contract requirement tracing", "tools/check_contract_requirement_tracing.py"),
     ("policy / project positioning", "tools/check_project_positioning.py"),
     ("policy / identity cutover", "tools/check_identity_cutover.py"),
 )
@@ -129,6 +130,10 @@ def _run_policy(session: nox.Session, reporter: SessionReporter, *args: str) -> 
     reporter.run(
         "policy / development artifact lock",
         lambda: _run_project_python(session, "tools/check_tooling_artifact_policy.py"),
+    )
+    reporter.run(
+        "policy / branch merge queue",
+        lambda: _run_project_python(session, "tools/check_merge_queue_policy.py"),
     )
     reporter.run(
         "policy / conftest self-verify",

@@ -21,6 +21,9 @@ Agent-assisted development can produce internally coherent code and documentatio
 
 ## Traceability
 
+- IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/captures/capture-c8027e27fdc60bbd81848274172200ce7fba055473e03f6645fa9d37c1890d61/manifest.json` (Fresh bounded replay after autonomous initialization admission)
+- IMPLEMENTS → PROOF `docs/research/specification-coverage/captures/capture-77e19c95e3a90ed0f4d349fcc5fad9fcad6d78ee73c9c524052e8bc3f4da9f3a/manifest.json` (Fresh typed artifact coverage with retained claim limits)
+
 - IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1389-v53.json` (Current source-bound coverage replay after participant inject temporal-subject admission)
 - IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v53.json` (Current source-bound formal replay after participant inject temporal-subject admission)
 - IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1358-v45.json` (Prior source-bound coverage replay with retained classifications)
@@ -95,3 +98,4 @@ Agent-assisted development can produce internally coherent code and documentatio
 - IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1208-v9.json` (Atomic coverage release 9.0.0 for typed selections)
 - IMPLEMENTS → PROOF `docs/research/formal-semantic-validation/bundles/retest-v15.json` (Current formal replay with historical revisions retained)
 - IMPLEMENTS → PROOF `docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1210-v14.json` (Current source-bound coverage replay)
+- IMPLEMENTS → SPEC `contracts/schemas/exploit-path-analysis/exploit-path-analysis-evidence-v1.json` (exploit-path-analysis-evidence-v1 published schema)

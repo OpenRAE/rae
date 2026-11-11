@@ -14,8 +14,9 @@ from enum import Enum
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
 from pydantic.json_schema import JsonSchemaValue
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import normalize_enum_value
 
-from ._base import SDLModel, normalize_enum_value
 from .deployment_tenancy import RelationshipCarrierPlacement, RelationshipSharedService
 from .enterprise_identity import RelationshipForestTrust, RelationshipIdentityFederation
 from .identity_domains import RelationshipDomainController, RelationshipDomainJoin
@@ -70,9 +71,10 @@ class RelationshipType(str, Enum):
 class Relationship(SDLModel):
     """A typed directed edge between two named scenario elements.
 
-    Source and target can reference any named element in the scenario:
-    nodes, features, accounts, entities, or infrastructure entries.
-    The validator checks that both endpoints resolve.
+    ``source`` and ``target`` must each resolve to exactly one declaration
+    eligible as a relationship endpoint (SDL references §7). Typed relationship
+    types and typed details narrow the eligible declaration kinds (§5 and §7);
+    where several apply, an endpoint must satisfy all of them.
 
     The ``properties`` dict carries type-specific metadata (e.g.,
     ``trust_type: parent-child`` for AD trusts, ``protocol: SAML``
@@ -116,7 +118,7 @@ class Relationship(SDLModel):
         return normalize_enum_value(v)
 
     @model_validator(mode="after")
-    def validate_participant_detail(self) -> "Relationship":
+    def validate_participant_detail(self) -> Relationship:
         if (self.type == RelationshipType.PARTICIPANT) != (self.participant is not None):
             raise ValueError("participant relationship type and participant detail must be declared together")
         if self.participant is not None and (

@@ -111,7 +111,8 @@ def test_actual_unadmitted_effects_fail_and_retain_cleanup_without_archival(tmp_
     assert not result.snapshot.materialization_attestations
 
 
-def test_later_evaluator_addition_is_refused_before_provisioning(tmp_path):
+@pytest.mark.parametrize("durable", [False, True])
+def test_later_evaluator_addition_is_refused_before_provisioning(tmp_path, durable):
     from raes import parse_sdl
     from raes_backend_stubs.stubs import create_stub_manifest
     from raes_contracts.planning import PlanScope
@@ -136,6 +137,7 @@ def test_later_evaluator_addition_is_refused_before_provisioning(tmp_path):
             name="scoped", manifest=manifest, provisioner=provisioner, evaluator=CollectorEvaluator(calls, "evaluator")
         ),
         materialization_archive=RunMaterializationArchive(tmp_path),
+        run_scope="run:run-1",
     )
     scenario = parse_sdl("""
 name: scoped
@@ -154,9 +156,13 @@ assertions:
     execution = manager.plan(scenario, run_scope=PlanScope(run_id="run-1"))
     assert execution.is_valid, execution.diagnostics
     assert execution.evaluation.actionable_operations
-    result = manager.apply(execution)
-    assert not result.success
-    assert any(item.code == "augmentation.scope-closed" for item in result.diagnostics)
+    if durable:
+        result = manager.advance_plan(execution, execution_id="scope-admission")
+        assert result.state == "failed"
+    else:
+        result = manager.apply(execution)
+        assert not result.success
+        assert any(item.code == "augmentation.scope-closed" for item in result.diagnostics)
     assert provisioner.calls == 0
     assert not calls
     assert not manager.snapshot.entries

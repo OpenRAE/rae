@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from contract_fixtures import load_contract_fixture
 from jsonschema import Draft202012Validator
 from raes_contracts.contracts.backend_preparation import BackendPreparationResponseModel
 from raes_contracts.contracts.candidate_synthesis import CandidateSynthesisRecordModel
@@ -28,6 +29,7 @@ from raes_contracts.contracts.participant_execution import (
     ParticipantExecutionServiceStateModel,
 )
 from raes_contracts.contracts.semantic_projection import SemanticProjectionReportModel
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.realization_profiles import PlanProfileAuthority
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -35,9 +37,12 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from tools.check_json_artifacts import (  # noqa: E402
+    JSON_SCHEMA_WORKERS_ENV,
+    ValidationTarget,
     _frozen_historical_records,
     collect_validation_targets,
     covered_schema_paths,
+    validate_targets,
 )
 from tools.check_schema_coverage import (  # noqa: E402
     COVERAGE_KEY,
@@ -84,7 +89,6 @@ def _publish(
     schema_path = f"contracts/schemas/{family}/{contract_id}.json"
     _write(repo_root / schema_path, _SCHEMA + "\n")
     entry: dict[str, Any] = {
-        "content_hash": "0" * 64,
         "contract_id": contract_id,
         "schema_path": schema_path,
         "stability": "draft",
@@ -105,7 +109,6 @@ def _seal_sharded(repo_root: Path) -> None:
         repo_root / "contracts/schema-publication-manifest.json",
         {
             "entries_directory": "contracts/schema-publication/entries",
-            "hash_algorithm": "sha256",
             "schema_version": "schema-publication-manifest/v2",
             "tombstones_directory": "contracts/schema-publication/tombstones",
         },
@@ -115,12 +118,11 @@ def _seal_sharded(repo_root: Path) -> None:
 def _append_legacy(repo_root: Path, entry: dict[str, Any]) -> None:
     manifest = repo_root / "contracts/schema-publication-manifest.json"
     document: dict[str, Any] = {
-        "hash_algorithm": "sha256",
         "schema_version": "schema-publication-manifest/v1",
         "schemas": [],
     }
     if manifest.is_file():
-        document = json.loads(manifest.read_text(encoding="utf-8"))
+        document = load_contract_fixture(manifest)
     document["schemas"] = sorted(
         [*(e for e in document["schemas"] if e["contract_id"] != entry["contract_id"]), entry],
         key=lambda item: item["contract_id"],
@@ -314,7 +316,7 @@ def test_every_checked_in_contract_payload_is_routed_or_frozen() -> None:
             continue
         if "/invalid/" in relative or relative in routed or relative in frozen:
             continue
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = load_contract_fixture(path)
         schema_version = payload.get("schema_version") if isinstance(payload, dict) else None
         if isinstance(schema_version, str) and schema_version.replace("/", "-") in published:
             unrouted.append(relative)
@@ -348,6 +350,26 @@ def test_a_symlinked_exclusion_manifest_excludes_nothing(tmp_path: Path) -> None
     assert "contracts/provenance/operation-status-v1.json" in {
         target.path for target in collect_validation_targets(tmp_path)
     }
+
+
+@pytest.mark.parametrize("content", [b"\xff\xfe not utf-8", b"{ not json"])
+def test_an_undecodable_exclusion_manifest_excludes_nothing(tmp_path: Path, content: bytes) -> None:
+    manifest = tmp_path / "tools/policy/historical_identity_records.json"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_bytes(content)
+
+    assert _frozen_historical_records(tmp_path) == frozenset()
+
+
+@pytest.mark.parametrize(("workers", "message"), [("many", "must be an integer"), ("0", "must be at least one")])
+def test_an_invalid_schema_worker_count_is_refused_as_invalid_input(
+    monkeypatch: pytest.MonkeyPatch, workers: str, message: str
+) -> None:
+    monkeypatch.setenv(JSON_SCHEMA_WORKERS_ENV, workers)
+
+    targets = [ValidationTarget("contracts/schemas/example.json", None, "metaschema")]
+    with pytest.raises(InvalidInputError, match=message):
+        validate_targets(targets)
 
 
 def test_symlinked_corpus_artifacts_are_never_dereferenced(tmp_path: Path) -> None:
@@ -566,7 +588,6 @@ def _carrier_repo(tmp_path: Path, node: Any) -> str:
     )
     _write_json(tmp_path / "contracts/profiles/carriers/host.json", {"schema_version": "host-v1", "annotations": node})
     entry = {
-        "content_hash": "0" * 64,
         "contract_id": "annotation-entry-v1",
         "schema_path": "contracts/schemas/profiles/annotation-entry-v1.json",
         "stability": "draft",
@@ -614,7 +635,7 @@ def test_embedded_source_stops_covering_when_the_node_stops_conforming(tmp_path:
 def test_embedded_schema_pointer_must_name_a_published_definition(tmp_path: Path) -> None:
     _carrier_repo(tmp_path, [{"id": "entry-one"}])
     entry_path = tmp_path / "contracts/schema-publication/entries/annotation-entry-v1.json"
-    entry = json.loads(entry_path.read_text(encoding="utf-8"))
+    entry = json.loads((entry_path).read_text(encoding="utf-8"))
     entry[COVERAGE_KEY]["sources"][0]["schema_pointer"] = "#/$defs/DoesNotExist"
     _write_json(entry_path, entry)
 
@@ -626,7 +647,7 @@ def test_embedded_schema_pointer_must_name_a_published_definition(tmp_path: Path
 def test_one_schema_may_cite_several_nodes_of_one_carrier(tmp_path: Path) -> None:
     _carrier_repo(tmp_path, [{"id": "entry-one"}, {"id": "entry-two"}])
     entry_path = tmp_path / "contracts/schema-publication/entries/annotation-entry-v1.json"
-    entry = json.loads(entry_path.read_text(encoding="utf-8"))
+    entry = json.loads((entry_path).read_text(encoding="utf-8"))
     second = dict(entry[COVERAGE_KEY]["sources"][0])
     second["pointer"] = "/annotations/1"
     entry[COVERAGE_KEY]["sources"].append(second)
@@ -789,6 +810,37 @@ def test_unreadable_catalog_fails_closed(tmp_path: Path) -> None:
     assert MISSING_RULE_ID not in _rule_ids(failures)
 
 
+def test_malformed_catalog_raises_the_invalid_input_category(tmp_path: Path) -> None:
+    _write(tmp_path / "contracts/schema-publication-manifest.json", "{ not json\n")
+
+    with pytest.raises(InvalidInputError, match="schema publication manifest is not valid JSON"):
+        load_schema_publication_catalog(tmp_path)
+
+
+def test_non_utf8_catalog_fails_closed(tmp_path: Path) -> None:
+    manifest = tmp_path / "contracts/schema-publication-manifest.json"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_bytes(b"\xff\xfe{}")
+
+    failures = evaluate_schema_coverage(tmp_path)
+
+    assert failures
+    assert MISSING_RULE_ID not in _rule_ids(failures)
+
+
+def test_cli_reports_an_invalid_policy_exception_as_one_message(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    _publish(tmp_path, "operation-status-v1", "control-plane")
+    _write(
+        tmp_path / "tools/policy/exceptions.yaml",
+        f"exceptions:\n  - rule_id: {MISSING_RULE_ID}\n    expires_at: not-a-date\n",
+    )
+
+    assert main(["--repo-root", str(tmp_path)]) == 1
+    assert capsys.readouterr().err == "schema-coverage: policy exception expires_at must be an ISO date\n"
+
+
 # --- reporting and CLI -------------------------------------------------------
 
 
@@ -889,7 +941,7 @@ def test_backfilled_positive_cases_satisfy_the_published_schema_and_model(contra
     validator = _published_validator(contract_id, family)
 
     for path in _corpus_case_paths(contract_id, family, "valid"):
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = load_contract_fixture(path)
         assert not list(validator.iter_errors(payload)), f"{path.name} violates the published schema"
         model.model_validate(payload)
 
@@ -900,7 +952,7 @@ def test_backfilled_negative_cases_are_rejected_by_a_named_layer(contract_id: st
     validator = _published_validator(contract_id, family)
 
     for path in _corpus_case_paths(contract_id, family, "invalid"):
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = load_contract_fixture(path)
         rejected_by_schema = bool(list(validator.iter_errors(payload)))
         try:
             model.model_validate(payload)

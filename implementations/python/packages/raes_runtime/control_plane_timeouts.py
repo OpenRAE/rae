@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from raes_contracts.errors import ConflictError, InvalidInputError
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
+from raes_contracts.timestamps import parse_offset_timestamp_utc
 from raes_contracts.workflow import (
     WorkflowCompensationStatus,
     WorkflowExecutionState,
@@ -14,7 +16,7 @@ from raes_contracts.workflow import (
     WorkflowStatus,
 )
 
-from .control_plane_workflows import maybe_apply_compensation, parse_timestamp
+from .control_plane_workflows import maybe_apply_compensation
 
 TIMED_OUT_REASON = "workflow timed out"
 INVALID_RECONCILIATION_CLOCK = "workflow timeout reconciliation clock is invalid"
@@ -36,7 +38,7 @@ def workflow_timeout_update(
 ) -> tuple[dict[str, object], list[dict[str, object]]] | None:
     current = reconciliation_clock or _reconciliation_clock(submitted_at)
     if current.tzinfo is None or current.utcoffset() is None:
-        raise ValueError(INVALID_RECONCILIATION_CLOCK)
+        raise InvalidInputError(INVALID_RECONCILIATION_CLOCK)
     update = None
     timeout_seconds = _eligible_workflow_timeout_seconds(entry)
     normalized = _running_workflow_result(orchestration_results.get(workflow_address))
@@ -57,9 +59,9 @@ def workflow_timeout_update(
 
 def _reconciliation_clock(submitted_at: str) -> datetime:
     try:
-        return parse_timestamp(submitted_at)
+        return parse_offset_timestamp_utc(submitted_at)
     except ValueError:
-        raise ValueError(INVALID_RECONCILIATION_CLOCK) from None
+        raise InvalidInputError(INVALID_RECONCILIATION_CLOCK) from None
 
 
 def _eligible_workflow_timeout_seconds(entry: SnapshotEntry) -> int | None:
@@ -73,22 +75,22 @@ def _running_workflow_result(result_payload: object) -> WorkflowExecutionState |
     if result_payload is None:
         return None
     if not isinstance(result_payload, dict):
-        raise ValueError(INVALID_WORKFLOW_STATE)
+        raise ConflictError(INVALID_WORKFLOW_STATE)
     try:
         candidate = WorkflowExecutionState.from_payload(result_payload)
-    except (TypeError, ValueError):
-        raise ValueError(INVALID_WORKFLOW_STATE) from None
+    except TypeError, ValueError:
+        raise ConflictError(INVALID_WORKFLOW_STATE) from None
     return candidate if candidate.workflow_status == WorkflowStatus.RUNNING else None
 
 
 def _workflow_timeout_seconds(payload: object) -> int | None:
     if not isinstance(payload, dict):
-        raise ValueError(INVALID_TIMEOUT_CONFIGURATION)
+        raise ConflictError(INVALID_TIMEOUT_CONFIGURATION)
     execution_contract_payload = payload.get("execution_contract")
     if execution_contract_payload is None:
         return None
     if not isinstance(execution_contract_payload, dict):
-        raise ValueError(INVALID_TIMEOUT_CONFIGURATION)
+        raise ConflictError(INVALID_TIMEOUT_CONFIGURATION)
     return _coerce_timeout_seconds(execution_contract_payload.get("timeout_seconds"))
 
 
@@ -96,7 +98,7 @@ def _coerce_timeout_seconds(raw: object) -> int | None:
     if raw is None:
         return None
     if isinstance(raw, bool) or not isinstance(raw, int) or raw <= 0:
-        raise ValueError(INVALID_TIMEOUT_CONFIGURATION)
+        raise ConflictError(INVALID_TIMEOUT_CONFIGURATION)
     return raw
 
 
@@ -108,14 +110,14 @@ def _workflow_has_timed_out(
     """Return whether elapsed wall time proves the declared timeout."""
 
     try:
-        started = parse_timestamp(normalized.started_at)
-        updated = parse_timestamp(normalized.updated_at)
+        started = parse_offset_timestamp_utc(normalized.started_at)
+        updated = parse_offset_timestamp_utc(normalized.updated_at)
     except ValueError:
-        raise ValueError(INVALID_WORKFLOW_TIMESTAMP) from None
+        raise ConflictError(INVALID_WORKFLOW_TIMESTAMP) from None
     if updated < started:
-        raise ValueError(INVALID_WORKFLOW_TIMESTAMP)
+        raise ConflictError(INVALID_WORKFLOW_TIMESTAMP)
     if current < started or current < updated:
-        raise ValueError(NON_MONOTONIC_WORKFLOW_CLOCK)
+        raise ConflictError(NON_MONOTONIC_WORKFLOW_CLOCK)
     # Compare exact integral seconds. ``timedelta.total_seconds()`` returns a
     # float and rounds microseconds over large spans, which can synthesize an
     # early timeout and compensation. Adding an unbounded timeout to ``started``

@@ -3,6 +3,7 @@
 from collections.abc import Collection
 from dataclasses import dataclass, field
 
+from raes_contracts.contracts.trial_controls import OperationSupervisionCapabilitiesModel
 from raes_contracts.controlled_vocabularies import validate_controlled_vocabulary_scope_values
 from raes_contracts.manifest_authority import validate_backend_supported_contract_versions
 from raes_contracts.operation_lifecycle import OperationKind
@@ -295,6 +296,7 @@ class BackendCapabilitySet:
     cleanup: CleanupCapabilities | None = None
     time: TimeCapabilities | None = None
     recovery_observation: RecoveryObservationCapabilities | None = None
+    operation_supervision: OperationSupervisionCapabilitiesModel | None = None
 
 
 def __getattr__(name: str) -> object:

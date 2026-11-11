@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from collections.abc import Mapping, Sequence
+from collections.abc import Container, Hashable, Iterable, Mapping, Sequence
 from pathlib import Path
 from typing import TypeGuard
 
@@ -18,6 +18,28 @@ def _failure(rule_id: str, message: str, path: str | None = None) -> PolicyFailu
 
 def _is_sequence(value: object) -> TypeGuard[Sequence[object]]:
     return isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray))
+
+
+# Authored JSON can put a list or an object where an identifier is expected. Such a value
+# has no hash, so these helpers treat it as an unknown value instead of a crash.
+def _hashable(value: object) -> bool:
+    """Return whether an authored value can be a set member or a mapping key."""
+    return isinstance(value, Hashable)
+
+
+def _member(value: object, collection: Container[object]) -> bool:
+    """Return whether an authored value is in a set or a mapping; an unhashable value never is."""
+    return isinstance(value, Hashable) and value in collection
+
+
+def _lookup(mapping: Mapping[object, object], key: object) -> object:
+    """Return the mapping entry for an authored key, or None when the key is absent or unhashable."""
+    return mapping.get(key) if isinstance(key, Hashable) else None
+
+
+def _members(value: object) -> Iterable[object]:
+    """Return the members of an authored container; a scalar has no members."""
+    return value if isinstance(value, Iterable) else ()
 
 
 def _closed_object(

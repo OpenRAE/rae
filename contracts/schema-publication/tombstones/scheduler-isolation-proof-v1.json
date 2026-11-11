@@ -1,0 +1,4 @@
+{
+  "schema_path": "contracts/schemas/control-plane/scheduler-isolation-proof-v1.json",
+  "summary": "Removed the scheduler isolation proof in issue #1940. Authored trial_parallelism alone sets the parallel trial limit. No replacement schema is published."
+}

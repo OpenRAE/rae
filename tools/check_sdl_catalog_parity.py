@@ -18,11 +18,16 @@ import json
 import sys
 from pathlib import Path
 
+import yaml
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 PYTHON_PACKAGES = REPO_ROOT / "implementations" / "python" / "packages"
 for import_root in (REPO_ROOT, PYTHON_PACKAGES):
     if str(import_root) not in sys.path:
         sys.path.insert(0, str(import_root))
+
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
 
 from tools.policy.common import (
     PolicyFailure,
@@ -91,8 +96,12 @@ def evaluate_sdl_catalog_parity(repo_root: Path) -> list[PolicyFailure]:
         ]
     try:
         schema = json.loads((repo_root / SCHEMA_PATH).read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        return [_failure("sdl-catalog-schema-parse", str(exc), SCHEMA_PATH)]
+    except (OSError, ValueError, RecursionError) as exc:
+        # Another ValueError means the schema is not UTF-8 or has an integer beyond the interpreter digit
+        # limit; RecursionError means it nests beyond the decoder. Neither message names the location.
+        reported = isinstance(exc, (OSError, json.JSONDecodeError))
+        detail = str(exc) if reported else "schema is not UTF-8 JSON within the decoder limits"
+        return [_failure("sdl-catalog-schema-parse", detail, SCHEMA_PATH)]
     sections_text = (repo_root / SECTIONS_PATH).read_text(encoding="utf-8")
     top_failures, top_rows = _check_top_level(sections_text, schema)
     failures = list(top_failures)
@@ -117,12 +126,21 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def _evaluate(repo_root: Path) -> list[PolicyFailure]:
+    failures = evaluate_sdl_catalog_parity(repo_root)
+    exceptions_path = repo_root / "tools" / "policy" / "exceptions.yaml"
+    if exceptions_path.is_file():
+        failures = apply_exceptions(failures, load_exceptions(repo_root))
+    return failures
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
-    failures = evaluate_sdl_catalog_parity(args.repo_root)
-    exceptions_path = args.repo_root / "tools" / "policy" / "exceptions.yaml"
-    if exceptions_path.is_file():
-        failures = apply_exceptions(failures, load_exceptions(args.repo_root))
+    try:
+        failures = _evaluate(args.repo_root)
+    except (OSError, UnicodeDecodeError, yaml.YAMLError, InvalidInputError) as exc:
+        print(f"sdl-catalog-parity: {exc}", file=sys.stderr)
+        return 1
     if failures:
         if args.json:
             print(failures_to_json(failures))
@@ -134,4 +152,4 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

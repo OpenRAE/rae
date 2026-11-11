@@ -4,6 +4,7 @@ from dataclasses import replace
 
 import pytest
 from raes import parse_sdl
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.planning import PlanScope, RuntimeDomain
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotEntry
 from raes_processor.compiler import compile_runtime_model
@@ -69,12 +70,12 @@ def _projected_plan(kind):
 
 def test_profile_preparation_and_attestation_share_the_real_apply_pipeline(tmp_path):
     from raes_operations.run_artifacts import RunMaterializationArchive
-    from raes_reference_backend import create_reference_backend_target
     from raes_runtime.manager import RuntimeManager
-    from test_issue_1204_reference_profiles import _reference_profiles
+    from t1_profile_targets import profile_stub_target
+    from test_issue_1204_reference_profiles import _profile_case
 
-    authority, context, choices = _reference_profiles()
-    target = create_reference_backend_target(domain_profile_context=context, profile_choices=choices)
+    authority, context, choices = _profile_case()
+    target = profile_stub_target(context, choices)
     manifest = replace(
         target.manifest,
         supported_contract_versions=target.manifest.supported_contract_versions
@@ -92,6 +93,7 @@ def test_profile_preparation_and_attestation_share_the_real_apply_pipeline(tmp_p
     manager = RuntimeManager(
         replace(target, manifest=manifest, provisioner=ReportingBackend()),
         materialization_archive=RunMaterializationArchive(tmp_path),
+        run_scope="run:run-1",
     )
     execution = manager.plan(
         parse_sdl("name: profiles\nnodes:\n  host: {type: compute}\n"),
@@ -140,7 +142,7 @@ def test_materialized_inventory_preserves_trusted_planner_projection(kind, phase
     request = replace(getattr(execution, phase), operation_id="materialize-once")
     report = ReportingProvisioner(execution.manifest).report(request, previous, ApplyResult(True, actual))
     if tampered:
-        with pytest.raises(ValueError, match="inventory|outside its operation domain"):
+        with pytest.raises(InvalidInputError, match="inventory|outside its operation domain"):
             admit_materialization_submission(
                 report.materialization_attestation, request, execution.manifest, previous, actual
             )

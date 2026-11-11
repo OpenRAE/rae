@@ -1,91 +1,168 @@
-# IFC profile variability migration
+<a id="ifc-profile-variability-migration"></a>
 
-This is the adoption contract for [ADR-114](../decisions/adrs/adr-114-ifc-profile-variability-and-publication.md)
-and [IFC-01–IFC-07](../../specs/formal/participant-semantics/ifc-profile-variability.md).
-It publishes no converter, schema, profile artifact or deprecation window.
+# Information-flow profile compatibility reference
+
+This reference applies to Python RAES 11.0.2.
+The source is the original security profile and its historical meaning.
+The target is `participant-owner-flow-policy-v1@rev1` with `owner-ifc/rev1` under provider/v2.
+No automatic converter or deprecation window is supplied.
+
+[ADR-114](../decisions/adrs/adr-114-ifc-profile-variability-and-publication.md)
+and [IFC-01–IFC-07](../../specs/formal/participant-semantics/ifc-profile-variability.md) own the adoption rules.
+Issue #1370 adds the [finite owner publication](../explain/reference/owner-qualified-ifc.md).
+
+## Finite publication adoption (#1370)
+
+Before use, negotiate the new profile ID, revision, and digest.
+Negotiate the updated draft flow-relation schema and API-424/v2 schema-content pins too.
+Legacy provider/v1 rejects the new profile and fact domain.
+Old profile bytes and meanings stay unchanged.
+Mixed archives route by exact identity.
+
+The updated flow reader permits at most 256 records in each graph collection.
+Larger historical graphs need their original supported reader.
+Never truncate them to pass the new bound.
+
+The v2 field `admitted_support` keeps independently admitted support for each obligation.
+Historical v2 serialization omits empty snapshots.
+That omission preserves original selection digests.
+New owner obligations need populated snapshots.
+A fresh-cut assessment cannot silently replace an admitted promise.
+Do not invent promises or owners for historical obligations.
+
+Changing profile, installation, configuration, or constraint meaning needs admission at a new cut.
+Keep old labels, memory, releases, and source/writer provenance.
+Keep pending effect identities, receipts, and consumed budgets too.
+
+Deriving owner A/B values from coarse restricted labels needs independent historical evidence.
+It also needs a separately authorized published mapping.
+No automatic converter supplies that mapping.
+New authority never replays old effects.
+
+This owner-profile publication does not implement external release effects.
+An unexecuted release intent is not an applied result.
+Other supported v2 effects have a separate [support reference](../explain/reference/revised-control-semantics.md).
 
 ## Interpretation and historical data
 
-Keep the amendment identity `ifc-profile-variability/rev1` distinct from
-`sem-233/rev1`, `sem-235/rev1`, profile revisions/digests and wire/protocol
-versions. Do not infer adoption from new prose, a backend name or a generic
-modular-control capability. Negotiate exact supported interpretations across
-producer, resolver, provider, runtime, store, snapshot and downstream readers.
+`ifc-profile-variability/rev1` names the amendment.
+It is not `sem-233/rev1` or `sem-235/rev1`.
+Keep profile revisions/digests and wire/protocol versions separate too.
+New prose, a backend name, or generic modular-control capability cannot establish adoption.
 
-| Input | Required treatment |
-| --- | --- |
-| Legacy security profile and relation | Retain exact original bytes, digest, token meaning, source context and release interpretation. Use the legacy reader with its stated limitations. |
-| New owner-aware publication | Old readers reject it. New readers require exact publication, schema/content and semantic support, independently trusted bindings and per-obligation release authority. |
-| Mixed-revision archive | Route each record through its exact supported reader; retain order and evidence. Unknown or ambiguous interpretation is unsupported/unverifiable, not latest-version fallback. |
-| Coarse `restricted` value without owner evidence | Preserve it. Do not invent A/B obligations, map it to public/bottom or claim an owner-aware conversion. |
-| Pending effect or retained memory under a replaced profile | Preserve the original identity, labels, provenance, cut, release and outcome records; apply the new-cut rules below before any new action. |
+Negotiate exact supported meanings across producer, resolver, and provider.
+Include runtime, store, snapshot, and downstream readers.
+Each input has the following boundary.
 
-Source and possible-writer provenance never disappears when an obligation is
-discharged. Historical `integrity:endorsed` is interpreted by its original
-profile and release record; it cannot become universal or per-owner endorsement.
-Do not recompute historical permits, mutate labels or replay effects to make
-an archive appear newly conforming.
+### Legacy profile and relation
+
+Keep the exact original bytes and digest.
+Keep token meaning, source context, and release interpretation.
+Use the legacy reader with its stated limits.
+
+### New owner-aware publication
+
+Old readers reject it.
+New readers need exact publication, schema/content, and semantic support.
+They need independently trusted bindings and release authority for each obligation.
+
+### Mixed-revision archive
+
+Route each record through its exact supported reader.
+Keep its order and evidence.
+Unknown or ambiguous meaning is unsupported/unverifiable.
+It cannot fall back to the latest reader.
+
+### Coarse restricted values
+
+Keep a coarse `restricted` value when owner evidence is absent.
+Do not invent A/B obligations or map it to public/bottom.
+Do not claim an owner-aware conversion.
+
+### Pending effects and retained memory
+
+Keep original identity, labels, provenance, cut, release, and outcome records after profile replacement.
+The new-cut rules below apply before any new action.
+
+Discharging an obligation never erases source or possible-writer provenance.
+Historical `integrity:endorsed` keeps its original profile and release meaning.
+It cannot become universal or per-owner endorsement.
+Do not recompute old permits, mutate labels, or replay effects to claim new conformance.
 
 ## Explicit conversion
 
-A future published mapping must name source and target profile/semantic/schema
-pins, exact source/result identities, transformation authority, affected
-coordinates, scope, losses and evidence. Establish that order and conservative
-propagation, every required sink and independent release remain sound. Preserve
-functional distinctions the author required, not only prohibition safety.
-Cross-profile joins/comparisons are unsupported without that relation.
+A future published mapping must pin source and target profile, semantics, and schema.
+It must name exact source/result identities and transformation authority.
+It must name affected coordinates, scope, losses, and evidence.
+It must establish sound order and conservative propagation.
+It must establish soundness for every required sink and independent release.
+Keep author-required functional distinctions as well as prohibition safety.
+Cross-profile joins or comparisons are unsupported without that relation.
 
-Independent historical owner evidence may support a new derived value through
-an authorized mapping; it does not authorize rewriting the source. If evidence
-is incomplete, retain unsupported/unverifiable status. An explicit new author
-decision may choose a different requirement, but it is a semantic change with
-disclosed limits, not a lossless migration. Authorization cannot waive another
-owner's unresolved obligation implicitly.
+Independent historical owner evidence may support a new derived value through an authorized mapping.
+It cannot authorize rewriting the source.
+Incomplete evidence keeps the result unsupported/unverifiable.
+An author may explicitly select a different requirement.
+That choice is a semantic change with disclosed limits, not lossless migration.
+Authority cannot implicitly waive another owner's unresolved obligation.
 
-For endorsement, reconcile the semantic discharge relation with the current
-wire requirement for source-to-result token replacements. A future carrier or
-mapping must preserve the unreleased owners and immutable writer provenance,
-and prove exact authority over each changed obligation. Renaming `endorsed`
-or adding a token to the legacy artifact does not provide that correspondence.
+For endorsement, reconcile semantic discharge with the wire's source-to-result token replacement rule.
+A future carrier or mapping must keep unreleased owners and immutable writer provenance.
+It must prove exact authority over each changed obligation.
+Renaming `endorsed` or adding a legacy token cannot establish that correspondence.
 
 ## Live bindings, memory and pending work
 
-Reuse the [applicability migration contract](control-applicability-and-evaluation.md)
-and existing operation lifecycle. Quiesce affected admission, finish or
-explicitly reconcile pending claims, then admit a supported binding at a new
-cut. Never swap profile interpretation inside a live evaluation. Revalidate
-required coverage and guarantees before effects and disclosure; current v1's
-non-exact support rejection cannot be bypassed by a migration flag.
+Use the [applicability migration contract](control-applicability-and-evaluation.md) and existing operation lifecycle.
+Stop new affected admission.
+Finish or explicitly reconcile pending claims.
+Then admit a supported binding at a new cut.
+Never change profile meaning inside a live evaluation.
 
-Retained participant memory and shared/provider state retain every possible
-input obligation. Migration needs exact old/new state scopes, versions,
-configuration/authority bindings and supported atomicity. Episode/controller
-change and provider replacement do not erase dependencies. Unknown migration
-coverage prevents affected release, even if a new profile would otherwise
-accept its known tokens.
+Revalidate required coverage and guarantees before effects and disclosure.
+A migration flag cannot bypass current v1's rejection of non-exact support.
+Retained participant memory and shared/provider state keep every possible input obligation.
+Migration needs exact old/new state scopes and versions.
+It also needs configuration/authority bindings and supported atomicity.
+Episode/controller changes and provider replacement do not erase dependencies.
+Unknown migration coverage prevents the affected release.
+This holds even when a new profile accepts the known tokens.
 
-Preserve effect identities, receipts, history heads, causal roots and consumed
-budgets. A new profile is not a new retry key. A prior permit/release is not
-authority at a new sink or cut. Indeterminate external effects remain
-indeterminate until the existing owner/readback and recovery policy resolve
-them; admission or commit is not evidence of application. Retaining a record
-does not authorize automatic resumption or repeated dispatch.
+Keep effect identities, receipts, history heads, causal roots, and consumed budgets.
+A new profile is not a new retry key.
+A prior permit or release grants no authority at a new sink or cut.
+Unknown external effects stay indeterminate until the existing owner/readback and recovery policy resolve them.
+Admission or commit does not prove application.
+A retained record cannot authorize automatic resumption or repeated dispatch.
 
 ## Publication owners and adoption evidence
 
-SEM-233 owns the security invariant and owner-specific release meaning;
-SEM-235 owns governed domain publication and composition. API-424 and the
-incumbent flow-contract owners must coordinate closed carriers and protocol
-consumers, using API-407 support evidence. RUN-320 owns modular orchestration
-adoption; concrete backend instrumentation and assurance remain separately
-evidenced. This issue changes none of those runtime fulfillment statuses.
+SEM-233 owns the security invariant and owner-specific release meaning.
+SEM-235 owns governed domain publication and composition.
+API-424 and incumbent flow-contract owners must coordinate closed carriers and protocol consumers.
+They must use API-407 support evidence.
+RUN-320 owns modular orchestration adoption.
+Concrete backend instrumentation and assurance need separate evidence.
+This amendment does not change those runtime fulfillment statuses.
 
-Use ADR-009/061 publication records, fixtures, generated-schema parity and
-packaged resources. Preserve stable-contract compatibility; record permitted
-draft changes without silently changing historical interpretation. Required
-real-consumer evidence includes unknown profile/token rejection, shape-valid
-but unpublished artifacts, two-owner selective declassification and endorsement,
-missing source/sink/control-flow coverage, bounds exceeded, stale cuts,
-unexpected weakening, mixed-revision replay and pending-effect reconciliation.
-Denied live paths must show zero prohibited calls/disclosures and truthful
-durable outcomes. The finite #1354 witnesses do not establish those live claims.
+Use ADR-009/061 publication records, fixtures, generated-schema parity, and packaged resources.
+Keep stable-contract compatibility.
+Record permitted draft changes without changing historical meaning silently.
+Real-consumer evidence is required for:
+
+- Unknown profile and token rejection.
+- Shape-valid but unpublished artifacts.
+- Two-owner selective declassification and endorsement.
+- Missing source, sink, or control-flow coverage.
+- Exceeded bounds and stale cuts.
+- Unexpected weakening.
+- Mixed-revision replay and pending-effect reconciliation.
+
+Denied live paths must show zero prohibited calls or disclosures.
+Their durable outcomes must be truthful.
+Finite #1354 witnesses do not establish those live claims.
+
+## Continue
+
+Use [revised-control migration](revised-control.md) to replace a live binding safely.
+Read [owner-qualified IFC](../explain/reference/owner-qualified-ifc.md) for the finite publication boundary.

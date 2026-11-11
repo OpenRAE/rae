@@ -14,6 +14,7 @@ from copy import deepcopy
 import pytest
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.contracts.time_model import TimeRuntimeStateModel
+from raes_contracts.errors import EvidenceIntegrityError
 from raes_runtime import RuntimeManager
 from test_api_421_time_contracts import _scenario
 
@@ -87,7 +88,7 @@ def test_clock_forged_into_the_argument_is_a_disagreeing_readback() -> None:
     accepted = deepcopy(manager.snapshot)
     assert accepted.time_model_state.clocks[_CLOCK].state != "paused"
 
-    with pytest.raises(ValueError, match="disagrees with the runtime snapshot"):
+    with pytest.raises(EvidenceIntegrityError, match="disagrees with the runtime snapshot"):
         manager.read_time_state()
 
     assert manager.snapshot == accepted

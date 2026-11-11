@@ -21,6 +21,13 @@ Requirement inventory expansion. Experiment systems must represent repeat trials
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/trial_replacement.py` (Author-selected replacement triggers and additional-trial limits)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/trial_replacement_archive.py` (Evidence-preserving archival supersession)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/trial_replacement_analysis.py` (Single-count original-slot lineage and explicit shortfalls)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/trial_compiler/replacement.py` (Separately admitted fresh trials with shared lineage bounds)
+- IMPLEMENTS → DOCUMENTATION `docs/explain/reference/trial-replacement-migration.md` (Author migration, explicit allocation and coordinator durability prerequisites)
+- TESTS → TEST `implementations/python/tests/test_issue_1396_trial_replacement.py` (Replacement allocation, retention, exhaustion and study evidence validation)
+
 - DOCUMENTS → ADR `docs/decisions/adrs/adr-068-experiment-trials-replication-and-replay-claims.md` (ADR-068: Experiment Trials, Replication, and Replay Claims)
 - DOCUMENTS → SPEC `specs/formal/experiment-core/README.md` (Experiment Core Formal Specification)
 - DOCUMENTS → DOCUMENTATION `docs/research/experiment-core/traceability-matrix-exp-706-712.md` (EXP-706/EXP-712 Clause Matrix)

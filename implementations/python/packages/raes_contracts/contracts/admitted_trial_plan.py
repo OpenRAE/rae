@@ -11,7 +11,7 @@ The plan reuses owning contracts (``TrialCoordinateModel``,
 ``ExperimentSelectionOutcomeModel``, ``ExperimentBindingDescriptorModel``,
 ``ExperimentStochasticControlModel``, ``RandomStreamDrawRecordModel``,
 ``TrialCleanupPlanModel``, ``ExecutionRetryPolicyModel``,
-``SchedulerIsolationProofModel``, ``ExperimentManifestReferenceModel``,
+``ExperimentManifestReferenceModel``,
 ``RealizationEnvelopeIdentityModel``, and the typed experiment references)
 rather than duplicating their meaning, and pins exact refs/digests instead of
 copying declarations. Every entry commits explicit resolved outcomes and
@@ -33,11 +33,14 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import Field, GetJsonSchemaHandler, model_validator
+from pydantic import Field, GetJsonSchemaHandler, SerializerFunctionWrapHandler, model_serializer, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
 
 from .._canonical import canonical_json_digest
+from .._sealing import sealing_active
+from ..safe_state import SafeStates, validate_safe_states
+from ..trial_parallelism import TrialParallelismModel, parallelism_bounds
 from ..versions import ADMITTED_TRIAL_PLAN_SCHEMA_VERSION
 from .admitted_trial_plan_components import (
     AdmittedApparatusBindingModel,
@@ -54,12 +57,22 @@ from .admitted_trial_plan_components import (
     BindingOrigin,
     ExperimentScenarioFamilyReferenceModel,
     SelectionPolicyKind,
+    validate_entry_participant_configurations,
 )
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
+from .experiment_allocation import (
+    RECORDED_ALLOCATION_POLICY_ID,
+    AdmittedExperimentAllocationModel,
+    compile_experiment_allocation,
+)
 from .experiment_apparatus import ExperimentStochasticControlModel
+from .experiment_bindings import ParticipantConfigurationResultModel
+from .experiment_treatments import validate_plan_treatments
 from .random_stream import RandomStreamDrawRecordModel, TrialCoordinateModel
-from .schema_invariants import _add_raes_invariant
-from .trial_cleanup import SchedulerIsolationProofModel, TrialCleanupPlanModel
+from .schema_invariants import add_raes_invariant
+from .trial_cleanup import TrialCleanupPlanModel
+from .trial_coordinate_order import CANONICAL_ORDER_POLICY_ID, canonical_coordinate_sort_key
+from .trial_replacement import TrialReplacementOriginModel, TrialReplacementPolicyModel
 
 #: Canonical-shape placeholder used only while sealing; replaced by the real digest.
 _PLACEHOLDER_DIGEST = "sha256:" + "0" * 64
@@ -76,6 +89,8 @@ def _canonical_content(model: ContractModel, digest_field: str) -> dict[str, obj
 def _verify_self_digest(model: ContractModel, digest_field: str) -> None:
     """Fail closed unless ``digest_field`` equals the JCS digest of the remaining content."""
 
+    if sealing_active():
+        return
     declared = getattr(model, digest_field)
     expected = canonical_json_digest(_canonical_content(model, digest_field))
     if declared != expected:
@@ -100,57 +115,32 @@ def _require_unique(field_name: str, values: list[str]) -> None:
         raise ValueError(f"{field_name} must not contain duplicates")
 
 
-def entry_owned_resource_refs(plan: AdmittedTrialPlanModel, plan_entry_id: str) -> set[str]:
-    """Return the resource identities one entry owns via its referenced cleanup plan.
-
-    Resource ownership is the union of the ``resource_refs`` declared by every
-    boundary of the entry's referenced cleanup plan. Bounded parallelism must
-    never authorize two entries that share any owned resource (one trial, or its
-    cleanup, could otherwise read, mutate, or destroy another's state). This is
-    the single owning definition reused by both the plan's embedded
-    isolation check and the standalone plan-to-schedule join validator so the two
-    surfaces cannot drift.
-    """
-
-    entry = plan.entries.get(plan_entry_id)
-    if entry is None:
-        raise ValueError(f"plan_entry_id {plan_entry_id!r} does not resolve inside the admitted plan")
-    cleanup_plan = plan.cleanup_plans.get(entry.execution_controls.cleanup_plan_ref)
-    refs: set[str] = set()
-    if cleanup_plan is not None:
-        for boundary in cleanup_plan.resource_boundaries.values():
-            refs.update(boundary.resource_refs)
-    return refs
-
-
-def isolation_resource_overlaps(plan: AdmittedTrialPlanModel, plan_entry_ids: list[str]) -> list[str]:
-    """Return the resource identities shared by any pair of the given entries."""
-
-    owned = {entry_id: entry_owned_resource_refs(plan, entry_id) for entry_id in plan_entry_ids}
-    covered = list(owned)
-    shared: set[str] = set()
-    for first_index in range(len(covered)):
-        for second_index in range(first_index + 1, len(covered)):
-            shared.update(owned[covered[first_index]] & owned[covered[second_index]])
-    return sorted(shared)
-
-
 class AdmittedTrialEntryModel(ContractModel):
     """One immutable admitted trial entry at a unique logical coordinate."""
 
+    safe_states: SafeStates = ()
     plan_entry_id: NonEmptyString
     coordinate: TrialCoordinateModel
     run_id: NonEmptyString
     selections: list[AdmittedSelectionRecordModel] = Field(default_factory=list)
     bindings: list[AdmittedBindingModel] = Field(default_factory=list)
+    participant_configurations: list[ParticipantConfigurationResultModel] = Field(default_factory=list, max_length=256)
     stochastic_draws: list[RandomStreamDrawRecordModel] = Field(default_factory=list)
     apparatus: AdmittedApparatusBindingModel | AdmittedMixedCompositionBindingModel
     execution_controls: AdmittedExecutionControlModel
     instantiation_provenance: AdmittedInstantiationProvenanceModel
     entry_digest: PrefixedDigestString
 
+    @model_serializer(mode="wrap")
+    def _serialize_configurations(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        payload = handler(self)
+        if not self.participant_configurations:
+            payload.pop("participant_configurations", None)
+        return payload
+
     @model_validator(mode="after")
     def _validate_entry(self) -> AdmittedTrialEntryModel:
+        validate_safe_states(self.safe_states)
         if self.run_id == self.plan_entry_id:
             raise ValueError("entry run_id must be distinct from plan_entry_id")
         _require_unique(
@@ -160,6 +150,7 @@ class AdmittedTrialEntryModel(ContractModel):
         for draw in self.stochastic_draws:
             if draw.rejection_exhausted:
                 raise ValueError("admitted entry stochastic draws must record a resolved outcome, not exhaustion")
+        validate_entry_participant_configurations(self)
         provenance = self.instantiation_provenance
         if provenance.plan_entry_id != self.plan_entry_id or provenance.run_id != self.run_id:
             raise ValueError("entry instantiation_provenance must match the entry plan_entry_id and run_id")
@@ -169,7 +160,7 @@ class AdmittedTrialEntryModel(ContractModel):
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
         json_schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "admitted-trial-entry-resolved-and-integrity-bound",
             "An admitted trial entry keeps run_id distinct from plan_entry_id, records unique resolved variation "
@@ -190,24 +181,70 @@ class AdmittedTrialPlanModel(ContractModel):
     input_refs: AdmittedTrialPlanInputRefsModel
     stochastic_controls: dict[NonEmptyString, ExperimentStochasticControlModel] = Field(default_factory=dict)
     cleanup_plans: dict[NonEmptyString, TrialCleanupPlanModel] = Field(min_length=1)
-    isolation_proof: SchedulerIsolationProofModel | None = None
+    trial_parallelism: TrialParallelismModel | None = Field(default=None, exclude_if=lambda value: value is None)
+    replacement_policy: TrialReplacementPolicyModel | None = None
+    replacement_origin: TrialReplacementOriginModel | None = None
+    allocation: AdmittedExperimentAllocationModel | None = None
     entries: dict[NonEmptyString, AdmittedTrialEntryModel] = Field(min_length=1)
     admission: AdmittedTrialPlanAdmissionModel
     plan_digest: PrefixedDigestString
 
+    def parallelism_bounds(self) -> tuple[int, int]:
+        """Return the authored parallel-trial bounds (one when ``trial_parallelism`` is absent)."""
+        return parallelism_bounds(self.trial_parallelism, len(self.entries))
+
+    @model_serializer(mode="wrap")
+    def _serialize_replacement(self, handler: SerializerFunctionWrapHandler) -> dict[str, object]:
+        payload = handler(self)
+        for name in ("replacement_policy", "replacement_origin", "allocation"):
+            if getattr(self, name) is None:
+                payload.pop(name, None)
+        return payload
+
     @model_validator(mode="after")
     def _validate_plan(self) -> AdmittedTrialPlanModel:
+        self._validate_replacement()
         self._validate_map_keys()
         self._validate_identity_graph()
         self._validate_joins()
         self._validate_authority_agreement()
-        self._validate_isolation()
+        self._validate_allocation()
         if self.admission.entry_count != len(self.entries):
             raise ValueError("admission entry_count must equal the number of admitted entries")
         _verify_self_digest(self, "plan_digest")
         return self
 
+    def _validate_replacement(self) -> None:
+        replacement_profile = self.profiles.compiler_profile.startswith("trial-compiler-replacement-")
+        if replacement_profile != (self.replacement_origin is not None):
+            raise ValueError("replacement lineage requires the replacement compiler profile")
+        if self.replacement_origin is not None:
+            origin = self.replacement_origin
+            if self.replacement_policy is None or origin.ordinal > self.replacement_policy.max_replacements:
+                raise ValueError("replacement ordinal exceeds the original allocation policy")
+            if len(self.entries) != 1 or self.plan_id in {origin.root_plan_id, origin.parent_plan_id}:
+                raise ValueError("replacement must be a distinct single-entry plan")
+            if next(iter(self.entries.values())).run_id == origin.parent_run_id:
+                raise ValueError("replacement cannot reuse its parent run identity")
+
+    def _validate_allocation(self) -> None:
+        if (self.profiles.allocation_profile != "none") != (self.allocation is not None):
+            raise ValueError("allocation profile and recorded allocation must agree")
+        if self.allocation is not None:
+            if "designed" not in self.profiles.compiler_profile:
+                raise ValueError("recorded allocation requires a designed compiler profile")
+            domain = [
+                entry.plan_entry_id
+                for entry in sorted(
+                    self.entries.values(), key=lambda entry: canonical_coordinate_sort_key(entry.coordinate)
+                )
+            ]
+            expected = compile_experiment_allocation(self.allocation.policy, domain, self.stochastic_controls)
+            if self.allocation != expected:
+                raise ValueError("recorded allocation does not match deterministic reconstruction")
+
     def _validate_authority_agreement(self) -> None:
+        validate_plan_treatments(self)
         # Values duplicated from incumbent authorities must agree, or a correctly
         # digested plan could still carry contradictory execution intent.
         profile = self.profiles.random_stream_profile
@@ -282,7 +319,12 @@ class AdmittedTrialPlanModel(ContractModel):
             for entry in self.entries.values()
             if isinstance(entry.apparatus, AdmittedMixedCompositionBindingModel)
         ]
-        mixed_profile = self.profiles.compiler_profile == "trial-compiler-mixed-composition-v1"
+        mixed_profile = self.profiles.compiler_profile in {
+            "trial-compiler-mixed-composition-v1",
+            "trial-compiler-replacement-mixed-composition-v1",
+            "trial-compiler-designed-mixed-composition-v1",
+            "trial-compiler-replacement-designed-mixed-composition-v1",
+        }
         if bool(mixed_entries) != mixed_profile:
             raise ValueError("mixed composition entries require the matching compiler and identity profiles")
         if mixed_profile and (
@@ -342,36 +384,21 @@ class AdmittedTrialPlanModel(ContractModel):
                     "entry stochastic draw address trial_coordinate must equal the enclosing entry coordinate"
                 )
 
-    def _validate_isolation(self) -> None:
-        if self.isolation_proof is None:
-            return
-        proof = self.isolation_proof
-        unknown = sorted(set(proof.plan_entry_ids) - set(self.entries))
-        if unknown:
-            raise ValueError(f"isolation proof references unknown plan entries: {', '.join(unknown)}")
-        if proof.requested_parallelism <= 1:
-            return
-        # Bounded parallelism must not authorize entries that own the same
-        # resource: a proof cannot claim independence for trials whose cleanup
-        # boundaries overlap, or one trial (or its cleanup) could read, mutate,
-        # or destroy another's state.
-        overlap = isolation_resource_overlaps(self, list(proof.plan_entry_ids))
-        if overlap:
-            raise ValueError("isolation proof authorizes parallel entries that share resources: " + ", ".join(overlap))
-
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
         json_schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "admitted-trial-plan-identity-joins-and-integrity",
             "An admitted trial plan keeps map keys equal to embedded ids, keeps plan/entry/run identities distinct, "
             "gives every entry a unique logical coordinate and archival run_id, resolves cleanup and "
             "stochastic-control joins (with each draw addressed to its entry coordinate), exact mixed-composition "
-            "profile inputs, and isolation-proof entries within the sealed plan, requires values duplicated from "
+            "profile inputs within the sealed plan, requires values duplicated from "
             "incumbent authorities (random-stream profile, "
-            "binding condition/family) to agree, forbids bounded-parallel entries from sharing resources, matches "
-            "admission cardinality, and binds the complete plan with a recomputed plan_digest over the entry set.",
+            "binding condition/family) to agree, matches "
+            "admission cardinality, binds a replacement profile to a distinct single-entry child within the "
+            "original replacement budget, and binds the complete plan with a recomputed plan_digest "
+            "over the entry set.",
             validator="raes_contracts.contracts.admitted_trial_plan.AdmittedTrialPlanModel._validate_plan",
             inputs=[{"contract_id": "admitted-trial-plan-v1", "instance_path": "#"}],
         )
@@ -402,6 +429,19 @@ def seal_admitted_trial_plan(**fields: object) -> AdmittedTrialPlanModel:
     return _seal(AdmittedTrialPlanModel, "plan_digest", fields)  # type: ignore[return-value]
 
 
+def canonical_entry_order(plan: AdmittedTrialPlanModel) -> tuple[str, ...]:
+    """Return the plan's admitted entry ids in canonical dispatch order."""
+
+    if plan.allocation is not None:
+        return tuple(plan.allocation.entry_order)
+    ordered = sorted(plan.entries.values(), key=lambda entry: canonical_coordinate_sort_key(entry.coordinate))
+    return tuple(entry.plan_entry_id for entry in ordered)
+
+
+def scheduling_policy_id(plan: AdmittedTrialPlanModel) -> str:
+    return RECORDED_ALLOCATION_POLICY_ID if plan.allocation is not None else CANONICAL_ORDER_POLICY_ID
+
+
 __all__ = [
     "AdmittedApparatusBindingModel",
     "AdmittedBindingModel",
@@ -419,8 +459,8 @@ __all__ = [
     "BindingOrigin",
     "ExperimentScenarioFamilyReferenceModel",
     "SelectionPolicyKind",
-    "entry_owned_resource_refs",
-    "isolation_resource_overlaps",
+    "canonical_entry_order",
+    "scheduling_policy_id",
     "seal_admitted_trial_entry",
     "seal_admitted_trial_plan",
 ]

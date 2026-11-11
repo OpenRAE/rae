@@ -12,6 +12,7 @@ from raes import (
     SDLParserLimits,
 )
 from raes_conformance.conformance import contract_payload_root
+from raes_contracts.operational_logging import get_logger
 
 from ._semantic_portable import PORTABLE_MAX_BYTES, execute_portable
 from ._semantic_result import (
@@ -36,22 +37,23 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
+_LOGGER = get_logger(__name__)
 _SDL_CONTRACT_ID = SDL_SOURCE_FORMAT
 _SDL_MAX_BYTES = SDLParserLimits().max_input_bytes
 _SOURCE_HELP = "Input path or '-' for stdin."
 _CONTRACT_HELP = "Explicit versioned contract id."
 
 
-def _read_input(source: str, *, max_bytes: int) -> bytes:
+def _read_input(source: str, *, max_bytes: int) -> bytes | None:
+    """Return the input bytes, or ``None`` when the input is larger than ``max_bytes``."""
+
     if source == "-":
         raw = click.get_binary_stream("stdin").read(max_bytes + 1)
     else:
         path = Path(source)
         with path.open("rb") as stream:
             raw = stream.read(max_bytes + 1)
-    if len(raw) > max_bytes:
-        raise OSError("input exceeds the configured byte limit")
-    return raw
+    return raw if len(raw) <= max_bytes else None
 
 
 def _execute(
@@ -63,55 +65,54 @@ def _execute(
     transform: TransformProfile | None = None,
 ) -> SemanticCommandResult:
     if contract_id != _SDL_CONTRACT_ID and contract_payload_root(contract_id) is None:
-        result = _result(
+        return _result(
             operation,
             status=CommandStatus.USAGE,
             contract_id=None,
             diagnostics=(_diagnostic("cli.selector", "cli", "The contract selector is not supported."),),
         )
-    else:
-        max_bytes = _SDL_MAX_BYTES if contract_id == _SDL_CONTRACT_ID else PORTABLE_MAX_BYTES
-        try:
-            raw = _read_input(source, max_bytes=max_bytes)
-        except OSError:
-            result = _result(
-                operation,
-                status=CommandStatus.OPERATIONAL,
-                contract_id=contract_id,
-                diagnostics=(
-                    _diagnostic(
-                        "cli.input",
-                        "cli",
-                        "The input could not be read within the configured bounds.",
-                    ),
-                ),
-                metadata=ResultMetadata(migration_policy=migration_policy),
-            )
+    max_bytes = _SDL_MAX_BYTES if contract_id == _SDL_CONTRACT_ID else PORTABLE_MAX_BYTES
+    try:
+        raw = _read_input(source, max_bytes=max_bytes)
+    except OSError:
+        # An absent or unreadable input is a bounded input failure, like an oversized input.
+        raw = None
+    if raw is None:
+        return _result(
+            operation,
+            status=CommandStatus.OPERATIONAL,
+            contract_id=contract_id,
+            diagnostics=(_diagnostic("cli.input", "cli", "The input could not be read within the configured bounds."),),
+            metadata=ResultMetadata(migration_policy=migration_policy),
+        )
+    return _execute_contract(
+        operation, raw, contract_id=contract_id, migration_policy=migration_policy, transform=transform
+    )
+
+
+def _execute_contract(
+    operation: str,
+    raw: bytes,
+    *,
+    contract_id: str,
+    migration_policy: SDLMigrationPolicy,
+    transform: TransformProfile | None,
+) -> SemanticCommandResult:
+    try:
+        if contract_id == _SDL_CONTRACT_ID:
+            result = execute_sdl(operation, raw, migration_policy=migration_policy, transform=transform)
         else:
-            try:
-                if contract_id == _SDL_CONTRACT_ID:
-                    result = execute_sdl(
-                        operation,
-                        raw,
-                        migration_policy=migration_policy,
-                        transform=transform,
-                    )
-                else:
-                    result = execute_portable(operation, contract_id, raw)
-            except Exception:
-                result = _result(
-                    operation,
-                    status=CommandStatus.INTERNAL,
-                    contract_id=contract_id,
-                    diagnostics=(
-                        _diagnostic(
-                            "cli.internal",
-                            "cli",
-                            "The operation failed unexpectedly.",
-                        ),
-                    ),
-                    metadata=ResultMetadata(migration_policy=migration_policy),
-                )
+            result = execute_portable(operation, contract_id, raw)
+    except Exception:
+        # Boundary of the semantic command: the typed result reports an internal failure, so log the cause once.
+        _LOGGER.exception("semantic %s operation stopped after an unexpected error", operation)
+        result = _result(
+            operation,
+            status=CommandStatus.INTERNAL,
+            contract_id=contract_id,
+            diagnostics=(_diagnostic("cli.internal", "cli", "The operation failed unexpectedly."),),
+            metadata=ResultMetadata(migration_policy=migration_policy),
+        )
     return result
 
 

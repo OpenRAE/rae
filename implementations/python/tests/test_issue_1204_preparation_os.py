@@ -6,8 +6,8 @@ from dataclasses import replace
 import pytest
 from raes_backend_protocols.capabilities import OperatingSystemCompatibility
 from raes_backend_stubs.stubs import StubProvisioner
+from raes_contracts.contracts.realization_preparation import RealizationPreparation
 from raes_contracts.realization_observation import ObservedOperatingSystemIdentity, RealizationObservationDisclosure
-from raes_contracts.realization_preparation import RealizationPreparation
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_contracts.vocabulary import ObservationStrength, RealizationSupportMode, RealizationVerificationScope
 from raes_processor.compiler import compile_runtime_model
@@ -33,7 +33,9 @@ def _request():
             ),
         ),
     )
-    scenario = _scenario("realization:\n  default: open")
+    scenario = _scenario(
+        "realization:\n  default: open\n  scopes:\n    - {field_pointer: /nodes/web/runtime, posture: closed}"
+    )
     # One node makes the existing observation test adapter's coverage complete.
     scenario = scenario.model_copy(update={"nodes": {"web": scenario.nodes["web"]}})
     execution = plan(compile_runtime_model(scenario), manifest)
@@ -187,12 +189,15 @@ def test_runtime_validates_the_prepared_completion_not_the_unselected_template(o
     _, manifest = _request()
     backend = ConcreteValidationBackend()
     target = RuntimeTarget(name="preparation-test", manifest=manifest, provisioner=backend)
-    manager = RuntimeManager(target)
-    scenario = _scenario("realization:\n  default: open")
+    scenario = _scenario(
+        "realization:\n  default: open\n  scopes:\n    - {field_pointer: /nodes/web/runtime, posture: closed}"
+    )
     scenario = scenario.model_copy(update={"nodes": {"web": scenario.nodes["web"]}})
-    execution = manager.plan(scenario)
+    from runtime_plan_fixtures import plan_for_target
+
+    execution = plan_for_target(target, scenario)
     if owner == "manager":
-        result = manager.apply(execution)
+        result = RuntimeManager(target).apply(execution)
         assert result.success, result.diagnostics
     else:
         from raes_contracts.runtime_state import OperationState

@@ -1,10 +1,5 @@
 {
-  "content_hash": "561545be507a1e79632488702c1fb322c62d38fb3cbb49953fb9b24771eae6af",
   "contract_id": "materialized-scenario-v1",
-  "last_change": {
-    "content_hash": "561545be507a1e79632488702c1fb322c62d38fb3cbb49953fb9b24771eae6af",
-    "summary": "Reject empty and whitespace-only behavior specification version labels, matching existing parser validity; DSL-116 issue #297."
-  },
   "schema_path": "contracts/schemas/sdl/materialized-scenario-v1.json",
   "stability": "draft"
 }

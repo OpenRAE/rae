@@ -4,6 +4,7 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from raes_contracts.errors import EvidenceIntegrityError
 from tools.check_formal_semantic_validation import load_release_bundles, validate_release_bundle
 from tools.formal_semantic_validation import _production, _releases, _replay, _retest
 from tools.formal_semantic_validation._archival_invariants import validate_archival_evidence_invariants
@@ -31,7 +32,6 @@ def test_each_source_bound_release_checks_its_explicit_baseline(revision, tamper
         failures,
         release.manifest["snapshot_path"],
         release_revision=revision,
-        replay_current=False,
     )
     assert [failure.rule_id for failure in failures] == (["formal-validation-baseline-selection"] if tampered else [])
 
@@ -62,5 +62,5 @@ def test_progressive_archival_admission_rejects_changed_recorded_payloads(mode):
     changed = deepcopy(payload)
     changed["source"]["byte_digest"] = "sha256:" + "0" * 64
     validate_archival_evidence_shape(root, changed, mode)
-    with pytest.raises(ValueError):
+    with pytest.raises(EvidenceIntegrityError, match="historical evidence invariant failed"):
         validate_archival_evidence_invariants(changed, mode)

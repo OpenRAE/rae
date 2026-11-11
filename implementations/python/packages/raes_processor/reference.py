@@ -24,6 +24,7 @@ from typing import Any
 from raes.parser import parse_sdl, parse_sdl_file
 from raes.scenario import ExpandedScenario, InstantiatedScenario, Scenario
 from raes_backend_protocols.capabilities import BackendManifest
+from raes_contracts.contracts import ProcessorManifestV2Model
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import PlanScope
 
@@ -98,6 +99,7 @@ class ReferenceProcessor:
         profile: str | None = None,
         base_snapshot: RuntimeSnapshot | None = None,
         scope: PlanScope | None = None,
+        processor_manifest: ProcessorManifestV2Model | None = None,
     ) -> ReferenceProcessorResult:
         """Realize an SDL scenario into a portable execution plan.
 
@@ -115,6 +117,7 @@ class ReferenceProcessor:
             backend_manifest,
             base_snapshot,
             scope=scope,
+            processor_manifest=processor_manifest,
         )
         diagnostics = (*model.diagnostics, *execution_plan.diagnostics)
         return ReferenceProcessorResult(
@@ -133,6 +136,7 @@ def run_reference_processor(
     profile: str | None = None,
     base_snapshot: RuntimeSnapshot | None = None,
     scope: PlanScope | None = None,
+    processor_manifest: ProcessorManifestV2Model | None = None,
 ) -> ReferenceProcessorResult:
     """Convenience wrapper around :meth:`ReferenceProcessor.realize`."""
 
@@ -143,4 +147,5 @@ def run_reference_processor(
         profile=profile,
         base_snapshot=base_snapshot,
         scope=scope,
+        processor_manifest=processor_manifest,
     )

@@ -85,8 +85,8 @@ follows this order:
 
 1. Validate trusted composition and the one-worker configuration.
 2. Secure the store root and acquire its owner lease.
-3. Verify target/run scope, schema, supported migrations, codecs, digests, and
-   SQLite integrity.
+3. Verify target/run scope, schema, supported migrations, codecs, digests,
+   operation claim columns, and SQLite integrity.
 4. Load and validate authoritative runtime state.
 5. Reconcile admitted operations without replaying unknown effects.
 6. Publish derived state, then report ready.
@@ -141,9 +141,9 @@ raes runtime store backup STORE_DIR BACKUP.sqlite3 --target TARGET --run-scope R
 
 The operation acquires the same exclusive lease as the runtime, verifies the
 exact target/run scope, uses SQLite's backup API, validates the resulting
-schema, records, audit history, payload digests, and integrity, synchronizes the
-private temporary file, publishes it atomically, and synchronizes its
-directory. Never copy the main database and `-wal`, `-shm`, or `-journal` files
+schema, records, operation claim columns, audit history, payload digests, and
+integrity, synchronizes the private temporary file, publishes it atomically,
+and synchronizes its directory. Never copy the main database and `-wal`, `-shm`, or `-journal` files
 as an independently meaningful set.
 
 Success and failure output are fixed codes such as

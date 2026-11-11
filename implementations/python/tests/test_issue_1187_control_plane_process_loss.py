@@ -10,7 +10,7 @@ from control_plane_conformance_fixtures import (
     terminal_audits,
     witness_events,
 )
-from control_plane_crash_fixtures import APPLIED, COMMITTED, CRASH_BOUNDARIES, UNCLAIMED, kill_at
+from control_plane_crash_fixtures import COMMITTED, CRASH_BOUNDARIES, UNCLAIMED, kill_at
 from raes_contracts.runtime_state import OperationState, RuntimeSnapshot
 from raes_runtime.control_plane_store_snapshots import _snapshot_from_payload
 
@@ -36,7 +36,11 @@ def test_process_loss_preserves_atomic_cut_and_classifies_without_replay(profile
         else:
             assert set(records) == {operation_id}
             assert records[operation_id].status.state is (
-                OperationState.SUCCEEDED if boundary in COMMITTED else OperationState.RUNNING
+                OperationState.SUCCEEDED
+                if boundary in COMMITTED
+                else OperationState.ACCEPTED
+                if boundary == "after-claim"
+                else OperationState.RUNNING
             )
             assert len(terminal_audits(store, operation_id)) == (1 if boundary in COMMITTED else 0)
     with profile_harness(profile, tmp_path, observe=True) as harness:
@@ -44,9 +48,15 @@ def test_process_loss_preserves_atomic_cut_and_classifies_without_replay(profile
             assert harness.status(operation_id) is None
             assert harness.store.load_records() == {}
         else:
-            expected = OperationState.SUCCEEDED if boundary in APPLIED else OperationState.FAILED
+            expected = (
+                OperationState.SUCCEEDED
+                if boundary in COMMITTED
+                else OperationState.CANCELLED
+                if boundary == "after-claim"
+                else OperationState.INDETERMINATE
+            )
             assert harness.status(operation_id) is expected
-            if boundary in APPLIED:
+            if boundary in COMMITTED:
                 assert harness.plane.snapshot == _snapshot_from_payload(before_effects[-1]["snapshot"])
             assert harness.submit() == operation_id
             record = harness.store.load_records()[operation_id]
@@ -54,9 +64,12 @@ def test_process_loss_preserves_atomic_cut_and_classifies_without_replay(profile
             audits = terminal_audits(harness.store, operation_id)
             assert len(audits) == 1
             assert audits[0].identity == "alice"
-            if boundary not in COMMITTED:
-                classification = "effect-applied" if boundary in APPLIED else "effect-absent"
-                assert f"runtime.control-plane.recovery-{classification}" in [d.code for d in record.status.diagnostics]
+            assert record.invocation.consumed == (boundary != "after-claim")
+            assert record.invocation.reserved == (expected is OperationState.INDETERMINATE)
+            if expected is OperationState.INDETERMINATE:
+                assert "runtime.control-plane.recovery-effect-unobservable" in [
+                    d.code for d in record.status.diagnostics
+                ]
         assert witness_events(tmp_path / "effects.jsonl") == before_effects
     # A second owner must preserve the terminal state, claim and audit, too.
     with profile_harness(profile, tmp_path, observe=True) as harness:
@@ -82,9 +95,7 @@ def test_unobservable_applied_effect_is_indeterminate_and_never_replayed(profile
 
 
 @pytest.mark.parametrize("profile", DURABLE_PROFILES)
-@pytest.mark.parametrize(
-    "boundary", ["before-terminal", "after-snapshot", "after-record", "after-audit", "after-terminal"]
-)
+@pytest.mark.parametrize("boundary", ["before-terminal", "after-record", "after-audit", "after-terminal"])
 def test_recovery_itself_can_be_killed_without_partial_state_or_replay(profile, boundary, tmp_path) -> None:
     operation_id = kill_at(profile, tmp_path, "after-invoke")
     effects = witness_events(tmp_path / "effects.jsonl")
@@ -92,14 +103,15 @@ def test_recovery_itself_can_be_killed_without_partial_state_or_replay(profile, 
     with inspect_store(tmp_path) as store:
         committed = boundary == "after-terminal"
         assert store.load_records()[operation_id].status.state is (
-            OperationState.SUCCEEDED if committed else OperationState.RUNNING
+            OperationState.INDETERMINATE if committed else OperationState.RUNNING
         )
-        assert store.load_snapshot_state().revision == int(committed)
+        assert store.load_snapshot_state().revision == 0
         assert len(terminal_audits(store, operation_id)) == int(committed)
     with profile_harness(profile, tmp_path, observe=True) as harness:
-        assert harness.status(operation_id) is OperationState.SUCCEEDED
+        assert harness.status(operation_id) is OperationState.INDETERMINATE
         assert harness.submit() == operation_id
-        assert harness.snapshot_cut() == ({}, 1)
+        assert harness.snapshot_cut() == ({}, 0)
+        assert harness.store.load_records()[operation_id].invocation.reserved
         assert len(terminal_audits(harness.store, operation_id)) == 1
         assert witness_events(tmp_path / "effects.jsonl") == effects
 

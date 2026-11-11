@@ -1,4 +1,4 @@
-# Concept Authority
+# Concept authority
 
 ## Scope
 
@@ -9,16 +9,16 @@ and related ecosystem artifacts.
 It establishes what concept families exist, where their meaning comes from,
 and how the ecosystem distinguishes imported meaning from native extensions.
 
-## Decision Record
+## Decision record
 
-[ADR-012](../../docs/decisions/adrs/adr-012-shared-concept-authority-and-raes-extension-discipline.md)
+ADR-012 in the [decision index](../../docs/decisions/adrs/README.md)
 is the architectural decision that governs this specification.
 
-## Layer Model
+## Layer model
 
 The shared concept model has three layers.
 
-### 1. Concept Authority Layer
+### 1. Concept authority layer
 
 Defines what relevant cyber-domain concepts mean.
 
@@ -29,17 +29,18 @@ authoring-syntax or schema-structure requirement.
 The fidelity of this concept-authority relationship is recorded in the
 machine-checkable UCO alignment artifact
 `contracts/concept-authority/uco-alignment-v1.json` (schema `uco-alignment/v1`).
-It pins the reviewed UCO version and maps every adopted and adapted cyber-domain
-family to the UCO object types it aligns to, stating each adapted family's
-divergences explicitly so the alignment can be reviewed rather than assumed.
+It pins the reviewed UCO version.
+It maps every adopted and adapted cyber-domain family to the aligned UCO object types.
+It gives each adapted family's divergences explicitly.
+These records permit review of the alignment.
 
-### 2. RAES Concept Layer
+### 2. RAES concept layer
 
 Defines concepts that RAES needs beyond the cyber-domain authority. These
 are RAES-native extensions for experiment, runtime, apparatus, provenance,
 and governance concerns.
 
-### 3. Artifact Binding Layer
+### 3. Artifact binding layer
 
 Where SDL, manifests, contracts, provenance, and reports bind their declared
 meaning to canonical concepts. This layer prevents artifact-local strings
@@ -66,17 +67,20 @@ vocabularies.
 
 ## Surface
 
-A **surface** is a named, bounded, contract-bearing scope of an RAES artifact
-or apparatus — owned by a single declaring authority — across which concept
-bindings, governed vocabularies, and conformance rules apply. "Surface" is the
-ecosystem's central organizing term: authoring (the SDL surface), processing
-and contracts (the contract, control-plane, and runtime surfaces), the
-apparatus (processor, backend, participant, live-execution, evidence, and
-provenance surfaces), and authority itself (normative-prose, schema, and
-governance-guidance surfaces) are all surfaces in this sense. A surface is not a
-file, a package, an endpoint, a schema, or a concept family; any of those may
-carry, realize, or sit within a surface, but the surface is the governed scope,
-not its container.
+A **surface** is a named, bounded scope of an RAES artifact or apparatus that carries a contract.
+One declaring authority owns it.
+Concept bindings, governed vocabularies, and conformance rules apply across that scope.
+
+The term covers these scopes:
+
+- authoring: the SDL surface;
+- processing and contracts: contract, control-plane, and runtime surfaces;
+- apparatus: processor, backend, participant, live-execution, evidence, and provenance surfaces;
+- authority: normative-prose, schema, and governance-guidance surfaces.
+
+A surface is the governed scope, not its container.
+A file, package, endpoint, schema, or concept family can carry, realize, or sit within a surface.
+None of those containers is itself the surface.
 
 A surface has three defining properties:
 
@@ -88,7 +92,7 @@ A surface has three defining properties:
 - **Contract-bearing** — the surface is the unit against which conformance,
   parity, and governed vocabularies are defined.
 
-### One Surface Versus Two
+### One surface versus two
 
 When two facts arise, the inventory program decides whether they belong to one
 surface or two using a single rule established by
@@ -102,16 +106,15 @@ surface or two using a single rule established by
   boundaries — **even when the same real-world evidence supports both**.
   Surfaces do not collapse into each other.
 
-Worked example (ADR-033): a container-side service listener, a host-published
-port binding, and an image-default exposed port are three different facts on
-three different surfaces, even though one inspection of a running container can
-produce all three. The shared evidence is not a reason to merge them; the
-differing semantic boundary is the reason to keep them apart.
+ADR-033 gives an example with three facts on three surfaces:
+a container-side service listener, a host-published port binding, and an image-default exposed port.
+One inspection of a running container can produce all three facts.
+Shared evidence does not merge their distinct semantic boundaries.
 
 The [glossary](../../docs/explain/reference/glossary.md) carries a reference-aid
 entry for "surface" that points back to this normative definition.
 
-## Provenance Categories
+## provenance categories
 
 Every concept family declares its provenance:
 
@@ -121,9 +124,9 @@ Every concept family declares its provenance:
 | `adapted` | Derived from the external authority with RAES-specific modifications. |
 | `native` | Defined by RAES with no external authority source. |
 
-## Concept Families
+## Concept families
 
-### Cyber-Domain Families
+### Cyber-domain families
 
 These families use UCO as the concept authority.
 
@@ -140,10 +143,13 @@ The `relationships` family uses `adapted` provenance because existing
 relationship types draw from STIX 2.1 Relationship SROs and OCR dependency
 patterns, not from UCO alone.
 
-### RAES-Native Families
+<!-- vale RAES.HeadingCase = NO -->
+### RAES-native families
 
 These families have no external authority. They are defined by RAES for
 ecosystem-specific concerns.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 | Family | Scope |
 |--------|-------|
@@ -164,26 +170,27 @@ boundaries, and append-only episode history. Episode-bound behavior events,
 observables, actions, tools, artifacts, and evidence still bind to their
 narrower concept families when those records are the artifact's subject.
 
-The `runtime-inventory` family is native because observed node runtime state is
-an RAES extension over the cyber-domain authority, not a UCO object in its own
-right and not a task/run/study or apparatus declaration. It covers the typed
-runtime inventory carried under `nodes.*.runtime` — services, platforms,
-packages and software components, controls and security posture, filesystem and
-mounts, processes and scheduled jobs, and other node-scoped apparatus state.
-Individual inventory fields that denote a narrower cyber-domain object — an
-asset, identity, observable, tool, artifact, or relationship — still bind to
-that narrower family. Runtime inventory records the observed or declared state,
-never the actions or events that produce, change, or react to it.
+The native `runtime-inventory` family covers observed node runtime state as an RAES extension over cyber-domain authority.
+It is not a UCO object, task/run/study record, or apparatus declaration.
+It covers typed inventory under `nodes.*.runtime`:
 
-The `behavioral-relations` family is native because RAES must govern how its
-artifacts bind formal and empirical relations to carriers, observation
-projections, quantifiers, evidence boundaries, and assurance states. The
-individual mathematical relations retain their revision-pinned publication
-lineage in the behavioral-relation catalog; this family owns RAES's claim
-discipline, not a replacement definition of actions, observations, scenarios,
-apparatuses, runs, studies, or evidence.
+- Services, platforms, packages, and software components.
+- Controls and security posture.
+- Filesystem and mounts.
+- Processes, scheduled jobs, and other node-scoped apparatus state.
 
-## Extension Discipline
+A field that denotes a narrower cyber-domain object still binds to that narrower family.
+Those objects include assets, identities, observables, tools, artifacts, and relationships.
+Runtime inventory records observed or declared state.
+It does not record the actions or events that produce, change, or react to that state.
+
+The native `behavioral-relations` family governs how RAES artifacts bind formal and empirical relations.
+The bindings name carriers, observation projections, quantifiers, evidence boundaries, and assurance states.
+Individual mathematical relations keep their revision-pinned publication lineage in the behavioral-relation catalog.
+This family owns RAES's claim discipline.
+It does not redefine actions, observations, scenarios, apparatuses, runs, studies, or evidence.
+
+## Extension discipline
 
 RAES-native families must be explicit extensions over the shared concept
 authority, not implicit forks of adopted or adapted cyber-domain meaning.
@@ -196,11 +203,10 @@ Each `native` family must declare:
 - `non_ambiguity_constraints`: constraints that prevent the native concept
   from duplicating or shadowing shared cyber-domain concepts
 
-Native families must use these fields to state when an artifact should bind to
-the native family and when it should instead bind to a narrower adopted or
-adapted family from the shared authority.
+Native families must use these fields to give the applicable binding conditions.
+Those conditions must distinguish the native family from a narrower adopted or adapted family in the shared authority.
 
-### Adding a Runtime Inventory Field or Family
+### Adding a runtime inventory field or family
 
 Runtime inventory is the largest extension surface, so the decision path for
 adding to it is explicit. A contributor can determine the required governance
@@ -223,7 +229,7 @@ steps from this section and the machine-readable catalog alone:
    an invariant fails the suite immediately.
 3. **Keep observed values redaction-safe.** Values that can carry secrets must
    route through the runtime redaction helpers (ADR-056 / ADR-057,
-   `raes.runtime_values`); raw credential material is unrepresentable on the
+   `raes_contracts.runtime_values`); raw credential material is unrepresentable on the
    model surface.
 4. **Add controlled vocabulary, not free strings.** New enumerated terms belong
    in `contracts/concept-authority/controlled-vocabularies-v1.json` (GOV-922),
@@ -234,7 +240,7 @@ steps from this section and the machine-readable catalog alone:
    `non_ambiguity_constraints` (the discipline above), and a reference-model
    entry when it has a recurrent SDL structure.
 
-## Machine-Readable Catalog
+## Machine-readable catalog
 
 The authoritative concept family catalog is published at:
 
@@ -260,13 +266,13 @@ The JSON Schema for the catalog format is published at:
 
 `contracts/schemas/concept-authority/concept-families-v1.json`
 
-## Relationship to Implementation
+## Relationship to implementation
 
 Implementation code may define enums and models that correspond to concept
 families, but the normative catalog is the authority for what families exist
 and where their meaning comes from.
 
-## Relationship to Other Requirements
+## Relationship to other requirements
 
 - GOV-917: This specification (concept authority definition).
 - GOV-918: Cross-artifact concept binding, including

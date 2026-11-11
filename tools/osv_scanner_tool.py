@@ -45,6 +45,7 @@ def ensure_osv_scanner(
     installation_root: Path | None = None,
 ) -> Path:
     from tools.tooling_policy_gate import (
+        ArtifactPolicyError,
         host_platform_id,
         load_tooling_artifact_selection,
     )
@@ -57,7 +58,7 @@ def ensure_osv_scanner(
         profile_id=f"public-{platform_id}",
     )
     if len(selection.source_urls) != 1 or len(selection.raw_manifest) != 1 or len(selection.installed_manifest) != 1:
-        raise RuntimeError("osv-scanner lock selection must contain one source, raw asset, and installed binary")
+        raise ArtifactPolicyError("osv-scanner lock selection must contain one source, raw asset, and installed binary")
     raw = selection.raw_manifest[0]
     return installation.ensure_verified_installation(
         repo_root,
@@ -82,19 +83,32 @@ def run_osv_scanner(lockfile: Path, report_path: Path, *, binary: Path) -> int:
     ``report_path`` captures a clean JSON document. The caller classifies the
     result with :func:`classify_osv_exit_code` and applies repository policy.
     """
-    report_path.parent.mkdir(parents=True, exist_ok=True)
-    with report_path.open("wb") as report_file:
-        completed = subprocess.run(  # noqa: S603  # trusted, checksum-verified binary; fixed argv
-            [
-                str(binary),
-                "scan",
-                "source",
-                "--lockfile",
-                str(lockfile),
-                "--format",
-                "json",
-            ],
-            stdout=report_file,
-            check=False,
-        )
+    # The frozen tooling environment does not install RAES; importing the verified
+    # installation module above put the shared exception module on the import path.
+    from raes_contracts.errors import OperationalError
+
+    try:
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_file = report_path.open("wb")
+    except OSError as exc:
+        raise OperationalError("osv-scanner report could not be written") from exc
+    # The scanner writes the report through the open descriptor, so a failure here is the
+    # scanner start or the report close.
+    try:
+        with report_file:
+            completed = subprocess.run(  # noqa: S603  # trusted, checksum-verified binary; fixed argv
+                [
+                    str(binary),
+                    "scan",
+                    "source",
+                    "--lockfile",
+                    str(lockfile),
+                    "--format",
+                    "json",
+                ],
+                stdout=report_file,
+                check=False,
+            )
+    except OSError as exc:
+        raise OperationalError("osv-scanner could not run or finish its report") from exc
     return completed.returncode

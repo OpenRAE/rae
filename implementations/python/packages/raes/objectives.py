@@ -12,9 +12,9 @@ in runtime adapters.
 """
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
-
-from ._base import SDLModel, parse_enum_or_var
-from .propositions import TruthCompositionMode
+from raes_contracts.propositions import TruthCompositionMode
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import parse_enum_or_var
 
 SuccessMode = TruthCompositionMode
 
@@ -47,7 +47,7 @@ class ObjectiveSuccess(SDLModel):
         return parse_enum_or_var(v, SuccessMode, field_name="mode")
 
     @model_validator(mode="after")
-    def validate_non_empty(self) -> "ObjectiveSuccess":
+    def validate_non_empty(self) -> ObjectiveSuccess:
         if not self.assertions:
             raise ValueError("Objective success must reference at least one assertion")
         if self.mode == SuccessMode.AT_LEAST:
@@ -104,7 +104,7 @@ class Objective(SDLModel):
         return value
 
     @model_validator(mode="after")
-    def validate_relation_binding(self) -> "Objective":
+    def validate_relation_binding(self) -> Objective:
         if not self.owner and not self.assigned_participant:
             raise ValueError("Objective requires 'owner' or 'assigned_participant' (both are permitted)")
         return self

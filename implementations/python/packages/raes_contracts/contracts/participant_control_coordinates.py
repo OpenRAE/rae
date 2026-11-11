@@ -16,6 +16,7 @@ from .participant_decision_state_cut import (
 
 ControlRef = Annotated[NonEmptyString, Field(max_length=256, pattern=r"^[A-Za-z0-9][A-Za-z0-9._:/@-]*$")]
 ControlCount = Annotated[StrictInt, Field(ge=0, le=1_000_000)]
+ControlPosition = Annotated[StrictInt, Field(ge=1, le=1_000_000)]
 ControlRefs = Annotated[tuple[ControlRef, ...], Field(max_length=256)]
 ResultKind = Literal["ifc-fact", "decision", "advisory", "effect-request"]
 ResolutionStatus = Literal["resolved", "missing", "unknown", "unsupported", "stale", "failed", "weakened"]

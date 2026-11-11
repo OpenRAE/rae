@@ -13,7 +13,7 @@ from ..versions import ASSOCIATED_ARTIFACT_MANIFEST_SCHEMA_VERSION
 from .base import ContractModel, NonEmptyString
 from .experiment_artifacts import ExperimentArtifactRefModel
 from .experiment_references import AssociatedArtifactParentReferenceModel
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 AssociatedArtifactSetDigestString = Annotated[str, Field(pattern=r"^sha256:[a-f0-9]{64}$")]
 
@@ -123,7 +123,7 @@ class AssociatedArtifactManifestModel(ContractModel):
                 },
             ]
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "associated-artifact-parent-set-and-byte-binding",
             "Full conformance requires matching the concrete parent, recomputing the canonical set digest, "

@@ -1,344 +1,236 @@
-# Issue #1069 — RUN-320 runtime orchestration preflight
+# Issue #1069 — Applicable provider evaluation preflight
 
-Date: 2026-09-20. Inspection baseline: `e4136a6e`. Scope: architecture guidance
-before implementation, not an implementation plan.
-
-## Authority and present boundary
+Date: 2026-10-15. Inspection baseline: `ec1cdce9`. Scope: RUN-320 and the
+supplied #1069 applicable-provider evaluation acceptance criteria, with #1365
+and #1362 as prerequisites. The issue narrows this delivery; it does not remove
+RUN-320's effect, durability, causal-budget or recovery obligations. This
+replaces the 2026-09-20 preflight's pre-amendment assumptions; it is architecture
+guidance, not an implementation plan or runtime conformance claim.
 
 [ADR-108](adrs/adr-108-modular-participant-control-and-governed-effects.md),
-[SEM-235](../../specs/formal/participant-semantics/modular-participant-control.md),
-and [PC-01–PC-15](../research/modular-participant-control/composition.md) already
-settle the architecture. API-424 is published in `raes_contracts` and
-`raes_backend_protocols`: its closed selection, context, result, composition,
-effect, realization, trusted-context validation, provider protocol and
-API-407 support adapter are the portable boundary. No new ADR, policy algebra,
-provider interface, effect vocabulary or contract family is needed for
-RUN-320.
+[ADR-111](adrs/adr-111-control-applicability-and-effect-decisions.md),
+[CA-01–CA-09](../../specs/formal/participant-semantics/control-applicability-and-evaluation.md)
+and the [migration contract](../migration/control-applicability-and-evaluation.md)
+already decide the semantics. Reuse the #1365 contracts and #1362 supervision
+([contract preflight](issue-1365-applicable-provider-contracts-preflight.md),
+[supervision preflight](issue-1362-supervised-execution-preflight.md)); no new
+ADR, policy algebra, provider registry or workflow engine is warranted.
+Package paths below are relative to `implementations/python/packages/`.
 
-RUN-320 owns reference-runtime invocation, exact-cut composition, durable
-admission and bounded triggered execution. It replaces the undeclared
-`getattr(..., "resolve_flow_sink_decision")` path in
-`raes_runtime/participant_flow_sink.py` and the matching method-presence probe
-in `control_plane_composition.py::require_final_sink_flow_control_configuration`;
-it does not relax the SEM-233 final sink or API-423 crossing gates. Any
-temporary SEM-233 compatibility is an explicitly selected adapter into
-API-424, never method-presence discovery at composition or invocation time.
-`ParticipantControlProvider` is deliberately not runtime-checkable: a
-callable `resolve` method proves neither installation, support nor authority.
+Inspection confirms v2 contracts/protocol/composition and the supervised-call
+adapter exist, while runtime binding, orchestration, evaluation-history
+validation and causal folds still consume v1. Traceability and prior v1 tests
+do not prove coordinated v2 adoption. The issue's historical
+`docs/research/runtime-refactor/diagnosis.md` reference is absent at this cut;
+the supplied acceptance criteria and current owners are the inspection basis.
 
-The following similarly named incumbents must remain distinct:
+## Decisions and adoption boundaries
 
-- API-404 `ControlPlaneProfile` P0/P1/P2/P3 is the runtime transport and
-  durability posture; API-424 participant-control profiles select mechanism
-  semantics. Neither profile family selects, proves or upgrades the other.
-- API-409/RUN-310 `participant_control_history` records supervisory actions;
-  it is not modular provider state, contribution or effect history.
-- SEM-234 `MixedRuntimeBinding` coordinates backend allocation/phases; it is a
-  construction pattern, not a participant-control composition model.
-- SDL `Orchestrator` and `RuntimeSnapshot.orchestration_history` own workflow
-  execution; RUN-320 must not retag their records.
-- API-424 eligibility is not API-423 permission, a committed intent is not a
-  dispatch, dispatch is not observed application, and a realization claim is
-  not external certainty.
+**Retain B; derive A(B,K).** The exact admitted v2 selection is the apparatus B.
+Compare that complete selection with the installed binding; never compare the
+applicable subset's digest with B or filter B to manufacture equality. Resolve
+total profile-owned obligation coverage independently of provider responses:
+applies, proven inapplicable with exact-cut evidence, or unresolved. A missing
+provider, resolver `None`, exception or absent result proves no inapplicability.
+An empty A is valid only with complete proven coverage and incumbent gates;
+explicitly absent modular requirements are a separate configuration case.
+A provider serving another source/sink remains in B and is not called at this K.
 
-Positive RUN-320/API-404 evidence must name an explicitly selected operating
-profile. A legacy control plane with `profile=None` may retain compatibility
-behavior but contributes no profile guarantee; provider installation or an
-API-424 mechanism profile must never auto-select P0–P3.
+**Schedule slots/stages, not providers.** Consume the admitted finite DAG from
+`participant_control_applicability.py`; permit A.fact → B.assessment → A.rule.
+Use `ParticipantControlProviderV2.resolve_stage(ControlInvocationV2Model)` from
+`raes_backend_protocols/protocols.py`. A ready stage receives exact detached
+predecessor identities/content digests and scoped committed/tentative state
+through its authorized projection. The installed provider's scoped reference
+resolution must actually supply that content; a digest or common K alone does
+not prove predecessor consumption. No ambient result lookup or private-state
+sharing. Never batch a producer and its consumer into one invocation.
 
-## Runtime design guardrails
+The runtime checks readiness before each call and validates every output against
+its requested slots, binding, invocation and complete input identity. Reuse
+`validate_control_invocations_v2`; it validates a completed record and does not
+schedule work or establish chronological execution. Missing mandatory input
+produces an explicit unsatisfied consumer result without calling that consumer.
+The complete record must still satisfy API-424's invocation/result accounting;
+a blocked-stage descriptor is not evidence a provider ran. If an unsupported
+blocked-input/state combination cannot be represented, close the seam at the
+contract owner or refuse safely; never fabricate successful input or weaken
+validation. Canonical serialization order is not execution order or conflict
+resolution. Bound traversal, stages, result iteration and bytes before consuming
+provider-controlled iterables, including generators and malformed duplicates.
 
-### Trusted binding and invocation
+**Closure determines availability, not advice authority.** Use admitted
+`required_slot_ids` (M), coverage and support pins from the request. A nominally
+optional fact/advice slot in M must be available; a negative advisory assessment
+still cannot veto. Only an admitted decision interprets advice into deny or
+withhold. Mandatory abstention/unresolved results never release the crossing;
+explicit evaluated `not-triggered` is different from missing rule evaluation.
+Use `ControlSupportAssessmentV2Model`, the API-407 manifest join in
+`raes_backend_protocols/participant_control_admission.py`, and independently
+resolved requirement-relative constraints. Neither all-exact checks nor a
+numeric ordering of support labels implements the admitted relation.
 
-Add one immutable, operator/backend-constructed runtime binding through the
-typed `ControlPlaneOptions`/`ControlPlaneConfiguration` seam, following the
-validation and `MappingProxyType` treatment of `MixedRuntimeBinding`. It binds
-the exact admitted selection/apparatus and trusted context/support resolvers to
-a provider map whose keys exactly equal the selected mechanism instance IDs.
-Provider objects never come from a scenario field, participant value, generic
-options map, import path, module name, URL, command, environment expression or
-filesystem search. `RuntimeTarget` remains a component/effect boundary, not a
-plugin registry.
+Isolate optional failure outside M at its invocation boundary. Reuse
+`normalize_optional_result_failure_v2` for its supported one-slot malformed
+case; it is not an evaluation-wide exception handler. Other optional absence,
+timeout, stale/support failure and conflict need the same safe typed lost-advice
+accounting, with discarded payload, effects and state. Do not retain a discarded
+optional state proposal as a tentative predecessor. Mixed-stage failure must
+not relabel mandatory work as optional. Extend an owning contract helper if
+needed rather than duplicate normalization/composition in runtime. Required
+conflicts block; optional conflicts are omitted with evidence under CA-03.
 
-Invoke every provider only through
-`raes_backend_protocols.protocols.ParticipantControlProvider.resolve`, under
-the shared `RuntimeMutationAuthority` and `external_control_plane_call()`
-re-entry fence. Supply a detached, revalidated `ParticipantControlRequestModel`
-for one exact K. Revalidate returned models from their portable projection so
-`model_construct`, mutable aliases or unchecked subclasses cannot bypass the
-contracts. Convert exception, malformed return, missing slot and unsupported
-support into the corresponding explicit unresolved result/support record;
-never omit a contributor or permit on failure.
+**Parent outcome and effect readiness have different authorities.** A resolved
+mandatory deny/withhold is a complete decision, unlike an absent mandatory
+result. Use `participant_control_decisions_v2.py` for unscheduled decisions,
+typed outcome prerequisites and combined parent/effect cycle checks. Join its
+provisional runnable effects through `admitted_control_effect_ids_v2`; neither
+the runnable list alone nor a blanket eligible/non-eligible test defines the
+admitted intents. Independent consequences may survive a complete refusal only
+for their admitted disposition and authority, with no unrelated mandatory
+blocker. An accepted parent receipt is not application: an `applied`
+prerequisite needs the exact incumbent owner's application evidence. Required
+predecessors keep the parent withheld until that outcome and fresh evaluation.
+Preserve append-only outcome evidence rather than mutate the original plan to
+create a parent receipt or dispatch opportunity. Do not reuse v1 phase rules
+for these v2 decisions.
 
-Construct and validate the complete `ParticipantControlEvaluationModel` with
-API-424-owned composition logic and
-`validate_participant_control_resolved_context()`. Its non-wire context must be
-resolved independently from trusted runtime owners: admitted request, safe
-references, exact installed bindings, effective support, result identity,
-authorized effects, incumbent gate evidence, crossing/control/flow/inject
-records and owner receipts. Provider output cannot certify any of those facts.
-Do not copy slot, dependency, blocker, support, effect-conflict, digest or
-trusted-context logic into runtime branches.
+**Use supervision without transferring state authority.** Reuse
+`OperationSupervisionConfiguration`, `LocalExecutionAdapter.call`,
+`RuntimeMutationAuthority` and `external_control_plane_call()` for provider and
+trusted-resolver callbacks. `operation_provider_execution.py::provider_call`
+is a supervision precedent for backend-operation DTOs, not a callable adapter
+for participant-control results. Keep these two provider protocols distinct.
+Use the existing bounded lane/capacity and remaining deadline, not another
+executor, per-provider thread pool or invented operation lifecycle. Graph and
+attempt bounds complement wall-clock bounds; governed scenario time is separate.
 
-There is one current API-surface gap to close at the existing contract owner:
-`participant_control_composition.py` and
-`participant_control_effect_composition.py` validate a caller-constructed
-composition, but expose no public pure operation that derives the canonical
-`ControlCompositionModel` from results, effective support and incumbent-gate
-facts. RUN-320 must expose and reuse that API-424-owned operation (or an
-equivalent public constructor over the same logic) before runtime orchestration
-consumes it. It must not independently reproduce private
-`_mandatory_blockers`, effect-conflict accounting or disposition mapping in
-`raes_runtime`. This closes a missing public seam; it does not authorize a new
-schema, policy algebra or orchestration facade.
+External calls release the state permit while retaining effect exclusion;
+supervisory actions may commit meanwhile. After reacquisition reload and verify
+the pinned snapshot revision, generation, stop/cancel state, policy/support,
+all relevant history heads and state versions before a dependent call, commit or
+release. Do not submit an old prepared snapshot using a newly refreshed CAS
+revision. Stale work requires fresh K and admitted retry consumption. Detach
+inputs and returned projections; frozen wrappers are not deep immutability.
+Timeout bounds the caller, not the physical worker. Late output may never commit;
+retain adapter capacity/resource ownership until actual exit, keep control/store
+capacity available and preserve drain/readiness behavior. An in-process provider
+remains trusted installed code, not an OS sandbox or cancellable world effect.
 
-API-424 does not expose an open cross-provider rule interpreter. If an
-admitted profile or dependency cannot be expressed by the published request,
-slots and result contracts, record unsupported and perform no dispatch; amend
-API-424 under its owner rather than pass provider-private dependencies through
-metadata.
+**One atomic state authority.** Reuse `derive_control_composition_v2`,
+`ParticipantControlEvaluationV2Model` and
+`validate_participant_control_resolved_context_v2` from `raes_contracts/contracts/`.
+Independently owner-resolved coverage, installed bindings, support, safe refs,
+incumbent crossing records, authorized state writes and receipts populate
+`ParticipantControlValidationContextV2`; copying provider assertions into that
+context is not verification. Closed-model acceptance proves no owner authority.
 
-The provider is an operator-installed pure resolver, not an authenticated
-caller, controller, declassifier or effect principal. Every triggered child
-operation retains the originating `OperationAdmissionContext` actor and
-authorization scopes, records `parent_operation_id`, and then passes the
-ordinary owner authorization again. Never call `operation_admission_context()`
-with an absent identity merely because execution is internal: that incumbent
-fallback means trusted embedder and would launder a served caller into process
-authority. Provider-declared authority refs remain claims checked by the
-trusted context; they do not replace the operation actor.
+State scope/version belongs to the admitted instance/configuration/authority
+and sharing domain, not merely profile, participant memory or implementation
+name. `ControlStateProposalV2Model` and `validate_state_proposals_v2` own writer
+chains: pin committed versions, explicitly pass tentative predecessor versions,
+reject forks/unordered writers, and enforce evaluation versus parent-release
+commit timing. A refused parent can commit only independently authorized
+evaluation-state updates, never action-success state.
 
-`external_control_plane_call()` is a re-entry fence, not a sandbox or timeout.
-A provider must perform no world effect, spawn no mutation path and return a
-finite result. Attempt/expiry bounds do not prove wall-clock liveness; a stuck
-in-process provider can stall the single mutation authority, so RUN-320 makes
-no provider-availability or cancellation claim and must not hide this with an
-unbounded worker/thread executor.
+Join accepted state changes, complete evaluation/coverage/results, decisions,
+authorized effect intents/claims, consumed budgets, operation and audit in the
+incumbent `commit_participant_transition()` transaction with expected heads and
+snapshot revision. `ControlCommitBoundaryV2Model` is a wire claim, not a store
+receipt: prepare before commit, bind the committed fact only to authoritative
+store evidence, and do not rewrite an appended evaluation to mark success.
+Use `control_plane_durability.py`, `BoundedControlPlaneStore`, store CAS/leases
+and authoritative readback; failed or uncertain commit dispatches nothing.
 
-### One exact cut and one durable authority
+`expected_participant_history_heads()` currently covers one participant;
+shared run/participant scopes and shared causal roots need all affected versions
+inside the same transaction/read set. The existing global snapshot CAS can
+supply concurrency coverage only when every shared write is represented there
+and the original revision stays pinned. A resolver-private state map or another
+store does not participate. Unsupported cross-store atomicity stays unsupported.
+Reuse existing history/folds for derived indexes; any necessary typed carrier
+must pass the exhaustive snapshot/transition surfaces below, never metadata.
 
-Build K from the incumbent crossing/control owners: admitted apparatus and
-profile, participant/episode, subject/crossing/direction, sink/audience/
-destination, controller/authority, policy revision, input and provider-state
-references, governed time/order, trigger root/depth/firings/attempt, and every
-relevant history head. `prepare_participant_crossing()`,
-`expected_participant_history_heads()` and the API-424 request validator own
-those coordinates. A retry after any head, policy, selection, support or state
-change resolves a fresh K; an old eligible result is never reused.
+**Keep logical identity and consumption through re-evaluation.** Reuse
+`ControlLogicalEffectKeyModel`, `ControlCausalBoundsModel` and the retained
+consumption folds, selected by historical interpretation. The logical key is
+`(run, trigger root, rule id/revision, slot, firing epoch)`; retry, cut and
+transport identities never enter it. New transformed/injected occurrences
+need fresh identities, causal links and ordinary downstream admission. Replays
+retain the allocated effect identity and full intent digest; changed content
+under the same key conflicts. Each evaluation consumes an attempt, including
+refusal and no-effect evaluation; realization evidence does not consume it
+again. Fresh cuts, episode/binding replacement, restart or history retention
+must not restore root/depth/fan-out/firing/effect/retry budgets or forget an
+uncertain dispatch. Finite traversal limits do not replace durable consumption.
 
-Use `RuntimeSnapshot`, `ControlPlaneOperationRecord`, `AuditEvent` and
-`AtomicControlPlaneStore.commit_participant_transition()` as the only state
-authority. The atomic write set contains the validated evaluation, all
-contributions, proposed provider-state transition, logical effect claims,
-root/depth/firing/attempt consumption, the effective decision and typed effect
-intents before any backend call or participant disclosure. A stale expected
-head, idempotency conflict, store error or uncertain commit means no dispatch.
-P0 may make only its documented process-lifetime claim; restart/recovery
-evidence uses the P1 local durable store, and P2 remains the authenticated HTTP
-composition over that P1 core. RUN-320 does not make the unavailable P3
-multi-owner/coordination profile real. Do not weaken
-`adapt_control_plane_store()` capability admission or emulate atomicity in the
-orchestrator.
+## Whole-repository layers to preserve
 
-Modular state and append-only history require first-class typed snapshot
-carriers with fold/prefix and expected-head validation. They must be carried
-through all exhaustive snapshot surfaces: `RuntimeSnapshot`,
-`_snapshot_updates.py`, the runtime-snapshot contract/schema and publication
-entry, `control_plane_store_snapshots.py`, `control_plane_store_history.py`,
-`control_plane_store_paths.py` transition accounting,
-`backend_snapshot_contracts.py`, `participant_result_contracts.py`,
-`participant_crossing_state_cut.py`, backend transition validation,
-`control_plane_api_models.py`, operational summaries, compatibility fixtures,
-concurrency/restart checks, and both memory and local stores. Do not store authority in
-`RuntimeSnapshot.metadata`, audit details, operation `result_payload`, a
-private cache or a new trigger journal. Backend results must not be allowed to
-rewrite runtime-owned modular carriers.
-
-Treat persisted-shape evolution as an explicit compatibility boundary. Follow
-`control_plane_store_record_migration.py` and the
-`participant_crossing_history_presence()` precedent when distinguishing a
-legacy snapshot that predates a carrier from a present empty carrier. Absence
-may establish only that no modular-control history is available; it must not
-synthesize an empty authoritative history, erase a retained head or permit a
-resume. Once modular state or claims exist, missing or malformed carriers fail
-closed. An unprofiled legacy control plane may retain its old behavior but
-cannot acquire a RUN-320 conformance or restart-recovery claim implicitly.
-
-Evaluations and later realization facts are immutable. Do not mutate an
-evaluation's empty/pending realization list after dispatch; append separately
-identified transitions that fold to current provider/effect state and retain
-the original causal references. Operation lifecycle records remain the common
-administrative index, but are not a substitute for required portable
-contribution, state, budget and realization history.
-
-### Admission, effect ownership and recovery
-
-Preserve the incumbent order:
-
-`resolve -> compose -> admit -> commit intent -> dispatch -> record outcome`
-
-Immediately before dispatch, recheck the commit-bound generation and all
-current authority, capability, policy, destination and history coordinates.
-`RuntimeMutationAuthority` provides the in-process logical permit. The selected
-control-plane profile supplies only its declared store fence: P0 has revision
-CAS and no process-loss/owner-lease claim; P1/P2 add the local durable owner
-lease, CAS and startup reconciliation. Expected heads bind the affected
-participant histories in either case. Do not introduce a check-then-call gap or
-imply P3/multi-owner support. If an asynchronous path cannot retain its
-declared fence, it must re-enter final admission at a fresh cut.
-
-Translate each closed API-424 effect through its existing owner, with no
-backend-name or provider-name branch:
-
-| Effect concern | Required incumbent owner |
+| Layer and canonical incumbents | Required satisfaction |
 | --- | --- |
-| Permit, deny and withhold | API-423 crossing mediation, SEM-233 final-sink validation and RUN-319 commit-before-effect |
-| Transform, mask and route | Fresh API-423/SEM-226 carrier identity, lineage, visibility and ordinary re-admission |
-| Inject | DSL-111/142 authored identity/binding plus API-423 delivery/disclosure and API-409 when it changes control |
-| Delay | API-421/RUN-308 governed clock, expiry and scheduler ownership |
-| Review, handoff, interrupt and shutdown | RUN-310/API-409 participant, episode and workflow lifecycle owners |
-| Audit | Existing `AuditEvent`/evidence and audience projection; never a second output channel |
+| Portable ingress: `raes_contracts/_base.py`, `json_ingress.py`, `contracts/participant_control_{applicability,invocation,evaluation_v2}.py` | Reconstruct detached portable projections, reject unknown fields/IDs/duplicates/cycles, bind exact revisions and bound nested/aggregate material. Use `parse_participant_control_evaluation_v2` for serialized ingress (1 MiB/depth 32). Direct Python callbacks require equivalent finite validation; model construction/subclasses and lazy iteration cannot bypass it. |
+| Configuration/admission: `raes_runtime/control_plane_configuration.py`, `control_plane_composition.py`, `participant_control_binding.py`, `registry_target_validation.py`; API-407 manifests | Extend the typed immutable binding/resolver seam with explicitly negotiated v2 selection/protocol/interpretation. Current binding admits v1 only. Preserve exact installed B and run/target/policy/support checks; method presence proves no support. No scenario code locator, import path, URL, command or untyped option bag. |
+| Authentication and policy: `control_plane_api/_auth.py`, `ControlPlaneSecurityConfig.strict_defaults()`, `RequestSizeLimitMiddleware`, `AppCompositionSealMiddleware`, crossing/control/final-sink owners | Existing HTTP authentication (constant-time bearer comparison or explicitly configured trusted proxy), actor/role/target/controller/participant/audience checks and API-409/API-423/SEM-233 gates still apply. Preserve the served composition seal, route-authority declarations and authentication before validation-error responses; add no route or dependency override. Preserve originating `OperationAdmissionContext` and parent-operation lineage through effects; absent identity must not invoke the trusted-embedder fallback. Eligibility cannot grant disclosure or effect authority. |
+| Secrets/environment: `raes_contracts/secret_references.py`, `raes/runtime_environment.py::RuntimeEnvironmentVariable`, `raes/runtime_values.py::enforce_observed_value_redaction` | Provider projections/state/evidence contain only owner-approved bounded values/refs, with no prompts, private memory, credentials or rejected payloads. This change needs no environment binding. Any existing downstream binding retains name validation, literal/`value_from` exclusivity, source classification and redaction; hashing a secret does not redact it. |
+| Host/process and persistence: existing execution adapter/resource ownership; `control_plane_store_paths.py`; memory/local/PostgreSQL store implementations | No new subprocess, shell, dynamic loader, file transport, service or deployment topology. Never put inputs/secrets in argv, broad inherited environment, temporary names or stdout/stderr. Keep local-store ownership/type/link checks and private modes; preserve selected store/provider capabilities. PostgreSQL/distributed support is not implied by local tests or permission to provision services. |
+| Snapshot/readers: `RuntimeSnapshot`, `_snapshot_updates.py`, `participant_control_evaluation_history.py`, `participant_control_causal_state.py`, `participant_control_records.py`, `participant_control_effects.py`, store codecs/migrations/history, `backend_snapshot_contracts.py`, `participant_result_contracts.py`, API snapshot DTOs | These consumers still include v1-only readers. Route by recorded contract ID before admitting v2 history; preserve v1 meaning, append-only identities, claims, attempts, budgets and realizations. Cover snapshot serialization/reopening, backend preservation and operation readers. Legacy absence is not an authoritative empty history. Unknown interpretation refuses safely; pending unsafe legacy work needs owner reconciliation. No replay resampling or automatic v1-to-v2 conversion. |
+| Effects/recovery: `participant_control_receipts.py`, `participant_effect_authority.py`, `participant_crossing_boundary.py`, `participant_crossing_egress.py`, `control_plane_recovery.py` | Keep commit-before-effect/serialization, ordinary owner admission, final generation/policy checks, logical-key idempotency and uncertain-outcome reconciliation. Parent decisions are unscheduled; prerequisite effects cannot be confused with provider-input dependencies. v1 effect drain must not parse v2 as v1 or infer executable work. Unsupported effect-owner paths remain refused; no external exactly-once claim. |
+| Errors/audit/observability: `Diagnostic`, `portable_diagnostic_payload`, `participant_control_diagnostics.py`, `control_plane_audit.py`, API `_responses.py`/`_operation_routes.py`, `NoStoreResponseMiddleware`, `control_plane_health.py` | Use stable value-independent reasons and existing error/receipt/audit envelopes and module logging conventions. Shape validation and bounded text are not redaction. Do not expose raw exceptions/chains, validator inputs/unknown keys, repr, provider names or private references. Preserve coarse conflicts, redacted 422/500, audit field allowlists and uncacheable responses. Apply audience projection and ADR-066 plane separation to coverage, reasons, loss, withhold existence and timing; readiness must reflect lingering workers/uncertainty. |
+| Governance/package/CI: `.ground-control.yaml`, `.gc/plan-rules.md`, `tools/policy/{adr_policy,requirement_order}.yaml`, `docs/governance/requirement-scopes/1069.json`, `noxfile.py`, `tools/verification_plan.py`, `.github/workflows/canonical-verification.yml` | Keep contracts neutral, protocol imports limited to contracts, and runtime independent of concrete backend/conformance packages (ADR-015/036). Reuse existing ownership, policy and targeted verification lanes; set `RAES_REQUIREMENT_UID=RUN-320` when the branch does not carry it. RUN-320 owns orchestration; any prerequisite contract change retains its API-424 owner and traceability. Schema changes, only if necessary, retain `schema_bundle()` parity, schema invariants, explicit generator routing, manifest-v2 per-contract publication entries and packaged corpus. Preserve ADR pins; no changelog/version edits or new dependency/runner. |
 
-The current `ParticipantInjectDelivery` surface is an authored/compiled
-declaration and API-424 validation authority, not a runtime executor or an
-"applied" receipt. The implementation must either route an inject through the
-ordinary incumbent crossing/delivery owner or record unsupported with zero
-dispatch. The same rule applies to every effect whose owner has no realizable
-path: do not add a universal callback/executor bag to conceal the gap.
+Serialized ingress bounds and per-record schema limits do not bound the complete
+snapshot. Any added state/history representation must also pass
+`raes_contracts.realization_structure.validate_realization_value` (public
+package export),
+`raes_contracts/runtime_value_limits.py::RUNTIME_SNAPSHOT_VALUE_LIMITS` and
+`backend_snapshot_contracts.py`'s exhaustive carrier/aggregate checks. Reuse
+these bounded-value primitives for portable material rather than a second
+recursive validator; account for collection growth without pruning away replay
+or recovery authority. Confirm a committed v2 cut reopens under its exact reader
+before enabling it at a live sink.
 
-A required predecessor commits a withhold of the parent, runs as a separately
-admitted operation, and causes fresh parent evaluation after satisfaction. A
-subsequent effect is an independent operation whose failure cannot rewrite an
-already applied parent. Use the owning operation kind where one exists; if a
-new closed kind is genuinely required, update operation serialization,
-recovery and all exhaustive lifecycle handling rather than treating an
-arbitrary string as a kind.
+## Extensibility, evidence and limits
 
-Use the ADR-104 recovery distinction already implemented by
-`control_plane_recovery.py`: intent/accepted, dispatch/running, observed
-application, failed and externally indeterminate. A committed-but-undispatched
-effect may resume only with durable proof dispatch never began. Once dispatch
-may have begun, use the existing `RecoveryObserver` seam when supported;
-otherwise retain indeterminate and require governed resolution. Never blind
-retry a non-idempotent effect or claim distributed/external exactly-once.
+The seam is the existing immutable runtime binding plus trusted scoped resolver,
+parameterized by admitted v2 slots/dependencies, projection, state scope/commit
+condition, support requirements and finite bounds; apparatus execution budgets
+and capacities remain in `OperationSupervisionConfiguration`. Another provider,
+source/sink or A → B → A variation should need a different admitted graph and
+binding, not branches on names or a new scheduler. Contract interpretation
+selects the reader/composer explicitly; v1 is retained without amended guarantees.
 
-The logical effect key is exactly `(run, trigger root occurrence, rule
-id/revision, effect slot, admitted firing epoch)`. It is distinct from an
-operation ID, transport `Idempotency-Key`, retry number, current-cut digest and
-backend request ID. Allocate the fresh effect identity once per logical key,
-retain it across retry/replay, return the prior receipt for identical canonical
-content, and conflict on different content. A governed new trigger event—not
-a retry—creates a firing epoch.
+Reuse `participant_control_runtime_fixtures.py`, `participant_crossing_fixtures.py`,
+the `test_issue_1069_*` orchestration/durability/authority/carrier patterns,
+`test_issue_1365_applicable_contracts.py`, and #1362 supervision/state-authority/
+resource-ownership/lost-ack fixtures. Required evidence drives public
+`RuntimeControlPlane` ingress, control and egress paths through actual binding,
+provider, composed record and store, with backend-call/serialization counters.
+Include disjoint source/sink providers under unchanged B; complete empty A
+versus unresolved/missing coverage; A → B → A with content-sensitive results;
+missing installation and mandatory input; stale predecessor/cut/state/support;
+optional exception/malformed/unsupported/timeout/conflict with no veto or state;
+required advice with no direct veto; bounded support acceptance/refusal; false
+triggers; state-chain/fork conflicts; supervision races, late results and failed
+or uncertain commits; complete deny/withhold with authorized independent
+consequences versus unrelated mandatory failure; parent-admitted versus
+parent-applied prerequisites and combined parent/effect cycles; direct callback
+and aggregate snapshot limits; redacted error/audit/log projections. Verify both
+zero prohibited dispatch/disclosure on required failure
+and permitted release after isolated optional loss. Reopen a real durable store
+with mixed v1/v2 records and retained budgets/claims; reinterpretation cannot
+generate new dispatch from old records. Positive operating-profile evidence
+names an explicitly selected API-404 profile and its demonstrated store/backend
+capabilities; `profile=None`, an HTTP endpoint or an API-424 profile supplies
+no operating-profile guarantee. Use Event/barrier fixtures, not sleeps. Run
+only relevant modules and scoped policy/schema checks locally;
+full/integration/fuzz suites belong to CI.
 
-Depth, total effects per root, fan-out, per-rule firings, resolution attempts,
-expiry and retry limits are durable state. An admitted effect consumes root and
-per-rule budget even when dispatch later fails. Reset, handoff, transformed
-identity, retry and restart do not erase the causal root or replenish budgets.
-Diagnostics, audit and recovery observations cannot recursively trigger
-effects unless a separately admitted rule explicitly names them and remains
-within all bounds.
-
-## Cross-cutting incumbents and security layers
-
-| Layer | Required reuse and satisfaction |
-| --- | --- |
-| Portable shape/parser | Reuse API-424 `ContractModel` variants, strict/frozen field choices, `parse_bounded_json_object`, the published schemas and `parse_participant_control_evaluation()`. No parallel DTO/schema or unbounded JSON/file read. Direct Python values still require reconstruction and finite/bounded validation. |
-| Admission and semantic validation | Reuse API-424 composition/effect validators and `ParticipantControlValidationContext`; compose API-409, API-423, SEM-233, support and inject owning validators. Shape validity never substitutes for freshness, authority or effect admission. |
-| Package and host boundary | Keep portable models/validation in `raes_contracts`, the public provider protocol and support adapter in `raes_backend_protocols`, and invocation/durability in `raes_runtime`, per `tools/policy/adr_policy.yaml`. Runtime must not import `raes_conformance`; conformance may consume the runtime, never become runtime authority. Reuse `registry.py`/`registry_target_validation.py` and the exact backend manifest for target capability admission, but keep provider installation in the immutable runtime binding rather than turning `RuntimeTarget` into discovery. |
-| Authentication/authorization | No new route is required. If an existing route is touched, retain `ControlPlaneSecurityConfig.strict_defaults()`, `_ControlPlaneApiAuth`, constant-time bearer-token comparison or explicitly enabled trusted-proxy identity verification, role/target binding, participant/controller/audience subject bindings and `RequestSizeLimitMiddleware`. Authentication is an adapter concern; authenticated operator status is not participant disclosure or declassification authority. |
-| Configuration and secrets | Extend only typed `ControlPlaneOptions`/`ControlPlaneConfiguration`; reject unknown options and validate exact run/selection binding. Add no provider env/config bag, secret loader or portable credential. Carry only owner-approved safe refs: prompts, raw payloads, private provider state, policy bodies, tokens and credentials are excluded, and hashing a secret is not redaction. Existing `RuntimeEnvironmentVariable` and `enforce_observed_value_redaction()` remain mandatory if a future owner legitimately introduces environment binding. |
-| OS/process exposure | RUN-320 needs no subprocess, dynamic import, shell, socket, host path, temporary executable or command-line option. Provider instances are injected in-process by the operator/backend. Never put provider input, credentials or governed values in argv, environment, filenames, stdout/stderr or shell interpolation. Provider/host integrity outside the declared experimental world remains a backend concern. |
-| Concurrency and re-entry | Reuse `RuntimeMutationAuthority`, `control_plane_mutation()`, `external_control_plane_call()`, store ownership lease/CAS, scoped idempotency claims and expected history heads. No participant-local second lock, trigger mutex or provider callback re-entry into mutation. |
-| Persistence and recovery | Reuse ADR-104, `ControlPlaneStore`/`AtomicControlPlaneStore`, `adapt_control_plane_store()`, `commit_participant_transition()`, the P0/P1/P2 capability declarations, operation lifecycle, memory/local codecs, startup reconciliation and `RecoveryObserver`. Snapshot, operation and audit changes share the existing atomic transaction; no second repository or recovery state machine. P0 evidence is process-local; only P1/P2 may claim durable restart recovery, and P3 remains unavailable. |
-| Effect/backend result boundary | Route an admitted effect through its incumbent owner and the existing `backend_calls.py` input isolation, `backend_input_contracts.py` bounds, `backend_apply_results.py` finalization, `backend_snapshot_contracts.py` carrier ownership and `participant_result_contracts.py` append-only checks where backend work is involved. Extend those exhaustive carrier/transition tables for modular state. A backend result cannot author, erase or rewrite runtime-owned evaluations, claims, budgets, state proposals or realizations; invalid output becomes the existing value-independent failed `ApplyResult`. |
-| Errors, audit and diagnostics | Catch provider/resolver/validation exceptions at the boundary and construct stable, bounded, value-independent `Diagnostic` messages. `portable_diagnostic_payload()` validates shape but does not redact. Preserve the coarse envelopes in `control_plane_api/_responses.py`, `_operation_routes.py` and `_participant_routes.py`. Reuse `AuditEvent` plus `require_audit_event_fields()`; any new action needs an explicit bounded detail-key/value allowlist, never an arbitrary details dump. Never expose exception text/class, Pydantic input, repr, unknown key, traceback or provider-chosen address. No new exception hierarchy, logger or audit channel. |
-| Disclosure and observability | Apply SEM-220/226/230 projection and the existing `x-raes-plane` classification to decisions, reasons, evidence, review/withhold existence and timing—not only payload values. Administrative snapshot visibility is not participant delivery. Logs and audit records are not automatic experiment evidence or disclosure authority. |
-| Workflow/publication | Follow `.ground-control.yaml`, `.gc/plan-rules.md`, `tools/policy/requirement_order.yaml`, existing nox/policy checks and `RAES_REQUIREMENT_UID=RUN-320`. The phase graph already defines `modular-control-runtime` after `modular-control-contracts`, but `ownership:` currently has no `modular-control-runtime` entry; implementation must add exact owned paths instead of borrowing broad `semantics-expansion`, `mixed-participant-runtime` or `participant-model` ownership. Any snapshot schema edit requires its per-contract publication entry/content hash, compatibility fixtures and exact `schema_bundle()` parity. Do not add an issue-local runner or edit the changelog/version. |
-
-The canonical implementation precedents are `MixedRuntimeBinding` for exact
-immutable construction, `participant_crossing_mediation.py` and
-`participant_flow_sink.py` for exact-cut owner validation,
-`participant_crossing_boundary.py::_authorize_action_effect` for atomic
-authorization before backend work, `participant_crossing_egress.py` for
-commit-before-serialization, `control_plane_store_*` for atomic durability,
-`mixed_runtime_dispatch.py` for write-ahead dispatch evidence, and
-`control_plane_recovery.py` for external uncertainty. Reuse
-`raes_backend_protocols/participant_control_admission.py` for the API-407
-manifest-support join and `control_plane_audit.py` for bounded audit content.
-Reuse these boundaries, not their domain names or record types.
-
-## Extensibility seam
-
-The sole extension seam is the immutable runtime binding from an admitted,
-revisioned `ParticipantControlSelectionModel` to exact operator-created
-`ParticipantControlProvider` instances plus trusted owner resolvers. The
-selection already parameterizes profile/mechanism identity, applicability,
-roles, typed slots and dependencies, state/memory scope, protocol/support,
-authority and finite bounds. Effect realization dispatches by the closed typed
-target variant to an owning RAES service, not by backend/provider name.
-
-This permits another conformant provider or another already-published effect
-owner without editing the composition algorithm. A new semantic domain,
-protocol revision or effect kind requires its own governed contract/semantic
-revision and owner mapping; it must not arrive through `metadata`, an enum
-fallback, a callback registry or a universal policy interpreter.
-
-## Evidence gate for the implementation
-
-Exercise the real `RuntimeControlPlane`, provider binding, crossing boundary,
-store and effect owner—not only API-424 model validators. Reuse the test
-patterns in `test_api_424_*`, `test_run_319_participant_flow_policy.py`,
-`test_issue_1003_final_sink_flow_enforcement.py`,
-`test_issue_1092_control_plane_crash_consistency.py`,
-`test_issue_1181_unified_control_plane_mutations.py` and
-`test_issue_1186_control_plane_recovery_operations.py`.
-
-Evidence must include multiple providers and profiles with permuted provider
-return order; deterministic, advisory, permissive, deny, transform, conflict,
-IFC-driven inject and one non-inject effect; and instrumented zero-call/zero-
-disclosure assertions for missing support, weakening, stale state, malformed or
-failed resolution, conflict, exhausted bounds, denied owner admission and
-failed commit. Both stores must preserve identical contribution, state,
-logical-key, budget, dispatch and realization semantics during their supported
-lifetimes and against concurrent stale writers. Only the P1/P2 local durable
-store supports process-restart and retained-deduplication evidence; P0 must
-instead prove its process-loss nonclaims. Cover crashes before dispatch, after
-dispatch may have begun and after observed application; exact-key retry versus
-changed-content conflict; predecessor versus subsequent failure; provider
-re-entry; actor laundering; and diagnostic/audit/error-envelope leakage. A
-bounded design witness or a mocked composition unit test is not runtime
-evidence.
-
-## Non-goals and anti-patterns
-
-- Do not ship a production IFC engine, monitor, policy product, model wrapper,
-  gateway, provider registry/plugin host, scheduler, backend adapter or
-  scenario code loader.
-- Do not claim backend/provider protection from out-of-world interference,
-  universal noninterference, provider honesty, backend equivalence, liveness,
-  distributed atomicity or exactly-once external effects.
-- Do not disable or bypass API-409/API-423/SEM-233 admission, final-sink
-  enforcement, fresh identity, visibility/projection, target capability or
-  ordinary downstream validation because API-424 composition was eligible.
-- Do not collapse profile, mechanism, provider, result slot, decision, effect
-  intent, logical effect key, operation, dispatch, delivery, observation or
-  realization into one identifier/status/DTO.
-- Do not resolve conflict or missing mandatory support by registration order,
-  provider order, lexical order, last writer wins, specificity, advice or a
-  permissive default. Unknown, malformed, weakened without acceptance, stale,
-  exhausted and failed all block prohibited dispatch.
-- Do not mutate histories, replace contribution records, erase provider state
-  or causal budgets, or use snapshot metadata/audit/logs as operational state.
-- Do not duplicate API-424 schemas/composition, API-409 control, API-423
-  crossing, operation/idempotency, store/recovery, exception, diagnostic,
-  audit, authentication or configuration logic behind a new orchestrator
-  facade.
-- Do not leak governed values, rejected inputs, provider errors, credentials,
-  private state or policy content through errors, logs, audit, digests,
-  examples, environment, argv, filenames or timing without its owning
-  projection and disclosure authority.
-- Do not treat a provider as the caller, synthesize trusted-embedder identity
-  for a served trigger, or drop parent-operation and authorization-scope
-  lineage on a child effect.
-- Do not claim P0 restart durability, infer P2 from HTTP availability, expose
-  P3, or use an API-424 mechanism profile as an API-404 operating profile.
+Non-goals: implementing providers or policy products; a general DAG/workflow
+engine, plugin discovery, second store/lock/error hierarchy/schema family;
+redesigning effect scheduling beyond safe v2 consumer integration; provisioning
+services, changing operating profiles or claiming distributed atomicity, hard
+cancellation, backend parity or universal liveness. API-404 transport/durability
+profiles, API-424 mechanism profiles, RUN-310 supervisory history, mixed-runtime
+allocation and SDL orchestration remain distinct. No lexical/registration-order
+winner, permissive missing-result default, optional-wide catch, in-place history
+rewrite, hidden mutable shared state or metadata-based authority is acceptable.

@@ -1,0 +1,6 @@
+name: two-context-kits
+imports:
+- source: local:context-kit.sdl.yaml
+  namespace: alpha
+- source: local:context-kit.sdl.yaml
+  namespace: bravo

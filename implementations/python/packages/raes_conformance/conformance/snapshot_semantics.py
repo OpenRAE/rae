@@ -10,13 +10,14 @@ from raes_contracts.contracts import (
     RuntimeSnapshotEnvelopeModel,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.immutable_history import EventHistory
 from raes_contracts.participant_autonomous_state import (
     iter_participant_autonomous_runtime_snapshot_violations,
     iter_participant_autonomous_state_snapshot_violations,
 )
 from raes_contracts.participant_concurrency import iter_participant_concurrency_snapshot_violations
-from raes_contracts.participant_episode import iter_participant_episode_snapshot_violations
 from raes_contracts.participant_episode_closure import iter_participant_episode_closure_violations
+from raes_contracts.participant_episode_snapshot import iter_participant_episode_snapshot_violations
 from raes_contracts.participant_information_state_history import (
     iter_participant_information_state_snapshot_violations,
 )
@@ -230,7 +231,7 @@ def _participant_behavior_snapshot_references(
 
 
 def _participant_history_observation_boundary_addresses(history: object) -> set[str]:
-    if not isinstance(history, list):
+    if not isinstance(history, (list, EventHistory)):
         return set()
     addresses: set[str] = set()
     for event in history:
@@ -282,7 +283,7 @@ def _participant_behavior_binding_diagnostics(
     has_participant_action_binding: bool,
     has_participant_boundary_binding: bool,
 ) -> list[Diagnostic]:
-    if not isinstance(history, list) or not history:
+    if not isinstance(history, (list, EventHistory)) or not history:
         return []
     if has_participant_action_binding and has_participant_boundary_binding:
         return []

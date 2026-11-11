@@ -19,6 +19,7 @@ from participant_crossing_fixtures import (
     admit,
     policy_capable_target,
 )
+from raes_contracts.errors import ConflictError
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_store import InMemoryControlPlaneStore, LocalControlPlaneStore
 
@@ -107,7 +108,7 @@ def test_a_second_concurrent_owner_cannot_write_the_committed_history(tmp_path: 
     admit(owner, idempotency_key="sole-owner")
 
     second_store = LocalControlPlaneStore(store_path)
-    with pytest.raises(RuntimeError, match="already has a runtime owner"):
+    with pytest.raises(ConflictError, match="already has a runtime owner"):
         _plane(store=second_store)
 
     assert len(_evaluations(owner)) == 1
@@ -122,7 +123,7 @@ def test_a_stale_expected_head_refuses_a_second_commit(tmp_path: Path):
     stale_heads = {f"{_CARRIER}:{PARTICIPANT}": None}
     admit(plane, idempotency_key="stale-head")
 
-    with pytest.raises(ValueError, match="history head"):
+    with pytest.raises(ConflictError, match="history head"):
         require_expected_history_heads(plane.snapshot, stale_heads)
 
 
@@ -268,14 +269,13 @@ def _downgrade_to_schema_5(store_path: Path) -> None:
 
     import sqlite3
 
-    from raes_runtime.control_plane_store_local_codec import decode_payload, encode_payload
+    from raes_runtime.control_plane_store_local_codec import encode_payload
+    from raes_runtime.control_plane_store_local_snapshot import LocalSnapshotRevisionStoreMixin
+    from raes_runtime.control_plane_store_snapshots import _snapshot_payload
 
     connection = sqlite3.connect(store_path / "control-plane.sqlite3")
     try:
-        encoded, digest = connection.execute(
-            "SELECT payload, digest FROM state WHERE key='runtime-snapshot'"
-        ).fetchone()
-        payload = decode_payload(encoded, digest, kind="runtime snapshot")
+        payload = _snapshot_payload(LocalSnapshotRevisionStoreMixin._load_snapshot_state(connection).snapshot)
         payload.pop(_CARRIER)
         encoded, digest = encode_payload(payload)
         connection.execute(
@@ -283,6 +283,9 @@ def _downgrade_to_schema_5(store_path: Path) -> None:
             (encoded, digest),
         )
         connection.execute("UPDATE metadata SET value='5' WHERE key='schema-version'")
+        connection.execute("DELETE FROM metadata WHERE key='snapshot-history-format'")
+        connection.execute("DELETE FROM snapshot_history")
+        connection.execute("DELETE FROM snapshot_history_streams")
         connection.commit()
     finally:
         connection.close()
@@ -332,7 +335,7 @@ def test_upgrading_a_pre_carrier_store_records_the_carrier_explicitly(tmp_path: 
     upgraded.close()
 
     assert _stored_schema_and_carrier(store_path) == (LOCAL_OPERATION_SCHEMA_VERSION, True)
-    assert LOCAL_OPERATION_SCHEMA_VERSION == "6"
+    assert LOCAL_OPERATION_SCHEMA_VERSION == "12"
     assert crossings  # the participant history the upgrade preserved
 
 
@@ -372,12 +375,16 @@ def test_a_store_newer_than_this_build_is_refused_rather_than_rewritten(tmp_path
     plane = _plane(store=LocalControlPlaneStore(store_path))
     plane.close()
     connection = sqlite3.connect(store_path / "control-plane.sqlite3")
-    connection.execute("UPDATE metadata SET value='7' WHERE key='schema-version'")
+    from raes_runtime.control_plane_store_record_migration import LOCAL_OPERATION_SCHEMA_VERSION
+
+    connection.execute(
+        "UPDATE metadata SET value=? WHERE key='schema-version'", (str(int(LOCAL_OPERATION_SCHEMA_VERSION) + 1),)
+    )
     connection.commit()
     connection.close()
 
     newer_store = LocalControlPlaneStore(store_path)
-    with pytest.raises(ValueError, match="unsupported local control-plane database schema"):
+    with pytest.raises(ConflictError, match="unsupported local control-plane database schema"):
         _plane(store=newer_store)
 
 

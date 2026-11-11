@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from raes_contracts.contracts.participant_crossing import ParticipantCrossingOccurrenceModel
+from raes_contracts.errors import ConflictError, EvidenceIntegrityError
 from raes_contracts.runtime_state import OperationKind, OperationState, RuntimeSnapshot
 
 from .control_plane_store import ControlPlaneOperationRecord
@@ -85,7 +86,7 @@ def _interrupted_crossing_prefixes(control_plane: object, snapshot: RuntimeSnaps
             if key.startswith("participant_crossing_history:")
         }
         if not crossing_heads:
-            raise ValueError("interrupted mixed action has no durable crossing cut")
+            raise EvidenceIntegrityError("interrupted mixed action has no durable crossing cut")
         for participant_address, head in crossing_heads.items():
             history = snapshot.participant_crossing_history.get(participant_address, [])
             key = f"participant_crossing_history:{participant_address}"
@@ -106,12 +107,12 @@ def _is_interrupted_mixed_action(control_plane: object, record: ControlPlaneOper
 def _crossing_prefix_length(history: list[dict[str, object]], head: str | None, result_head: str | None) -> int:
     current_head = _crossing_head(history[-1]) if history else None
     if current_head != result_head:
-        raise ValueError("interrupted mixed action crossing result head differs from the stored cut")
+        raise EvidenceIntegrityError("interrupted mixed action crossing result head differs from the stored cut")
     matches = (
         [index + 1 for index, item in enumerate(history) if _crossing_head(item) == head] if head is not None else [0]
     )
     if len(matches) != 1:
-        raise ValueError("interrupted mixed action crossing predecessor is missing or ambiguous")
+        raise EvidenceIntegrityError("interrupted mixed action crossing predecessor is missing or ambiguous")
     return matches[0]
 
 
@@ -123,4 +124,4 @@ def require_resolvable_mixed_action_cut(_control_plane: object, record: ControlP
     """Generic acceptance cannot release unproved mixed external stages."""
 
     if has_mixed_resolution_cut(record):
-        raise ValueError("mixed stage reconciliation is required before resolution")
+        raise ConflictError("mixed stage reconciliation is required before resolution")

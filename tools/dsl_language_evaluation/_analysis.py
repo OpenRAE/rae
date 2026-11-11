@@ -6,6 +6,8 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
+from raes_contracts.errors import InvalidInputError
+
 from tools.dsl_language_evaluation._keys import (
     _ANALYSIS_KEYS,
     _CLAIM_KEYS,
@@ -93,7 +95,7 @@ def _measure_result_failures(
         )
     try:
         recomputed_measures = recompute_measure_results(protocol, snapshot, scope=scope)
-    except ValueError as exc:
+    except InvalidInputError as exc:
         failures.append(_failure("dsl-evaluation-observation-value", str(exc), path))
         recomputed_measures = {}
     for index, result in enumerate(measure_results):
@@ -141,7 +143,7 @@ def _dimension_result_failures(
             recomputed_measures,
             dimension_ids=context.scope.get("dimension_ids", set()),
         )
-    except ValueError as exc:
+    except InvalidInputError as exc:
         failures.append(_failure("dsl-evaluation-threshold-evaluation", str(exc), path))
         recomputed_dimensions = {}
 
@@ -212,7 +214,7 @@ def _recomputed_stratum_failures(
     expected_strata: list[dict[str, object]] = []
     try:
         expected_strata = recompute_stratum_results(context.protocol, context.snapshot, context.strata)
-    except ValueError as exc:
+    except InvalidInputError as exc:
         failures.append(_failure("dsl-evaluation-stratum-drift", str(exc), path))
     expected_by_id = {item["stratum_id"]: item for item in expected_strata}
     stored_ids = _record_ids(

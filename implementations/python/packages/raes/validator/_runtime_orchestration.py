@@ -24,11 +24,12 @@ class _RuntimeOrchestrationMixin:
                 if interface.control_interface_id
             }
             for authority in runtime.orchestration_authorities:
-                self._verify_orchestration_authority(
-                    node_name=node_name,
-                    authority=authority,
-                    interfaces_by_id=interfaces_by_id,
-                )
+                with self._owner(("nodes", node_name)):
+                    self._verify_orchestration_authority(
+                        node_name=node_name,
+                        authority=authority,
+                        interfaces_by_id=interfaces_by_id,
+                    )
 
     def _verify_orchestration_authority(
         self,

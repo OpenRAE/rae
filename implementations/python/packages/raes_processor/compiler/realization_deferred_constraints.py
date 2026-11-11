@@ -5,7 +5,8 @@ from __future__ import annotations
 from dataclasses import replace
 from typing import TYPE_CHECKING
 
-from raes.explicitness import ExplicitnessClass
+from raes_contracts.explicitness import ExplicitnessClass
+from raes_contracts.json_pointer import escape_token
 from raes_contracts.planning import RealizationAuthorityMode
 from raes_contracts.vocabulary import Closure
 
@@ -35,7 +36,7 @@ def _concern_pointer(concern: object) -> str:
     """Name the authored pointer one registered concern lowers from."""
 
     descriptor = concern.descriptor
-    declaration = concern.declaration_name.replace("~", "~0").replace("/", "~1")
+    declaration = escape_token(concern.declaration_name)
     return f"/{descriptor.section}/{declaration}/{'/'.join(descriptor.authored_path)}"
 
 
@@ -55,6 +56,12 @@ def _lowered_requirement(
         value_domain=requirement.value_domain,
         apparatus_closure=decision,
     )
+    scalar_only = (
+        root_open
+        and document is not None
+        and not any(scope.closure.posture.value == "open" for scope in document.scopes)
+    )
+    explicitness = ExplicitnessClass.CONSTRAINED if scalar_only else ExplicitnessClass.OPEN
     lowered = replace(
         requirement,
         structure=structure,
@@ -62,7 +69,7 @@ def _lowered_requirement(
         constraint_binding=binding,
         structure_error=error or pending,
         recursive_pending=False,
-        explicitness=ExplicitnessClass.OPEN if root_open else requirement.explicitness,
+        explicitness=explicitness if root_open else requirement.explicitness,
     )
     return lowered, root_open
 
@@ -92,7 +99,7 @@ def resolve_pending_recursive_constraints(
         return model
     scenario = model.realization_instance
     registered = _registered_concerns(scenario)
-    requirements, opened = [], set()
+    requirements, opened = [], {}
     for requirement in model.realization_requirements:
         if not requirement.recursive_pending:
             requirements.append(requirement)
@@ -101,10 +108,12 @@ def resolve_pending_recursive_constraints(
             requirement, registered=registered, decisions=decisions, scenario=scenario
         )
         if root_open:
-            opened.add((requirement.address, requirement.field_path, requirement.requirement_kind))
+            opened[(requirement.address, requirement.field_path, requirement.requirement_kind)] = (
+                RealizationAuthorityMode(resolved.explicitness.value)
+            )
         requirements.append(resolved)
     authorities = tuple(
-        replace(authority, mode=RealizationAuthorityMode.OPEN)
+        replace(authority, mode=opened[(authority.address, authority.field_path, authority.requirement_kind)])
         if (authority.address, authority.field_path, authority.requirement_kind) in opened
         else authority
         for authority in model.realization_authority

@@ -145,11 +145,12 @@ def test_descriptor_bindings_use_canonical_rewrite_and_preserve_opaque_values(se
 
 
 @pytest.mark.parametrize("omit_defaults", [False, True])
-def test_imported_fixture_mailbox_reaches_its_exact_authorized_sink(tmp_path, omit_defaults):
-    from raes_contracts.account_materialization import ACCOUNT_MAILBOX_SEMANTICS
-    from raes_reference_backend import create_reference_backend_target
-    from raes_reference_backend.mailbox_materialization import InProcessMailboxSink
+def test_imported_fixture_mailbox_selects_its_exact_namespaced_mailbox(tmp_path, omit_defaults):
+    from dataclasses import replace
+
+    from raes_contracts.account_materialization import ACCOUNT_MAILBOX_SEMANTICS, account_mailbox_materializations
     from raes_runtime.manager import RuntimeManager
+    from t1_profile_targets import profile_stub_target
     from test_issue_673_account_credential_bindings import FIXTURE_SENTINEL, _account_payload
 
     binding, context = _account_profile(ACCOUNT_MAILBOX_SEMANTICS)
@@ -183,11 +184,17 @@ def test_imported_fixture_mailbox_reaches_its_exact_authorized_sink(tmp_path, om
     (tmp_path / "root.yaml").write_text("name: root\nimports:\n  - path: mail.yaml\n    namespace: shared\n")
     scenario = parse_sdl_file(tmp_path / "root.yaml")
     mailbox = "nodes.shared.mail.runtime.mail_services.mail.mailboxes.admin"
-    sink = InProcessMailboxSink(frozenset({("provision.account.shared.admin", mailbox)}))
-    manager = RuntimeManager(create_reference_backend_target(domain_profile_context=context, mailbox_sink=sink))
-    result = manager.apply(manager.plan(scenario))
+    target = profile_stub_target(context, mailbox=True)
+    manager = RuntimeManager(target)
+    execution = manager.plan(scenario)
+    assert not [item for item in execution.diagnostics if item.is_error]
+    prepared = target.provisioner.prepare(execution.provisioning, execution.base_snapshot)
+    selected = replace(execution.provisioning, operations=list(prepared.operations))
+    requests = account_mailbox_materializations(selected)
+    assert [(request.account_address, request.mailbox_ref) for request in requests] == [
+        ("provision.account.shared.admin", mailbox)
+    ]
+    assert requests[0].fixture == FIXTURE_SENTINEL
+    assert binding.value["mailbox_ref"] != mailbox
+    result = manager.apply(execution)
     assert result.success, result.diagnostics
-    assert sink.authenticates(mailbox, FIXTURE_SENTINEL)
-    assert not sink.authenticates(binding.value["mailbox_ref"], FIXTURE_SENTINEL)
-    assert manager.destroy().success
-    assert not sink.authenticates(mailbox, FIXTURE_SENTINEL)

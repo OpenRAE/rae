@@ -30,3 +30,4 @@ Primary-source refresh shows that participant decision surfaces vary materially 
 - TESTS → TEST `implementations/python/tests/test_sem_220_participant_decision_surface.py` (SEM-220 participant decision-surface verification suite)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/lineage.md` (SEM-220 participant decision-surface lineage and nonclaims)
 - IMPLEMENTS → GITHUB_ISSUE `295` (Participant Decision-Surface Semantics (SEM-220))
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/participant-decision-surface-v2.json` (participant-decision-surface-v2 published schema)

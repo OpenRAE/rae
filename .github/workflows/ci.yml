@@ -20,6 +20,10 @@ on:
       - CHANGELOG.md
       - .release-please-manifest.json
       - implementations/python/packages/raes/_version.py
+  # The `dev` merge queue runs every required check again on the merge group
+  # (#2026). Path filters do not apply to this event.
+  merge_group:
+    types: [checks_requested]
   workflow_dispatch:
 
 concurrency:
@@ -30,17 +34,62 @@ permissions:
   contents: read
 
 jobs:
+  # A merge group ref names the queued pull request but not its head branch, and
+  # the requirement UID comes from that branch name. This job reads the head
+  # branch from the API. A failure here skips the canonical graph, so the
+  # required contexts fail closed.
+  queued-pull-request:
+    if: github.event_name == 'merge_group'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      number: ${{ steps.resolve.outputs.number }}
+      head-ref: ${{ steps.resolve.outputs.head-ref }}
+    steps:
+      - name: Resolve the queued pull request
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          QUEUE_REF: ${{ github.event.merge_group.head_ref }}
+        run: |
+          set -euo pipefail
+          pattern='^refs/heads/gh-readonly-queue/dev/pr-([0-9]+)-[0-9a-f]{40}$'
+          if [[ ! "${QUEUE_REF}" =~ ${pattern} ]]; then
+            echo "Unexpected merge group ref '${QUEUE_REF}'" >&2
+            exit 1
+          fi
+          number="${BASH_REMATCH[1]}"
+          head_ref="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${number}" --jq 'select(.base.ref == "dev") | .head.ref')"
+          if [ -z "${head_ref}" ]; then
+            echo "Pull request ${number} does not target dev" >&2
+            exit 1
+          fi
+          echo "number=${number}" >> "${GITHUB_OUTPUT}"
+          echo "head-ref=${head_ref}" >> "${GITHUB_OUTPUT}"
+
   canonical:
+    needs: queued-pull-request
+    if: ${{ !cancelled() && needs.queued-pull-request.result != 'failure' }}
     permissions:
       contents: read
     uses: ./.github/workflows/canonical-verification.yml
     with:
       ref: ${{ github.sha }}
+      # A merge group has no pull_request base or push before value, so it falls
+      # through to its own SHA. The canonical graph then uses the parent commit.
+      # The queue squashes each pull request into one commit on the group, so
+      # the diff-scoped policy checks see only the queued pull request.
       base-rev: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
-      requirement-branch: ${{ github.head_ref || github.ref_name }}
+      requirement-branch: ${{ needs.queued-pull-request.outputs.head-ref || github.head_ref || github.ref_name }}
+      sonar-pull-request: ${{ needs.queued-pull-request.outputs.number }}
+      sonar-pull-request-branch: ${{ needs.queued-pull-request.outputs.head-ref }}
       # Run the quality gate inside the reusable graph. The reusable sonar job is
-      # itself trust-gated to same-repository PRs and protected pushes, so the
-      # token below is never exposed to fork or Dependabot contexts.
+      # itself trust-gated to same-repository PRs, merge groups, and protected
+      # pushes, so the token below is never exposed to fork or Dependabot pull
+      # request contexts. Only a user with write access can queue a merge group.
       sonar-enabled: true
     secrets:
       sonar_token: ${{ secrets.SONAR_TOKEN }}
@@ -51,7 +100,7 @@ jobs:
   # and cannot turn a failed or skipped reusable job into success. A red quality
   # gate no longer blocks the `verify` context and vice versa (#935).
   verify:
-    needs: canonical
+    needs: [canonical, runtime-supervision]
     if: always()
     runs-on: ubuntu-24.04
     permissions:
@@ -60,11 +109,61 @@ jobs:
       - name: Preserve the required canonical verification status
         env:
           GATE_OUTCOME: ${{ needs.canonical.outputs.gate-outcome }}
+          EXECUTION_OUTCOME: ${{ needs.runtime-supervision.result }}
         run: |
           if [ "${GATE_OUTCOME}" != "success" ]; then
             echo "Canonical verification gate concluded with '${GATE_OUTCOME}'" >&2
             exit 1
           fi
+          if [ "${EXECUTION_OUTCOME}" != "success" ]; then
+            echo "Runtime execution integration did not pass" >&2
+            exit 1
+          fi
+
+  runtime-supervision:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    services:
+      ledger:
+        # Disposable fixture credentials; no production data or identities.
+        image: docker.io/library/postgres@sha256:66aafa11cf15800a3c94763f7e11d1e7b2e37e5e84bc4ce027cb6e1e4bfaf4df
+        env:
+          POSTGRES_DB: rae_ledger
+          POSTGRES_USER: rae_ledger
+          POSTGRES_PASSWORD: integration-only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U rae_ledger -d rae_ledger"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.14.7"
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: "0.13.4"
+          enable-cache: false
+      - name: Fetch and verify the locked Temporal test server
+        run: |
+          mkdir -p implementations/tooling/.cache/runtime-integration-inputs
+          uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.bootstrap_profile fetch-inputs \
+            public-ubuntu-24.04-x86_64 implementations/tooling/.cache/runtime-integration-inputs --artifact-id temporal-cli-runtime-test
+          uv run --project implementations/tooling/python --frozen --no-default-groups python -m implementations.tooling.runtime_execution_ci \
+            implementations/tooling/.cache/runtime-integration-inputs/archives/temporal-cli-runtime-test/temporal_cli_1.9.1_linux_amd64.tar.gz \
+            implementations/tooling/.cache/runtime-integration-inputs/bin/temporal
+      - name: Exercise actual delivery and ledger transactions
+        env:
+          RAES_EXECUTION_INTEGRATION: "1"
+          RAES_TEST_PG_HOST: "127.0.0.1"
+          RAES_TEMPORAL_CLI: implementations/tooling/.cache/runtime-integration-inputs/bin/temporal
+        run: >-
+          uv run --project implementations/python --frozen --extra dev --extra distributed pytest -q
+          implementations/python/tests/test_issue_1362_distributed_integration.py
+          implementations/python/tests/test_issue_1629_temporal_integration.py
+          implementations/python/tests/test_issue_1373_postgresql_history.py -m integration --no-cov
 
   fuzz:
     runs-on: ubuntu-24.04
@@ -72,78 +171,43 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12.14"
+          python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: false
-          version: "0.12.4"
+          version: "0.13.4"
       - name: Run fuzz session
         run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s fuzz
 
-  interpreters:
-    name: CPython ${{ matrix.python.feature }} compatibility
+  # CPython 3.14 is the only supported interpreter, and the canonical graph runs
+  # the full suite on it. This job checks the exact runtime, then builds the
+  # wheel and sdist and installs both into clean environments (#1672).
+  distribution:
+    name: CPython 3.14 compatibility
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        python:
-          - {feature: "3.11", payload: "3.11.16", closure: public-linux-x86_64-cp311-all-extras}
-          - {feature: "3.12", payload: "3.12.14", closure: public-linux-x86_64-cp312-all-extras}
-          - {feature: "3.13", payload: "3.13.15", closure: public-linux-x86_64-cp313-all-extras}
-          - {feature: "3.14", payload: "3.14.7", closure: public-linux-x86_64-cp314-all-extras}
+    timeout-minutes: 20
     env:
-      UV_PYTHON: ${{ matrix.python.payload }}
-      RAES_EXPECTED_PYTHON: ${{ matrix.python.feature }}
-      RAES_PYTHON_CLOSURE_PROFILE: ${{ matrix.python.closure }}
+      UV_PYTHON: "3.14.7"
+      RAES_EXPECTED_PYTHON: "3.14"
+      RAES_PYTHON_CLOSURE_PROFILE: public-linux-x86_64-cp314-all-extras
+      RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY: "1"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: ${{ matrix.python.payload }}
+          python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: false
-          version: "0.12.4"
+          version: "0.13.4"
       - name: Test exact interpreter and clean distribution
         run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s python-compatibility
-
-  # Opt-in, non-blocking, runtime-gated container integration tests (RUN-314).
-  # Kept out of the hermetic `verify` graph; the `docker` marker tests self-skip
-  # when no runtime is present, and this whole job never fails the build.
-  integration-docker:
-    runs-on: ubuntu-24.04
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.12.14"
-      - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
-        with:
-          enable-cache: false
-          version: "0.12.4"
-      - name: Probe for a container runtime
-        id: runtime
-        run: |
-          if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
-            echo "available=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "No container runtime available; skipping docker integration session."
-          fi
-      - name: Run docker integration session
-        if: steps.runtime.outputs.available == 'true'
-        run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s integration_docker
 
   # Gating OSV-scanner sweep over the Python dependency lockfile (issue #1098).
   # Kept out of the hermetic `verify` graph because the scanner is networked.
@@ -155,14 +219,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12.14"
+          python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: false
-          version: "0.12.4"
+          version: "0.13.4"
       - name: Run OSV-scanner (gating)
         run: uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s osv_scan
       - name: Upload OSV-scanner report
@@ -170,13 +234,15 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: osv-scanner-report
-          path: implementations/python/osv-scanner-report.json
+          path: |
+            implementations/python/osv-scanner-report.json
+            implementations/python/osv-scanner-tooling-report.json
           if-no-files-found: warn
 
   # The quality gate now runs inside the reusable graph (decoupled from the full
   # test gate). This join preserves the required `sonar` context by checking the
   # reusable quality-gate outcome. When Sonar is required for this event
-  # (same-repository PR or protected push) the outcome MUST be success: an empty
+  # (same-repository PR, merge group, or protected push) the outcome MUST be success: an empty
   # outcome then means the scan failed before recording a verdict (e.g. checkout
   # or artifact download), which must fail closed rather than pass as "skipped".
   # An empty outcome is only allowed for the trust contexts where Sonar is
@@ -194,6 +260,7 @@ jobs:
           SONAR_REQUIRED: >-
             ${{ (github.event_name == 'push'
             && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'))
+            || github.event_name == 'merge_group'
             || (github.event_name == 'pull_request'
             && github.event.pull_request.head.repo.full_name == github.repository
             && github.actor != 'dependabot[bot]') }}
@@ -220,14 +287,14 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.12.14"
+          python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v8
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
           enable-cache: false
-          version: "0.12.4"
+          version: "0.13.4"
       - name: Fetch locked generic-tool inputs with the qualified client
         run: |
           mkdir .canonical-tool-inputs

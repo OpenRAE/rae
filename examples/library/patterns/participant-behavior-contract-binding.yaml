@@ -8,8 +8,8 @@ source_refs:
   - docs/explain/sdl/validation.md
 summary: Bind participant actions to governed action contracts and observation boundaries.
 intent: >
-  Make participant behavior examples reusable without treating free-form action
-  names as complete semantics.
+  Bind participant behavior to declared contracts.
+  Free-form action names alone do not define complete semantics.
 use_when:
   - An agent action needs declared preconditions, effects, failures, and evidence expectations.
   - A participant view needs explicit hidden, observable, and evidence-only material.

@@ -1,17 +1,15 @@
-# Classification-Based Assurance Policy (ASR-505)
+# Classification-based assurance policy (ASR-505)
 #
-# Canonical machine-readable mapping from change classification to verification
-# artifacts. Required reading:
+# This reference maps change classes to required verification artifacts.
+# ADR-007 defines the levels. ADR-018 governs this machine-readable form.
+# Read these sources:
+#   docs/decisions/adrs/adr-007-lightweight-formal-methods-policy.md
+#   docs/decisions/adrs/adr-018-classification-based-assurance-policy.md
+#   docs/explain/reference/coding-standards.md
+#   specs/formal/README.md
 #
-#   docs/decisions/adrs/adr-007-lightweight-formal-methods-policy.md  -- policy decision
-#   docs/decisions/adrs/adr-018-classification-based-assurance-policy.md  -- canonical seam
-#   docs/explain/reference/coding-standards.md  -- contributor-facing source of truth
-#   docs/specs/formal.md  -- formal-specs overview
-#
-# Drift between this file and those documents is guarded by
-# tools/check_assurance_policy.py. ADR-007 supplies the levels; this YAML is the
-# canonical seam that lets a future FM4 or new artifact type land in a single
-# place rather than requiring prose updates across the doc tree.
+# tools/check_assurance_policy.py checks agreement with the policy sources.
+# A new level or artifact type uses this existing mapping.
 
 policy: classification-based-assurance
 

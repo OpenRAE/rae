@@ -4,11 +4,11 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from raes.participant_behavior import ParticipantFailureClass
 from raes_backend_protocols.domain_topology import DomainTopologyBinding
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.evaluation import EvaluationExecutionContract, EvaluationResultContract
+from raes_contracts.participant_action_semantics import ParticipantFailureClass
 from raes_contracts.participant_episode import PARTICIPANT_EPISODE_CONTROL_EVENTS, PARTICIPANT_EPISODE_TERMINAL_EVENTS
 
 if TYPE_CHECKING:
@@ -60,9 +60,9 @@ class NodeRuntime(ResolvedResource):
     node_name: str = ""
     node_kind: str = ""
     os_family: str = ""
-    os_distribution: str = ""
+    os_distribution: str | None = None
     os_version: str = ""
-    architecture: str = ""
+    architecture: str | None = None
     count: int | str | None = None
     network_namespace_target: str = ""
     domain_topology: DomainTopologyBinding | None = None
@@ -112,10 +112,10 @@ class ConditionBinding(ResolvedResource):
     template_address: str = ""
     role_name: str = ""
     proposition_address: str = ""
-    result_contract: "EvaluationResultContract" = field(
+    result_contract: EvaluationResultContract = field(
         default_factory=lambda: EvaluationResultContract(resource_type="condition-binding")
     )
-    execution_contract: "EvaluationExecutionContract" = field(
+    execution_contract: EvaluationExecutionContract = field(
         default_factory=lambda: EvaluationExecutionContract(resource_type="condition-binding")
     )
 
@@ -341,7 +341,7 @@ _ContractRefMap = dict[tuple[str, str], dict[str, set[str]]]
 
 
 def _sem211_precondition_violations(
-    result: "ParticipantActionResult",
+    result: ParticipantActionResult,
     contract: ParticipantActionContractRuntime,
     declared_precondition_classes: set[str],
     declared_preconditions: set[tuple[str, str]],
@@ -385,7 +385,7 @@ def _sem211_precondition_violations(
 
 
 def _sem211_effect_violations(
-    result: "ParticipantActionResult",
+    result: ParticipantActionResult,
     contract: ParticipantActionContractRuntime,
     declared_effect_classes: set[str],
     declared_effects: set[tuple[str, str]],
@@ -426,7 +426,7 @@ def _sem211_declared_evidence_refs(
     return refs
 
 
-def _sem211_reported_evidence_refs(result: "ParticipantActionResult") -> set[str]:
+def _sem211_reported_evidence_refs(result: ParticipantActionResult) -> set[str]:
     refs: set[str] = set()
     for precondition in result.preconditions:
         refs.update(precondition.evidence_refs)
@@ -436,7 +436,7 @@ def _sem211_reported_evidence_refs(result: "ParticipantActionResult") -> set[str
 
 
 def _sem211_result_evidence_violations(
-    result: "ParticipantActionResult",
+    result: ParticipantActionResult,
     declared_precondition_refs: _ContractRefMap,
     declared_effect_refs: _ContractRefMap,
 ) -> list[str]:
@@ -455,7 +455,7 @@ def _sem211_result_evidence_violations(
 
 
 def validate_participant_action_result_contract(
-    result: "ParticipantActionResult",
+    result: ParticipantActionResult,
     contract: ParticipantActionContractRuntime,
 ) -> list[str]:
     """Return SEM-211 contract violations for one typed action result."""

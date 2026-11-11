@@ -7,11 +7,13 @@ from collections.abc import Iterable, Mapping
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
     AdmittedApparatusBindingModel,
+    AdmittedParticipantManifestReferenceModel,
     BackendManifestV2Model,
     ExperimentApparatusConstraintModel,
     ExperimentManifestReferenceModel,
     ParticipantImplementationManifestModel,
     ProcessorManifestV2Model,
+    processor_backend_manifests_are_mutually_compatible,
 )
 from raes_contracts.contracts.mixed_composition import MixedCompositionComponentModel
 from raes_contracts.experiment_bindings import (
@@ -254,6 +256,27 @@ def _validate_apparatus_intent(
         )
 
 
+def _validate_selected_compatibility(
+    selected: Mapping[ApparatusManifestKey, ApparatusManifest],
+) -> None:
+    processors = [manifest for manifest in selected.values() if isinstance(manifest, ProcessorManifestV2Model)]
+    backends = [manifest for manifest in selected.values() if isinstance(manifest, BackendManifestV2Model)]
+    if (
+        processors
+        and backends
+        and any(
+            not processor_backend_manifests_are_mutually_compatible(processor, backend)
+            for processor in processors
+            for backend in backends
+        )
+    ):
+        raise _fail(
+            "apparatus-compatibility-rejected",
+            _MANIFEST_REFS_ADDRESS,
+            "selected processor and backend manifests are not mutually compatible",
+        )
+
+
 def validate_selected_apparatus(
     request: TrialCompilationRequest,
 ) -> dict[ApparatusManifestKey, ApparatusManifest]:
@@ -265,6 +288,7 @@ def validate_selected_apparatus(
         request.realization_envelope,
         selected,
     )
+    _validate_selected_compatibility(selected)
     _validate_apparatus_intent(request, selected, references_by_key, declared_capabilities)
     return selected
 
@@ -284,6 +308,7 @@ def validate_admitted_apparatus(
         realization_envelope,
         selected,
     )
+    _validate_selected_compatibility(selected)
     if intent is not None:
         if not set(intent.required_capabilities).issubset(declared_capabilities):
             raise _fail(
@@ -309,16 +334,26 @@ def validate_selected_participant_manifests(
     request: TrialCompilationRequest,
 ) -> dict[ParticipantManifestKey, ParticipantImplementationManifestModel]:
     """Resolve every participant admission authority from its sealed digest reference."""
+    return validate_participant_manifest_references(
+        request.apparatus.participant_manifest_refs, request.participant_manifests
+    )
+
+
+def validate_participant_manifest_references(
+    references: Iterable[AdmittedParticipantManifestReferenceModel],
+    manifests: Mapping[ParticipantManifestKey, ParticipantImplementationManifestModel],
+) -> dict[ParticipantManifestKey, ParticipantImplementationManifestModel]:
+    """Use the same pinned manifest authority during compilation and realization."""
 
     selected: dict[ParticipantManifestKey, ParticipantImplementationManifestModel] = {}
-    for reference in request.apparatus.participant_manifest_refs:
+    for reference in references:
         key = (
             reference.participant_address,
             reference.implementation_name,
             reference.implementation_version,
             reference.manifest_version,
         )
-        manifest = request.participant_manifests.get(key)
+        manifest = manifests.get(key)
         if manifest is None:
             raise _fail(
                 "participant-manifest-payload-missing",
@@ -391,9 +426,7 @@ def _validate_composition_compatibility(selected: Mapping[str, ApparatusManifest
     backends = [manifest for manifest in selected.values() if isinstance(manifest, BackendManifestV2Model)]
     for processor in processors:
         if backends and not any(
-            backend.identity.name in processor.compatibility.backends
-            and processor.identity.name in backend.compatibility.processors
-            for backend in backends
+            processor_backend_manifests_are_mutually_compatible(processor, backend) for backend in backends
         ):
             raise _fail(
                 "apparatus-compatibility-rejected",

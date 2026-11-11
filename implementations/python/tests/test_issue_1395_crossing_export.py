@@ -6,6 +6,7 @@ import shutil
 from pathlib import Path
 
 import pytest
+from raes_contracts.errors import InvalidInputError
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -50,34 +51,10 @@ def test_complete_bundle_is_deterministic_and_readable(tmp_path):
         assert count["states"] > 178
         assert all(len(state["ledger"]) <= 2 for state in states)
     assert export.build_bundle(root) == bundle
-    export.publish(root)
     export.check(root)
-    export.publish(root)
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        "implementations/formal/participant_crossing/multi_abstract.py",
-        "implementations/python/packages/raes_runtime/control_plane_store.py",
-        "contracts/schemas/profiles/behavioral-relation-profile-v1.json",
-    ],
-)
-def test_source_and_contract_drift_never_relabels_evidence(tmp_path, path):
-    export = producer()
-    root = workspace(tmp_path)
-    export.publish(root)
-    target = root / path
-    target.write_bytes(target.read_bytes() + b"\n")
-    before = (root / export.OUTPUT_PATH / "manifest.json").read_bytes()
-    with pytest.raises(ValueError, match="drift"):
-        export.check(root)
-    with pytest.raises(ValueError, match="drift"):
-        export.publish(root)
-    assert (root / export.OUTPUT_PATH / "manifest.json").read_bytes() == before
-
-
-def test_shared_semantic_authority_and_truncation_publish_nothing(tmp_path, monkeypatch):
+def test_shared_semantic_authority_and_truncation_are_refused(tmp_path, monkeypatch):
     from dataclasses import replace
 
     from implementations.formal.participant_crossing import multi_abstract, multi_concrete
@@ -86,15 +63,13 @@ def test_shared_semantic_authority_and_truncation_publish_nothing(tmp_path, monk
     root = workspace(tmp_path)
     original = multi_concrete.successors
     monkeypatch.setattr(multi_concrete, "successors", multi_abstract.successors)
-    with pytest.raises(ValueError, match="independent"):
-        export.publish(root)
-    assert not (root / export.OUTPUT_PATH).exists()
+    with pytest.raises(InvalidInputError, match="independent"):
+        export.build_bundle(root)
     monkeypatch.setattr(multi_concrete, "successors", original)
     graph = multi_abstract.build()
     monkeypatch.setattr(multi_abstract, "build", lambda: replace(graph, edges=graph.edges[:-1]))
-    with pytest.raises(ValueError, match="closure"):
-        export.publish(root)
-    assert not (root / export.OUTPUT_PATH).exists()
+    with pytest.raises(InvalidInputError, match="closure"):
+        export.build_bundle(root)
 
 
 def test_unsafe_profile_and_output_are_rejected(tmp_path):
@@ -103,9 +78,14 @@ def test_unsafe_profile_and_output_are_rejected(tmp_path):
     profile = root / export.PROFILE_PATH
     profile.unlink()
     profile.symlink_to(tmp_path / "unread")
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidInputError):
         export.build_bundle(root)
 
 
-def test_published_multi_bundle_matches_checkout():
-    producer().check(ROOT)
+def test_multi_profile_of_another_parameter_kind_is_an_input_refusal(tmp_path):
+    export = producer()
+    root = workspace(tmp_path)
+    single = ROOT / "contracts/profiles/behavioral-relation/participant-crossing-dpbb-finite-v1.json"
+    shutil.copyfile(single, root / export.PROFILE_PATH)
+    with pytest.raises(InvalidInputError, match="expected exact multi-operation profile"):
+        export.build_bundle(root)

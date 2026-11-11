@@ -4,19 +4,22 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ._common import RealizationRelationResult, RelationBudget, closure_for, pointer, relation_result
+from ..json_pointer import pointer_from_tokens
+from ._common import RealizationRelationResult, RelationBudget, relation_result
 from ._models import (
     RealizationClosure,
     RealizationClosurePosture,
     RealizationConstraintDocument,
     RealizationRelationStatus,
 )
+from ._scope_index import ScopeIndex
 
 
 @dataclass(frozen=True)
 class EvaluationContext:
     document: RealizationConstraintDocument
     budget: RelationBudget
+    scope_index: ScopeIndex
     reference_stack: tuple[str, ...] = ()
     reference_hops: int = 0
 
@@ -24,6 +27,7 @@ class EvaluationContext:
         return EvaluationContext(
             document=self.document,
             budget=self.budget,
+            scope_index=self.scope_index,
             reference_stack=(*self.reference_stack, target),
             reference_hops=self.reference_hops + 1,
         )
@@ -38,24 +42,28 @@ def evaluate_closure(
     undefined_message: str,
     closed_message: str,
 ) -> RealizationRelationResult | None:
-    closure = closure_for(context.document, local, path, context.budget)
+    closure = (
+        local
+        if local.posture is not RealizationClosurePosture.UNDEFINED
+        else context.scope_index.inherited_closure(path, context.document.default_closure, context.budget)
+    )
     result = None
     if closure is None:
         result = relation_result(
             RealizationRelationStatus.LIMIT_EXCEEDED,
-            pointer(path),
+            pointer_from_tokens(path),
             "Closure resolution exceeded max_operations.",
         )
     elif closure.posture is RealizationClosurePosture.UNDEFINED:
         result = relation_result(
             RealizationRelationStatus.UNSUPPORTED,
-            pointer(path),
+            pointer_from_tokens(path),
             undefined_message,
         )
     elif closure.posture is RealizationClosurePosture.CLOSED and has_extras:
         result = relation_result(
             RealizationRelationStatus.NONCONFORMANT,
-            pointer(path),
+            pointer_from_tokens(path),
             closed_message,
         )
     return result

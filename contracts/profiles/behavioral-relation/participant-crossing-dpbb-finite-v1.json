@@ -68,14 +68,12 @@
       "model_id": "sem-230-participant-crossing-abstract",
       "revision": "rev2",
       "source_path": "implementations/formal/participant_crossing/abstract.py",
-      "source_digest": "sha256:efbd1672a1687a21930625a1a16177b450d037f5bddf2047cb17832bf9d26531",
       "initial_state_ordinal": 0
     },
     "right": {
       "model_id": "api-423-run-319-crossing-kernel",
       "revision": "rev2",
       "source_path": "implementations/formal/participant_crossing/concrete.py",
-      "source_digest": "sha256:9d2e3c716e76b20b956d0a5d5d49a3533022663a04b6ad5baa318f2e3bd5b3b5",
       "initial_state_ordinal": 0
     },
     "visible_labels": [
@@ -111,8 +109,7 @@
   },
   "source_refs": [
     {
-      "source_ref": "specs/formal/participant-semantics/participant-crossing-models.md",
-      "source_digest": "sha256:b1a7884b356d0938f7c5534070161f96cd0a69ce74e0b24ec9da950e17ce8e29"
+      "source_ref": "specs/formal/participant-semantics/participant-crossing-models.md"
     }
   ],
   "limitations": [

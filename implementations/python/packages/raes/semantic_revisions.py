@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 from dataclasses import dataclass
 from pathlib import Path
 
-import rfc8785
 import yaml
+from raes_contracts.canonical import canonical_json_bytes
+from raes_contracts.digests import sha256_digest
 
 from ._errors import SDLParseError
 from ._source_profile import DEFAULT_PARSER_LIMITS, PROGRESSIVE_SDL_REVISION, SDLParserLimits, SDLSourceParseOptions
@@ -21,8 +21,17 @@ VERSIONED_SDL_CANONICAL_PROFILE = "raes-versioned-sdl/v1"
 
 
 def source_byte_digest(content: str) -> str:
-    """Bind provenance to exact UTF-8 source bytes, including presentation."""
-    return "sha256:" + hashlib.sha256(content.encode("utf-8")).hexdigest()
+    """Bind provenance to exact UTF-8 source bytes, including presentation.
+
+    Text with an unpaired surrogate has no UTF-8 form, and parsing refuses it.
+    Its digest binds the surrogate-pass encoding, so a refusal report can still
+    identify the exact submitted text.
+    """
+    try:
+        source = content.encode("utf-8")
+    except UnicodeEncodeError:
+        source = content.encode("utf-8", errors="surrogatepass")
+    return sha256_digest(source)
 
 
 @dataclass(frozen=True)
@@ -92,7 +101,7 @@ def read_versioned_sdl(
 
 def canonical_versioned_sdl_bytes(document: SDLRevisionReadResult) -> bytes:
     """Canonicalize the selected interpretation without replacing its source join."""
-    return rfc8785.dumps(
+    return canonical_json_bytes(
         {
             "profile": VERSIONED_SDL_CANONICAL_PROFILE,
             "semantic_revision": document.semantic_revision,

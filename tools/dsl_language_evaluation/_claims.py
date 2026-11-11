@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
+from raes_contracts.errors import InvalidInputError
+
 from tools.dsl_language_evaluation._claim_strata import (
     _expanded_strata,
     _expanded_strata_failures,
@@ -302,5 +304,5 @@ def resolve_claim_strata(
         path=MANIFEST_PATH,
     )
     if failures:
-        raise ValueError("; ".join(f"{failure.rule_id}: {failure.message}" for failure in failures))
+        raise InvalidInputError("; ".join(f"{failure.rule_id}: {failure.message}" for failure in failures))
     return strata

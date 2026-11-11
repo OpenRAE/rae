@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import json
 from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from contract_fixtures import load_contract_fixture
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes_conformance.conformance import observability_evidence_conformance_diagnostics
@@ -26,20 +26,19 @@ from raes_contracts.contracts import (
     ProcessorManifestV2Model,
     RaesSemanticInvariantEntryModel,
     RaesSemanticInvariantProfileReferenceModel,
-    schema_bundle,
     validate_experiment_apparatus_context_against_manifests,
     validate_experiment_run_archival_datetimes,
     validate_experiment_run_structure_against_task,
     validate_experiment_study_structure_against_tasks_and_runs,
-    validate_raes_semantic_invariant_annotations,
 )
-from raes_contracts.contracts import bundle as contract_bundle
 from raes_contracts.manifest_authority import (
     BACKEND_SUPPORTED_CONTRACT_IDS,
     PARTICIPANT_IMPLEMENTATION_SUPPORTED_CONTRACT_IDS,
     PROCESSOR_SUPPORTED_CONTRACT_IDS,
     PROCESSOR_SUPPORTED_SDL_VERSION_IDS,
 )
+from raes_schemas import bundle as contract_bundle
+from raes_schemas import schema_bundle, validate_raes_semantic_invariant_annotations
 
 EXPERIMENT_CORE_FIXTURE_MODELS = {
     "experiment-apparatus-context-v1": ExperimentApparatusContextModel,
@@ -62,7 +61,7 @@ SEMANTIC_INVALID_EXPERIMENT_CORE_FIXTURES = {
 def _experiment_fixture(contract_id: str, fixture_name: str = "reference.json") -> dict:
     repo_root = Path(__file__).resolve().parents[3]
     fixture_path = repo_root / "contracts" / "fixtures" / "experiment-core" / contract_id / "valid" / fixture_name
-    return json.loads(fixture_path.read_text(encoding="utf-8"))
+    return load_contract_fixture(fixture_path)
 
 
 def _processor_manifest_fixture() -> dict:
@@ -76,7 +75,7 @@ def _processor_manifest_fixture() -> dict:
         / "valid"
         / "reference.json"
     )
-    payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+    payload = load_contract_fixture(fixture_path)
     payload["identity"]["version"] = "0.1.0"
     payload["compatibility"]["backends"] = ["stub-backend"]
     return payload
@@ -87,7 +86,7 @@ def _backend_manifest_fixture() -> dict:
     fixture_path = (
         repo_root / "contracts" / "fixtures" / "backend-manifest" / "backend-manifest-v2" / "valid" / "stub.json"
     )
-    payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+    payload = load_contract_fixture(fixture_path)
     payload["identity"]["name"] = "stub-backend"
     payload["identity"]["version"] = "0.1.0"
     return payload
@@ -111,7 +110,7 @@ def _invariant_by_id(schema: dict, invariant_id: str) -> dict:
 
 def test_schema_bundle_caches_generation_but_returns_isolated_copies(mocker):
     contract_bundle._schema_bundle_template.cache_clear()
-    generate = mocker.spy(contract_bundle, "_raw_schema_bundle")
+    generate = mocker.spy(contract_bundle, "contract_schemas")
     try:
         first = schema_bundle()
         second = schema_bundle()
@@ -284,7 +283,10 @@ def test_experiment_core_schemas_publish_closed_world_contracts():
         "direction",
         "evidence_requirements",
     ]
-    assert run_schema["properties"]["apparatus_context"]["$ref"] == "#/$defs/ExperimentApparatusContextModel"
+    assert (
+        run_schema["properties"]["apparatus_context"]["anyOf"][0]["$ref"] == "#/$defs/ExperimentApparatusContextModel"
+    )
+    assert run_schema["properties"]["apparatus_context"]["anyOf"][1]["type"] == "null"
     assert (
         run_schema["properties"]["participant_implementation_provenance"]["anyOf"][0]["$ref"]
         == "#/$defs/ParticipantImplementationProvenanceModel"
@@ -324,12 +326,20 @@ def test_experiment_core_schemas_publish_closed_world_contracts():
     assert (
         run_schema["properties"]["scenario_snapshot_ref"]["$ref"] == "#/$defs/ExperimentScenarioSnapshotReferenceModel"
     )
-    assert "ended_at" in run_schema["required"]
+    archival = next(
+        rule["else"]
+        for rule in run_schema["allOf"]
+        if rule.get("if", {}).get("properties", {}).get("record_state", {}).get("const") == "partial"
+    )
+    assert "ended_at" in archival["required"]
     assert "clock_context" in run_schema["required"]
-    assert "evidence_artifacts" in run_schema["required"]
-    assert "result_summaries" in run_schema["required"]
+    assert "evidence_artifacts" in archival["required"]
+    assert "result_summaries" in archival["required"]
+    assert archival["properties"]["evidence_artifacts"]["minItems"] == 1
+    assert archival["properties"]["result_summaries"]["minProperties"] == 1
     assert run_schema["properties"]["started_at"]["format"] == "date-time"
-    assert run_schema["properties"]["ended_at"]["format"] == "date-time"
+    assert run_schema["properties"]["ended_at"]["anyOf"][0]["format"] == "date-time"
+    assert run_schema["properties"]["ended_at"]["anyOf"][1]["type"] == "null"
     assert "run-archival-times-rfc3339-valid" in _invariant_ids(run_schema)
     assert "ended-at-not-before-started-at" in _invariant_ids(run_schema)
     assert "result-evidence-ref-resolves" in _invariant_ids(run_schema)
@@ -361,7 +371,14 @@ def test_experiment_core_schemas_publish_closed_world_contracts():
     assert "cost-resource-trace" in artifact_schema["properties"]["role"]["enum"]
     assert "scaffold" in artifact_schema["properties"]["role"]["enum"]
     result_schema = run_schema["$defs"]["ExperimentResultSummaryModel"]
-    assert result_schema["required"] == ["metric_id", "value_status", "evidence_refs"]
+    assert result_schema["required"] == ["metric_id", "value_status"]
+    reported = next(
+        rule["then"]
+        for rule in result_schema["allOf"]
+        if rule.get("if", {}).get("properties", {}).get("value_status", {}).get("const") == "reported"
+    )
+    assert reported["required"] == ["evidence_refs"]
+    assert reported["properties"]["evidence_refs"]["minItems"] == 1
     assert result_schema["properties"]["evidence_refs"]["items"]["$ref"] == (
         "#/$defs/ExperimentRunEvidenceArtifactReferenceModel"
     )
@@ -508,11 +525,11 @@ def test_experiment_run_schema_publishes_canonical_provenance_surface():
     generated = schema_bundle()
     run_schema = generated["experiment-run-v1"]
 
-    assert run_schema["properties"]["traceability"]["$ref"] == "#/$defs/ExperimentRunTraceabilityModel"
+    assert {"$ref": "#/$defs/ExperimentRunTraceabilityModel"} in run_schema["properties"]["traceability"]["anyOf"]
     assert run_schema["properties"]["realized_form_disclosures"]["items"]["$ref"] == (
         "#/$defs/ExperimentRealizedFormDisclosureModel"
     )
-    assert "traceability" in run_schema["required"]
+    assert any("traceability" in rule.get("else", {}).get("required", []) for rule in run_schema["allOf"])
 
     traceability_schema = run_schema["$defs"]["ExperimentRunTraceabilityModel"]
     assert traceability_schema["additionalProperties"] is False
@@ -603,7 +620,7 @@ def test_experiment_core_valid_fixtures_pass_model_validation():
     for contract_id, model_cls in EXPERIMENT_CORE_FIXTURE_MODELS.items():
         validator = Draft202012Validator(schemas[contract_id])
         for path in sorted((fixture_root / contract_id / "valid").glob("*.json")):
-            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload = load_contract_fixture(path)
             validator.validate(payload)
             model = model_cls.model_validate(payload)
             assert model.schema_version == payload["schema_version"]
@@ -617,7 +634,7 @@ def test_experiment_core_invalid_fixtures_fail_schema_and_model_validation():
     for contract_id, model_cls in EXPERIMENT_CORE_FIXTURE_MODELS.items():
         validator = Draft202012Validator(schemas[contract_id])
         for path in sorted((fixture_root / contract_id / "invalid").glob("*.json")):
-            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload = load_contract_fixture(path)
             if (contract_id, path.name) in SEMANTIC_INVALID_EXPERIMENT_CORE_FIXTURES:
                 assert not list(validator.iter_errors(payload)), path
                 model = model_cls.model_validate(payload)
@@ -1082,7 +1099,7 @@ def test_experiment_core_validates_apparatus_context_against_manifest_payloads()
 
     incompatible_processor_manifest_payload = _processor_manifest_fixture()
     incompatible_processor_manifest_payload["compatibility"]["backends"] = ["different-backend"]
-    with pytest.raises(ValueError, match="compatibility.backends"):
+    with pytest.raises(ValueError, match="not mutually compatible"):
         validate_experiment_apparatus_context_against_manifests(
             apparatus,
             ProcessorManifestV2Model.model_validate(incompatible_processor_manifest_payload),
@@ -1091,7 +1108,7 @@ def test_experiment_core_validates_apparatus_context_against_manifest_payloads()
 
     incompatible_backend_manifest_payload = _backend_manifest_fixture()
     incompatible_backend_manifest_payload["compatibility"]["processors"] = ["different-processor"]
-    with pytest.raises(ValueError, match="compatibility.processors"):
+    with pytest.raises(ValueError, match="not mutually compatible"):
         validate_experiment_apparatus_context_against_manifests(
             apparatus,
             processor_manifest,
@@ -1991,11 +2008,11 @@ def test_participant_implementation_fixtures_pass_schema_and_model_validation():
         fixture_root = repo_root / "contracts" / "fixtures" / contract_id.rsplit("-", 1)[0] / contract_id
         validator = Draft202012Validator(generated[contract_id])
         for path in sorted((fixture_root / "valid").glob("*.json")):
-            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload = load_contract_fixture(path)
             validator.validate(payload)
             model_cls.model_validate(payload)
         for path in sorted((fixture_root / "invalid").glob("*.json")):
-            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload = load_contract_fixture(path)
             schema_errors = list(validator.iter_errors(payload))
             try:
                 model_cls.model_validate(payload)

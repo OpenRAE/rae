@@ -1,9 +1,24 @@
 """Authored module descriptors and import declarations."""
 
 from pydantic import Field, field_validator, model_validator
+from raes_contracts.identifiers import (
+    PortableIdentifier,
+    require_module_identifier,
+    require_portable_identifier,
+)
+from raes_contracts.sdl_model import SDLModel
 
-from ._base import SDLModel
-from ._identifiers import PortableIdentifier, require_module_identifier, require_portable_identifier
+# Resolved import provenance bounds both the requested and the module version to this length.
+_MAX_VERSION_LENGTH = 256
+
+
+def _require_version_text(value: str, *, field_name: str) -> str:
+    """Reject a blank or overlong version, which resolved import provenance cannot record."""
+    if not value.strip():
+        raise ValueError(f"{field_name} must not be blank")
+    if len(value) > _MAX_VERSION_LENGTH:
+        raise ValueError(f"{field_name} must be at most {_MAX_VERSION_LENGTH} characters")
+    return value
 
 
 class ModuleDescriptor(SDLModel):
@@ -15,8 +30,13 @@ class ModuleDescriptor(SDLModel):
     exports: dict[str, list[str]] = Field(default_factory=dict)
     description: str = ""
 
+    @field_validator("version")
+    @classmethod
+    def _validate_version(cls, value: str) -> str:
+        return _require_version_text(value, field_name="module.version")
+
     @model_validator(mode="after")
-    def validate_descriptor(self) -> "ModuleDescriptor":
+    def validate_descriptor(self) -> ModuleDescriptor:
         require_module_identifier(self.id)
         if len(self.parameters) != len(set(self.parameters)):
             raise ValueError("module.parameters must be unique")
@@ -43,6 +63,7 @@ class ImportDecl(SDLModel):
 
         from .module_registry._digests import _normalize_exact_or_range
 
+        _require_version_text(value, field_name="import version")
         try:
             _normalize_exact_or_range(value)
         except InvalidSpecifier as exc:
@@ -50,7 +71,7 @@ class ImportDecl(SDLModel):
         return value
 
     @model_validator(mode="after")
-    def validate_source_fields(self) -> "ImportDecl":
+    def validate_source_fields(self) -> ImportDecl:
         if not self.source and not self.path:
             raise ValueError("Import requires either 'source' or deprecated 'path'")
         if self.source and self.path:
