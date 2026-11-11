@@ -180,8 +180,6 @@ class RuntimeInteractionDispatchMixin:
             raise TypeError("unsupported interaction callback option")
         native_plan = bool(args and isinstance(args[0], (ProvisioningPlan, OrchestrationPlan, EvaluationPlan)))
         phase = args[0] if native_plan else ProvisioningPlan()
-        if native_plan and isinstance(phase, ProvisioningPlan):
-            realization = replace(realization, manifest=self._target.manifest)
         domain = RuntimeDomain.PARTICIPANT if runtime_composition else realization.stop_domain or _phase_domain(phase)
         context = operation_admission_context(
             self,
