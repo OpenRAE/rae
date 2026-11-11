@@ -1049,20 +1049,87 @@ def test_every_workflow_pins_every_third_party_action_to_a_full_sha() -> None:
             assert FULL_SHA_USE.fullmatch(action_ref), f"{path.name}: unpinned action {action_ref!r}"
 
 
+_EXPRESSION_TOKEN = re.compile(
+    r"\s*(?:(?P<string>'(?:[^']|'')*')|(?P<name>[A-Za-z_][\w.-]*)|(?P<op>==|!=|&&|\|\||[()]))"
+)
+
+
+def _expression_tokens(expression: str) -> list[tuple[str, str]]:
+    tokens: list[tuple[str, str]] = []
+    position = 0
+    while position < len(expression.rstrip()):
+        match = _EXPRESSION_TOKEN.match(expression, position)
+        assert match is not None, f"unsupported expression syntax at {expression[position:]!r}"
+        kind = match.lastgroup
+        assert kind is not None
+        tokens.append((kind, match.group(kind)))
+        position = match.end()
+    return tokens
+
+
 def _codeql_value(expression: str, base: str, ref: str, enabled: str = "true") -> Any:
-    """Evaluate this workflow's string/boolean/JSON expression subset."""
-    node = shutil.which("node")
-    assert node is not None, "The workflow tests require the existing Node runtime"
-    expression = expression.removeprefix("${{").removesuffix("}}").strip()
-    script = """
-const [expression, base, ref, enabled] = process.argv.slice(1);
-const evaluate = new Function('github', 'vars', 'fromJSON', 'return (' + expression + ')');
-console.log(JSON.stringify(evaluate(
-  {base_ref: base, ref_name: ref}, {CODEQL_ADVANCED_ENABLED: enabled}, JSON.parse)));
-"""
-    return json.loads(
-        subprocess.check_output([node, "-e", script, expression, base, ref, enabled], text=True, timeout=10)
-    )
+    """Evaluate the GitHub expression subset that the CodeQL workflow uses.
+
+    The subset is string literals, context names, ==, !=, && and || with parentheses.
+    String equality ignores case, and && and || return an operand, as in GitHub Actions.
+    """
+    context = {"github.base_ref": base, "github.ref_name": ref, "vars.CODEQL_ADVANCED_ENABLED": enabled}
+    tokens = _expression_tokens(expression.removeprefix("${{").removesuffix("}}").strip())
+    position = 0
+
+    def take(expected: str | None = None) -> tuple[str, str]:
+        nonlocal position
+        assert position < len(tokens), f"incomplete expression {expression!r}"
+        token = tokens[position]
+        assert expected is None or token[1] == expected, f"expected {expected!r} in {expression!r}"
+        position += 1
+        return token
+
+    def peek() -> str | None:
+        return tokens[position][1] if position < len(tokens) else None
+
+    def primary() -> Any:
+        kind, text = take()
+        if text == "(":
+            value = disjunction()
+            take(")")
+            return value
+        if kind == "string":
+            return text[1:-1].replace("''", "'")
+        assert kind == "name", f"unexpected {text!r} in {expression!r}"
+        if text in {"true", "false"}:
+            return text == "true"
+        assert text in context, f"unknown context {text!r} in {expression!r}"
+        return context[text]
+
+    def comparison() -> Any:
+        value = primary()
+        while peek() in {"==", "!="}:
+            operator = take()[1]
+            right = primary()
+            assert isinstance(value, str) and isinstance(right, str), f"non-string comparison in {expression!r}"
+            value = (value.casefold() == right.casefold()) is (operator == "==")
+        return value
+
+    def conjunction() -> Any:
+        value = comparison()
+        while peek() == "&&":
+            take()
+            right = comparison()
+            value = right if value not in ("", False) else value
+        return value
+
+    def disjunction() -> Any:
+        value = conjunction()
+        while peek() == "||":
+            take()
+            right = conjunction()
+            value = value if value not in ("", False) else right
+        return value
+
+    value = disjunction()
+    assert position == len(tokens), f"trailing tokens in {expression!r}"
+    return value
 
 
 def test_codeql_scans_every_language_on_every_target_branch() -> None:
