@@ -60,13 +60,21 @@ def participant_episode_structure_case(
                 model.participant_episode_policies, snapshot.participant_episode_history
             )
         )
+    if snapshot is None:
+        outcome = "unsupported"
+    elif diagnostics:
+        outcome = "failed"
+    else:
+        outcome = "passed"
     return ConformanceCaseResult(
         name=name,
         contract_name="participant-episode-history-event-stream-v1",
         valid=not diagnostics,
         passed=not diagnostics,
         diagnostics=tuple(diagnostics),
-        outcome="unsupported" if snapshot is None else "failed" if diagnostics else "passed",
-        finite_scope=f"Supplied recorded history and compiled model; episode contracts declared by target {target.name!r}.",
+        outcome=outcome,
+        finite_scope=(
+            f"Supplied recorded history and compiled model; episode contracts declared by target {target.name!r}."
+        ),
         limitations=limitations,
     )

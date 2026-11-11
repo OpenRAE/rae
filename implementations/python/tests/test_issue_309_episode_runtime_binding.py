@@ -124,9 +124,10 @@ def test_disallowed_episode_operations_never_call_the_backend(operation, monkeyp
 
 def test_episode_binding_rejects_ambiguous_or_missing_implementation_selections():
     admitted = implementation()
+    model = episode_model()
     for selections in [(), (admitted, admitted)]:
         with pytest.raises(ValueError, match="one (implementation|policy)"):
-            ParticipantEpisodeRuntimeBinding(model=episode_model(), implementations=selections)
+            ParticipantEpisodeRuntimeBinding(model=model, implementations=selections)
 
 
 def test_episode_binding_rejects_unsupported_contracts_and_forged_manifest_digest():
@@ -135,29 +136,32 @@ def test_episode_binding_rejects_unsupported_contracts_and_forged_manifest_diges
         {"participant_contract_versions": ["participant-decision-surface-v2"]},
         {"manifest_digest": "sha256:" + "0" * 64},
     ]:
+        selection = admitted.selection.model_copy(update=changes)
         with pytest.raises(ValueError, match="episode|manifest"):
-            ParticipantEpisodeImplementationBinding(
-                manifest=admitted.manifest, selection=admitted.selection.model_copy(update=changes)
-            )
+            ParticipantEpisodeImplementationBinding(manifest=admitted.manifest, selection=selection)
 
 
 def test_episode_binding_rejects_substituted_compiler_policy():
     model = episode_model()
     address, policy = next(iter(model.participant_episode_policies.items()))
     model.participant_episode_policies[address] = replace(policy, reset_control_actions=("reset", "restart"))
+    admitted = implementation()
     with pytest.raises(ValueError, match="original compiler context"):
-        ParticipantEpisodeRuntimeBinding(model=model, implementations=(implementation(),))
+        ParticipantEpisodeRuntimeBinding(model=model, implementations=(admitted,))
 
 
 def test_episode_binding_rejects_a_target_without_participant_runtime():
+    target = create_stub_target(with_participant_runtime=False)
+    binding = runtime_binding()
     with pytest.raises(ValueError, match="installed participant runtime"):
-        RuntimeControlPlane(create_stub_target(with_participant_runtime=False), participant_episode=runtime_binding())
+        RuntimeControlPlane(target, participant_episode=binding)
 
 
 def test_episode_aggregate_requires_its_installed_binding():
     model = episode_model()
+    target = create_stub_target()
     with pytest.raises(ValueError, match="installed participant episode binding"):
-        RuntimeControlPlane(create_stub_target(), behavior_specifications=model.behavior_specifications)
+        RuntimeControlPlane(target, behavior_specifications=model.behavior_specifications)
 
 
 def test_restored_history_must_agree_with_the_installed_episode_policy():
@@ -165,8 +169,10 @@ def test_restored_history_must_agree_with_the_installed_episode_policy():
         unbound.initialize_participant_episode(PARTICIPANT)
         unbound.terminate_participant_episode(PARTICIPANT, terminal_reason=ParticipantEpisodeTerminalReason.COMPLETED)
         snapshot = unbound.snapshot
+    target = create_stub_target()
+    binding = runtime_binding()
     with pytest.raises(ConflictError, match="recorded participant episodes"):
-        RuntimeControlPlane(create_stub_target(), initial_snapshot=snapshot, participant_episode=runtime_binding())
+        RuntimeControlPlane(target, initial_snapshot=snapshot, participant_episode=binding)
 
 
 def test_planner_authorization_requires_the_exact_installed_episode_model():
@@ -217,23 +223,22 @@ behavior_specifications:
 def test_episode_implementation_selection_cannot_substitute_participant_or_mode(field):
     admitted = implementation()
     changes = {field: "participant.behavior.other" if field == "participant_address" else "scripted"}
+    selection = admitted.selection.model_copy(update=changes)
     if field == "selected_decision_surface_mode":
         with pytest.raises(ValueError, match="manifest"):
-            ParticipantEpisodeImplementationBinding(
-                manifest=admitted.manifest, selection=admitted.selection.model_copy(update=changes)
-            )
+            ParticipantEpisodeImplementationBinding(manifest=admitted.manifest, selection=selection)
     else:
-        other = ParticipantEpisodeImplementationBinding(
-            manifest=admitted.manifest, selection=admitted.selection.model_copy(update=changes)
-        )
+        other = ParticipantEpisodeImplementationBinding(manifest=admitted.manifest, selection=selection)
+        model = episode_model()
         with pytest.raises(ValueError, match="one policy and one implementation"):
-            ParticipantEpisodeRuntimeBinding(model=episode_model(), implementations=(other,))
+            ParticipantEpisodeRuntimeBinding(model=model, implementations=(other,))
 
 
 def test_episode_binding_rejects_missing_original_compiler_context():
     model = replace(episode_model(), realization_instance=None)
+    admitted = implementation()
     with pytest.raises(TypeError, match="retained compiler context"):
-        ParticipantEpisodeRuntimeBinding(model=model, implementations=(implementation(),))
+        ParticipantEpisodeRuntimeBinding(model=model, implementations=(admitted,))
 
 
 @pytest.mark.parametrize("field", ["participant_runtimes", "backends"])
@@ -245,8 +250,9 @@ def test_episode_implementation_must_be_compatible_with_its_target(field):
     selection = admitted.selection.model_copy(update={"manifest_digest": canonical_contract_digest(manifest)})
     implementation_binding = ParticipantEpisodeImplementationBinding(manifest=manifest, selection=selection)
     binding = ParticipantEpisodeRuntimeBinding(model=episode_model(), implementations=(implementation_binding,))
+    target = create_stub_target()
     with pytest.raises(ValueError, match="selected (participant runtime|backend)"):
-        RuntimeControlPlane(create_stub_target(), participant_episode=binding)
+        RuntimeControlPlane(target, participant_episode=binding)
 
 
 def test_installed_episode_context_is_detached_from_caller_mutations():

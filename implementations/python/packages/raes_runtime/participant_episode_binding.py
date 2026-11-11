@@ -101,13 +101,11 @@ class ParticipantEpisodeRuntimeBinding:
         policy = self.policy(getattr(request, "participant_address", ""))
         if policy is None:
             return
-        action = (
-            "reset"
-            if isinstance(request, ParticipantEpisodeResetRequest)
-            else "restart"
-            if isinstance(request, ParticipantEpisodeRestartRequest)
-            else None
-        )
+        action = None
+        if isinstance(request, ParticipantEpisodeResetRequest):
+            action = "reset"
+        elif isinstance(request, ParticipantEpisodeRestartRequest):
+            action = "restart"
         if action is not None and policy.reset_control_actions and action not in policy.reset_control_actions:
             raise ConflictError("participant episode control action is not admitted by its authored policy")
         if isinstance(request, ParticipantEpisodeTerminateRequest):
