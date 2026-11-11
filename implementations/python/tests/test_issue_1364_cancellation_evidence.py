@@ -1,6 +1,7 @@
 """Only validated execution-owner evidence establishes a cancellation outcome."""
 
 from dataclasses import replace
+from datetime import UTC, datetime
 
 import pytest
 from raes_contracts.runtime_state import OperationState
@@ -110,7 +111,9 @@ def consume(plane, record, provider):
 
 
 @pytest.mark.parametrize("ack", ["accepted", "refused", "missing"])
-def test_backend_control_disposition_alone_never_proves_a_cancellation_effect(ack):
+def test_backend_control_disposition_alone_never_proves_a_cancellation_effect(ack, monkeypatch):
+    now = datetime.now(UTC)
+    monkeypatch.setattr("raes_runtime.operation_control_budget.monotonic", lambda: 100.0)
     provider = Provider()
     if ack == "missing":
 
@@ -131,7 +134,7 @@ def test_backend_control_disposition_alone_never_proves_a_cancellation_effect(ac
                 "disposition": "refused",
             },
         )
-    with configured_plane(target=target(provider))[0] as plane:
+    with configured_plane(target=target(provider), wall_clock=lambda: now)[0] as plane:
         owner = plane._mixed_control.resolver
         plane.initialize_participant_episode(PARTICIPANT, episode_id="episode-1", identity=identity())
         parent = consume(plane, admitted_attempt(plane, native=False), provider)

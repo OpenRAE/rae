@@ -2,6 +2,12 @@
   "implemented": [
     "canonical encode",
     "cli sdl format",
+    "cli sdl publish",
+    "cli sdl resolve",
+    "cli sdl verify-imports",
+    "cli semantic normalize",
+    "cli semantic resolve",
+    "cli semantic transform",
     "primitive address",
     "primitive ingress",
     "primitive ingress-exception",

@@ -25,7 +25,7 @@ from pydantic import BaseModel  # noqa: E402
 from pydantic.json_schema import GenerateJsonSchema  # noqa: E402
 from pydantic_core import SchemaValidator, ValidationError  # noqa: E402
 from raes.materialization import MaterializedScenario  # noqa: E402
-from raes.scenario import ExpandedScenario, Scenario  # noqa: E402
+from raes.scenario import ExpandedScenario, InstantiatedScenario, Scenario  # noqa: E402
 
 PRIMITIVES = {
     "normalize_enum_value": "normalize",
@@ -400,6 +400,7 @@ def record() -> bytes:
         ("sdl-authoring-input-v1", Scenario),
         ("materialized-scenario-v1", MaterializedScenario),
         ("sdl-expanded-authoring-object-v1", ExpandedScenario),
+        ("instantiated-scenario-v1", InstantiatedScenario),
     ):
         schema = cls.model_json_schema(schema_generator=Layout)
         records = {"#": schema["x-layout"]}
@@ -410,6 +411,9 @@ def record() -> bytes:
                 if "x-layout" in value
             }
         )
+        if cls is InstantiatedScenario:
+            # The phase owner's wrap serializer omits absent trial provenance.
+            records["#/$defs/InstantiationProvenance"]["omit"]["trial"] = ["null"]
         published = (
             schema
             if cls is ExpandedScenario
@@ -427,6 +431,10 @@ def record() -> bytes:
     expanded = result["sdl-expanded-authoring-object-v1"]
     result["sdl-expanded-authoring-object-v1"] = {
         key: value for key, value in expanded.items() if key == "#" or value != authored.get(key, common.get(key))
+    }
+    instantiated = result["instantiated-scenario-v1"]
+    result["instantiated-scenario-v1"] = {
+        key: value for key, value in instantiated.items() if key == "#" or value != authored.get(key, common.get(key))
     }
     return (json.dumps(result, indent=2, sort_keys=True) + "\n").encode()
 

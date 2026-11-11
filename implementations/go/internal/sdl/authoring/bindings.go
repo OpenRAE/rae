@@ -28,16 +28,13 @@ func (c *composition) bind(value, decl, descriptor map[string]any, facts *import
 	if err = s.resolveValues(variables, object(decl["parameters"]), descriptor); err != nil {
 		return nil, err
 	}
+	if err = c.captureBoundExplicitness(value, facts, s.preserved); err != nil {
+		return nil, err
+	}
 	if err = c.captureImportConstraints(value, s.preserved, facts); err != nil {
 		return nil, err
 	}
-	for name, value := range s.values {
-		origin := "default"
-		if _, provided := object(decl["parameters"])[name]; provided {
-			origin = "provided"
-		}
-		facts.bindings = append(facts.bindings, map[string]any{variationParameterKind: []any{name}, "origin": origin, valueField: value})
-	}
+	facts.bindings = append(facts.bindings, s.bindingProvenance(object(decl["parameters"]), facts.order["/variables"])...)
 	content := make(map[string]any, len(value))
 	for key, child := range value {
 		if key != controlAssetsSection {
@@ -66,12 +63,24 @@ func (c *composition) bind(value, decl, descriptor map[string]any, facts *import
 	delete(result, "realization")
 	return c.validateBound(result)
 }
+func (s *substitution) bindingProvenance(parameters map[string]any, order []string) []any {
+	bindings := []any{}
+	for _, name := range orderedKeys(s.values, order) {
+		value := s.values[name]
+		origin := "default"
+		if _, provided := parameters[name]; provided {
+			origin = "provided"
+		}
+		bindings = append(bindings, map[string]any{variationParameterKind: []any{name}, "origin": origin, valueField: value})
+	}
+	return bindings
+}
 func preservedVariables(value map[string]any) map[string]bool {
 	result := map[string]bool{}
 	for _, raw := range object(value[variationPointsField]) {
 		point := object(raw)
 		if point[kindField] == variationParameterKind {
-			result[text(object(point[targetField])["variable"])] = true
+			result[text(object(point[targetField])[termVariable])] = true
 		}
 	}
 	return result

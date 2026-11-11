@@ -27,6 +27,7 @@ func TestSDLConstructionStage(t *testing.T) {
 	}{
 		{"authored-fragment", "sdl-authoring-input-v1", "#/$defs/Node", `{"type":"compute","os_version":"${v}"}`, true},
 		{"materialized-fragment", "materialized-scenario-v1", "#/$defs/Node", `{"type":"compute","os_version":"22"}`, true},
+		{"instantiated-fragment", "instantiated-scenario-v1", "#/$defs/Node", `{"type":"compute","os_version":"22"}`, true},
 		{"unknown-member", "sdl-authoring-input-v1", "#/$defs/Node", `{"type":"compute","extra":1}`, false},
 		{"bad-os-token", "sdl-authoring-input-v1", "#/$defs/Node", `{"type":"compute","os":"invalid"}`, false},
 		{"unknown-contract", "instantiated-scenario-v1", "#", `{}`, false},

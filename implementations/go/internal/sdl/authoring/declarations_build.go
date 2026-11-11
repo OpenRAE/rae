@@ -15,7 +15,7 @@ func indexDeclarations(value map[string]any) *declarationIndex {
 }
 func orderedDeclarations(value map[string]any, order map[string][]string) *declarationIndex {
 	d := &declarationIndex{aliases: map[string]map[string]declaration{}, addresses: map[string]bool{}, declarations: map[string]declaration{}, order: order}
-	d.add("scenario."+text(value["name"]), "", declaration{tokens: []string{"name"}, collisionKind: "scenario"})
+	d.add("scenario."+text(value[nameField]), "", declaration{tokens: []string{nameField}, collisionKind: termScenario})
 	for _, section := range declarationSections() {
 		if slices.Contains([]string{nodesSection, infrastructureField, entitiesField, contentField, workflowsSection, variablesSection}, section) {
 			continue
@@ -33,7 +33,7 @@ func orderedDeclarations(value map[string]any, order map[string][]string) *decla
 	d.section(workflowsSection, value, true)
 	for i, raw := range array(value[forwardingSection]) {
 		item := object(raw)
-		d.add(forwardingSection+"."+text(item["forwarding_agent_id"]), "", declaration{target: true, authority: true, action: true, kind: forwardingSection, value: item, tokens: []string{forwardingSection, strconv.Itoa(i), "forwarding_agent_id"}, collisionKind: "forwarding-agent"})
+		d.add(forwardingSection+"."+text(item[termForwardingAgentID]), "", declaration{target: true, authority: true, action: true, kind: forwardingSection, value: item, tokens: []string{forwardingSection, strconv.Itoa(i), termForwardingAgentID}, collisionKind: "forwarding-agent"})
 	}
 	for _, name := range d.keys(object(value[variationPointsField]), variationPointsField) {
 		d.variationMembers(name, object(object(value[variationPointsField])[name]))
@@ -54,11 +54,11 @@ func (d *declarationIndex) keys(value map[string]any, tokens ...string) []string
 func declarationKind(section string) string {
 	switch section {
 	case nodesSection:
-		return "node"
+		return termNode
 	case workflowsSection:
 		return "workflow"
 	case variablesSection:
-		return "variable"
+		return termVariable
 	default:
 		return section
 	}
@@ -121,9 +121,9 @@ func (d *declarationIndex) behaviorChildren(values map[string]any, field string)
 	}
 }
 func (d *declarationIndex) variationMembers(name string, value map[string]any) {
-	container, kind := "members", "variation-member"
+	container, kind := termMembers, "variation-member"
 	if value[kindField] == "alternative" {
-		container, kind = "alternatives", "variation-alternative"
+		container, kind = termAlternatives, "variation-alternative"
 	}
 	for _, member := range d.keys(object(value[container]), variationPointsField, name, container) {
 		d.add(variationPointsField+"."+name+"."+container+"."+member, name+"."+member, declaration{declared: true, tokens: []string{variationPointsField, name, container, member}, collisionKind: kind})
@@ -132,7 +132,7 @@ func (d *declarationIndex) variationMembers(name string, value map[string]any) {
 func (d *declarationIndex) namedItems(items []any, prefix string, aliases bool, kind, label string, tokens []string) {
 	for i, raw := range items {
 		item := object(raw)
-		name := text(item["name"])
+		name := text(item[nameField])
 		if name == "" {
 			continue
 		}
@@ -140,7 +140,7 @@ func (d *declarationIndex) namedItems(items []any, prefix string, aliases bool, 
 		if aliases {
 			alias = name
 		}
-		d.add(prefix+name, alias, declaration{target: true, authority: true, action: true, kind: kind, value: item, tokens: appendPath(appendPath(tokens, strconv.Itoa(i)), "name"), collisionKind: label})
+		d.add(prefix+name, alias, declaration{target: true, authority: true, action: true, kind: kind, value: item, tokens: appendPath(appendPath(tokens, strconv.Itoa(i)), nameField), collisionKind: label})
 	}
 }
 

@@ -17,7 +17,7 @@ import (
 // input files and composition state. The corpus adapter grants no host access.
 func formatRunner() Runner {
 	parser, loadErr := authoring.New(source.DefaultLimits())
-	return func(_ context.Context, c Case) (json.RawMessage, error) {
+	return func(ctx context.Context, c Case) (json.RawMessage, error) {
 		if loadErr != nil {
 			return nil, loadErr
 		}
@@ -35,7 +35,7 @@ func formatRunner() Runner {
 		for name, content := range c.Files {
 			files[name] = &fstest.MapFile{Data: content}
 		}
-		result, err := parser.Format(authoring.Request{Source: original, Name: command.name, FS: files})
+		result, err := parser.FormatContext(ctx, authoring.Request{Source: original, Name: command.name, FS: files})
 		if err != nil {
 			return formatRefusal(err)
 		}

@@ -78,7 +78,7 @@ func (r semanticRuntimeCheck) platform(app semanticPlatform, authorizations map[
 	}
 	for _, item := range app.Content {
 		itemLabel := label + " content_object '" + item.ID + "'"
-		r.platformRefs(itemLabel, "reference", item.References, "content_object", content)
+		r.platformRefs(itemLabel, termReference, item.References, "content_object", content)
 		r.platformRefs(itemLabel, "marking_ref", item.Markings, "marking", markings)
 	}
 }

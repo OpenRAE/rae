@@ -12890,6 +12890,380 @@
       }
     }
   },
+  "instantiated-scenario-v1": {
+    "#": {
+      "factory_defaults": {
+        "accounts": {},
+        "action_contracts": {},
+        "agents": {},
+        "assertions": {},
+        "behavior_specifications": {},
+        "clocks": {},
+        "conditions": {},
+        "content": {},
+        "control_context_assets": {},
+        "deployment_cells": {},
+        "deployment_tenants": {},
+        "entities": {},
+        "events": {},
+        "evidence_requirements": {},
+        "features": {},
+        "forwarding_agents": [],
+        "generated_artifacts": {},
+        "identity_domains": {},
+        "identity_facades": {},
+        "identity_forests": {},
+        "infrastructure": {},
+        "injects": {},
+        "nodes": {},
+        "objectives": {},
+        "observation_boundaries": {},
+        "outcome_interpretation_rules": {},
+        "persistent_volumes": {},
+        "propositions": {},
+        "relationships": {},
+        "scripts": {},
+        "stories": {},
+        "temporal_constraints": {},
+        "time_domain_mappings": {},
+        "time_domains": {},
+        "time_progression_policies": {},
+        "workflows": {}
+      },
+      "fields": [
+        "name",
+        "version",
+        "description",
+        "semantic_revision",
+        "nodes",
+        "infrastructure",
+        "features",
+        "conditions",
+        "propositions",
+        "assertions",
+        "entities",
+        "injects",
+        "events",
+        "scripts",
+        "stories",
+        "content",
+        "generated_artifacts",
+        "persistent_volumes",
+        "accounts",
+        "identity_domains",
+        "identity_forests",
+        "identity_facades",
+        "deployment_tenants",
+        "deployment_cells",
+        "relationships",
+        "forwarding_agents",
+        "control_context_assets",
+        "agents",
+        "action_contracts",
+        "observation_boundaries",
+        "outcome_interpretation_rules",
+        "behavior_specifications",
+        "evidence_requirements",
+        "execution_policy",
+        "augmentation_scope",
+        "time_domains",
+        "clocks",
+        "time_domain_mappings",
+        "time_progression_policies",
+        "temporal_constraints",
+        "objectives",
+        "workflows",
+        "instantiation_provenance"
+      ],
+      "omit": {
+        "augmentation_scope": [
+          "null"
+        ],
+        "control_context_assets": [
+          "null",
+          "empty",
+          "empty-sequence",
+          "blank",
+          "false"
+        ],
+        "execution_policy": [
+          "null"
+        ],
+        "semantic_revision": [
+          "null"
+        ]
+      },
+      "scalar": {}
+    },
+    "#/$defs/AdmittedBindingProvenance": {
+      "factory_defaults": {},
+      "fields": [
+        "binding_id",
+        "record_digest",
+        "record"
+      ],
+      "omit": {},
+      "scalar": {}
+    },
+    "#/$defs/AdmittedSelectionProvenance": {
+      "factory_defaults": {},
+      "fields": [
+        "variation_point_id",
+        "record_digest",
+        "record"
+      ],
+      "omit": {},
+      "scalar": {}
+    },
+    "#/$defs/CapabilityConstraint": {
+      "factory_defaults": {},
+      "fields": [
+        "kind",
+        "field_pointer",
+        "parameter",
+        "allowed_values"
+      ],
+      "omit": {},
+      "scalar": {
+        "allowed_values": {
+          "explicitness_atomic": true
+        },
+        "parameter": {
+          "explicitness_atomic": true
+        }
+      }
+    },
+    "#/$defs/ExplicitnessProvenanceRecord": {
+      "capability_classified": true,
+      "factory_defaults": {},
+      "fields": [
+        "model_path",
+        "classification",
+        "provenance",
+        "reason",
+        "parameters"
+      ],
+      "omit": {},
+      "scalar": {
+        "parameters": {
+          "explicitness_atomic": true
+        }
+      }
+    },
+    "#/$defs/InstantiationProvenance": {
+      "factory_defaults": {},
+      "fields": [
+        "authored_digest",
+        "selected_profile",
+        "bindings",
+        "imports",
+        "capability_constraints",
+        "parameter_derivations",
+        "explicitness",
+        "realization_designations",
+        "realization_constraints",
+        "trial"
+      ],
+      "omit": {
+        "parameter_derivations": [
+          "null",
+          "empty",
+          "empty-sequence",
+          "blank",
+          "false"
+        ],
+        "trial": [
+          "null"
+        ]
+      },
+      "scalar": {
+        "bindings": {
+          "explicitness_atomic": true
+        },
+        "capability_constraints": {
+          "explicitness_atomic": true
+        },
+        "explicitness": {
+          "explicitness_atomic": true
+        },
+        "imports": {
+          "explicitness_atomic": true
+        },
+        "parameter_derivations": {
+          "explicitness_atomic": true
+        },
+        "realization_constraints": {
+          "explicitness_atomic": true
+        },
+        "realization_designations": {
+          "explicitness_atomic": true
+        }
+      }
+    },
+    "#/$defs/ParameterBinding": {
+      "factory_defaults": {},
+      "fields": [
+        "parameter",
+        "origin",
+        "value"
+      ],
+      "omit": {},
+      "scalar": {
+        "parameter": {
+          "explicitness_atomic": true
+        },
+        "value": {
+          "shapes": [
+            "boolean",
+            "integer",
+            "number",
+            "string"
+          ]
+        }
+      }
+    },
+    "#/$defs/ParameterDerivation": {
+      "factory_defaults": {},
+      "fields": [
+        "field_pointer",
+        "segments"
+      ],
+      "omit": {},
+      "scalar": {
+        "segments": {
+          "explicitness_atomic": true
+        }
+      }
+    },
+    "#/$defs/ParameterLiteralSegment": {
+      "factory_defaults": {},
+      "fields": [
+        "kind",
+        "value"
+      ],
+      "omit": {},
+      "scalar": {}
+    },
+    "#/$defs/ParameterReferenceSegment": {
+      "factory_defaults": {},
+      "fields": [
+        "kind",
+        "parameter",
+        "variable_type",
+        "allowed_values"
+      ],
+      "omit": {},
+      "scalar": {
+        "allowed_values": {
+          "explicitness_atomic": true
+        },
+        "parameter": {
+          "explicitness_atomic": true
+        }
+      }
+    },
+    "#/$defs/RealizationConstraintRecord": {
+      "factory_defaults": {},
+      "fields": [
+        "namespace",
+        "field_pointer",
+        "concern",
+        "posture",
+        "domain",
+        "provenance"
+      ],
+      "omit": {},
+      "scalar": {
+        "namespace": {
+          "explicitness_atomic": true
+        }
+      }
+    },
+    "#/$defs/RealizationDesignationRecord": {
+      "factory_defaults": {},
+      "fields": [
+        "namespace",
+        "field_pointer",
+        "posture"
+      ],
+      "omit": {},
+      "scalar": {
+        "namespace": {
+          "explicitness_atomic": true
+        }
+      }
+    },
+    "#/$defs/ResolvedImportProvenance": {
+      "factory_defaults": {},
+      "fields": [
+        "namespace",
+        "requested_source",
+        "requested_version",
+        "requested_digest",
+        "module_id",
+        "module_version",
+        "resolved_source",
+        "manifest_digest",
+        "content_digest",
+        "export_hash",
+        "signer_id",
+        "bindings"
+      ],
+      "omit": {},
+      "scalar": {
+        "bindings": {
+          "explicitness_atomic": true
+        },
+        "namespace": {
+          "explicitness_atomic": true
+        }
+      }
+    },
+    "#/$defs/SemanticDigest": {
+      "factory_defaults": {},
+      "fields": [
+        "profile",
+        "algorithm",
+        "value"
+      ],
+      "omit": {},
+      "scalar": {}
+    },
+    "#/$defs/TrialCoordinateProvenance": {
+      "factory_defaults": {},
+      "fields": [
+        "condition_id",
+        "block_id",
+        "replicate_id"
+      ],
+      "omit": {},
+      "scalar": {}
+    },
+    "#/$defs/TrialInstantiationProvenance": {
+      "factory_defaults": {},
+      "fields": [
+        "scenario_family_id",
+        "scenario_family_digest",
+        "plan_id",
+        "plan_digest",
+        "plan_entry_id",
+        "entry_digest",
+        "run_id",
+        "coordinate",
+        "selections",
+        "bindings"
+      ],
+      "omit": {},
+      "scalar": {
+        "bindings": {
+          "explicitness_atomic": true
+        },
+        "selections": {
+          "explicitness_atomic": true
+        }
+      }
+    }
+  },
   "materialized-scenario-v1": {
     "#": {
       "factory_defaults": {

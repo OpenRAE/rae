@@ -1,16 +1,19 @@
 package authoring
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
 	"io/fs"
+	"maps"
 	"path"
 	"strings"
 
 	"github.com/OpenRAE/rae/implementations/go/base/fault"
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
 	"github.com/OpenRAE/rae/implementations/go/internal/sdl/source"
+	"github.com/OpenRAE/rae/implementations/go/sdl/module"
 )
 
 type composition struct {
@@ -24,9 +27,12 @@ type composition struct {
 	localDenied  map[string]bool
 	records      map[string][]map[string]any
 	facts        map[string]*importFacts
+	snapshot     map[string][]byte
+	verified     map[string]*verifiedSources
+	remoteFacts  map[string]module.LockRecord
 }
 
-func (p *Parser) checkImports(document *Document, request Request, captured *source.Sources) error {
+func (p *Parser) checkImports(ctx context.Context, document *Document, request Request, captured *source.Sources) error {
 	if captured != nil && document.contract != authoringContract {
 		return importError("phase-refused")
 	}
@@ -54,7 +60,7 @@ func (p *Parser) checkImports(document *Document, request Request, captured *sou
 			return err
 		}
 	}
-	expanded, err := c.expand(document, value, name, 0)
+	expanded, err := c.expand(ctx, document, value, name, 0)
 	if err != nil {
 		return err
 	}
@@ -71,7 +77,10 @@ func (p *Parser) modelValue(document *Document) (map[string]any, error) {
 func (c *composition) charge(document *Document) error {
 	return c.budget.AddValue(document.compositionValue)
 }
-func (c *composition) expand(document *Document, value map[string]any, name string, depth int) (map[string]any, error) {
+func (c *composition) expand(ctx context.Context, document *Document, value map[string]any, name string, depth int) (map[string]any, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, fault.New(fault.Operational, "sdl-operation-canceled", err)
+	}
 	if err := c.budget.CheckDepth(depth); err != nil {
 		return nil, err
 	}
@@ -95,28 +104,34 @@ func (c *composition) expand(document *Document, value map[string]any, name stri
 	if _, present := value["version"]; !present {
 		value["version"] = "*"
 	}
-	imports := array(value[importsField])
-	lock, err := c.lock(name, len(imports) > 0)
-	if err != nil {
+	if err = c.expandImports(ctx, value, name, depth); err != nil {
 		return nil, err
-	}
-	if c.supplied == nil {
-		if err = c.trust(name); err != nil {
-			return nil, err
-		}
-	}
-	for _, raw := range imports {
-		if err = c.budget.AddImport(); err != nil {
-			return nil, err
-		}
-		if err = c.edge(value, object(raw), name, depth, lock); err != nil {
-			return nil, err
-		}
 	}
 	delete(value, importsField)
 	return value, nil
 }
-func (c *composition) edge(parent, decl map[string]any, importer string, depth int, lock *lockfile) error {
+func (c *composition) expandImports(ctx context.Context, value map[string]any, name string, depth int) error {
+	imports := array(value[importsField])
+	lock, err := c.lock(name, len(imports) > 0)
+	if err != nil {
+		return err
+	}
+	if c.supplied == nil {
+		if err = c.trust(name); err != nil {
+			return err
+		}
+	}
+	for _, raw := range imports {
+		if err = c.budget.AddImport(); err != nil {
+			return err
+		}
+		if err = c.edge(ctx, value, object(raw), name, depth, lock); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func (c *composition) edge(ctx context.Context, parent, decl map[string]any, importer string, depth int, lock *lockfile) error {
 	requestedDecl := decl
 	decl, err := c.resolveLocked(decl, lock)
 	if err != nil {
@@ -129,37 +144,33 @@ func (c *composition) edge(parent, decl map[string]any, importer string, depth i
 	if err = c.checkImportDecl(decl, requested); err != nil {
 		return err
 	}
-	relative := strings.TrimPrefix(requested, localImportPrefix)
-	name, err := c.localName(importer, relative)
+	name, raw, remote, err := c.importBytes(ctx, decl, requested, importer, lock)
 	if err != nil {
 		return err
 	}
-	raw, err := c.read(name)
+	child, value, err := c.importDocument(raw, name)
 	if err != nil {
 		return err
 	}
-	child, err := c.parser.decodeDocument(raw, name, "reject", true)
+	admissionDecl := decl
+	if remote {
+		admissionDecl = maps.Clone(decl)
+		delete(admissionDecl, "digest")
+	}
+	descriptor, err := admittedModule(child, value, admissionDecl, raw, !remote && c.localDenied[importer])
 	if err != nil {
 		return err
 	}
-	value, err := c.parser.modelValue(child)
+	if !remote {
+		err = c.checkLock(lock, decl, descriptor, raw, requested, relativeSource(path.Dir(importer), name))
+	}
 	if err != nil {
-		return err
-	}
-	if err = c.parser.checkModuleEffectTargets(child); err != nil {
-		return err
-	}
-	descriptor, err := admittedModule(child, value, decl, raw, c.localDenied[importer])
-	if err != nil {
-		return err
-	}
-	if err = c.checkLock(lock, decl, descriptor, raw, requested, relativeSource(path.Dir(importer), name)); err != nil {
 		return err
 	}
 	if value["semantic_revision"] != parent["semantic_revision"] {
 		return importError("revision-mismatch")
 	}
-	expanded, err := c.expand(child, value, name, depth+1)
+	expanded, err := c.expand(ctx, child, value, name, depth+1)
 	if err != nil {
 		return err
 	}
@@ -177,6 +188,20 @@ func (c *composition) edge(parent, decl map[string]any, importer string, depth i
 	c.inheritImportFacts(importer, name, text(decl[namespaceField]), symbols)
 	return c.addImportRecords(importer, name, requestedDecl, descriptor, raw)
 }
+func (c *composition) importDocument(raw []byte, name string) (*Document, map[string]any, error) {
+	child, err := c.parser.decodeDocument(raw, name, "reject", true)
+	if err != nil {
+		return nil, nil, err
+	}
+	value, err := c.parser.modelValue(child)
+	if err != nil {
+		return nil, nil, err
+	}
+	if err = c.parser.checkModuleEffectTargets(child); err != nil {
+		return nil, nil, err
+	}
+	return child, value, nil
+}
 func importSource(decl map[string]any) string {
 	if requested := text(decl[sourceField]); requested != "" {
 		return requested
@@ -184,7 +209,7 @@ func importSource(decl map[string]any) string {
 	return localImportPrefix + text(decl["path"])
 }
 func (c *composition) checkImportDecl(decl map[string]any, requested string) error {
-	if !strings.HasPrefix(requested, localImportPrefix) {
+	if !strings.HasPrefix(requested, localImportPrefix) && (c.supplied != nil || c.request.Registry == nil || !strings.HasPrefix(requested, "oci:")) {
 		return importError("source-refused")
 	}
 	namespace := text(decl[namespaceField])
@@ -204,6 +229,13 @@ func (c *composition) checkImportDecl(decl map[string]any, requested string) err
 }
 func (c *composition) localName(importer, relative string) (string, error) {
 	directory := path.Dir(importer)
+	if scope, logical := c.verifiedScope(importer); scope != nil {
+		name, err := scope.sources.Resolve(path.Dir(logical), relative)
+		if err != nil {
+			return "", err
+		}
+		return scope.root + "/" + name, nil
+	}
 	if c.supplied != nil {
 		return c.supplied.Resolve(directory, relative)
 	}
@@ -229,7 +261,7 @@ func admittedModule(document *Document, value, decl map[string]any, raw []byte, 
 	if err != nil {
 		return nil, err
 	}
-	if !requirement.accepts(text(descriptor["version"])) {
+	if !requirement.Accepts(text(descriptor["version"])) {
 		return nil, importError("version-mismatch")
 	}
 	if localDenied {
@@ -244,13 +276,20 @@ func withinDirectory(directory, name string) bool {
 	return directory == "." || strings.HasPrefix(name, directory+"/")
 }
 func (c *composition) read(name string) ([]byte, error) {
+	if scope, logical := c.verifiedScope(name); scope != nil {
+		return scope.sources.Bytes(logical)
+	}
 	if c.supplied != nil {
 		return c.supplied.Bytes(name)
 	}
 	if c.request.FS == nil {
 		return nil, importError("source-missing")
 	}
-	return c.readBounded(name, c.parser.limits.MaxInputBytes)
+	raw, err := c.readBounded(name, c.parser.limits.MaxInputBytes)
+	if err == nil && c.snapshot != nil {
+		c.snapshot[name] = raw
+	}
+	return raw, err
 }
 func (c *composition) readBounded(name string, limit int64) ([]byte, error) {
 	file, err := c.request.FS.Open(name)

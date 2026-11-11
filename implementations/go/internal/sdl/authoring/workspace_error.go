@@ -15,7 +15,7 @@ func workspaceFailure(name string, cause error) error {
 	if nested := source.Diagnostics(cause); len(nested) > 0 {
 		span = nested[0].Range
 	}
-	return &workspaceError{cause: cause, diagnostic: source.Diagnostic{Code: "sdl.workspace-config.invalid", Pointer: "", Range: span, Source: name, Severity: "error"}}
+	return &workspaceError{cause: cause, diagnostic: source.Diagnostic{Code: "sdl.workspace-config.invalid", Pointer: "", Range: span, Source: name, Severity: termError}}
 }
 
 func (e *workspaceError) Error() string            { return "workspace configuration rejected" }

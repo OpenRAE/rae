@@ -1,5 +1,665 @@
 {
   "contracts": {
+    "instantiated-scenario-v1": {
+      "AdmittedBindingProvenance": {
+        "record_digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ]
+      },
+      "AdmittedSelectionProvenance": {
+        "record_digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ]
+      },
+      "ArtifactCandidate": {
+        "candidate_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ]
+      },
+      "ArtifactConstraint": {
+        "constraint_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ],
+        "kind": [
+          {
+            "max_length": 128,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ]
+      },
+      "ArtifactIdentity": {
+        "artifact_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ],
+        "digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ]
+      },
+      "ArtifactLockedInput": {
+        "input_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ]
+      },
+      "ArtifactMaterializationSpecification": {
+        "digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ],
+        "locked_input_ids": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ],
+        "specification_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ]
+      },
+      "ArtifactMechanismProfile": {
+        "digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ],
+        "profile": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ]
+      },
+      "ArtifactRequirement": {
+        "requirement_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/@+-]*$"
+          }
+        ]
+      },
+      "AugmentationScopeRule": {
+        "scope": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "BooleanPredicate": {
+        "property": [
+          {
+            "max_length": 512,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$"
+          }
+        ],
+        "semantic_ref": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$"
+          }
+        ]
+      },
+      "DomainProfileBindingOwnerModel": {
+        "canonical_address": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^#(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "DomainProfileCoordinateModel": {
+        "definition_digest": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$"
+          }
+        ],
+        "namespace": [
+          {
+            "max_length": 253,
+            "path": [],
+            "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+          }
+        ],
+        "profile_id": [
+          {
+            "max_length": 128,
+            "path": [],
+            "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$"
+          }
+        ],
+        "revision": [
+          {
+            "max_length": 128,
+            "path": [],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$"
+          }
+        ]
+      },
+      "DomainProfileSchemaModel": {
+        "revision": [
+          {
+            "max_length": 128,
+            "path": [],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$"
+          }
+        ],
+        "schema_digest": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$"
+          }
+        ]
+      },
+      "DomainProfileSemanticContractModel": {
+        "contract_id": [
+          {
+            "max_length": 128,
+            "path": [],
+            "pattern": "^[a-z][a-z0-9]*(?:[-.][a-z0-9]+)*$"
+          }
+        ],
+        "digest": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:sha256:[A-Fa-f0-9]{64}|sha384:[A-Fa-f0-9]{96}|sha512:[A-Fa-f0-9]{128}|blake3:[A-Fa-f0-9]{64})$"
+          }
+        ],
+        "revision": [
+          {
+            "max_length": 128,
+            "path": [],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]*$"
+          }
+        ]
+      },
+      "ExecutionPolicyScope": {
+        "scope": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "ExperimentChecksumModel": {
+        "value": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[A-Fa-f0-9]+$"
+          }
+        ]
+      },
+      "LocalOutcomeCriterion": {
+        "criterion_id": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ],
+        "effect_id": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ],
+        "source_id": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "LocalOutcomeDefinition": {
+        "criterion_basis": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "MixedControlPermittedTransition": {
+        "completion_evidence_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "evidence_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "NumericPredicate": {
+        "property": [
+          {
+            "max_length": 512,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$"
+          }
+        ],
+        "semantic_ref": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$"
+          }
+        ],
+        "unit": [
+          {
+            "max_length": 512,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$"
+          }
+        ],
+        "unit_semantic_ref": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$"
+          }
+        ]
+      },
+      "ObservationDemandRule": {
+        "scope": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "ObservationSelector": {
+        "semantic_scope": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "OperatorSecretCredentialMaterial": {
+        "reference_id": [
+          {
+            "max_length": 256,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$"
+          }
+        ]
+      },
+      "ParameterDerivation": {
+        "field_pointer": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^/nodes/[^/]+/runtime/"
+          }
+        ]
+      },
+      "ParticipantBehaviorSpecification": {
+        "semantic_version": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantControlContextAssetReferenceModel": {
+        "asset_digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ]
+      },
+      "ParticipantControlContextReference": {
+        "declaration_ref": [
+          {
+            "max_length": 1024,
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantInjectDeliveryControl": {
+        "controller_ref": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ],
+        "policy_revision": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantRelationship": {
+        "authority_basis_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "behavior_specification_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "control_specification_ref": [
+          {
+            "min_length": 1,
+            "path": [],
+            "pattern": "\\S"
+          }
+        ],
+        "objective_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "observation_boundary_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "scope_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "source_action_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "target_action_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "ParticipantToolAffordance": {
+        "action_contract_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "observation_boundary_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "participant_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ],
+        "participant_role_refs": [
+          {
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "\\S"
+          }
+        ]
+      },
+      "PresencePredicate": {
+        "property": [
+          {
+            "max_length": 512,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$"
+          }
+        ],
+        "semantic_ref": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$"
+          }
+        ]
+      },
+      "RealizationConstraintRecord": {
+        "field_pointer": [
+          {
+            "max_length": 4096,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "RealizationDesignationRecord": {
+        "field_pointer": [
+          {
+            "max_length": 4096,
+            "path": [],
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+          }
+        ]
+      },
+      "RuntimeAptPackageRepository": {
+        "components": [
+          {
+            "max_length": 128,
+            "min_length": 1,
+            "path": [
+              "items"
+            ],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9.+_~-]{0,127}$"
+          }
+        ],
+        "suite": [
+          {
+            "max_length": 128,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9.+_~:-]{0,127}$"
+          }
+        ],
+        "uri": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s#]+|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$",
+            "schema_sha256": "b49e5ec370ff430a700dee440c2e8f333dccaaacfb43cfb616d267993f607719"
+          }
+        ]
+      },
+      "RuntimePackageRepositorySigningKey": {
+        "digest": [
+          {
+            "path": [],
+            "pattern": "^(?:sha256:[a-f0-9]{64}|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$"
+          }
+        ],
+        "uri": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s#]+|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$",
+            "schema_sha256": "68a4ed6785b12980e14c18b1654491542c1828107d57db7311bab4934818cf58"
+          }
+        ]
+      },
+      "SemanticDigest": {
+        "value": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ]
+      },
+      "ServiceManagerUnit": {
+        "unit_name": [
+          {
+            "path": [],
+            "pattern": "^\\S+$"
+          }
+        ]
+      },
+      "StringPredicate": {
+        "property": [
+          {
+            "max_length": 512,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$"
+          }
+        ],
+        "semantic_ref": [
+          {
+            "max_length": 2048,
+            "min_length": 1,
+            "path": [],
+            "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$"
+          }
+        ]
+      },
+      "TrialInstantiationProvenance": {
+        "entry_digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ],
+        "plan_digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ],
+        "scenario_family_digest": [
+          {
+            "path": [],
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          }
+        ]
+      }
+    },
     "materialized-scenario-v1": {
       "ArtifactCandidate": {
         "candidate_id": [

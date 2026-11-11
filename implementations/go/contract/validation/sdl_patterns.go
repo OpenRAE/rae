@@ -47,14 +47,14 @@ func decodeSDLPatterns(raw []byte) (sdlPatternRecord, error) {
 	var record sdlPatternRecord
 	decoder := json.NewDecoder(bytes.NewReader(raw))
 	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(&record); err != nil || len(record.Reference) != 40 || len(record.Contracts) != 2 {
+	if err := decoder.Decode(&record); err != nil || len(record.Reference) != 40 || len(record.Contracts) != 3 {
 		return record, sdlPatternInvalid()
 	}
 	var extra any
 	if decoder.Decode(&extra) != io.EOF {
 		return record, sdlPatternInvalid()
 	}
-	for _, id := range []string{"sdl-authoring-input-v1", sdlMaterializedContract} {
+	for _, id := range []string{"sdl-authoring-input-v1", sdlMaterializedContract, "instantiated-scenario-v1"} {
 		if len(record.Contracts[id]) == 0 {
 			return record, sdlPatternInvalid()
 		}

@@ -107,7 +107,7 @@ func (m *semanticModel) behaviorSpecReferences(c *semanticCollector, row semanti
 		message string
 		skip    bool
 	}{
-		{"participant_ref", row.participants, m.definitions[agentsSection], "does not reference a declared agent", false},
+		{termParticipantRef, row.participants, m.definitions[agentsSection], "does not reference a declared agent", false},
 		{"participant_role_ref", row.roles, roles, "does not match a declared participant role", unresolved},
 		{"action_contract_ref", row.actions, m.definitions[actionsSection], "does not reference a declared action_contract", false},
 		{"observation_boundary_ref", row.boundaries, m.definitions[boundariesSection], "does not reference a declared observation_boundary", false},

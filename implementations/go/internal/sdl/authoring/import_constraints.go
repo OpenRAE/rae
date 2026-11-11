@@ -69,7 +69,7 @@ func (w *importConstraintWalk) derivation(text string, path, names []string) {
 	offset := 0
 	for _, match := range variableTokens.FindAllStringSubmatchIndex(text, -1) {
 		if match[0] > offset {
-			segments = append(segments, map[string]any{kindField: "literal", valueField: text[offset:match[0]]})
+			segments = append(segments, map[string]any{kindField: termLiteral, valueField: text[offset:match[0]]})
 		}
 		name := text[match[2]:match[3]]
 		definition := object(w.variables[name])
@@ -77,7 +77,7 @@ func (w *importConstraintWalk) derivation(text string, path, names []string) {
 		offset = match[1]
 	}
 	if offset < len(text) {
-		segments = append(segments, map[string]any{kindField: "literal", valueField: text[offset:]})
+		segments = append(segments, map[string]any{kindField: termLiteral, valueField: text[offset:]})
 	}
 	w.facts.derivations = append(w.facts.derivations, map[string]any{fieldPointerField: jsonpointer.FromTokens(path), "segments": segments})
 }

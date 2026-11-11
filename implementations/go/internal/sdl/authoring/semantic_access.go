@@ -50,7 +50,7 @@ func semanticAccessChannel(raw json.RawMessage) (string, error) {
 	coordinate := profile.Coordinate
 	var result strings.Builder
 	result.WriteByte('{')
-	for i, field := range []struct{ key, value string }{{"namespace", coordinate.Namespace}, {"authority", coordinate.Authority}, {"profile_id", coordinate.Profile}, {"revision", coordinate.Revision}, {"definition_digest", coordinate.Digest}} {
+	for i, field := range []struct{ key, value string }{{"namespace", coordinate.Namespace}, {termAuthority, coordinate.Authority}, {"profile_id", coordinate.Profile}, {termRevision, coordinate.Revision}, {"definition_digest", coordinate.Digest}} {
 		if i > 0 {
 			result.WriteByte(',')
 		}

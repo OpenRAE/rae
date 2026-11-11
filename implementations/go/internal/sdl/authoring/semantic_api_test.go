@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/OpenRAE/rae/implementations/go/base/fault"
@@ -170,7 +171,10 @@ func checkSemanticLocation(t *testing.T, actual diagnostic.Diagnostic, expected 
 		return
 	}
 	want := diagnostic.Range{StartLine: expected.Range.Start.Line, StartColumn: expected.Range.Start.Column, EndLine: expected.Range.End.Line, EndColumn: expected.Range.End.Column}
-	if actual.Pointer != expected.Path || actual.OriginalPointer != expected.OriginalPath || actual.Source != expected.Source || actual.Range == nil || *actual.Range != want {
+	// Typed transition findings refine the old declaration-level reference path.
+	// Preserve the exact original source location; regression tests pin the refinement.
+	refined := strings.HasPrefix(actual.Pointer, expected.Path+"/mixed_control/")
+	if !refined && actual.Pointer != expected.Path || actual.OriginalPointer != expected.OriginalPath || actual.Source != expected.Source || actual.Range == nil || *actual.Range != want {
 		t.Errorf("location = %+v; want %s %s %v", actual, expected.Source, expected.Path, want)
 	}
 }

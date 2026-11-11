@@ -63,7 +63,7 @@ func shared(_ context.Context, c Case) (json.RawMessage, error) {
 		result = map[string]any{"accepted": refusal == nil}
 	case "secret":
 		result = map[string]any{validField: secretref.Valid(request.Text)}
-	case "digest":
+	case termDigest:
 		result = map[string]any{validField: digest.Valid(request.Text)}
 	case "log":
 		result = map[string]any{"text": logrecord.Escape(request.Text)}
@@ -119,7 +119,7 @@ func sharedVersion(request sharedRequest) (map[string]any, error) {
 			identity.Authority = replacement
 		case "revision":
 			identity.Revision = replacement
-		case "digest":
+		case termDigest:
 			identity.Digest = replacement
 		}
 	}
@@ -280,7 +280,7 @@ func sharedValue(request sharedRequest) (map[string]any, error) {
 		if err != nil {
 			return map[string]any{statusField: invalidCode}, nil //nolint:nilerr // Expected primitive refusals are parity results, not runner failures.
 		}
-		result["canonical"] = string(canonical)
+		result[termCanonical] = string(canonical)
 	}
 	return result, nil
 }

@@ -23,10 +23,15 @@ func symbolsFor(value map[string]any, namespace string, descriptor map[string]an
 	}
 	agents := map[string]string{}
 	for _, raw := range array(value[forwardingSection]) {
-		name := text(object(raw)["forwarding_agent_id"])
+		name := text(object(raw)[termForwardingAgentID])
 		agents[name] = qualifiedImport(namespace, name, array(exports[forwardingSection]))
 	}
 	symbols[forwardingSection] = agents
+	entities := map[string]bool{}
+	collectEntityNames(object(value[entitiesField]), "", entities)
+	for name := range entities {
+		symbols[entitiesField][name] = qualifiedImport(namespace, name, array(exports[entitiesField]))
+	}
 	return symbols
 }
 func (s importSymbols) pointer(pointer string) string {
@@ -77,19 +82,25 @@ func rewriteAugmentation(value map[string]any, symbols importSymbols, namespace 
 			return nil, err
 		}
 		rule[scopeField] = scope
-		owner := append([]any{namespace}, array(rule[namespaceField])...)
+		owner := policyNamespace(namespace, array(rule[namespaceField]))
 		rule[namespaceField] = owner
 		rootRule = rootRule || scope == "" && len(owner) == 1
 		scopes = append(scopes, rule)
 	}
-	if !rootRule {
-		permission := "open"
+	if namespace != "" && !rootRule {
+		permission := openTerm
 		if supplied, present := policy[defaultField]; present {
 			permission = text(supplied)
 		}
 		scopes = append([]any{map[string]any{scopeField: "", "permission": permission, namespaceField: []any{namespace}}}, scopes...)
 	}
-	return map[string]any{defaultField: "open", scopesField: scopes}, nil
+	permission := any(openTerm)
+	if namespace == "" {
+		if supplied, present := policy[defaultField]; present {
+			permission = supplied
+		}
+	}
+	return map[string]any{defaultField: permission, scopesField: scopes}, nil
 }
 func augmentationPointer(pointer string, value map[string]any, symbols importSymbols) (string, error) {
 	if !strings.HasPrefix(pointer, "/forwarding_agents/") {
@@ -103,7 +114,7 @@ func augmentationPointer(pointer string, value map[string]any, symbols importSym
 	agents := []any{}
 	for _, raw := range array(value[forwardingSection]) {
 		agent := maps.Clone(object(raw))
-		agent["forwarding_agent_id"] = symbols[forwardingSection][text(agent["forwarding_agent_id"])]
+		agent[termForwardingAgentID] = symbols[forwardingSection][text(agent[termForwardingAgentID])]
 		agents = append(agents, agent)
 	}
 	renamed[forwardingSection] = agents
@@ -121,10 +132,16 @@ func rewriteExecutionPolicy(document map[string]any, symbols importSymbols, name
 			scopes = append(scopes, map[string]any{namespaceField: owner, scopeField: executionPointer(text(rule[scopeField]), symbols), policyField: rewritePolicy(object(rule[policyField]), symbols)})
 		}
 	}
+	result := map[string]any{scopesField: scopes, defaultField: nil}
 	if policy := object(document[defaultField]); policy != nil {
-		scopes = append([]any{map[string]any{namespaceField: []any{namespace}, scopeField: "", policyField: rewritePolicy(policy, symbols)}}, scopes...)
+		rewritten := rewritePolicy(policy, symbols)
+		if namespace != "" {
+			result[scopesField] = append([]any{map[string]any{namespaceField: []any{namespace}, scopeField: "", policyField: rewritten}}, scopes...)
+		} else {
+			result[defaultField] = rewritten
+		}
 	}
-	return map[string]any{scopesField: scopes}
+	return result
 }
 func rewritePolicy(policy map[string]any, symbols importSymbols) map[string]any {
 	result := maps.Clone(policy)
@@ -157,7 +174,7 @@ func executionPointer(pointer string, symbols importSymbols) string {
 }
 func executionNamespaces(rule map[string]any, symbols importSymbols, namespace string) [][]any {
 	owner := array(rule[namespaceField])
-	prefix := append([]any{namespace}, owner...)
+	prefix := policyNamespace(namespace, owner)
 	if len(owner) == 0 {
 		return [][]any{prefix}
 	}
@@ -207,4 +224,11 @@ func stringItems(items []any) []string {
 }
 func executionSections() []string {
 	return []string{nodesSection, featuresSection, conditionsSection, injectsSection, identityDomainsField, accountsSection, contentField, generatedArtifactsField, persistentVolumesField, eventsSection, scriptsField, storiesField, workflowsSection, propositionsField, assertionsSection, objectivesSection}
+}
+
+func policyNamespace(namespace string, owner []any) []any {
+	if namespace == "" {
+		return append([]any{}, owner...)
+	}
+	return append([]any{namespace}, owner...)
 }

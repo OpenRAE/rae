@@ -13,7 +13,7 @@ import (
 const expandedContract = "sdl-expanded-authoring-object-v1"
 
 func (p *Parser) loadSchemaViews(packaged fs.FS) error {
-	for _, id := range []string{authoringContract, materializedContract} {
+	for _, id := range []string{authoringContract, materializedContract, instantiatedContract} {
 		raw, err := fs.ReadFile(packaged, "schemas/sdl/"+id+".json")
 		if err != nil {
 			return err
@@ -51,10 +51,10 @@ func (p *Parser) loadExpandedSchema(packaged fs.FS) error {
 	phase := object(definitions["InstantiationProvenance"])
 	phaseProperties := object(phase["properties"])
 	expansion := map[string]any{}
-	for _, name := range []string{importsField, "capability_constraints", "parameter_derivations", "explicitness", "realization_designations", "realization_constraints"} {
+	for _, name := range []string{importsField, termCapabilityConstraints, termParameterDerivations, termExplicitness, termRealizationDesignations, termRealizationConstraints} {
 		expansion[name] = phaseProperties[name]
 	}
-	definitions["ExpansionProvenance"] = map[string]any{"type": "object", "properties": expansion, "additionalProperties": false}
+	definitions["ExpansionProvenance"] = map[string]any{"type": termObject, "properties": expansion, "additionalProperties": false}
 	root["$defs"] = definitions
 	properties := maps.Clone(object(root["properties"]))
 	for _, name := range []string{"module", importsField, "realization"} {
@@ -81,13 +81,15 @@ type importConstraint struct {
 }
 
 type importFacts struct {
-	order       map[string][]string
-	constraints []importConstraint
-	bindings    []any
-	designation []any
-	realization []any
-	derivations []any
-	origins     map[semanticOwner]importOrigin
+	document     *Document
+	explicitness []any
+	order        map[string][]string
+	constraints  []importConstraint
+	bindings     []any
+	designation  []any
+	realization  []any
+	derivations  []any
+	origins      map[semanticOwner]importOrigin
 }
 
 func (c *composition) retainExpanded(document *Document, value map[string]any, name string) error {
@@ -108,25 +110,18 @@ func (c *composition) retainExpanded(document *Document, value map[string]any, n
 		constraints = append(constraints, map[string]any{kindField: record.Kind, fieldPointerField: record.Pointer, variationParameterKind: parameters, allowedValuesField: record.Allowed})
 	}
 	provenance := map[string]any{
-		importsField: imports, "capability_constraints": constraints,
-		"explicitness": []any{}, "realization_designations": facts.designation,
-		"realization_constraints": facts.realization,
+		importsField: imports, termCapabilityConstraints: constraints,
+		termExplicitness: facts.explicitness, termRealizationDesignations: facts.designation,
+		termRealizationConstraints: facts.realization,
+	}
+	if provenance[termExplicitness] == nil {
+		provenance[termExplicitness] = []any{}
 	}
 	if len(facts.derivations) > 0 {
-		provenance["parameter_derivations"] = facts.derivations
+		provenance[termParameterDerivations] = facts.derivations
 	}
-	for _, group := range []struct {
-		definition string
-		values     []any
-	}{
-		{"CapabilityConstraint", constraints}, {"ParameterDerivation", facts.derivations},
-		{"RealizationDesignationRecord", facts.designation}, {"RealizationConstraintRecord", facts.realization},
-	} {
-		for _, record := range group.values {
-			if err := c.checkMetadataFragment(group.definition, record); err != nil {
-				return err
-			}
-		}
+	if err := c.checkExpandedFacts(facts, constraints); err != nil {
+		return err
 	}
 	value["expansion_provenance"] = provenance
 	limit := jsonWorkingLimit(c.parser.limits.MaxComposedBytes, c.parser.limits.MaxComposedNodes)
@@ -167,14 +162,18 @@ func (c *composition) checkMetadataFragment(definition string, value any) error 
 
 // The reference binds a complete serializer view, including constructor defaults.
 func (c *composition) bindingPayload(value map[string]any, order map[string][]string) (map[string]any, error) {
-	queries := newScopeQueries(c.parser, authoringContract, value)
+	id := authoringContract
+	if value["expansion_provenance"] != nil {
+		id = expandedContract
+	}
+	queries := newScopeQueries(c.parser, id, value)
 	fill := importDefaultWalk{queries: queries, remaining: compositionJSONWork(c.parser.limits)}
-	full, err := fill.value(value, c.parser.schemas[authoringContract], "#")
+	full, err := fill.value(value, c.parser.schemas[id], "#")
 	if err != nil {
 		return nil, err
 	}
-	walk := normalizer{parser: c.parser, id: authoringContract, workingLimit: compositionJSONWork(c.parser.limits), order: order}
-	normalized, err := walk.walk(c.parser.schemas[authoringContract], "#", full, nil, scalarPolicy{}, source.View{})
+	walk := normalizer{parser: c.parser, id: id, workingLimit: compositionJSONWork(c.parser.limits), order: order}
+	normalized, err := walk.walk(c.parser.schemas[id], "#", full, nil, scalarPolicy{}, source.View{})
 	if err != nil {
 		return nil, err
 	}
@@ -241,4 +240,21 @@ func (w *importDefaultWalk) mapping(data, schema map[string]any, pointer string)
 		}
 	}
 	return result, nil
+}
+
+func (c *composition) checkExpandedFacts(facts *importFacts, constraints []any) error {
+	for _, group := range []struct {
+		definition string
+		values     []any
+	}{
+		{"CapabilityConstraint", constraints}, {"ParameterDerivation", facts.derivations}, {"ExplicitnessProvenanceRecord", facts.explicitness},
+		{"RealizationDesignationRecord", facts.designation}, {"RealizationConstraintRecord", facts.realization},
+	} {
+		for _, record := range group.values {
+			if err := c.checkMetadataFragment(group.definition, record); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }

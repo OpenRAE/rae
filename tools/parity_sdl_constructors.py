@@ -81,9 +81,37 @@ def reference_revision() -> str:
     ).strip()
 
 
-def record(document: dict[str, Any]) -> str:
-    if reference_revision() != document["reference"]:
+def verify_reference_tree(reference: str) -> None:
+    """Keep the pinned code identity when merge or revert history moves."""
+    actual = reference_revision()
+    if not all(
+        isinstance(value, str) and len(value) == 40 and set(value) <= set("0123456789abcdef")
+        for value in (actual, reference)
+    ):
         raise ValueError("SDL constructor reference commit differs from the fixture")
+    if (
+        actual != reference
+        and subprocess.run(
+            [
+                "git",
+                "diff",
+                "--quiet",
+                reference,
+                "--",
+                "implementations/python/packages/raes",
+            ],
+            cwd=ROOT,
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ).returncode
+        != 0
+    ):
+        raise ValueError("SDL constructor reference commit differs from the fixture")
+
+
+def record(document: dict[str, Any]) -> str:
+    verify_reference_tree(document["reference"])
     names = [row["name"] for row in document["cases"]]
     if len(names) != len(set(names)):
         raise ValueError("SDL constructor case names must be unique")
@@ -213,10 +241,16 @@ def record_runtime_helpers(check: bool) -> int:
 
 
 def record_runtime_inventory(inventory: dict[str, Any]) -> None:
-    from raes._runtime_service_families import RUNTIME_SERVICE_FAMILIES, RuntimeReferenceChild, RuntimeServiceFamily
+    from raes._runtime_service_families import (
+        RUNTIME_SERVICE_FAMILIES,
+        RuntimeReferenceChild,
+        RuntimeServiceFamily,
+    )
     from raes.runtime_inventory import runtime_inventory_collection_identity
 
-    def collection(value: RuntimeServiceFamily | RuntimeReferenceChild) -> dict[str, Any]:
+    def collection(
+        value: RuntimeServiceFamily | RuntimeReferenceChild,
+    ) -> dict[str, Any]:
         children = value.child_refs if isinstance(value, RuntimeServiceFamily) else value.children
         return {
             "Collection": value.collection_name,

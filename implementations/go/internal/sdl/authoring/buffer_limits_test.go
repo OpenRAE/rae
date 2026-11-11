@@ -99,12 +99,13 @@ func TestBindingCopyBudgetSharedAndMemoized(t *testing.T) {
 func TestVariableNamespaceCopyBudget(t *testing.T) {
 	c := composition{copies: copyBudget{remaining: 64}}
 	value := map[string]any{"variables": map[string]any{"v": map[string]any{"type": "string"}}, "description": strings.Repeat("${v}", 32)}
-	if _, err := c.namespaceVariables(value, strings.Repeat("a", 100), nil); err == nil {
+	if err := rewriteOwnedReferencesWithBudget(value, symbolsFor(value, strings.Repeat("a", 100), map[string]any{}), &c.copies); err == nil {
 		t.Fatal("namespace rewriting exceeded copy allowance")
 	}
 	c.copies.remaining = 1024
 	value["description"] = "${unknown} ${v}"
-	got, err := c.namespaceVariables(value, "m", nil)
+	err := rewriteOwnedReferencesWithBudget(value, symbolsFor(value, "m", map[string]any{}), &c.copies)
+	got := value
 	if err != nil || got["description"] != "${unknown} ${m.__private.v}" {
 		t.Fatalf("%v: %v", got, err)
 	}

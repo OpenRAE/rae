@@ -9,8 +9,10 @@ import (
 	"github.com/OpenRAE/rae/implementations/go/base/digest"
 )
 
+const domainProfileSchemaPointer = "#/$defs/DomainProfileSchemaModel"
+
 func (w *normalizer) profileSchemaOutput(pointer string, fields ordered, order []string) (ordered, error) {
-	if pointer != "#/$defs/DomainProfileSchemaModel" || object(fields)["schema_digest"] != nil {
+	if pointer != domainProfileSchemaPointer || object(fields)["schema_digest"] != nil {
 		return fields, nil
 	}
 	document := object(fields)["schema_document"]

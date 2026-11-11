@@ -61,7 +61,7 @@ func (s *semanticSelectionSolver) addGroup(point semanticVariation, names []stri
 	if point.Kind == variationAlternativeKind {
 		group.minimum, group.maximum = 1, 1
 	}
-	if point.Kind == "subset" {
+	if point.Kind == termSubset {
 		group.minimum = point.Minimum
 		if point.Maximum != nil {
 			group.maximum = *point.Maximum
