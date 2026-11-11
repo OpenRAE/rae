@@ -590,8 +590,9 @@ jobs:
   go:
     needs: trust-ref
     runs-on: ubuntu-24.04
-    # Include pinned tool builds, the independent reference corpus, and race tests.
-    timeout-minutes: ${{ inputs.exhaustive-mutations && 360 || 40 }}
+    # Product also records the independent Python corpus and runs it under the race detector.
+    # Allow for runner speed variation across these serial steps.
+    timeout-minutes: ${{ inputs.exhaustive-mutations && 360 || (matrix.name == 'product' && 50 || 40) }}
     strategy:
       fail-fast: false
       matrix:
