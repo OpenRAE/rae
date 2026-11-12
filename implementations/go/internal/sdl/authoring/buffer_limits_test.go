@@ -44,8 +44,8 @@ func TestJSONBoundedNestedMap(t *testing.T) {
 }
 
 func TestBindingCopyBudgetBeforeAllocation(t *testing.T) {
-	// The fixed regexp scratch space can be cold under race instrumentation.
-	// Compare equal token inventories so only expanded result growth differs.
+	// Average fixed scratch costs over fresh substitutions with equal token
+	// inventories so only expanded result growth differs.
 	small := refusedBindingAllocation(t, strings.Repeat("x", 128))
 	large := refusedBindingAllocation(t, strings.Repeat("x", 16*1024))
 	if large > small+256*1024 {
@@ -53,23 +53,30 @@ func TestBindingCopyBudgetBeforeAllocation(t *testing.T) {
 	}
 }
 
-func refusedBindingAllocation(t *testing.T, replacement string) uint64 {
+func refusedBindingAllocation(t *testing.T, replacement string) int64 {
 	t.Helper()
-	budget := copyBudget{remaining: 4096}
-	s := substitution{values: map[string]any{"v": replacement}, preserved: map[string]bool{}, inline: map[string]string{}, copies: &budget}
 	input := "prefix" + strings.Repeat("${v}", 64)
-	runtime.GC()
-	var before, after runtime.MemStats
-	runtime.ReadMemStats(&before)
-	_, err := s.string(input)
-	runtime.ReadMemStats(&after)
-	if err == nil {
-		t.Fatal("substitution exceeded its copy allowance")
+	var failure string
+	result := testing.Benchmark(func(b *testing.B) {
+		b.Helper()
+		for b.Loop() {
+			budget := copyBudget{remaining: 4096}
+			s := substitution{values: map[string]any{"v": replacement}, preserved: map[string]bool{}, inline: map[string]string{}, copies: &budget}
+			_, err := s.string(input)
+			if err == nil {
+				failure = "substitution exceeded its copy allowance"
+				b.FailNow()
+			}
+			if budget.remaining != 4096 {
+				failure = "failed reservation changed allowance"
+				b.FailNow()
+			}
+		}
+	})
+	if failure != "" {
+		t.Fatal(failure)
 	}
-	if budget.remaining != 4096 {
-		t.Fatal("failed reservation changed allowance")
-	}
-	return after.TotalAlloc - before.TotalAlloc
+	return result.AllocedBytesPerOp()
 }
 
 func TestBindingCopyBudgetSharedAndMemoized(t *testing.T) {

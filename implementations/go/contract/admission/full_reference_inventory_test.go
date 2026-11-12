@@ -6,7 +6,26 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"testing/fstest"
 )
+
+func TestFullReferenceFixtureInventorySeparatesNativeSemanticVectors(t *testing.T) {
+	source := fstest.MapFS{}
+	for _, path := range []string{
+		"fixtures/sdl/semantic-vectors-v1/semantics.json",
+		"fixtures/sdl/semantic-vectors-v1/semantics-999.json",
+		"fixtures/sdl/semantic-vectors-v10/example.json",
+		"fixtures/sdl/semantic-vectors-v1.json",
+		"fixtures/example-v1/positive.json",
+	} {
+		source[path] = &fstest.MapFile{Data: []byte(`{}`)}
+	}
+	contracts, other := completeFixturePaths(t, source, map[string]bool{"example-v1": true}, nil)
+	if !slices.Equal(contracts, []string{"fixtures/example-v1/positive.json"}) ||
+		!slices.Equal(other, []string{"fixtures/sdl/semantic-vectors-v1.json", "fixtures/sdl/semantic-vectors-v10/example.json"}) {
+		t.Fatalf("unexpected fixture ownership: contracts=%v other=%v", contracts, other)
+	}
+}
 
 // Inventory comes from all packaged fixture files and the published registry,
 // independent of the smaller CLI admission corpus and the reference table.
@@ -71,10 +90,13 @@ func completeFixturePaths(t *testing.T, source fs.FS, ids map[string]bool, versi
 	t.Helper()
 	var contracts, other []string
 	err := fs.WalkDir(source, "fixtures", func(path string, entry fs.DirEntry, err error) error {
-		if err != nil {
+		switch {
+		case err != nil:
 			return err
-		}
-		if entry.IsDir() || !strings.HasSuffix(path, ".json") {
+		// Native SDL tests own this family's complete inventory and results.
+		case entry.IsDir() && path == "fixtures/sdl/semantic-vectors-v1":
+			return fs.SkipDir
+		case entry.IsDir() || !strings.HasSuffix(path, ".json"):
 			return nil
 		}
 		contract := false

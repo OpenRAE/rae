@@ -11,7 +11,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "implementations/python/packages"))
+sys.path[:0] = [str(ROOT), str(ROOT / "implementations/python/packages")]
 
 from pydantic import ValidationError  # noqa: E402
 from raes._errors import SDLError  # noqa: E402
@@ -20,6 +20,8 @@ from raes._transformation_rename import _preserve_explicit_shape  # noqa: E402
 from raes.composition import _rewrite_payload_with_symbols  # noqa: E402
 from raes.parser import parse_sdl  # noqa: E402
 from raes.scenario import ModuleDescriptor  # noqa: E402
+
+from tools.parity_authoring_vectors import read_semantic_vectors  # noqa: E402
 
 DIRECTORY = ROOT / "implementations/go/internal/sdl/authoring/testdata"
 
@@ -57,9 +59,9 @@ def main() -> int:
     arguments = argparse.ArgumentParser(description=__doc__)
     arguments.add_argument("--check", action="store_true")
     options = arguments.parse_args()
-    sources = []
-    for path in sorted(DIRECTORY.glob("semantics-0*.json")):
-        sources.extend(json.loads(path.read_bytes()))
+    sources = read_semantic_vectors()
+    if not sources:
+        raise ValueError("semantic fixture inventory must not be empty")
     candidates = []
     for row in sources:
         if "source" not in row:
@@ -101,6 +103,8 @@ def main() -> int:
         if paths - seen:
             seen.update(paths)
             selected.append(row)
+    if not selected:
+        raise ValueError("rewrite corpus must not be empty")
     output = json.dumps({"cases": selected}, indent=2, ensure_ascii=True) + "\n"
     target = DIRECTORY / "rewrites.json.gz"
     if options.check:

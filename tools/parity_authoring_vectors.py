@@ -59,7 +59,7 @@ MAIN_SOURCE = "main.yaml"
 ROOT_MARKER = "$ROOT"
 
 VECTORS = ROOT / "implementations/go/internal/sdl/authoring/testdata"
-SEMANTIC_SHARD_BYTES = 450 * 1024
+SEMANTIC_VECTORS = ROOT / "contracts/fixtures/sdl/semantic-vectors-v1"
 SEMANTIC_SCHEMA = "raes-sdl-semantic-vectors/v1"
 SELECTION_FILE = "selection.json"
 
@@ -196,7 +196,7 @@ def write_or_check(name: str, value: object, check: bool) -> bool:
 
 
 def read_semantic_vectors() -> list[dict[str, Any]]:
-    manifest = json.loads((VECTORS / "semantics.json").read_bytes())
+    manifest = json.loads((SEMANTIC_VECTORS / "semantics.json").read_bytes())
     if isinstance(manifest, list):
         return manifest
     if manifest["schema"] != SEMANTIC_SCHEMA:
@@ -205,43 +205,10 @@ def read_semantic_vectors() -> list[dict[str, Any]]:
     for index, shard in enumerate(manifest["shards"]):
         if shard["name"] != f"semantics-{index:03d}.json":
             raise ValueError("noncanonical semantic shard name")
-        rows.extend(json.loads((VECTORS / shard["name"]).read_bytes()))
+        rows.extend(json.loads((SEMANTIC_VECTORS / shard["name"]).read_bytes()))
     if len(rows) != manifest["case_count"] or len({row["name"] for row in rows}) != len(rows):
         raise ValueError("incomplete or duplicate semantic cases")
     return rows
-
-
-def write_semantic_vectors(rows: list[dict[str, Any]], check: bool) -> bool:
-    chunks, current = [], []
-    for row in rows:
-        candidate = current + [row]
-        encoded = json.dumps(candidate, indent=2, ensure_ascii=True) + "\n"
-        if len(encoded.encode()) > SEMANTIC_SHARD_BYTES:
-            if not current:
-                raise ValueError("one semantic vector exceeds the shard ceiling")
-            chunks.append(current)
-            current = [row]
-        else:
-            current = candidate
-    if current:
-        chunks.append(current)
-    manifest = {"schema": SEMANTIC_SCHEMA, "case_count": len(rows), "shards": []}
-    valid = True
-    for index, chunk in enumerate(chunks):
-        name = f"semantics-{index:03d}.json"
-        encoded = (json.dumps(chunk, indent=2, ensure_ascii=True) + "\n").encode()
-        if len(encoded) > SEMANTIC_SHARD_BYTES:
-            raise ValueError("one semantic vector exceeds the shard ceiling")
-        manifest["shards"].append(
-            {
-                "name": name,
-                "case_count": len(chunk),
-                "sha256": hashlib.sha256(encoded).hexdigest(),
-            }
-        )
-        valid = write_or_check(name, chunk, check) and valid
-    valid = write_or_check("semantics.json", manifest, check) and valid
-    return valid
 
 
 def semantic_input(row: dict[str, Any], limits: SDLParserLimits) -> SemanticDocument:
@@ -469,16 +436,9 @@ def selection(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def argument_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, allow_abbrev=False)
     parser.add_argument("--check", action="store_true")
     mode = parser.add_mutually_exclusive_group()
-    mode.add_argument(
-        "--semantic",
-        action="store_const",
-        dest="mode",
-        const="semantic",
-        help="Record only the targeted semantic and selection vectors.",
-    )
     mode.add_argument(
         "--selection",
         action="store_const",
@@ -518,7 +478,6 @@ def main() -> int:
             parser.error("--output and --case require --corpus")
         recorders = {
             None: record_presentation,
-            "semantic": record_semantics,
             "selection": record_selection,
             "semantic-imports": record_semantic_imports,
         }
@@ -535,12 +494,6 @@ def record_semantic_imports(check: bool) -> bool:
 def record_selection(check: bool) -> bool:
     rows = json.loads((VECTORS / SELECTION_FILE).read_bytes())
     return write_or_check(SELECTION_FILE, selection(rows), check)
-
-
-def record_semantics(check: bool) -> bool:
-    valid = write_semantic_vectors(semantic(read_semantic_vectors()), check)
-    valid = write_or_check("semantics-provenance.json", provenance(), check) and valid
-    return record_selection(check) and valid
 
 
 def record_presentation(check: bool) -> bool:

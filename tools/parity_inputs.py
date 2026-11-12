@@ -23,7 +23,7 @@ if TYPE_CHECKING:
 
 import pytest
 
-from tools.parity_support import ARGUMENTS_FILE, Case, digest, encode, runtime_aliases
+from tools.parity_support import ARGUMENTS_FILE, Case, digest, encode, is_native_semantic_fixture, runtime_aliases
 
 INPUT_PREFIX = "input/"
 
@@ -231,7 +231,10 @@ class InputCollector:
                 self.candidate_input(root)
                 if root.is_dir():
                     roots.append(root)
-                    files.extend(self.directory_inputs(root))
+                    inputs = self.directory_inputs(root)
+                    if option == "--fixtures-root":
+                        inputs = [path for path in inputs if not is_native_semantic_fixture(path, root)]
+                    files.extend(inputs)
         return roots, files
 
     def input_graph(self, pending: list[Path]) -> tuple[dict[Path, bytes], dict[Path, dict[str, str]]]:

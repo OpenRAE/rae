@@ -381,6 +381,38 @@ def test_cli_collector_captures_conformance_directories_and_option_assignments(t
     assert any(directory.endswith("profiles/backend") for directory in setup["directories"])
 
 
+@pytest.mark.parametrize("override", [False, True])
+def test_conformance_capture_excludes_native_semantic_vectors(tmp_path: Path, override: bool) -> None:
+    repo = tmp_path / "repo"
+    fixtures = repo / ("custom-fixtures" if override else "contracts/fixtures")
+    native = fixtures / "sdl/semantic-vectors-v1"
+    payload = fixtures / "sample/valid/input.json"
+    profile = repo / "contracts/profiles/backend/profile.json"
+    for path, content in (
+        (native / "semantics.json", '{"schema":"native"}'),
+        (native / "semantics-000.json", "[]"),
+        (payload, '{"value":1}'),
+        (profile, '{"profile":"retained"}'),
+    ):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content)
+    collector = InputCollector(tmp_path / "capture", repo)
+    collector.nodeid = "tests/test_example.py::test_native_semantic_conformance"
+    arguments = ["conformance", "backend"]
+    if override:
+        arguments.extend(["--fixtures-root", str(fixtures)])
+    collector.cli(arguments, {})
+    record = next(iter(collector.records.values()))
+    assert not any("semantic-vectors-v1" in name for name in record["files"])
+    assert any(name.endswith("sample/valid/input.json") for name in record["files"])
+    assert any(name.endswith("profiles/backend/profile.json") for name in record["files"])
+
+    # Excluding native records must not suppress the existing symlink refusal.
+    (native / "linked.json").symlink_to(payload)
+    with pytest.raises(ValueError, match="symbolic links"):
+        collector.cli(arguments, {})
+
+
 def test_cli_command_identity_follows_command_position_and_root_options() -> None:
     assert InputCollector.command(["semantic", "validate", "runtime", "store", "check"]) == "semantic validate"
     assert (

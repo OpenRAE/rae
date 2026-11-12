@@ -72,6 +72,10 @@ Breaking changes need a new suffix.
 
 ## Contract families
 
+The [SDL semantic vectors](fixtures/sdl/semantic-vectors-v1/README.md) publish reviewed source inputs and expected semantic results.
+Their native Go tests check the inventory and semantic comparisons without a Python recorder.
+The [maintenance guide](../docs/develop/sdl-semantic-fixtures.md) gives direct JSON updates and packaging checks.
+
 Contracts cover processor and backend manifests, participant declarations, live control-plane records, experiments, evidence and provenance.
 Some surfaces do not yet have a published schema.
 The same language-neutral rules apply to each surface.

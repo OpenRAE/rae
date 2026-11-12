@@ -23,6 +23,32 @@ def vector(name: str) -> dict:
     return next(row for row in read_semantic_vectors() if row["name"] == name)
 
 
+def test_published_semantic_expectations_have_no_recorder_mode(recorder) -> None:
+    parser = recorder.argument_parser()
+    with pytest.raises(SystemExit) as failure:
+        parser.parse_args(["--semantic"])
+    assert failure.value.code == 2
+
+
+@pytest.mark.parametrize("sources", [[], [{}]])
+def test_rewrite_recording_cannot_erase_cases(recorder, monkeypatch, tmp_path: Path, sources: list[dict]) -> None:
+    rewrite = importlib.import_module("tools.parity_rewrite_vectors")
+    target = tmp_path / "rewrites.json.gz"
+    target.write_bytes(b"retained rewrite cases")
+    monkeypatch.setattr(rewrite, "DIRECTORY", tmp_path)
+    monkeypatch.setattr(rewrite, "read_semantic_vectors", lambda: sources, raising=False)
+    monkeypatch.setattr("sys.argv", ["parity_rewrite_vectors.py"])
+    with pytest.raises(ValueError, match="must not be empty"):
+        rewrite.main()
+    assert target.read_bytes() == b"retained rewrite cases"
+
+
+def test_rewrite_recording_retains_published_semantic_inputs(recorder, monkeypatch) -> None:
+    rewrite = importlib.import_module("tools.parity_rewrite_vectors")
+    monkeypatch.setattr("sys.argv", ["parity_rewrite_vectors.py", "--check"])
+    assert rewrite.main() == 0
+
+
 @pytest.mark.parametrize(
     "name",
     [

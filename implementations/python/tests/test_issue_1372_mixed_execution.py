@@ -207,14 +207,27 @@ def test_nonidentity_affine_mapping_controls_actual_dispatch(destination, expect
 def test_local_reopen_retains_stages_and_never_reissues_a_consumed_effect(tmp_path, partial):
     from mixed_execution_fixtures import portable_plane
     from raes_runtime.control_plane_store_local import LocalControlPlaneStore
+    from raes_runtime.operation_supervision_configuration import OperationSupervisionConfiguration
 
-    plane, state, roles, _, _ = portable_plane(store=LocalControlPlaneStore(tmp_path / "mixed"))
+    # This test checks persistence and replay, not the observation deadline.
+    # Durable control writes need headroom on concurrent CI workers.
+    supervision = OperationSupervisionConfiguration(observation_ms=10000)
+    plane, state, roles, _, _ = portable_plane(
+        store=LocalControlPlaneStore(tmp_path / "mixed"), supervision=supervision
+    )
     if partial:
         roles["bridge"].execution_status = "partial"
-    receipt = execute(plane)
-    original = plane._store.load_records()[receipt.operation_id].invocation
-    plane.close()
-    reopened, _, roles, _, _ = portable_plane(store=LocalControlPlaneStore(tmp_path / "mixed"), resolver=state.resolver)
+    try:
+        receipt = execute(plane)
+        assert plane.get_operation(receipt.operation_id, identity=identity()).state is (
+            OperationState.INDETERMINATE if partial else OperationState.SUCCEEDED
+        )
+        original = plane._store.load_records()[receipt.operation_id].invocation
+    finally:
+        plane.close()
+    reopened, _, roles, _, _ = portable_plane(
+        store=LocalControlPlaneStore(tmp_path / "mixed"), resolver=state.resolver, supervision=supervision
+    )
     roles["bridge"].refuse = True
     try:
         assert execute(reopened).operation_id == receipt.operation_id
