@@ -191,7 +191,9 @@ def test_closed_runtime_environment_is_refused_inside_a_carrier_that_serializes_
     manager, result = _apply(_closed_excess(wrap))
 
     assert result.success is False
-    refusals = [d for d in result.diagnostics if (d.code, d.address) == ("runtime.backend-contract-invalid", _WEB)]
+    refusals = [
+        d for d in result.diagnostics if (d.code, d.address) == ("runtime.backend-contract-invalid", f"/{_WEB}")
+    ]
     assert [d.message for d in refusals] == [
         "Backend materialized closed realization concern 'runtime-environment'."
     ], result.diagnostics
