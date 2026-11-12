@@ -19,27 +19,24 @@ from enum import Enum
 from typing import Annotated, Any
 
 from pydantic import AfterValidator, Field, ValidationInfo, WithJsonSchema, field_validator, model_validator
-
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import (
-    VARIABLE_REFERENCE_SCHEMA_MARKER,
-    VARIABLE_TOKEN_PATTERN,
-    SDLModel,
-    is_variable_ref,
-    parse_int_or_var,
-)
-from ._classification_guard import LegacyClassificationGuard
-from .runtime_application_values import RuntimeApplicationExposedField
-from .runtime_filesystem import RuntimeSensitivityClassification
-from .runtime_values import (
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import (
+    RuntimeSensitivityClassification,
     coerce_string_list,
     parse_optional_bool_or_var,
     parse_runtime_enum_or_var,
 )
-from .runtime_values import (
-    require_symbol as _require_symbol,
+from raes_contracts.runtime_values import require_symbol as _require_symbol
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import (
+    VARIABLE_REFERENCE_SCHEMA_MARKER,
+    VARIABLE_TOKEN_PATTERN,
+    is_variable_ref,
+    parse_int_or_var,
 )
+
+from ._classification_guard import LegacyClassificationGuard
+from .runtime_application_values import RuntimeApplicationExposedField
 
 __all__ = [
     "RelationshipProxyUpstream",
@@ -376,7 +373,7 @@ class RuntimeApplicationRoute(LegacyClassificationGuard):
         return coerce_string_list(v)
 
     @model_validator(mode="after")
-    def validate_route(self) -> "RuntimeApplicationRoute":
+    def validate_route(self) -> RuntimeApplicationRoute:
         seen_params: set[tuple[str, str]] = set()
         for parameter in self.parameters:
             key = (str(parameter.location), parameter.name)
@@ -430,7 +427,7 @@ class RuntimeApplicationSurface(SDLModel):
         return _url_path_or_var(v, field_name="base_path", allow_empty=True)
 
     @model_validator(mode="after")
-    def validate_surface(self) -> "RuntimeApplicationSurface":
+    def validate_surface(self) -> RuntimeApplicationSurface:
         seen_route_ids: set[str] = set()
         seen_method_paths: set[tuple[str, str]] = set()
         for route in self.routes:

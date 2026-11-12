@@ -17,10 +17,11 @@ class _RuntimeProcessLimitsMixin:
                 if not any(
                     process_resource_limit_subject_matches(process_limit.subject, process) for process in processes
                 ):
-                    self._err(
-                        f"Node '{node_name}' runtime process resource limit subject does not match any process "
-                        "declared in 'runtime.processes'"
-                    )
+                    with self._owner(("nodes", node_name)):
+                        self._err(
+                            f"Node '{node_name}' runtime process resource limit subject does not match any process "
+                            "declared in 'runtime.processes'"
+                        )
 
     @staticmethod
     def _process_resource_limits_for(node: object) -> list[object]:

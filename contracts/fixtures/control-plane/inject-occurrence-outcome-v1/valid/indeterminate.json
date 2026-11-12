@@ -1,0 +1,109 @@
+{
+  "schema_version": "inject-occurrence-outcome/v1",
+  "occurrence": {
+    "contract_id": "inject-occurrence-v1",
+    "artifact_id": "handover-occurrence-1",
+    "digest": "sha256:3c6bf0dade7b33b96e224e6e20cb67679ef5b6cb8f01a3edcfeb16996d06c298"
+  },
+  "response": {
+    "schema_version": "backend-operation-response/v1",
+    "binding": {
+      "operation_id": "operation-handover-1",
+      "invocation_id": "invocation-handover-1",
+      "attempt_id": "attempt-handover-1",
+      "worker_id": "worker-1",
+      "deployment_id": "deployment-1",
+      "owner_generation": 1,
+      "execution_generation": 1,
+      "backend_id": "backend-1",
+      "baseline_revision": "store-revision-41",
+      "context": {
+        "actor_id": "scheduler-1",
+        "authorization_scope": [
+          "role:operator"
+        ],
+        "target_scope": "target:reference",
+        "run_scope": "run:exercise-1",
+        "operation_kind": "orchestration",
+        "request_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "parent_operation_id": null
+      },
+      "effect_scope": {
+        "kind": "resources",
+        "addresses": [
+          "orchestration.inject-binding.workstation.handover"
+        ],
+        "independence": {
+          "contract_id": "runtime-snapshot-v1",
+          "artifact_id": "handover-independence-1",
+          "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        }
+      }
+    },
+    "request_digest": "sha256:c562b899e91aeb6f2ca004acdd9240e7b3a51a912d336bd03c5e91c555857c55",
+    "sequence": 3,
+    "message": {
+      "kind": "outcome",
+      "proposed_state": "indeterminate",
+      "effects": {
+        "effect": "unknown",
+        "cessation_established": false,
+        "evidence_refs": [],
+        "residual_scope": [],
+        "residual_state": null,
+        "external_fence": null
+      },
+      "satisfaction": "unknown",
+      "release_gates_satisfied": false,
+      "cancellation_established": false,
+      "result": null
+    }
+  },
+  "bindings": [
+    {
+      "binding": {
+        "binding": "orchestration.inject-binding.workstation.handover",
+        "node": "provision.node.workstation",
+        "instance": "workstation-1",
+        "revision": "realization-r3"
+      },
+      "effects": {
+        "effect": "complete",
+        "cessation_established": true,
+        "evidence_refs": [
+          {
+            "contract_id": "runtime-snapshot-v1",
+            "artifact_id": "workstation-1-effect-evidence-1",
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        ],
+        "residual_scope": [],
+        "residual_state": null,
+        "external_fence": null
+      },
+      "readback": {
+        "contract_id": "runtime-snapshot-v1",
+        "artifact_id": "workstation-1-readback-1",
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    {
+      "binding": {
+        "binding": "orchestration.inject-binding.workstation.handover",
+        "node": "provision.node.workstation",
+        "instance": "workstation-2",
+        "revision": "realization-r3"
+      },
+      "effects": {
+        "effect": "unknown",
+        "cessation_established": false,
+        "evidence_refs": [],
+        "residual_scope": [],
+        "residual_state": null,
+        "external_fence": null
+      },
+      "readback": null
+    }
+  ],
+  "effect": "indeterminate"
+}

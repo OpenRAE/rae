@@ -19,27 +19,41 @@ absent dependency once the SBOM is published.
 
 from __future__ import annotations
 
+import lzma
+import sys
 import zipfile
+import zlib
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from packaging.markers import Marker
-from packaging.metadata import Metadata
-from packaging.requirements import Requirement
-from packaging.utils import canonicalize_name
-from packaging.version import InvalidVersion, Version
+REPO_ROOT = Path(__file__).resolve().parents[1]
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
 
-from tools.generate_python_closures_locks import locked_closure
+from packaging.markers import Marker  # noqa: E402
+from packaging.metadata import Metadata  # noqa: E402
+from packaging.requirements import Requirement  # noqa: E402
+from packaging.utils import canonicalize_name  # noqa: E402
+from packaging.version import InvalidVersion, Version  # noqa: E402
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError  # noqa: E402
+
+from tools.generate_python_closures_locks import locked_closure  # noqa: E402
 
 # A wheel's METADATA is small; anything larger is malformed or hostile. The
 # bound applies to the decompressed size so a compressed member cannot expand
 # without limit.
 MAX_METADATA_BYTES = 1 * 1024 * 1024
+# The metadata fields that runtime reconciliation and the SBOM subject read.
+_EVIDENCE_METADATA_FIELDS = ("name", "version", "requires_dist", "provides_extra")
+# General purpose flag bit 0 of a zip member: the member is encrypted.
+_ZIP_ENCRYPTED_FLAG = 0x1
 
 
-class RuntimeClosureError(Exception):
+class RuntimeClosureError(EvidenceIntegrityError):
     """A reconciliation failure carrying a stable, publishable failure code."""
 
     def __init__(self, code: str, message: str) -> None:
@@ -93,9 +107,14 @@ def wheel_metadata(wheel_path: Path) -> Metadata:
                     "wheel-metadata-oversized",
                     "wheel metadata exceeds the reviewed size bound",
                 )
+            if member.flag_bits & _ZIP_ENCRYPTED_FLAG:
+                # zipfile refuses an encrypted member with a bare RuntimeError; refuse it here first.
+                raise RuntimeClosureError("wheel-metadata-unreadable", "wheel archive could not be read")
             with archive.open(member) as handle:
                 payload = handle.read(MAX_METADATA_BYTES + 1)
-    except (OSError, zipfile.BadZipFile) as exc:
+    # zipfile reports a damaged archive or member with BadZipFile and OSError, a damaged compressed
+    # stream with zlib.error, LZMAError or EOFError, and an unsupported method with NotImplementedError.
+    except (OSError, zipfile.BadZipFile, zlib.error, lzma.LZMAError, EOFError, NotImplementedError) as exc:
         raise RuntimeClosureError("wheel-metadata-unreadable", "wheel archive could not be read") from exc
     if len(payload) > MAX_METADATA_BYTES:
         raise RuntimeClosureError(
@@ -103,9 +122,14 @@ def wheel_metadata(wheel_path: Path) -> Metadata:
             "wheel metadata exceeds the reviewed size bound",
         )
     try:
-        return Metadata.from_email(payload.decode("utf-8"), validate=False)
+        metadata = Metadata.from_email(payload.decode("utf-8"), validate=False)
+        # A field parses when it is first read, so read here every field that release
+        # evidence uses; a malformed field is then refused here, not at a later read.
+        for field in _EVIDENCE_METADATA_FIELDS:
+            getattr(metadata, field)
     except ValueError as exc:
         raise RuntimeClosureError("wheel-metadata-invalid", "wheel metadata could not be parsed") from exc
+    return metadata
 
 
 def _applies(requirement: Requirement, environment: Mapping[str, str], extra: str | None) -> bool:
@@ -196,7 +220,7 @@ def _resolve(
             include_root_optional=False,
             initial_dependencies=seeds,
         )
-    except ValueError as exc:
+    except InvalidInputError as exc:
         raise RuntimeClosureError(
             "runtime-closure-unlocked-dependency",
             "declared dependency could not be resolved against the reviewed lock",

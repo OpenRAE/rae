@@ -1,0 +1,117 @@
+name: reverse-proxy-api-gateway
+version: 2.0.0
+description: Reusable static infrastructure for Reverse proxy/API gateway. Configures
+  route_prefix through the kit parameter contract.
+module:
+  id: infrastructure/reverse-proxy-api-gateway
+  version: 2.0.0
+  parameters:
+  - deployment_profile
+  - service_label
+  - route_prefix
+  exports:
+    nodes:
+    - gateway
+    content:
+    - seed_inventory
+    accounts:
+    - gateway_operator
+  description: Composable Reverse proxy/API gateway infrastructure module.
+variables:
+  deployment_profile:
+    type: string
+    default: standard
+    allowed_values:
+    - compact
+    - standard
+  service_label:
+    type: string
+    default: reverse-proxy-api-gateway
+  route_prefix:
+    type: string
+    default: /
+    allowed_values:
+    - /
+    - /services
+nodes:
+  gateway:
+    type: compute
+    description: '${deployment_profile} profile for ${service_label} (Reverse proxy/API
+      gateway). Configuration: ${route_prefix}.'
+    source:
+      name: traefik
+      version: '3'
+    resources:
+      cpu: 2
+      ram: 2 GiB
+    services:
+    - port: 80
+      protocol: tcp
+      name: http
+      description: Declared http service surface.
+    - port: 443
+      protocol: tcp
+      name: https
+      description: Declared https service surface.
+    runtime:
+      applications:
+      - application_id: gateway_surface
+        service: http
+        protocol: http
+        name: Gateway surface
+        routes:
+        - route_id: primary
+          path: ${route_prefix}
+          methods:
+          - GET
+          responses:
+          - status_code: 200
+            description: Declared primary response.
+        - route_id: health
+          path: /health
+          methods:
+          - GET
+          responses:
+          - status_code: 200
+            description: Declared health response.
+content:
+  seed_inventory:
+    type: dataset
+    target: gateway
+    description: Benign infrastructure seed inventory for ${route_prefix}.
+    items:
+    - name: listener_routes
+      display_name: Listener Routes
+      tags:
+      - infrastructure
+      - seed
+      description: Declared listener routes for this reusable service.
+    - name: upstream_bindings
+      display_name: Upstream Bindings
+      tags:
+      - infrastructure
+      - seed
+      description: Declared upstream bindings for this reusable service.
+    - name: tls_termination
+      display_name: Tls Termination
+      tags:
+      - infrastructure
+      - seed
+      description: Declared tls termination for this reusable service.
+    - name: request_limits
+      display_name: Request Limits
+      tags:
+      - infrastructure
+      - seed
+      description: Declared request limits for this reusable service.
+accounts:
+  gateway_operator:
+    username: gateway-operator
+    node: gateway
+    password_strength: strong
+    description: Declared environment account; credential delivery remains backend-owned.
+realization:
+  constraints:
+  - field_pointer: /nodes/gateway
+    concern: compute-substrate
+    posture: open

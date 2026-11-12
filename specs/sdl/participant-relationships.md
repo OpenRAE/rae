@@ -1,4 +1,4 @@
-# Participant Relationships
+# Participant relationships
 
 Status: normative. Requirement: ACT-612. This specification extends the existing
 SDL `relationships` graph under ADR-020/022/052/067 and the sparse-description
@@ -109,15 +109,12 @@ relationship was realized.
 
 ## Reference implementation evidence
 
-The Python reference implementation checks shape in `Relationship` and
-`ParticipantRelationship`, and semantic agreement in `SemanticValidator`.
-Compilation preserves declarations in the existing `RuntimeModel.relationship_specs`
-metadata. Those dictionaries are not executable authority or a second runtime
+The reference implementation checks relationship shape and semantic agreement.
+Compilation preserves declarations in the runtime model's relationship metadata. Those dictionaries are not executable authority or a second runtime
 graph. No new scheduler, control API, occurrence family or persistence store is
 introduced by this contract.
 
-The `test_act_612_participant_relationships.py` and
-`test_act_612_relationship_integration.py` suites exercise sparse declarations,
+The reference conformance checks exercise sparse declarations,
 selected refinements, rejection boundaries, composition, instantiation,
 compilation and schema shape. They establish declarative support, not a claim
 of realized cooperation, fair competition or successful control transfer.

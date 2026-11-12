@@ -1,10 +1,5 @@
 {
   "contract_id": "workflow-result-envelope-v1",
   "schema_path": "contracts/schemas/control-plane/workflow-result-envelope-v1.json",
-  "stability": "draft",
-  "content_hash": "b4f5e3de5c333cf96fdb7c44eb65c3d757e4d05b4dcc456b2c24d21adf572569",
-  "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "b4f5e3de5c333cf96fdb7c44eb65c3d757e4d05b4dcc456b2c24d21adf572569"
-  }
+  "stability": "draft"
 }

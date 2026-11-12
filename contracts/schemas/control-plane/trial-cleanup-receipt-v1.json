@@ -207,7 +207,7 @@
   "type": "object",
   "x-raes-invariants": [
     {
-      "description": "A cleanup receipt keeps attempt identity distinct, reports cleanup independently from trial outcome, covers every triggered required obligation, and permits clean-state claims only after verified success.",
+      "description": "A cleanup receipt keeps attempt identity distinct, reports cleanup independently from trial outcome, reports an attempted result for every required obligation owed by the terminal trigger, keeps results consistent with obligation triggers, requires successful required results when cleanup succeeded, and permits clean-state claims only after verified success.",
       "id": "trial-cleanup-receipt-binds-plan-and-required-outcomes",
       "inputs": [
         {

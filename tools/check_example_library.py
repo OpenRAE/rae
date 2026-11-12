@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ruff: noqa: E402, I001
-"""Structural and SDL-validation gate for the AUT-806 example library."""
+"""Structural, SDL, and experiment authoring-input validation gate for the AUT-806 example library."""
 
 from __future__ import annotations
 
@@ -11,12 +11,29 @@ from pathlib import Path
 from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
 
 import yaml
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.operational_logging import run_application
 
-from tools.policy.common import PolicyFailure, apply_exceptions, failures_to_json, load_exceptions
+from tools.example_library_checks import (
+    check_entry_metadata,
+    check_template_body,
+    check_template_validation,
+    check_worked_example_file,
+    load_template_file,
+)
+from tools.policy.common import (
+    YAML_CONTENT_FAILURES,
+    PolicyFailure,
+    apply_exceptions,
+    failures_to_json,
+    load_exceptions,
+)
 
 CATALOG_RELATIVE_PATH = "examples/library/catalog.yaml"
 LIBRARY_VALUE = "raes-example-pattern-library"
@@ -56,6 +73,7 @@ REQUIRED_TEMPLATE_FIELDS: tuple[str, ...] = (
     "requirement_refs",
     "source_refs",
     "summary",
+    "validation",
     "body",
 )
 REQUIRED_PATTERN_FIELDS: tuple[str, ...] = (
@@ -91,14 +109,11 @@ def _load_yaml_file(path: Path, relative_path: str) -> tuple[dict[str, Any] | No
         raw = yaml.safe_load(path.read_text(encoding="utf-8"))
     except yaml.YAMLError as exc:
         return None, [_fail("example-library-parse", f"failed to parse {relative_path}: {exc}", relative_path)]
+    except YAML_CONTENT_FAILURES:
+        return None, [_fail("example-library-parse", f"failed to parse {relative_path}", relative_path)]
     if not isinstance(raw, dict):
-        return None, [
-            _fail(
-                "example-library-shape",
-                f"{relative_path} must be a YAML mapping at the top level",
-                relative_path,
-            )
-        ]
+        message = f"{relative_path} must be a YAML mapping at the top level"
+        return None, [_fail("example-library-shape", message, relative_path)]
     return raw, []
 
 
@@ -256,6 +271,7 @@ def _check_reference_entry(
             )
 
     failures.extend(_check_unique_id(entry.get("id"), f"surfaces.{surface}.{field}[{index}]", seen_ids))
+    failures.extend(check_entry_metadata(field, entry, f"surfaces.{surface}.{field}[{index}]", surface=surface))
     absolute, relative, path_failure = _repo_relative_path(
         entry.get("path"),
         repo_root=repo_root,
@@ -263,8 +279,8 @@ def _check_reference_entry(
     )
     if path_failure is not None:
         failures.append(path_failure)
-    elif absolute is not None and relative is not None and not absolute.is_file():
-        failures.append(_fail("example-library-path-missing", f"referenced path does not exist: {relative}", relative))
+    elif absolute is not None and relative is not None:
+        failures.extend(check_worked_example_file(absolute, relative, entry))
 
     if "source_refs" in entry and _str_list(entry["source_refs"]) is None:
         failures.append(
@@ -305,6 +321,7 @@ def _check_artifact_entries(
                 )
         entry_id = entry.get("id")
         failures.extend(_check_unique_id(entry_id, f"surfaces.{surface}.{field}[{index}]", seen_ids))
+        failures.extend(check_entry_metadata(field, entry, f"surfaces.{surface}.{field}[{index}]", surface=surface))
         absolute, relative, path_failure = _repo_relative_path(
             entry.get("path"),
             repo_root=repo_root,
@@ -321,7 +338,7 @@ def _check_artifact_entries(
             )
             continue
         if artifact_kind == "template":
-            failures.extend(_check_template_file(absolute, relative, surface=surface, catalog_id=entry_id))
+            failures.extend(_check_template_file(absolute, relative, surface=surface, entry=entry))
         else:
             failures.extend(_check_pattern_file(absolute, relative, surface=surface, catalog_id=entry_id))
     return failures
@@ -336,10 +353,11 @@ def _check_unique_id(value: Any, owner: str, seen_ids: set[str]) -> list[PolicyF
     return []
 
 
-def _check_template_file(path: Path, relative_path: str, *, surface: str, catalog_id: Any) -> list[PolicyFailure]:
-    raw, failures = _load_yaml_file(path, relative_path)
+def _check_template_file(path: Path, relative_path: str, *, surface: str, entry: dict[str, Any]) -> list[PolicyFailure]:
+    raw, failures = load_template_file(path, relative_path, entry.get("contract"))
     if raw is None:
         return failures
+    catalog_id = entry.get("id")
     failures.extend(_check_artifact_common(raw, relative_path, surface=surface, catalog_id=catalog_id, kind="template"))
 
     if "template" in raw and raw["template"] != TEMPLATE_VALUE:
@@ -349,12 +367,13 @@ def _check_template_file(path: Path, relative_path: str, *, surface: str, catalo
             failures.append(
                 _fail("example-library-template-field", f"missing required template field: {field}", relative_path)
             )
+    failures.extend(check_template_validation(raw, relative_path))
 
     body = raw.get("body")
     if not isinstance(body, dict):
         failures.append(_fail("example-library-template-body", "template body must be a mapping", relative_path))
         return failures
-    failures.extend(_check_template_body(body, relative_path))
+    failures.extend(check_template_body(entry, body, relative_path))
     return failures
 
 
@@ -426,27 +445,6 @@ def _check_artifact_common(
     return failures
 
 
-def _check_template_body(body: dict[str, Any], relative_path: str) -> list[PolicyFailure]:
-    try:
-        from raes import parse_sdl
-    except ImportError as exc:  # pragma: no cover - policy runs inside the project environment
-        return [_fail("example-library-template-import", f"could not import raes: {exc}", relative_path)]
-
-    try:
-        scenario = parse_sdl(yaml.safe_dump(body, sort_keys=False))
-    except Exception as exc:  # noqa: BLE001 - render parser/validator failures as policy failures
-        return [_fail("example-library-template-body", f"template body is not valid SDL: {exc}", relative_path)]
-    if scenario.advisories:
-        return [
-            _fail(
-                "example-library-template-advisory",
-                "template body produced advisories: " + "; ".join(scenario.advisories),
-                relative_path,
-            )
-        ]
-    return []
-
-
 def evaluate_example_library(repo_root: Path = REPO_ROOT) -> list[PolicyFailure]:
     raw, failures = _load_yaml_file(repo_root / CATALOG_RELATIVE_PATH, CATALOG_RELATIVE_PATH)
     if raw is None:
@@ -468,12 +466,21 @@ def parse_args(argv: Iterable[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(list(argv) if argv is not None else None)
 
 
+def _evaluate(repo_root: Path) -> list[PolicyFailure]:
+    failures = evaluate_example_library(repo_root)
+    exceptions_file = repo_root / "tools" / "policy" / "exceptions.yaml"
+    if exceptions_file.is_file():
+        failures = apply_exceptions(failures, load_exceptions(repo_root))
+    return failures
+
+
 def main(argv: Iterable[str] | None = None) -> int:
     args = parse_args(argv)
-    failures = evaluate_example_library(args.repo_root)
-    exceptions_file = args.repo_root / "tools" / "policy" / "exceptions.yaml"
-    if exceptions_file.is_file():
-        failures = apply_exceptions(failures, load_exceptions(args.repo_root))
+    try:
+        failures = _evaluate(args.repo_root)
+    except (OSError, UnicodeDecodeError, yaml.YAMLError, InvalidInputError) as exc:
+        print(f"example-library: {exc}", file=sys.stderr)
+        return 1
     if failures:
         if args.json:
             print(failures_to_json(failures))
@@ -485,4 +492,4 @@ def main(argv: Iterable[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

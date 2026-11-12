@@ -261,6 +261,7 @@ def test_manual_ingress_cannot_bypass_bound_temporal_execution(claims: str) -> N
                 ),
             ),
         )
+    manager.close()
     control = RuntimeControlPlane(target, initial_snapshot=result.snapshot)
     try:
         participant = plan.model.participant_behaviors[request.participant_address]

@@ -2,20 +2,14 @@
 
 from __future__ import annotations
 
-import hashlib
-import json
 from dataclasses import asdict
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
 from raes_contracts.contracts.participant_execution import ParticipantExecutionServiceStateModel
 from raes_contracts.contracts.participant_resource_budgets import participant_resource_budget_state_ref
+from raes_contracts.json_serialization import sorted_json_digest
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.models import CompiledTimeModel, ParticipantAutonomousExecutionRuntime
-
-
-def _payload_digest(payload: object) -> str:
-    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
-    return "sha256:" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
 def execution_service_state(
@@ -53,8 +47,8 @@ def execution_service_state(
         quiescent=True,
         resources_released=False,
         policy_digest=policy_digest,
-        binding_digest=_payload_digest(tuple(asdict(binding) for binding in policy.execution_bindings)),
-        time_declaration_digest=_payload_digest(
+        binding_digest=sorted_json_digest(tuple(asdict(binding) for binding in policy.execution_bindings)),
+        time_declaration_digest=sorted_json_digest(
             {
                 "clock": asdict(clock),
                 "progression": asdict(progression),

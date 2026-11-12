@@ -7,19 +7,15 @@ import stat
 import tarfile
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
-from typing import Any, Protocol, cast
+from typing import Any
+
+from raes_contracts.errors import OperationalError
 
 from .._errors import SDLParseError
 from ._cache_integrity import _CACHE_TREE_MANIFEST_NAME
 from ._filesystem import _same_file_identity
 
 _HTTP_TIMEOUT_SECONDS = 30
-
-
-class _DataFilterTarFile(Protocol):
-    """Python 3.11.4+ tar extraction surface with the security filter backport."""
-
-    def extractall(self, path: Path, members: list[tarfile.TarInfo], *, filter: str) -> None: ...
 
 
 @dataclass(frozen=True)
@@ -115,18 +111,18 @@ def _normalize_extracted_directory_modes(root: Path, entries: list[dict[str, Any
         try:
             before = path.lstat()
             if not stat.S_ISDIR(before.st_mode):
-                raise SDLParseError("OCI cache directory mode normalization found a non-directory entry")
+                raise OperationalError("OCI cache directory mode normalization found a non-directory entry")
             if os.name != "nt":
                 os.chmod(path, entry["mode"], follow_symlinks=False)
             after = path.lstat()
         except (NotImplementedError, OSError, TypeError) as exc:
-            raise SDLParseError("Unable to normalize OCI cache directory permissions") from exc
+            raise OperationalError("Unable to normalize OCI cache directory permissions") from exc
         if (
             not stat.S_ISDIR(after.st_mode)
             or not _same_file_identity(before, after)
             or stat.S_IMODE(after.st_mode) != entry["mode"]
         ):
-            raise SDLParseError("OCI cache directory permissions changed during normalization")
+            raise OperationalError("OCI cache directory permissions changed during normalization")
 
 
 def _extract_tar_to_stage(
@@ -136,10 +132,7 @@ def _extract_tar_to_stage(
     staging: Path,
     expected_entries: list[dict[str, Any]],
 ) -> None:
-    try:
-        cast(_DataFilterTarFile, tar).extractall(staging, members=members, filter="data")
-    except TypeError as exc:
-        raise SDLParseError("Safe OCI tar extraction requires Python 3.11.4 or newer") from exc
+    tar.extractall(staging, members=members, filter="data")  # NOSONAR - TarFile.extractall accepts filter (PEP 706)
     _normalize_extracted_directory_modes(staging, expected_entries)
 
 

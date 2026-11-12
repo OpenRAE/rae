@@ -1,0 +1,13 @@
+{
+  "schema_version": "backend-operation-capabilities/v1",
+  "backend_id": "route:portable",
+  "revision": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+  "supported_operation_kinds": [
+    "participant-crossing"
+  ],
+  "guarantees": [
+    "effect-observation",
+    "cessation-evidence",
+    "partial-effects"
+  ]
+}

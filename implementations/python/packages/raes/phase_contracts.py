@@ -7,23 +7,19 @@ from collections.abc import Hashable, Iterable
 from enum import Enum
 from typing import Annotated, Literal
 
-from pydantic import ConfigDict, Field, JsonValue, SerializerFunctionWrapHandler, model_serializer, model_validator
+from pydantic import Field, JsonValue, SerializerFunctionWrapHandler, model_serializer, model_validator
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
+from raes_contracts.identifiers import PortableIdentifier, QualifiedName, require_module_identifier
+from raes_contracts.json_pointer import unescape_token
 
-from ._base import SDLModel
-from ._identifiers import PortableIdentifier, QualifiedName, require_module_identifier
-from .explicitness import ExplicitnessClass, ExplicitnessProvenance
+from ._phase_base import JSON_POINTER_RE as _JSON_POINTER_RE
+from ._phase_base import FrozenPhaseModel, JSONScalar
+from ._phase_base import json_value_equal as _json_value_equal
+from .parameter_derivations import ParameterDerivation
 from .realization_designation import RealizationConstraintRecord, RealizationDesignationRecord
 
 _DIGEST_PATTERN = r"^sha256:[a-f0-9]{64}$"
-_JSON_POINTER_RE = re.compile(r"^(?:/(?:[^~/]|~[01])*)*$")
-JSONScalar = str | int | float | bool
-
-
-class FrozenPhaseModel(SDLModel):
-    """Closed immutable value object used inside portable phase artifacts."""
-
-    model_config = ConfigDict(extra="forbid", frozen=True, allow_inf_nan=False)
 
 
 class SemanticDigest(FrozenPhaseModel):
@@ -189,7 +185,7 @@ class CapabilityConstraint(FrozenPhaseModel):
                 "/infrastructure/<id>/count, or "
                 "a concrete scalar below /nodes/<id>/runtime"
             )
-        declaration = parts[2].replace("~1", "/").replace("~0", "~")
+        declaration = unescape_token(parts[2])
         QualifiedName.parse(declaration)
         for index, value in enumerate(self.allowed_values):
             if any(_json_value_equal(value, prior) for prior in self.allowed_values[:index]):
@@ -218,6 +214,7 @@ class ExpansionProvenance(FrozenPhaseModel):
 
     imports: tuple[ResolvedImportProvenance, ...] = ()
     capability_constraints: tuple[CapabilityConstraint, ...] = ()
+    parameter_derivations: tuple[ParameterDerivation, ...] = Field(default=(), exclude_if=lambda value: not value)
     explicitness: tuple[ExplicitnessProvenanceRecord, ...] = ()
     realization_designations: tuple[RealizationDesignationRecord, ...] = ()
     realization_constraints: tuple[RealizationConstraintRecord, ...] = ()
@@ -227,6 +224,7 @@ class ExpansionProvenance(FrozenPhaseModel):
         _validate_derivation_collections(
             imports=self.imports,
             constraints=self.capability_constraints,
+            derivations=self.parameter_derivations,
             explicitness=self.explicitness,
             realization_designations=self.realization_designations,
             realization_constraints=self.realization_constraints,
@@ -242,6 +240,7 @@ class InstantiationProvenance(FrozenPhaseModel):
     bindings: tuple[ParameterBinding, ...] = ()
     imports: tuple[ResolvedImportProvenance, ...] = ()
     capability_constraints: tuple[CapabilityConstraint, ...] = ()
+    parameter_derivations: tuple[ParameterDerivation, ...] = Field(default=(), exclude_if=lambda value: not value)
     explicitness: tuple[ExplicitnessProvenanceRecord, ...] = ()
     realization_designations: tuple[RealizationDesignationRecord, ...] = ()
     realization_constraints: tuple[RealizationConstraintRecord, ...] = ()
@@ -264,6 +263,7 @@ class InstantiationProvenance(FrozenPhaseModel):
         _validate_derivation_collections(
             imports=self.imports,
             constraints=self.capability_constraints,
+            derivations=self.parameter_derivations,
             explicitness=self.explicitness,
             realization_designations=self.realization_designations,
             realization_constraints=self.realization_constraints,
@@ -282,6 +282,7 @@ def _validate_derivation_collections(
     *,
     imports: tuple[ResolvedImportProvenance, ...],
     constraints: tuple[CapabilityConstraint, ...],
+    derivations: tuple[ParameterDerivation, ...],
     explicitness: tuple[ExplicitnessProvenanceRecord, ...],
     realization_designations: tuple[RealizationDesignationRecord, ...],
     realization_constraints: tuple[RealizationConstraintRecord, ...],
@@ -292,7 +293,7 @@ def _validate_derivation_collections(
         "resolved imports must have unique namespace paths",
     )
     _require_unique(
-        (constraint.field_pointer for constraint in constraints),
+        (constraint.field_pointer for constraint in (*constraints, *derivations)),
         "capability constraints must address unique concrete fields",
     )
     _require_unique(
@@ -310,6 +311,8 @@ def _validate_derivation_collections(
 
     binding_values = _binding_environment(imports, root_bindings)
     _validate_constraint_bindings(constraints, binding_values)
+    for derivation in derivations:
+        derivation.resolve(binding_values)
     _validate_explicitness_bindings(explicitness, binding_values)
 
 
@@ -358,16 +361,6 @@ def _validate_explicitness_bindings(
         unknown = [identity for identity in record.parameters if identity not in binding_values]
         if unknown:
             raise ValueError("explicitness record references an unresolved parameter identity")
-
-
-def _json_value_equal(left: JSONScalar, right: JSONScalar) -> bool:
-    """Compare scalar JSON values without Python's ``True == 1`` collapse."""
-
-    if isinstance(left, bool) or isinstance(right, bool):
-        return isinstance(left, bool) and isinstance(right, bool) and left == right
-    if isinstance(left, (int, float)) and isinstance(right, (int, float)):
-        return left == right
-    return type(left) is type(right) and left == right
 
 
 def _json_domain_equal(

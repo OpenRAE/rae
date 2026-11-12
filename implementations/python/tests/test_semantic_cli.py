@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 
 import pytest
 from paths import REPO_ROOT
 from raes_cli.main import app
+from raes_contracts.errors import InvalidInputError
 from typer.testing import CliRunner
 
 _SDL = """\
@@ -348,6 +350,81 @@ def test_unexpected_failure_is_sanitized_and_uses_exit_seventy(
     assert result.exit_code == 70
     assert "SECRET-MARKER" not in result.output
     assert json.loads(result.stdout)["status"] == "internal"
+
+
+def test_unexpected_failure_is_logged_once_without_values(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    source = _write_sdl(tmp_path)
+
+    def _unexpected(*args: object, **kwargs: object) -> None:
+        del args, kwargs
+        raise RuntimeError("SECRET-MARKER")
+
+    monkeypatch.setattr("raes_cli._semantic_sdl.parse_sdl", _unexpected)
+    with caplog.at_level(logging.ERROR, logger="raes_cli"):
+        result = CliRunner().invoke(app, ["semantic", "validate", str(source), "--output", "json"])
+
+    assert result.exit_code == 70
+    records = [record for record in caplog.records if record.name == "raes_cli.semantic"]
+    assert len(records) == 1
+    assert "SECRET-MARKER" not in records[0].getMessage()
+    assert "SECRET-MARKER" not in (records[0].exc_text or "")
+    assert "RuntimeError" in (records[0].exc_text or "")
+
+
+def test_compiler_refusal_is_invalid_input_without_values(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    source = _write_sdl(tmp_path)
+
+    def _refuse(*args: object, **kwargs: object) -> None:
+        del args, kwargs
+        raise InvalidInputError("observation scope does not resolve: SECRET-MARKER")
+
+    monkeypatch.setattr("raes_cli._semantic_sdl.compile_scenario_runtime_model", _refuse)
+    with caplog.at_level(logging.ERROR, logger="raes_cli"):
+        result = CliRunner().invoke(app, ["semantic", "compile", str(source), "--output", "json"])
+
+    assert result.exit_code == 1
+    payload = json.loads(result.stdout)
+    assert payload["status"] == "invalid"
+    assert [item["code"] for item in payload["diagnostics"]] == ["sdl.compile"]
+    assert "SECRET-MARKER" not in result.output
+    assert not [record for record in caplog.records if record.name.startswith("raes_cli")]
+
+
+def test_oversized_input_uses_exit_four(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    source = _write_sdl(tmp_path)
+    monkeypatch.setattr("raes_cli.semantic._SDL_MAX_BYTES", 8)
+
+    result = CliRunner().invoke(app, ["semantic", "validate", str(source), "--output", "json"])
+
+    assert result.exit_code == 4
+    assert json.loads(result.stdout)["status"] == "operational"
+
+
+def test_module_import_is_rejected_offline_as_invalid_input(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    source = tmp_path / "imports.sdl.yaml"
+    source.write_text(
+        "name: imports\nimports:\n  - source: oci://registry.example/acme/shared\n"
+        "    version: 1.0.0\n    namespace: shared\n",
+        encoding="utf-8",
+    )
+
+    def _network_forbidden(*args: object, **kwargs: object) -> None:
+        del args, kwargs
+        raise AssertionError("semantic CLI attempted network access")
+
+    monkeypatch.setattr("socket.create_connection", _network_forbidden)
+    result = CliRunner().invoke(app, ["semantic", "validate", str(source), "--output", "json"])
+
+    assert result.exit_code == 1
+    assert json.loads(result.stdout)["status"] == "invalid"
 
 
 def test_effective_migration_profile_is_explicit_in_result(tmp_path: Path) -> None:

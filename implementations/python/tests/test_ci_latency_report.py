@@ -6,6 +6,7 @@ import io
 import json
 
 import pytest
+from raes_contracts.errors import InvalidInputError
 from tools.ci_latency_report import RunTiming, load_cohort, main, parse_run, percentile, summarize
 
 
@@ -51,6 +52,56 @@ def test_parse_run_ignores_negative_and_missing_timestamps() -> None:
     assert timing.final_required_completion_s is None
 
 
+# Run 38071594250 (CI, pull_request) as GitHub returns its third attempt: created_at is
+# kept from attempt 1 while run_started_at is reset for attempt 3.
+_RERUN = {
+    "id": 38071594250,
+    "run_attempt": 3,
+    "created_at": "2026-10-10T17:24:19Z",
+    "run_started_at": "2026-10-11T07:17:05Z",
+}
+_RERUN_JOBS = [
+    # Not repeated by the partial re-run, so attempt 3 lists it with attempt 1's timestamps.
+    _job("fast-feedback", "2026-10-10T17:25:09Z", "success"),
+    _job("verify", "2026-10-11T07:20:01Z", "success"),
+    _job("sonar", "2026-10-11T07:20:02Z", "success"),
+]
+
+
+def test_parse_run_treats_a_missing_run_attempt_as_a_first_attempt() -> None:
+    run = {"id": 4, "created_at": "2026-09-16T00:00:00Z", "run_started_at": "2026-09-16T00:01:00Z"}
+    jobs = [_job("verify", "2026-09-16T00:05:00Z", "success")]
+    timing = parse_run(run, jobs, ("verify", "sonar"))
+    assert timing.run_attempt == 1
+    assert timing.queue_s == 60.0
+    assert parse_run({**run, "run_attempt": 1}, jobs, ("verify", "sonar")) == timing
+
+
+def test_parse_run_does_not_count_the_wait_before_a_rerun_as_queue_time() -> None:
+    timing = parse_run(_RERUN, _RERUN_JOBS, ("verify", "sonar"))
+    assert timing.queue_s is None
+    assert timing.run_attempt == 3
+    # Timed from the attempt's own start; the carried-over fast-feedback job is ignored.
+    assert timing.execution_s == 177.0
+    assert timing.final_required_completion_s == 177.0
+
+
+def test_parse_run_does_not_time_a_rerun_from_its_first_attempt() -> None:
+    run = {key: value for key, value in _RERUN.items() if key != "run_started_at"}
+    timing = parse_run(run, _RERUN_JOBS, ("verify", "sonar"))
+    assert timing.queue_s is None
+    assert timing.execution_s is None
+    assert timing.final_required_completion_s is None
+
+
+@pytest.mark.parametrize("run_attempt", [0, -1, "3", True])
+def test_parse_run_gives_an_invalid_run_attempt_no_queue_time(run_attempt: object) -> None:
+    timing = parse_run({**_RERUN, "run_attempt": run_attempt}, _RERUN_JOBS, ("verify", "sonar"))
+    assert timing.queue_s is None
+    assert timing.run_attempt == 0
+    assert timing.execution_s == 177.0
+
+
 def test_percentile_interpolates() -> None:
     assert percentile([], 0.5) is None
     assert percentile([7.0], 0.95) == 7.0
@@ -88,12 +139,28 @@ def test_load_cohort_parses_entries_and_fails_closed() -> None:
     assert len(timings) == 1
     assert timings[0].queue_s == 30.0
 
-    with pytest.raises(ValueError, match="JSON array"):
+    with pytest.raises(InvalidInputError, match="JSON array"):
         load_cohort({"run": {}}, ("verify",))
-    with pytest.raises(ValueError, match="'run' object"):
+    with pytest.raises(InvalidInputError, match="'run' object"):
         load_cohort([{"jobs": []}], ("verify",))
-    with pytest.raises(ValueError, match="'jobs' must be"):
+    with pytest.raises(InvalidInputError, match="'jobs' must be"):
         load_cohort([{"run": {"id": 1}, "jobs": {}}], ("verify",))
+
+
+@pytest.mark.parametrize(
+    ("stdin", "message"),
+    [
+        ('{"run": {}}', "ci-latency-report: cohort payload must be a JSON array of {run, jobs} entries\n"),
+        ("[not json secret-sentinel", "ci-latency-report: cohort payload on stdin is not valid JSON\n"),
+    ],
+)
+def test_main_reports_an_invalid_cohort_as_a_message(
+    capsys: pytest.CaptureFixture[str], stdin: str, message: str
+) -> None:
+    assert main([], stdin=io.StringIO(stdin)) == 1
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert captured.err == message
 
 
 def test_main_reads_stdin_and_prints_summary(capsys: pytest.CaptureFixture[str]) -> None:
@@ -121,3 +188,17 @@ def test_main_defaults_required_checks(capsys: pytest.CaptureFixture[str]) -> No
     assert main([], stdin=io.StringIO(json.dumps(payload))) == 0
     report = json.loads(capsys.readouterr().out)
     assert report["runs"] == 1
+
+
+def test_main_counts_rerun_attempts_outside_queue_time(capsys: pytest.CaptureFixture[str]) -> None:
+    first = {"id": 1, "run_attempt": 1, "created_at": "2026-09-16T00:00:00Z", "run_started_at": "2026-09-16T00:01:00Z"}
+    payload = [
+        {"run": first, "jobs": [_job("sonar", "2026-09-16T00:06:00Z", "success")]},
+        {"run": _RERUN, "jobs": _RERUN_JOBS},
+    ]
+    assert main([], stdin=io.StringIO(json.dumps(payload))) == 0
+    report = json.loads(capsys.readouterr().out)
+    assert report["runs"] == 2
+    assert report["rerun_attempts"] == 1
+    assert report["queue_seconds"] == {"count": 1, "median": 60.0, "p95": 60.0}
+    assert report["final_required_completion_seconds"]["count"] == 2

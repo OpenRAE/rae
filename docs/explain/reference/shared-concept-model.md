@@ -294,7 +294,7 @@ The initial machine-readable profile is
   envelopes
 - processing assumptions for the reference processor contract and binding
   surfaces
-- execution assumptions for the reference backend contract and binding
+- execution assumptions for the backend protocol contract and binding
   surfaces
 
 ## Shared Reference Models (GOV-921)

@@ -6,7 +6,7 @@ type: FUNCTIONAL
 priority: MUST
 wave: 1
 created_at: 2026-04-03T05:40:04.988670Z
-updated_at: 2026-09-25T00:00:00.000000Z
+updated_at: 2026-10-21T00:00:00Z
 ---
 
 # API-402 — Plain-Data Execution, Result, And History Contracts
@@ -56,4 +56,11 @@ Current state: implemented. Portable live-execution contracts are required so in
 - IMPLEMENTS → CONFIG `tools/policy/requirement_order.yaml` (Existing live-contract requirement admitted through control-plane governance)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/_backend_operation_exports.py` (Public operation contract facade exports)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_backend_stubs/manifest.py` (Keep operation supervision opt-in; legacy stub does not advertise an unimplemented provider)
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_reference_backend/manifest.py` (Keep operation supervision opt-in for reference emulation)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/backend-operation-capabilities-v1.json` (backend-operation-capabilities-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/backend-operation-control-v1.json` (backend-operation-control-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/backend-operation-request-v1.json` (backend-operation-request-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/backend-operation-response-v1.json` (backend-operation-response-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/evaluation-history-event-stream-v1.json` (evaluation-history-event-stream-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/evaluation-result-envelope-v1.json` (evaluation-result-envelope-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/workflow-history-event-stream-v1.json` (workflow-history-event-stream-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/workflow-result-envelope-v1.json` (workflow-result-envelope-v1 published schema)

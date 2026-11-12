@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import asdict
 
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingDirection,
     ParticipantCrossingInteractionKind,
@@ -11,7 +12,7 @@ from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingSubjectKind,
     ParticipantCrossingSubjectReferenceModel,
 )
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
+from raes_contracts.errors import AuthorizationError, ConflictError
 from raes_processor.models import ParticipantBehaviorRuntime
 
 from .control_plane_security import ControlPlaneIdentity
@@ -37,6 +38,8 @@ def action_crossing_intent(
     request: ParticipantActionAdmissionRequest,
     evidence: ParticipantCrossingEvidence,
     identity: ControlPlaneIdentity,
+    *,
+    effective_order: int | None = None,
 ) -> ParticipantCrossingIntent:
     """Build the canonical ingress crossing for one participant action."""
 
@@ -47,7 +50,7 @@ def action_crossing_intent(
         if binding.participant_address == request.participant_address
     }
     if len(controller_refs) > 1:
-        raise PermissionError("participant action requires one exact controller binding")
+        raise AuthorizationError("participant action requires one exact controller binding")
     controller_ref = next(iter(controller_refs), "runtime.unbound-participant-controller")
     interaction = (
         ParticipantCrossingInteractionKind.CANDIDATE_SELECTION
@@ -56,7 +59,7 @@ def action_crossing_intent(
     )
     authority_basis_refs = tuple(behavior.authority_anchor_addresses or behavior.authority_anchor_refs)
     if not authority_basis_refs:
-        raise ValueError("participant action crossing requires compiled authority anchors")
+        raise ConflictError("participant action crossing requires compiled authority anchors")
     return ParticipantCrossingIntent.model_validate(
         {
             **evidence.model_dump(mode="json"),
@@ -69,7 +72,9 @@ def action_crossing_intent(
             "authority_basis_refs": list(authority_basis_refs),
             "requested_operation": ParticipantCrossingOperation.ADMISSION,
             "action_or_projection_ref": request.action_contract_address,
-            "effective_order": _next_effective_order(control_plane, request.participant_address),
+            "effective_order": effective_order
+            if effective_order is not None
+            else _next_effective_order(control_plane, request.participant_address),
             "order_model": "logical_clock",
         },
     )
@@ -112,7 +117,9 @@ def control_subject(
 
     return ParticipantCrossingSubjectReferenceModel(
         subject_kind=ParticipantCrossingSubjectKind.PARTICIPANT_CONTROL_OCCURRENCE,
-        contract_id="participant-control-intent-v1",
+        contract_id="participant-control-intent-v2"
+        if intent.application is not None
+        else "participant-control-intent-v1",
         subject_ref=f"participant-control-intent:{participant_address}:{intent.client_correlation_id}",
         subject_digest=_digest(intent.model_dump(mode="json")),
         participant_address=participant_address,
@@ -145,7 +152,7 @@ def _action_episode_id(control_plane: object, request: ParticipantActionAdmissio
     state = control_plane._snapshot.participant_episode_results.get(request.participant_address, {})
     value = state.get("episode_id")
     if not isinstance(value, str) or not value:
-        raise ValueError("participant action crossing requires an active episode identity")
+        raise ConflictError("participant action crossing requires an active episode identity")
     return value
 
 

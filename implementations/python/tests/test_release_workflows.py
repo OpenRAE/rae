@@ -19,9 +19,6 @@ CANONICAL_PATH = WORKFLOWS / "canonical-verification.yml"
 CI_PATH = WORKFLOWS / "ci.yml"
 RELEASE_PATH = WORKFLOWS / "release-please.yml"
 RELEASE_CONFIG_PATH = REPO_ROOT / "release-please-config.json"
-DOCKER_INTEGRATION_PATH = (
-    REPO_ROOT / "implementations" / "python" / "tests" / "test_reference_backend_docker_integration.py"
-)
 
 LOCAL_CANONICAL_WORKFLOW = "./.github/workflows/canonical-verification.yml"
 
@@ -39,6 +36,7 @@ _FRESH_ATTACHMENT_CALLS = [
     "download",
 ]
 FULL_SHA_USE = re.compile(r"^[^@]+@[0-9a-f]{40}$")
+DIGEST_IMAGE_USE = re.compile(r"^docker://[^\s@]+@sha256:[0-9a-f]{64}$")
 DRAFT_RELEASE_STATE = re.compile(r"(?:\bisDraft\b|\.(?:isDraft|draft)\b|-F\s+draft=)")
 
 
@@ -181,6 +179,17 @@ def _run_github_finalization(
     gh_stub.write_text(
         """#!/bin/sh
 set -eu
+# Like real gh, a repository-scoped call that names no repository falls back
+# to the local git checkout, which this job does not have (#1414).
+case "${1-}" in
+  api) ;;
+  *)
+    case " $* " in
+      *" --repo "*|*" --repo="*|*" -R "*) ;;
+      *) git rev-parse --show-toplevel ;;
+    esac
+    ;;
+esac
 case "${1-}:${2-}" in
   release:view)
     case "$*" in
@@ -352,11 +361,13 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
     # The monolithic verify job is now distributed across deterministic shards and
     # parallel lanes (#935); the reusable graph remains the single full-gate owner.
     assert set(workflow["jobs"]) == {
+        "proof-archive",
         "generic-tool-local-inputs",
         "test-shard",
         "integration",
         "checks",
         "proof",
+        "model-check",
         "coverage-reduce",
         "sonar",
         "gate",
@@ -364,7 +375,8 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
 
     # Deterministic concurrent shards of the default-marker suite.
     shard = workflow["jobs"]["test-shard"]
-    assert shard["strategy"]["matrix"]["shard"] == [0, 1, 2, 3]
+    assert shard["strategy"]["matrix"]["shard"] == list(range(int(workflow["env"]["RAES_CI_SHARD_COUNT"])))
+    assert workflow["env"]["RAES_CI_SHARD_COUNT"] == "8"
     assert shard["strategy"]["fail-fast"] is False
     shard_run = _named_step(shard, "Run deterministic test shard")
     assert "nox -f noxfile.py -s verify-shard" in shard_run["run"]
@@ -383,11 +395,28 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
     )
     assert not any(str(step.get("uses", "")).startswith("actions/cache/") for step in proof["steps"])
 
+    # Only the proof-archive job writes the Actions cache. It checks out the
+    # triggering commit, never a caller-selected ref, so code under verification
+    # cannot write the cache (#1836).
+    archive = workflow["jobs"]["proof-archive"]
+    checkout = next(step for step in archive["steps"] if str(step.get("uses", "")).startswith("actions/checkout@"))
+    assert "ref" not in checkout.get("with", {})
+    cache_writers = {
+        name
+        for name, job in workflow["jobs"].items()
+        for step in job.get("steps", [])
+        if str(step.get("uses", "")).startswith(("actions/cache@", "actions/cache/save@"))
+    }
+    assert cache_writers == {"proof-archive"}
+    assert workflow["jobs"]["generic-tool-local-inputs"]["needs"] == "proof-archive"
+
     carrier = _named_step(
         workflow["jobs"]["generic-tool-local-inputs"], "Fetch the locked proof archive with the qualified client"
     )
     assert "fetch-inputs" in carrier["run"]
     assert "proof-ubuntu-22.04-x86_64 .canonical-tool-inputs --artifact-id isabelle" in carrier["run"]
+    assert "--locator-ref official-isabelle-release" in carrier["run"]
+    assert "official-isabelle-cambridge-mirror" not in carrier["run"]
     acquire = _named_step(proof, "Admit the carried Isabelle archive with egress denied")["run"]
     assert acquire.startswith("bwrap --dev-bind / / --unshare-net --die-with-parent ")
     assert "implementations/tooling/python/.venv/bin/python -m tools.isabelle_tool acquire" in acquire
@@ -424,7 +453,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
     # The full gate is an explicit fail-closed aggregate that distinguishes skips.
     gate = workflow["jobs"]["gate"]
     assert gate["if"] == "always()"
-    assert set(gate["needs"]) == {"test-shard", "integration", "checks", "proof", "coverage-reduce"}
+    assert set(gate["needs"]) == {"test-shard", "integration", "checks", "proof", "model-check", "coverage-reduce"}
 
 
 def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
@@ -437,14 +466,16 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     assert canonical["uses"] == LOCAL_CANONICAL_WORKFLOW
     assert canonical["with"]["ref"] == "${{ github.sha }}"
     assert "github.event.pull_request.base.sha" in canonical["with"]["base-rev"]
-    assert canonical["with"]["requirement-branch"] == "${{ github.head_ref || github.ref_name }}"
+    assert canonical["with"]["requirement-branch"] == (
+        "${{ needs.queued-pull-request.outputs.head-ref || github.head_ref || github.ref_name }}"
+    )
     assert canonical["with"]["sonar-enabled"] is True
     assert canonical["secrets"]["sonar_token"] == "${{ secrets.SONAR_TOKEN }}"  # noqa: S105
 
     # dev/main branch protection requires the `verify` and `sonar` contexts. Both
     # are now decoupled joins over the reusable graph's outcomes (#935).
     verify = workflow["jobs"]["verify"]
-    assert verify["needs"] == "canonical"
+    assert verify["needs"] == ["canonical", "runtime-supervision"]
     assert verify["if"] == "always()"
     verify_join = _named_step(verify, "Preserve the required canonical verification status")
     assert verify_join["env"]["GATE_OUTCOME"] == "${{ needs.canonical.outputs.gate-outcome }}"
@@ -464,19 +495,19 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     assert "github.actor != 'dependabot[bot]'" in reusable_sonar["if"]
     assert reusable_sonar["needs"] == "coverage-reduce"
 
-    interpreters = workflow["jobs"]["interpreters"]
-    assert interpreters["strategy"]["matrix"]["python"] == [
-        {"feature": "3.11", "payload": "3.11.16", "closure": "public-linux-x86_64-cp311-all-extras"},
-        {"feature": "3.12", "payload": "3.12.14", "closure": "public-linux-x86_64-cp312-all-extras"},
-        {"feature": "3.13", "payload": "3.13.15", "closure": "public-linux-x86_64-cp313-all-extras"},
-        {"feature": "3.14", "payload": "3.14.7", "closure": "public-linux-x86_64-cp314-all-extras"},
-    ]
-    assert interpreters["env"] == {
-        "UV_PYTHON": "${{ matrix.python.payload }}",
-        "RAES_EXPECTED_PYTHON": "${{ matrix.python.feature }}",
-        "RAES_PYTHON_CLOSURE_PROFILE": "${{ matrix.python.closure }}",
+    # CPython 3.14 is the only supported interpreter. The canonical graph runs the
+    # full suite on it, so this job only checks the runtime and the clean
+    # distribution (#1672).
+    distribution = workflow["jobs"]["distribution"]
+    assert distribution["name"] == "CPython 3.14 compatibility"
+    assert "strategy" not in distribution
+    assert distribution["env"] == {
+        "UV_PYTHON": "3.14.7",
+        "RAES_EXPECTED_PYTHON": "3.14",
+        "RAES_PYTHON_CLOSURE_PROFILE": "public-linux-x86_64-cp314-all-extras",
+        "RAES_PYTHON_COMPATIBILITY_SMOKE_ONLY": "1",
     }
-    compatibility = _named_step(interpreters, "Test exact interpreter and clean distribution")
+    compatibility = _named_step(distribution, "Test exact interpreter and clean distribution")
     assert "nox -f noxfile.py -s python-compatibility" in compatibility["run"]
 
 
@@ -556,7 +587,7 @@ def test_python_release_notes_do_not_make_docs_or_maintenance_releasable() -> No
     """
 
     release_job = _load(RELEASE_PATH)["jobs"]["release-please"]
-    assert release_job["steps"][0]["uses"] == (
+    assert next(step for step in release_job["steps"] if step.get("id") == "rp")["uses"] == (
         "googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7"
     )
     package = _load(RELEASE_CONFIG_PATH)["packages"]["."]
@@ -578,6 +609,35 @@ def test_python_release_notes_do_not_make_docs_or_maintenance_releasable() -> No
         "build": True,
         "ci": True,
     }
+
+
+def test_release_pr_uses_tested_ancestry_adapter_and_matching_engine() -> None:
+    workflow = _load(RELEASE_PATH)
+    jobs = workflow["jobs"]
+    release_job = jobs["release-please"]
+    assert release_job["needs"] == "release-classification"
+    assert release_job["if"] == "github.event_name == 'push'"
+    action = next(step for step in release_job["steps"] if step.get("id") == "rp")
+    assert action["with"]["skip-github-pull-request"] is True
+    adapter = _named_step(release_job, "Maintain release PR from the complete ancestry range")
+    assert adapter["if"] == "steps.rp.outputs.release_created != 'true'"
+    assert adapter["run"] == "node implementations/tooling/release-please/run.cjs"
+    assert jobs["release-classification"]["uses"] == "./.github/workflows/release-classification.yml"
+    classification = _load(WORKFLOWS / "release-classification.yml")
+    assert classification["permissions"] == {"contents": "read"}
+    assert "pull_request" in classification["on"]
+    assert "pull_request" not in workflow["on"]
+    checks = classification["jobs"]["release-classification"]
+    assert workflow["permissions"] == {"contents": "read"}
+    assert "permissions" not in checks
+    assert checks["steps"][-1]["run"] == "npm test --prefix implementations/tooling/release-please"
+    for job in (checks, release_job):
+        assert any("npm ci" in step.get("run", "") and "--ignore-scripts" in step["run"] for step in job["steps"])
+    tooling = REPO_ROOT / "implementations/tooling/release-please"
+    package = json.loads((tooling / "package.json").read_text())
+    lock = json.loads((tooling / "package-lock.json").read_text())
+    assert package["dependencies"] == {"release-please": "17.6.0"}
+    assert lock["packages"]["node_modules/release-please"]["version"] == "17.6.0"
 
 
 def test_every_shell_draft_release_inspection_has_push_capable_token() -> None:
@@ -613,9 +673,8 @@ def test_release_builds_and_smokes_the_verified_sha_before_publish() -> None:
     workflow = _load(RELEASE_PATH)
     jobs = workflow["jobs"]
     build = jobs["build-release"]
-    assert set(build["needs"]) == {"resolve-release", "verify-release", "integration-docker-release"}
+    assert set(build["needs"]) == {"resolve-release", "verify-release"}
     assert "needs.verify-release.result == 'success'" in build["if"]
-    assert "needs.integration-docker-release.result == 'success'" in build["if"]
     assert build["permissions"] == {"contents": "read"}
 
     checkout = build["steps"][0]
@@ -637,7 +696,7 @@ def test_release_builds_and_smokes_the_verified_sha_before_publish() -> None:
 
     build_script = _named_step(build, "Build constrained release distributions")["run"]
     assert "tools.python_closure build" in build_script
-    assert "--profile public-linux-x86_64-cp312-all-extras" in build_script
+    assert "--profile public-linux-x86_64-cp314-all-extras" in build_script
     assert "uv build" not in build_script
 
     for smoke_index, distribution in ((wheel_smoke_index, "wheel"), (sdist_smoke_index, "sdist")):
@@ -655,41 +714,6 @@ def test_release_builds_and_smokes_the_verified_sha_before_publish() -> None:
         assert f"installed release {distribution}" in smoke
 
 
-def test_release_requires_skip_free_real_docker_tests_at_the_exact_sha() -> None:
-    release = _load(RELEASE_PATH)
-    docker = release["jobs"]["integration-docker-release"]
-    assert set(docker["needs"]) == {"resolve-release", "verify-release"}
-    assert "needs.verify-release.result == 'success'" in docker["if"]
-    assert docker["permissions"] == {"contents": "read"}
-    assert "continue-on-error" not in docker
-
-    checkout = docker["steps"][0]
-    assert checkout["with"]["ref"] == "${{ needs.resolve-release.outputs.release_sha }}"
-    binding = _named_step(docker, "Bind real-container testing to the exact release commit")["run"]
-    assert 'actual_sha="$(git rev-parse HEAD)"' in binding
-    assert '"${actual_sha}" != "${EXPECTED_SHA}"' in binding
-
-    required = _named_step(docker, "Require real-container release integration")
-    assert required["env"]["RAES_DOCKER_INTEGRATION_REQUIRED"] == "1"
-    required_script = required["run"]
-    assert "-s integration_docker -- --junitxml=" in required_script
-    assert "if not cases:" in required_script
-    assert "if skipped:" in required_script
-    assert "collected zero tests" in required_script
-    assert "skipped tests" in required_script
-
-    fixture = DOCKER_INTEGRATION_PATH.read_text(encoding="utf-8")
-    assert "RAES_DOCKER_INTEGRATION_REQUIRED" in fixture
-    assert "pytest.fail" in fixture
-    # The reviewed image identity is lock data, not a literal in the harness.
-    assert "sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc" not in fixture
-    assert "oci_release_image.locked_platform_graphs()" in fixture
-
-    optional = _load(CI_PATH)["jobs"]["integration-docker"]
-    assert optional["continue-on-error"] is True
-    assert "RAES_DOCKER_INTEGRATION_REQUIRED" not in str(optional)
-
-
 def test_publication_is_split_retry_safe_and_finalizes_the_same_release() -> None:
     workflow = _load(RELEASE_PATH)
     jobs = workflow["jobs"]
@@ -697,14 +721,12 @@ def test_publication_is_split_retry_safe_and_finalizes_the_same_release() -> Non
     assert set(publish_pypi["needs"]) == {
         "resolve-release",
         "verify-release",
-        "integration-docker-release",
         "build-release",
         # Absent or rejected evidence must block the handoff, so admission is a
         # predecessor of publication rather than an optional report (#1226).
         "admit-release",
     }
     assert "needs.verify-release.result == 'success'" in publish_pypi["if"]
-    assert "needs.integration-docker-release.result == 'success'" in publish_pypi["if"]
     assert "needs.build-release.result == 'success'" in publish_pypi["if"]
     assert "github.ref == 'refs/heads/main'" in publish_pypi["if"]
     assert publish_pypi["environment"] == "pypi"
@@ -1006,12 +1028,76 @@ def test_every_workflow_pins_every_third_party_action_to_a_full_sha() -> None:
         for action_ref in _uses(_load(path)):
             if action_ref.startswith("./"):
                 continue
+            if action_ref.startswith("docker://"):
+                assert DIGEST_IMAGE_USE.fullmatch(action_ref), f"{path.name}: unpinned image {action_ref!r}"
+                continue
             assert FULL_SHA_USE.fullmatch(action_ref), f"{path.name}: unpinned action {action_ref!r}"
+
+
+def _codeql_value(expression: str, base: str, ref: str, enabled: str = "true") -> Any:
+    """Evaluate this workflow's string/boolean/JSON expression subset."""
+    node = shutil.which("node")
+    assert node is not None, "The workflow tests require the existing Node runtime"
+    expression = expression.removeprefix("${{").removesuffix("}}").strip()
+    script = """
+const [expression, base, ref, enabled] = process.argv.slice(1);
+const evaluate = new Function('github', 'vars', 'fromJSON', 'return (' + expression + ')');
+console.log(JSON.stringify(evaluate(
+  {base_ref: base, ref_name: ref}, {CODEQL_ADVANCED_ENABLED: enabled}, JSON.parse)));
+"""
+    # These assertions check workflow semantics, not Node startup speed on a busy CI runner.
+    return json.loads(
+        subprocess.check_output([node, "-e", script, expression, base, ref, enabled], text=True, timeout=30)
+    )
+
+
+@pytest.mark.parametrize("branch", ["main", "dev", "go-cutover"])
+@pytest.mark.parametrize("event", ["push", "pull_request"])
+def test_codeql_selects_languages_for_the_target_branch(branch: str, event: str) -> None:
+    job = _load(WORKFLOWS / "codeql.yml")["jobs"]["analyze"]
+    base, ref = (branch, "1874-feature") if event == "pull_request" else ("", branch)
+    languages = _codeql_value(job["strategy"]["matrix"]["language"], base, ref)
+    expected = {"actions", "python"}
+    if branch != "go-cutover":
+        expected.add("javascript-typescript")
+    assert set(languages) == expected
+    assert len(languages) == len(expected)
+
+
+@pytest.mark.parametrize("enabled", ["", "false", "true"])
+def test_codeql_stays_inactive_until_rollout_is_enabled(enabled: str) -> None:
+    job = _load(WORKFLOWS / "codeql.yml")["jobs"]["analyze"]
+    assert _codeql_value(job["if"], "dev", "1874-feature", enabled) is (enabled == "true")
+    prefix, label = job["name"].split("}}", 1)
+    assert label == "Analyze (${{ matrix.language }})"
+    assert _codeql_value(prefix + "}}", "dev", "1874-feature", enabled) == ("" if enabled == "true" else "Staged ")
+
+
+def test_codeql_events_and_credentials_preserve_scan_boundaries() -> None:
+    workflow = _load(WORKFLOWS / "codeql.yml")
+    assert set(workflow["on"]) == {"push", "pull_request", "merge_group", "schedule", "workflow_dispatch"}
+    assert workflow["on"]["merge_group"] == {"types": ["checks_requested"]}
+    for event in ("push", "pull_request"):
+        assert set(workflow["on"][event]["branches"]) == {"main", "dev", "go-cutover"}
+        assert not set(workflow["on"][event]) & {"paths", "paths-ignore"}
+    assert workflow["on"]["schedule"]
+    assert workflow["permissions"] == {"contents": "read"}
+    job = workflow["jobs"]["analyze"]
+    assert job["permissions"] == {"contents": "read", "security-events": "write"}
+    assert job["strategy"]["fail-fast"] is False
+    checkout, initialize, analyze = job["steps"]
+    assert checkout["with"]["persist-credentials"] is False
+    assert initialize["uses"].startswith("github/codeql-action/init@")
+    assert initialize["with"] == {"languages": "${{ matrix.language }}", "build-mode": "none"}
+    assert analyze["uses"].startswith("github/codeql-action/analyze@")
+    assert analyze["with"] == {"category": "/language:${{ matrix.language }}"}
+    assert all(not step.get("if") and not step.get("continue-on-error") for step in job["steps"])
 
 
 # Every write-capable token grant is a reviewed publication, Pages, code-scanning,
 # or release-bookkeeping boundary. Any other job or workflow stays read-only.
 _REVIEWED_JOB_WRITE_SCOPES = {
+    ("codeql.yml", "analyze"): {"security-events"},
     ("docs.yml", "deploy"): {"pages", "id-token"},
     ("ground-control-phase-e.yml", "finalize"): {"issues"},
     ("release-please.yml", "release-please"): {"contents", "pull-requests"},
@@ -1056,9 +1142,16 @@ def _release_managed_paths() -> list[str]:
     return sorted([package["changelog-path"], manifest, *(item["path"] for item in package["extra-files"])])
 
 
-# Events that must still run when only release-managed files change: Release
-# Please itself publishes, and the main Docs push redeploys the release version.
-_RELEASE_BOOKKEEPING_RUNS = {("release-please.yml", "push"), ("docs.yml", "push")}
+# Keep CodeQL's existing scan frequency; Release Please publishes and the Docs
+# push redeploys the release version when only release-managed files change.
+# The maintainer gate is a required check, so it runs on every pull request.
+_RELEASE_BOOKKEEPING_RUNS = {
+    ("release-please.yml", "push"),
+    ("docs.yml", "push"),
+    ("codeql.yml", "push"),
+    ("codeql.yml", "pull_request"),
+    ("maintainer-gate.yml", "pull_request"),
+}
 
 
 def test_release_bookkeeping_changes_do_not_retrigger_check_workflows() -> None:
@@ -1105,7 +1198,9 @@ def test_release_bookkeeping_changes_do_not_retrigger_check_workflows() -> None:
         ("post-merge-closing-issue-audit.yml", "pull_request"),
         ("pr-body-policy.yml", "pull_request"),
         ("pr-title-lint.yml", "pull_request"),
+        ("release-classification.yml", "pull_request"),
         ("scorecard.yml", "push"),
+        ("secret-scan.yml", "pull_request"),
     }
 
 
@@ -1199,7 +1294,6 @@ def test_canonical_exact_commit_gate_executes_and_rejects_a_different_checkout(
 @pytest.mark.parametrize(
     ("job_name", "step_name", "mismatch_message"),
     [
-        ("integration-docker-release", "Bind real-container testing to the exact release commit", "checkout mismatch"),
         ("build-release", "Reconfirm the exact verified release checkout", "Publish checkout mismatch"),
     ],
 )
@@ -1380,8 +1474,15 @@ def _run_pypi_reconciliation(
     *,
     status: str,
     body: str,
+    curl_exit: int = 0,
+    curl_error: str = "",
 ) -> subprocess.CompletedProcess[str]:
-    """Execute the PyPI destination reconciliation against a stubbed registry."""
+    """Execute the PyPI destination reconciliation against a stubbed registry.
+
+    A non-zero ``curl_exit`` is a transport failure as real curl reports one:
+    no body is written, ``--write-out`` still prints the status, the error goes
+    to stderr and curl exits with its own code.
+    """
 
     if shutil.which("bash") is None or shutil.which("jq") is None:
         pytest.skip("the PyPI reconciliation shell policy requires bash and jq")
@@ -1403,8 +1504,13 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 test -n "$destination"
-printf '%s' "$PYPI_BODY" > "$destination"
+if [ "$PYPI_CURL_EXIT" -eq 0 ]; then
+  printf '%s' "$PYPI_BODY" > "$destination"
+else
+  printf 'curl: (%s) %s\\n' "$PYPI_CURL_EXIT" "$PYPI_CURL_ERROR" >&2
+fi
 printf '%s' "$PYPI_STATUS"
+exit "$PYPI_CURL_EXIT"
 """,
         encoding="utf-8",
     )
@@ -1430,6 +1536,8 @@ printf '%s' "$PYPI_STATUS"
             "SDIST_SHA256": "2" * 64,
             "PYPI_STATUS": status,
             "PYPI_BODY": body,
+            "PYPI_CURL_EXIT": str(curl_exit),
+            "PYPI_CURL_ERROR": curl_error,
         },
     )
     return completed
@@ -1498,7 +1606,7 @@ def test_pypi_reconciliation_refuses_a_same_name_digest_mismatch(tmp_path: Path)
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("status", ["403", "500", "000"])
+@pytest.mark.parametrize("status", ["403", "500"])
 def test_pypi_reconciliation_refuses_an_uncertain_destination(tmp_path: Path, status: str) -> None:
     """An ambiguous destination answer is never read as "not published"."""
 
@@ -1506,6 +1614,30 @@ def test_pypi_reconciliation_refuses_an_uncertain_destination(tmp_path: Path, st
 
     assert result.returncode != 0
     assert f"HTTP {status}" in result.stderr
+    assert "pending" not in _pypi_outputs(tmp_path)
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ("curl_exit", "curl_error"),
+    # The exit codes and message forms curl 8.7.1 printed for an unresolvable
+    # host, a refused connection and a connect timeout; host, port and elapsed
+    # time differ.
+    [
+        (6, "Could not resolve host: pypi.org"),
+        (7, "Failed to connect to pypi.org port 443 after 0 ms: Couldn't connect to server"),
+        (28, "Connection timed out after 60002 milliseconds"),
+    ],
+    ids=["resolve", "connect", "timeout"],
+)
+def test_pypi_reconciliation_stops_at_a_transport_failure(tmp_path: Path, curl_exit: int, curl_error: str) -> None:
+    """``set -e`` ends the step on curl's exit, so its ``000`` never reaches the status check."""
+
+    result = _run_pypi_reconciliation(tmp_path, status="000", body="", curl_exit=curl_exit, curl_error=curl_error)
+
+    assert result.returncode == curl_exit
+    assert f"curl: ({curl_exit}) {curl_error}" in result.stderr
+    assert "HTTP 000" not in result.stderr
     assert "pending" not in _pypi_outputs(tmp_path)
 
 
@@ -1595,6 +1727,7 @@ def test_github_attachment_fails_closed_on_an_uncertain_asset_listing(tmp_path: 
     )
 
     assert result.returncode != 0
+    assert "could not list release assets" in result.stderr
     assert "upload" not in (tmp_path / "gh-calls.log").read_text(encoding="utf-8").splitlines()
 
 

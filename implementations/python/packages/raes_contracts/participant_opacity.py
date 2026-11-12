@@ -7,6 +7,10 @@ from typing import Annotated, Literal
 
 from pydantic import Field, model_validator
 
+from raes_contracts._base import ContractModel, PrefixedDigestString
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
+from raes_contracts.source_identity import SourceArtifactIdentityModel
+
 from ._participant_opacity_common import (
     MAX_OPACITY_DIAGNOSTICS,
     MAX_OPACITY_MODEL_STATES,
@@ -36,14 +40,9 @@ from ._participant_opacity_model_check import (
     UnsupportedParticipantOpacityModelCheckModel,
     participant_opacity_model_check_counterexample_digest,
 )
+from ._sealing import sealing_active
 from .canonical import canonical_json_digest
-from .contracts.base import (
-    BehavioralClaimBindingModel,
-    ContractModel,
-    PrefixedDigestString,
-)
 from .diagnostics import DiagnosticModel
-from .satisfiability import SourceArtifactIdentityModel
 from .versions import (
     PARTICIPANT_OPACITY_ANALYSIS_EVIDENCE_SCHEMA_VERSION,
     PARTICIPANT_OPACITY_ANALYSIS_INPUT_SCHEMA_VERSION,
@@ -247,7 +246,10 @@ def _validate_evidence_counts(evidence: ParticipantOpacityAnalysisEvidenceModel)
 
 
 def _validate_checker_configuration_join(evidence: ParticipantOpacityAnalysisEvidenceModel) -> None:
-    if evidence.checker_configuration_digest != evidence.checker_configuration.canonical_digest:
+    if (
+        not sealing_active()
+        and evidence.checker_configuration_digest != evidence.checker_configuration.canonical_digest
+    ):
         raise ValueError("checker_configuration_digest must bind the checker configuration")
 
 
@@ -267,17 +269,24 @@ def _validate_outcome_payloads(evidence: ParticipantOpacityAnalysisEvidenceModel
         _validate_unsupported_join(evidence)
 
 
-def _validate_counterexample_join(evidence: ParticipantOpacityAnalysisEvidenceModel) -> None:
+def analysis_counterexample_digest(evidence: ParticipantOpacityAnalysisEvidenceModel) -> str:
+    """Return the digest that binds the sanitized counterexample identity of *evidence*."""
     counterexample = evidence.counterexample
     if counterexample is None:
         raise ValueError("counterexample outcome requires a counterexample payload")
-    expected_digest = participant_opacity_counterexample_digest(
+    return participant_opacity_counterexample_digest(
         safe_ref=counterexample.safe_ref,
         actual_point_ordinal=counterexample.actual_point_ordinal,
         examined_cell_size=counterexample.examined_cell_size,
         normalized_model_digest=evidence.normalized_model_digest,
     )
-    if counterexample.counterexample_digest != expected_digest:
+
+
+def _validate_counterexample_join(evidence: ParticipantOpacityAnalysisEvidenceModel) -> None:
+    counterexample = evidence.counterexample
+    if counterexample is None:
+        raise ValueError("counterexample outcome requires a counterexample payload")
+    if not sealing_active() and counterexample.counterexample_digest != analysis_counterexample_digest(evidence):
         raise ValueError("counterexample_digest must bind the sanitized counterexample identity")
 
 

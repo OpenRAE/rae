@@ -3,8 +3,9 @@
 from enum import Enum
 
 from pydantic import Field, field_validator, model_validator
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import normalize_enum_value, parse_int_or_var
 
-from .._base import SDLModel, normalize_enum_value, parse_int_or_var
 from ._durations import parse_duration
 
 
@@ -52,7 +53,7 @@ class WorkflowStepStateRef(SDLModel):
         return parse_int_or_var(v, minimum=1, field_name="min_attempts")
 
     @model_validator(mode="after")
-    def validate_unique_outcomes(self) -> "WorkflowStepStateRef":
+    def validate_unique_outcomes(self) -> WorkflowStepStateRef:
         if len(self.outcomes) != len(set(self.outcomes)):
             raise ValueError("Workflow step-state outcomes must be unique")
         return self
@@ -75,7 +76,7 @@ class WorkflowPredicate(SDLModel):
         return value
 
     @model_validator(mode="after")
-    def validate_non_empty(self) -> "WorkflowPredicate":
+    def validate_non_empty(self) -> WorkflowPredicate:
         if any(
             (
                 self.assertions,
@@ -149,7 +150,7 @@ class WorkflowCompensationPolicy(SDLModel):
         return str(v)
 
     @model_validator(mode="after")
-    def validate_policy(self) -> "WorkflowCompensationPolicy":
+    def validate_policy(self) -> WorkflowCompensationPolicy:
         if self.mode == WorkflowCompensationMode.AUTOMATIC and not self.on:
             raise ValueError("Automatic workflow compensation requires at least one trigger in 'on'")
         if self.order != "reverse_completion":
@@ -191,7 +192,8 @@ class WorkflowStep(SDLModel):
     @classmethod
     def normalize_type(cls, v: str) -> str:
         normalized = normalize_enum_value(v)
-        if normalized in {"if", "while"}:
+        # Tuple membership compares by equality, so an unhashable authored value reaches type validation.
+        if normalized in ("if", "while"):
             raise ValueError(
                 f"workflow step type '{normalized}' is no longer supported; "
                 "use 'decision' or 'retry' with explicit success/failure "
@@ -222,7 +224,7 @@ class WorkflowStep(SDLModel):
         return values
 
     @model_validator(mode="after")
-    def validate_execution_mode(self) -> "WorkflowStep":
+    def validate_execution_mode(self) -> WorkflowStep:
         self._validate_goal_mode_compatibility()
         self._validate_scaffolded_mode()
         return self
@@ -252,7 +254,7 @@ class WorkflowStep(SDLModel):
             )
 
     @model_validator(mode="after")
-    def validate_type_specific_fields(self) -> "WorkflowStep":
+    def validate_type_specific_fields(self) -> WorkflowStep:
         type_validators = {
             WorkflowStepType.OBJECTIVE: self._validate_objective_type,
             WorkflowStepType.DECISION: self._validate_decision_type,

@@ -16,6 +16,16 @@ from raes.language_service import (
 from raes_mcp.tools.operation_support import json_response
 
 
+def _invalid_edit_value(message: str) -> str:
+    return json_response(
+        {
+            "status": "invalid",
+            "stage": "edit",
+            "diagnostics": [{"stage": "edit", "severity": "error", "code": "sdl.edit", "message": message}],
+        }
+    )
+
+
 def register(mcp: FastMCP) -> None:
     """Register SDL language-service tools on the MCP server."""
 
@@ -101,20 +111,10 @@ def register(mcp: FastMCP) -> None:
         try:
             value = json.loads(value_json)
         except json.JSONDecodeError as exc:
-            return json_response(
-                {
-                    "status": "invalid",
-                    "stage": "edit",
-                    "diagnostics": [
-                        {
-                            "stage": "edit",
-                            "severity": "error",
-                            "code": "sdl.edit",
-                            "message": f"Invalid JSON in value_json: {exc}",
-                        }
-                    ],
-                }
-            )
+            return _invalid_edit_value(f"Invalid JSON in value_json: {exc}")
+        except ValueError, RecursionError:
+            # The decoder raises a plain ValueError beyond the integer digit limit and RecursionError beyond its depth.
+            return _invalid_edit_value("Invalid JSON in value_json: the document exceeds the decoder limits.")
         return json_response(
             apply_structured_edit(
                 sdl_content,

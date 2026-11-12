@@ -3,15 +3,14 @@
 from __future__ import annotations
 
 import copy
-import json
 import textwrap
 from dataclasses import replace
 from pathlib import Path
 
 import pytest
+from contract_fixtures import load_contract_fixture
 from pydantic import ValidationError
 from raes import SDLValidationError, instantiate_scenario, parse_sdl
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes.nodes import (
     RuntimeProcessLimitResource,
     RuntimeProcessResourceLimit,
@@ -27,6 +26,7 @@ from raes_contracts.apparatus import (
     ProcessResourceLimitCapability,
     RealizationObservationCapability,
 )
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.planning import (
     ChangeAction,
     ProvisioningPlan,
@@ -174,7 +174,7 @@ def _requirement(
 def _configuration_bound_envelope(
     capability: ProcessResourceLimitCapability,
 ) -> BackendRealizationEnvelopeModel:
-    payload = json.loads(_ENVELOPE_FIXTURE.read_text(encoding="utf-8"))
+    payload = load_contract_fixture(_ENVELOPE_FIXTURE)
     payload["configuration"]["process_resource_limits"] = [
         {
             "resource": capability.resource.value,

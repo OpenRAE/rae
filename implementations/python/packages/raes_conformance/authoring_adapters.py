@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from raes import SDLError
+from pydantic import ValidationError
 from raes.scenario import Scenario
 from raes_contracts.authoring_adapters import (
     AuthoringAdapterComparisonModel,
@@ -16,6 +16,7 @@ from raes_contracts.authoring_adapters import (
 )
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.corpus import FIXTURES, PROFILES, corpus_family_root
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 from raes_contracts.json_ingress import parse_bounded_json_object
 from raes_contracts.semantic_comparison import (
     ComparisonReason,
@@ -41,7 +42,7 @@ def _read_bounded(path: Path, max_bytes: int) -> bytes:
     with path.open("rb") as stream:
         content = stream.read(max_bytes + 1)
     if len(content) > max_bytes:
-        raise ValueError("published conformance artifact exceeds byte limit")
+        raise InvalidInputError("published conformance artifact exceeds byte limit")
     return content
 
 
@@ -60,7 +61,7 @@ def _profiles() -> tuple[AuthoringAdapterProfileModel, SemanticComparisonProfile
         )
     )
     if canonical_json_digest(semantic.model_dump(mode="json")) != profile.semantic_profile_digest:
-        raise ValueError("semantic profile digest does not match the pinned authoring profile")
+        raise InvalidInputError("semantic profile digest does not match the pinned authoring profile")
     return profile, semantic
 
 
@@ -70,24 +71,24 @@ def load_authoring_vectors(*, root: Path | None = None) -> tuple[AuthoringAdapte
     profile, _ = _profiles()
     paths = sorted(cases_root.glob("*.json"))
     if not paths:
-        raise ValueError("authoring vector corpus is empty")
+        raise InvalidInputError("authoring vector corpus is empty")
     if len(paths) > profile.max_cases:
-        raise ValueError("authoring vector count exceeds the profile limit")
+        raise InvalidInputError("authoring vector count exceeds the profile limit")
     vectors = []
     for path in paths:
         if not path.resolve().is_relative_to(cases_root):
-            raise ValueError("vector resolves outside the corpus")
+            raise InvalidInputError("vector resolves outside the corpus")
         vector = parse_authoring_vector(_read_bounded(path, 128 * 1024))
         _require_profile(vector, profile)
         if vector.case_id != path.stem:
-            raise ValueError("vector case id must match its corpus filename")
+            raise InvalidInputError("vector case id must match its corpus filename")
         vectors.append(vector)
     return tuple(vectors)
 
 
 def _require_profile(vector: AuthoringAdapterVectorModel, profile: AuthoringAdapterProfileModel) -> None:
     if vector.profile_digest != canonical_json_digest(profile.model_dump(mode="json")):
-        raise ValueError("vector profile digest does not match the published profile")
+        raise InvalidInputError("vector profile digest does not match the published profile")
 
 
 def _observation(
@@ -101,8 +102,8 @@ def _observation(
         return None, None
     try:
         return observe_output(vector, output)
-    except (SDLError, ValueError, TypeError, AttributeError):
-        # Only fixed typed reasons enter a persisted comparison. No raw exception data.
+    # The comparison refuses the untrusted path output. Only fixed typed reasons enter a persisted comparison.
+    except InvalidInputError, EvidenceIntegrityError, ValidationError:
         reasons.append(f"{side}-invalid")
         return None, None
 

@@ -1,15 +1,13 @@
-# Explicitness And Realization Semantics
+# Explicitness and realization semantics
 
 This note defines the normative semantic boundary for `SEM-218`.
 
-It states the rules that distinguish *binding* author declarations from
-concerns *left open* to backend realization, names when realization is
-permitted, names when an explicit declaration must be honored, and names
-when an unsupported exact requirement must be rejected rather than
-silently approximated. In RAES the processor layer does not realize
-underspecified author concerns: it compiles the typed runtime
-requirement and plans against backend support. Realization is a backend
-responsibility; this spec scopes the realization surface accordingly.
+This reference distinguishes *binding* author declarations from concerns *left open* to backend realization.
+It defines when realization is permitted and when an explicit declaration must be honored.
+It also defines when an unsupported exact requirement must be rejected instead of silently approximated.
+The processor compiles typed runtime requirements and plans against backend support.
+It does not realize underspecified author concerns.
+Realization belongs to the backend.
 
 The key words **MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT**, and **MAY**
 in this note are to be interpreted as described in RFC 2119.
@@ -30,7 +28,7 @@ the compute-substrate concern carried by that surface. It does not add
 realization fields to nested models or describe wave-3 participant semantics
 that build on this boundary. Those are governed elsewhere.
 
-## Realization Status
+## Realization status
 
 The semantic boundary defined in §"Required Semantics" is normative
 immediately on landing. Its enforcement across the seven `SEM-200`
@@ -90,7 +88,7 @@ phase boundary is now enforced by named, tested code; no rule in this spec
 remains normative-but-unrealized. The SEM-200 coverage row in
 `shared-semantic-integrity.md` records the realization as `active`.
 
-## Canonical Inputs
+## Canonical inputs
 
 The semantics rest on existing authority surfaces. Implementations MUST
 extend these rather than introduce parallel registries:
@@ -127,7 +125,7 @@ extend these rather than introduce parallel registries:
 - semantic profiles, controlled vocabularies, and reference models:
   `specs/concept-authority/`, `implementations/python/packages/raes_contracts/`
 
-## Required Semantics
+## Required semantics
 
 ### Author intent has three classes
 
@@ -163,6 +161,36 @@ validation failure, not as permission to fill them in. This is the
 closed-world default for the ecosystem; the existing closed-Pydantic
 SDL model boundary (`extra="forbid"`) enforces it structurally today.
 
+### Configurable scalar binding authority (issue #1481)
+
+Parameter substitution MUST preserve constrained author specificity and its
+processor-derived provenance. A parameter without `allowed_values` selects a
+concrete binding during instantiation; its declared input type does not delegate
+every value of that type to a backend. Public runtime scalar leaves MUST retain
+portable typed derivation evidence and compile that selected output as a
+processor-origin literal constraint. This is binding selection, not an exact
+author declaration or a fabricated finite author domain.
+
+Whole-field finite parameters retain their existing allowed-values authority.
+An interpolated string with one finite input retains the finite image of that
+input, including literal prefixes/suffixes and correlated repeated references.
+Multiple independent finite inputs require a representable relational image;
+the initial implementation MUST reject those images rather than enumerate a
+Cartesian product or discard correlation. Interpolation with unenumerated
+inputs binds the selected output. No form grants implicit backend support,
+observation capability, extra collection membership or authority to approximate
+an exact sibling.
+
+Derivation evidence MUST use closed literal segments and qualified typed input
+references, rather than unresolved token strings. Phase admission MUST check
+referenced bindings, their types/domains, and equality of the derived output to
+the addressed concrete field. Runtime field validators and registered safe
+projections remain authoritative. Classification-bearing records MUST NOT
+publish raw alternatives; an owning public-field declaration, such as a
+mailbox's public address, permits only that leaf, never credential or setting
+material. Independent scenario/plan admission and result admission enforce the
+same selected-output or finite-image authority.
+
 ### Mixed constraints and collection membership (issue #1200)
 
 A collection's aggregate explicitness is a support summary, not permission to
@@ -185,26 +213,29 @@ missing observations MUST NOT establish satisfaction of a required leaf.
 Existing selected scope/strength and corroboration contracts remain binding;
 precise declarations create no observation, retention or export demand.
 
-The initial mixed collection profiles are database services (service ID) and
-packages (required manager/name coordinates). Package architecture remains
-binding when authored; when omitted under an open scope it is delegated.
-Ambiguous multiple package rows with the same partial coordinates require a
-more expressive identity contract and MUST be rejected before mutation.
-All registered runtime concerns now use the recursive relation, including
-specialized safe mount, capability, process-limit, port, forwarding and listener
-projections. Their owning profiles supply semantic identities, not backend
-payload heuristics. Capability and mount-option sets use comparison-only keyed
-scalar records; bounded scalar choices use collision-free aliases while their
-actual value remains separately constrained. Compound process-limit identities
-retain the canonical selector and scope. Native persistence shapes remain
-unchanged. Ordered sequences remain ordered. Unsafe domains or ambiguous
-identities MUST produce an actionable `realization.authority-bound-unavailable`
-diagnostic before execution.
-This supported fragment includes an inherited open package scope with an exact
-nmap child: other packages may be added and unspecified fields chosen, while
-the nmap version and any other explicit leaf remain binding.
-More-specific closed child scopes retain the omitted field's closed baseline,
-even when the surrounding record remains open.
+The initial mixed collection profiles are database services (service ID) and packages (required manager/name coordinates).
+Authored package architecture remains binding.
+Omission delegates it only under an open scope.
+Ambiguous package rows with the same partial coordinates require a more expressive identity contract.
+They MUST be rejected before mutation.
+
+All registered runtime concerns use the recursive relation.
+This includes specialized safe mount, capability, process-limit, port, forwarding, and listener projections.
+Their owning profiles supply semantic identities, not backend payload heuristics.
+Capability and mount-option sets use comparison-only keyed scalar records.
+Bounded scalar choices use collision-free aliases while their actual value remains separately constrained.
+Compound process-limit identities retain the canonical selector and scope.
+
+Registered runtime service families and child collections compare members by semantic identity, so member order has no effect.
+Application routes compare by `route_id`.
+Native persistence shapes remain unchanged.
+Ordered sequences remain ordered.
+Unsafe domains or ambiguous identities MUST produce an actionable `realization.authority-bound-unavailable` diagnostic before execution.
+
+An inherited open package scope can contain an exact nmap child.
+Other packages may be added and unspecified fields chosen.
+The nmap version and every other explicit leaf remain binding.
+More-specific closed child scopes retain an omitted field's closed baseline, even when the surrounding record remains open.
 
 Legacy typed `other`/`unknown` sentinels remain distinguishable from literal
 strings with those spellings. They do not erase sibling constraints or prove
@@ -299,19 +330,17 @@ it does not prove which substrate will be used. Exact and constrained demand
 MUST be admitted by the selected envelope's compute-substrate claim, and
 out-of-domain demand MUST be rejected before mutation.
 
-The actual selected substrate may be reported as a backend selection; the
-configured choice alone is not an independent observation. When effective
-observation demand requires collection, a value-bearing substrate observation MUST identify the governed
-selected value and bind it to the runtime operation, selected envelope digest,
-configuration digest, observer version, monotonic sequence, and a verified
-execution binding. Plan values, requested configuration, backend handles, and
-manifest capability declarations alone MUST NOT be treated as observations.
-Selected operational observation contracts retain their actual source/scope
-floors. Bounded realization detail alone MUST NOT manufacture collection demand.
-A claimed value outside the
-selected envelope or authored domain MUST reject the runtime result. An
-in-process emulator may disclose a governed extension value but does not count
-as an independent native container, virtual-machine, or physical mechanism.
+The actual selected substrate may be reported as a backend selection.
+The configured choice alone is not an independent observation.
+When effective observation demand requires collection, a value-bearing substrate observation MUST identify the governed selected value.
+It MUST bind that value to the runtime operation, selected envelope digest, configuration digest, observer version, monotonic sequence, and verified execution binding.
+Plan values, requested configuration, backend handles, and manifest capability declarations alone MUST NOT be treated as observations.
+
+Selected operational observation contracts retain their actual source/scope floors.
+Bounded realization detail alone MUST NOT manufacture collection demand.
+A claimed value outside the selected envelope or authored domain MUST cause runtime-result rejection.
+An in-process emulator may disclose a governed extension value.
+It does not count as an independent native container, virtual-machine, or physical mechanism.
 
 ### Resolved backend-facing authority
 
@@ -369,14 +398,12 @@ or metadata contract and MUST NOT be reclassified as scenario provenance.
 The following invariants are normative for every stage that has authority
 over the realization of a concern.
 
-**I1 — Bindings are honored.** If an authored construct carries an exact
-declaration `R` for a concern `C`, every downstream stage with authority
-over `C`'s realization (validation, instantiation, compilation, planning,
-execution) MUST either realize `R` exactly as declared *or* reject the
-artifact through the structured error surface that owns that stage —
-`SDLValidationError`, `SDLInstantiationError`, a compiler `Diagnostic`,
-or the equivalent runtime error envelope. No stage MAY substitute, drop,
-coerce, or weaken `R` without rejection.
+**I1 — Bindings are honored.** This rule applies when an authored construct carries an exact declaration `R` for a concern `C`.
+Every downstream stage with authority over `C`'s realization MUST either realize `R` exactly as declared *or* reject the artifact.
+These stages are validation, instantiation, compilation, planning, and execution.
+Rejection uses the owning stage's structured error surface.
+That surface is `SDLValidationError`, `SDLInstantiationError`, a compiler `Diagnostic`, or the equivalent runtime error envelope.
+No stage MAY substitute, drop, coerce, or weaken `R` without rejection.
 
 **I2 — No silent approximation.** A backend realizer MUST NOT realize
 an exact declaration in a way that differs from the declared value or
@@ -389,35 +416,48 @@ processor layer plays no realization role under SEM-218: it compiles
 the typed runtime requirement and plans against backend support, but
 does not pick values for underspecified concerns.
 
-For a concern governed by an applicable operational verification or selected
-observation contract, value equality alone is not sufficient corroboration.
-That contract supplies the required verification scope and MAY supply an exact
-evidence-source constraint; an omitted source constraint leaves the method open
-without removing corroboration. Exact inventory detail alone MUST NOT invent
-experimental capture. The manifest MUST disclose a
-concern-keyed observation capability whose scope covers that demand, and the
-returned runtime snapshot MUST carry a value-free observation disclosure for
-the same address, field path, domain, and requirement kind. The disclosure's
-scope and actual source provenance MUST be supported by the selected manifest
-declaration. Source categories are alternatives rather than a strength order;
-an unconstrained source still requires authoritative readback and MUST NOT be
-satisfied by `none` or `driver-reported` self-attestation alone. When a source
-is explicitly constrained it MUST match exactly. Missing, malformed,
-under-scoped, or unsupported
-corroboration is a `runtime.backend-contract-invalid` failure before snapshot
-persistence.
+For a concern governed by applicable operational verification or selected observation, value equality alone is insufficient corroboration.
+The governing contract supplies the required verification scope.
+It MAY also supply an exact evidence-source constraint.
+Omission of that constraint leaves the method open without removing corroboration.
+Exact inventory detail alone MUST NOT invent experimental capture.
 
-Evidence-source provenance, in-world versus out-of-world visibility, and the
-effect of collection on the realized world are independent coordinates. A
-closed effective realization scope MUST NOT add an in-world probe, sidecar,
-service, account, mount, package, listener, or forwarding path merely to obtain
-corroboration; non-mutating native readback remains permitted, and an otherwise
-unprovable claim MUST be rejected before mutation. An open effective scope MAY
-add observation apparatus only when needed for sufficient proof and MUST select
-the available sufficient method with the least environment and participant
-effect. Added apparatus MUST pass normal realization authority and preparation
-and MUST be reported through the realized-form and SEM-225 augmentation
-disclosures with its visibility and comparability effects.
+The manifest MUST disclose a concern-keyed observation capability whose scope covers the demand.
+The returned runtime snapshot MUST carry a value-free observation disclosure for the same address, field path, domain, and requirement kind.
+The selected manifest declaration MUST support the disclosure's scope and actual source provenance.
+
+Source categories are alternatives, not a strength order.
+An unconstrained source still requires authoritative readback.
+It MUST NOT be satisfied by `none` or `driver-reported` self-attestation alone.
+An explicitly constrained source MUST match exactly.
+Missing, malformed, under-scoped, or unsupported corroboration causes `runtime.backend-contract-invalid` before snapshot persistence.
+
+An open concern that the author leaves empty has no authored structure or
+constraint document. Planning MUST NOT require observation capability for
+that concern.
+
+- For any backend, omission or an explicit empty report without a matching
+  observation establishes that the backend added no member and produces no
+  provenance. A reported member or a matching observation MUST undergo full
+  corroboration. Proof of absence is required only when the author demands it.
+- The runtime gate MUST reject a malformed report, a reported member without
+  sufficient corroboration, and a readback disclosure that the manifest cannot
+  support.
+
+Failed apply inventory remains subject to authority and sanitization checks
+without claiming successful readback. The typed process-resource-limit
+admission rule below still applies to open process limits.
+
+Evidence-source provenance, in-world versus out-of-world visibility, and collection's effect on the realized world are independent coordinates.
+A closed effective realization scope MUST NOT add in-world apparatus merely for corroboration.
+This includes a probe, sidecar, service, account, mount, package, listener, or forwarding path.
+Non-mutating native readback remains permitted.
+An otherwise unprovable claim MUST be rejected before mutation.
+
+An open effective scope MAY add observation apparatus only when sufficient proof needs it.
+It MUST select the available sufficient method with the least environment and participant effect.
+Added apparatus MUST pass normal realization authority and preparation.
+It MUST be reported through realized-form and SEM-225 augmentation disclosures with its visibility and comparability effects.
 
 The qualified concerns include `forwarding-agents` and
 `process-resource-limits`. Forwarding-agent scopes are `presence` (identity,
@@ -472,34 +512,36 @@ readback MUST reject the demand before mutation. A missing, weak,
 out-of-domain, or mismatched result MUST fail through the existing runtime
 backend-contract diagnostic and MUST NOT replace the baseline snapshot.
 
-**I3 — Openness is explicit.** A backend MAY realize an underspecified
-concern only at a point where the owning SDL schema or semantic rule
-explicitly designates that concern as realizable, *and* where the
-backend's manifest declares a per-domain `RealizationSupportMode` of
-`OPEN_REALIZATION` covering that open concern. When a legacy backend also publishes
-a finer realization envelope, its offered projection MUST subsume the compiled
-open request under the canonical envelope relation. The explicitly negotiated
-preparation contract instead validates one supported completion before apply,
-without changing universal subsumption. Constrained declarations
-use the separately declared constrained support surface. Silence
-outside such designated points is fail-closed: the authoring artifact
-MUST be rejected with a structured error rather than filled in.
+**I3 — Openness is explicit.** A backend MAY realize an underspecified concern only when both conditions hold:
 
-**I4 — Capability disclosure.** Every **backend** manifest MUST carry
-per-domain `RealizationSupportDeclaration` entries that name (i) the
-support mode (`EXACT_ONLY`, `CONSTRAINED`, or `OPEN_REALIZATION`), (ii)
-the supported exact-requirement-kinds, (iii) the supported
-constraint-kinds, and (iv) the disclosure kinds the apparatus will emit.
-When a registered concern requires corroboration, the same declaration MUST
-also carry a concern-keyed observation capability containing its closed
-verification scope and non-`none` observation strength.
-Processor manifests MUST NOT carry `realization_support`: in RAES the
-processor layer does not realize underspecified author concerns — its
-manifest discloses processing features (compilation, planning,
-orchestration coordination, evaluation coordination, and related
-semantics) and not realization capabilities. This asymmetry is encoded
-today by `ProcessorManifestV2Model` rejecting any `realization_support`
-section.
+- The owning SDL schema or semantic rule explicitly designates that point as realizable.
+- The backend manifest declares per-domain `RealizationSupportMode` `OPEN_REALIZATION` covering that open concern.
+
+When a legacy backend also publishes a finer realization envelope, its offered projection MUST subsume the compiled open request.
+This uses the canonical envelope relation.
+The explicitly negotiated preparation contract instead validates one supported completion before apply, without changing universal subsumption.
+Constrained declarations use the separately declared constrained support surface.
+Outside designated points, silence is fail-closed.
+The authoring artifact MUST be rejected with a structured error instead of filled in.
+
+**I4 — Capability disclosure.** Every **backend** manifest MUST carry per-domain `RealizationSupportDeclaration` entries.
+Each entry names:
+
+1. Support mode: `EXACT_ONLY`, `CONSTRAINED`, or `OPEN_REALIZATION`.
+2. Supported exact-requirement-kinds.
+3. Supported constraint-kinds.
+4. Disclosure kinds that the apparatus will emit.
+
+When a registered concern requires corroboration, the same declaration MUST also carry a concern-keyed observation capability.
+It contains the closed verification scope and non-`none` observation strength.
+Planning admission does not require this capability for an open concern the author leaves empty.
+I2 defines the runtime contract with and without the capability.
+
+Processor manifests MUST NOT carry `realization_support`.
+The processor does not realize underspecified author concerns.
+Its manifest discloses processing features, not realization capabilities.
+Those features include compilation, planning, orchestration coordination, evaluation coordination, and related semantics.
+`ProcessorManifestV2Model` enforces this distinction by rejecting any `realization_support` section.
 
 The contract model MUST enforce on every `RealizationSupportDeclaration`:
 
@@ -509,16 +551,14 @@ The contract model MUST enforce on every `RealizationSupportDeclaration`:
   or `supported_exact_requirement_kinds`;
 - `disclosure_kinds` MUST NOT be empty.
 
-These shape rules are the structural floor of I4 and are enforced today
-by `RealizationSupportDeclaration.__post_init__` and
-`RealizationSupportDeclarationModel._validate_realization_support`. The
-planner-side matching of compiled exact-requirement-kinds against the
-selected backend's `realization_support` — by which an unsupported
-exact requirement causes plan rejection before deployment — is
-realized by the realization-support gate in `raes_processor.planner.plan`
-(over the compiled `RuntimeModel.realization_requirements`), alongside the
-concrete provisioner / orchestrator / evaluator capability checks in
-`_validate_manifest`. The rule is binding under this spec.
+These shape rules are I4's structural floor.
+`RealizationSupportDeclaration.__post_init__` and `RealizationSupportDeclarationModel._validate_realization_support` enforce them.
+The realization-support gate in `raes_processor.planner.plan` matches compiled exact-requirement-kinds against the selected backend's `realization_support`.
+It uses `RuntimeModel.realization_requirements`.
+An unsupported exact requirement causes plan rejection before deployment.
+
+The `_validate_manifest` checks also enforce concrete provisioner, orchestrator, and evaluator capabilities.
+The rule is binding under this specification.
 
 **I5 — Provenance is preserved.** Values that enter snapshots, results,
 history, or evidence envelopes MUST be recorded with provenance
@@ -566,7 +606,7 @@ substitute for that published contract.
 | Execution | Backend realizers honor the compiled class. A runtime adapter MUST NOT silently broaden an exact requirement, silently narrow an open realization beyond its declared constraints, or add values at closed concerns. | active — direct-manager and control-plane execution validate plan-owned authority, envelope identity, backend support, typed bounds, and non-approximation before accepting a snapshot; operation-bearing plans are bound to trusted planner content. |
 | Observation | Known backend choices are reportable at the requested depth with honest provenance per I5. Independent capture, retention, and export follow the selected demand contract; author detail alone creates none. | active — admitted authority drives safe projection and value-free provenance. When readback is required, bound observations carry the selected value and reject missing, weak, stale, unbound, or out-of-domain evidence. |
 
-## Cross-Cutting Gates
+## Cross-cutting gates
 
 A SEM-218 realization MUST pass every gate it touches. The binding
 gates, with the spec invariant they enforce and their current
@@ -608,7 +648,10 @@ realization status, are:
   `raes_processor.planner.plan`. Exact registered inventory concerns with a
   required verification scope also fail with
   `realization.under-observed-exact-requirement` when the manifest capability
-  is absent or weaker. Process-resource-limit requirements also fail with
+  is absent or weaker. An open registered concern with an authored structure
+  or constraint document keeps the same capability demand. An open concern
+  that the author leaves empty does not need the capability before deployment
+  (I2). Process-resource-limit requirements also fail with
   `realization.unsupported-process-resource-limits` when no declaration admits
   their typed resource, scope, value domain, and guest observation demand.
 - **Error-envelope gate** — unsupported exact requirements and
@@ -646,7 +689,7 @@ implementer-facing architecture guidance for the gates above and is
 governs; where the companion records detail that is not stated here, it
 is implementer reference rather than a binding rule.
 
-## Extensibility Seam
+## Extensibility seam
 
 The extensibility seam is the existing `RealizationSupportDeclaration`
 on backend manifests plus the `realization-and-disclosure` native
@@ -677,14 +720,12 @@ The governance of the surface is **staged**:
   binds the planner to that matching contract; it does **not** rely
   on a vocabulary authority for those values existing today.
 
-A future change that introduces a new governed exact-requirement kind
-adds the constant in the controlled-vocabulary surface, adds matching
-`supported_exact_requirement_kinds` entries to backend manifests that
-can carry it, and reuses the existing planner gate — it MUST NOT
-duplicate the match logic across the compiler, planner, conformance
-suite, and backend adapters.
+A new governed exact-requirement kind needs a constant in the controlled-vocabulary surface.
+Backend manifests that can carry it need matching `supported_exact_requirement_kinds` entries.
+The change reuses the existing planner gate.
+It MUST NOT duplicate matching logic across the compiler, planner, conformance suite, and backend adapters.
 
-## Anti-Patterns
+## Anti-patterns
 
 A SEM-218 realization MUST NOT:
 
@@ -707,7 +748,7 @@ A SEM-218 realization MUST NOT:
 - treat semantic profiles as backend capability profiles, or backend
   capability profiles as semantic profiles.
 
-## Implementation Mapping
+## Implementation mapping
 
 The rules above are realized today by these existing surfaces; every
 invariant I1–I5 is enforced by named code.
@@ -825,7 +866,7 @@ invariant I1–I5 is enforced by named code.
   migration, exact and constrained mechanism planning, independent runtime
   observation binding, two native mechanisms, and out-of-domain rejection.
 
-## Non-Goals
+## Non-goals
 
 This spec does not:
 
@@ -843,7 +884,7 @@ This spec does not:
 - amend the assurance-policy mapping or change FM-classification
   thresholds — those remain governed by `ADR-007` and `ADR-018`.
 
-## Prior Art
+## Prior art
 
 The semantics above synthesize patterns from established declarative
 languages, scenario / playbook DSLs, and academically-supported cyber

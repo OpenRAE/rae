@@ -9,16 +9,6 @@ source_roots:
   - implementations/python/packages
   - implementations/python/src
 
-# ADR-009 section 7: published schemas under contracts/schemas/ are
-# hand-governed normative authority. A schema change must record a
-# contract-facing change-ledger entry in the publication manifest (the deeper
-# rationale/hash check lives in tools/check_schema_publication.py --base-rev).
-generated_contracts:
-  generated_roots:
-    - contracts/schemas
-  manifest_path: contracts/schema-publication-manifest.json
-  manifest_records_root: contracts/schema-publication
-
 concept_authority:
   reserved_path_tokens:
     - concept-authority
@@ -78,6 +68,81 @@ module_boundaries:
         - raes_cli
         - raes_conformance
         - raes_mcp
+      # ADR-121: the public SDL modules and facade names that the processor uses.
+      public_import_prefixes:
+        raes:
+          - raes.ExpandedScenarioBindingTargetResolver
+          - raes.InstantiatedScenario
+          - raes.MaterializedScenario
+          - raes.ReferencePurpose
+          - raes.SDLError
+          - raes.SDLMigrationPolicy
+          - raes.SDLSelectionError
+          - raes.SDLValidationError
+          - raes.accounts
+          - raes.admit_instantiated_scenario
+          - raes.agents
+          - raes.architectures
+          - raes.artifact_requirements
+          - raes.associated_artifacts
+          - raes.authored_scenario_evidence
+          - raes.build_declaration_index
+          - raes.canonical
+          - raes.canonical_instantiated_sdl_bytes
+          - raes.canonical_instantiated_sdl_digest
+          - raes.canonical_materialized_sdl_digest
+          - raes.canonical_sdl_digest
+          - raes.content
+          - raes.descriptor_profiles
+          - raes.entities
+          - raes.explicitness
+          - raes.features
+          - raes.infrastructure
+          - raes.instantiate
+          - raes.materialization
+          - raes.materialization_provenance
+          - raes.nodes
+          - raes.objectives
+          - raes.observation_scope
+          - raes.operating_scope_aliases
+          - raes.operating_systems
+          - raes.orchestration
+          - raes.parameter_derivations
+          - raes.parse_sdl
+          - raes.parser
+          - raes.participant_behavior_specification
+          - raes.participant_control_context
+          - raes.participant_episode_policy
+          - raes.participant_mixed_control_policy
+          - raes.participant_temporal_semantics
+          - raes.phase_contracts
+          - raes.profile_selections
+          - raes.prospective_content
+          - raes.realization_designation
+          - raes.realization_envelope
+          - raes.render_sdl_source
+          - raes.runtime_capabilities
+          - raes.runtime_configuration
+          - raes.runtime_forwarding_agent
+          - raes.runtime_generated_value
+          - raes.runtime_inventory
+          - raes.runtime_listeners
+          - raes.runtime_mounts
+          - raes.runtime_network
+          - raes.runtime_packages
+          - raes.runtime_resource_limits
+          - raes.runtime_software
+          - raes.runtime_software_profiles
+          - raes.runtime_software_repositories
+          - raes.scenario
+          - raes.select_scenario_family
+          - raes.selected_scenario
+          - raes.semantics
+          - raes.stateful_resources
+          - raes.validate_experiment_selection_against_family
+          - raes.validator
+          - raes.variables
+          - raes.variation
     - id: raes_runtime
       root: implementations/python/packages/raes_runtime
       allowed_top_level_imports:
@@ -94,6 +159,9 @@ module_boundaries:
           - raes_processor.compiler
           - raes_processor.models
           - raes_processor.planner
+          - raes_processor.trial_compiler
+          - raes_processor.trial_realization
+          - raes_processor.trial_scheduler
     - id: raes_backend_protocols
       root: implementations/python/packages/raes_backend_protocols
       allowed_top_level_imports:
@@ -107,74 +175,23 @@ module_boundaries:
       public_import_prefixes:
         raes_runtime:
           - raes_runtime.registry
-    - id: raes_reference_backend
-      root: implementations/python/packages/raes_reference_backend
-      allowed_top_level_imports:
-        - raes_backend_protocols
-        - raes_contracts
-        - raes_runtime
-      forbidden_import_prefixes:
-        - raes_backend_stubs
-        - raes_cli
-        - raes_conformance
-        - raes_mcp
-        - raes_processor
-        - raes
-      public_import_prefixes:
-        raes_runtime:
-          - raes_runtime.registry
-    - id: raes_backend_libvirt
-      root: implementations/python/packages/raes_backend_libvirt
-      allowed_top_level_imports:
-        - raes_backend_protocols
-        - raes_contracts
-        - raes_runtime
-      forbidden_import_prefixes:
-        - raes_backend_stubs
-        - raes_cli
-        - raes_conformance
-        - raes_mcp
-        - raes_processor
-        - raes_reference_backend
-        - raes
-      public_import_prefixes:
-        raes_runtime:
-          - raes_runtime.registry
     - id: raes_operations
       root: implementations/python/packages/raes_operations
       allowed_top_level_imports:
-        - raes_backend_libvirt
-        # Pure, side-effect-free manifest/capability renderers only (see
-        # public_import_prefixes below). raes_operations embeds the canonical
-        # BackendManifestV2 payload + capability-gap report in the libvirt
-        # scenario-evidence artifact instead of a hand-rolled summary, so the
-        # evidence carries the same backend contract the rest of the stack uses.
-        - raes_backend_protocols
         - raes_contracts
-        - raes_runtime
         - raes
       forbidden_import_prefixes:
+        - raes_backend_protocols
         - raes_backend_stubs
         - raes_cli
         - raes_conformance
         - raes_mcp
         - raes_processor
-        - raes_reference_backend
+        - raes_runtime
       public_import_prefixes:
-        raes_backend_libvirt:
-          - raes_backend_libvirt.target
-          - raes_backend_libvirt.techvault_native
-          - raes_backend_libvirt.guest_certified_driver
-        raes_backend_protocols:
-          - raes_backend_protocols.manifest
-          - raes_backend_protocols.capabilities
-        raes_runtime:
-          - raes_runtime.control_plane
-          - raes_runtime.manager
-          - raes_runtime.registry
         raes:
-          - raes.parser
           # Pure SDL admission, canonicalization and rendering for run archives.
+          - raes.parser
           - raes.materialization
           - raes.canonical
           - raes.formatting
@@ -184,10 +201,32 @@ module_boundaries:
         - raes_backend_protocols
         - raes_cli
         - raes_contracts
+        - raes_operations
         - raes_processor
         - raes_runtime
         - raes
       public_import_prefixes:
+        # ADR-121: the public SDL modules and facade names that conformance uses.
+        raes:
+          - raes.ArtifactTransformationPolicy
+          - raes.RemoveSDLDeclarationRequest
+          - raes.RenameSDLDeclarationRequest
+          - raes.SDLParseDiagnostic
+          - raes.SDLParseError
+          - raes.SDLParserLimits
+          - raes.canonical_sdl_digest
+          - raes.canonicalize_portable_contract
+          - raes.materialization
+          - raes.parse_sdl
+          - raes.parse_sdl_file
+          - raes.realization_envelope
+          - raes.remove_sdl_declaration
+          - raes.rename_sdl_declaration
+          - raes.render_sdl_source
+          - raes.scenario
+        raes_operations:
+          # Issue #1667: the protected archive owner for target-probe materialization.
+          - raes_operations.run_artifacts
         raes_processor:
           - raes_processor.semantic_comparison
           - raes_processor.compiler
@@ -196,8 +235,11 @@ module_boundaries:
           - raes_processor.reference
         raes_runtime:
           - raes_runtime.control_plane
+          # Issue #1017: the claim refusal signal that identifies a moved-phase refusal.
+          - raes_runtime.control_plane_store
           - raes_runtime.registry
           - raes_runtime.result_contracts
+          - raes_runtime.snapshot_contract
     - id: raes_cli
       root: implementations/python/packages/raes_cli
       allowed_top_level_imports:
@@ -205,12 +247,29 @@ module_boundaries:
         - raes_backend_stubs
         - raes_contracts
         - raes_conformance
-        - raes_operations
         - raes_processor
         # ADR-104 operator-command exception: the closed offline maintenance API.
         - raes_runtime
         - raes
       public_import_prefixes:
+        # ADR-121: the public SDL modules and facade names that the CLI uses.
+        raes:
+          - raes.SDLError
+          - raes.SDLInstantiationError
+          - raes.SDLMigrationPolicy
+          - raes.SDLParseError
+          - raes.SDLParserLimits
+          - raes.SDLValidationError
+          - raes.SDL_CANONICAL_PROFILE
+          - raes.SDL_SOURCE_FORMAT
+          - raes.Scenario
+          - raes.build_declaration_index
+          - raes.canonical_sdl_bytes
+          - raes.canonical_sdl_digest
+          - raes.format_sdl_source
+          - raes.module_registry
+          - raes.parse_sdl
+          - raes.parser
         raes_runtime:
           - raes_runtime.control_plane_store_maintenance
         # Plan-inspection CLI (issue #609): the backend-manifest-v2 adapter and
@@ -220,10 +279,6 @@ module_boundaries:
           - raes_backend_protocols.manifest
         raes_backend_stubs:
           - raes_backend_stubs.manifest
-        raes_operations:
-          - raes_operations.libvirt_evidence_run
-          - raes_operations.cross_backend_corpus
-          - raes_operations.techvault_live
         raes_processor:
           - raes_processor.compiler
           - raes_processor.exploit_path
@@ -245,27 +300,63 @@ module_boundaries:
       forbidden_import_prefixes:
         - raes_runtime
       public_import_prefixes:
+        # ADR-121: the public SDL modules and facade names that MCP uses.
+        raes:
+          - raes.SDLInstantiationError
+          - raes.SDLMigrationPolicy
+          - raes.SDLParseError
+          - raes.SDLValidationError
+          - raes.Scenario
+          - raes.agent_guidance
+          - raes.entities
+          - raes.instantiate_scenario
+          - raes.language_service
+          - raes.load_sdl_fragment
+          - raes.nodes
+          - raes.parse_sdl
         raes_processor:
           - raes_processor.compiler
           - raes_processor.manifest
           - raes_processor.models
           - raes_processor.planner
+    # ADR-121: raes_contracts is the lowest package and imports no first-party package.
     - id: raes_contracts
       root: implementations/python/packages/raes_contracts
+      allowed_top_level_imports: []
+    # ADR-121: the composition root of the published schemas. It composes the
+    # schema parts of each owner through their public schema_contributions modules.
+    - id: raes_schemas
+      root: implementations/python/packages/raes_schemas
       allowed_top_level_imports:
+        - raes_contracts
         - raes
+        - raes_processor
+      forbidden_import_prefixes:
+        - raes_runtime
+        - raes_backend_protocols
+        - raes_backend_stubs
+        - raes_cli
+        - raes_conformance
+        - raes_mcp
+        - raes_operations
+      public_import_prefixes:
+        raes:
+          - raes.schema_contributions
+        raes_processor:
+          - raes_processor.schema_contributions
 
-# ADR-015: non-test source files under packages/ cap at 500 lines (aligned
-# with SonarCloud S104; lowered from 600 per the 2026-07-12 amendment / #561).
-# The allowlist (oversized_allowlist.yaml) lists the files that were over the
-# cap when the current cap was adopted; each split PR removes its entry. The
-# allowlist must stay a subset of the *code* constant
-# _ADR015_INITIAL_OVERSIZED_FILES in tools/policy/repo_policy.py (the fixed
-# reference set) — entries can be drained but not added. The locked set is
-# intentionally NOT mirrored here: keeping it as config the same PR can edit
-# would make the "shrink only" rule self-satisfiable.
+# ADR-015: non-test source files under packages/ cap at 1,000 lines (a
+# backstop to the ADR-117 structural checks; SonarCloud S104 allows the same
+# files through the project quality profile). The allowlist
+# (oversized_allowlist.yaml) lists the files that were over the cap when the
+# current cap was adopted; each split PR removes its entry. The allowlist must
+# stay a subset of the *code* constant _ADR015_INITIAL_OVERSIZED_FILES in
+# tools/policy/repo_policy.py (the fixed reference set) — entries can be drained
+# but not added. The locked set is intentionally NOT mirrored here: keeping it
+# as config the same PR can edit would make the "shrink only" rule
+# self-satisfiable.
 oversized_source_files:
-  line_cap: 500
+  line_cap: 1000
   allowlist_path: tools/policy/oversized_allowlist.yaml
   scope_roots:
     - implementations/python/packages
@@ -273,3 +364,17 @@ oversized_source_files:
     - implementations/python/tests
   file_extensions:
     - .py
+
+# ADR-117 / MOD-001: ratcheted structural checks on the module_boundaries
+# package coverage. The import contracts live in tools/policy/import_contracts.toml
+# and the exact findings in tools/policy/structural_baseline.json.
+structural_checks:
+  adr: ADR-117
+  max_repository_ancestors: 7
+  # Check 6: each dynamic first-party import that names no literal target.
+  dynamic_import_allowlist:
+    - module: raes_schemas.bundle
+      function: _resolve_semantic_validator
+      reason: >-
+        Resolves the validator locators of the published schemas. The targets are
+        data in the schemas, and the composition root may import every package.

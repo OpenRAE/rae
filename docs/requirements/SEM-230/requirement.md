@@ -21,6 +21,11 @@ Existing participant action, observation, visibility, runtime, and behavioral-re
 
 ## Traceability
 
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1395` (Independently derived bounded multi-operation crossing semantics)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/multi_abstract.py` (Two-operation SEM-230 authority with exact cached-result observations)
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-multi-operation-models.md` (Revisioned projection, policy/history separation and explicit assurance limits)
+- TESTS → TEST `implementations/python/tests/test_issue_1395_crossing_models.py` (Interleaved retries, conflicts, closure and bounded response loss)
+
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#971` (Independent single-operation formal model construction)
 
 - DOCUMENTS → DOCUMENTATION `docs/research/participant-bisimulation/model-construction.md` (Construction boundary and source derivation)
@@ -64,3 +69,14 @@ Existing participant action, observation, visibility, runtime, and behavioral-re
 - IMPLEMENTS → GITHUB_ISSUE `1070` (Modular participant-control semantic publication)
 - IMPLEMENTS → SPEC `specs/formal/participant-semantics/modular-participant-control.md` (Reuses participant projection and exact-cut relation boundaries)
 - TESTS → TEST `implementations/python/tests/test_sem_235_modular_control.py` (Incumbent projection for supervisor-only injects)
+
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#973` (Observable labels, policy-cut replay and divergence distinctions)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/counterexample_mutations.py` (Exact semantic selectors and reversible fault deltas)
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-counterexamples.md` (Revisioned projection and assurance boundary)
+- TESTS → TEST `implementations/python/tests/test_issue_973_crossing_mutations.py` (Reachability, hidden actions, cut advancement, deadlock and completion)
+
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check.py` (Issue 974 exact finite model-check evidence; no runtime-realization claim)
+- IMPLEMENTS → CODE_FILE `implementations/formal/participant_crossing/machine_check_evidence.py` (Complete carrier, model, projection, source and model-check claim joins)
+- IMPLEMENTS → SPEC `specs/formal/participant-semantics/participant-crossing-machine-check.md` (Finite relation boundary, security and data flows)
+- TESTS → TEST `implementations/python/tests/test_issue_974_machine_check.py` (Incomplete carriers, source drift, mutation false acceptance and claim promotion are refused)
+- IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#974` (Machine-check finite participant-crossing bisimulation)

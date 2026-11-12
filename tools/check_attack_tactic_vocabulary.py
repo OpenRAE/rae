@@ -11,14 +11,20 @@ import urllib.parse
 from pathlib import Path
 from typing import Any
 
+from pydantic import ValidationError
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+RAES_PACKAGES_ROOT = REPO_ROOT / "implementations" / "python" / "packages"
+for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
+    if str(_source_root) not in sys.path:
+        sys.path.insert(0, str(_source_root))
 
 from raes_contracts.contracts import (  # noqa: E402
     AttackEnterpriseTacticsSourceModel,
     ControlledVocabularyCatalogModel,
 )
+from raes_contracts.errors import InvalidInputError, OperationalError  # noqa: E402
+from raes_contracts.operational_logging import run_application  # noqa: E402
 
 VOCABULARY_ID = "participant-offensive-behavior-activities"
 CATALOG_RELATIVE_PATH = "contracts/concept-authority/controlled-vocabularies-v1.json"
@@ -40,7 +46,18 @@ MATRIX_NAME = "Enterprise ATT&CK"
 
 
 def _load_json(path: Path) -> Any:
-    return json.loads(path.read_text(encoding="utf-8"))
+    def bounded_integer(literal: str) -> int:
+        # The decoder passes only JSON integer literals, so int() fails only beyond the interpreter digit limit.
+        try:
+            return int(literal)
+        except ValueError as exc:
+            raise InvalidInputError(f"{path.name} contains an integer beyond the digit limit") from exc
+
+    try:
+        return json.loads(path.read_text(encoding="utf-8"), parse_int=bounded_integer)
+    except RecursionError as exc:
+        # Without a depth limit, the recursive decoder stops at the interpreter recursion limit.
+        raise InvalidInputError(f"{path.name} nests beyond the JSON decoder depth") from exc
 
 
 def _sha256_digest(data: bytes) -> str:
@@ -51,7 +68,7 @@ def _mitre_reference(stix_object: dict[str, Any]) -> dict[str, Any]:
     for reference in stix_object.get("external_references", []):
         if reference.get("source_name") == "mitre-attack":
             return reference
-    raise ValueError(f"STIX object {stix_object.get('id')} is missing a mitre-attack external reference")
+    raise InvalidInputError(f"STIX object {stix_object.get('id')} is missing a mitre-attack external reference")
 
 
 def _extract_enterprise_tactics(stix_payload: dict[str, Any]) -> list[dict[str, str]]:
@@ -68,13 +85,13 @@ def _extract_enterprise_tactics(stix_payload: dict[str, Any]) -> list[dict[str, 
         None,
     )
     if matrix is None:
-        raise ValueError(f"STIX payload is missing matrix {MATRIX_NAME!r}")
+        raise InvalidInputError(f"STIX payload is missing matrix {MATRIX_NAME!r}")
 
     extracted: list[dict[str, str]] = []
     for tactic_ref in matrix.get("tactic_refs", []):
         tactic = tactics_by_stix_id.get(tactic_ref)
         if tactic is None:
-            raise ValueError(f"matrix references missing active tactic {tactic_ref!r}")
+            raise InvalidInputError(f"matrix references missing active tactic {tactic_ref!r}")
         reference = _mitre_reference(tactic)
         extracted.append(
             {
@@ -208,8 +225,12 @@ def _remote_url_failure(source: AttackEnterpriseTacticsSourceModel, selected_url
     if source.source_url != selected_url:
         failure = f"{SOURCE_RELATIVE_PATH}: source URL differs from the reviewed lock selection"
     else:
-        parsed = urllib.parse.urlparse(selected_url)
-        if parsed.scheme != "https" or parsed.netloc != "raw.githubusercontent.com":
+        try:
+            parsed = urllib.parse.urlparse(selected_url)
+        except ValueError:
+            # urlparse refuses a malformed authority, such as an unclosed IPv6 bracket.
+            parsed = None
+        if parsed is None or parsed.scheme != "https" or parsed.netloc != "raw.githubusercontent.com":
             failure = (
                 f"{SOURCE_RELATIVE_PATH}: remote verification URL must stay pinned to raw.githubusercontent.com HTTPS"
             )
@@ -221,8 +242,8 @@ def _check_remote(
     *,
     local_input: Path | None = None,
 ) -> list[str]:
-    from tools.maintained_client_acquisition import acquire_locked_bytes
-    from tools.tooling_policy_gate import load_tooling_artifact_selection
+    from tools.maintained_client_acquisition import ArtifactAcquisitionError, acquire_locked_bytes
+    from tools.tooling_policy_gate import ArtifactPolicyError, load_tooling_artifact_selection
 
     selection = load_tooling_artifact_selection(
         artifact_id="attack-enterprise-tactics-snapshot",
@@ -231,7 +252,7 @@ def _check_remote(
         profile_id="source-snapshot",
     )
     if len(selection.source_urls) != 1 or len(selection.raw_manifest) != 1:
-        raise RuntimeError("ATT&CK lock selection must contain one source and raw snapshot")
+        raise ArtifactPolicyError("ATT&CK lock selection must contain one source and raw snapshot")
     url_failure = _remote_url_failure(source, selection.source_urls[0])
     if url_failure is not None:
         return [url_failure]
@@ -242,7 +263,7 @@ def _check_remote(
             expected=selection.raw_manifest[0],
             local_input=local_input,
         )
-    except RuntimeError as error:
+    except ArtifactAcquisitionError as error:
         return [f"{SOURCE_RELATIVE_PATH}: {error}"]
     failures: list[str] = []
     if _sha256_digest(data) != source.source_digest:
@@ -272,8 +293,7 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
-def main() -> int:
-    args = parse_args()
+def _failures(args: argparse.Namespace) -> list[str]:
     source = AttackEnterpriseTacticsSourceModel.model_validate(_load_json(REPO_ROOT / SOURCE_RELATIVE_PATH))
     catalog = ControlledVocabularyCatalogModel.model_validate(_load_json(REPO_ROOT / CATALOG_RELATIVE_PATH))
 
@@ -281,6 +301,23 @@ def main() -> int:
     failures.extend(_check_catalog(catalog, source))
     if args.verify_remote:
         failures.extend(_check_remote(source, local_input=args.local_input))
+    return failures
+
+
+def main() -> int:
+    args = parse_args()
+    try:
+        failures = _failures(args)
+    except (
+        OSError,
+        UnicodeDecodeError,
+        json.JSONDecodeError,
+        ValidationError,
+        InvalidInputError,
+        OperationalError,
+    ) as exc:
+        print(f"[attack-tactic-vocabulary] {exc}", file=sys.stderr)
+        return 1
 
     for failure in failures:
         print(f"[attack-tactic-vocabulary] {failure}", file=sys.stderr)
@@ -288,4 +325,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(run_application(main))

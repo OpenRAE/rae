@@ -66,9 +66,8 @@ def test_legacy_service_default_is_preserved_without_mutating_input(carrier, pro
 @pytest.mark.parametrize("include_version", [False, True])
 def test_malformed_profile_cannot_fall_back_to_legacy_service_shape(include_version):
     from raes.content import Content
-    from raes_backend_libvirt.capability_envelope import capability_envelope_diagnostics
-    from raes_backend_libvirt.manifest import LIBVIRT_PROVISIONER_CAPABILITIES
     from raes_backend_protocols.service_materialization import service_materialization_plan_diagnostics
+    from raes_backend_stubs.stubs import create_stub_manifest
     from raes_contracts.planning import ProvisioningPlan
 
     binding, _ = _account_profile(profile_context="service-materialization", address="provision.content.seed")
@@ -87,8 +86,7 @@ def test_malformed_profile_cannot_fall_back_to_legacy_service_shape(include_vers
             )
         ]
     )
-    assert service_materialization_plan_diagnostics(plan, LIBVIRT_PROVISIONER_CAPABILITIES, None)
-    assert capability_envelope_diagnostics(plan, LIBVIRT_PROVISIONER_CAPABILITIES)
+    assert service_materialization_plan_diagnostics(plan, create_stub_manifest().capabilities.provisioner, None)
 
 
 @pytest.mark.parametrize("ordinary_location", ["same-service", "other-service", "other-node"])
@@ -97,7 +95,7 @@ def test_selected_mailbox_does_not_claim_unrelated_inventory(ordinary_location):
     from raes_contracts.account_materialization import account_mailbox_materializations
     from test_issue_673_account_credential_bindings import _account_payload
 
-    binding, _, target, manager, _, _ = _mailbox_case()
+    binding, target, manager, _ = _mailbox_case()
     account = _account_payload()
     account.update(node="mail", materialization_profile=binding.model_dump(mode="json"))
     selected_service = {
@@ -139,7 +137,7 @@ def test_unselected_mail_inventory_creates_no_materialization_request():
     from raes import parse_sdl
     from raes_contracts.account_materialization import account_mailbox_materializations
 
-    _, _, _, manager, _, _ = _mailbox_case()
+    _, _, manager, _ = _mailbox_case()
     scenario = parse_sdl(
         """
 name: ordinary-mail

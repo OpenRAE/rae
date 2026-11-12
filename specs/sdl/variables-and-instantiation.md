@@ -1,4 +1,5 @@
-# Catalog 3 — Variable and Instantiation Catalog
+<!-- vale RAES.HeadingCase = NO -->
+# Catalog 3 — variable and instantiation catalog
 
 This catalog defines SDL variables — their types, defaults, and constraints —
 the `${…}` substitution syntax, the instantiation algorithm, and what an
@@ -6,6 +7,8 @@ instantiated document is no longer permitted to contain. Variables and
 instantiation are the SDL's parameterisation seam under
 [ADR-001](../../docs/decisions/adrs/adr-001-scenario-description-language.md) and
 [ADR-003](../../docs/decisions/adrs/adr-003-workflows-targetable-subobjects-and-enum-variables.md).
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ## 1. Variable definitions
 

@@ -1,4 +1,4 @@
-# Initial Service State
+# Initial service state
 
 Status: **normative**.
 
@@ -20,13 +20,13 @@ Ordinary node placement remains the default. A content entry MAY carry
 `service_materialization` only when establishing the required state through the
 named service is materially different from node placement.
 
-## 2. Service Materialization Binding
+## 2. Service materialization binding
 
 `service_materialization` is a closed discriminated profile. Every profile
 shares the target, ownership, ordering, assertion, evidence, and observation
 references below.
 
-### 2.1 Owned Content Profile
+### 2.1 Owned content profile
 
 The `service-content` version `"1"` profile is a closed object with these
 fields:
@@ -45,7 +45,7 @@ fields:
 | `evidence_requirement_refs` | non-empty unique evidence-requirement references | REQUIRED |
 | `observation_boundary_refs` | non-empty unique participant-observation-boundary references | REQUIRED |
 
-### 2.2 Search-Index Field-Schema Profile
+### 2.2 Search-index field-schema profile
 
 The `service-search-index-schema` version `"1"` profile expresses schema-only
 desired state for a service-owned search index:
@@ -94,7 +94,7 @@ service and MUST assign mutable-state and reset-generation ownership under
 ADR-087. The compiler derives consumer tenancy and ownership from this typed
 relationship.
 
-## 3. Compilation And Control
+## 3. Compilation and control
 
 The binding compiles as the existing `content-placement` resource. Compilation
 MUST retain:
@@ -127,7 +127,7 @@ claimed profile also requires a realization-envelope
 `daemon-observed` independent readback. Missing support is fatal before backend
 I/O. Direct plan submission MUST repeat these checks.
 
-## 4. Backend Conformance And Equivalence
+## 4. Backend conformance and equivalence
 
 RAES standardizes the portable profile without selecting a product or backend.
 A backend MAY claim either standardized profile only when its own conformance
@@ -143,7 +143,7 @@ contract and declared participant-visible assertions/evidence. They need not
 share provider resources, product adapters, deployment topology, bootstrap
 mechanisms, native identifiers, or implementation code.
 
-## 5. Non-Goals
+## 5. Non-goals
 
 This contract does not:
 
@@ -153,4 +153,4 @@ This contract does not:
 - prove product-native creation time or audit history;
 - define an event sequence or replay trajectory;
 - make runtime inventory authored authority; or
-- permit a scenario pack to define materialization control semantics.
+- permit an environment pack to define materialization control semantics.

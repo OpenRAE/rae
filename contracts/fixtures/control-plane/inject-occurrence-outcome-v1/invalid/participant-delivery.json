@@ -1,0 +1,97 @@
+{
+  "schema_version": "inject-occurrence-outcome/v1",
+  "occurrence": {
+    "contract_id": "inject-occurrence-v1",
+    "artifact_id": "release-occurrence-1",
+    "digest": "sha256:42128c86ad7cf88ea3af5863ae8d5529d379bc8370a81748eb1e849872a34a74"
+  },
+  "response": {
+    "schema_version": "backend-operation-response/v1",
+    "binding": {
+      "operation_id": "operation-release-1",
+      "invocation_id": "invocation-release-1",
+      "attempt_id": "attempt-release-1",
+      "worker_id": "worker-1",
+      "deployment_id": "deployment-1",
+      "owner_generation": 1,
+      "execution_generation": 1,
+      "backend_id": "backend-1",
+      "baseline_revision": "store-revision-41",
+      "context": {
+        "actor_id": "researcher-1",
+        "authorization_scope": [
+          "role:operator"
+        ],
+        "target_scope": "target:reference",
+        "run_scope": "run:environment-1",
+        "operation_kind": "orchestration",
+        "request_commitment": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+        "parent_operation_id": null
+      },
+      "effect_scope": {
+        "kind": "target-run",
+        "addresses": [],
+        "independence": null
+      }
+    },
+    "request_digest": "sha256:4be0f6a1a42f34ac1dcf4c0e759b7d931c40e938555b19ab7fbe9c89884a5f45",
+    "sequence": 3,
+    "message": {
+      "kind": "outcome",
+      "proposed_state": "succeeded",
+      "effects": {
+        "effect": "complete",
+        "cessation_established": true,
+        "evidence_refs": [
+          {
+            "contract_id": "runtime-snapshot-v1",
+            "artifact_id": "host-1-effect-evidence-1",
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        ],
+        "residual_scope": [],
+        "residual_state": null,
+        "external_fence": null
+      },
+      "satisfaction": "satisfied",
+      "release_gates_satisfied": true,
+      "cancellation_established": false,
+      "result": {
+        "contract_id": "associated-artifact-manifest-v1",
+        "artifact_id": "release-notice-result-1",
+        "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      }
+    }
+  },
+  "bindings": [
+    {
+      "binding": {
+        "binding": "orchestration.inject-binding.host.release",
+        "node": "provision.node.host",
+        "instance": "host-1",
+        "revision": "realization-r1"
+      },
+      "effects": {
+        "effect": "complete",
+        "cessation_established": true,
+        "evidence_refs": [
+          {
+            "contract_id": "runtime-snapshot-v1",
+            "artifact_id": "host-1-effect-evidence-1",
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        ],
+        "residual_scope": [],
+        "residual_state": null,
+        "external_fence": null
+      },
+      "readback": {
+        "contract_id": "runtime-snapshot-v1",
+        "artifact_id": "host-1-readback-1",
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    }
+  ],
+  "effect": "effect-applied",
+  "delivered_to": "participant.analyst"
+}

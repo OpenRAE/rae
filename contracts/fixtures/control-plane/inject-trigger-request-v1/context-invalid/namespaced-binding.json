@@ -1,0 +1,27 @@
+{
+  "schema_version": "inject-trigger-request/v1",
+  "request_key": "researcher-release-key-1",
+  "occurrence_id": "release-occurrence-1",
+  "target_scope": "target:reference",
+  "run_scope": "run:environment-1",
+  "plan": {
+    "contract_id": "orchestration-plan-v1",
+    "artifact_id": "orchestration-plan-1",
+    "digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+  },
+  "inject": "orchestration.inject.release",
+  "bindings": [
+    {
+      "binding": "orchestration.inject-binding.mod.host.mod.release",
+      "node": "provision.node.mod.host",
+      "instance": "mod-host-1",
+      "revision": "realization-r1"
+    }
+  ],
+  "placement": {
+    "kind": "event",
+    "event": "orchestration.event.gate"
+  },
+  "input_ref": null,
+  "expected_head": "order-head-9"
+}

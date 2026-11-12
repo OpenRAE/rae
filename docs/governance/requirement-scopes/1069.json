@@ -31,6 +31,9 @@
     "docs/governance/requirement-scopes/1069.json": [
       "RUN-320"
     ],
+    "docs/migration/control-applicability-and-evaluation.md": [
+      "API-424"
+    ],
     "docs/public/participant-control.md": [
       "RUN-320"
     ],
@@ -55,6 +58,30 @@
     "docs/research/formal-semantic-validation/bundles/retest-v40.json": [
       "RUN-320"
     ],
+    "docs/research/formal-semantic-validation/capture-records/capture-76fee14b79cd734502e7498d05fbf5c8d17c34e46dc2ba55bbb94f57d213bec7.json": [
+      "RUN-320"
+    ],
+    "docs/research/formal-semantic-validation/capture-records/capture-76a22200630a0f623823cce738ef5d90a5984d9d4a69208005548975c980698b.json": [
+      "RUN-320"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-76fee14b79cd734502e7498d05fbf5c8d17c34e46dc2ba55bbb94f57d213bec7/analysis.json": [
+      "RUN-320"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-76fee14b79cd734502e7498d05fbf5c8d17c34e46dc2ba55bbb94f57d213bec7/manifest.json": [
+      "RUN-320"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-76fee14b79cd734502e7498d05fbf5c8d17c34e46dc2ba55bbb94f57d213bec7/snapshot.json": [
+      "RUN-320"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-76a22200630a0f623823cce738ef5d90a5984d9d4a69208005548975c980698b/analysis.json": [
+      "RUN-320"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-76a22200630a0f623823cce738ef5d90a5984d9d4a69208005548975c980698b/manifest.json": [
+      "RUN-320"
+    ],
+    "docs/research/formal-semantic-validation/captures/capture-76a22200630a0f623823cce738ef5d90a5984d9d4a69208005548975c980698b/snapshot.json": [
+      "RUN-320"
+    ],
     "docs/research/formal-semantic-validation/execution-snapshot-v40.json": [
       "RUN-320"
     ],
@@ -65,6 +92,30 @@
       "RUN-320"
     ],
     "docs/research/specification-coverage/bundles/raes-standardized-specification-coverage-issue-1069-v40.json": [
+      "RUN-320"
+    ],
+    "docs/research/specification-coverage/capture-records/capture-08a9c99e27c3f7d197d6564c8a5c5852833b33625c2d265ecac7775566b7cde9.json": [
+      "RUN-320"
+    ],
+    "docs/research/specification-coverage/capture-records/capture-c5e6610f7d0058be6715fe2f5c7ef89ebd468a8ea7177b1ee58298f2b12a9b81.json": [
+      "RUN-320"
+    ],
+    "docs/research/specification-coverage/captures/capture-08a9c99e27c3f7d197d6564c8a5c5852833b33625c2d265ecac7775566b7cde9/analysis.json": [
+      "RUN-320"
+    ],
+    "docs/research/specification-coverage/captures/capture-08a9c99e27c3f7d197d6564c8a5c5852833b33625c2d265ecac7775566b7cde9/manifest.json": [
+      "RUN-320"
+    ],
+    "docs/research/specification-coverage/captures/capture-08a9c99e27c3f7d197d6564c8a5c5852833b33625c2d265ecac7775566b7cde9/snapshot.json": [
+      "RUN-320"
+    ],
+    "docs/research/specification-coverage/captures/capture-c5e6610f7d0058be6715fe2f5c7ef89ebd468a8ea7177b1ee58298f2b12a9b81/analysis.json": [
+      "RUN-320"
+    ],
+    "docs/research/specification-coverage/captures/capture-c5e6610f7d0058be6715fe2f5c7ef89ebd468a8ea7177b1ee58298f2b12a9b81/manifest.json": [
+      "RUN-320"
+    ],
+    "docs/research/specification-coverage/captures/capture-c5e6610f7d0058be6715fe2f5c7ef89ebd468a8ea7177b1ee58298f2b12a9b81/snapshot.json": [
       "RUN-320"
     ],
     "docs/research/specification-coverage/execution-snapshot-v40.json": [
@@ -79,10 +130,16 @@
     "implementations/python/packages/raes_contracts/contracts/participant_control_composition.py": [
       "API-424"
     ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_composition_v2.py": [
+      "API-424"
+    ],
     "implementations/python/packages/raes_contracts/contracts/participant_control_coordinates.py": [
       "API-424"
     ],
     "implementations/python/packages/raes_contracts/contracts/participant_control_effect_composition.py": [
+      "API-424"
+    ],
+    "implementations/python/packages/raes_contracts/contracts/participant_control_invocation.py": [
       "API-424"
     ],
     "implementations/python/packages/raes_contracts/contracts/realization_plans.py": [
@@ -121,6 +178,9 @@
     "implementations/python/packages/raes_runtime/control_plane_store_snapshots.py": [
       "RUN-320"
     ],
+    "implementations/python/packages/raes_runtime/operation_execution_adapter.py": [
+      "API-404"
+    ],
     "implementations/python/packages/raes_runtime/participant_action_validation.py": [
       "RUN-320"
     ],
@@ -139,7 +199,13 @@
     "implementations/python/packages/raes_runtime/participant_control_effects.py": [
       "RUN-320"
     ],
+    "implementations/python/packages/raes_runtime/participant_control_evaluation_v2.py": [
+      "RUN-320"
+    ],
     "implementations/python/packages/raes_runtime/participant_control_orchestration.py": [
+      "RUN-320"
+    ],
+    "implementations/python/packages/raes_runtime/participant_control_provider_state.py": [
       "RUN-320"
     ],
     "implementations/python/packages/raes_runtime/participant_control_receipts.py": [
@@ -164,6 +230,9 @@
       "RUN-320"
     ],
     "implementations/python/tests/participant_control_runtime_fixtures.py": [
+      "RUN-320"
+    ],
+    "implementations/python/tests/participant_control_v2_fixtures.py": [
       "RUN-320"
     ],
     "implementations/python/tests/participant_crossing_fixtures.py": [
@@ -197,6 +266,9 @@
       "RUN-320"
     ],
     "implementations/python/tests/test_issue_1069_participant_control_orchestration.py": [
+      "RUN-320"
+    ],
+    "implementations/python/tests/test_issue_1069_provider_evaluation_v2.py": [
       "RUN-320"
     ],
     "implementations/python/tests/test_issue_1092_control_plane_crash_consistency.py": [

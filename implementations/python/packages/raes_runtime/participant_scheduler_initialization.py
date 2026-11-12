@@ -2,10 +2,12 @@
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
 from raes_contracts.participant_episode import ParticipantEpisodeInitializeRequest
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.models import CompiledTimeModel, ParticipantAutonomousExecutionRuntime
 
+from .backend_calls import _call_backend_apply
 from .participant_activity import (
     ParticipantActivityDrawContext,
     ParticipantActivityRandomControl,
@@ -13,6 +15,7 @@ from .participant_activity import (
     draw_activity_integer,
     next_activity_timing,
 )
+from .participant_effect_authority import participant_effect_authority
 from .participant_scheduler_policy import _policy_digest
 from .participant_scheduler_time import cadence, clock_coordinate
 
@@ -21,10 +24,10 @@ _RESOURCE_GOVERNED_PROFILE = "participant-autonomous-execution/v3"
 
 def clock_tick(snapshot: RuntimeSnapshot, clock_address: str) -> int:
     if snapshot.time_model_state is None:
-        raise ValueError("autonomous participant execution requires typed shared-time state")
+        raise ConflictError("autonomous participant execution requires typed shared-time state")
     clock = snapshot.time_model_state.clocks.get(clock_address)
     if clock is None:
-        raise ValueError(f"autonomous participant clock {clock_address!r} has no runtime state")
+        raise ConflictError(f"autonomous participant clock {clock_address!r} has no runtime state")
     return clock.coordinate.tick
 
 
@@ -51,12 +54,17 @@ def _ensure_participant_episode(
 ) -> ApplyResult:
     if participant_address in snapshot.participant_episode_results:
         return ApplyResult(success=True, snapshot=snapshot)
-    return participant_runtime.initialize(
-        ParticipantEpisodeInitializeRequest(
-            participant_address=participant_address,
-            episode_id=f"{participant_address}-autonomous-0",
-        ),
+    request = ParticipantEpisodeInitializeRequest(
+        participant_address=participant_address,
+        episode_id=f"{participant_address}-autonomous-0",
+    )
+    return _call_backend_apply(
+        participant_runtime.initialize,
+        request,
         snapshot,
+        address="runtime.participant.initialize",
+        snapshot=snapshot,
+        realization=participant_effect_authority(request, snapshot),
     )
 
 

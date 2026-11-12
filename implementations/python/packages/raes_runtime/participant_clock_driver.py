@@ -5,15 +5,23 @@ from __future__ import annotations
 import threading
 import time
 from collections.abc import Callable, Iterable
+from contextlib import AbstractContextManager, nullcontext
 from dataclasses import dataclass
 from fractions import Fraction
+from typing import TypedDict, Unpack
 
 from raes_contracts.contracts.participant_execution import ParticipantExecutionServiceStateModel
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.models import CompiledTimeModel, ParticipantAutonomousExecutionRuntime
 
-_UNEXPECTED_FAILURES = (Exception,)
+_LOGGER = get_logger(__name__)
+
+
+class ClockDriverOptions(TypedDict, total=False):
+    publish_failure: Callable[[ApplyResult], None] | None
+    mutation_scope: Callable[[], AbstractContextManager[object]]
 
 
 @dataclass(frozen=True)
@@ -61,7 +69,7 @@ class ParticipantClockDriver:
         advance: Callable[[str, int], ApplyResult],
         service_due: Callable[[], ApplyResult],
         lock: threading.RLock,
-        publish_failure: Callable[[ApplyResult], None] | None = None,
+        **options: Unpack[ClockDriverOptions],
     ) -> None:
         self._rates = _automatic_clock_rates(policies, time_model)
         self._policy_clocks = {policy.address: policy.clock_address for policy in policies}
@@ -69,7 +77,10 @@ class ParticipantClockDriver:
         self._advance = advance
         self._service_due = service_due
         self._lock = lock
-        self._publish_failure = publish_failure
+        self._publish_failure = options.pop("publish_failure", None)
+        self._mutation_scope = options.pop("mutation_scope", nullcontext)
+        if options:
+            raise TypeError("unsupported participant clock driver option")
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
         self._failure: ApplyResult | None = None
@@ -110,7 +121,10 @@ class ParticipantClockDriver:
             keep_running = True
             while keep_running and not self._stop.is_set():
                 keep_running = self._run_once()
-        except _UNEXPECTED_FAILURES as exc:
+        # Boundary of the driver thread: record one typed failure and log it once. The serial
+        # scheduler calls participant runtime backends directly, so log only RAES frames.
+        except Exception as exc:
+            _LOGGER.exception("participant clock driver terminated unexpectedly", exc_info=foreign_failure_record(exc))
             self._record_unexpected_failure(exc)
 
     def _run_once(self) -> bool:
@@ -130,7 +144,7 @@ class ParticipantClockDriver:
         return keep_running
 
     def _service_current_transition(self) -> ApplyResult | None:
-        with self._lock:
+        with self._mutation_scope(), self._lock:
             current = self._next_transition()
             if current is None:
                 return None
@@ -140,7 +154,8 @@ class ParticipantClockDriver:
             return self._service_due() if ticks == 0 else self._advance(clock_address, ticks)
 
     def _record_unexpected_failure(self, exc: BaseException) -> None:
-        snapshot = self._pacing_failure_snapshot(self._snapshot(), exc)
+        del exc
+        snapshot = self._pacing_failure_snapshot(self._snapshot())
         self._failure = ApplyResult(
             success=False,
             snapshot=snapshot,
@@ -149,7 +164,7 @@ class ParticipantClockDriver:
                     code="runtime.participant-clock-driver-failed",
                     domain="participant",
                     address="runtime.participant-clock-driver",
-                    message=f"Participant clock driver terminated unexpectedly: {exc}",
+                    message="Participant clock driver terminated unexpectedly.",
                 )
             ],
         )
@@ -159,9 +174,7 @@ class ParticipantClockDriver:
     def _pacing_failure_snapshot(
         self,
         snapshot: RuntimeSnapshot,
-        exc: BaseException,
     ) -> RuntimeSnapshot:
-        del exc
         services = dict(snapshot.participant_execution_services)
         for policy_address, clock_address in self._policy_clocks.items():
             payload = services.get(policy_address)
@@ -187,7 +200,7 @@ class ParticipantClockDriver:
         )
 
     def _next_transition(self) -> tuple[str, int, float] | None:
-        with self._lock:
+        with self._mutation_scope(), self._lock:
             snapshot = self._snapshot()
             if snapshot.time_model_state is None:
                 return None

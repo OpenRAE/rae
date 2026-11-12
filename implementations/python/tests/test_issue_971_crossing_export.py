@@ -7,6 +7,7 @@ import shutil
 import pytest
 from crossing_model_fixtures import ROOT, profile_payload
 from implementations.formal.participant_crossing import abstract, concrete, export
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
 
 
 def workspace(tmp_path):
@@ -50,42 +51,13 @@ def test_export_readback_and_counts(tmp_path):
     assert manifest["domain_counts"]["history_head"] == 4
     assert manifest["equivalence_result"] == "not-established"
     assert export.build_bundle(root) == bundle
-    export.publish(root)
     export.check(root)
-    export.publish(root)  # identical publication is idempotent
-
-
-@pytest.mark.parametrize("drift", ["source", "profile", "artifact", "counts"])
-def test_drift_fails_without_replacing_published_bundle(tmp_path, drift):
-    root = workspace(tmp_path)
-    export.publish(root)
-    output = root / export.OUTPUT_PATH
-    if drift == "source":
-        path = root / "implementations/formal/participant_crossing/abstract.py"
-        path.write_bytes(path.read_bytes() + b"\n# source drift\n")
-    elif drift == "profile":
-        path = root / export.PROFILE_PATH
-        data = json.loads(path.read_bytes())
-        data["limitations"] = ["Changed interpretation"]
-        path.write_text(json.dumps(data))
-    elif drift == "artifact":
-        (output / "abstract.aut").write_bytes(b"des (0, 0, 1)\n")
-    else:
-        data = json.loads((output / "manifest.json").read_bytes())
-        data["models"]["abstract"]["states"] = 1
-        (output / "manifest.json").write_text(json.dumps(data))
-    before = {path.name: path.read_bytes() for path in output.iterdir()}
-    with pytest.raises(ValueError, match="drift"):
-        export.check(root)
-    with pytest.raises(ValueError, match="drift"):
-        export.publish(root)
-    assert {path.name: path.read_bytes() for path in output.iterdir()} == before
 
 
 def test_shared_transition_authority_is_rejected(tmp_path, monkeypatch):
     root = workspace(tmp_path)
     monkeypatch.setattr(concrete, "successors", abstract.successors)
-    with pytest.raises(ValueError, match="independent"):
+    with pytest.raises(InvalidInputError, match="independent"):
         export.build_bundle(root)
 
 
@@ -100,9 +72,8 @@ def test_rebound_source_cannot_describe_different_executing_code(tmp_path):
         if source["source_ref"] == path.relative_to(root).as_posix():
             source["source_digest"] = export.digest(path.read_bytes())
     profile_path.write_text(json.dumps(payload))
-    with pytest.raises(ValueError, match="executing source"):
-        export.publish(root)
-    assert not (root / export.OUTPUT_PATH).exists()
+    with pytest.raises(EvidenceIntegrityError, match="executing source"):
+        export.build_bundle(root)
 
 
 @pytest.mark.parametrize(
@@ -115,11 +86,11 @@ def test_rebound_source_cannot_describe_different_executing_code(tmp_path):
     ],
 )
 def test_invalid_aut_is_rejected(value):
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidInputError):
         export.parse_aut(value)
 
 
-def test_failed_generation_publishes_nothing(tmp_path, monkeypatch):
+def test_failed_generation_is_refused(tmp_path, monkeypatch):
     root = workspace(tmp_path)
 
     def exhausted():
@@ -127,8 +98,7 @@ def test_failed_generation_publishes_nothing(tmp_path, monkeypatch):
 
     monkeypatch.setattr(concrete, "build", exhausted)
     with pytest.raises(ValueError):
-        export.publish(root)
-    assert not (root / export.OUTPUT_PATH).exists()
+        export.build_bundle(root)
 
 
 def test_truncated_graph_is_rejected(tmp_path, monkeypatch):
@@ -137,9 +107,8 @@ def test_truncated_graph_is_rejected(tmp_path, monkeypatch):
     root = workspace(tmp_path)
     graph = abstract.build()
     monkeypatch.setattr(abstract, "build", lambda: replace(graph, edges=graph.edges[:-1]))
-    with pytest.raises(ValueError, match="closure"):
-        export.publish(root)
-    assert not (root / export.OUTPUT_PATH).exists()
+    with pytest.raises(InvalidInputError, match="closure"):
+        export.build_bundle(root)
 
 
 def test_symlink_input_and_output_are_rejected(tmp_path):
@@ -147,32 +116,41 @@ def test_symlink_input_and_output_are_rejected(tmp_path):
     path = root / export.PROFILE_PATH
     path.unlink()
     path.symlink_to(tmp_path / "unread-target")
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidInputError):
         export.build_bundle(root)
 
 
-def test_published_repository_bundle_matches_sources():
-    export.check(ROOT)
+def test_invalid_profile_contract_is_an_input_refusal(tmp_path):
+    root = workspace(tmp_path)
+    path = root / export.PROFILE_PATH
+    payload = json.loads(path.read_bytes())
+    payload["profile_revision"] = None
+    path.write_text(json.dumps(payload))
+    with pytest.raises(InvalidInputError, match="does not satisfy its contract"):
+        export.build_bundle(root)
 
 
-def test_symlink_output_cannot_publish_outside_root(tmp_path):
-    root = workspace(tmp_path / "root")
-    outside = tmp_path / "outside"
-    outside.mkdir()
-    target = root / export.OUTPUT_PATH
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.symlink_to(outside, target_is_directory=True)
-    with pytest.raises(ValueError):
-        export.publish(root)
-    assert list(outside.iterdir()) == []
-
-
-def test_cli_failure_does_not_echo_rejected_values(monkeypatch, capsys):
+@pytest.mark.parametrize("failure", [EvidenceIntegrityError, InvalidInputError, OSError])
+def test_cli_failure_does_not_echo_rejected_values(monkeypatch, capsys, failure):
     from implementations.formal.participant_crossing import __main__
 
     def fail(_root):
-        raise ValueError("synthetic-private-value")
+        raise failure("synthetic-private-value")
 
     monkeypatch.setattr(export, "check", fail)
     assert __main__.main([]) == 1
     assert capsys.readouterr().err == "participant-crossing model export failed validation\n"
+
+
+def test_cli_does_not_report_a_defect_as_failed_validation(monkeypatch, capsys):
+    """A built-in ValueError is a defect: it reaches run_application, not the refusal message."""
+
+    from implementations.formal.participant_crossing import __main__
+
+    def defect(_root):
+        raise ValueError("synthetic-private-value")
+
+    monkeypatch.setattr(export, "check", defect)
+    with pytest.raises(ValueError, match="synthetic-private-value"):
+        __main__.main([])
+    assert "failed validation" not in capsys.readouterr().err

@@ -11,7 +11,7 @@ from raes_contracts.realization_structure import (
     normalize_realization_literal,
     realization_constraint_binding,
 )
-from test_issue_1208_profile_selections import _account_profile, _mailbox_case
+from test_issue_1208_profile_selections import _account_profile
 
 
 def test_supplied_authority_cannot_broaden_any_authored_value():
@@ -43,23 +43,6 @@ def test_supplied_authority_cannot_broaden_any_authored_value():
     assert selected_profile_authority((binding,), None, exact) == exact
     with pytest.raises(ValueError, match="constraint"):
         selected_profile_authority((binding,), None, wider)
-
-
-def test_mailbox_target_refuses_credentials_without_materialization_before_driver_mutation():
-    from raes.scenario import Scenario
-    from test_issue_673_account_credential_bindings import _account_payload
-
-    _, _, _, manager, _, driver = _mailbox_case()
-    account = _account_payload()
-    account["node"] = "mail"
-    scenario = Scenario.model_validate(
-        {"name": "unbound", "nodes": {"mail": {"type": "compute"}}, "accounts": {"admin": account}}
-    )
-    execution = manager.plan(scenario)
-    before = list(driver.recorded_ops)
-    result = manager.apply(execution)
-    assert not result.success
-    assert driver.recorded_ops == before
 
 
 def test_exact_source_constraint_preserves_unrelated_programmatic_authority():

@@ -8,8 +8,7 @@ cross-rule sequencing invariants.
 from enum import Enum
 
 from pydantic import Field, field_validator, model_validator
-
-from .._base import SDLModel
+from raes_contracts.sdl_model import SDLModel
 
 
 class ParticipantInformationBoundaryClass(str, Enum):
@@ -138,7 +137,7 @@ class ParticipantViewRule(SDLModel):
         return values
 
     @model_validator(mode="after")
-    def _validate_sem210_exposure_basis(self) -> "ParticipantViewRule":
+    def _validate_sem210_exposure_basis(self) -> ParticipantViewRule:
         if self.disposition == ParticipantViewDisposition.DISCLOSED and not self.disclosure_rule:
             raise ValueError("disclosed view rules require an explicit disclosure_rule")
         if self.boundary_class in _SENSITIVE_BOUNDARY_CLASSES:
@@ -208,7 +207,7 @@ class ParticipantViewTransition(SDLModel):
         return values
 
     @model_validator(mode="after")
-    def _validate_transition_semantics(self) -> "ParticipantViewTransition":
+    def _validate_transition_semantics(self) -> ParticipantViewTransition:
         allowed_targets = _VIEW_TRANSITION_TARGETS[self.transition_kind]
         if self.to_disposition not in allowed_targets:
             allowed = ", ".join(sorted(disposition.value for disposition in allowed_targets))
@@ -229,7 +228,7 @@ class ParticipantViewTransition(SDLModel):
         return self
 
 
-def _validate_projection_refs(boundary: "ParticipantObservationBoundary") -> None:
+def _validate_projection_refs(boundary: ParticipantObservationBoundary) -> None:
     if not boundary.observable_refs and not boundary.evidence_refs:
         raise ValueError("participant observation boundary requires observable_refs or evidence_refs")
     leaked = sorted(set(boundary.observable_refs) & set(boundary.hidden_refs))
@@ -377,7 +376,7 @@ class ParticipantObservationBoundary(SDLModel):
         return value
 
     @model_validator(mode="after")
-    def _validate_projection(self) -> "ParticipantObservationBoundary":
+    def _validate_projection(self) -> ParticipantObservationBoundary:
         _validate_projection_refs(self)
         view_rules_by_ref = _view_rules_by_ref(self.view_rules)
         _transition_kinds_by_ref(self.view_transitions)

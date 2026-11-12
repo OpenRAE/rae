@@ -14,9 +14,9 @@ A declarative *objective* binds, in one place:
   not realized actor attribution or beneficiary identity. Every `actions` entry
   must name a declared action contract; when assigned, it must also be available
   to that participant;
-- zero or more **targets**, resolved through the targetable named-reference
-  index (bare or section-qualified; objectives, workflows, and variables are not
-  targetable);
+- zero or more **targets**, resolved through the objective-subject purpose of
+  the named-reference index (bare or section-qualified): participants,
+  organizations, resources, relationships, propositions, and assertions;
 - a **success** interpretation — `mode` (`all_of` / `any_of` / `at_least`) over
   referenced invariant or postcondition assertions. Assertions use typed,
   backend-neutral propositions; executable `conditions` only bind probes. The
@@ -38,7 +38,7 @@ credentials, polling loops, or live control-plane behavior.
 
 `raes.semantics.objective_semantics.analyze_objective_semantics(...)` is the
 single name-level analyzer. Given the name-keyed SDL constructs plus the
-targetable named-reference index (and an optional `is_unresolved` predicate so
+objective-subject named-reference index (and an optional `is_unresolved` predicate so
 `${var}` placeholders are skipped and re-checked after instantiation), it
 returns an `ObjectiveSemanticAnalysis`:
 

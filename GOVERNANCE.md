@@ -1,5 +1,8 @@
 # Project governance
 
+This page explains who decides project scope and accepts changes.
+Use [CONTRIBUTING.md](CONTRIBUTING.md) for setup and pull request steps.
+
 RAES is a maintainer-led open source project. The maintainer sets project
 scope, accepts changes, manages releases, and protects the repository's
 normative specifications and contracts.
@@ -27,8 +30,8 @@ model honest and usable.
 
 ## Release a change
 
-Pull requests target `dev`. Release Please prepares release changes on `main`
-from Conventional Commit titles. It owns package versions, release notes, and
+Pull requests target `dev`. The maintainer approves promotion to `main`.
+Release Please prepares release changes on `main` from Conventional Commit titles. It owns package versions, release notes, and
 `CHANGELOG.md`.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the working steps and

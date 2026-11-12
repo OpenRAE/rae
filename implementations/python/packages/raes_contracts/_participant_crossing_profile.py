@@ -2,9 +2,9 @@
 
 from typing import TYPE_CHECKING, Any, Literal, Self
 
-from pydantic import Field, StrictInt, model_validator
+from pydantic import Field, StrictInt, field_validator, model_validator
 
-from .contracts.base import ContractModel, PrefixedDigestString
+from raes_contracts._base import ContractModel, PrefixedDigestString
 
 if TYPE_CHECKING:
     from .behavioral_relation_profiles import BehavioralRelationProfileModel
@@ -58,7 +58,7 @@ class AbstractCrossingCarrierModel(ContractModel):
     model_id: Literal["sem-230-participant-crossing-abstract"]
     revision: Literal["rev2"]
     source_path: Literal["implementations/formal/participant_crossing/abstract.py"]
-    source_digest: PrefixedDigestString
+    source_digest: PrefixedDigestString | None = None
     initial_state_ordinal: StrictInt = Field(ge=0, le=0)
 
 
@@ -66,7 +66,7 @@ class ConcreteCrossingCarrierModel(ContractModel):
     model_id: Literal["api-423-run-319-crossing-kernel"]
     revision: Literal["rev2"]
     source_path: Literal["implementations/formal/participant_crossing/concrete.py"]
-    source_digest: PrefixedDigestString
+    source_digest: PrefixedDigestString | None = None
     initial_state_ordinal: StrictInt = Field(ge=0, le=0)
 
 
@@ -106,14 +106,21 @@ class ParticipantCrossingParametersModel(ContractModel):
     controller_handoff: Literal["excluded"]
     completion: Literal["per-crossing-visible-outcome"]
 
+    @field_validator("complete_carrier", mode="before")
+    @classmethod
+    def _require_complete_carrier(cls, value: object) -> bool:
+        if value is not True:
+            raise ValueError("complete_carrier must be the JSON boolean true")
+        return True
+
     @model_validator(mode="after")
     def _independent_sources(self) -> Self:
-        if self.left.source_digest == self.right.source_digest:
+        if self.left.source_digest is not None and self.left.source_digest == self.right.source_digest:
             raise ValueError("crossing transition authorities must have independent source identities")
         return self
 
 
-def validate_crossing_profile_join(profile: "BehavioralRelationProfileModel") -> None:
+def validate_crossing_profile_join(profile: BehavioralRelationProfileModel) -> None:
     expected = {
         "profile_id": "participant-crossing-dpbb-finite-v1",
         "profile_revision": "rev2",
@@ -152,5 +159,16 @@ def crossing_profile_schema_join() -> dict[str, Any]:
                 }.items()
             }
         },
-        "else": {"properties": {"relation_id": {"const": "participant-predicate-opacity"}}},
+        "else": {
+            "if": {
+                "properties": {
+                    "parameters": {
+                        "properties": {"kind": {"const": "participant-crossing-multi-dpbb/v1"}},
+                        "required": ["kind"],
+                    }
+                },
+                "required": ["parameters"],
+            },
+            "else": {"properties": {"relation_id": {"const": "participant-predicate-opacity"}}},
+        },
     }

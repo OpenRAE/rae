@@ -30,3 +30,5 @@ Requirement inventory expansion. Scenarios need to describe autonomous system be
 - IMPLEMENTS → GITHUB_ISSUE `211` (Autonomous Service And Agent Behavior Vocabularies (ACT-611))
 - TESTS → TEST `implementations/python/tests/test_external_concept_bindings.py` (External concept binding production-path tests)
 - TESTS → TEST `tools/check_autonomous_behavior_vocabularies.py` (Autonomous behavior vocabulary source integrity checker)
+- IMPLEMENTS → SPEC `contracts/schemas/concept-authority/fipa-communicative-acts-source-v1.json` (fipa-communicative-acts-source-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/concept-authority/w3c-activitystreams-activity-types-source-v1.json` (w3c-activitystreams-activity-types-source-v1 published schema)

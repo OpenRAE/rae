@@ -6,8 +6,8 @@ from collections.abc import Mapping
 from dataclasses import replace
 from typing import TYPE_CHECKING, Protocol
 
-from raes.explicitness import ExplicitnessClass
 from raes_backend_protocols.capabilities import BackendManifest
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.vocabulary import Closure
 
 if TYPE_CHECKING:

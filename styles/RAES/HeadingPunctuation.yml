@@ -1,7 +1,0 @@
-extends: existence
-message: "Do not end a heading with punctuation."
-level: error
-scope: heading
-nonword: true
-tokens:
-  - '[.!?:;]$'

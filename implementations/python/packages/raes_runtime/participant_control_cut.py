@@ -10,28 +10,31 @@ from __future__ import annotations
 
 from pydantic import ValidationError
 from raes_contracts.canonical import canonical_json_digest
+from raes_contracts.contracts.participant_control_applicability import ParticipantControlRequestV2Model
 from raes_contracts.contracts.participant_control_composition import ParticipantControlRequestModel
 from raes_contracts.contracts.participant_crossing import ParticipantCrossingOccurrenceModel
 
-from .participant_control_causal_state import causal_state_from_history, declares_retained_consumption
+from .participant_control_causal_state import declares_retained_consumption
+from .participant_control_projection import control_projection
 from .participant_crossing_mediation import PreparedParticipantCrossing
 
 
-def declares_committed_consumption(control_plane: object, request: ParticipantControlRequestModel) -> bool:
+def declares_committed_consumption(
+    control_plane: object, request: ParticipantControlRequestModel | ParticipantControlRequestV2Model
+) -> bool:
     """Reconcile the admitted context with the consumption already committed."""
 
     context = request.context
-    history = control_plane._snapshot.participant_control_evaluation_history.get(context.participant_address, ())
-    state = causal_state_from_history(
-        history,
-        run_ref=context.run.ref,
-        trigger_root=context.trigger_root,
+    state = control_projection(control_plane).causal_state(
+        context.run.ref,
+        context.trigger_root,
+        participant=None if isinstance(request, ParticipantControlRequestV2Model) else context.participant_address,
     )
     return declares_retained_consumption(context, state)
 
 
 def binds_live_cut(
-    request: ParticipantControlRequestModel,
+    request: ParticipantControlRequestModel | ParticipantControlRequestV2Model,
     crossing: PreparedParticipantCrossing,
     sink_kind: object,
     head_refs: tuple[str, ...],
@@ -95,7 +98,14 @@ def _committed_crossing_digest(
     """Digest this decision exactly as the committed crossing history holds it."""
 
     history = crossing.next_snapshot.participant_crossing_history.get(decision.participant_address, ())
-    record = next((item for item in history if item.get("event_id") == decision.event_id), None)
+    from raes_contracts.immutable_history import HistoryMap
+
+    histories = crossing.next_snapshot.participant_crossing_history
+    record = (
+        histories.find(decision.participant_address, decision.event_id)
+        if isinstance(histories, HistoryMap)
+        else next((item for item in history if item.get("event_id") == decision.event_id), None)
+    )
     if record is None:
         return None
     try:

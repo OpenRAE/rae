@@ -6,7 +6,9 @@ from dataclasses import dataclass
 from uuid import uuid4
 
 from raes_contracts.contracts import ParticipantControlOccurrenceModel
+from raes_contracts.contracts.participant_control_occurrence_v2 import ParticipantControlOccurrenceV2Model
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
     OperationAdmissionContext,
@@ -34,7 +36,7 @@ def participant_control_operation_artifacts(
     *,
     participant_address: str,
     intent: ParticipantControlIntent,
-    occurrence: ParticipantControlOccurrenceModel,
+    occurrence: ParticipantControlOccurrenceModel | ParticipantControlOccurrenceV2Model,
     accepted: bool,
     rejection_reason: str | None,
     authority: ParticipantControlOperationAuthority,
@@ -72,20 +74,24 @@ def participant_control_operation_artifacts(
         request_fingerprint=authority.context.request_commitment,
         idempotency_key=authority.idempotency_key,
     )
-    audit_event = AuditEvent(
-        timestamp=submitted_at,
-        action="record_participant_control",
-        identity=authority.identity.identity,
-        allowed=accepted,
-        target=participant_address,
-        operation_id=operation_id,
-        reason=rejection_reason or "accepted",
-        details={
-            "episode_id": intent.episode_id,
-            "kind": intent.kind,
-            "event_id": occurrence.event_id,
-        },
-    )
+    try:
+        audit_event = AuditEvent(
+            timestamp=submitted_at,
+            action="record_participant_control",
+            identity=authority.identity.identity,
+            allowed=accepted,
+            target=participant_address,
+            operation_id=operation_id,
+            reason=rejection_reason or "accepted",
+            details={
+                "episode_id": intent.episode_id,
+                "kind": intent.kind,
+                "event_id": occurrence.event_id,
+            },
+        )
+    # The audit event refuses a requested episode identity outside its bounded detail domain (rule E3).
+    except ValueError as exc:
+        raise InvalidInputError("participant control intent carries an audit detail outside its domain") from exc
     return record, audit_event
 
 

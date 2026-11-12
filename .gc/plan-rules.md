@@ -1,4 +1,4 @@
-# raes-sdl plan rules
+# RAES SDL plan rules
 
 Mandatory constraints the `/implement` skill applies during plan phase.
 These encode the hard rules previously in `AGENTS.md` prose.
@@ -10,16 +10,20 @@ These encode the hard rules previously in `AGENTS.md` prose.
 - Local test and completion commands MUST remain targeted. Never select a full
   test, integration or fuzz suite locally, even on unknown changes, source edits,
   base synchronization or review repairs. Full verification is CI/CD only.
-- Plans MUST set `RAES_REQUIREMENT_UID` when the branch name does not
-  already contain a UID such as `GOV-918`.
+- Requirement-backed plans MUST set `RAES_REQUIREMENT_UID` when the branch name
+  does not contain an in-scope UID such as `GOV-918`.
+  Requirement-free plans MUST NOT invent a UID.
 - Plans MUST NOT add new authority-bearing artifacts outside `specs/`,
   `contracts/`, `docs/`, and `implementations/`.
-- Plans that change a published schema under `contracts/schemas/` (the
-  hand-governed normative authority per ADR-009 §7) MUST record a
-  contract-facing change-ledger entry (`last_change`: summary + content hash)
-  in `contracts/schema-publication-manifest.json`, and a plan that **removes**
-  a published schema MUST record a `removed_schemas` tombstone (schema path +
-  summary) in the same manifest. Plans MUST keep the reference implementation
+- Plans MUST name the module that owns each piece of new code. Plans MUST also
+  name the public interface that other modules use to reach that code
+  (ADR-117).
+- Plans that add a published schema under `contracts/schemas/` (the
+  hand-governed normative authority per ADR-009 §7) MUST add its record under
+  `contracts/schema-publication/entries/`. A schema change does not edit its
+  record. A plan that **removes** a published schema MUST add a tombstone
+  record (schema path + summary) under `contracts/schema-publication/tombstones/`.
+  Plans MUST keep the reference implementation
   (`schema_bundle()`) generating an identical bundle so
   `tools/check_generated_schemas.py` passes. The published schema is the
   authority; a generator/Python edit alone is NOT authorization for a schema
@@ -40,3 +44,14 @@ These encode the hard rules previously in `AGENTS.md` prose.
   `ci`/`build` do not release. Use `feat:`/`fix:` for consumer-visible changes so
   release-please actually cuts a release. The PR title MUST still pass the
   `title-guard` gate (`tools/check_pr_title.py`).
+
+- Routine source edits do not require new research captures. Live behavioral
+  checks remain required. When a task deliberately records source-bound formal
+  or specification research evidence, it MUST use immutable,
+  content-addressed branch captures via `python -m tools.research_capture record`.
+  Feature branches MUST NOT allocate the next numbered research release, extend
+  hard-coded revision lists, rewrite published history, or append a capture to
+  shared narrative indexes. Preserve capture retention records and baseline pins.
+  Numbered publication receipts are assigned only on a clean `dev` integration
+  checkout via `python -m tools.research_capture publish`. See
+  `docs/develop/research-captures.md` for collection and integration instructions.

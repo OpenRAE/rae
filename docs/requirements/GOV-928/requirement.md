@@ -6,7 +6,7 @@ type: NON_FUNCTIONAL
 priority: MUST
 wave: 3
 created_at: 2026-05-15T04:13:16.700063Z
-updated_at: 2026-08-12T05:22:38Z
+updated_at: 2026-11-02T00:00:00Z
 ---
 
 # GOV-928 — Trusted Package Publishing
@@ -21,6 +21,9 @@ Imported from the superseded governance backlog before deleting the old governan
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/tooling/release-please/run.cjs` (Complete ancestry-based commit input for release PR versioning and notes, #1841)
+- TESTS → TEST `implementations/tooling/release-please/run.test.cjs` (Older-dated breaking commits, ordinary release classification, and incomplete-history refusal)
+
 - IMPLEMENTS → CODE_FILE `.github/workflows/release-please.yml` (Exact-SHA-gated PyPI trusted publishing workflow)
 - IMPLEMENTS → CODE_FILE `tools/release_evidence_publication.py` (Tag-derived subject-name correspondence and the validated publisher handoff)
 - IMPLEMENTS → CODE_FILE `tools/release_evidence.py` (Emits the admitted wheel/sdist identity only after admission succeeds)
@@ -28,7 +31,6 @@ Imported from the superseded governance backlog before deleting the old governan
 - TESTS → TEST `implementations/python/tests/test_release_workflows.py` (Release classification, dependency, exact-SHA, action pin, artifact smoke, and OIDC boundary policy tests)
 - TESTS → TEST `implementations/python/tests/test_issue_1227_release_publication.py` (Publication-boundary subject-name, handoff ordering, and admitted-identity cases)
 - TESTS → TEST `implementations/python/tests/test_corpus_packaging.py` (Installed-wheel corpus, CLI conformance, and semantic-validation acceptance tests)
-- TESTS → TEST `implementations/python/tests/test_reference_backend_docker_gate.py` (Required-mode runtime/image failure and reviewed digest policy tests)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-1125-gov-928-exact-sha-release-verification-preflight.md` (Exact-SHA release verification architecture and trust-boundary preflight)
 - DOCUMENTS → DOCUMENTATION `docs/explain/releasing.md` (Release operator contract and manual recovery constraints)
 - DOCUMENTS → DOCUMENTATION `docs/decisions/issue-684-public-release-acceptance-preflight.md` (Public publisher evidence boundary, release controls, and acceptance preflight)

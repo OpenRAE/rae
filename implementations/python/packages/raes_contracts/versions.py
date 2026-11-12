@@ -35,6 +35,11 @@ BACKEND_PROFILE_SCHEMA_VERSION = "backend-profile/v1"
 WORKFLOW_STATE_SCHEMA_VERSION = "workflow-step-state/v1"
 WORKFLOW_CANCELLATION_REQUEST_SCHEMA_VERSION = "workflow-cancellation-request/v1"
 RUNTIME_SNAPSHOT_SCHEMA_VERSION = "runtime-snapshot/v1"
+INJECT_TRIGGER_REQUEST_SCHEMA_VERSION = "inject-trigger-request/v1"
+INJECT_OCCURRENCE_SCHEMA_VERSION = "inject-occurrence/v1"
+INJECT_OCCURRENCE_OUTCOME_SCHEMA_VERSION = "inject-occurrence-outcome/v1"
+INJECT_OCCURRENCE_CORRELATION_SCHEMA_VERSION = "inject-occurrence-correlation/v1"
+INJECT_OCCURRENCE_BACKEND_CONTRACT_IDS = ("inject-occurrence-v1", "inject-occurrence-outcome-v1")
 OPERATION_SCHEMA_VERSION = "runtime-operation/v1"
 BACKEND_OPERATION_REQUEST_SCHEMA_VERSION = "backend-operation-request/v1"
 BACKEND_OPERATION_CAPABILITIES_SCHEMA_VERSION = "backend-operation-capabilities/v1"
@@ -46,6 +51,9 @@ BACKEND_OPERATION_CONTRACT_IDS = (
     "backend-operation-control-v1",
     "backend-operation-response-v1",
 )
+MIXED_BACKEND_EXECUTION_BINDING_SCHEMA_VERSION = "mixed-backend-execution-binding/v1"
+MIXED_BACKEND_STAGE_REPORT_SCHEMA_VERSION = "mixed-backend-stage-report/v1"
+MIXED_BACKEND_CONTRACT_IDS = ("mixed-backend-execution-binding-v1", "mixed-backend-stage-report-v1")
 EVALUATION_STATE_SCHEMA_VERSION = "evaluation-result-state/v1"
 PROPOSITION_TRUTH_RESULT_SCHEMA_VERSION = "proposition-truth-result/v1"
 SDL_LINEAGE_LEDGER_SCHEMA_VERSION = "sdl-lineage-ledger/v1"
@@ -83,7 +91,6 @@ ADMITTED_TRIAL_PLAN_SCHEMA_VERSION = "admitted-trial-plan/v1"
 MIXED_PARTICIPANT_COMPOSITION_PROFILE_SCHEMA_VERSION = "mixed-participant-composition-profile/v1"
 TRIAL_CLEANUP_PLAN_SCHEMA_VERSION = "trial-cleanup-plan/v1"
 TRIAL_CLEANUP_RECEIPT_SCHEMA_VERSION = "trial-cleanup-receipt/v1"
-SCHEDULER_ISOLATION_PROOF_SCHEMA_VERSION = "scheduler-isolation-proof/v1"
 BATCH_EXECUTION_RECEIPT_SCHEMA_VERSION = "batch-execution-receipt/v1"
 TIME_MODEL_SCHEMA_VERSION = "time-model/v1"
 TIME_RUNTIME_STATE_SCHEMA_VERSION = "time-runtime-state/v1"

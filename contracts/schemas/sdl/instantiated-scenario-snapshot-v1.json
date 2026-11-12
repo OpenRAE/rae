@@ -476,6 +476,24 @@
           "title": "Authority Anchors",
           "type": "array"
         },
+        "control_context": {
+          "additionalProperties": false,
+          "maxProperties": 256,
+          "patternProperties": {
+            "^[a-z0-9]": {
+              "$ref": "#/$defs/ParticipantControlContextReference"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            }
+          },
+          "title": "Control Context",
+          "type": "object"
+        },
         "description": {
           "default": "",
           "not": {
@@ -1770,6 +1788,72 @@
         }
       },
       "title": "Condition",
+      "type": "object"
+    },
+    "ConstrainedTrialParallelismModel": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "minimum": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "minimum"
+          ]
+        },
+        {
+          "properties": {
+            "maximum": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "maximum"
+          ]
+        }
+      ],
+      "description": "Require an inclusive lower bound, upper bound, or both.",
+      "properties": {
+        "maximum": {
+          "anyOf": [
+            {
+              "maximum": 4096,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maximum"
+        },
+        "minimum": {
+          "anyOf": [
+            {
+              "maximum": 4096,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum"
+        },
+        "posture": {
+          "const": "constrained",
+          "title": "Posture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "posture"
+      ],
+      "title": "ConstrainedTrialParallelismModel",
       "type": "object"
     },
     "ConsumerAccessMode": {
@@ -4963,6 +5047,29 @@
       "title": "ExactRatio",
       "type": "object"
     },
+    "ExactTrialParallelismModel": {
+      "additionalProperties": false,
+      "description": "Require one exact effective capacity.",
+      "properties": {
+        "count": {
+          "maximum": 4096,
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        },
+        "posture": {
+          "const": "exact",
+          "title": "Posture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "posture",
+        "count"
+      ],
+      "title": "ExactTrialParallelismModel",
+      "type": "object"
+    },
     "ExecutionPolicy": {
       "additionalProperties": false,
       "description": "A complete local choice; omitted fields never inherit from another policy.",
@@ -5298,6 +5405,290 @@
       ],
       "title": "ExerciseRole",
       "type": "string"
+    },
+    "ExperimentArtifactRefModel": {
+      "additionalProperties": false,
+      "description": "Reference to an artifact that supports a task, run, apparatus, or study.",
+      "properties": {
+        "artifact_id": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "checksum": {
+          "$ref": "#/$defs/ExperimentChecksumModel"
+        },
+        "created_at": {
+          "format": "date-time",
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}[Tt](?:[01]\\d|2[0-3]):[0-5]\\d:(?:[0-5]\\d|60)(?:\\.\\d+)?(?:[Zz]|[+-](?:[01]\\d|2[0-3]):[0-5]\\d)$",
+          "title": "Created At",
+          "type": "string"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "media_type": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Media Type",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "protocol",
+            "metric-definition",
+            "scenario-snapshot",
+            "materialization-attestation",
+            "manifest",
+            "apparatus-evidence",
+            "observation",
+            "result",
+            "analysis",
+            "report",
+            "export",
+            "starter-file",
+            "evaluator",
+            "subtask",
+            "gold-step",
+            "milestone",
+            "human-assistance",
+            "scaffold",
+            "baseline",
+            "cost-resource-trace",
+            "documentation",
+            "operator-guide",
+            "configuration",
+            "profile",
+            "dataset",
+            "other"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "satisfies_refs": {
+          "items": {
+            "$ref": "#/$defs/ExperimentEvidenceSatisfactionReferenceModel"
+          },
+          "title": "Satisfies Refs",
+          "type": "array"
+        },
+        "sensitivity": {
+          "enum": [
+            "public",
+            "internal",
+            "restricted",
+            "redacted"
+          ],
+          "title": "Sensitivity",
+          "type": "string"
+        },
+        "size_bytes": {
+          "minimum": 0,
+          "title": "Size Bytes",
+          "type": "integer"
+        },
+        "source": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Source",
+          "type": "string"
+        },
+        "uri": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Uri",
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "role",
+        "media_type",
+        "uri",
+        "checksum",
+        "size_bytes",
+        "created_at",
+        "source",
+        "sensitivity"
+      ],
+      "title": "ExperimentArtifactRefModel",
+      "type": "object"
+    },
+    "ExperimentChecksumModel": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "algorithm": {
+                "const": "sha256"
+              }
+            },
+            "required": [
+              "algorithm"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "pattern": "^[A-Fa-f0-9]{64}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "algorithm": {
+                "const": "sha384"
+              }
+            },
+            "required": [
+              "algorithm"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "pattern": "^[A-Fa-f0-9]{96}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "algorithm": {
+                "const": "sha512"
+              }
+            },
+            "required": [
+              "algorithm"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "pattern": "^[A-Fa-f0-9]{128}$"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "algorithm": {
+                "const": "blake3"
+              }
+            },
+            "required": [
+              "algorithm"
+            ]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "pattern": "^[A-Fa-f0-9]{64}$"
+              }
+            }
+          }
+        }
+      ],
+      "description": "Checksum metadata for an experiment-core artifact reference.",
+      "properties": {
+        "algorithm": {
+          "enum": [
+            "sha256",
+            "sha384",
+            "sha512",
+            "blake3"
+          ],
+          "title": "Algorithm",
+          "type": "string"
+        },
+        "value": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^[A-Fa-f0-9]+$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "title": "ExperimentChecksumModel",
+      "type": "object"
+    },
+    "ExperimentEvidenceSatisfactionReferenceModel": {
+      "additionalProperties": false,
+      "description": "Evidence concept reference that an artifact claims to satisfy.",
+      "properties": {
+        "ref_id": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Ref Id",
+          "type": "string"
+        },
+        "ref_kind": {
+          "const": "evidence",
+          "title": "Ref Kind",
+          "type": "string"
+        },
+        "ref_version": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ref Version"
+        }
+      },
+      "required": [
+        "ref_kind",
+        "ref_id"
+      ],
+      "title": "ExperimentEvidenceSatisfactionReferenceModel",
+      "type": "object"
     },
     "ExplicitnessClass": {
       "description": "SEM-218 author-intent class for a declaration.",
@@ -6812,6 +7203,23 @@
           "title": "Content",
           "type": "object"
         },
+        "control_context_assets": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ParticipantControlContextAssetModel"
+          },
+          "maxProperties": 256,
+          "propertyNames": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_.-]"
+            },
+            "pattern": "^(?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63}$",
+            "type": "string"
+          },
+          "title": "Control Context Assets",
+          "type": "object"
+        },
         "deployment_cells": {
           "additionalProperties": {
             "$ref": "#/$defs/DeploymentCell"
@@ -7189,6 +7597,18 @@
           "title": "Relationships",
           "type": "object"
         },
+        "safe_state": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SafeStateDocument"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "x-raes-realization-dimension": false
+        },
         "scripts": {
           "additionalProperties": {
             "$ref": "#/$defs/Script"
@@ -7299,6 +7719,37 @@
           "title": "Time Progression Policies",
           "type": "object"
         },
+        "trial_parallelism": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "constrained": "#/$defs/ConstrainedTrialParallelismModel",
+                  "exact": "#/$defs/ExactTrialParallelismModel",
+                  "open": "#/$defs/OpenTrialParallelismModel"
+                },
+                "propertyName": "posture"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/OpenTrialParallelismModel"
+                },
+                {
+                  "$ref": "#/$defs/ExactTrialParallelismModel"
+                },
+                {
+                  "$ref": "#/$defs/ConstrainedTrialParallelismModel"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Trial Parallelism",
+          "x-raes-realization-dimension": false
+        },
         "version": {
           "default": "*",
           "not": {
@@ -7370,6 +7821,14 @@
             "$ref": "#/$defs/ResolvedImportProvenance"
           },
           "title": "Imports",
+          "type": "array"
+        },
+        "parameter_derivations": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ParameterDerivation"
+          },
+          "title": "Parameter Derivations",
           "type": "array"
         },
         "realization_constraints": {
@@ -7681,6 +8140,7 @@
       "description": "Closed authored mixed-control policy for exactly one participant.",
       "properties": {
         "controller_states": {
+          "additionalProperties": false,
           "patternProperties": {
             "^[a-z0-9]": {
               "$ref": "#/$defs/MixedControlControllerState"
@@ -7691,7 +8151,9 @@
             "minLength": 1,
             "not": {
               "pattern": "[^a-z0-9_-]"
-            }
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
           },
           "title": "Controller States",
           "type": "object"
@@ -7734,6 +8196,7 @@
           "type": "string"
         },
         "transitions": {
+          "additionalProperties": false,
           "patternProperties": {
             "^[a-z0-9]": {
               "$ref": "#/$defs/MixedControlTransition"
@@ -7744,7 +8207,9 @@
             "minLength": 1,
             "not": {
               "pattern": "[^a-z0-9_-]"
-            }
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
           },
           "title": "Transitions",
           "type": "object"
@@ -7762,6 +8227,332 @@
       "title": "MixedControlParticipantOperation",
       "type": "object"
     },
+    "MixedControlPermittedTransition": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "target_kinds": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "transition_kind": {
+                "const": "external-direction"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "target_kinds": {
+                "type": "array"
+              }
+            },
+            "required": [
+              "target_kinds"
+            ]
+          }
+        },
+        {
+          "else": {
+            "properties": {
+              "completion_evidence_refs": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "transition_kind": {
+                "const": "handoff"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "completion_evidence_refs": {
+                "type": "array"
+              }
+            },
+            "required": [
+              "completion_evidence_refs"
+            ]
+          }
+        }
+      ],
+      "description": "One reusable permission (MC-01); kind-specific fields follow MC-05.",
+      "properties": {
+        "completion_evidence_refs": {
+          "anyOf": [
+            {
+              "items": {
+                "minLength": 1,
+                "not": {
+                  "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+                },
+                "pattern": "\\S",
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "evidence_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "from_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "target_kinds": {
+          "anyOf": [
+            {
+              "items": {
+                "enum": [
+                  "proposal",
+                  "action",
+                  "control"
+                ],
+                "type": "string"
+              },
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "to_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "transition_kind": {
+          "$ref": "#/$defs/MixedControlTransitionKind"
+        },
+        "valid_from_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "valid_until_order": {
+          "maximum": 1000000,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "transition_kind",
+        "from_state_ref",
+        "to_state_ref",
+        "valid_from_order",
+        "valid_until_order",
+        "evidence_refs"
+      ],
+      "title": "MixedControlPermittedTransition",
+      "type": "object"
+    },
+    "MixedControlPolicy": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "script_steps": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "form": {
+                "const": "finite-script"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "script_steps": {
+                "type": "array"
+              }
+            },
+            "required": [
+              "script_steps"
+            ]
+          }
+        }
+      ],
+      "description": "A rev1 reusable policy or finite script (MC-01, MC-02).",
+      "properties": {
+        "controller_states": {
+          "additionalProperties": false,
+          "minProperties": 1,
+          "patternProperties": {
+            "^[a-z0-9]": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/MixedControlControllerState"
+                },
+                {
+                  "properties": {
+                    "valid_from_order": {
+                      "maximum": 1000000
+                    },
+                    "valid_until_order": {
+                      "maximum": 1000000
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "dispositions": {
+          "$ref": "#/$defs/MixedControlDispositionRules"
+        },
+        "form": {
+          "enum": [
+            "reusable-policy",
+            "finite-script"
+          ],
+          "type": "string"
+        },
+        "initial_state_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "order_strategy": {
+          "$ref": "#/$defs/MixedControlOrderStrategy"
+        },
+        "participant_ref": {
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "type": "string"
+        },
+        "permitted_transitions": {
+          "additionalProperties": false,
+          "minProperties": 1,
+          "patternProperties": {
+            "^[a-z0-9]": {
+              "$ref": "#/$defs/MixedControlPermittedTransition"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "policy_revision": {
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "type": "string"
+        },
+        "script_steps": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/MixedControlScriptStep"
+              },
+              "minItems": 1,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "semantics": {
+          "const": "mixed-control-policy-occurrence/rev1",
+          "type": "string"
+        }
+      },
+      "required": [
+        "semantics",
+        "form",
+        "participant_ref",
+        "policy_revision",
+        "order_strategy",
+        "initial_state_ref",
+        "dispositions",
+        "controller_states",
+        "permitted_transitions"
+      ],
+      "title": "MixedControlPolicy",
+      "type": "object"
+    },
     "MixedControlRejectDisposition": {
       "description": "Fail-closed disposition that preserves the current state.",
       "enum": [
@@ -7769,6 +8560,181 @@
       ],
       "title": "MixedControlRejectDisposition",
       "type": "string"
+    },
+    "MixedControlScriptStep": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "valid_from_order": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "valid_from_order"
+            ]
+          },
+          "then": {
+            "properties": {
+              "valid_until_order": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "valid_until_order"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "valid_until_order": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "valid_until_order"
+            ]
+          },
+          "then": {
+            "properties": {
+              "valid_from_order": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "valid_from_order"
+            ]
+          }
+        }
+      ],
+      "description": "One finite-script step; it only narrows its edge.",
+      "properties": {
+        "expected_state_revision": {
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "permitted_transition_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "step_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "target_kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "proposal",
+                "action",
+                "control",
+                "decision",
+                "admitted-action",
+                "attempt"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_step_ref": {
+          "anyOf": [
+            {
+              "allOf": [
+                {
+                  "not": {
+                    "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+                  }
+                }
+              ],
+              "maxLength": 64,
+              "minLength": 1,
+              "not": {
+                "pattern": "[^a-z0-9_-]"
+              },
+              "pattern": "^[a-z0-9]",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "valid_from_order": {
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "valid_until_order": {
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "step_id",
+        "permitted_transition_ref"
+      ],
+      "title": "MixedControlScriptStep",
+      "type": "object"
     },
     "MixedControlTransition": {
       "additionalProperties": false,
@@ -9202,6 +10168,22 @@
       "title": "ObservationSelector",
       "type": "object"
     },
+    "OpenTrialParallelismModel": {
+      "additionalProperties": false,
+      "description": "Leave effective capacity to the allocator.",
+      "properties": {
+        "posture": {
+          "const": "open",
+          "title": "Posture",
+          "type": "string"
+        }
+      },
+      "required": [
+        "posture"
+      ],
+      "title": "OpenTrialParallelismModel",
+      "type": "object"
+    },
     "OperatorSecretCredentialMaterial": {
       "additionalProperties": false,
       "description": "Value-free reference to operator-managed credential material.",
@@ -9608,6 +10590,142 @@
         "value"
       ],
       "title": "ParameterBinding",
+      "type": "object"
+    },
+    "ParameterDerivation": {
+      "additionalProperties": false,
+      "description": "Portable substitution evidence for a publication-safe runtime scalar.\n\nA whole-field reference preserves its input type; an interpolation renders\neach input with the incumbent single-pass string conversion. An input with\nno finite domain binds its selected value, not all values of its type.",
+      "properties": {
+        "field_pointer": {
+          "maxLength": 4096,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^/nodes/[^/]+/runtime/",
+          "title": "Field Pointer",
+          "type": "string"
+        },
+        "segments": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "literal": "#/$defs/ParameterLiteralSegment",
+                "parameter": "#/$defs/ParameterReferenceSegment"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/ParameterLiteralSegment"
+              },
+              {
+                "$ref": "#/$defs/ParameterReferenceSegment"
+              }
+            ]
+          },
+          "maxItems": 128,
+          "minItems": 1,
+          "title": "Segments",
+          "type": "array"
+        }
+      },
+      "required": [
+        "field_pointer",
+        "segments"
+      ],
+      "title": "ParameterDerivation",
+      "type": "object"
+    },
+    "ParameterLiteralSegment": {
+      "additionalProperties": false,
+      "description": "Literal part of a substitution, without unresolved token syntax.",
+      "properties": {
+        "kind": {
+          "const": "literal",
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "maxLength": 4096,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "value"
+      ],
+      "title": "ParameterLiteralSegment",
+      "type": "object"
+    },
+    "ParameterReferenceSegment": {
+      "additionalProperties": false,
+      "description": "One typed input, distinct from the derived field's output.",
+      "properties": {
+        "allowed_values": {
+          "default": [],
+          "items": {
+            "anyOf": [
+              {
+                "not": {
+                  "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+                },
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "title": "Allowed Values",
+          "type": "array"
+        },
+        "kind": {
+          "const": "parameter",
+          "title": "Kind",
+          "type": "string"
+        },
+        "parameter": {
+          "items": {
+            "allOf": [
+              {
+                "not": {
+                  "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+                }
+              }
+            ],
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            },
+            "pattern": "^[a-z0-9]",
+            "type": "string"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "title": "Parameter",
+          "type": "array"
+        },
+        "variable_type": {
+          "$ref": "#/$defs/VariableType"
+        }
+      },
+      "required": [
+        "kind",
+        "parameter",
+        "variable_type"
+      ],
+      "title": "ParameterReferenceSegment",
       "type": "object"
     },
     "ParticipantActionArgumentCardinality": {
@@ -10838,6 +11956,35 @@
           "default": null,
           "title": "Behavior Mode"
         },
+        "control_context": {
+          "additionalProperties": false,
+          "maxProperties": 256,
+          "patternProperties": {
+            "^[a-z0-9]": {
+              "$ref": "#/$defs/ParticipantControlContextReference"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            }
+          },
+          "title": "Control Context",
+          "type": "object"
+        },
+        "episode_policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantEpisodePolicy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "evidence_contract_refs": {
           "items": {
             "not": {
@@ -10870,13 +12017,21 @@
         "mixed_control": {
           "anyOf": [
             {
-              "$ref": "#/$defs/MixedControlParticipantOperation"
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/MixedControlParticipantOperation"
+                },
+                {
+                  "$ref": "#/$defs/MixedControlPolicy"
+                }
+              ]
             },
             {
               "type": "null"
             }
           ],
-          "default": null
+          "default": null,
+          "title": "Mixed Control"
         },
         "observation_boundary_refs": {
           "items": {
@@ -10951,9 +12106,11 @@
           "title": "Realization Profile Ref"
         },
         "semantic_version": {
+          "minLength": 1,
           "not": {
             "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
           },
+          "pattern": "\\S",
           "title": "Semantic Version",
           "type": "string"
         },
@@ -10991,6 +12148,229 @@
       "title": "ParticipantBehaviorSpecificationLifecycle",
       "type": "string"
     },
+    "ParticipantControlContextAssetModel": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "participant_addresses": {
+              "minItems": 1
+            }
+          },
+          "required": [
+            "participant_addresses"
+          ]
+        },
+        {
+          "properties": {
+            "role_refs": {
+              "minItems": 1
+            }
+          },
+          "required": [
+            "role_refs"
+          ]
+        }
+      ],
+      "description": "An immutable descriptor; its content remains in consumer-controlled storage.",
+      "properties": {
+        "asset_id": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_version": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Asset Version",
+          "type": "string"
+        },
+        "content": {
+          "$ref": "#/$defs/ExperimentArtifactRefModel"
+        },
+        "kind": {
+          "enum": [
+            "instruction",
+            "directive",
+            "policy",
+            "guidance"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "participant_addresses": {
+          "items": {
+            "maxLength": 1024,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Participant Addresses",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "provenance_refs": {
+          "items": {
+            "maxLength": 1024,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Provenance Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "publication_authority_ref": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Publication Authority Ref",
+          "type": "string"
+        },
+        "retention_policy_ref": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Retention Policy Ref",
+          "type": "string"
+        },
+        "role_refs": {
+          "items": {
+            "maxLength": 1024,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Role Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "schema_version": {
+          "const": "participant-control-context-asset/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "asset_id",
+        "asset_version",
+        "kind",
+        "content",
+        "publication_authority_ref",
+        "retention_policy_ref",
+        "provenance_refs"
+      ],
+      "title": "ParticipantControlContextAssetModel",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Full conformance requires trusted exact version, lifecycle, authority, recipient, cut and content agreement.",
+          "id": "control-context-trusted-agreement",
+          "inputs": [
+            {
+              "contract_id": "participant-control-context-asset-v1",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.participant_control_context.validate_control_context_asset"
+        }
+      ]
+    },
+    "ParticipantControlContextAssetReferenceModel": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_digest": {
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^sha256:[a-f0-9]{64}$",
+          "title": "Asset Digest",
+          "type": "string"
+        },
+        "asset_id": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "asset_version": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Asset Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id",
+        "asset_version",
+        "asset_digest"
+      ],
+      "title": "ParticipantControlContextAssetReferenceModel",
+      "type": "object"
+    },
+    "ParticipantControlContextReference": {
+      "additionalProperties": false,
+      "description": "One pinned authored intent in a participant-local selection slot.",
+      "properties": {
+        "asset_ref": {
+          "$ref": "#/$defs/ParticipantControlContextAssetReferenceModel"
+        },
+        "declaration_ref": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Declaration Ref",
+          "type": "string"
+        },
+        "disposition": {
+          "default": "selected",
+          "enum": [
+            "selected",
+            "withheld"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        }
+      },
+      "required": [
+        "declaration_ref",
+        "asset_ref"
+      ],
+      "title": "ParticipantControlContextReference",
+      "type": "object"
+    },
     "ParticipantEffectClass": {
       "description": "SEM-211 effect classes for participant action results.",
       "enum": [
@@ -11004,6 +12384,451 @@
         "unknown_effect"
       ],
       "title": "ParticipantEffectClass",
+      "type": "string"
+    },
+    "ParticipantEpisodeCompletionCondition": {
+      "additionalProperties": false,
+      "description": "Evidenced assertions that end the episode as completed.",
+      "properties": {
+        "assertion_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Assertion Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "evidence_requirement_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Requirement Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "terminal_reason": {
+          "const": "completed",
+          "title": "Terminal Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "terminal_reason",
+        "assertion_refs",
+        "evidence_requirement_refs"
+      ],
+      "title": "ParticipantEpisodeCompletionCondition",
+      "type": "object"
+    },
+    "ParticipantEpisodeInitialization": {
+      "additionalProperties": false,
+      "description": "Preconditions of every new episode generation.",
+      "properties": {
+        "assertion_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Assertion Refs",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "assertion_refs"
+      ],
+      "title": "ParticipantEpisodeInitialization",
+      "type": "object"
+    },
+    "ParticipantEpisodeInteractionStructure": {
+      "additionalProperties": false,
+      "description": "Turn order authority and the actions a turn offers.",
+      "properties": {
+        "action_contract_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Action Contract Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "order_basis": {
+          "$ref": "#/$defs/ParticipantEpisodeTurnOrderBasis"
+        }
+      },
+      "required": [
+        "order_basis",
+        "action_contract_refs"
+      ],
+      "title": "ParticipantEpisodeInteractionStructure",
+      "type": "object"
+    },
+    "ParticipantEpisodeMemoryScope": {
+      "description": "ADR-095 participant-memory scope across a reset.",
+      "enum": [
+        "episode_local_reset",
+        "persistent_across_episodes"
+      ],
+      "title": "ParticipantEpisodeMemoryScope",
+      "type": "string"
+    },
+    "ParticipantEpisodePolicy": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "initialization": {
+              "minProperties": 1,
+              "type": "object"
+            }
+          },
+          "required": [
+            "initialization"
+          ]
+        },
+        {
+          "properties": {
+            "interaction_structure": {
+              "minProperties": 1,
+              "type": "object"
+            }
+          },
+          "required": [
+            "interaction_structure"
+          ]
+        },
+        {
+          "properties": {
+            "reset_policy": {
+              "minProperties": 1,
+              "type": "object"
+            }
+          },
+          "required": [
+            "reset_policy"
+          ]
+        },
+        {
+          "properties": {
+            "terminal_conditions": {
+              "minProperties": 1,
+              "type": "object"
+            }
+          },
+          "required": [
+            "terminal_conditions"
+          ]
+        },
+        {
+          "properties": {
+            "truncation_conditions": {
+              "minProperties": 1,
+              "type": "object"
+            }
+          },
+          "required": [
+            "truncation_conditions"
+          ]
+        }
+      ],
+      "description": "Versioned episode structure intent of a behavior specification.",
+      "properties": {
+        "initialization": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantEpisodeInitialization"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "interaction_structure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantEpisodeInteractionStructure"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "profile": {
+          "const": "participant-episode-policy/v1",
+          "title": "Profile",
+          "type": "string"
+        },
+        "reset_policy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantEpisodeResetPolicy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "terminal_conditions": {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[a-z0-9]": {
+              "discriminator": {
+                "mapping": {
+                  "completed": "#/$defs/ParticipantEpisodeCompletionCondition",
+                  "timed_out": "#/$defs/ParticipantEpisodeTimeoutCondition"
+                },
+                "propertyName": "terminal_reason"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/ParticipantEpisodeCompletionCondition"
+                },
+                {
+                  "$ref": "#/$defs/ParticipantEpisodeTimeoutCondition"
+                }
+              ]
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            }
+          },
+          "title": "Terminal Conditions",
+          "type": "object"
+        },
+        "truncation_conditions": {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^[a-z0-9]": {
+              "$ref": "#/$defs/ParticipantEpisodeTruncationCondition"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 64,
+            "minLength": 1,
+            "not": {
+              "pattern": "[^a-z0-9_-]"
+            }
+          },
+          "title": "Truncation Conditions",
+          "type": "object"
+        }
+      },
+      "required": [
+        "profile"
+      ],
+      "title": "ParticipantEpisodePolicy",
+      "type": "object"
+    },
+    "ParticipantEpisodeResetAction": {
+      "description": "ADR-013 control actions that start a later episode.",
+      "enum": [
+        "reset",
+        "restart"
+      ],
+      "title": "ParticipantEpisodeResetAction",
+      "type": "string"
+    },
+    "ParticipantEpisodeResetPolicy": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "memory_reset_authority_ref": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "participant_memory_scope": {
+                "const": "episode_local_reset"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "memory_reset_authority_ref": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "memory_reset_authority_ref"
+            ]
+          }
+        }
+      ],
+      "description": "Admitted reset actions, memory scope, reset authority, and evidence.",
+      "properties": {
+        "control_actions": {
+          "items": {
+            "$ref": "#/$defs/ParticipantEpisodeResetAction"
+          },
+          "minItems": 1,
+          "title": "Control Actions",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "evidence_requirement_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Requirement Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "memory_reset_authority_ref": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Memory Reset Authority Ref"
+        },
+        "participant_memory_scope": {
+          "$ref": "#/$defs/ParticipantEpisodeMemoryScope"
+        }
+      },
+      "required": [
+        "control_actions",
+        "participant_memory_scope",
+        "evidence_requirement_refs"
+      ],
+      "title": "ParticipantEpisodeResetPolicy",
+      "type": "object"
+    },
+    "ParticipantEpisodeTimeoutCondition": {
+      "additionalProperties": false,
+      "description": "Evidenced clock limit that ends the episode as timed out.",
+      "properties": {
+        "evidence_requirement_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Requirement Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "temporal_constraint_ref": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Temporal Constraint Ref",
+          "type": "string"
+        },
+        "terminal_reason": {
+          "const": "timed_out",
+          "title": "Terminal Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "terminal_reason",
+        "temporal_constraint_ref",
+        "evidence_requirement_refs"
+      ],
+      "title": "ParticipantEpisodeTimeoutCondition",
+      "type": "object"
+    },
+    "ParticipantEpisodeTruncationCondition": {
+      "additionalProperties": false,
+      "description": "Evidenced assertions that end the episode as truncated.",
+      "properties": {
+        "assertion_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Assertion Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "evidence_requirement_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Requirement Refs",
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "assertion_refs",
+        "evidence_requirement_refs"
+      ],
+      "title": "ParticipantEpisodeTruncationCondition",
+      "type": "object"
+    },
+    "ParticipantEpisodeTurnOrderBasis": {
+      "description": "Authority that orders a participant's turns.",
+      "enum": [
+        "decision-epoch"
+      ],
+      "title": "ParticipantEpisodeTurnOrderBasis",
       "type": "string"
     },
     "ParticipantEvaluationAuthority": {
@@ -11120,8 +12945,171 @@
     },
     "ParticipantInjectDelivery": {
       "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "control": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "control"
+            ]
+          },
+          "then": {
+            "properties": {
+              "control_authority_scope_refs": {
+                "maxItems": 0
+              },
+              "control_effective_order": {
+                "type": "null"
+              },
+              "control_evidence_refs": {
+                "maxItems": 0
+              },
+              "control_transition_ref": {
+                "type": "null"
+              },
+              "control_valid_from_order": {
+                "type": "null"
+              },
+              "control_valid_until_order": {
+                "type": "null"
+              },
+              "controller_ref": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "delivery_kind": {
+                "const": "disclosure"
+              }
+            },
+            "required": [
+              "delivery_kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "control": {
+                "type": "null"
+              },
+              "control_authority_scope_refs": {
+                "maxItems": 0
+              },
+              "control_effective_order": {
+                "type": "null"
+              },
+              "control_evidence_refs": {
+                "maxItems": 0
+              },
+              "control_transition_ref": {
+                "type": "null"
+              },
+              "control_valid_from_order": {
+                "type": "null"
+              },
+              "control_valid_until_order": {
+                "type": "null"
+              },
+              "controller_ref": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "delivery_kind": {
+                "enum": [
+                  "external-direction",
+                  "intervention"
+                ]
+              }
+            },
+            "required": [
+              "delivery_kind"
+            ]
+          },
+          "then": {
+            "oneOf": [
+              {
+                "properties": {
+                  "control": {
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "control"
+                ]
+              },
+              {
+                "properties": {
+                  "control_authority_scope_refs": {
+                    "minItems": 1
+                  },
+                  "control_effective_order": {
+                    "not": {
+                      "type": "null"
+                    }
+                  },
+                  "control_evidence_refs": {
+                    "minItems": 1
+                  },
+                  "control_transition_ref": {
+                    "not": {
+                      "type": "null"
+                    }
+                  },
+                  "control_valid_from_order": {
+                    "not": {
+                      "type": "null"
+                    }
+                  },
+                  "control_valid_until_order": {
+                    "not": {
+                      "type": "null"
+                    }
+                  },
+                  "controller_ref": {
+                    "not": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "required": [
+                  "control_transition_ref",
+                  "controller_ref",
+                  "control_authority_scope_refs",
+                  "control_effective_order",
+                  "control_valid_from_order",
+                  "control_valid_until_order",
+                  "control_evidence_refs"
+                ]
+              }
+            ]
+          }
+        }
+      ],
       "description": "Authored participant-local relation to one orchestration inject occurrence.",
       "properties": {
+        "control": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ParticipantInjectDeliveryControl"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "control_authority_scope_refs": {
           "items": {
             "not": {
@@ -11319,6 +13307,82 @@
         "failure_disposition"
       ],
       "title": "ParticipantInjectDelivery",
+      "type": "object"
+    },
+    "ParticipantInjectDeliveryControl": {
+      "additionalProperties": false,
+      "description": "Rev1 binding to one permitted transition (MC-09).",
+      "properties": {
+        "authority_scope_refs": {
+          "items": {
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "controller_ref": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        },
+        "permitted_transition_ref": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "policy_revision": {
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "type": "string"
+        },
+        "semantics": {
+          "const": "mixed-control-policy-occurrence/rev1",
+          "type": "string"
+        }
+      },
+      "required": [
+        "semantics",
+        "policy_revision",
+        "permitted_transition_ref",
+        "controller_ref",
+        "authority_scope_refs",
+        "evidence_refs"
+      ],
+      "title": "ParticipantInjectDeliveryControl",
       "type": "object"
     },
     "ParticipantInjectDeliveryFailureDisposition": {
@@ -12498,7 +14562,7 @@
     },
     "ParticipantToolAffordance": {
       "additionalProperties": false,
-      "description": "Authored participant-local binding from tool identity to governed behavior.",
+      "description": "Authored participant-local binding from tool identity to governed behavior.\n\nThe optional participant selector (ACT-619) only narrows the owning specification's\nselection; both lists empty means the binding applies to every selected participant.",
       "properties": {
         "action_contract_refs": {
           "items": {
@@ -12525,6 +14589,32 @@
           },
           "minItems": 1,
           "title": "Observation Boundary Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "participant_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Participant Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "participant_role_refs": {
+          "items": {
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "title": "Participant Role Refs",
           "type": "array",
           "uniqueItems": true
         },
@@ -13450,7 +15540,7 @@
           }
         }
       ],
-      "description": "A typed directed edge between two named scenario elements.\n\nSource and target can reference any named element in the scenario:\nnodes, features, accounts, entities, or infrastructure entries.\nThe validator checks that both endpoints resolve.\n\nThe ``properties`` dict carries type-specific metadata (e.g.,\n``trust_type: parent-child`` for AD trusts, ``protocol: SAML``\nfor federation). It's a flat dict rather than typed sub-models\nbecause relationship properties vary widely and we don't want\nto gate expressiveness on pre-modeling every variant.\n\n``database_access`` and ``mail_access`` are typed exceptions where\nprotocol/auth details need structural validation rather than prose.\n``forwarding_edge``, ``service_integration``, and ``proxy_upstream`` are\nthe same kind of typed exception for, respectively, a forwarding /\nintel-sync agent's inter-node trust edge (SCN-010 \u00a75.7), a platform\nconsumer-to-engine service integration, and a reverse-proxy/gateway\nroute-to-origin upstream hop. Each keeps protocol/auth/topology facts\nstructurally validated and cross-referable rather than buried in prose.",
+      "description": "A typed directed edge between two named scenario elements.\n\n``source`` and ``target`` must each resolve to exactly one declaration\neligible as a relationship endpoint (SDL references \u00a77). Typed relationship\ntypes and typed details narrow the eligible declaration kinds (\u00a75 and \u00a77);\nwhere several apply, an endpoint must satisfy all of them.\n\nThe ``properties`` dict carries type-specific metadata (e.g.,\n``trust_type: parent-child`` for AD trusts, ``protocol: SAML``\nfor federation). It's a flat dict rather than typed sub-models\nbecause relationship properties vary widely and we don't want\nto gate expressiveness on pre-modeling every variant.\n\n``database_access`` and ``mail_access`` are typed exceptions where\nprotocol/auth details need structural validation rather than prose.\n``forwarding_edge``, ``service_integration``, and ``proxy_upstream`` are\nthe same kind of typed exception for, respectively, a forwarding /\nintel-sync agent's inter-node trust edge (SCN-010 \u00a75.7), a platform\nconsumer-to-engine service integration, and a reverse-proxy/gateway\nroute-to-origin upstream hop. Each keeps protocol/auth/topology facts\nstructurally validated and cross-referable rather than buried in prose.",
       "properties": {
         "carrier_placement": {
           "anyOf": [
@@ -15797,6 +17887,75 @@
         }
       },
       "title": "RuntimeCapabilityPolicy",
+      "type": "object"
+    },
+    "RuntimeCloudServiceLimit": {
+      "additionalProperties": false,
+      "description": "An optional native service limit, with explicit quantity and scope.",
+      "properties": {
+        "description": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Description",
+          "type": "string"
+        },
+        "limit_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "maximum": {
+          "minimum": 0,
+          "title": "Maximum",
+          "type": "integer"
+        },
+        "name": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Name",
+          "type": "string"
+        },
+        "resource_scope_ref": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Resource Scope Ref",
+          "type": "string"
+        },
+        "unit": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "limit_id",
+        "name",
+        "maximum",
+        "unit"
+      ],
+      "title": "RuntimeCloudServiceLimit",
       "type": "object"
     },
     "RuntimeConfiguration": {
@@ -20545,7 +22704,7 @@
     },
     "RuntimeForwardingSource": {
       "additionalProperties": false,
-      "description": "An observed forwarder input source (tailed path, API pull, or queue).",
+      "description": "An observed forwarder input source (tailed path, API pull, queue, or listening socket).",
       "properties": {
         "description": {
           "default": "",
@@ -20564,7 +22723,7 @@
               "not": {
                 "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
               },
-              "pattern": "^(?:[tT][aA][iI][lL][eE][dD][-_][pP][aA][tT][hH]|[aA][pP][iI][-_][pP][uU][lL][lL]|[qQ][uU][eE][uU][eE]|[uU][nN][kK][nN][oO][wW][nN]|[oO][tT][hH][eE][rR]|x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$(?![\\s\\S])",
+              "pattern": "^(?:[tT][aA][iI][lL][eE][dD][-_][pP][aA][tT][hH]|[aA][pP][iI][-_][pP][uU][lL][lL]|[qQ][uU][eE][uU][eE]|[sS][oO][cC][kK][eE][tT]|[uU][nN][kK][nN][oO][wW][nN]|[oO][tT][hH][eE][rR]|x-[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$(?![\\s\\S])",
               "type": "string"
             }
           ],
@@ -20632,6 +22791,7 @@
         "tailed_path",
         "api_pull",
         "queue",
+        "socket",
         "unknown",
         "other"
       ],
@@ -20708,6 +22868,133 @@
       ],
       "title": "RuntimeForwardingTransformKind",
       "type": "string"
+    },
+    "RuntimeIdentityAccessObservation": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "allowed",
+                  "denied"
+                ]
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence_refs": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "evidence_refs"
+            ]
+          }
+        }
+      ],
+      "description": "One reported attempt; evidence admission remains independently governed.",
+      "properties": {
+        "action": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Action",
+          "type": "string"
+        },
+        "context_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "title": "Context Refs",
+          "type": "array"
+        },
+        "description": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Description",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "observation_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "outcome": {
+          "enum": [
+            "allowed",
+            "denied",
+            "unknown",
+            "unsupported"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "principal_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Principal Ref",
+          "type": "string"
+        },
+        "resource_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Resource Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "observation_id",
+        "principal_ref",
+        "action",
+        "resource_ref",
+        "outcome"
+      ],
+      "title": "RuntimeIdentityAccessObservation",
+      "type": "object"
     },
     "RuntimeIdentityAttribute": {
       "additionalProperties": false,
@@ -20825,10 +23112,81 @@
       "title": "RuntimeIdentityAttribute",
       "type": "object"
     },
+    "RuntimeIdentityAuditLog": {
+      "additionalProperties": false,
+      "description": "Required native recording for one service and log type on a scope.",
+      "properties": {
+        "audit_log_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "exempted_principal_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "\\S",
+            "type": "string"
+          },
+          "maxItems": 1024,
+          "title": "Exempted Principal Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "log_type": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Log Type",
+          "type": "string"
+        },
+        "service": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "\\S",
+          "title": "Service",
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_log_id",
+        "service",
+        "log_type"
+      ],
+      "title": "RuntimeIdentityAuditLog",
+      "type": "object"
+    },
     "RuntimeIdentityAuthority": {
       "additionalProperties": false,
       "description": "A node-scoped identity authority inventory.",
       "properties": {
+        "access_observations": {
+          "items": {
+            "$ref": "#/$defs/RuntimeIdentityAccessObservation"
+          },
+          "title": "Access Observations",
+          "type": "array"
+        },
         "base_dn": {
           "default": "",
           "not": {
@@ -20868,6 +23226,13 @@
           },
           "pattern": "^[a-z0-9]",
           "type": "string"
+        },
+        "identity_uses": {
+          "items": {
+            "$ref": "#/$defs/RuntimeIdentityUse"
+          },
+          "title": "Identity Uses",
+          "type": "array"
         },
         "issuer": {
           "default": "",
@@ -20929,6 +23294,13 @@
             "$ref": "#/$defs/RuntimeIdentityRelationship"
           },
           "title": "Relationships",
+          "type": "array"
+        },
+        "resource_scopes": {
+          "items": {
+            "$ref": "#/$defs/RuntimeIdentityResourceScope"
+          },
+          "title": "Resource Scopes",
           "type": "array"
         },
         "services": {
@@ -21078,6 +23450,132 @@
       "title": "RuntimeIdentityAuthorityService",
       "type": "object"
     },
+    "RuntimeIdentityPermissionBinding": {
+      "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "actions": {
+              "minItems": 1
+            }
+          },
+          "required": [
+            "actions"
+          ]
+        },
+        {
+          "properties": {
+            "role_ref": {
+              "minLength": 1
+            }
+          },
+          "required": [
+            "role_ref"
+          ]
+        }
+      ],
+      "description": "A policy's declared principals, actions and targets, not effective access.",
+      "properties": {
+        "actions": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "title": "Actions",
+          "type": "array"
+        },
+        "binding_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Binding Id",
+          "type": "string"
+        },
+        "condition": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeIdentityPolicyCondition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "description": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Description",
+          "type": "string"
+        },
+        "effect": {
+          "enum": [
+            "allow",
+            "deny"
+          ],
+          "title": "Effect",
+          "type": "string"
+        },
+        "principal_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Principal Refs",
+          "type": "array"
+        },
+        "resource_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Resource Refs",
+          "type": "array"
+        },
+        "role_ref": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Role Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "binding_id",
+        "principal_refs",
+        "resource_refs",
+        "effect"
+      ],
+      "title": "RuntimeIdentityPermissionBinding",
+      "type": "object"
+    },
     "RuntimeIdentityPolicy": {
       "additionalProperties": false,
       "description": "Observed identity authority policy or bounded policy setting group.",
@@ -21140,6 +23638,17 @@
           "default": "other",
           "title": "Policy Kind"
         },
+        "resource_access": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeIdentityResourceAccess"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "settings": {
           "items": {
             "$ref": "#/$defs/RuntimeIdentityAttribute"
@@ -21152,6 +23661,36 @@
         "policy_id"
       ],
       "title": "RuntimeIdentityPolicy",
+      "type": "object"
+    },
+    "RuntimeIdentityPolicyCondition": {
+      "additionalProperties": false,
+      "description": "An uninterpreted provider expression, never executable SDL.",
+      "properties": {
+        "expression": {
+          "maxLength": 16384,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Expression",
+          "type": "string"
+        },
+        "language": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Language",
+          "type": "string"
+        }
+      },
+      "required": [
+        "language",
+        "expression"
+      ],
+      "title": "RuntimeIdentityPolicyCondition",
       "type": "object"
     },
     "RuntimeIdentityPolicyKind": {
@@ -21293,6 +23832,167 @@
       "title": "RuntimeIdentityRelationshipKind",
       "type": "string"
     },
+    "RuntimeIdentityResourceAccess": {
+      "additionalProperties": false,
+      "description": "A resource policy attachment or an explicitly sourced inherited view.",
+      "if": {
+        "properties": {
+          "inherited_from_ref": {
+            "minLength": 1
+          }
+        },
+        "required": [
+          "inherited_from_ref"
+        ]
+      },
+      "properties": {
+        "attachment_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Attachment Ref",
+          "type": "string"
+        },
+        "bindings": {
+          "items": {
+            "$ref": "#/$defs/RuntimeIdentityPermissionBinding"
+          },
+          "title": "Bindings",
+          "type": "array"
+        },
+        "inherited_from_ref": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Inherited From Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "attachment_ref"
+      ],
+      "then": {
+        "properties": {
+          "bindings": {
+            "maxItems": 0
+          }
+        }
+      },
+      "title": "RuntimeIdentityResourceAccess",
+      "type": "object"
+    },
+    "RuntimeIdentityResourceScope": {
+      "additionalProperties": false,
+      "description": "A provider-qualified ownership scope, independent of node placement.",
+      "properties": {
+        "audit_logs": {
+          "items": {
+            "$ref": "#/$defs/RuntimeIdentityAuditLog"
+          },
+          "maxItems": 1024,
+          "title": "Audit Logs",
+          "type": "array"
+        },
+        "description": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Description",
+          "type": "string"
+        },
+        "incarnation_id": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Incarnation Id",
+          "type": "string"
+        },
+        "name": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Name",
+          "type": "string"
+        },
+        "native_id": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Native Id",
+          "type": "string"
+        },
+        "parent_ref": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Parent Ref",
+          "type": "string"
+        },
+        "provider": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Provider",
+          "type": "string"
+        },
+        "scope_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "scope_kind": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Scope Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scope_id",
+        "provider",
+        "scope_kind"
+      ],
+      "title": "RuntimeIdentityResourceScope",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Audit log IDs and native service/log-type pairs must each be unique within their resource scope.",
+          "id": "cloud-audit-scope-uniqueness",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes.scenario.Scenario.model_validate"
+        }
+      ]
+    },
     "RuntimeIdentitySubject": {
       "additionalProperties": false,
       "description": "An authority-local user, group, device, role, or service principal.",
@@ -21401,6 +24101,14 @@
           "title": "Principal Name",
           "type": "string"
         },
+        "resource_scope_ref": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Resource Scope Ref",
+          "type": "string"
+        },
         "service_principal_names": {
           "items": {
             "not": {
@@ -21452,6 +24160,79 @@
       ],
       "title": "RuntimeIdentitySubjectKind",
       "type": "string"
+    },
+    "RuntimeIdentityUse": {
+      "additionalProperties": false,
+      "description": "A workload's identity use, without implying permission or disclosure.",
+      "properties": {
+        "description": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Description",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "attached",
+            "impersonated",
+            "federated"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "principal_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Principal Ref",
+          "type": "string"
+        },
+        "source_principal_ref": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Source Principal Ref",
+          "type": "string"
+        },
+        "use_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "workload_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Workload Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "use_id",
+        "workload_ref",
+        "principal_ref",
+        "mode"
+      ],
+      "title": "RuntimeIdentityUse",
+      "type": "object"
     },
     "RuntimeInitProcess": {
       "additionalProperties": false,
@@ -25317,6 +28098,13 @@
           "title": "Capabilities",
           "type": "array"
         },
+        "cloud_limits": {
+          "items": {
+            "$ref": "#/$defs/RuntimeCloudServiceLimit"
+          },
+          "title": "Cloud Limits",
+          "type": "array"
+        },
         "connectors": {
           "items": {
             "$ref": "#/$defs/RuntimePlatformApplicationConnector"
@@ -25415,6 +28203,21 @@
           },
           "title": "Product",
           "type": "string"
+        },
+        "resource_scope_ref": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Resource Scope Ref",
+          "type": "string"
+        },
+        "secrets": {
+          "items": {
+            "$ref": "#/$defs/RuntimeServiceSecret"
+          },
+          "title": "Secrets",
+          "type": "array"
         },
         "service": {
           "default": "",
@@ -26963,6 +29766,468 @@
       ],
       "title": "RuntimeScheduledJobScheduleKind",
       "type": "string"
+    },
+    "RuntimeSecretConsumer": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "resolution_basis": {
+                "type": "null"
+              },
+              "resolution_evidence_refs": {
+                "maxItems": 0
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "resolved_version_ref": {
+                "minLength": 1
+              }
+            },
+            "required": [
+              "resolved_version_ref"
+            ]
+          },
+          "then": {
+            "properties": {
+              "resolution_basis": {
+                "enum": [
+                  "declared",
+                  "backend-selected",
+                  "observed"
+                ]
+              }
+            },
+            "required": [
+              "resolution_basis"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "resolution_basis": {
+                "const": "observed"
+              }
+            },
+            "required": [
+              "resolution_basis"
+            ]
+          },
+          "then": {
+            "properties": {
+              "resolution_evidence_refs": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "resolution_evidence_refs"
+            ]
+          }
+        }
+      ],
+      "description": "A consumer's exact version or provider selector; no automatic fallback.",
+      "oneOf": [
+        {
+          "properties": {
+            "selector": {
+              "type": "null"
+            },
+            "version_ref": {
+              "minLength": 1
+            }
+          },
+          "required": [
+            "version_ref"
+          ]
+        },
+        {
+          "properties": {
+            "selector": {
+              "type": "object"
+            },
+            "version_ref": {
+              "const": ""
+            }
+          },
+          "required": [
+            "selector"
+          ]
+        }
+      ],
+      "properties": {
+        "consumer_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Consumer Ref",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Description",
+          "type": "string"
+        },
+        "resolution_basis": {
+          "anyOf": [
+            {
+              "enum": [
+                "declared",
+                "backend-selected",
+                "observed"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resolution Basis"
+        },
+        "resolution_evidence_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "title": "Resolution Evidence Refs",
+          "type": "array"
+        },
+        "resolved_version_ref": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Resolved Version Ref",
+          "type": "string"
+        },
+        "selection_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "selector": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeSecretSelector"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "version_ref": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Version Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "selection_id",
+        "consumer_ref"
+      ],
+      "title": "RuntimeSecretConsumer",
+      "type": "object"
+    },
+    "RuntimeSecretReplica": {
+      "additionalProperties": false,
+      "description": "One GCP Secret Manager replica with optional native encryption key identity.",
+      "properties": {
+        "kms_key_name": {
+          "anyOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "pattern": "^projects/[^/\\s]+/locations/[^/\\s]+/keyRings/[^/\\s]+/cryptoKeys/[^/\\s]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kms Key Name"
+        },
+        "location": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^\\S+$",
+          "title": "Location",
+          "type": "string"
+        }
+      },
+      "required": [
+        "location"
+      ],
+      "title": "RuntimeSecretReplica",
+      "type": "object"
+    },
+    "RuntimeSecretReplication": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "automatic"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "replicas": {
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "user-managed"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "kms_key_name": {
+                "type": "null"
+              },
+              "replicas": {
+                "minItems": 1
+              }
+            },
+            "required": [
+              "replicas"
+            ]
+          }
+        }
+      ],
+      "description": "Provider-qualified replication intent; never inferred from missing locations.",
+      "properties": {
+        "kms_key_name": {
+          "anyOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "pattern": "^projects/[^/\\s]+/locations/[^/\\s]+/keyRings/[^/\\s]+/cryptoKeys/[^/\\s]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kms Key Name"
+        },
+        "mode": {
+          "enum": [
+            "automatic",
+            "user-managed"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "provider": {
+          "const": "gcp-secret-manager",
+          "title": "Provider",
+          "type": "string"
+        },
+        "replicas": {
+          "items": {
+            "$ref": "#/$defs/RuntimeSecretReplica"
+          },
+          "maxItems": 1024,
+          "title": "Replicas",
+          "type": "array"
+        }
+      },
+      "required": [
+        "provider",
+        "mode"
+      ],
+      "title": "RuntimeSecretReplication",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Replica locations must be unique and encryption keys must match their location; automatic encryption requires global. Typed replication excludes legacy placement fields.",
+          "id": "secret-replication-location-agreement",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#"
+            }
+          ],
+          "level": "error",
+          "validator": "raes.scenario.Scenario.model_validate"
+        }
+      ]
+    },
+    "RuntimeSecretSelector": {
+      "additionalProperties": false,
+      "description": "Inert provider selector identity, kept separate from its resolution.",
+      "properties": {
+        "kind": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "value"
+      ],
+      "title": "RuntimeSecretSelector",
+      "type": "object"
+    },
+    "RuntimeSecretVersion": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "destroyed"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "properties": {
+              "payload_content_ref": {
+                "const": ""
+              }
+            }
+          }
+        }
+      ],
+      "description": "Immutable version identity with optional lifecycle and content source.",
+      "properties": {
+        "description": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Description",
+          "type": "string"
+        },
+        "native_id": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Native Id",
+          "type": "string"
+        },
+        "native_state": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Native State",
+          "type": "string"
+        },
+        "payload_content_ref": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Payload Content Ref",
+          "type": "string"
+        },
+        "state": {
+          "anyOf": [
+            {
+              "enum": [
+                "enabled",
+                "disabled",
+                "destroyed"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "State"
+        },
+        "version_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version_id"
+      ],
+      "title": "RuntimeSecretVersion",
+      "type": "object"
     },
     "RuntimeSecurityMonitoringAgent": {
       "additionalProperties": false,
@@ -28675,6 +31940,153 @@
       "title": "RuntimeServiceListener",
       "type": "object"
     },
+    "RuntimeServiceSecret": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "replication": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "replication"
+            ]
+          },
+          "then": {
+            "properties": {
+              "encryption_key_ref": {
+                "const": ""
+              },
+              "location": {
+                "const": ""
+              },
+              "replica_locations": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ],
+      "description": "A service-owned secret resource; payload bytes belong to content.",
+      "properties": {
+        "consumers": {
+          "items": {
+            "$ref": "#/$defs/RuntimeSecretConsumer"
+          },
+          "title": "Consumers",
+          "type": "array"
+        },
+        "deletion_owner_ref": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Deletion Owner Ref",
+          "type": "string"
+        },
+        "description": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Description",
+          "type": "string"
+        },
+        "encryption_key_ref": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Encryption Key Ref",
+          "type": "string"
+        },
+        "location": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Location",
+          "type": "string"
+        },
+        "native_id": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Native Id",
+          "type": "string"
+        },
+        "replica_locations": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "type": "string"
+          },
+          "title": "Replica Locations",
+          "type": "array"
+        },
+        "replication": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeSecretReplication"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "reset_owner_ref": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Reset Owner Ref",
+          "type": "string"
+        },
+        "resource_scope_ref": {
+          "default": "",
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "title": "Resource Scope Ref",
+          "type": "string"
+        },
+        "secret_id": {
+          "allOf": [
+            {
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              }
+            }
+          ],
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "type": "string"
+        },
+        "versions": {
+          "items": {
+            "$ref": "#/$defs/RuntimeSecretVersion"
+          },
+          "title": "Versions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "secret_id"
+      ],
+      "title": "RuntimeServiceSecret",
+      "type": "object"
+    },
     "RuntimeSoftwareComponent": {
       "additionalProperties": false,
       "description": "A software component required as part of a runtime node's state.",
@@ -28750,6 +32162,24 @@
           },
           "title": "Manifest Path",
           "type": "string"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "pattern": "\\S",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Model identifier selected for this software component.",
+          "title": "Model"
         },
         "name": {
           "not": {
@@ -29598,6 +33028,203 @@
       },
       "title": "RuntimeSudoRule",
       "type": "object"
+    },
+    "SafeState": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "continuing_mode": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "continue"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "continuing_mode": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "continuing_mode"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "assertion_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "^\\S+$",
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Assertion Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "continuing_mode": {
+          "anyOf": [
+            {
+              "maxLength": 2048,
+              "minLength": 1,
+              "not": {
+                "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+              },
+              "pattern": "^\\S+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Continuing Mode"
+        },
+        "kind": {
+          "enum": [
+            "safe-hold",
+            "controlled-stop",
+            "continue"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "safe-state/v1",
+          "default": "safe-state/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "assertion_refs"
+      ],
+      "title": "SafeState",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Safe states are complete lexical values with unique scopes and assertions. Resolved values bind exact observed postconditions and target-specific evidence. Resolved collections obey aggregate PLAN_VALUE_LIMITS before proof copying. See specs/sdl/safe-state.md.",
+          "id": "safe-state-safestate",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#/safe_state"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.safe_state.SafeState.model_validate"
+        }
+      ]
+    },
+    "SafeStateDocument": {
+      "additionalProperties": false,
+      "properties": {
+        "default": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SafeState"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "scopes": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SafeStateScope"
+          },
+          "maxItems": 256,
+          "title": "Scopes",
+          "type": "array"
+        }
+      },
+      "title": "SafeStateDocument",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Safe states are complete lexical values with unique scopes and assertions. Resolved values bind exact observed postconditions and target-specific evidence. Resolved collections obey aggregate PLAN_VALUE_LIMITS before proof copying. See specs/sdl/safe-state.md.",
+          "id": "safe-state-safestatedocument",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#/safe_state"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.safe_state.SafeStateDocument.model_validate"
+        }
+      ]
+    },
+    "SafeStateScope": {
+      "additionalProperties": false,
+      "properties": {
+        "namespace": {
+          "default": [],
+          "items": {
+            "maxLength": 64,
+            "not": {
+              "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+            },
+            "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)$",
+            "type": "string"
+          },
+          "maxItems": 31,
+          "title": "Namespace",
+          "type": "array"
+        },
+        "scope": {
+          "default": "",
+          "maxLength": 4096,
+          "not": {
+            "pattern": "\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\}"
+          },
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Scope",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/SafeState"
+        }
+      },
+      "required": [
+        "state"
+      ],
+      "title": "SafeStateScope",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Safe states are complete lexical values with unique scopes and assertions. Resolved values bind exact observed postconditions and target-specific evidence. Resolved collections obey aggregate PLAN_VALUE_LIMITS before proof copying. See specs/sdl/safe-state.md.",
+          "id": "safe-state-safestatescope",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#/safe_state"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.safe_state.SafeStateScope.model_validate"
+        }
+      ]
     },
     "Script": {
       "additionalProperties": false,
@@ -31809,6 +35436,17 @@
         "at_least"
       ],
       "title": "TruthCompositionMode",
+      "type": "string"
+    },
+    "VariableType": {
+      "description": "Data type of a variable.",
+      "enum": [
+        "string",
+        "integer",
+        "boolean",
+        "number"
+      ],
+      "title": "VariableType",
       "type": "string"
     },
     "VersionDomain": {

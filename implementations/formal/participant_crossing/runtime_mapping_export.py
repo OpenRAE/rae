@@ -1,0 +1,156 @@
+"""Source-bound mapping artifacts, separate from retained construction evidence."""
+
+import ast
+from collections import Counter
+from pathlib import Path
+
+from raes_contracts.canonical import canonical_json_bytes
+from raes_contracts.errors import EvidenceIntegrityError, InvalidInputError
+from raes_contracts.json_ingress import parse_bounded_json_object
+
+from tools.research_evidence import release_managed_source_bytes
+
+from . import export
+from .ingress import read_bytes, safe_path
+
+SOURCE_ROOTS = (
+    "implementations/python/packages",
+    "implementations/formal/participant_crossing",
+    "contracts",
+    "tools",
+)
+TESTS_ROOT = "implementations/python/tests"
+# The mapping test modules and the local test modules they import produce the observed cases.
+TEST_DRIVERS = (
+    "crossing_runtime_cases.py",
+    "test_issue_972_runtime_mapping.py",
+    "test_issue_972_mapping_export.py",
+    "test_issue_972_mapping_ownership.py",
+)
+EXTRA_SOURCES = (
+    "implementations/python/pyproject.toml",
+    "implementations/python/uv.lock",
+    "specs/formal/participant-semantics/participant-crossing-runtime-mapping.md",
+    ".ground-control.yaml",
+    "tools/policy/adr_policy.yaml",
+    "tools/policy/requirement_order.yaml",
+    "docs/governance/requirement-scopes/972.json",
+)
+ROOT = Path(__file__).resolve().parents[3]
+HISTORICAL_TOMBSTONES = "contracts/schema-publication/tombstones"
+
+
+def test_driver_paths(root: Path) -> set[str]:
+    """Return the mapping test modules and their transitive local test-module imports."""
+    pending, found = list(TEST_DRIVERS), set()
+    while pending:
+        name = pending.pop()
+        if name in found:
+            continue
+        found.add(name)
+        tree = ast.parse(read_bytes(root, f"{TESTS_ROOT}/{name}", max_bytes=16 * 1024 * 1024))
+        modules = {alias.name for node in ast.walk(tree) if isinstance(node, ast.Import) for alias in node.names}
+        modules |= {
+            node.module
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom) and node.module and not node.level
+        }
+        for module in modules:
+            candidate = module.split(".")[0] + ".py"
+            if safe_path(root, f"{TESTS_ROOT}/{candidate}").is_file():
+                pending.append(candidate)
+    return {f"{TESTS_ROOT}/{name}" for name in found}
+
+
+def source_pins(root: Path) -> dict[str, str]:
+    paths = set(EXTRA_SOURCES) | test_driver_paths(root)
+    for relative in SOURCE_ROOTS:
+        directory = safe_path(root, relative)
+        for path in directory.rglob("*"):
+            if path.is_symlink():
+                raise InvalidInputError("unsafe mapping source directory or file")
+            if path.is_relative_to(root / HISTORICAL_TOMBSTONES):
+                continue
+            if path.suffix in {".py", ".json", ".yaml"}:
+                paths.add(path.relative_to(root).as_posix())
+    if not 1 <= len(paths) <= 10000:
+        raise InvalidInputError("mapping source inventory exceeds limit")
+    pins = {}
+    total = 0
+    for relative in sorted(paths):
+        data = read_bytes(root, relative, max_bytes=16 * 1024 * 1024)
+        total += len(data)
+        if total > 128 * 1024 * 1024:
+            raise InvalidInputError("mapping source bytes exceed limit")
+        # A Release Please version bump must not change the source being released.
+        pins[relative] = export.digest(release_managed_source_bytes(relative, data))
+    return pins
+
+
+_EXECUTING_PINS = source_pins(ROOT)
+
+
+def build_bundle(root: Path, reports: dict[str, dict[str, object]]) -> dict[str, bytes]:
+    pins = source_pins(root)
+    if pins != _EXECUTING_PINS:
+        raise EvidenceIntegrityError("mapping executing source identity drift")
+    # The case reports come from the executing mapping code, not from repository input (rule E2).
+    if not 1 <= len(reports) <= 64 or any(
+        item.get("classification") not in {"match", "incompatible", "observation-gap", "invalid-evidence"}
+        for item in reports.values()
+    ):
+        raise ValueError("invalid mapping case inventory")
+    current = export.build_bundle(root)
+    identity = parse_bounded_json_object(current["manifest.json"], max_bytes=2 * 1024 * 1024, max_depth=32)
+    if (
+        identity["profile_id"],
+        identity["profile_revision"],
+        identity["projection"],
+        identity["catalog_revision"],
+    ) != (
+        "participant-crossing-dpbb-finite-v1",
+        "rev2",
+        "participant-crossing-projection@rev1",
+        "rev8",
+    ):
+        raise EvidenceIntegrityError("mapping profile identity drift")
+    # The model artifacts come from the current sources; no retained copy is committed (issue #1929).
+    model_pins = {name: export.digest(data) for name, data in sorted(current.items())}
+    cases = canonical_json_bytes(reports) + b"\n"
+    counts = dict(sorted(Counter(item["classification"] for item in reports.values()).items()))
+    manifest = {
+        "schema": "participant-crossing-runtime-mapping/v1",
+        "profile": "participant-crossing-dpbb-finite-v1@rev2",
+        "model": "api-423-run-319-crossing-kernel@rev2",
+        "projection": "participant-crossing-projection@rev1",
+        "taxonomy": "raes-behavioral-relations@rev8",
+        "source_digests": pins,
+        "source_exclusions": {HISTORICAL_TOMBSTONES: "Historical schema removals are not live runtime-mapping inputs."},
+        "model_artifact_digests": model_pins,
+        "artifact_digests": {"cases.json": export.digest(cases)},
+        "case_counts": counts,
+        "case_count": len(reports),
+        "equivalence_result": "not-established",
+        "runtime_realization": "not-established",
+        "backend_conformance": "not-established",
+        "limitations": [
+            "Selected public Python calls with synthetic local policy/providers and a stub backend.",
+            "A case match compares witnessed states and transitions; it proves no enabled-choice completeness.",
+            "Legacy API-423 cases explicitly disable the final sink; egress cases explicitly enable it.",
+            "Unprofiled fixtures claim no P0/P1/P2/P3 conformance, HTTP authentication or process-loss recovery.",
+            "No bisimulation, independent reproduction, whole-runtime, timing, probability or concurrency claim.",
+            "Additional operations, transformed ingress revalidation, errors and absent observations remain explicit.",
+        ],
+    }
+    result = {
+        "cases.json": cases,
+        "manifest.json": canonical_json_bytes(manifest) + b"\n",
+    }
+    if any(len(value) > 2 * 1024 * 1024 for value in result.values()):
+        raise InvalidInputError("mapping artifact exceeds limit")
+    return result
+
+
+def check(root: Path, reports: dict[str, dict[str, object]]) -> None:
+    """Build the mapping artifacts from the current sources and observed cases; nothing is committed."""
+    build_bundle(root, reports)

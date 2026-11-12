@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from enum import Enum
 
-from ..propositions import AssertionPolarity, SubjectQuantifier, TruthCompositionMode
+from raes_contracts.propositions import AssertionPolarity, SubjectQuantifier, TruthCompositionMode
 
 
 class TruthValue(str, Enum):

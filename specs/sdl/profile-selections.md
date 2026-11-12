@@ -10,14 +10,14 @@ execution support nor participant authority.
 
 | Selection | Extension | Controls that remain with the existing owner |
 | --- | --- | --- |
-| `GeneratedArtifact.generator` | `DomainProfileBindingModel` alongside certificate and SSH generators | Output paths, lifecycle, sensitivity, producer-private disposition, read-only consumers and delivery modes |
-| `Content.service_materialization` | Shared binding alongside `service-content/v1` and `service-search-index-schema/v1` | Content target and type; the selected built-in cases retain their service, tenant, conflict and readback requirements |
-| `Account.materialization_profile` | Optional shared binding | Account owns credentials; mailbox inventory refers to the account |
-| `IdentityDomain.profile` | Shared binding alongside Active Directory | Domain/account authority and authored controller/join relationships; DNS and NetBIOS names are required for Active Directory |
-| `IdentityFacade.protocol` | Shared binding alongside OIDC | Named service reference and enterprise authority |
+| `generated_artifacts.<artifact>.generator` | Typed domain-profile binding alongside certificate and SSH generators | Output paths, lifecycle, sensitivity, producer-private disposition, read-only consumers and delivery modes |
+| `content.<content>.service_materialization` | Shared binding alongside `service-content/v1` and `service-search-index-schema/v1` | Content target and type; the selected built-in cases retain their service, tenant, conflict and readback requirements |
+| `accounts.<account>.materialization_profile` | Optional shared binding | Account owns credentials; mailbox inventory refers to the account |
+| `identity_domains.<domain>.profile` | Shared binding alongside Active Directory | Domain/account authority and authored controller/join relationships; DNS and NetBIOS names are required for Active Directory |
+| `identity_facades.<facade>.protocol` | Shared binding alongside OIDC | Named service reference and enterprise authority |
 | Forest trust type; federation protocol and mapping intent | Shared binding alongside built-in selections | Forest membership, trust direction, federation direction and tenant-claim ownership |
-| `ParticipantInteractiveAccess.channel` | Shared binding alongside SSH and RDP | Exact compute target, optional account, starting-account eligibility and duplicate endpoint checks |
-| Participant resource kind | `DomainProfileCoordinateModel` alongside the six built-in measures | Existing integer quantity, unit, accounting mode, meter, reset, budget, pool, reservation and evidence contracts |
+| `agents.<participant>.interactive_access.<id>.channel` | Shared binding alongside SSH and RDP | Exact compute target, optional account, starting-account eligibility and duplicate endpoint checks |
+| Participant resource kind | Typed domain-profile coordinate alongside the six built-in measures | Existing integer quantity, unit, accounting mode, meter, reset, budget, pool, reservation and evidence contracts |
 | Node OS family | Existing governed vocabulary extension | Coupled OS family/distribution/release compatibility; no second OS profile registry |
 
 Strings continue to select the precise built-in cases. An unknown string does
@@ -31,6 +31,46 @@ control remains with issues #1068–1072 and
 [ADR-108](../../docs/decisions/adrs/adr-108-modular-participant-control-and-governed-effects.md).
 Typed channel identity survives participant compilation; selecting another
 protocol cannot expand `starting_accounts`.
+
+## Descriptor ownership and admission
+
+[ADR-120](../../docs/decisions/adrs/adr-120-owned-and-admitted-typed-descriptor-profiles.md)
+governs the five descriptor hosts:
+
+| Host field | Concept family | Context |
+| --- | --- | --- |
+| `identity_facades.<facade>.protocol` | `identities` | `identity-facade-protocol` |
+| `relationships.<relationship>.forest_trust.trust_type` | `relationships` | `forest-trust-type` |
+| `relationships.<relationship>.identity_federation.protocol` | `relationships` | `identity-federation-protocol` |
+| `relationships.<relationship>.identity_federation.mapping_intent` | `relationships` | `identity-federation-mapping-intent` |
+| `agents.<participant>.interactive_access.<id>.channel` | `relationships` | `participant-interactive-access-channel` |
+
+A typed binding at one of these fields uses owning contract
+`sdl-authoring-input-v1`, phase `authoring` and use `constraint`. Its canonical
+address is the JSON Pointer of its host field, such as
+`#/identity_facades/idp/protocol`. Concept family and context come from the
+table.
+
+Provenance is `author-supplied`. Nested bindings keep the same owner.
+Semantic validation rejects any other owner.
+
+Module composition renames the
+declaration token of the pointer with the declaration.
+
+The compiler carries these bindings in the runtime model's `descriptor_profile_bindings`.
+Planning admits each one against the independently configured target context.
+The context digest must equal the manifest `domain_profile_context_digest`, and
+the exact definition and semantic contract must have structural and semantic
+validation support.
+
+Otherwise planning reports
+`realization.descriptor-profile-unsupported` before mutation. Runtime plan
+admission repeats the check against the configured target context. A typed
+descriptor value is public profile data.
+
+Admission adds no login, trust
+operation, credential, endpoint or connection grant. Built-in string values
+need no profile context.
 
 ## Provisioning admission
 
@@ -78,13 +118,12 @@ primary password fixture, including an intentionally empty fixture, plus
 optional operator credential references. No second authored credential store
 or action language is introduced.
 
-An explicitly configured `InProcessMailboxSink` independently authorizes the
+An explicitly configured protected in-process mailbox sink independently authorizes the
 exact account/mailbox pair. The reference provisioner checks the selected
 semantic contract, account posture, mailbox join and sink authorization before
-driver mutation. Every credential-bearing account on this target must have exactly one admitted materialization owner. Only this protected sink receives fixture material. It keeps
-private authentication state, verifies candidates, retains operator references
-without resolving them, replaces old mailbox state on materialization and
-cleans it up when the account is deleted. It is an in-process reference
+driver mutation. Every credential-bearing account on this target must have exactly one admitted materialization owner. Only this protected sink receives fixture material.
+
+It keeps private authentication state, verifies candidates, and retains operator references without resolving them. It replaces old mailbox state on materialization and cleans it up when the account is deleted. It is an in-process reference
 demonstration; Brad-Edwards/aptl#668 owns docker-mailserver realization and the
 service smoke test.
 
@@ -98,9 +137,7 @@ without inferring a guest mail-server readback. Other mail-service inventory
 retains its existing verification requirements. Explicit experimental
 observation and evidence declarations remain independent.
 
-Fixture values, operator reference identifiers and authentication verifiers
-are absent from generic plan projections, persisted snapshots, APIs, reports,
-diagnostics and logs under the credential projection boundary. They must not
+The credential projection boundary excludes fixture values, operator reference identifiers and authentication verifiers from generic plan projections and persisted snapshots. It also excludes them from APIs, reports, diagnostics and logs. They must not
 be copied into public profile values, definitions or provenance. Low-level
 backend calls remain inside the protected execution boundary defined by the
 credential contract; callers publish only the admitted runtime result.
@@ -143,7 +180,5 @@ nodes:
 
 Open choices remain with the backend. Merely using an internal generator,
 identity setup or resource mechanism creates no authoring or capture duty.
-Executable examples and rejection cases are in
-[`test_issue_1208_profile_selections.py`](../../implementations/python/tests/test_issue_1208_profile_selections.py),
-[`test_issue_1208_profile_boundaries.py`](../../implementations/python/tests/test_issue_1208_profile_boundaries.py)
-and [`test_issue_1208_resource_profiles.py`](../../implementations/python/tests/test_issue_1208_resource_profiles.py).
+Conformance checks cover profile selections, admission boundaries, resource accounting, and descriptor ownership.
+They do not establish support for an unconfigured backend or profile.

@@ -1,5 +1,9 @@
 # Code of conduct
 
+Use this page for participation rules and [conduct reporting](#report-a-concern).
+For vulnerabilities, use [SECURITY.md](SECURITY.md).
+For ordinary support, use [SUPPORT.md](SUPPORT.md).
+
 ## Expected behavior
 
 Keep project discussions clear, kind, and focused on the work. Good-faith
@@ -20,8 +24,7 @@ to the project.
 
 ## Report a concern
 
-Report a concern to the maintainer through the private contact path on Brad
-Edwards' GitHub profile.
+Email **security@autarchy.ai** to report a concern to the maintainer.
 
 The project has one maintainer and no separate enforcement group. The
 maintainer may remove comments, close threads, decline work, or block a person

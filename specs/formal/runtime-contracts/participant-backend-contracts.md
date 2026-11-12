@@ -1,7 +1,10 @@
-# Participant Backend-Facing Contracts
+<!-- vale RAES.HeadingCase = NO -->
+# Participant Backend-facing contracts
 
 This document is the issue #76 formal design artifact for the joint
 backend-facing participant contract surface:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 - `API-405` - Participant Capability Declaration (ACTIVE; ratified here)
 - `API-406` - Backend-Facing Participant Plain-Data Contracts
@@ -21,35 +24,34 @@ execution, and tests against live traces belong to the per-UID implementation
 issues (#200-#203). A schema published here is a settled shape, not a claim
 that any backend produces it.
 
-## Shared Base Envelope
+## Shared base envelope
 
-Every carrier in the `participant-runtime` family embeds one shared base
-envelope, defined once, with the ADR-054 `BaseEnvelope` fields: identity
-(`event_id`, `schema_name`, `schema_version`, `event_type`,
-`extension_policy`), optional classification and status
-(`event_classification`, `source_status` — nullable only under the
-`ClassificationClaim` rule in the participant-runtime spec), scoping
-(`participant_address`, `episode_id`, `sequence_number` — null only for
-run-scoped records), the three distinct timestamps (`occurred_at`,
-`recorded_at`, `ingested_at`) with `clock_authority` and `temporal_context`,
-ordering (`ordering_basis` from the closed `OrderingBasis` vocabulary,
-`logical_order_ref`, `predecessor_event_refs`), actors and sources
-(`actor_ref`, `producer_ref`, `source_system_ref`, `source_record_ref`,
-`source_raw_ref`, `source_pipeline`, `raw_data_integrity`), confidence,
-provenance and evidence references, and the marking surface
-(`marking_definition_refs`, `object_marking_refs`, `markings`,
-`granular_markings`, `redaction_policy_ref`, `authorization_scope`).
+Every `participant-runtime` carrier embeds one shared base envelope, defined once with the ADR-054 `BaseEnvelope` fields:
+
+- Identity: `event_id`, `schema_name`, `schema_version`, `event_type`, `extension_policy`.
+- Optional classification and status: `event_classification`, `source_status`.
+  They are nullable only under the participant-runtime `ClassificationClaim` rule.
+- Scope: `participant_address`, `episode_id`, `sequence_number`.
+  They are null only for run-scoped records.
+- Distinct timestamps: `occurred_at`, `recorded_at`, `ingested_at`, with `clock_authority` and `temporal_context`.
+- Ordering: `ordering_basis` from the closed `OrderingBasis` vocabulary, `logical_order_ref`, `predecessor_event_refs`.
+- Actors and sources: `actor_ref`, `producer_ref`, `source_system_ref`, `source_record_ref`, `source_raw_ref`, `source_pipeline`, `raw_data_integrity`.
+- Confidence, provenance, and evidence references.
+- Marking: `marking_definition_refs`, `object_marking_refs`, `markings`, `granular_markings`, `redaction_policy_ref`, `authorization_scope`.
 
 No carrier defines local identity, versioning, marking, or extension
 semantics. All models are closed-world: unknown fields are rejected.
 
-## API-406 - Plain-Data Carriers
+<!-- vale RAES.HeadingCase = NO -->
+## API-406 - plain-data carriers
 
 | Contract id | Carries | Spec basis |
 | --- | --- | --- |
 | `participant-lifecycle-event-v1` | Action attempts and lifecycle boundary records: phase, phase realization, admission disposition, action/contract/command refs, actor provenance, action-validity basis, shared-state read/write refs, attribution-edge refs, outcome-interpretation refs, mapping loss (+ detail) | ADR-054 `LifecycleEnvelope`; SEM-208/211/212/215 |
 | `participant-observation-envelope-v1` | Participant-visible observations: visibility projection, information guarantee, declared delivery point (`delivery_basis`, `delivery_point_ref`, `delivered_at`), evidence-scoped hidden/centralized state refs, loss descriptor, stochastic context, reconstruction refs | ADR-054 `ObservationEnvelope`; SEM-210 |
 | `participant-shared-state-record-v1` | State-change reports: state address/scope/kind, revision, digest, predecessor revisions, conflict policy, visibility projection basis, provenance, value ref, embedded access records | ADR-054 `SharedStateRecord` + `SharedStateAccess`; RUN-307 |
+
+<!-- vale RAES.HeadingCase = YES -->
 
 State snapshots and histories are already carried by `runtime-snapshot-v1`,
 `participant-episode-state-envelope-v1`, and the participant episode/behavior
@@ -77,7 +79,8 @@ be expressible as valid data:
 - a below-`exact` claim path always exists: every vocabulary carries its
   `unknown`/`unsupported` downgrades.
 
-## API-405 - Capability Declaration (Ratified)
+<!-- vale RAES.HeadingCase = NO -->
+## API-405 - capability declaration (ratified)
 
 The `backend-manifest/v2` `capabilities.participant_runtime` block shipped by
 PR #405 is the participant capability declaration surface: governed
@@ -87,6 +90,8 @@ and the term-level evidence criteria in
 `raes_backend_protocols.capabilities.PARTICIPANT_RUNTIME_CAPABILITY_REQUIRED_CONTRACTS`.
 This design ratifies that surface without amendment. See the API-405 section
 of `specs/formal/runtime-contracts/README.md`.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ### Portable autonomous execution services
 
@@ -111,10 +116,13 @@ runtime does not manufacture lifecycle transitions: a backend-owned control
 operation must coordinate those incumbent surfaces, and changed typed
 readback plus new evidence must validate each successful operation.
 
-## API-407 - Feature Support And Constraint Declaration
+<!-- vale RAES.HeadingCase = NO -->
+## API-407 - feature support and constraint declaration
 
 `capabilities.participant_runtime.feature_support` is a list of per-feature
 support declarations:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 ParticipantFeatureSupport =
@@ -158,17 +166,14 @@ Rules:
 
 ### Effective mixed support (issue #1355)
 
-For a mixed participant action or staged transfer, a manifest strength entry
-is a declaration to be joined with the admitted provider-local feature and
-time capabilities, exact profile edge or transition, current authority and
-final-sink policy, and installed executable services. The bridge, mapper,
-time coordinator, and destination or participant readback must execute their
-named obligations under the owning operation. A support entry, service method,
-mapping reference, timestamp, or backend success flag alone cannot establish
-delivery, observation, governed order, or native handoff. Missing bindings or
-contradictory pre-effect support refuse before an external effect; missing
-post-effect readback leaves the operation indeterminate without claiming the
-unconfirmed stage.
+For a mixed participant action or staged transfer, a manifest strength entry is a declaration.
+Join it with admitted provider-local feature and time capabilities, the exact profile edge or transition, and current authority and final-sink policy.
+Installed executable services are also required.
+The bridge, mapper, time coordinator, and destination or participant readback must execute their named obligations under the owning operation.
+
+A support entry, service method, mapping reference, timestamp, or backend success flag alone establishes no delivery, observation, governed order, or native handoff.
+Missing bindings or contradictory pre-effect support cause refusal before an external effect.
+Missing post-effect readback leaves the operation indeterminate, without a claim about the unconfirmed stage.
 
 The existing four support levels and separate constraint, limitation,
 disclosure, and evidence references retain their meanings. A weaker admitted
@@ -179,6 +184,67 @@ clock mapping and comparison without requiring one physical clock or a
 physical-OT timing guarantee. Installed bindings are trusted runtime inputs
 against the sealed `sem-234/rev1` profile; this rule adds no manifest field,
 support vocabulary term, or published carrier revision.
+
+### Published mixed-backend execution contracts (issue #1371)
+
+`mixed-backend-execution-binding-v1` is the closed plain-data form of one
+installed binding for one admitted edge or component-changing transition.
+`mixed-backend-stage-report-v1` carries one time-grant, execution, delivery,
+observation, handoff, or owner-readback fact for one invocation of the
+[backend operation protocol](backend-operation-supervision.md). Rules:
+
+- A backend may list both contract IDs in `supported_contract_versions`. The
+  listing is an opt-in declaration, not effective support. It adds no feature
+  term or support level, and it does not replace the joins above.
+- Exactly one binding exists for each edge active in an admitted phase and for
+  each transition that replaces exactly one component with another. Missing,
+  foreign, duplicate, or contradictory bindings refuse the whole set, as do an
+  ungoverned edge order and any other component change.
+- An edge binding uses operation kind `participant-crossing`. Its effect owner
+  is the destination provider's action allocation for the bound address,
+  active in at least one phase of the edge. Its `compiled-identity`
+  transformation preserves the authorized action address. Its bridge
+  reference equals the edge's routing reference, and its time coordinates,
+  temporal coupling, mapping loss, participant, audience, and evidence
+  references equal the admitted edge.
+- A handoff binding uses operation kind `composition-phase`. It names the
+  leaving and joining components and their native ownership references, and
+  its clocks and mapping resolve in the trusted time model.
+- Each role in one binding has its own service. No two of the bridge or
+  transfer service, the coordinator, and the readers share a service reference
+  or a digest, so a binding that pins one service to two roles is invalid.
+- A shared request commits to one binding through its content-bound `command`,
+  is addressed to the pinned bridge or transfer service, and uses the
+  binding's operation kind. The binding reference digest and each stage-report
+  citation digest are SHA-256 over RFC 8785 canonical JSON of the complete
+  validated model, including materialized defaults and null values.
+- Stage reports repeat the invocation binding and request digest and report
+  each stage at most once. A report's `sequence` is its stage's fixed chain
+  position: time grant 1, execution or handoff 2, delivery or owner readback
+  3, and observation 4. Reports are accepted in ascending `sequence`, and a
+  stage needs its prerequisite stage. Each stage names its producer, which
+  equals the binding's coordinator, bridge, delivery reader, observation
+  reader, transfer service, or owner reader for that stage. Execution or
+  native transfer needs an `ordered` grant and an accepted acknowledgement.
+- The caller resolves the trusted time model under the binding's time-model
+  reference and digest. A committed composition state belongs to the
+  invocation's run and binding's profile: the request's `run_scope` equals
+  `run:<composition_state.run_id>`. It still activates the bound edge, or holds the
+  handoff's source component but not its destination component.
+- Time-grant coordinates equal the caller's committed time readback for both
+  bound clocks. A handoff names the committed composition history head and
+  phase revision, and its owner readback is judged against that revision.
+- A proposed success or known failure must equal the state that the stages
+  and the caller's readbacks establish, and shared evidence cites only
+  supplied reports. Success needs a post-invocation time readback in which
+  neither bound clock moved backwards; so does a handoff failure. An
+  `incomparable` grant with no invocation stage establishes a known failure.
+  The [migration note](../../../docs/migration/mixed-backend-execution.md)
+  states the complete stage and settlement model.
+
+The validators are pure functions over trusted inputs resolved by the caller.
+Passing them does not prove backend truth, installation, conformance, or
+runtime adoption, and these rules do not describe the in-process coordinator.
 
 ### Adversarial-control apparatus and backend support (issue #1004)
 
@@ -196,12 +262,12 @@ relation/profile authoring ids are never smuggled into backend support lists.
 | `participant_processing_role_trust` | trusted/untrusted processing-role declaration bound to controller and authority state | `participant-control-occurrence-v1`, `participant-crossing-occurrence-v1` |
 | `participant_monitor_topology` | monitor topology as bounded apparatus evidence | `experiment-evidence-record-v1` |
 
-Each term requires the contract that *owns* its claimed realization — the
-SEM-233 `participant-flow-control-relation-v1` (resolved by the RUN-319 runtime
-at the final sink) for the flow, final-sink, and quarantine terms — not merely a
-generic occurrence carrier. Supporting only `participant-crossing-occurrence-v1`
-therefore cannot make an effective exact flow or sink claim. The authored
-boundary-flow-policy profile stays out of backend support lists.
+Each term requires the contract that *owns* its claimed realization.
+For flow, final-sink, and quarantine terms, that contract is SEM-233 `participant-flow-control-relation-v1`.
+The RUN-319 runtime resolves it at the final sink.
+A generic occurrence carrier is insufficient.
+Support for `participant-crossing-occurrence-v1` alone cannot establish an effective exact flow or sink claim.
+The authored boundary-flow-policy profile stays out of backend support lists.
 
 A declaration is never proof of realization, isolation, monitor independence,
 non-collusion, flow propagation, or sink enforcement. Missing, contradictory,
@@ -214,10 +280,13 @@ permit the exact effect. Backend realization of these terms remains
 `not-established` in the ASR-536 evaluation program until conformance evidence
 is bound to the exact `sem-233/rev1` profile.
 
-## API-408 - Retrieval Projections
+<!-- vale RAES.HeadingCase = NO -->
+## API-408 - retrieval projections
 
 Retrieval contracts are read-shapes over recorded carriers — projections,
 never a second source of truth. They live in the `control-plane` family:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 | Contract id | Projects | Notes |
 | --- | --- | --- |
@@ -225,16 +294,14 @@ never a second source of truth. They live in the `control-plane` family:
 | `participant-history-view-v1` | Episode and behavior history retrieval | carries `completeness` (`complete`/`truncated`/`filtered`) with a required basis when not complete |
 | `participant-context-view-v1` | Derived operational context views | reference carrier plus SEM-214 meaning/comparability envelope; see below |
 
-Views are one-participant projections, and the contract makes that structural:
-`participant_address` and `episode_id` are carried exactly once, at the view
-level, and the embedded episode-state and history-event records are
-scope-projected variants of the recorded contracts with those fields removed.
-A nested record scoped to another participant or episode is therefore
-unrepresentable in a valid view payload — closed-world validation rejects any
-embedded record that restates scope — rather than merely forbidden by prose.
-The projected record shapes must track their recorded source contracts
-field-for-field apart from the removed scope fields; divergence is a defect
-(PRT-19).
+Views are one-participant projections.
+`participant_address` and `episode_id` appear exactly once, at view level.
+Embedded episode-state and history-event records are scope-projected variants of the recorded contracts, with those fields removed.
+Closed-world validation rejects an embedded record that restates scope.
+A nested record for another participant or episode is therefore unrepresentable in a valid view payload.
+
+Projected record shapes must match their recorded source contracts field-for-field, apart from the removed scope fields.
+A divergence is a defect (PRT-19).
 
 The scope binding is recursive. Behavior events cite recorded semantic
 records — action results and their precondition results, attribution edges,
@@ -267,9 +334,12 @@ Rules:
   recording, and error envelopes reuse the existing control-plane contract
   (API-403/404) and are implementation scope (#202).
 
-## API-411 - Outcome Reports
+<!-- vale RAES.HeadingCase = NO -->
+## API-411 - outcome reports
 
 `participant-outcome-report-v1` is a SEM-215 interpretation record:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 ParticipantOutcomeReport =
@@ -297,7 +367,7 @@ Rules:
   return remain ADR-054 step signals; objective and evaluation results remain
   their own surfaces (I10).
 
-## Publication, Generation, And Authority Obligations
+## Publication, generation, and authority obligations
 
 - Carriers are generated from contract models (`raes_contracts`) into
   `contracts/schemas/participant-runtime/` and
@@ -313,11 +383,17 @@ Rules:
 - New declarable terms enter through `controlled-vocabularies-v1` (ADR-012);
   this design adds `participant-runtime-feature-support-levels`.
 
-## Conformance Obligations For #200-#203
+<!-- vale RAES.HeadingCase = NO -->
+## conformance obligations for #200-#203
 
-The per-UID implementation issues must, for their requirement's carriers:
-emit them at the ADR-054 boundary points, validate them semantically (not
-just shape), bind the API-405/407 evidence criteria to them, add negative
-fixtures per the PRT probe rows, and prove the I2/I10/marking invariants with
-leakage and separation tests. This document deliberately stops at the shape
-boundary.
+For their requirement's carriers, the per-UID implementation issues must:
+
+<!-- vale RAES.HeadingCase = YES -->
+
+- Emit carriers at the ADR-054 boundary points.
+- Apply semantic validation, not shape checks alone.
+- Bind the API-405/407 evidence criteria to the carriers.
+- Add negative fixtures for the PRT probe rows.
+- Prove the I2/I10/marking invariants with leakage and separation tests.
+
+This document stops at the shape boundary.

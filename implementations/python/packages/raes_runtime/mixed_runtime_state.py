@@ -8,6 +8,7 @@ from raes_contracts.contracts.mixed_runtime import (
     MixedCompositionRuntimeEventModel,
     MixedCompositionRuntimeStateModel,
 )
+from raes_contracts.errors import ConflictError
 from raes_contracts.runtime_state import RuntimeSnapshot
 
 if TYPE_CHECKING:
@@ -20,7 +21,7 @@ def runtime_state(
 ) -> MixedCompositionRuntimeStateModel:
     payload = snapshot.mixed_composition_states.get(binding.entry.run_id)
     if payload is None:
-        raise ValueError("mixed composition must be activated before dispatch")
+        raise ConflictError("mixed composition must be activated before dispatch")
     state = MixedCompositionRuntimeStateModel.model_validate(payload)
     if (
         state.plan_id != binding.plan.plan_id
@@ -28,14 +29,14 @@ def runtime_state(
         or state.profile_id != binding.profile.profile_id
         or state.profile_digest != binding.profile.profile_digest
     ):
-        raise ValueError("mixed composition runtime state differs from the admitted binding")
+        raise ConflictError("mixed composition runtime state differs from the admitted binding")
     phase = binding.profile.phases.get(state.phase_id)
     if phase is None or (
         state.active_component_ids != phase.active_component_ids
         or state.active_allocation_ids != phase.active_allocation_ids
         or state.active_edge_ids != phase.active_edge_ids
     ):
-        raise ValueError("mixed composition runtime membership differs from the admitted phase")
+        raise ConflictError("mixed composition runtime membership differs from the admitted phase")
     return state
 
 

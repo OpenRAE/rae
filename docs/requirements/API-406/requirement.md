@@ -29,3 +29,5 @@ Requirement inventory expansion. Participant behavior requires portable external
 - TESTS → TEST `implementations/python/tests/test_participant_backend_contracts.py` (Participant backend-contract carrier fixture and schema tests)
 - IMPLEMENTS → CONFIG `contracts/profiles/backend/full-remote-control-plane.json` (Full remote control-plane backend profile API-406 carrier requirements)
 - TESTS → TEST `implementations/python/tests/test_runtime_conformance.py` (API-406 carrier profile and fixture-suite conformance tests)
+- IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-lifecycle-event-v1.json` (participant-lifecycle-event-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/participant-runtime/participant-observation-envelope-v1.json` (participant-observation-envelope-v1 published schema)

@@ -2,17 +2,19 @@
 
 from __future__ import annotations
 
-import hashlib
 from typing import Annotated, Literal
 
 from pydantic import Field, GetJsonSchemaHandler, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
-from raes.identifiers import PortableIdentifier
 
+from raes_contracts.identifiers import PortableIdentifier
+
+from ._sealing import sealing_active
 from .canonical import canonical_json_digest
 from .contracts.base import ContractModel, PrefixedDigestString
-from .contracts.schema_invariants import _add_raes_invariant
+from .contracts.schema_invariants import add_raes_invariant
+from .digests import sha256_digest
 from .json_ingress import parse_bounded_json_object
 from .semantic_comparison import ScenarioCoordinateModel
 
@@ -104,16 +106,18 @@ class AuthoringAdapterVectorModel(ContractModel):
             raise ValueError("source exceeds the byte limit")
         if self.contrast is not None and len(self.contrast.output_source.encode("utf-8")) > 65536:
             raise ValueError("contrast source exceeds the byte limit")
-        if self.input_digest != "sha256:" + hashlib.sha256(encoded).hexdigest():
+        if not sealing_active() and self.input_digest != sha256_digest(encoded):
             raise ValueError("input digest does not bind the exact source bytes")
-        if self.operation_digest != canonical_json_digest(self.operation.model_dump(mode="json")):
+        if not sealing_active() and self.operation_digest != canonical_json_digest(
+            self.operation.model_dump(mode="json")
+        ):
             raise ValueError("operation digest does not bind the complete operation")
         return self
 
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
         schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "authoring-vector-bound-inputs",
             "Exact UTF-8 source and closed operation digests must match; outcomes must bind artifacts.",
@@ -187,7 +191,7 @@ class AuthoringAdapterComparisonModel(ContractModel):
     @classmethod
     def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
         schema = handler.resolve_ref_schema(handler(core_schema))
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "authoring-comparison-evidence-shape",
             "Axes must remain applicable to their evidence; success requires semantic companion evidence.",

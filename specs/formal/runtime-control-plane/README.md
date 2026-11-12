@@ -1,4 +1,4 @@
-# Runtime Control-Plane Abstract Operation Model
+# Runtime control-plane abstract operation model
 
 Status: design authority for ADR-104; no executable profile guarantee is
 claimed until the corresponding implementation issue lands with tests.

@@ -123,6 +123,10 @@ def _projection_value(dimension: CaptureDimension, value: object) -> object:
         values = (str(getattr(value, "value", value)),)
     else:
         values = value
+    if dimension.name == "integrity_modes":
+        # An explicit lack of an integrity requirement is not a backend mode
+        # that must be separately advertised. Other conjuncts remain intact.
+        return tuple(value for value in values if value != "none")
     return tuple(values)
 
 

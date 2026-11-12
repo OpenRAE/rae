@@ -5,10 +5,12 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from .._base import VARIABLE_TOKEN_RE, is_variable_ref
+from raes_contracts.identifiers import QualifiedName
+from raes_contracts.variable_references import VARIABLE_TOKEN_RE, is_variable_ref
+
 from .._errors import SDLValidationError
-from .._identifiers import QualifiedName
-from ..variation import COLLECTION_TARGET_SPECS, REFERENCE_TARGET_SPECS, TIMING_TARGET_SPECS
+from .._reference_targetability import purpose_for_domain
+from ..variation import COLLECTION_TARGET_SPECS, REFERENCE_TARGET_SPECS, STRUCTURAL_TARGET_SPECS, TIMING_TARGET_SPECS
 
 _REFERENCE_TARGET_SPECS_BY_VALUE = {slot.value: spec for slot, spec in REFERENCE_TARGET_SPECS.items()}
 _COLLECTION_TARGET_SPECS_BY_VALUE = {slot.value: spec for slot, spec in COLLECTION_TARGET_SPECS.items()}
@@ -23,10 +25,16 @@ def _private_prefix(namespace: str, name: str) -> str:
     return QualifiedName.parse(name).prefixed(namespace, private=True).render()
 
 
-def _maybe_rename(name: str, name_map: Mapping[str, str]) -> str:
+def rename_reference(name: str, name_map: Mapping[str, str]) -> str:
+    """Rename a known reference while preserving unresolved variable tokens."""
+
     if not name or is_variable_ref(name):
         return name
     return name_map.get(name, name)
+
+
+# Existing callers retain their spelling while new callers use the public interface.
+_maybe_rename = rename_reference
 
 
 def _rewrite_section_ref(name: str, section: str, name_map: Mapping[str, str]) -> str:
@@ -87,7 +95,12 @@ def _rewrite_variation_reference(
     section: str,
     symbols: dict[str, dict[str, str] | set[str]],
 ) -> str:
-    return _maybe_rename(reference, symbols["named"] if section == "targetable" else symbols[section])
+    named = purpose_for_domain(section) is not None
+    return (
+        _maybe_rename(reference, symbols["named"])
+        if named
+        else _rewrite_section_ref(reference, section, symbols[section])
+    )
 
 
 def _variation_slot(target: dict[str, Any]) -> str:
@@ -98,7 +111,7 @@ def _variation_slot(target: dict[str, Any]) -> str:
 def _variation_target_section(kind: object, slot: str) -> str | None:
     spec: tuple[str, str] | None = None
     if kind in {"governed-reference", "alternative"}:
-        spec = _REFERENCE_TARGET_SPECS_BY_VALUE.get(slot)
+        spec = _REFERENCE_TARGET_SPECS_BY_VALUE.get(slot) or STRUCTURAL_TARGET_SPECS.get(slot)
     elif kind in {"subset", "order"}:
         spec = _COLLECTION_TARGET_SPECS_BY_VALUE.get(slot)
     return spec[1] if spec is not None else None

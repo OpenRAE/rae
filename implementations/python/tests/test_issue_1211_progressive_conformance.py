@@ -1,5 +1,6 @@
 """Integrated regression anchors for progressive specification (issue #1211)."""
 
+import re
 from copy import deepcopy
 from dataclasses import replace
 from pathlib import Path
@@ -8,10 +9,10 @@ import pytest
 from raes import SDLParseError, canonical_sdl_bytes, instantiate_scenario, parse_sdl, parse_sdl_file
 from raes._source_profile import SDLParserLimits
 from raes.canonical import InstantiatedScenarioSnapshot, canonical_instantiated_sdl_bytes
-from raes.explicitness import ExplicitnessClass
 from raes_backend_protocols.capabilities import OperatingSystemCompatibility
 from raes_backend_stubs.stubs import StubProvisioner, create_stub_target
 from raes_contracts.apparatus import RealizationObservationCapability
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.realization_observation import (
     ObservedOperatingSystemIdentity,
     RealizationObservationDisclosure,
@@ -173,7 +174,8 @@ def test_private_five_linux_authoring_survives_the_semantic_lifecycle() -> None:
         for item in compiled.realization_requirements
         if item.address == "provision.node.private" and item.requirement_kind == "runtime-applications"
     )
-    methods = requirement.constraint_document.root.items[0].fields["routes"].items[0].fields["methods"]
+    application = requirement.constraint_document.root.members[0].constraint
+    methods = application.fields["routes"].members[0].constraint.fields["methods"]
     assert [item.value for item in methods.items] == ["PROPFIND", "PrivateQuery", "privateQuery"]
     assert compiled.observation_demands == ()
 
@@ -194,9 +196,13 @@ def test_open_parents_keep_exact_siblings_and_do_not_invent_observation() -> Non
 
     applications = by_key[("provision.node.private", "runtime-applications")]
     assert applications.explicitness is ExplicitnessClass.OPEN
-    route_scope = next(
-        scope for scope in applications.constraint_document.scopes if scope.field_pointer == "/0/routes/0"
-    )
+    route_scopes = [
+        scope
+        for scope in applications.constraint_document.scopes
+        if re.fullmatch(r"/@sha256:[0-9a-f]{64}/routes/@sha256:[0-9a-f]{64}", scope.field_pointer)
+    ]
+    assert len(route_scopes) == 1
+    route_scope = route_scopes[0]
     assert route_scope.closure.posture.value == "open"
     assert compiled.observation_demands == ()
     assert compiled.action_contracts == {}
@@ -258,9 +264,11 @@ def test_same_scenario_plans_executes_persists_and_recovers_without_collection()
     assert control_plane.observation_execution(receipt.operation_id) is None
     assert all(record.result_payload is None for record in store.load_records().values())
 
+    expected_snapshot = control_plane.snapshot
+    control_plane.close()
     recovered = RuntimeControlPlane(target, store=store)
     assert recovered.get_operation(receipt.operation_id).state is OperationState.SUCCEEDED
-    assert recovered.snapshot == control_plane.snapshot
+    assert recovered.snapshot == expected_snapshot
 
 
 def test_runtime_rejects_private_identity_drift_without_persisting_side_effects() -> None:
@@ -274,7 +282,7 @@ def test_runtime_rejects_private_identity_drift_without_persisting_side_effects(
     receipt = control_plane.submit_provisioning(execution.provisioning)
     assert receipt.accepted
     status = control_plane.get_operation(receipt.operation_id)
-    assert status.state is OperationState.FAILED
+    assert status.state is OperationState.INDETERMINATE
     assert status.changed_addresses == []
     assert status.diagnostics[0].code == "runtime.backend-contract-invalid"
     assert status.diagnostics[0].address == "/provision.node.private"

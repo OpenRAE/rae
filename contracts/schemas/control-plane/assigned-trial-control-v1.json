@@ -1,0 +1,33 @@
+{
+  "$id": "https://openrae.github.io/rae/schemas/assigned-trial-control-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "assignment_digest": {
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "title": "Assignment Digest",
+      "type": "string"
+    },
+    "cancelled": {
+      "title": "Cancelled",
+      "type": "boolean"
+    },
+    "prepare_retry": {
+      "default": false,
+      "title": "Prepare Retry",
+      "type": "boolean"
+    },
+    "schema_version": {
+      "const": "assigned-trial-control/v1",
+      "default": "assigned-trial-control/v1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "assignment_digest",
+    "cancelled"
+  ],
+  "title": "TrialAssignmentControlModel",
+  "type": "object"
+}

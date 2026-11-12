@@ -1,39 +1,37 @@
-"""The canonical minimal scenario resolves on more than one backend (issue #607).
+"""The canonical minimal scenario stays admissible without a pinned substrate (issue #607).
 
 `cross-backend-minimal.sdl.yaml` authors compute intent without a virtualization
-mechanism or an operating system, so each provisioning backend selects a
+mechanism or an operating system, so a provisioning backend selects a
 compatible substrate rather than contradicting an authored value. These tests
-pin that portability: one authored scenario, compiled per backend, admitted and
-realized by both.
+pin that portability through two in-process provisioners: the stub, which
+reports substrate facts at apply time, and a narrow double that reads them back
+through the native readback seam.
 
-Scope, stated plainly. Both backends run here on daemon-free drivers -- the
-reference backend's in-process driver and `RecordingLibvirtDriver` -- so this
+Scope, stated plainly. Both targets are daemon-free test doubles, so this
 exercises plan admission, capability-envelope checks, typed substrate
-disclosure, and snapshot reconciliation. It is evidence that the specification
-is portable across the two declared envelopes. It is not evidence from either
-an OCI runtime or a live libvirt/QEMU daemon, and it measures nothing about
+disclosure, and snapshot reconciliation. Concrete backends (for example
+LilRAE) own native realization evidence; this measures nothing about
 fidelity.
 """
 
 from __future__ import annotations
 
 import pytest
-from libvirt_conformance_fixtures import RecordingLibvirtDriver
 from paths import EXAMPLES_DIR
 from raes import parse_sdl_file
-from raes_backend_libvirt import create_libvirt_target
+from raes_backend_stubs.stubs import create_stub_target
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
-from raes_reference_backend import create_reference_backend_target
 from raes_runtime.manager import RuntimeManager
+from t2_native_readback_double import create_native_readback_target
 
 SCENARIO_PATH = EXAMPLES_DIR / "cross-backend-minimal.sdl.yaml"
 
 
 def _targets():
     return (
-        ("reference", create_reference_backend_target()),
-        ("libvirt", create_libvirt_target(driver=RecordingLibvirtDriver(), driver_mode="generic")),
+        ("stub", create_stub_target()),
+        ("native-readback", create_native_readback_target()),
     )
 
 
@@ -70,7 +68,7 @@ def test_scenario_is_admitted_without_diagnostics_by_each_backend(backend_name):
     assert execution_plan.provisioning.operations
 
 
-def test_both_backends_preserve_resources_without_implicit_observation():
+def test_each_backend_preserves_resources_without_implicit_observation():
     """Preserve authored resources without turning backend selection into telemetry."""
 
     scenario = _scenario()
@@ -100,9 +98,9 @@ def test_both_backends_preserve_resources_without_implicit_observation():
         assert provenance.explicitness.value == "open"
         assert provenance.provenance.value == "backend-realized"
 
-    reference, libvirt = realized["reference"], realized["libvirt"]
-    assert reference == libvirt, {
-        "only-in-reference": sorted(set(reference) - set(libvirt)),
-        "only-in-libvirt": sorted(set(libvirt) - set(reference)),
+    stub, native = realized["stub"], realized["native-readback"]
+    assert stub == native, {
+        "only-in-stub": sorted(set(stub) - set(native)),
+        "only-in-native-readback": sorted(set(native) - set(stub)),
     }
-    assert sorted(reference) == ["provision.network.lab", "provision.node.workload"]
+    assert sorted(stub) == ["provision.network.lab", "provision.node.workload"]

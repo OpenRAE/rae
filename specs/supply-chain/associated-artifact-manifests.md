@@ -1,4 +1,4 @@
-# Associated Artifact Manifests
+# Associated artifact manifests
 
 Status: normative
 
@@ -144,15 +144,14 @@ integrity mechanism.
 
 ## 6. Packaging and consumer boundary
 
-Scenario-pack tooling owns filesystem layout, manifest filename, archive/OCI
+Environment-pack tooling owns filesystem layout, manifest filename, archive/OCI
 layout, traversal rules, release tiers, catalog metadata, and safe
 materialization. It MUST select a stable byte set before producing this
 manifest; a walk over a mutable live directory is not an atomic snapshot.
 
-Consumers own acquisition, immutable staging, storage, entitlement, atomic
-promotion, retention, and use-time verification. They validate the parent and
-every staged payload, derive rather than trust the set digest, retain the
-manifest with verified bytes, and reverify before use when storage guarantees
-do not make that redundant. A caller-supplied package digest may be retained as
-untrusted metadata, but cannot become RAES conformance or trust evidence unless
-it equals the validator-derived set digest.
+Consumers own acquisition, immutable staging, storage, entitlement, atomic promotion, retention, and use-time verification.
+They validate the parent and every staged payload.
+They derive the set digest instead of trusting a supplied value.
+They retain the manifest with verified bytes and reverify before use unless storage guarantees make that redundant.
+A caller-supplied package digest may remain as untrusted metadata.
+It cannot become RAES conformance or trust evidence unless it equals the validator-derived set digest.

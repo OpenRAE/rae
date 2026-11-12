@@ -75,6 +75,31 @@ Completion contexts include:
   accounts, objectives, and workflow steps
 - generic target fields that can refer to more than one section
 
+A purpose-bearing field's context names its reference purpose, such as
+`reference:eligible:objective_subject`
+([reference purposes](../../../specs/sdl/references.md#7-reference-purposes-and-eligibility)).
+A relationship endpoint's context names the purposes that the relationship's
+type and typed details select for that side: `reference:eligible:<purpose>` for
+one, such as `reference:eligible:node_endpoint` for a `domain_controller_for`
+source, and `reference:eligible:<p1>+<p2>` for several, in policy order. A
+`domain_controller_for` relationship that also carries `database_access` gives
+its source the context
+`reference:eligible:node_endpoint+runtime_application_endpoint`, and no
+declaration satisfies both, so completion returns no items.
+
+In a document that does not validate yet, completion and navigation use one
+index, built by the validator's index builder from the top-level entries that
+validate on their own, plus the names of the other top-level entries.
+Ambiguity is judged among the declarations in that index only. A declaration
+inside an entry that does not validate on its own is not in the index: it is
+neither offered nor reported as an occurrence, and it does not make a spelling
+ambiguous. So a name that such a declaration shares with an indexed
+declaration, for example a content item `alpha` in a content entry with a stray
+field, next to node `alpha`, is offered for, and navigates to, the indexed
+declaration until the entry validates, and validation may then refuse it as
+ambiguous. Operating scope offers and resolves nothing until the document
+validates.
+
 Example MCP call:
 
 ```json
@@ -218,3 +243,18 @@ from raes.language_service import (
 
 These helpers return plain dictionaries so CLIs, MCP tools, and future editor
 adapters can share the same behavior.
+
+`language_diagnostics`, `language_completions`, `language_references`,
+`language_format`, and `apply_structured_edit` accept an optional `path`, the
+document's file path. Without it, a document with `imports` is reported as
+needing `parse_sdl_file()`, as before. With it, the helpers compose local
+imports through the same composition as `parse_sdl_file()`, with its lockfile,
+trust, export, collision, cycle, and budget checks, so imported declarations
+complete, navigate, and validate under their namespaces, and a namespace
+imported twice reports the same collision. Path mode reads the files that
+`parse_sdl_file()` would read for that path and fetches nothing. It resolves
+`local:` imports and `locked:` records whose recorded source is local, and it
+refuses a registry import with `Registry import '<source>' is not resolved in
+editor path mode; validate with parse_sdl_file()`. Use `parse_sdl_file()` to
+validate a document that imports registry modules. The MCP tools keep their
+content-only signatures.

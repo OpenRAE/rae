@@ -32,8 +32,7 @@ def test_materialization_provenance_delivery_has_bounded_ownership():
     ]
     assert not _check_path_ownership(policy, phase, allowed)
     forbidden = [
-        "implementations/python/packages/raes_backend_libvirt/target.py",
-        "implementations/python/packages/raes_reference_backend/target.py",
+        "implementations/python/packages/raes_backend_stubs/stubs.py",
         "contracts/schemas/concept-authority/unrelated-contract.json",
         "docs/requirements/GOV-941/requirement.md",
         "docs/research/unrelated-study/results.md",

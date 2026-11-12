@@ -10,6 +10,7 @@ from participant_control_contract_fixtures import (
     ref,
     selection_payload,
 )
+from raes_contracts.errors import InvalidInputError
 
 
 def _selection_v2():
@@ -1032,7 +1033,7 @@ def test_v2_bounded_json_ingress_preserves_abstention_and_rejects_duplicate_memb
     parsed = parse_participant_control_evaluation_v2(json.dumps(payload))
     assert parsed.results[-1].payload.disposition == "abstain"
     assert parsed.composition.disposition == "failed"
-    with pytest.raises(ValueError, match="invalid participant control evaluation"):
+    with pytest.raises(InvalidInputError, match="invalid participant control evaluation"):
         parse_participant_control_evaluation_v2('{"schema_version":"one","schema_version":"two"}')
 
 
@@ -1066,8 +1067,8 @@ def test_v2_publication_has_exact_schema_and_separate_provider_protocol():
     from jsonschema import Draft202012Validator
     from raes_backend_protocols.protocols import ParticipantControlProviderV2
     from raes_conformance.conformance.validators import contract_validation_strength
-    from raes_contracts.contracts import schema_bundle
     from raes_contracts.corpus import corpus_family_root
+    from raes_schemas import schema_bundle
 
     bundle = schema_bundle()
     for contract_id, payload in (
@@ -1760,10 +1761,10 @@ def test_published_v2_examples_cover_applicability_and_effect_boundaries():
     import json
 
     from jsonschema import Draft202012Validator
-    from raes_contracts.contracts import schema_bundle
     from raes_contracts.contracts.participant_control_applicability import ParticipantControlSelectionV2Model
     from raes_contracts.contracts.participant_control_evaluation_v2 import ParticipantControlEvaluationV2Model
     from raes_contracts.corpus import corpus_family_root
+    from raes_schemas import schema_bundle
 
     examples = (
         ("participant-control-selection-v2", "valid", "disjoint-sinks", True, True),

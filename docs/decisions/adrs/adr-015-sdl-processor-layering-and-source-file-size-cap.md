@@ -83,34 +83,40 @@ checker walks the AST of every changed `.py` file under each rule's
 `scope_root` and emits `layering-rule-violation` for any `import` or
 `from … import` of the forbidden top-level package or its submodules.
 
-### 2. 500-line cap on non-test source files
+### 2. 1,000-line cap on non-test source files
 
 No non-test, non-generated `.py` file under `implementations/python/packages/`
-shall exceed 500 lines, except for paths listed in
+shall exceed 1,000 lines, except for paths listed in
 `tools/policy/oversized_allowlist.yaml`.
 
-The 500-line value matches SonarCloud's S104 threshold, so a file either
-passes both the repo policy and the Sonar quality gate or fails both; there
-is no longer a 500–599 band that is repo-compliant but blocks the
-`dev → main` integration PR. (The cap was originally 600; see Amendments.)
+The cap is a backstop. ADR-117 checks the module structure directly: import
+cycles, private imports across modules and class ancestry. A file length does
+not show whether a module is cohesive.
+
+SonarCloud S104 allows the same files. The project uses its own quality
+profile, which inherits the organization profile and sets the S104 maximum to
+1001. SonarCloud counts the empty line after the final newline, so a
+1,000-line file has 1,001 SonarCloud lines. (The cap was originally 600 and
+then 500; see Amendments.)
 
 The allowlist is the inverse of the goal: each entry is technical debt to
 be drained. A split PR splits its file and removes the entry. The
 modularity tracker closes when the allowlist is empty.
 
-The fixed reference set — the paths over the cap when the current cap was
-adopted — is a *code constant*, `_ADR015_INITIAL_OVERSIZED_FILES` in
-`tools/policy/repo_policy.py`, **not** config in `adr_policy.yaml`. Keeping
-the locked set in PR-editable config would let one PR satisfy "the allowlist
-only shrinks" by editing the allowlist and the locked set together; pinning
-it in the policy module means adding an entry requires a diff to the
-checker code, which PR review scrutinises as policy rather than as data
-noise. The allowlist must be a subset of that constant — no new entry may be
-added; a file over the cap that wasn't one of the reference set must be
-split, not allow-listed. Lowering the cap re-baselines both the constant and
-the allowlist to the files over the new cap at that time (a code-constant
-diff, PR-scrutinised the same way); the shrink-only rule then continues from
-the new baseline. Enforcement:
+The fixed reference set is the set of paths over the cap when the current cap
+was adopted. It is a *code constant*, `_ADR015_INITIAL_OVERSIZED_FILES` in
+`tools/policy/repo_policy.py`, **not** config in `adr_policy.yaml`. If the
+locked set were PR-editable config, one PR could edit the allowlist and the
+locked set together and still satisfy "the allowlist only shrinks". In the
+policy module, a new entry needs a diff to the checker code, and PR review
+examines that diff as policy, not as data. The allowlist must be a subset of
+that constant, so it cannot gain an entry. A file over the cap that is not in
+the reference set must be split. A change of the cap re-baselines the constant
+and the allowlist to the files over the new cap at that time. That change is a
+code-constant diff, and PR review examines it the same way. The shrink-only
+rule then continues from the new baseline. No file was over 1,000 lines when
+that cap was adopted, so the constant and the allowlist are empty.
+Enforcement:
 
 - `_check_oversized` — emits `oversized-source-file` for an over-cap,
   non-allowlisted changed file.
@@ -126,25 +132,26 @@ the new baseline. Enforcement:
   structural gate that makes the drain step non-optional.
 
 The `layering_rules` and `oversized_source_files` blocks are *required*
-policy: an absent block surfaces as `policy-config-malformed`, not as a
-silent opt-out, so neither gate can be disabled by deleting config.
-Malformed config surfaces the same way rather than as a traceback — this
-covers `adr_policy.yaml` itself failing to parse or not having a mapping
-root (`evaluate_repo_policy` loads it through a guard before any checker
-runs), wrong types or empty required lists inside the ADR-015 blocks, and
-an unparseable or non-mapping allowlist YAML. Path
-safety is enforced at a single chokepoint: `evaluate_repo_policy` runs
-every path in the PR's changed-file list through an in-repo-resolution
-check and drops any that escape the root *before any checker reads a
-file*, so the layering scan, the size cap, and the pre-existing
-import-direction and compat-wrapper checks all receive an
-already-validated list. The allowlist file path
-(`oversized_source_files.allowlist_path`) and each allowlist entry
-inspected by the drain check are validated the same way. An absolute
-path, a `..` segment, or a symlink resolving outside the tree surfaces as
-`policy-path-unsafe` and the target is never opened. (This is
-defense-in-depth for the in-repo trust model below, not a claim to
-withstand an adversarial author who edits the policy itself.)
+policy. An absent block surfaces as `policy-config-malformed`, not as a silent
+opt-out, so a deleted block cannot disable a gate. Malformed config surfaces
+the same way, not as a traceback. This covers these conditions:
+
+- `adr_policy.yaml` does not parse or does not have a mapping root.
+  (`evaluate_repo_policy` loads it through a guard before any checker runs.)
+- The ADR-015 blocks have wrong types or empty required lists.
+- The allowlist YAML does not parse or does not have a mapping root.
+
+Path safety has a single chokepoint. `evaluate_repo_policy` checks that each
+path in the PR's changed-file list resolves inside the repository. It drops
+each path that escapes the root *before any checker reads a file*. Thus the
+layering scan, the size cap, and the import-direction and compat-wrapper
+checks all receive an already-validated list. The same check applies to the
+allowlist file path (`oversized_source_files.allowlist_path`) and to each
+allowlist entry that the drain check reads. An absolute path, a `..` segment,
+or a symlink that resolves outside the tree surfaces as `policy-path-unsafe`,
+and the gate never opens the target. (This is defense-in-depth for the in-repo
+trust model below. It does not claim to withstand an adversarial author who
+edits the policy itself.)
 
 Test files under `implementations/python/tests/` and generated files
 under `contracts/schemas/` are excluded from the cap — tests grow as a
@@ -178,8 +185,8 @@ defensively. That would be a separate ADR.
 - The dependency between `aces_sdl` and `aces_processor` is a DAG,
   enforced by CI.
 - Each subsequent file split inherits the layering invariant for free.
-- The cap creates a forcing function: a file that wants to grow past 500
-  lines must justify the split or the allowlist entry.
+- The cap creates a forcing function: a file that wants to grow past 1,000
+  lines must be split.
 - The allowlist is self-documenting debt; its size measures remaining
   modularity work.
 
@@ -196,12 +203,12 @@ defensively. That would be a separate ADR.
   re-introduce a layering bug the current rule doesn't capture. Mitigation:
   each new package introduction should consider whether it needs its own
   `layering_rules` entry.
-- The 500-line cap is conservative; some cohesive modules may hit it. The
-  allowlist gives an explicit, visible escape hatch. The cap can be tuned
-  later if it proves too aggressive.
+- A cap alone rewards splits that keep facades and private names. ADR-117
+  checks the structure that such splits damage.
 
 ## Amendments
 
 | Date | Commit/PR | Summary |
 |------|-----------|---------|
 | 2026-07-12 | #561 | Lowered the non-test source-file cap from 600 to 500 lines to align with SonarCloud's S104 threshold, closing the 500–599 band where a file was repo-compliant but failed the Sonar quality gate at the `dev → main` integration PR (#545). Re-baselined `_ADR015_INITIAL_OVERSIZED_FILES` and `tools/policy/oversized_allowlist.yaml` to the files over the 500-line cap as of this amendment; the shrink-only rule continues from that new baseline. |
+| 2026-10-30 | #1734 | Raised the cap from 500 to 1,000 lines as a backstop to the structural checks of ADR-117. Set the SonarCloud S104 maximum to 1001 in a project profile that inherits the organization profile. Re-baselined `_ADR015_INITIAL_OVERSIZED_FILES` to the files over 1,000 lines: none. |

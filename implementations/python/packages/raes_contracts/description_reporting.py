@@ -22,9 +22,9 @@ from .domain_profiles import (
     admit_domain_profile_bindings,
 )
 from .json_ingress import parse_bounded_json_object
+from .json_pointer import pointer_tokens
 from .observation_demand import ObservationBasis, ObservationSelector
 from .realization_structure import semantic_address_contains
-from .realization_structure._common import pointer_tokens
 
 
 @dataclass(frozen=True)

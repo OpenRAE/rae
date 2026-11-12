@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from raes_contracts.errors import InvalidInputError
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 if str(REPO_ROOT) not in sys.path:
@@ -72,7 +73,7 @@ def test_top_level_catalog_drift_is_flagged(tmp_path: Path, old: str, new: str, 
 
 def test_checked_summary_drift_is_flagged(tmp_path: Path) -> None:
     repo = _seed_repo(tmp_path)
-    _replace(repo, "specs/sdl/sections.md", "sections=39", "sections=38")
+    _replace(repo, "specs/sdl/sections.md", "sections=42", "sections=40")
     assert "sdl-catalog-summary" in _rule_ids(repo)
 
 
@@ -120,10 +121,36 @@ def test_reference_domain_drift_is_flagged(tmp_path: Path) -> None:
     _replace(
         repo,
         "specs/sdl/references.md",
+        "| `behavior_specifications.*.authority_scope_refs[]` | `eligible:authority_scope` |",
         "| `behavior_specifications.*.authority_scope_refs[]` | `targetable` |",
-        "| `behavior_specifications.*.authority_scope_refs[]` | `any` |",
     )
     assert "sdl-catalog-reference-domain" in _rule_ids(repo)
+
+
+def test_reference_catalog_accepts_language_neutral_rows() -> None:
+    text = """## 6. Machine-checkable reference-edge index
+
+| Source path | Candidate domain | Resolution phase | Failure | Normative owner |
+| --- | --- | --- | --- | --- |
+| `nodes.*.features[]` | `features` | semantic validation | fatal dangling or ambiguous | [reference rules](references.md) |
+"""
+    [row] = parse_reference_catalog(text)
+    assert (row.source_path, row.domain, row.phase, row.failure, row.normative_owner) == (
+        "nodes.*.features[]",
+        "features",
+        "semantic validation",
+        "fatal dangling or ambiguous",
+        "[reference rules](references.md)",
+    )
+
+
+@pytest.mark.parametrize("columns", [4, 6])
+def test_reference_catalog_rejects_wrong_column_count(columns: int) -> None:
+    text = "## 6. Machine-checkable reference-edge index\n\n" + "\n".join(
+        "| " + " | ".join([cell] * columns) + " |" for cell in ("field", "---", "value")
+    )
+    with pytest.raises(CatalogParseError, match="expected 5"):
+        parse_reference_catalog(text)
 
 
 def test_non_completion_reference_domain_drift_is_flagged(tmp_path: Path) -> None:
@@ -142,11 +169,9 @@ def test_non_completion_reference_domain_drift_is_flagged(tmp_path: Path) -> Non
     [
         ("| `features` | semantic validation |", "| `features` | |"),
         (
-            "| fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) | "
-            "[node validator]",
-            "| | [reference rules](#5-cross-section-reference-edge-catalog) | [node validator]",
+            "| fatal dangling or ambiguous | [reference rules](#5-cross-section-reference-edge-catalog) |",
+            "| | [reference rules](#5-cross-section-reference-edge-catalog) |",
         ),
-        ("[node validator](../../implementations/python/packages/raes/validator/_nodes_infra_network.py)", ""),
     ],
 )
 def test_reference_row_classification_drift_is_flagged(tmp_path: Path, old: str, new: str) -> None:
@@ -249,8 +274,8 @@ def test_implementation_specific_diagnostic_term_must_be_marked_nonnormative(tmp
     _replace(
         repo,
         "specs/sdl/diagnostics.md",
-        "> these as `SDLParseError`, `SDLValidationError`, and `SDLInstantiationError`;",
-        "these as `SDLParseError`, `SDLValidationError`, and `SDLInstantiationError`;",
+        "An **error** is fatal:",
+        "An **error** (`SDLParseError`) is fatal:",
     )
     assert "sdl-catalog-normative-layer" in _rule_ids(repo)
 
@@ -288,9 +313,24 @@ def test_catalog_parser_rejects_oversized_input() -> None:
 
 def test_cli_reports_json_failure(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
     repo = _seed_repo(tmp_path)
-    _replace(repo, "specs/sdl/sections.md", "sections=39", "sections=38")
+    _replace(repo, "specs/sdl/sections.md", "sections=42", "sections=40")
     assert main(["--repo-root", str(repo), "--json"]) == 1
     assert '"rule_id": "sdl-catalog-summary"' in capsys.readouterr().out
+
+
+def test_catalog_parse_error_is_an_invalid_input_category() -> None:
+    assert issubclass(CatalogParseError, InvalidInputError)
+    assert not issubclass(CatalogParseError, ValueError)
+
+
+def test_cli_reports_an_unreadable_catalog_as_one_message(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    repo = _seed_repo(tmp_path)
+    (repo / "specs/sdl/sections.md").write_bytes(b"\xff\xfe not utf-8")
+
+    assert main(["--repo-root", str(repo)]) == 1
+    error = capsys.readouterr().err
+    assert error.startswith("sdl-catalog-parity: ")
+    assert error.count("\n") == 1
 
 
 @pytest.mark.integration

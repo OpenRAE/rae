@@ -6,6 +6,7 @@ from raes_contracts.augmentation_scope import AugmentationScopePolicy, Augmentat
 from raes_contracts.realization_structure import semantic_address_contains
 
 from .._composition_provenance import prefixed_scope_pointer
+from .._errors import SDLParseError
 from ..observation_scope import resolve_observation_scope
 
 
@@ -54,7 +55,7 @@ def _rewritten_scope(scope: str, payload: dict[str, Any], symbols: dict[str, dic
                 _, target = resolve_observation_scope(renamed, f"/forwarding_agents/{index}" + canonical[len(parent) :])
                 if target is not None:
                     return target
-    raise ValueError("augmentation scope has no stable forwarding-agent identity")
+    raise SDLParseError("augmentation scope has no stable forwarding-agent identity")
 
 
 def merge_augmentation_scope(root: dict[str, Any], incoming: dict[str, Any]) -> None:

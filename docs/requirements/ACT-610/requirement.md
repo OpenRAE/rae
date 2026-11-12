@@ -23,11 +23,11 @@ Requirement inventory expansion. Defensive behavior needs its own expressible vo
 
 - IMPLEMENTS → GITHUB_ISSUE `210` (Defensive Behavior Vocabularies (ACT-610))
 - IMPLEMENTS → CONFIG `contracts/concept-authority/controlled-vocabularies-v1.json` (Governed participant defensive behavior vocabulary)
-- IMPLEMENTS → CONFIG `contracts/schemas/concept-authority/nist-csf-defensive-categories-source-v1.json` (NIST CSF defensive category source schema)
+- IMPLEMENTS → SPEC `contracts/schemas/concept-authority/nist-csf-defensive-categories-source-v1.json` (NIST CSF defensive category source schema)
 - IMPLEMENTS → CONFIG `contracts/concept-authority/nist-csf-defensive-categories-source-v1.json` (Pinned NIST CSF 2.0 defensive category source)
 - IMPLEMENTS → SPEC `contracts/schemas/concept-authority/external-concept-bindings-v1.json` (Generic authored defensive behavior classification contract)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/external_concept_bindings.py` (Neutral NIST CSF source snapshot adapter)
-- IMPLEMENTS → SPEC `specs/formal/participant-behavior-model/README.md` (Formal defensive behavior reference contract)
+- IMPLEMENTS → SPEC `specs/formal/participant-behavior-model/README.md` (Formal defensive behavior classification semantics)
 - IMPLEMENTS → SPEC `specs/concept-authority/controlled-vocabularies.md` (Defensive vocabulary authority and lineage specification)
 - TESTS → TEST `implementations/python/tests/test_controlled_vocabularies.py` (Defensive vocabulary authority and source validation tests)
 - TESTS → TEST `implementations/python/tests/test_classification_migration.py` (Generic defensive behavior migration and native runtime noninterference tests)

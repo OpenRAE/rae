@@ -1,108 +1,123 @@
-# RAES Identity Cutover
+# RAES identity cutover
 
-RAES is the sole current identity of the Reproducible Agentic Environments
-System and its repository-owned ecosystem surfaces.
+## Historical version boundary
 
-Issue #908 and GOV-944 complete the hard cut begun by issue #866. The cutover
-does not retain public aliases or dual-name compatibility.
+This record describes the identity cut from RAES 1.1.0 toward the planned 2.0.0 breaking release.
+It also records the later organization rename and the legacy package retirement plan.
+The retirement plan below does not confirm that publication or archival occurred.
+Use the [RAES 11.0.2 guides](../public/guides/cli.md) for current commands.
+Use [backend migration](concrete-backends.md) before relying on old native-resource instructions.
 
-## Current Surface Map
+Issue #908 and GOV-944 completed the hard cut begun in issue #866.
+RAES became the sole current identity of the Reproducible Agentic Environments System.
+The change covered this repository and its owned ecosystem surfaces.
+It retained no public aliases or dual-name compatibility.
 
-| Surface | Current identity | Verification |
-|---|---|---|
-| Python distribution and imports | `raes` and the owning `raes_*` packages | installed wheel and source-boundary tests |
-| CLI and MCP commands | `raes`, `raes-mcp` | CLI and MCP construction tests |
-| MCP server and tools | RAES server metadata and `raes_*` tool identifiers | advertised-tool and guidance tests |
-| Published schema namespace | `https://openrae.github.io/rae/schemas/` | generated parity and schema-publication checks |
-| Contract/profile identities | RAES contract, profile, annotation, and wire identifiers | contract models, fixtures, JSON Schema validation |
-| Module artifacts | `raes.lock.json`, `raes-trust.yaml`, `.raes/module-cache`, RAES OCI media types and labels | registry, digest, signature, archive, and CLI tests |
-| Runtime and evidence artifacts | RAES schema names, event/status values, evidence ids, and resource names | DTO, fixture, persistence, and backend tests |
-| Authentication | RAES trusted-proxy headers | strict-default auth, role, denial-audit, and redacted-error tests |
-| Environment/workflow | RAES requirement-governance and real-libvirt inputs | repository policy and opt-in integration tests |
-| Host ownership | RAES OCI labels, libvirt names, guest markers, paths, and UUID namespace | conflict, discovery, teardown, guest-probe, and real-daemon tests |
-| Documentation and examples | RAES terminology and paths | documentation build and whole-tree naming policy |
+## Current surface map
 
-## Compatibility Rule
+These were the identity surfaces and their verification routes:
 
-Current readers, writers, commands, and configuration accept only RAES
-identities. Existing consumers must update before adopting the cutover release.
-There are no aliases, shims, fallback imports, redirects, dual-read paths, or
-last-one-wins resolution rules.
+- Python distribution and imports: `raes` and the owning `raes_*` packages.
+  Installed-wheel and source-boundary tests checked them.
+- CLI and MCP commands: `raes` and `raes-mcp`.
+  CLI and MCP construction tests checked them.
+- MCP server and tools: RAES server metadata and `raes_*` tool identifiers.
+  Advertised-tool and guidance tests checked them.
+- Schema namespace: `https://openrae.github.io/rae/schemas/`.
+  Generated parity and schema-publication checks covered it.
+- Contracts and profiles: RAES contract, profile, annotation, and wire identifiers.
+  Models, fixtures, and JSON Schema validation checked them.
+- Module artifacts: `raes.lock.json`, `raes-trust.yaml`, and `.raes/module-cache`.
+  They also included RAES OCI media types and labels.
+  Registry, digest, signature, archive, and CLI tests covered them.
+- Runtime and evidence artifacts: RAES schema names, event/status values, evidence IDs, and resource names.
+  DTO, fixture, persistence, and backend tests checked them.
+- Authentication: RAES trusted-proxy headers.
+  Strict-default authentication, role, denial-audit, and redacted-error tests checked them.
+- Environment and workflow: RAES requirement-governance and real-libvirt inputs.
+  Repository policy and opt-in integration tests checked them.
+- Host ownership: RAES OCI labels, libvirt names, guest markers, paths, and UUID namespace.
+  Conflict, discovery, teardown, guest-probe, and real-daemon tests checked them.
+- Documentation and examples: RAES terms and paths.
+  The documentation build and whole-tree naming policy checked them.
 
-Published contract changes still carry their owning schema-publication and
-lifecycle evidence. That evidence records what changed; it does not keep the
-retired value executable.
+This historical test inventory does not restore removed backend support.
 
-## Historical Records
+## Compatibility rule
 
-Accepted pre-cutover decisions, release history, provenance, and dated research
-or design evidence remain accurate historical records. The whole-tree naming
-policy permits such content only through exact path, content digest, record
-class, rationale, and occurrence-count entries. It does not exempt a
-documentation directory or allow historical wording to become current
-guidance.
+The cutover's readers, writers, commands, and configuration accept only RAES identities.
+Existing consumers must update before adopting that release.
+There are no aliases, shims, fallback imports, or identity redirects.
+There are no dual-read paths or last-one-wins rules.
 
-## Operator Guidance
+Published contract changes keep their owning schema-publication and lifecycle evidence.
+That evidence records the change. It does not keep a retired value executable.
 
-Use `raes` and `raes-mcp` in automation. Use RAES contract, schema, module,
-runtime, header, environment, and host identifiers in newly created artifacts
-and deployments.
+## Historical records
 
-The hard cut does not automatically rewrite persisted artifacts or clean
-resources created under an earlier identity. Operators should complete any
-required environment cleanup before deploying the cutover release; the
-repository does not discover or destroy old-name resources.
+Accepted pre-cutover decisions remain historical records.
+So do release history, provenance, and dated research or design evidence.
+The whole-tree naming policy permits old content only through exact recorded identities.
+Each entry needs its path, content digest, record class, rationale, and occurrence count.
+The policy does not exempt a whole documentation directory.
+Historical wording must not become current guidance.
 
-## Downstream Cutover Sequencing
+## Operator guidance
 
-Issue #908 migrated current contract, schema, wire, workflow, runtime, and host
-identities together. Consumers pinned to RAES 1.1.0 continue to use that
-release's pre-cutover values. They must switch all affected values atomically
-when adopting the next breaking RAES release that contains the identity
-cutover, targeted as 2.0.0.
+Use `raes` and `raes-mcp` in automation.
+Use RAES contract, schema, module, runtime, header, environment, and host identifiers for new artifacts and deployments.
 
-Consumers must not guess replacement spellings, mix identities from the two
-release lines, or introduce aliases and fallback reads. The release's schemas,
-fixtures, and migration evidence are the source of truth for the new values.
+The cut does not rewrite persisted artifacts automatically.
+It does not clean resources created under an earlier identity.
+Operators should finish required environment cleanup before deploying the cutover release.
+The repository does not discover or destroy old-name resources.
 
-## GitHub Organization Rename
+## Downstream cutover sequencing
 
-The GitHub organization was renamed from RAESystem to OpenRAE. Live repository
-configuration, clone URLs, issue links, evidence references, and documentation
-now use `OpenRAE/rae`.
+Issue #908 changed contract, schema, wire, workflow, runtime, and host identities together.
+Consumers pinned to RAES 1.1.0 keep that release's pre-cutover values.
+They must switch all affected values atomically when adopting the next breaking release with the cutover.
+The recorded target for that release was 2.0.0.
 
-The published schema namespace moved with the organization from
-`https://raesystem.github.io/rae/schemas/` to
-`https://openrae.github.io/rae/schemas/`. Contract ids and schema paths are
-unchanged, but consumers that pin or cache schema `$id` values must update them
-atomically. The repository does not retain a second accepted namespace or a
-fallback reader for the former URI root.
+Do not guess replacement spellings or mix identities from the two release lines.
+Do not add aliases or fallback reads.
+Use the release's schemas, fixtures, and migration evidence for the new values.
 
-## Scenario And Environment-Pack Vocabulary
+## GitHub organization rename
 
-`Scenario` remains the RAES SDL authored-content concept, and
-`instantiate_scenario()` continues to produce an instantiated scenario. An
-**environment pack** is a downstream packaging and distribution unit that may
-contain SDL scenarios and other reusable assets. It is not another name for a
-scenario, an SDL document phase or model, or a realized environment.
+The GitHub organization changed from RAESystem to OpenRAE.
+Live repository configuration, clone URLs, issue links, evidence references, and documentation use `OpenRAE/rae`.
 
-The intended split is therefore: packs are environment packs; the SDL content
-they carry remains scenarios. A pack repository owns its layout and release
-mechanics, while this repository remains authoritative for SDL, concept, and
-reusable-asset trust-policy meanings.
+The published schema namespace moved from `https://raesystem.github.io/rae/schemas/`
+to `https://openrae.github.io/rae/schemas/`.
+Contract IDs and schema paths stayed unchanged.
+Consumers that pin or cache schema `$id` values must update them atomically.
+The repository keeps no second accepted namespace or fallback reader for the former URI root.
 
-## Legacy PyPI Distribution Retirement
+## Scenario and environment-pack vocabulary
 
-The legacy PyPI distribution named in issue #907 is end-of-life, and `raes` is
-its replacement. One final 0.23.2 release will be cut from the immutable 0.23.1
-legacy lineage with unchanged code behavior and an updated long description
-that points consumers to `raes` and this migration guide. It will not depend on
-`raes`, install a placeholder, or restore retired import aliases.
+`Scenario` remains the RAES SDL authored-content concept.
+`instantiate_scenario()` still produces an instantiated scenario.
+An **environment pack** is a downstream unit for packaging and distribution.
+It can contain SDL scenarios and other reusable assets.
+It is not a scenario, an SDL document phase or model, or a realized environment.
 
-After the final artifact name, version, contents, metadata, and replacement
-links are verified on PyPI, the legacy project will be archived. Existing
-historical releases will remain available rather than being deleted or broadly
-yanked. The current release-please workflow remains exclusive to `raes`; the
-one-time legacy publication requires an immutable reviewed source, the
-protected PyPI environment, and short-lived OIDC credentials rather than a
-stored token.
+A pack repository owns its layout and release mechanics.
+This repository owns the SDL, concept, and reusable-asset trust-policy meanings that packs use.
+The env-packs repository adopted that split in [OpenRAE/env-packs#139](https://github.com/OpenRAE/env-packs/issues/139).
+
+## Legacy PyPI distribution retirement
+
+The legacy PyPI distribution named in issue #907 is end-of-life.
+`raes` is its replacement.
+The recorded plan specifies one final 0.23.2 release from immutable legacy lineage 0.23.1.
+That release keeps code behavior unchanged.
+Its updated long description points readers to `raes` and this migration guide.
+It does not depend on `raes`, install a placeholder, or restore retired import aliases.
+
+Under that plan, archival follows verification on PyPI.
+Verification covers the final artifact name, version, contents, metadata, and replacement links.
+Historical releases remain available. They are not deleted or broadly yanked.
+The current release-please workflow remains exclusive to `raes`.
+The one-time legacy publication needs immutable reviewed source and the protected PyPI environment.
+It uses short-lived OIDC credentials, not a stored token.

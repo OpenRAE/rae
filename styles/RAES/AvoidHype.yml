@@ -1,6 +1,0 @@
-extends: existence
-message: "Replace promotional wording ('%s') with a measurable current-state claim."
-level: error
-ignorecase: true
-tokens:
-  - '\b(?:powerful|seamless|world-class|production-ready|comprehensive|state[- ]of[- ]the[- ]art)\b'

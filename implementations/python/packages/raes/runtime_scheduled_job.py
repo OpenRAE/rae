@@ -3,15 +3,13 @@
 from enum import Enum
 
 from pydantic import field_validator, model_validator
-
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import SDLModel
-from .runtime_values import (
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import (
     parse_optional_bool_or_var,
     parse_runtime_enum_or_var,
     require_symbol,
 )
+from raes_contracts.sdl_model import SDLModel
 
 __all__ = [
     "RuntimeScheduledJob",
@@ -98,5 +96,5 @@ class RuntimeScheduledJob(SDLModel):
         return parse_optional_bool_or_var(v, field_name="enabled")
 
     @model_validator(mode="after")
-    def validate_scheduled_job(self) -> "RuntimeScheduledJob":
+    def validate_scheduled_job(self) -> RuntimeScheduledJob:
         return self

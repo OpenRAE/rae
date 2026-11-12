@@ -10,6 +10,9 @@ from raes_contracts.contracts.participant_resource_budgets import (
     ParticipantResourcePoolStateModel,
     participant_resource_pool_state_ref,
 )
+from raes_contracts.errors import ConflictError
+
+POOL_ALLOCATION_CONFLICT = "physical pool allocation conflicts with its canonical budget state"
 
 
 class ResourcePool(Protocol):
@@ -87,7 +90,7 @@ def ensure_allocation(
             or existing.budget_id != budget.budget_id
             or existing.protected != fairness.protected
         ):
-            raise ValueError("physical pool allocation conflicts with its canonical budget state")
+            raise ConflictError(POOL_ALLOCATION_CONFLICT)
         return pool
     allocations[budget.state_ref] = ParticipantResourcePoolAllocationModel(
         budget_state_ref=budget.state_ref,

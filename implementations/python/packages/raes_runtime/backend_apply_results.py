@@ -8,11 +8,15 @@ from typing import cast
 
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.planning import ChangeAction
 from raes_contracts.runtime_state import ApplyResult, RealizationProvenanceEntry, RuntimeSnapshot
 from raes_processor.models import CompiledRealizationRequirement
 from raes_processor.planner import (
     prepared_delivery_violation,
+    prepared_node_disclosure,
     realization_authority_disclosure,
+    realization_cleanup_diagnostics,
     realization_disclosure,
     sanitize_plan_realization_snapshot,
     sanitize_prepared_node_snapshot,
@@ -99,9 +103,37 @@ def _gated_backend_result(
         information_state_context_resolver=information_state_context_resolver,
     )
     if final_diagnostics:
-        return ApplyResult(False, baseline_snapshot, diagnostics=final_diagnostics)
-    attach = realization_provenance and finalized.success
-    return _with_realization_provenance(finalized, realization_provenance) if attach else finalized
+        finalized = ApplyResult(False, baseline_snapshot, diagnostics=final_diagnostics)
+    elif finalized.success:
+        finalized = _with_retained_realization_provenance(
+            finalized, baseline_snapshot, realization, realization_provenance
+        )
+    return finalized
+
+
+def _with_retained_realization_provenance(
+    result: ApplyResult,
+    baseline_snapshot: RuntimeSnapshot,
+    realization: _RealizationApplyContext,
+    provenance: tuple[RealizationProvenanceEntry, ...],
+) -> ApplyResult:
+    """Retain unaffected live-resource rows alongside newly disclosed rows."""
+
+    affected = (
+        {
+            operation.address
+            for operation in (realization.completion_plan or realization.operation_plan).operations
+            if operation.action is not ChangeAction.UNCHANGED
+        }
+        if realization.operation_plan is not None
+        else set()
+    )
+    retained = tuple(
+        entry
+        for entry in baseline_snapshot.realization_provenance
+        if entry.address in result.snapshot.entries and entry.address not in affected
+    )
+    return _with_realization_provenance(result, (*retained, *provenance))
 
 
 def _finalize_backend_apply(
@@ -181,28 +213,41 @@ def _realization_disclosure_result(
 ) -> tuple[list[Diagnostic], tuple[RealizationProvenanceEntry, ...]]:
     """Disclose plan and supplemental realization authority over one result."""
 
-    # Failed apply results are cleanup inventory, not observation-success claims.
-    # Still check materialization authority and sanitize the snapshot; requiring
-    # the failed readback here would erase recoverable resources.
     plan = realization.plan
-    validation_plan = plan if result.success else replace(plan, observation_demands=())
+    supplemental = _supplemental_realization_requirements(realization)
+    if not result.success:
+        return realization_cleanup_diagnostics(
+            plan,
+            result.snapshot,
+            manifest=realization.manifest,
+            requirements=supplemental,
+            artifact_availability=realization.artifact_availability,
+        ), ()
     diagnostics, provenance = realization_authority_disclosure(
-        validation_plan,
+        plan,
         result.snapshot,
         manifest=realization.manifest,
     )
-    supplemental = _supplemental_realization_requirements(realization)
-    if diagnostics or not supplemental:
+    if diagnostics:
         return diagnostics, provenance
     supplemental_diagnostics, supplemental_provenance = realization_disclosure(
         supplemental,
-        validation_plan,
+        plan,
         result.snapshot,
         manifest=realization.manifest,
         artifact_availability=realization.artifact_availability,
     )
     diagnostics.extend(supplemental_diagnostics)
-    return diagnostics, (*provenance, *supplemental_provenance)
+    prepared_provenance = ()
+    if not diagnostics and realization.completion_plan is not None:
+        prepared_diagnostics, prepared_provenance = prepared_node_disclosure(
+            realization.completion_plan,
+            result.snapshot,
+            manifest=realization.manifest,
+            artifact_availability=realization.artifact_availability,
+        )
+        diagnostics.extend(prepared_diagnostics)
+    return diagnostics, (*provenance, *supplemental_provenance, *prepared_provenance)
 
 
 def _backend_snapshot_contract_diagnostics(
@@ -242,9 +287,12 @@ def _sanitize_backend_realization(
     if realization_plan is not None:
         try:
             sanitized = sanitize_account_credential_result(
-                sanitized, realization.completion_plan or realization_plan, baseline_snapshot
+                sanitized,
+                realization.completion_plan or realization_plan,
+                baseline_snapshot,
+                requirements=_supplemental_realization_requirements(realization),
             )
-        except ValueError:
+        except InvalidInputError:
             return _failed_apply_result(
                 baseline_snapshot,
                 _backend_contract_invalid(
@@ -258,7 +306,7 @@ def _sanitize_backend_realization(
                 if realization_plan.realization_authority
                 else sanitize_realization_snapshot(realization_requirements, sanitized.snapshot)
             )
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return _failed_apply_result(
                 baseline_snapshot,
                 _backend_contract_invalid(
@@ -317,7 +365,12 @@ def _with_realization_provenance(
             result,
             snapshot=result.snapshot.with_entries(
                 dict(result.snapshot.entries),
-                realization_provenance=provenance,
+                realization_provenance=tuple(
+                    {
+                        (entry.address, entry.field_path, entry.domain, entry.requirement_kind): entry
+                        for entry in provenance
+                    }.values()
+                ),
             ),
         ),
     )

@@ -298,6 +298,26 @@ def test_scope_file_cannot_be_a_symlink(tmp_path):
         load_requirement_scope(tmp_path, "1237-capture")
 
 
+def test_scope_refusals_are_invalid_input():
+    from raes_contracts.errors import InvalidInputError
+    from tools.policy.requirement_scope import RequirementScopeError
+
+    assert issubclass(RequirementScopeError, InvalidInputError)
+
+
+def test_a_defect_while_parsing_scope_is_not_reported_as_an_invalid_scope(tmp_path, monkeypatch):
+    from tools.policy import requirement_scope
+
+    write_scope(tmp_path)
+
+    def defective(_document, *, issue_number):
+        raise ValueError("parser defect")
+
+    monkeypatch.setattr(requirement_scope, "parse_requirement_scope", defective)
+    with pytest.raises(ValueError, match="parser defect"):
+        requirement_scope.load_requirement_scope(tmp_path, "1237-capture")
+
+
 @pytest.mark.parametrize("extra", [[], ["docs/unassigned.md"]])
 def test_cli_governance_enforces_mixed_scope(scope_repo, monkeypatch, capsys, extra):
     import tools.check_requirement_governance as gate
