@@ -163,8 +163,6 @@ def _snapshot_payload(snapshot: RuntimeSnapshot, *, include_histories: bool = Tr
         entry_payload = entry["payload"]
         if account_placement_has_credential_bindings(entry_payload):
             entry["payload"] = value_free_account_placement_payload(entry_payload)
-    from raes_contracts.immutable_history import mutable_history_value
-
     return mutable_history_value(payload)
 
 
