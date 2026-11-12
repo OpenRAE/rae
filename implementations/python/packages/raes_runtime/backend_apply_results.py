@@ -22,7 +22,7 @@ from raes_processor.planner import (
     sanitize_prepared_node_snapshot,
     sanitize_realization_snapshot,
 )
-from raes_processor.semantics.realization_comparison import portable_realization_value
+from raes_processor.semantics.realization_comparison import portable_realization_plan, portable_realization_value
 
 from .backend_account_credentials import sanitize_account_credential_result
 from .backend_call_contracts import _apply_result_contract_violation
@@ -219,14 +219,11 @@ def _portable_payloads(plan: ProvisioningPlan, snapshot: RuntimeSnapshot) -> tup
     realization concern it encloses.
     """
 
-    operations = [
-        replace(operation, payload=portable_realization_value(operation.payload)) for operation in plan.operations
-    ]
     entries = {
         address: replace(entry, payload=portable_realization_value(entry.payload))
         for address, entry in snapshot.entries.items()
     }
-    return replace(plan, operations=operations), snapshot.with_entries(entries)
+    return portable_realization_plan(plan), snapshot.with_entries(entries)
 
 
 def _realization_disclosure_result(
@@ -262,7 +259,7 @@ def _realization_disclosure_result(
     diagnostics.extend(supplemental_diagnostics)
     prepared_provenance = ()
     if not diagnostics and realization.completion_plan is not None:
-        selected, _ = _portable_payloads(realization.completion_plan, returned)
+        selected = portable_realization_plan(realization.completion_plan)
         prepared_diagnostics, prepared_provenance = prepared_node_disclosure(
             selected,
             returned,

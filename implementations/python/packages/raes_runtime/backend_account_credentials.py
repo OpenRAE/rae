@@ -21,7 +21,7 @@ from raes_processor.planner import (
     planned_constraint_requirements,
     realization_payload_projections,
 )
-from raes_processor.semantics.realization_comparison import portable_realization_value
+from raes_processor.semantics.realization_comparison import portable_realization_plan, portable_realization_value
 
 from .backend_snapshot_contracts import snapshot_values_equal
 
@@ -43,7 +43,8 @@ def plan_has_account_credentials(plan: ProvisioningPlan) -> bool:
     """Return whether a provisioning plan exercises credential bindings."""
 
     return any(
-        operation.resource_type == "account-placement" and account_placement_has_credential_bindings(operation.payload)
+        operation.resource_type == "account-placement"
+        and account_placement_has_credential_bindings(portable_realization_value(operation.payload))
         for operation in plan.operations
     )
 
@@ -74,6 +75,7 @@ def sanitize_account_credential_result(
 
     if not plan_has_account_credentials(plan):
         return result
+    plan = portable_realization_plan(plan)
     if result.details:
         raise InvalidInputError("credential-bearing backend results must not publish arbitrary details")
     diagnostics = value_free_backend_diagnostics(result.diagnostics)

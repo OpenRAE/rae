@@ -118,14 +118,19 @@ def test_admitted_payload_carriers_survive_durable_storage(tmp_path, wrap):
 
 
 @pytest.mark.parametrize("wrap", [_plain, _enum_member, _model], ids=["plain", "enum", "model"])
+@pytest.mark.parametrize("plan_wrap", [_plain, _enum_member, _model], ids=["plan-plain", "plan-enum", "plan-model"])
 @pytest.mark.parametrize("unauthorized", [False, True], ids=["honest", "extra-field"])
-def test_credential_closure_uses_the_portable_payload(wrap, unauthorized):
+def test_credential_closure_uses_the_portable_payload(wrap, plan_wrap, unauthorized):
     plan = _credential_plan()
     operation = plan.operations[0]
     payload = deepcopy(operation.payload)
     if unauthorized:
         payload["copied"] = FIXTURE_SENTINEL
     payload["spec"] = wrap(payload["spec"])
+    plan = replace(
+        plan,
+        operations=[replace(operation, payload={**operation.payload, "spec": plan_wrap(operation.payload["spec"])})],
+    )
     entry = SnapshotEntry(
         operation.address, RuntimeDomain.PROVISIONING, operation.resource_type, payload, status="applied"
     )
