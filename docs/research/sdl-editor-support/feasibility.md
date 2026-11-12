@@ -35,8 +35,8 @@ serves completion and hover. `raes_contracts.corpus` locates the schema that mat
 These helper changes would remove most of the work that each client now repeats:
 
 1. Accept a line and column, or return a map from positions to paths.
-2. Give each semantic diagnostic the path and range of the value at fault, also when the call
-   has no document path.
+2. Give each semantic diagnostic the path and range of the value at fault. Do this also when
+   the call has no document path.
 3. Derive field completion from the model at every depth, not from hand-kept lists.
 4. Return a diagnostic for every input instead of raising.
 
@@ -102,7 +102,9 @@ A VS Code integration needs these parts:
 The prototype has a TextMate grammar, a schema association, and a stdio language server. The
 server uses only the Python standard library and `raes`. Sixteen tests drive the server over
 stdio with the messages that the VS Code client sends. Nine test the cursor mapper, and six
-tokenize SDL with VS Code's YAML grammar. All 31 passed locally against revision `35122105`,
+tokenize SDL with VS Code's YAML grammar.
+
+All 31 passed locally against revision `35122105`,
 and in [CI run 37926735623](https://github.com/doublewhy/vscode-raes-sdl/actions/runs/37926735623)
 with `raes` 6.0.1 from PyPI. In that run, `vsce package` built a 571 KB package. Nothing is
 published to the Marketplace, and no test starts VS Code itself. The prototype predates the
@@ -118,8 +120,9 @@ helpers' `path` parameter and does not pass one.
 | Formatting | Not offered, because the helper drops comments. |
 
 The server forwards the helper's reference candidates unchanged. At `35122105` this showed the
-#1339 mismatch. At this revision the helper offers only the valid endpoint (L1). The server
-drops field names only after `key:` or inside a flow sequence, where no mapping key can go. That
+#1339 mismatch. At this revision the helper offers only the valid endpoint (L1).
+
+The server drops field names only after `key:` or inside a flow sequence, where no mapping key can go. That
 is a YAML rule, not an SDL rule. When a helper raises, the server reports one diagnostic and
 keeps running. Two tests check this with helpers that raise on a marker line.
 
@@ -142,9 +145,13 @@ keeps running. Two tests check this with helpers that raise on a marker line.
 | Schema versions | The schema's `$id` returned HTTP 404. The schema on `dev` declares `execution_policy`, which `raes` 6.0.1 rejects. | S4 and S5 |
 
 The schema check flags one of the 27 accepted examples (S1): the quickstart's
-`first-scenario.sdl.yaml` uses `type: Switch`. The helpers' path mode refuses registry imports
+`first-scenario.sdl.yaml` uses `type: Switch`.
+
+The helpers' path mode refuses registry imports
 and makes no request, even when `raes-trust.yaml` lists the registry (L13). To check such a
-document, a server would call `parse_sdl` with a path. When `parse_sdl` gets a path and the
+document, a server would call `parse_sdl` with a path.
+
+When `parse_sdl` gets a path and the
 document has `imports`, it reads `raes.lock.json` and `raes-trust.yaml` from the document's
 directory. It refuses an OCI import before any request unless that trust file lists the import's
 registry. For a listed registry it fetches the module. Once the registry's signature policy
@@ -158,18 +165,23 @@ under [inspected seams](evidence.md#inspected-seams)).
 
 Diagnostics come first. They need no cursor mapping and reuse the full validator. Reference
 completion and go to definition come next. They help most on reference-heavy sections. Since
-#1339 closed, participant-endpoint completion agrees with validation (L1). Schema hover shows
-field descriptions. Highlighting adds little over plain YAML. Snippets and a document outline
-were not prototyped. Snippets give no diagnostics or references (alternative 2), so they rank
-low. None of the five helpers returns the document's declarations with their ranges, so an
-outline needs new helper or server work. It would help in long scenarios, but it ranks after
-diagnostics and references. Formatting should wait until comments survive it.
+#1339 closed, participant-endpoint completion agrees with validation (L1).
+
+Schema hover shows field descriptions. Highlighting adds little over plain YAML. Snippets and a
+document outline were not prototyped. Snippets give no diagnostics or references (alternative
+2), so they rank low. None of the five helpers returns the document's declarations with their
+ranges, so an outline needs new helper or server work.
+
+An outline would help in long scenarios, but it ranks after diagnostics and references.
+Formatting should wait until comments survive it.
 
 ### Can YAML support and the schema provide enough value
 
 They are enough for completion and hover, not for diagnostics. Inside a node, schema completion
 offered the 15 node fields not yet present (Y1). The helper's list for nodes has 9 fields in all
-(L10). Hover showed the schema's descriptions. But schema diagnostics flagged all five accepted
+(L10). Hover showed the schema's descriptions.
+
+But schema diagnostics flagged all five accepted
 shorthand and case forms that the probe tried. They also missed an unresolved reference. A
 dedicated extension is warranted only to add RAES diagnostics and reference features.
 
@@ -239,8 +251,9 @@ records that the #1339 mismatch is closed.
 The probes call the helpers on small documents and on the repository examples. They first ran at
 `35122105`. They ran again at `c7d49997`, after #1446 and the helpers' path mode merged. They
 compare the results with the published schema and with yaml-language-server 1.24.0. Version
-1.24.0 is the server that Red Hat's YAML extension 1.24.0 uses. Nothing was mocked. The
-[evidence record](evidence.md) gives each probe's input and output and the source locations
+1.24.0 is the server that Red Hat's YAML extension 1.24.0 uses. Nothing was mocked.
+
+The [evidence record](evidence.md) gives each probe's input and output and the source locations
 behind the other claims. It also links to the scripts that reproduced most probes at `35122105`.
 They live in the prototype's repository, not in this one. The prototype's tests and CI run cover
 only the editor client.
