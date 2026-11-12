@@ -112,9 +112,13 @@ def test_admitted_payload_carriers_survive_durable_storage(tmp_path, wrap):
     expected = to_jsonable_python(manager.snapshot.entries[_WEB].payload)
 
     store = LocalControlPlaneStore(tmp_path / "state")
-    store.save_snapshot(manager.snapshot, expected_revision=0)
-
-    assert store.load_snapshot().entries[_WEB].payload == expected
+    lease = store.admit_runtime(target_scope="target:stub", run_scope="run:portable-payload")
+    try:
+        store.save_snapshot(manager.snapshot, expected_revision=0)
+        assert store.load_snapshot().entries[_WEB].payload == expected
+    finally:
+        store.close()
+        lease.close()
 
 
 @pytest.mark.parametrize("wrap", [_plain, _enum_member, _model], ids=["plain", "enum", "model"])
@@ -176,7 +180,7 @@ def test_prepared_additional_node_is_sanitized_before_serialization(wrap):
     payload = deepcopy(operation.payload)
     payload["spec"]["node"]["runtime"] = {"environment": deepcopy(_OBSERVED)}
     address = "provision.node.extra"
-    selected = replace(request, operations=[replace(operation, address=address, payload=payload)])
+    selected = replace(request, operations=[*request.operations, replace(operation, address=address, payload=payload)])
     entry = SnapshotEntry(
         address,
         RuntimeDomain.PROVISIONING,
