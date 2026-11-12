@@ -1107,7 +1107,8 @@ def _codeql_value(expression: str, base: str, ref: str, enabled: str = "true") -
         while peek() in {"==", "!="}:
             operator = take()[1]
             right = primary()
-            assert isinstance(value, str) and isinstance(right, str), f"non-string comparison in {expression!r}"
+            assert isinstance(value, str), f"non-string comparison in {expression!r}"
+            assert isinstance(right, str), f"non-string comparison in {expression!r}"
             value = (value.casefold() == right.casefold()) is (operator == "==")
         return value
 
