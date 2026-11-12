@@ -21,6 +21,7 @@ from raes_processor.planner import (
     planned_constraint_requirements,
     realization_payload_projections,
 )
+from raes_processor.semantics.realization_comparison import portable_realization_value
 
 from .backend_snapshot_contracts import snapshot_values_equal
 
@@ -152,7 +153,7 @@ def _closed_plan_payload(
 ) -> dict[str, object]:
     """Project only admitted evidence and canonical account credential posture."""
 
-    observed_payload = dict(entry.payload)
+    observed_payload = dict(portable_realization_value(entry.payload))
     evidence = {}
     if (
         operation.address in artifact_addresses

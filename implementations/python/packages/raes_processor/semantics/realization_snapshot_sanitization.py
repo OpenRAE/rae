@@ -7,6 +7,7 @@ from dataclasses import replace
 from typing import TYPE_CHECKING
 
 from raes_contracts.diagnostics import Diagnostic, Severity
+from raes_contracts.realization_structure import ExactRealizationValue, structure_matches
 from raes_contracts.runtime_state import RuntimeSnapshot
 
 from .realization_comparison import portable_realization_value
@@ -75,7 +76,11 @@ def realization_payloads_match(
             observed=True,
         )
         # Compiled tuples and transported arrays carry the same ordered values.
-        return portable_realization_value(declared_projection) == portable_realization_value(observed_projection)
+        return structure_matches(
+            ExactRealizationValue(kind="exact"),
+            portable_realization_value(declared_projection),
+            portable_realization_value(observed_projection),
+        )
     except TypeError, ValueError:
         # A malformed or legacy snapshot is not equivalent to the desired
         # resource. Reconciliation repairs it with UPDATE instead of making

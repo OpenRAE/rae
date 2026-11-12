@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import fields
 from typing import Any
 
+from pydantic_core import to_jsonable_python
 from raes_contracts.account_credentials import (
     account_placement_has_credential_bindings,
     value_free_account_placement_payload,
@@ -116,7 +117,7 @@ def _snapshot_payload(snapshot: RuntimeSnapshot, *, include_histories: bool = Tr
                 "address": entry.address,
                 "domain": RuntimeDomain(entry.domain).value,
                 "resource_type": entry.resource_type,
-                "payload": dict(entry.payload),
+                "payload": to_jsonable_python(entry.payload),
                 "ordering_dependencies": list(entry.ordering_dependencies),
                 "refresh_dependencies": list(entry.refresh_dependencies),
                 "status": entry.status,

@@ -228,6 +228,8 @@ def test_planned_tuple_matches_the_same_value_returned_as_json(rewrite):
 
     assert result.success, [diagnostic.message for diagnostic in result.diagnostics]
     assert controller.address in manager.snapshot.entries
+    replan = manager.plan(parse_sdl(_DOMAIN_SCENARIO))
+    assert {op.action for op in replan.provisioning.operations} == {ChangeAction.UNCHANGED}
 
 
 def test_tuple_returned_as_planned_is_committed_as_returned_and_replans_unchanged():
