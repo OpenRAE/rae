@@ -1,13 +1,14 @@
 # SDL editor support feasibility
 
-Date: 2026-10-09
+Date: 2026-10-09, revised 2026-11-12
 
 This note answers issue #1412: should RAES support SDL authoring in VS Code, and what scope
 would justify the work? It is research evidence, not contract authority.
 
-The observations use repository revision `35122105b0c1bb648754625d8e3920eafa9bc599`. The
-[evidence record](evidence.md) holds the probe inputs and outputs, and IDs such as L4 name its
-rows. Claims about the editor client rest on a prototype extension at
+The observations use repository revision `c7d499979eb32e16d9a2c46ca10b5aa1403b4511`. They were
+first made at `35122105b0c1bb648754625d8e3920eafa9bc599`, and the [evidence record](evidence.md)
+lists the results that changed. It holds the probe inputs and outputs, and IDs such as L4 name
+its rows. Claims about the editor client rest on a prototype extension at
 [doublewhy/vscode-raes-sdl](https://github.com/doublewhy/vscode-raes-sdl/tree/feac96e0d5262d914c11deecb209426851915763).
 The prototype stays outside this repository because the issue asks for an exploration, and an
 extension here would be executable adoption.
@@ -34,11 +35,14 @@ serves completion and hover. `raes_contracts.corpus` locates the schema that mat
 These helper changes would remove most of the work that each client now repeats:
 
 1. Accept a line and column, or return a map from positions to paths.
-2. Give semantic diagnostics a path and a source range.
+2. Give each semantic diagnostic the path and range of the value at fault, also when the call
+   has no document path.
 3. Derive field completion from the model at every depth, not from hand-kept lists.
-4. Offer only references that the field's purpose accepts, as #1339 requires.
-5. Accept an optional document path, so local imports can resolve.
-6. Return a diagnostic for every input instead of raising.
+4. Return a diagnostic for every input instead of raising.
+
+Two earlier prerequisites are already in the helpers. Reference completion for a participant
+endpoint offers only the values that validation accepts (#1339, L1). Each helper accepts an
+optional document path, so local imports resolve (L8).
 
 ### Alternatives
 
@@ -71,7 +75,9 @@ has five helpers that return plain dictionaries. The MCP server wraps them as th
 | `apply_structured_edit` | Text, an operation, a JSON pointer, a value | Edited YAML with diagnostics | Code actions |
 
 The helpers reuse the repository parser and semantic validator. Each one refuses input over
-64 KiB. The [language-service guide](../../explain/sdl/language-service.md) describes the
+64 KiB. Each one also accepts an optional `path`, the document's file path. With it, local
+imports resolve as in `parse_sdl_file`, and a registry import is refused before any request
+(L8 and L13). The [language-service guide](../../explain/sdl/language-service.md) describes the
 payloads.
 
 ## What the editor integration needs
@@ -99,7 +105,8 @@ stdio with the messages that the VS Code client sends. Nine test the cursor mapp
 tokenize SDL with VS Code's YAML grammar. All 31 passed locally against revision `35122105`,
 and in [CI run 37926735623](https://github.com/doublewhy/vscode-raes-sdl/actions/runs/37926735623)
 with `raes` 6.0.1 from PyPI. In that run, `vsce package` built a 571 KB package. Nothing is
-published to the Marketplace, and no test starts VS Code itself.
+published to the Marketplace, and no test starts VS Code itself. The prototype predates the
+helpers' `path` parameter and does not pass one.
 
 | Feature | Result |
 | --- | --- |
@@ -110,7 +117,8 @@ published to the Marketplace, and no test starts VS Code itself.
 | Schema association | Completion and hover work in yaml-language-server 1.24.0. Its diagnostics disagree with RAES. |
 | Formatting | Not offered, because the helper drops comments. |
 
-The server forwards reference candidates unfiltered, so the #1339 mismatch stays visible. It
+The server forwards the helper's reference candidates unchanged. At `35122105` this showed the
+#1339 mismatch. At this revision the helper offers only the valid endpoint (L1). The server
 drops field names only after `key:` or inside a flow sequence, where no mapping key can go. That
 is a YAML rule, not an SDL rule. When a helper raises, the server reports one diagnostic and
 keeps running. Two tests check this with helpers that raise on a marker line.
@@ -119,41 +127,43 @@ keeps running. Two tests check this with helpers that raise on a marker line.
 
 | Area | Observation | Evidence |
 | --- | --- | --- |
-| Reference completion | For a participant relationship `target`, completion offers six declarations. Validation accepts one, the agent that is not the source. This is the #1339 mismatch. | L1; finding F5 in the [participant identity audit](../participant-identity/audit.md) |
-| Field lists | The hand-kept lists miss 69 schema fields across 18 of 33 sections. The `features` list offers `version`, which validation rejects. | L2 and L3; `SECTION_FIELD_COMPLETIONS` in [`_language_metadata.py`](../../../implementations/python/packages/raes/_language_metadata.py) |
+| Reference completion | Closed. For a participant relationship `target`, completion offers one item, the agent that is not the source, and validation accepts it. At `35122105` completion offered six declarations, which was the #1339 mismatch. | L1; finding F5 in the [participant identity audit](../participant-identity/audit.md) |
+| Field lists | The hand-kept lists miss 69 schema fields across 18 of 34 sections. The `features` list offers `version`, which validation rejects. | L2 and L3; `SECTION_FIELD_COMPLETIONS` in [`_language_metadata.py`](../../../implementations/python/packages/raes/_language_metadata.py) |
 | Completion depth | Field completion uses only the section name. `/nodes`, `/nodes/web`, and `/nodes/web/resources` get the same nine fields. | L10; the field branches of `language_completions` in [`language_service.py`](../../../implementations/python/packages/raes/language_service.py) |
 | Cursor paths | The helpers take a JSON pointer, so each client derives one from the text. The prototype's mapper has 204 lines and skips multi-line flow collections, block scalars, anchors, tags, and complex keys. | Prototype [`server/sdl_cursor.py`](https://github.com/doublewhy/vscode-raes-sdl/blob/feac96e0d5262d914c11deecb209426851915763/server/sdl_cursor.py) |
-| Source ranges | Semantic diagnostics have no path or range. An unknown field is ranged on its value, not its key. A YAML syntax error is a single point. | L5 |
+| Source ranges | Without a document path, semantic diagnostics have no path or range. With one, an owned semantic error is ranged on its owner's key, not on the reference at fault. An unknown field is ranged on its value, not its key. A YAML syntax error is a single point. A refused registry import is ranged at line 1, column 1. | L5 and L13 |
 | Incomplete documents | Completion needs a document that parses. An unclosed `[` or a key without its colon gives a parse error and no items. | L4 |
-| Imported modules | The helpers take no file path, so a document with `imports` is invalid even without semantic validation. `parse_sdl_file` accepts the same fixture. | L8 |
-| Workspace context | The helpers see one document. Nothing indexes the workspace or follows references across files. | [`language_service.py`](../../../implementations/python/packages/raes/language_service.py) |
+| Imported modules | Without a document path, a document with `imports` is invalid even without semantic validation. With one, local imports resolve. A registry import is refused, with advice to run `parse_sdl_file`, so the helpers cannot check a document that imports a registry module. | L8 and L13 |
+| Workspace context | The helpers see one document, plus the local files that its imports name when the call has a path. Nothing indexes the workspace or finds references to the document from other files. | [`language_service.py`](../../../implementations/python/packages/raes/language_service.py) |
 | Robustness | Every helper turns `SDLParseError` into a result. `language_diagnostics` also turns `SDLValidationError` into one, and `apply_structured_edit` and `language_format` check their output with `language_diagnostics`. But `language_format` lets `SDLValidationError` reach the caller for a document with `materialization_provenance`. For such a document, `parse_sdl` runs the semantic validator even though `format_sdl_source` skips it. Other exceptions reach the caller too, unless a catch listed under inspected seams handles them, so a server must guard every call. | L12; handled exceptions under [inspected seams](evidence.md#inspected-seams) |
-| Large scenarios | The largest repository example is 46 KB, under the 64 KiB limit. Each call parses the whole text. On that file a warm call took 160 to 175 ms at load average 7 to 13, and about 375 ms at load average 22. A cold start took 1.2 to 2.9 s. The machine was shared, so the timings are indicative. | L9 and L11 |
+| Large scenarios | The largest repository example is 46 KB, under the 64 KiB limit. Each call parses the whole text. At `35122105`, on that file a warm call took 160 to 175 ms at load average 7 to 13, and about 375 ms at load average 22. A cold start took 1.2 to 2.9 s. The machine was shared, so the timings are indicative. | L9 and L11 |
 | Formatting and edits | Both drop comments and expand shorthand. Formatting also lowers enum case and migrates recognized legacy spellings. | L6 and L7; the `language_format` docstring |
 | Schema validation | The schema describes the normalized object, so `x-raes-validates-raw-source` is `false`. It flags accepted shorthand and case variants and misses semantic errors. | S2 to S4 and Y1 |
 | Schema versions | The schema's `$id` returned HTTP 404. The schema on `dev` declares `execution_policy`, which `raes` 6.0.1 rejects. | S4 and S5 |
 
-The schema check flags one of the 21 accepted examples (S1): the quickstart's
-`first-scenario.sdl.yaml` uses `type: Switch`. Any fix for imports must also handle registry
-imports. When `parse_sdl` gets a path and the document has `imports`, it reads `raes.lock.json`
-and `raes-trust.yaml` from the document's directory. It refuses an OCI import before any request
-unless that trust file lists the import's registry. For a listed registry it fetches the module.
-Once the registry's signature policy passes, it writes `.raes/module-cache` next to the document.
-The trust file is workspace content, so a path-aware server should resolve imports only in a
-trusted workspace (Import trust under [inspected seams](evidence.md#inspected-seams)).
+The schema check flags one of the 27 accepted examples (S1): the quickstart's
+`first-scenario.sdl.yaml` uses `type: Switch`. The helpers' path mode refuses registry imports
+and makes no request, even when `raes-trust.yaml` lists the registry (L13). To check such a
+document, a server would call `parse_sdl` with a path. When `parse_sdl` gets a path and the
+document has `imports`, it reads `raes.lock.json` and `raes-trust.yaml` from the document's
+directory. It refuses an OCI import before any request unless that trust file lists the import's
+registry. For a listed registry it fetches the module. Once the registry's signature policy
+passes, it writes `.raes/module-cache` next to the document. The trust file is workspace
+content, so a server should resolve registry imports only in a trusted workspace (Import trust
+under [inspected seams](evidence.md#inspected-seams)).
 
 ## Answers to the issue's questions
 
 ### Which features are most useful
 
 Diagnostics come first. They need no cursor mapping and reuse the full validator. Reference
-completion and go to definition come next. They help most on reference-heavy sections, but
-completion inherits the #1339 mismatch. Schema hover shows field descriptions. Highlighting adds
-little over plain YAML. Snippets and a document outline were not prototyped. Snippets give no
-diagnostics or references (alternative 2), so they rank low. None of the five helpers returns the
-document's declarations with their ranges, so an outline needs new helper or server work. It
-would help in long scenarios, but it ranks after diagnostics and references. Formatting should
-wait until comments survive it.
+completion and go to definition come next. They help most on reference-heavy sections. Since
+#1339 closed, participant-endpoint completion agrees with validation (L1). Schema hover shows
+field descriptions. Highlighting adds little over plain YAML. Snippets and a document outline
+were not prototyped. Snippets give no diagnostics or references (alternative 2), so they rank
+low. None of the five helpers returns the document's declarations with their ranges, so an
+outline needs new helper or server work. It would help in long scenarios, but it ranks after
+diagnostics and references. Formatting should wait until comments survive it.
 
 ### Can YAML support and the schema provide enough value
 
@@ -187,20 +197,24 @@ run inside Monaco.
 ### What gaps exist
 
 See [Gaps](#gaps). The cursor-to-path mapping, source ranges, incomplete documents, imports,
-workspace context, and large scenarios each have a row there. So does the #1339 completion
-mismatch.
+workspace context, and large scenarios each have a row there. The reference completion row
+records that the #1339 mismatch is closed.
 
 ### How packaging and versions should work
 
-- **File association.** The repository names 40 SDL files `*.sdl.yaml` (L9). VS Code prefers the
+- **File association.** The repository names 60 SDL files `*.sdl.yaml` (L9). VS Code prefers the
   longest matching extension, so `.sdl.yaml` wins over `.yaml` ([R1](#references)). Files such as
   the composition fixtures end in `.yaml` and need a `files.associations` entry.
 - **Version selection.** The server runs in an interpreter that the author picks, and it reports
   the `raes` version. A schema bundled in the extension can drift from that version, as S5 shows.
   The `raes` wheel bundles its own copy, reachable through
   `raes_contracts.corpus.corpus_family_root`, so a server could serve the matching schema.
-- **Local and offline use.** The helpers work on the buffer text in-process. They read no other
-  document and use no network. Resolving imports would change that, so it should stay opt-in.
+  `raes` 6.0.1, the latest release, predates the helpers' `path` parameter and the #1339 fix.
+  A server must therefore check which helper features the installed `raes` has.
+- **Local and offline use.** The helpers work on the buffer text in-process. Without a path,
+  they read no other document. With a path, they also read the local files that the imports
+  name. In both modes they use no network (L13). Resolving registry imports would use the
+  network, so it should stay opt-in.
   Red Hat's YAML extension downloads the SchemaStore catalog by default
   (`yaml.schemaStore.enable`, [R3](#references)).
 - **Packaging.** `vsce package` works without bundling Python. Authors install `raes` from PyPI.
@@ -213,7 +227,7 @@ mismatch.
 - **SDL semantics stay in RAES.** The prototype server adds no SDL rules. The grammar's key list
   mirrors the schema's top-level properties, and a test checks that they match.
 - **No launch and no fetch.** The helpers parse and validate text. Nothing runs a scenario or
-  downloads content.
+  downloads content. Path mode refuses registry imports before any request (L13).
 - **Formatting.** `language_format` drops comments, expands shorthand, normalizes enum case, and
   migrates legacy spellings. Format on save would rewrite authored text, so formatting should be
   an explicit command at most.
@@ -222,13 +236,14 @@ mismatch.
 
 ## Method
 
-The probes call the helpers on small documents and on the repository examples. They compare the
-results with the published schema and with yaml-language-server 1.24.0. Version 1.24.0 is the
-server that Red Hat's YAML extension 1.24.0 uses. Nothing was mocked. The
+The probes call the helpers on small documents and on the repository examples. They first ran at
+`35122105`. They ran again at `c7d49997`, after #1446 and the helpers' path mode merged. They
+compare the results with the published schema and with yaml-language-server 1.24.0. Version
+1.24.0 is the server that Red Hat's YAML extension 1.24.0 uses. Nothing was mocked. The
 [evidence record](evidence.md) gives each probe's input and output and the source locations
-behind the other claims. It also links to the scripts that reproduce most probes. They live in
-the prototype's repository, not in this one. The prototype's tests and CI run cover only the
-editor client.
+behind the other claims. It also links to the scripts that reproduced most probes at `35122105`.
+They live in the prototype's repository, not in this one. The prototype's tests and CI run cover
+only the editor client.
 
 ## References
 
