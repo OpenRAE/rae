@@ -1,6 +1,7 @@
 """Bounded portable values for processor realization comparisons."""
 
 from dataclasses import replace
+from typing import cast
 
 from pydantic_core import to_jsonable_python
 from raes_contracts.canonical import jsonable_fallback
@@ -20,9 +21,13 @@ def portable_realization_value(value: object) -> object:
 def portable_realization_plan(plan: ProvisioningPlan) -> ProvisioningPlan:
     """Present operation payloads to realization readers through their portable codec."""
 
-    return replace(
-        plan,
-        operations=[
-            replace(operation, payload=portable_realization_value(operation.payload)) for operation in plan.operations
-        ],
+    return cast(
+        "ProvisioningPlan",
+        replace(
+            plan,
+            operations=[
+                replace(operation, payload=portable_realization_value(operation.payload))
+                for operation in plan.operations
+            ],
+        ),
     )
