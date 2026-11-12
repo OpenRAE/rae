@@ -12,12 +12,14 @@ import pytest
 from pydantic import BaseModel, Field, model_serializer
 from pydantic_core import to_jsonable_python
 from raes_contracts.errors import InvalidInputError
+from raes_contracts.immutable_history import DEFAULT_HISTORY_POLICY, EventHistory, HistoryMap
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotEntry
 from raes_processor.planner import sanitize_prepared_node_snapshot
 from raes_runtime.backend_account_credentials import sanitize_account_credential_result
 from raes_runtime.backend_apply_results import _finalize_backend_apply
 from raes_runtime.backend_realization_authority import _RealizationApplyContext
+from raes_runtime.backend_snapshot_contracts import snapshot_shape_violation
 from raes_runtime.control_plane_store_local import LocalControlPlaneStore
 from test_issue_673_account_credential_bindings import FIXTURE_SENTINEL, OPERATOR_REFERENCE, _credential_plan
 from test_issue_985_runtime_observation_contract import _authoritative_environment_plan, _authoritative_snapshot
@@ -116,6 +118,28 @@ def test_admitted_payload_carriers_survive_durable_storage(tmp_path, wrap):
     try:
         store.save_snapshot(manager.snapshot, expected_revision=0)
         assert store.load_snapshot().entries[_WEB].payload == expected
+    finally:
+        store.close()
+        lease.close()
+
+
+@pytest.mark.parametrize("mapping", [False, True], ids=["history", "history-map"])
+def test_admitted_immutable_payload_histories_survive_storage(tmp_path, mapping):
+    records = [{"state": "ready"}]
+    history = (
+        HistoryMap("payload", {"worker": records}, DEFAULT_HISTORY_POLICY)
+        if mapping
+        else EventHistory().appended(records[0], policy=DEFAULT_HISTORY_POLICY)
+    )
+    entry = SnapshotEntry(_WEB, RuntimeDomain.PROVISIONING, "node", {"history": history})
+    snapshot = RuntimeSnapshot(entries={_WEB: entry})
+    assert snapshot_shape_violation(snapshot) is None
+    store = LocalControlPlaneStore(tmp_path / "state")
+    lease = store.admit_runtime(target_scope="target:stub", run_scope="run:portable-history")
+    try:
+        store.save_snapshot(snapshot, expected_revision=0)
+        expected = {"worker": records} if mapping else records
+        assert store.load_snapshot().entries[_WEB].payload == {"history": expected}
     finally:
         store.close()
         lease.close()
