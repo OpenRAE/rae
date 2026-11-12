@@ -1,7 +1,9 @@
 """Exhaustive snapshot carrier classification and bounded shape admission."""
 
-from dataclasses import fields
+from dataclasses import fields, is_dataclass
+from enum import Enum
 
+from pydantic import BaseModel
 from pydantic_core import to_jsonable_python
 from raes_contracts.addressing import require_compiled_address
 from raes_contracts.canonical import jsonable_fallback
@@ -166,9 +168,43 @@ def _payload_violation(entry: SnapshotEntry) -> str | None:
     if (
         isinstance(entry.payload, dict)
         and validate_realization_value(entry.payload, limits=_VALUE_LIMITS, python_carriers=True).conformant
+        and _payload_carriers_match(entry.payload)
     ):
         return None
     return "Backend snapshot contains an invalid resource payload."
+
+
+def _payload_carrier_record(value: object) -> object:
+    """Read the same model and dataclass fields as bounded value admission."""
+
+    if isinstance(value, BaseModel):
+        return {**{name: getattr(value, name) for name in type(value).model_fields}, **(value.model_extra or {})}
+    if is_dataclass(value) and not isinstance(value, type):
+        return {field.name: getattr(value, field.name) for field in fields(value)}
+    return value
+
+
+def _payload_carriers_match(payload: object) -> bool:
+    """Require each bounded carrier to serialize exactly the fields admission walked."""
+
+    pending = [payload]
+    while pending:
+        value = pending.pop()
+        if isinstance(value, Enum):
+            pending.append(value.value)
+            continue
+        record = _payload_carrier_record(value)
+        if record is not value:
+            projected = to_jsonable_python(value, fallback=jsonable_fallback)
+            if not validate_realization_value(projected, limits=_VALUE_LIMITS).conformant or not snapshot_values_equal(
+                projected, record
+            ):
+                return False
+        if isinstance(record, dict):
+            pending.extend(record.values())
+        elif isinstance(record, (list, tuple)):
+            pending.extend(record)
+    return True
 
 
 def _status_violation(entry: SnapshotEntry) -> str | None:

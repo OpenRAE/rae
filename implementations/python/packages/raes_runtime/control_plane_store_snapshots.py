@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import fields
 from typing import Any
 
+from pydantic_core import to_jsonable_python
 from raes_contracts.account_credentials import (
     account_placement_has_credential_bindings,
     value_free_account_placement_payload,
@@ -15,7 +16,7 @@ from raes_contracts.contracts.time_model import TimeRuntimeStateModel
 from raes_contracts.domain_profiles import DomainProfileBindingModel
 from raes_contracts.errors import EvidenceIntegrityError
 from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
-from raes_contracts.immutable_history import HistoryMap
+from raes_contracts.immutable_history import HistoryMap, mutable_history_value
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
@@ -116,7 +117,7 @@ def _snapshot_payload(snapshot: RuntimeSnapshot, *, include_histories: bool = Tr
                 "address": entry.address,
                 "domain": RuntimeDomain(entry.domain).value,
                 "resource_type": entry.resource_type,
-                "payload": dict(entry.payload),
+                "payload": to_jsonable_python(entry.payload, fallback=mutable_history_value),
                 "ordering_dependencies": list(entry.ordering_dependencies),
                 "refresh_dependencies": list(entry.refresh_dependencies),
                 "status": entry.status,
@@ -162,8 +163,6 @@ def _snapshot_payload(snapshot: RuntimeSnapshot, *, include_histories: bool = Tr
         entry_payload = entry["payload"]
         if account_placement_has_credential_bindings(entry_payload):
             entry["payload"] = value_free_account_placement_payload(entry_payload)
-    from raes_contracts.immutable_history import mutable_history_value
-
     return mutable_history_value(payload)
 
 
