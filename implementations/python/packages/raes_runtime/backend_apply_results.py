@@ -13,6 +13,8 @@ from raes_contracts.planning import ChangeAction, ProvisioningPlan
 from raes_contracts.runtime_state import ApplyResult, RealizationProvenanceEntry, RuntimeSnapshot
 from raes_processor.models import CompiledRealizationRequirement
 from raes_processor.planner import (
+    portable_realization_plan,
+    portable_realization_value,
     prepared_delivery_violation,
     prepared_node_disclosure,
     realization_authority_disclosure,
@@ -22,7 +24,6 @@ from raes_processor.planner import (
     sanitize_prepared_node_snapshot,
     sanitize_realization_snapshot,
 )
-from raes_processor.semantics.realization_comparison import portable_realization_plan, portable_realization_value
 
 from .backend_account_credentials import sanitize_account_credential_result
 from .backend_call_contracts import _apply_result_contract_violation

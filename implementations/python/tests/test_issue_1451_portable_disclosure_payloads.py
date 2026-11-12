@@ -26,7 +26,6 @@ from raes_contracts.planning import ChangeAction
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan as build_plan
-from raes_reference_backend import create_reference_backend_target
 from raes_runtime.backend_calls import _call_backend_apply, _RealizationApplyContext
 from raes_runtime.manager import RuntimeManager
 from test_issue_985_runtime_observation_contract import (
@@ -148,7 +147,7 @@ def _manager(target, rewrite):
 
 
 def _apply(rewrite):
-    manager = _manager(create_reference_backend_target(), rewrite)
+    manager = _manager(create_stub_target(), rewrite)
     return manager, manager.apply(manager.plan(parse_sdl(_SCENARIO)))
 
 

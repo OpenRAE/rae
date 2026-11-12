@@ -19,9 +19,10 @@ from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotE
 from raes_processor.planner import (
     plan_realization_requirements,
     planned_constraint_requirements,
+    portable_realization_plan,
+    portable_realization_value,
     realization_payload_projections,
 )
-from raes_processor.semantics.realization_comparison import portable_realization_plan, portable_realization_value
 
 from .backend_snapshot_contracts import snapshot_values_equal
 
