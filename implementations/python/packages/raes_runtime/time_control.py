@@ -199,26 +199,11 @@ class RuntimeTimeControlMixin:
                 default_args,
                 _RealizationApplyContext(effect_owners=frozenset({"time"}), effect_targets=frozenset({str(args[0])})),
             )
-        refusal = self._episode_reset_refusal(reset_requests)
+        refusal = self._coordinated_reset_unsupported()
+        if refusal is None:
+            refusal = self._episode_reset_refusal(reset_requests)
         if refusal is not None:
             return refusal
-        capability = self._target.manifest.time
-        if (
-            capability is None
-            or not capability.supports_coordinated_participant_reset
-            or self._target.participant_runtime is None
-        ):
-            return ApplyResult(
-                success=False,
-                snapshot=self._snapshot,
-                diagnostics=[
-                    _failure_diagnostic(
-                        "runtime.coordinated-participant-reset-unsupported",
-                        "runtime.time.reset",
-                        "Autonomous clock reset requires one atomic time and participant reset operation.",
-                    )
-                ],
-            )
         coordinated_time_runtime = cast(
             CoordinatedParticipantTimeRuntime,
             self._target.time_runtime,
@@ -230,6 +215,28 @@ class RuntimeTimeControlMixin:
                 effect_owners=frozenset({"time", "participant"}),
                 effect_targets=frozenset({str(args[0]), *(request.participant_address for request in reset_requests)}),
             ),
+        )
+
+    def _coordinated_reset_unsupported(self) -> ApplyResult | None:
+        """Refuse an autonomous clock reset that the target cannot apply as one atomic operation."""
+
+        capability = self._target.manifest.time
+        if (
+            capability is not None
+            and capability.supports_coordinated_participant_reset
+            and self._target.participant_runtime is not None
+        ):
+            return None
+        return ApplyResult(
+            success=False,
+            snapshot=self._snapshot,
+            diagnostics=[
+                _failure_diagnostic(
+                    "runtime.coordinated-participant-reset-unsupported",
+                    "runtime.time.reset",
+                    "Autonomous clock reset requires one atomic time and participant reset operation.",
+                )
+            ],
         )
 
     def _episode_reset_refusal(self, reset_requests: tuple[object, ...]) -> ApplyResult | None:
