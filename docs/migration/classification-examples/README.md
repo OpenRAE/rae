@@ -1,28 +1,38 @@
 # Classification examples
 
-`techvault.bindings.json` resolves four historical node/route associations
-against the current `examples/scenarios/techvault.sdl.yaml`. Its paired
-`techvault.scheme.json` is an explicitly authored catalog of historical author
-labels, **not** an authoritative CWE snapshot. The original source supplied no
-CWE revision. Confidence is unknown and review is unreviewed.
+This page describes retained evidence.
+It is not a classification catalogue or deployment guide.
+The JSON files keep their original source revisions and digests.
+For conversion with RAES 11.0.2, use [move historical classifications](../external-classifications.md).
+For current authoring, use [the SDL task route](../../public/sdl/index.md).
 
-These are newly authored illustrative assertions: their perspective,
-relationship, assertion time and loss are explicit example choices, not guessed
-historical facts and not defaults supplied by the migration API.
+`techvault.bindings.json` resolves four historical node/route associations against `examples/scenarios/techvault.sdl.yaml`.
+The paired `techvault.scheme.json` lists historical author labels.
+An author supplied that catalogue explicitly.
+It is **not** an authoritative CWE snapshot.
+The original source supplied no CWE revision.
+Confidence is unknown. Review is unreviewed.
 
-`historical-inventory.json` retains every removed declaration and association
-from the six edited examples, with immutable source revision, byte digest,
-legacy projection digest and source pointers. Unreferenced declarations remain
-historical author content here; no arbitrary native subject is invented for
-them. The native YAML alone defines the scenario configuration.
+These assertions are new examples.
+The author chooses their perspective, relationship, assertion time, and loss explicitly.
+They are not inferred facts from history.
+The migration API does not supply them by default.
 
-For an atomic conversion of a supported canonical legacy source, use
-`migrate_sdl_classifications` as described in the
-[migration guide](../external-classifications.md). It requires explicit
-assertion context and authorization for any declaration removal or omission.
+`historical-inventory.json` retains every removed declaration and association from six edited examples.
+It keeps the immutable source revision and byte digest.
+It also keeps the legacy projection digest and source pointers.
+Unreferenced declarations remain historical author content.
+No native subject is invented for them.
+The native YAML alone defines the scenario configuration.
 
-To disclose a selected assertion to a participant, render it as ordinary SDL
-`content.text`, including the binding document digest and binding id in that
-content. Apply the existing participant-directed inject delivery, observation
-boundary and disclosure policy; retain delivery evidence separately. A sidecar
-or its eligibility declaration alone does not add content, delivery or knowledge.
+Use `migrate_sdl_classifications` for atomic conversion of supported canonical legacy source.
+Follow the [migration guide](../external-classifications.md).
+Supply explicit assertion context.
+Authorize each declaration removal or omission.
+
+To disclose an assertion to a participant, render it as ordinary SDL `content.text`.
+Include its binding document digest and binding ID in that content.
+Use the existing participant-directed inject delivery and observation boundary.
+Apply the existing disclosure policy too.
+Retain delivery evidence separately.
+A sidecar or eligibility declaration alone does not add content, delivery, or knowledge.

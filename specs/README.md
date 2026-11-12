@@ -1,14 +1,19 @@
 # Specs
 
-`specs/` is the home for normative prose under the
-[RAES SDL authority boundary](authority/authority-boundary.yaml). Every
-document under this directory is authoritative independent of any reference
-implementation or code-generation pipeline.
+Find the exact SDL rules and formal contracts in this directory.
+Normative prose follows the
+[RAES SDL authority boundary](authority/authority-boundary.yaml).
+Its authority does not depend on a reference implementation or generator.
 
-## Authority Manifest
+For an authoring task, start with the [SDL guide](../docs/public/sdl/index.md).
+For reasons behind the authority split, read the
+[authority explanation](../docs/explain/reference/normative-artifact-authority.md).
+To repeat local checks, use
+[check specifications and contracts](../docs/develop/check-specification-contracts.md).
 
-The canonical machine-readable manifest of which roots carry which authority
-lives at:
+## Authority manifest
+
+The machine-readable manifest identifies each authority root:
 
 - [`specs/authority/authority-boundary.yaml`](authority/authority-boundary.yaml)
   — canonical authority manifest (ASR-517)
@@ -20,34 +25,31 @@ The decisions that govern this manifest:
 - [ADR-019](../docs/decisions/adrs/adr-019-normative-authority-boundary-manifest.md)
   — the canonical-seam decision that governs the manifest YAML
 
-Drift between the YAML, ADR-009, ADR-019, and this README is guarded by
-[`tools/check_authority_boundary.py`](../tools/check_authority_boundary.py),
-which runs in `nox -s policy` (and therefore in `verify` and the pre-push
-hook).
+[`tools/check_authority_boundary.py`](../tools/check_authority_boundary.py)
+compares the YAML, ADR-009, ADR-019, and this README in the CI policy lane.
+Local commit hooks check hygiene and secrets.
+No pre-push hook is configured.
 
 ## Subdirectories
 
-- `authority/` — the canonical authority-boundary manifest
-- `agent-guidance/` — the agent-usable governance-guidance profile
-  (AUT-811). It is machine-readable rather than prose, so the manifest
-  classifies `agent-guidance.yaml` as a `governance-guidance` artifact via
-  the `normative_artifact_families` block (see
-  [`authority/README.md`](authority/README.md)) rather than the default
-  `prose` family of the `specs/` root.
-- `concept-authority/` — concept-family and controlled-vocabulary
-  authority artifacts (governed by ADR-012)
-- `evolution/` — ecosystem versioning, deprecation, removal, and migration
-  governance for GOV-901, GOV-902, and GOV-903 (governed by ADR-075)
-- `sdl/` — the language-neutral normative SDL authoring specification
-  (the catalog set the published `contracts/schemas/sdl/` schemas must
-  agree with; governed by ADR-001 and ADR-009)
-- `formal/` — optional formal-methods artifacts for semantic and
-  stateful subsystems (governed by ADR-007 and ADR-018), including the
-  behavioral-relation taxonomy and claim discipline governed by ADR-081
-- `supply-chain/` — normative prose for the Packaging & Supply Chain
-  wave, including reusable-asset trust/authenticity/integrity, associated
-  artifact manifests, and portable artifact requirement satisfaction
-  (governed by ADR-071, ADR-077, and ADR-098)
-Revision-pinned lineage and derivation records live under the normative
-`contracts/provenance/` authority registered by ADR-019; explanatory lineage
-pages consume that record rather than defining a parallel source registry.
+- [`authority/`](authority/README.md): find the authority-boundary manifest.
+- `agent-guidance/`: read the machine-readable guidance profile (AUT-811).
+  The manifest's `normative_artifact_families` block classifies `agent-guidance.yaml` as `governance-guidance`.
+  It overrides the root's default `prose` family.
+  The [authority reference](authority/README.md) defines that rule.
+- [`concept-authority/`](concept-authority/concept-authority.md): find concept families and controlled vocabularies under ADR-012.
+- [`evolution/`](evolution/README.md): find versioning, deprecation, removal, and migration rules.
+  ADR-075 governs GOV-901, GOV-902, and GOV-903.
+- [`sdl/`](sdl/README.md): read the language-neutral SDL authoring reference.
+  Its catalogs must agree with published `contracts/schemas/sdl/` schemas.
+  ADR-001 and ADR-009 govern this reference.
+- [`formal/`](formal/README.md): find optional formal artifacts for semantic and stateful subsystems.
+  ADR-007 and ADR-018 govern the methods.
+  ADR-081 governs the behavioral-relation taxonomy and claim discipline.
+- [`supply-chain/`](supply-chain/README.md): read the Packaging & Supply Chain rules.
+  They cover reusable-asset trust/authenticity/integrity, associated artifact manifests, and portable artifact requirement satisfaction.
+  ADR-071, ADR-077, and ADR-098 govern them.
+
+Revision-pinned lineage and derivation records remain in `contracts/provenance/`.
+ADR-019 registers that normative authority.
+Explanations consume those records and define no parallel source registry.

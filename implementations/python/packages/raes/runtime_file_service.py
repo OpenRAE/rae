@@ -22,12 +22,9 @@ from enum import Enum
 from typing import Any
 
 from pydantic import Field, ValidationInfo, field_validator, model_validator
-
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import SDLModel
-from .runtime_filesystem import RuntimeSensitivityClassification
-from .runtime_values import (
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import (
+    RuntimeSensitivityClassification,
     absolute_path_or_var,
     coerce_string_list,
     parse_optional_bool_or_var,
@@ -35,6 +32,7 @@ from .runtime_values import (
     require_non_empty,
     require_symbol,
 )
+from raes_contracts.sdl_model import SDLModel
 
 __all__ = [
     "RuntimeFileService",
@@ -186,7 +184,7 @@ class RuntimeFileServiceAccessOutcome(str, Enum):
     OTHER = "other"
 
 
-def _reject_duplicate_local_ref_ids(service: "RuntimeFileService") -> None:
+def _reject_duplicate_local_ref_ids(service: RuntimeFileService) -> None:
     seen: dict[str, str] = {}
     entries: list[tuple[str, str]] = [("file_service_id", service.file_service_id)]
     entries.extend(("share_id", share.share_id) for share in service.shares)
@@ -455,7 +453,7 @@ class RuntimeFileService(SDLModel):
         return parse_runtime_enum_or_var(v, RuntimeFileServiceProtocol, field_name="protocol")
 
     @model_validator(mode="after")
-    def validate_service(self) -> "RuntimeFileService":
+    def validate_service(self) -> RuntimeFileService:
         for label, attr in (
             ("share_id", "shares"),
             ("principal_id", "principals"),

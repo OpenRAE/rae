@@ -1,0 +1,76 @@
+# Reusable tool-profile module (issue #301, ACT-619). Importers reach its binding
+# selector through composition: explicit participant refs are namespaced with the
+# agent declarations, role refs stay global (#297). `helper` is not exported, so
+# the binding's ref to it becomes a generated private ref after composition.
+name: profile-module
+module:
+  id: acme/tool-profile
+  version: 1.0.0
+  exports:
+    nodes: [web]
+    entities: [blue-team]
+    agents: [analyst]
+    content: [nmap]
+    action_contracts: [scan]
+    observation_boundaries: [blue-view]
+    behavior_specifications: [toolkit]
+nodes:
+  web:
+    type: compute
+    resources: {ram: 1 GiB, cpu: 1}
+entities:
+  blue-team:
+    role: blue
+content:
+  nmap:
+    type: file
+    target: web
+    path: /opt/raes/tools/nmap
+agents:
+  analyst:
+    affiliations: [blue-team]
+    actions: [scan]
+    observation_boundaries: [blue-view]
+  helper:
+    affiliations: [blue-team]
+    actions: [scan]
+    observation_boundaries: [blue-view]
+action_contracts:
+  scan:
+    semantic_version: 1.0.0
+    behavioral_granularity: atomic
+    procedure_basis: service discovery against the web node
+    realization_profile: backend-declared
+    fidelity_claim: records participant discovery intent
+    preconditions:
+      - precondition_id: authority-in-scope
+        precondition_class: authority
+        description: the participant is authorized to scan the web service
+    effects:
+      - effect_id: no-effect
+        effect_class: no_effect
+        description: the fixture declares no environment effect
+    failure_classes: [unknown]
+observation_boundaries:
+  blue-view:
+    projection_basis: blue participant view
+    observable_refs: [behavior_specifications.toolkit.tool_affordances.scanner]
+    redaction_policy: no hidden refs are disclosed
+    latency_profile: immediate
+    view_rules:
+      - information_ref: behavior_specifications.toolkit.tool_affordances.scanner
+        boundary_class: observable_resource
+        disposition: observable
+        visibility_basis: authored classification of the scanner binding
+behavior_specifications:
+  toolkit:
+    semantic_version: 1.0.0
+    participant_refs: [analyst, helper]
+    action_contract_refs: [scan]
+    observation_boundary_refs: [blue-view]
+    tool_affordances:
+      scanner:
+        tool_ref: nmap
+        participant_refs: [helper]
+        action_contract_refs: [scan]
+        observation_boundary_refs: [blue-view]

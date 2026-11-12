@@ -77,6 +77,13 @@ Provider membership does not create a controller or disclosure permission.
 
 ## Reference runtime coordination
 
+The shared runtime can explicitly install the portable bridge/coordinator/reader
+protocols through `MixedRuntimeBinding.backend_installations`. See the
+[installation and execution model](../../migration/mixed-backend-execution.md#runtime-installation)
+for independent stage evidence, native result validation, supervision and restart
+behavior. This is a trusted local installation, not evidence inferred from topology
+references or historical callback results.
+
 `RuntimeControlPlane` accepts an immutable `MixedRuntimeBinding` only when its
 plan entry, profile digest, trusted resolution context, component manifests,
 realization envelopes, runtime targets, run scope, and transition evaluators

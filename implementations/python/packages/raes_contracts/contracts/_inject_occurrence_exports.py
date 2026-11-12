@@ -33,8 +33,18 @@ from .inject_occurrence_outcome import (
     validate_inject_occurrence_correlation,
     validate_inject_occurrence_outcome,
 )
+from .participant_inject_application import (
+    ParticipantInjectApplicationModel,
+    ParticipantInjectContentModel,
+    ParticipantInjectControlReferenceModel,
+    ParticipantInjectDeliveryReceiptModel,
+)
 
 __all__ = [
+    "ParticipantInjectApplicationModel",
+    "ParticipantInjectContentModel",
+    "ParticipantInjectControlReferenceModel",
+    "ParticipantInjectDeliveryReceiptModel",
     "INJECT_TRIGGER_REQUEST_SCHEMA_VERSION",
     "INJECT_OCCURRENCE_SCHEMA_VERSION",
     "INJECT_OCCURRENCE_OUTCOME_SCHEMA_VERSION",

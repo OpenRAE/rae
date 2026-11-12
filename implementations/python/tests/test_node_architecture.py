@@ -447,8 +447,8 @@ class TestNodeArchitectureTargetDomain:
     """SAT finite-domain capture for `nodes.architecture` (issue #674)."""
 
     def test_architecture_address_captures_canonical_vocabulary(self):
-        from raes_contracts.satisfiability import ConstraintSort, ConstraintSymbolModel
         from raes_processor.satisfiability._translation import _target_domain
+        from raes_processor.satisfiability.evidence import ConstraintSort, ConstraintSymbolModel
 
         symbol = ConstraintSymbolModel(
             symbol_id="symbol.web-arch",
@@ -460,30 +460,11 @@ class TestNodeArchitectureTargetDomain:
         assert domain == ("aarch64", "x86_64")
 
 
-class TestLibvirtArchitecturePayload:
-    """`_architecture` payload extraction (issue #674)."""
-
-    def test_direct_field(self):
-        from raes_backend_libvirt._payload import _architecture
-
-        assert _architecture({"architecture": "x86_64"}) == "x86_64"
-
-    def test_nested_node_spec_fallback(self):
-        from raes_backend_libvirt._payload import _architecture
-
-        assert _architecture({"spec": {"node": {"architecture": "aarch64"}}}) == "aarch64"
-
-    def test_absent(self):
-        from raes_backend_libvirt._payload import _architecture
-
-        assert _architecture({"spec": {"node": {}}}) == ""
-
-
 class TestRealizerConfigurationArchitecture:
     """`RealizerConfigurationModel.architecture` is a governed canonical term (issue #674)."""
 
     def _config(self, architecture: str):
-        from raes_contracts.realization_envelope_carrier import RealizerConfigurationModel
+        from raes_contracts.realization_envelope import RealizerConfigurationModel
 
         return RealizerConfigurationModel(
             mode="techvault-appliance",

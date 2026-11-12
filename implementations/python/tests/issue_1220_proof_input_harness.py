@@ -217,7 +217,9 @@ def _worker(
         selection = _load_selection(Path(selection_text))
         tree = _ensure(Path(repo_text), Path(archive_text), selection, counter)
         result_queue.put({"path": str(tree), "digest": _tree_digest(tree)})
-    except BaseException as exc:  # noqa: BLE001 - the parent must observe exact worker failure.
+    # BLE001 is a false positive here: nothing is swallowed. The worker process
+    # sends the exact failure to the parent, which asserts on it.
+    except BaseException as exc:  # noqa: BLE001
         result_queue.put({"error": f"{type(exc).__name__}:{exc}"})
 
 
@@ -374,7 +376,7 @@ def _bounded_lock_timeout(root: Path, archive: Path, selection_path: Path) -> fl
     contender.start()
     result = result_queue.get(timeout=30)
     contender.join(10)
-    if result.get("error") != "RuntimeError:tool-installation: lock-timeout":
+    if result.get("error") != "ToolInstallationError:tool-installation: lock-timeout":
         raise AssertionError(f"contender did not time out safely: {result}")
     publisher.kill()
     publisher.join(5)
@@ -395,7 +397,7 @@ def _quota_failure_recovery(root: Path, archive: Path, selection_path: Path) -> 
     try:
         try:
             _ensure(repo, archive, selection)
-        except RuntimeError as exc:
+        except installation.ToolInstallationError as exc:
             if str(exc) != "tool-installation: storage-exhausted":
                 raise
         else:
@@ -412,7 +414,7 @@ def _quota_failure_recovery(root: Path, archive: Path, selection_path: Path) -> 
 def _expect_failure(action: Any, expected: str) -> None:
     try:
         action()
-    except RuntimeError as exc:
+    except (client.ArtifactAcquisitionError, installation.ToolInstallationError) as exc:
         if expected not in str(exc):
             raise AssertionError(f"expected {expected}, observed {exc}") from exc
     else:
@@ -522,7 +524,7 @@ def _bubblewrap_network_namespace_available() -> bool:
             check=False,
             timeout=15,
         )
-    except (OSError, subprocess.SubprocessError):
+    except OSError, subprocess.SubprocessError:
         return False
     return completed.returncode == 0
 
@@ -648,7 +650,7 @@ def _real_proof_closure() -> dict[str, object]:
 def _native_version(argv: list[str]) -> str:
     try:
         completed = subprocess.run(argv, capture_output=True, text=True, check=False, timeout=15)
-    except (OSError, subprocess.SubprocessError):
+    except OSError, subprocess.SubprocessError:
         return "unavailable"
     line = (completed.stdout or completed.stderr).strip().splitlines()
     return line[0][:128] if completed.returncode == 0 and line else "unavailable"

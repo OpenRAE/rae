@@ -1,10 +1,5 @@
 {
   "contract_id": "workflow-history-event-stream-v1",
   "schema_path": "contracts/schemas/control-plane/workflow-history-event-stream-v1.json",
-  "stability": "draft",
-  "content_hash": "591782d81458822d94e3f8bf6bc3eded95d97d5750659412a32c853288e07c4d",
-  "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "591782d81458822d94e3f8bf6bc3eded95d97d5750659412a32c853288e07c4d"
-  }
+  "stability": "draft"
 }

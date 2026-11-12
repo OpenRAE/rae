@@ -6,19 +6,14 @@ mail-access detail on a top-level relationship edge.
 """
 
 from pydantic import Field, field_validator, model_validator
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import parse_runtime_enum_or_var, reject_duplicates, require_symbol
+from raes_contracts.sdl_model import SDLModel
 
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from .._base import SDLModel
 from ..runtime_mail_vocab import (
     RuntimeMailAuthMechanism,
     RuntimeMailProtocol,
     RuntimeMailTlsMode,
-)
-from ..runtime_values import (
-    parse_runtime_enum_or_var,
-    reject_duplicates,
-    require_symbol,
 )
 from ._elements import (
     RuntimeMailAlias,
@@ -60,7 +55,7 @@ class RuntimeMailService(SDLModel):
         return require_symbol(v, field_name="mail_service_id")
 
     @model_validator(mode="after")
-    def validate_service(self) -> "RuntimeMailService":
+    def validate_service(self) -> RuntimeMailService:
         self._reject_duplicate_collection_ids()
         self._reject_duplicate_local_ref_ids()
         return self

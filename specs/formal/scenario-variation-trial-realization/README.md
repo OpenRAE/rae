@@ -1,4 +1,4 @@
-# Scenario Variation And Trial Realization Invariants
+# Scenario variation and trial realization invariants
 
 Status: normative design invariant set with delivered SCE-002 contract,
 compiler, realization, and focused-test coverage
@@ -60,11 +60,14 @@ Let:
 Every named transform is partial. Undefined means failure with bounded
 diagnostics and no output artifact at the next boundary.
 
-## Phase And Authority Invariants
+## Phase and authority invariants
 
-### SVR-001 — Composition precedes selection
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-001 — composition precedes selection
 
 For every admitted plan:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 T(F, E, B, G) is defined => exists A such that C(A) = F
@@ -74,10 +77,13 @@ No policy, random draw, backend, scheduler, or runtime fact participates in
 `C`. All imports, namespaces, locks, trust checks, and digests are resolved
 before any variation point is selected.
 
-### SVR-002 — Canonical symbols are selection-independent
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-002 — canonical symbols are selection-independent
 
 For every declaration or variation point `x` and valid selections `v1` and
 `v2`:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 canonical_id(x, v1) = canonical_id(x, v2) = canonical_id(x)
@@ -86,19 +92,29 @@ canonical_id(x, v1) = canonical_id(x, v2) = canonical_id(x)
 The id contains no selected value, source/cache path, run id, worker id,
 backend id, or schedule position.
 
-### SVR-003 — One authority per plane
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-003 — one authority per plane
 
-SDL owns family domains and typed targets; experiment contracts own selection,
-factors, allocation, and stochastic intent; the processor owns trial
-compilation/admission and realization orchestration; runtime owns typed
-late-bound facts; backends own realization within admitted envelopes;
-schedulers own placement/isolation; experiment run/study contracts own archival
-provenance. No artifact from one plane may be interpreted as authority for
-another.
+Each plane retains its own authority:
 
-### SVR-004 — Closed phase progression
+<!-- vale RAES.HeadingCase = YES -->
+
+- SDL owns family domains and typed targets.
+- Experiment contracts own selection, factors, allocation, and stochastic intent.
+- The processor owns trial compilation/admission and realization orchestration.
+- Runtime owns typed late-bound facts.
+- Backends own realization within admitted envelopes.
+- Schedulers own placement/isolation.
+- Experiment run/study contracts own archival provenance.
+
+No artifact from one plane may be interpreted as authority for another.
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-004 — closed phase progression
 
 The only supported progression is:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 A -> F -> E-bound design -> P -> S_q -> compiled/planned forms
@@ -108,11 +124,14 @@ A -> F -> E-bound design -> P -> S_q -> compiled/planned forms
 An operational artifact cannot move backward and edit an earlier artifact.
 Every exchange artifact is closed for its phase.
 
-## Family And Selection Invariants
+## Family and selection invariants
 
-### SVR-005 — Closed, bounded variation kinds
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-005 — closed, bounded variation kinds
 
 Every point belongs to the versioned closed set:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 {parameter, governed-reference, alternative, subset, order, logical-timing}
@@ -122,22 +141,31 @@ Every point has a finite member set or explicit bounded numeric interval plus a
 selection/output budget. Unknown kinds, unbounded evaluation, external queries,
 callbacks, templates, and arbitrary document patches are invalid.
 
-### SVR-006 — Typed target ownership
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-006 — typed target ownership
 
 Every point target is a closed descriptor admitted by the SDL model that owns
 the target slot. No generic path language may authorize mutation. Selected
 content must pass the owning value/fragment validator.
 
-### SVR-007 — Independent branch validity
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-007 — independent branch validity
 
 Each declared alternative/member is well-typed and semantically valid in its
 declared local context. Requires/excludes/cardinality/precedence constraints
 are closed finite relations. A contradictory or empty declared domain makes
 the family invalid.
 
-### SVR-008 — Selection membership
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-008 — selection membership
 
 For every plan entry:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 q in Q(E) and P[q].selection = v => M(q, v)
@@ -146,9 +174,12 @@ q in Q(E) and P[q].selection = v => M(q, v)
 The compiler cannot clamp, coerce, substitute, silently omit, or select an
 undeclared value.
 
-### SVR-009 — Whole-scenario admission
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-009 — whole-scenario admission
 
 Local point validity is insufficient:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 P[q] exists => semantic_valid(I(F, P[q]))
@@ -157,15 +188,21 @@ P[q] exists => semantic_valid(I(F, P[q]))
 Every selected combination is admitted as a whole concrete scenario. One
 invalid combination prevents the requested plan from being emitted.
 
-### SVR-010 — Experiment selection is separate from family validity
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-010 — experiment selection is separate from family validity
 
 Changing an enumeration/sampling/allocation policy without changing `F` does
 not change the family identity. Reusing a family in multiple experiments does
 not copy its declarations into those experiment documents.
 
-### SVR-011 — Scenario and backend membership are ordered
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-011 — scenario and Backend membership are ordered
 
 For every entry:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 P[q] exists => M(q, P[q].selection)
@@ -175,9 +212,10 @@ P[q] exists => M(q, P[q].selection)
 Backend realizability is checked after family membership. Backend feasibility
 cannot widen, narrow, or choose the experiment selection.
 
-## Random-Stream Invariants
+## Random-stream invariants
 
-### SVR-012 — Complete stochastic profile
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-012 — complete stochastic profile
 
 Every stochastic selection names exact versions for generator, seed encoding,
 semantic-address encoding, stream derivation, raw-bit interpretation,
@@ -186,9 +224,14 @@ default alone is not executable stochastic control. The experiment also carries
 a canonical root seed and explicit randomness namespace; both are admitted
 inputs rather than values inferred from the experiment document digest.
 
-### SVR-013 — Semantic stream address
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-013 — semantic stream address
 
 Every draw address is a pure canonical function of:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 (randomness namespace N(E),
@@ -205,9 +248,12 @@ backend-availability input. The exact experiment id/digest remains plan and run
 provenance. Independent randomization requires an explicit namespace or seed
 change.
 
-### SVR-014 — Schedule independence
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-014 — schedule independence
 
 For any two execution schedules `s1` and `s2` over identical admitted inputs:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 bytes(T_s1(F, E, B, G)) = bytes(T_s2(F, E, B, G))
@@ -216,7 +262,8 @@ bytes(T_s1(F, E, B, G)) = bytes(T_s2(F, E, B, G))
 This includes serial/parallel, worker permutation, batch partition, completion
 order, pre-seal retry, and supported cross-process/hash-seed variation.
 
-### SVR-015 — Stream non-interference
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-015 — stream non-interference
 
 If input `E'` retains `N(E)` and the root seed while adding or changing a draw
 or unrelated metadata outside concern `c`, then every draw and selection at
@@ -224,24 +271,35 @@ addresses in unaffected concern `c` is unchanged. No mutable global stream is
 shared across points, policies, or coordinates. This does not require plan
 digests or run ids to survive an experiment-spec revision.
 
-### SVR-016 — Canonical traversal preserves semantic order
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-016 — canonical traversal preserves semantic order
 
 Maps are traversed by canonical id. A semantically ordered SDL collection keeps
 its declared or selected order. Serialization cannot sort away meaningful
 order, and runtime scheduling cannot stand in for logical order.
 
-### SVR-017 — Failure does not consume or replace randomness
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-017 — failure does not consume or replace randomness
 
 Constraint exhaustion, invalid selection, apparatus rejection, worker failure,
 timeout, retry, or cancellation does not advance a shared stream or trigger
 resampling. The same address always denotes the same draw under the same
 profile.
 
-## Plan And Identity Invariants
+<!-- vale RAES.HeadingCase = YES -->
 
-### SVR-018 — Atomic plan admission
+## Plan and identity invariants
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-018 — atomic plan admission
 
 `T` returns exactly one fully admitted plan or one deterministic diagnostic set:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 T(F, E, B, G) = P
@@ -250,15 +308,21 @@ T(F, E, B, G) = P
 
 There is no partially admitted subset formed by dropping failed coordinates.
 
-### SVR-019 — Unique stable logical coordinates
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-019 — unique stable logical coordinates
 
 `Q(E)` contains no duplicate canonical coordinate. Coordinate identity is
 experiment meaning, never list position or scheduler order.
 
-### SVR-020 — Preallocated archival run identity
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-020 — preallocated archival run identity
 
 For each `q`, `P[q].run_id` is a deterministic function of admitted execution
 intent and `q`. It is unique within `P`. If execution starts:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ```text
 Run(P[q]).run_id = P[q].run_id
@@ -266,30 +330,42 @@ Run(P[q]).run_id = P[q].run_id
 
 No `experiment-trial-v1` or second archival trial identity is introduced.
 
-### SVR-021 — Retry and re-execution differ
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-021 — retry and re-execution differ
 
 An idempotent pre-execution transport retry reuses `P[q].run_id`. A genuine
 re-execution uses a new explicit replicate/execution ordinal, is admitted
 again, receives a distinct run id, and may cite the source run by lineage.
 
-### SVR-022 — Plan identity is not run identity
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-022 — plan identity is not run identity
 
 The plan is immutable grouped execution intent and has its own canonical
 content identity. Scheduler jobs, operation ids, runtime snapshots, and plan
 ids cannot be used as archival run ids.
 
-### SVR-023 — Complete plan provenance
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-023 — complete plan provenance
 
 The plan commits to exact task/family/spec/artifact refs and digests, all
 compiler/identity/RNG/canonicalization profiles, logical coordinates,
 selections, factor assignments, non-secret bindings, selected apparatus
 claims, and bounded admission evidence.
 
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
 ## Executable SCE-002 v1 profiles
 
 This section is the normative algorithm authority for the exact profile names
 carried by `admitted-trial-plan-v1`. Changing any output-affecting rule below
 requires a new profile name and new conformance vectors.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ### `trial-coordinate-v1`
 
@@ -308,6 +384,89 @@ sequence through `target_runs_per_condition`. The coordinate order is
 1 through 999999 and never derives a block, cohort, worker, attempt, or other
 dimension from descriptive allocation strings. Unsupported dimensions or an
 empty/exceeded coordinate set fail before selection.
+
+### Designed compiler and allocation profiles (EXP-719)
+
+`trial-compiler-designed-v1` and
+`trial-compiler-designed-mixed-composition-v1` extend their respective legacy
+compiler profiles with factorial binding selection and/or recorded allocation.
+Replacement variants are `trial-compiler-replacement-designed-v1` and
+`trial-compiler-replacement-designed-mixed-composition-v1`. Legacy profile
+outputs and `trial-coordinate-canonical-v1` order retain their meanings.
+Coordinate identities remain `trial-coordinate-v1`; randomization never
+changes a coordinate. Complete experiment intent and exact input digests
+remain in the plan identity projection, so changes to design, seed, namespace,
+or allocation policy produce new plan/entry/run identities. Allocation slots
+are separate from those logical coordinates.
+
+For `factorial-bindings-v1` designs, every coordinate selects the scalar scenario bindings
+from its exact generated condition through the public SDL selection and
+whole-scenario admission path. All family points must be covered exactly once;
+additional selection policies and nonliteral scenario binding outcomes fail
+closed. Participant bindings never become SDL points. Selected manifest
+registries resolve their targets; complete configurations apply defaults,
+require missing values, and invoke a supplied trusted owner validator. The
+entry records each normalized configuration with its manifest and digest.
+Normalization must preserve declared binding values. Retry and replacement
+lineage retain their incumbent authorities; a replacement child contains one
+new entry for the original slot's condition and no reshuffle of original slots.
+
+The contract profile `factorial-treatments-v1` adds typed scenario selections.
+Its normative rules are in
+[experiment-core](../experiment-core/README.md#typed-factorial-treatments-factorial-treatments-v1).
+`AdmittedSelectionRecordModel.treatment` retains the exact source descriptor.
+The optional `profiles.treatment_profile` field selects the new record semantics.
+Legacy plans omit this field.
+The existing coordinate and identity profiles remain unchanged.
+New content remains covered by authoring, entry, and plan commitments.
+The reference compiler supports typed treatments through the existing public SDL APIs.
+It verifies complete point coverage, owner admission, effective distinctness, and atomic failure.
+Comparison retains operative capability bounds, parameter derivations, and realization constraints.
+Prompt comparison uses pinned content and operative slot and scope, excluding provenance-only descriptor differences.
+`readmit_admitted_trial_plan()` compares a candidate with deterministic reconstruction from separately trusted original inputs.
+The public realizer checks authoring coordinates, bindings, typed records, and fixed selections without rerunning participant normalization.
+Plan-only reload establishes internal consistency, not agreement with unavailable original authority.
+See the [public example](../../../docs/explain/reference/typed-factorial-example.md).
+
+The accepted executable allocation procedure is `fisher-yates-allocation-v1`:
+
+1. Resolve exactly one `randomization` control with an executable
+   `blake3-xof-v1` / `random-stream-profile/v1` binding and a public seed.
+   Governed entropy without an authorized resolver fails closed. Retain this
+   control at plan scope even when no entry draws use it.
+2. Initialize the pool with every admitted entry exactly once, sorted by the
+   unchanged canonical coordinate key (condition, numeric replicate ordinal).
+   Reject an empty, duplicate, or greater-than-10000 domain.
+3. For `i = n-1, ..., 1`, use slot `n-1-i`. The closed
+   `allocation-address-v1` address contains `address_profile`, the control's
+   `namespace`, `allocation_policy_id`, `draw_purpose: condition-assignment`,
+   `slot`, and `local_coordinate: 0`. All fields participate in JCS address
+   encoding. It contains no variation point, chosen condition, aggregate
+   digest, host, worker, time, retry, or completion position.
+4. Reuse the existing BLAKE3 key derivation and bounded-integer transform
+   version 1 to draw uniformly from `[0, i]`, with 32 rejection attempts.
+   Deterministic exhaustion aborts admission. Swap pool positions `i` and the
+   drawn index. Record each address, outcome, and rejection count in slot order.
+   A singleton records zero draws; no alternative seed or fallback is allowed.
+5. Seal the policy, ordered entry permutation, and plan-scope draws in
+   `AdmittedTrialPlanModel.allocation`. The profile set records
+   `allocation_profile: fisher-yates-allocation-v1`; presence must agree with
+   the allocation record. Plan reconstruction replays the procedure against
+   the complete entry domain and controls and requires exact equality, including
+   bijection, draw sequence, and order. The plan digest commits to all of it.
+
+Both dispatch and batch-receipt validation use the contract-owned order
+helper. Allocated plans use `experiment-recorded-allocation-v1`; legacy plans
+use `trial-coordinate-canonical-v1`. Receipts must record the matching policy
+and exact ordinal. A serialized coordinator commits decisions in this order;
+resuming consumes the retained order and attempt receipts without reshuffling.
+Parallelism ceilings, deadlines, and cleanup remain separate requirements.
+
+Random order mitigates systematic condition/time confounding. It does not
+certify stable external APIs, model revisions, host load, caches, or carryover.
+Retain pinned manifests/configurations, actual apparatus and clock evidence,
+cleanup results, and validity deviations; allocation grants no reselection or
+claim of controlled equivalence when drift is undisclosed.
 
 ### Canonical domain and policy order in `trial-compiler-v1`
 
@@ -366,12 +525,11 @@ complete typed cleanup template. Existing entry and plan seal helpers then
 compute `entry_digest` and `plan_digest`; neither digest is an identity input
 to itself, and `plan_id` is not `plan_digest`.
 
-The canonical coordinate projection omits absent optional fields. Map
-serialization uses JCS key order. Plan entry maps are keyed by derived entry
-id, not emission position. Adding a coordinate changes plan/entry/run
-identities because admitted plan-wide intent changed, but it does not change
-an existing stochastic address or draw under an unchanged namespace, seed,
-policy, point, and coordinate.
+The canonical coordinate projection omits absent optional fields.
+Map serialization uses JCS key order.
+Plan entry maps are keyed by derived entry id, not emission position.
+Adding a coordinate changes plan/entry/run identities because admitted plan-wide intent changed.
+Under an unchanged namespace, seed, policy, point, and coordinate, an existing stochastic address and draw remain unchanged.
 
 ### Failure and resource profile
 
@@ -393,35 +551,48 @@ then fixed text before returning its one diagnostic; successful keyed maps are
 JCS-normalized. Therefore partition order changes execution order without
 changing plan bytes or failure diagnostics.
 
-## Instantiation, Fact, And Secret Invariants
+## Instantiation, fact, and secret invariants
 
-### SVR-024 — Public SDL instantiation only
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-024 — public SDL instantiation only
 
 `I(F, P[q])` applies only plan-recorded selections/bindings, performs no new
 draw/import/query/secret read/backend callback, uses the public SDL
 instantiation and admission path, and reruns whole-scenario semantic validation.
 A private binder cannot mint an admitted `S_q`.
 
-### SVR-025 — Selection provenance is snapshot identity
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-025 — selection provenance is snapshot identity
 
 `S_q` carries family, plan, run, point-selection, binding, and existing
 composition/instantiation provenance. Canonical snapshot identity includes that
 provenance; serialization cannot discard it.
 
-### SVR-026 — Late binding is monotone
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-026 — late binding is monotone
 
 `L(S_q, H)` may fill only a compiled declared sink after validating source,
 type, scope, freshness, sensitivity, authorization, and evidence metadata. It
 does not mutate `F`, `E`, `P`, `S_q`, or their identities.
 
-### SVR-027 — Runtime facts are not selectors
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-027 — runtime facts are not selectors
 
 No fact or observation may choose an alternative/subset/order/timing point,
 change a scalar factor, alter topology, change a logical coordinate/run id,
 select apparatus, or advance a random stream. Missing/invalid facts cause an
 explicit runtime disposition, not fallback selection.
 
-### SVR-028 — Secret non-disclosure and non-identity
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-028 — secret non-disclosure and non-identity
 
 Raw credentials and secret values are not factors, condition assignments,
 random seeds, stream-address inputs, canonical ids/digests, portable plan
@@ -429,71 +600,110 @@ bindings, diagnostics, fixtures, argv, logs, or telemetry. Secret references
 are resolved only at authorized run-local sinks, and secondary provenance is
 redacted.
 
-## Backend, Scheduler, And Archive Invariants
+<!-- vale RAES.HeadingCase = YES -->
 
-### SVR-029 — Envelope-governed realization
+<!-- vale RAES.HeadingCase = NO -->
+## Backend, scheduler, and archive invariants
 
-Every plan entry pins selected apparatus claims. Every manifest reference
-resolves to exact identity/version/digest-matched concrete processor, backend,
-or participant implementation content before sealing. Capability claims
-derive only from those validated manifests, each selected identity passes its
-kind-specific allowlist, and each selected backend binds the accepted ADR-070
-realization-envelope content and configuration digests before scenario
-membership/subsumption checks. A backend may choose only a realized form
-permitted by that envelope and must disclose the choice.
 
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-029 — envelope-governed realization
+
+Every plan entry pins selected apparatus claims.
+Before sealing, every manifest reference resolves to exact identity/version/digest-matched concrete processor, backend, or participant implementation content.
+Capability claims derive only from those validated manifests.
+Each selected identity passes its kind-specific allowlist.
+Before scenario membership/subsumption checks, each selected backend binds the accepted ADR-070 realization-envelope content and configuration digests.
+A backend may choose only a realized form permitted by that envelope and must disclose the choice.
+
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
 ### SVR-030 — Backend refusal is observable failure
 
 Availability change or refusal after admission yields failure/deviation
 provenance. It cannot authorize another value, backend, omitted member, clamped
 configuration, or resampled trial.
 
-### SVR-031 — Scheduler opacity
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-031 — scheduler opacity
 
 Any two valid scheduler placements/orders for the same `P` observe identical
 plan entries, run ids, selections, factors, snapshots, and streams. A scheduler
 may control placement, isolation, bounded parallelism, timeouts, cancellation,
 and cleanup only.
 
-Portable cleanup intent, receipts, clean-state claims, retry safety, backend
-capability, and bounded-parallelism proof (including the governed secret-scope
-isolation dimension) are defined in [cleanup-contracts.md](cleanup-contracts.md).
-The `batch-execution-receipt-v1` contract is the immutable per-attempt evidence
-that composes those authorities: it binds the sealed plan/entry/run identities,
-a distinct execution-attempt identity, the canonical dispatch ordinal and
-scheduling policy, the effective concurrency, isolation-proof and live-lease
-evidence refs, the primary trial disposition, control-plane operation refs, and
-the cleanup-receipt ref. Serial is the effective default; bounded parallelism is
-authorized only by an isolation proof joined to the exact sealed plan plus live
-lease evidence. Scheduler policy, worker management, live leasing, and range
-allocation remain outside these contract semantics.
+<!-- vale RAES.HeadingCase = YES -->
 
-### SVR-032 — Archival separation
+[Cleanup contracts](cleanup-contracts.md) define portable cleanup intent, receipts, clean-state claims, retry safety, and backend capability.
+The immutable per-attempt `batch-execution-receipt-v1` contract composes those authorities.
+It binds sealed plan/entry/run identities, a distinct execution-attempt identity, and canonical dispatch ordinal.
+It also binds scheduling policy, effective concurrency, primary trial disposition, control-plane operation refs, and cleanup-receipt ref.
+Serial is the effective default.
+Scheduler policy, worker management, placement, and range allocation remain outside these contract semantics.
+
+The optional SDL root `trial_parallelism` constrains the allocator's effective capacity for the experiment.
+It uses the existing `open`, `constrained`, and `exact` postures.
+Each count is an integer from 1 to 4096.
+Exact intent declares a `count`.
+Constrained intent declares a `minimum`, `maximum`, or both.
+A minimum cannot exceed a maximum.
+
+Open intent carries no count or bounds.
+Omission retains the existing allocator choice and serial default.
+
+The trial compiler copies this intent into the sealed admitted plan. It is an
+author-set cap on concurrent trials and needs no other proof. The admitted
+ceiling is the exact count, the maximum, or the entry count (at most 4096) when
+the intent is open or has no maximum. Without the intent, the ceiling is one. A minimum above
+the entry count fails before dispatch. Assignment and receipt boundaries
+enforce both ends of the admitted interval. A minimum or exact count describes
+configured capacity, not a promise that all slots remain occupied during startup,
+cleanup, or the final trials. A serial executor must refuse a capacity greater
+than one before it starts a trial.
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-032 — archival separation
 
 The admitted plan is not stored as mutable runtime state, and live operation
 records are not archival runs. `ExperimentRunModel` and `ExperimentStudyModel`
 remain the authorities for actual execution context, evidence, factors,
 allocation, deviations, and analysis lineage.
 
-### SVR-033 — Adaptation is an intervention
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-033 — adaptation is an intervention
 
 Adaptive difficulty cannot rewrite the admitted baseline. An intervention is a
 run event with policy/observation/trigger/action provenance. A derived follow-up
 trial has a new admitted coordinate and run id linked to its source.
 
-### SVR-034 — Generated content re-enters normal admission
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-034 — generated content re-enters normal admission
 
 ATT&CK layers, STIX, playbooks, PDDL/planners, CTI reports, and AI generators
 may produce candidates only. Candidates pass ordinary authoring, trust,
 composition, semantic validation, experiment binding, and trial admission.
 
-## Executable SCE-003 v1 Profile
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+## Executable SCE-003 v1 profile
 
 Adaptive difficulty is declared in the experiment run plan as a bounded
 `DifficultyPolicyRegistryModel`. The registry contains named variants that
 reference existing selection/scaffold/action carriers, policy-local ordered
 dimensions, immutable fixed/adaptive/scaffolded policies, and one default
 policy that is always fixed.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Every allocation condition has a `difficulty_condition` with fixed as its wire
 default. Adaptive and scaffolded conditions also name an exact
@@ -542,10 +752,13 @@ study condition requires an analysis plan and explicit validity notes.
 canonical authoring-input digest, task, allocated condition, and exact admitted
 policy snapshot.
 
+<!-- vale RAES.HeadingCase = NO -->
 ### SCE-003 validity boundary
 
 The reference resolver establishes deterministic policy conformance, not
 scientific validity. In particular:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 - a policy-local variant ordering is not a universal difficulty scale;
 - an exact measurement definition and evidence instance do not prove
@@ -565,14 +778,18 @@ These limits apply the primary adaptive-treatment, adaptive-testing,
 curriculum-learning, and simulation-experiment sources mapped in
 [`lineage.md`](../../../docs/explain/sdl/lineage.md#adaptive-difficulty-sequential-intervention-and-simulation-experiments).
 
-## Compatibility Invariants
+## Compatibility invariants
 
-### SVR-035 — Static SDL is a singleton family
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-035 — static SDL is a singleton family
 
 An existing SDL document with no variation points retains its identifiers and
 meaning and denotes exactly one family member.
 
-### SVR-036 — Existing variable binding remains authoritative
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-036 — existing variable binding remains authoritative
 
 Existing `Variable` declarations and substitution semantics are reused for
 scalar parameterization. Structural variation does not create a second string
@@ -581,13 +798,19 @@ their declared constraints. Credential-shaped inputs use governed secret
 references or declared late-bound secret-reference sinks; raw credentials are
 never portable selection values.
 
-### SVR-037 — Existing experiment and archive artifacts remain distinct
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-037 — existing experiment and archive artifacts remain distinct
 
 Existing experiment authoring documents remain valid but descriptive
 randomization text cannot execute without typed profiles. Existing task, run,
 study, apparatus, evidence, and measure contracts retain their authority.
 
-### SVR-038 — Campaign composition preserves canonical roots
+<!-- vale RAES.HeadingCase = YES -->
+
+<!-- vale RAES.HeadingCase = NO -->
+### SVR-038 — campaign composition preserves canonical roots
 
 An executable campaign composed from reusable SDL units is exactly one expanded
 canonical `Scenario` produced by `C`; it is not a tree of independently running
@@ -596,7 +819,57 @@ an experiment design and admitted plan and is archived through the existing
 run/study contracts. Neither form creates a `Campaign` runtime root or derives
 meaning by concatenating mutable runtime state.
 
-## Deterministic Failure Properties
+<!-- vale RAES.HeadingCase = YES -->
+
+## Replacement compiler profiles
+
+Issue #1396 adds `trial-compiler-replacement-v1` and its
+`trial-compiler-replacement-mixed-composition-v1` variant. The existing coordinate,
+entry/run identity, random-stream, cleanup and integrity algorithms are reused;
+the new compiler profile owns subsequent allocation and plan identity. Existing
+v1 profiles and conformance vectors retain their exact meanings.
+
+An optional experiment-owned policy selects failed/invalidated triggers and an
+additional-trial limit per original allocation slot. Omission authorizes zero.
+Every admitted descendant consumes the original slot's budget. Admission binds
+the exact root plan/digest/entry, ordinal, immediate parent plan/entry/run/version
+and digest, terminal cleanup receipt, and original policy. It emits one separate
+sealed child; no old entry or plan is re-sealed with a different identity.
+
+Let `i` be the original coordinate's zero-based index in the compiler's canonical
+coordinate list, `M` its maximum original replicate ordinal, `L` the authored
+limit and `k` the one-based replacement ordinal. The new replicate is
+`replicate_id(M + i*L + k)`, with unchanged condition/block. Ordinal overflow is
+refusal. Disjoint slot intervals prevent coordinate collision. Deterministic
+selection uses the original row index; sample selection is addressed to the new
+coordinate. Only that entry is emitted; other entries and streams are unchanged.
+
+The child plan id is `derive_identity("replacement-plan", projection)`, where
+the projection contains `profile="trial-compiler-replacement-v1"`,
+`root_plan_id`, `root_plan_digest`, `root_entry_id`, and `ordinal`. Entry/run and
+cleanup ids then use the existing acyclic algorithms with this new plan id.
+Parent/evidence linkage is sealed in the child digest without a child-to-parent
+digest cycle. Tests in `implementations/python/tests/test_issue_1396_trial_replacement.py`
+show that the same inputs give the same identities, that the child digest binds
+the parent run, and that a different root plan gives different identities.
+
+Complete contiguous lineage, exact original inputs and positive scope-complete
+terminal cleanup evidence are required. Failed/partial/unverified cleanup cannot
+authorize reuse. Each child re-enters ordinary fresh instantiation, authorization,
+resource isolation and backend admission. Pure compilation supplies no effects,
+live ownership or physical cessation proof. The embedding coordinator atomically
+claims and retains the decision before dispatch; uncertain acknowledgement needs
+authoritative readback. Recovery and delivery never independently allocate.
+
+Retain exact failed versions and evidence-preserving supersession versions.
+Analysis joins all linked plans but includes at most one eligible leaf per
+original slot; allocation targets count original slots. Scientific failures
+whose trial status is not selected remain eligible. Selected failed leaves
+remain shortfalls on exhaustion. Cleanup refusal preserves shortfall and
+independent failure evidence. See the
+[migration and coordinator contract](../../../docs/explain/reference/trial-replacement-migration.md).
+
+## Deterministic failure properties
 
 For identical invalid inputs, diagnostic records are byte-equivalent after
 canonical serialization. Diagnostics are ordered by stage, safe canonical
@@ -617,16 +890,17 @@ At minimum, `T` is undefined for:
 - realization-envelope non-membership; and
 - canonicalization or sealing failure.
 
-## Claim Boundary
+## Claim boundary
 
-These invariants support claims of deterministic scenario-family selection,
-schedule-independent admitted-plan construction, explicit instantiation
-provenance, and bounded archival lineage. They do not establish behavioral
-equivalence between backends, validity of an adaptive benchmark, continuing
-artifact availability, truth of provenance claims, recreation of hidden
-backend state, cryptographic unpredictability, or exact replay from a seed.
+These invariants support deterministic scenario-family selection, schedule-independent admitted-plan construction, explicit instantiation provenance, and bounded archival lineage.
+They do not establish:
 
-## Assurance Fulfillment
+- Behavioral equivalence between backends or validity of an adaptive benchmark.
+- Continuing artifact availability or truth of provenance claims.
+- Recreation of hidden backend state.
+- Cryptographic unpredictability or exact replay from a seed.
+
+## Assurance fulfillment
 
 The invariant list is delivered by this file. Issue #786 supplies the bounded
 family declaration contract and tests. Issue #787 supplies the closed

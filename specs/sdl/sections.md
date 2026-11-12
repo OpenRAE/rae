@@ -1,11 +1,13 @@
-# Catalog 1 — Section Catalog
+<!-- vale RAES.HeadingCase = NO -->
+# Catalog 1 — section catalog
 
-This catalog enumerates every top-level field of an SDL document: its kind, its
-value shape, whether it is required, the shape of its keys, and the sections it
-references. It is the normative section enumeration and is written to match the
-published `contracts/schemas/sdl/sdl-authoring-input-v1.json` schema; where this
-table and that schema diverge, the divergence is a defect to reconcile
+This catalog enumerates every top-level SDL field.
+It gives each field's kind, value shape, requirement, key shape, and referenced sections.
+This normative section list matches the published `contracts/schemas/sdl/sdl-authoring-input-v1.json` schema.
+A difference between this table and that schema is a defect to reconcile
 ([README](README.md)).
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Value-shape legend:
 
@@ -40,6 +42,7 @@ machinery is not retained as an empty compatibility field. "References" is
 | `module` | composition | mapping | normalized | optional; default null | `module.id` | none | [ADR-053](../../docs/decisions/adrs/adr-053-sdl-module-composition-for-inventory-backed-scenarios.md) |
 | `imports` | composition | list | normalized | optional; default empty list | `namespace` | none | [ADR-053](../../docs/decisions/adrs/adr-053-sdl-module-composition-for-inventory-backed-scenarios.md) |
 | `realization` | composition | mapping | normalized | optional; default null | none | none | [explicitness and realization](../formal/realization/explicitness-and-realization.md) |
+| `trial_parallelism` | section | mapping | normalized, expanded, instantiated | optional; default null | none | none | [trial scheduling](../formal/scenario-variation-trial-realization/README.md#svr-031--scheduler-opacity) |
 | `nodes` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [nodes and runtime inventory](runtime-inventory.md) |
 | `infrastructure` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [document model](document-model.md) |
 | `features` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [document model](document-model.md) |
@@ -62,6 +65,7 @@ machinery is not retained as an empty compatibility field. "References" is
 | `deployment_cells` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [enterprise identity and deployment tenancy](enterprise-deployment-tenancy.md) |
 | `relationships` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [ADR-052](../../docs/decisions/adrs/adr-052-typed-runtime-relationship-subtypes.md) |
 | `forwarding_agents` | section | list | normalized, expanded, instantiated | optional; default empty list | `forwarding_agent_id` | none | [ADR-050](../../docs/decisions/adrs/adr-050-forwarding-agent-runtime-inventory.md) |
+| `control_context_assets` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | none | [control-context references](participant-control-context.md) |
 | `agents` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [participant model](../formal/participant-semantics/README.md) |
 | `action_contracts` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [participant model](../formal/participant-semantics/README.md) |
 | `observation_boundaries` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [participant model](../formal/participant-semantics/README.md) |
@@ -69,6 +73,7 @@ machinery is not retained as an empty compatibility field. "References" is
 | `behavior_specifications` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [behavior specifications](../formal/participant-behavior-model/README.md) |
 | `evidence_requirements` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [observability and evidence](observability-and-evidence.md) |
 | `execution_policy` | section | mapping | normalized, expanded, instantiated | optional; default null | none | catalogued | [execution and recovery](execution-recovery.md) |
+| `safe_state` | section | mapping | normalized, expanded, instantiated | optional; default null | none | catalogued | [safe state](safe-state.md) |
 | `augmentation_scope` | section | mapping | normalized, expanded, instantiated | optional; default null | none | none | [augmentation scope](augmentation-scope.md) |
 | `time_domains` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | none | [shared time model](../formal/time-model/README.md) |
 | `clocks` | section | map | normalized, expanded, instantiated | optional; default empty map | `map_key` | catalogued | [shared time model](../formal/time-model/README.md) |
@@ -86,7 +91,7 @@ addition would impose a large, unexpected authoring burden. The policy also
 survives into materialized descriptions, where its addresses retain their
 original-source meaning. See [augmentation scope](augmentation-scope.md).
 
-<!-- sdl-catalog-summary top-level=46 metadata-composition=7 sections=39 maps=36 lists=1 -->
+<!-- sdl-catalog-summary top-level=49 metadata-composition=7 sections=42 maps=37 lists=1 -->
 
 The section set therefore has two authoring shapes: maps keyed by stable
 user-defined identifiers and the scenario-level `forwarding_agents` list, whose
@@ -100,10 +105,10 @@ list carries addressed concern-specific mechanism intent. A compute-substrate
 constraint uses a `namespace`, a `field_pointer` addressing one compute node, the
 literal concern `compute-substrate`, an `open`, `constrained`, or `exact`
 posture, and a compatible domain when bounded. Equal
-`(namespace, field_pointer, concern)` identities are invalid. Expansion and
-instantiation remove the block from executable `ScenarioContent` and carry typed
-designation and constraint records in phase provenance so compilation can
-resolve them without turning authoring machinery into runtime scenario content.
+`(namespace, field_pointer, concern)` identities are invalid. Expansion and instantiation remove the block from executable scenario content.
+
+They carry typed designation and constraint records in phase provenance.
+Compilation resolves those records without turning authoring machinery into runtime scenario content.
 
 `nodes.*.type` is a structural resource kind, not a deployment mechanism. Its
 canonical values are `compute` and `switch`. A `compute` node is portable and
@@ -113,11 +118,69 @@ emulator. Authors who require or bound a mechanism use
 leaves that registered concern open. A switch remains a strict connectivity
 resource and cannot carry compute-substrate constraints or compute-only fields.
 
+A switch can state a compute-only field only with its empty value: `null`, an
+empty string, or an empty collection. That value has the same meaning as an
+omitted field, and realization authority treats it as omitted.
+
 `forwarding_agents` is the **scenario-level** forwarding-agent inventory. It is
 distinct from the node-scoped `forwarding_agents` runtime-family collection that
 lives under `nodes.<id>.runtime` ([runtime-inventory.md](runtime-inventory.md));
-both carry `forwarding_agent_id` identity and the same family invariants, but
-they occupy different positions in the document.
+both carry `forwarding_agent_id` identity and the same family invariants.
+They occupy different positions in the document.
+
+## Realization posture and closure
+
+Realization uses two independent axes, as defined by
+[envelope semantics](../formal/realization/envelope-semantics.md#terms):
+
+- **Posture** constrains a value or child scope: `open` delegates selection,
+  `constrained` requires a typed domain, and `exact` requires its singleton value.
+- **Closure** governs additional realizable dimensions or members:
+  `open-world` permits them within the owning semantics; `closed-world` excludes them.
+  A local declaration can leave closure unresolved for its owning resolution rules.
+
+The table maps the three vocabularies to these axes.
+“Not set” means that the term supplies no declaration on that axis.
+It does not erase an independently declared constraint.
+
+| Source vocabulary | Term | Posture axis | Closure axis | Meaning |
+| --- | --- | --- | --- | --- |
+| Author `realization.default` and `scopes[].posture` | `closed` | Not set | `closed-world` default | Do not fill otherwise unspecified realizable concerns under this default. |
+| Author `realization.default` and `scopes[].posture` | `open` | Not set | `open-world` default | Delegate otherwise unspecified realizable concerns; explicit descendants remain binding. |
+| Author `realization.default` and `scopes[].posture` | `unspecified` | Not set | No concrete local default | Use a governing concrete scope, or defer to the apparatus default. |
+| Concern constraint or envelope binding | `open` | `open` | Not set | Permit selection at the designated realization point within the admitted capability domain. |
+| Concern constraint or envelope binding | `constrained` | `constrained` | Not set | Require selection within the stated typed domain. |
+| Concern constraint or envelope binding | `exact` | `exact` | Not set | Require the stated singleton value or structure. |
+| Recursive record, collection, or scope closure | `open` | Not set | `open-world` in the named universe/profile | Permit additional modeled members while preserving declared children. |
+| Recursive record, collection, or scope closure | `closed` | Not set | `closed-world` in the named universe/profile | Exclude additional modeled members without making child values exact. |
+| Recursive record, collection, or scope closure | `undefined` | Not set | No local closure | Inherit a concrete lexical scope or document default; unresolved effective closure is `unsupported`. |
+
+This model does not add SDL fields or replace existing wire spellings.
+The source context determines which axis a term addresses.
+An exact package version can coexist with open package membership.
+A closed collection can contain constrained child values.
+Presence, knowledge, origin, capability, and observation demand remain independent.
+
+The [author cascade](../formal/realization/explicitness-and-realization.md#scoped-default-cascade)
+retains explicit leaf precedence, namespace ownership, and most-specific concrete defaults.
+Equal-scope duplicates are invalid; declaration order has no effect.
+Explicit `unspecified` retains delegation provenance.
+Without a selected apparatus policy, its current fallback is closed.
+Omitting `realization` instead retains the legacy closed fallback without an explicit delegation record.
+The owning compute-substrate rule still makes an omitted substrate constraint open.
+
+[Recursive closure](recursive-realization-constraints.md#2-records-scopes-and-closure)
+retains its own local and lexical resolution rules.
+A concrete closure names both its universe and profile revision.
+An undefined closure supplies neither name.
+The pure recursive relation does not select apparatus policy.
+Closure covers its named universe, not every incidental dependency or backend setting.
+
+Envelope bindings retain their separate
+[override rules](../formal/realization/envelope-semantics.md#required-semantics).
+Semantic openness does not admit unknown SDL fields.
+An open author default does not waive explicit leaf constraints.
+[Augmentation scope](augmentation-scope.md) separately governs added in-world effects and remains open by default.
 
 ## Narrative chain
 
@@ -137,28 +200,61 @@ ordering is normative (resolution and failure semantics in
   `injects` naming `entities` and `events` naming precondition assertions. Objective
   windows bind `stories`/`scripts`/`events`/`workflows`.
 
-Participant-directed delivery is an explicit nested binding under
-`behavior_specifications.*.participant_inject_deliveries`. It anchors one
-participant to one inject occurrence across the event/script/story chain and
-binds a participant-visible result, observation boundary, revisioned delivery
-policy, shared-time constraint, evidence requirement, and—when applicable—a
-mixed-control transition. Direction and intervention bindings also state the
-controller, authority scope, effective order, validity interval, and evidence
-basis that must agree with that transition and its target controller state.
-Their order must satisfy the named temporal constraints, and their control
-evidence must be covered by the named evidence requirements. An inject without
-that binding remains ordinary orchestration input; `injects.*.environment`
-never implies participant delivery.
+Participant-directed delivery is an explicit nested binding under `behavior_specifications.*.participant_inject_deliveries`.
+It anchors one participant to one inject occurrence across the event/script/story chain.
+It binds a participant-visible result, observation boundary, revisioned delivery policy, shared-time constraint, and evidence requirement.
+When applicable, it also binds a mixed-control transition.
 
-This field-level description is the currently published fixed-coordinate form.
-[ADR-110's normative amendment](../formal/participant-semantics/reusable-mixed-control.md#mc-09--participant-directed-injects)
-separates reusable edge constraints from exact control-application/delivery
-joins, uses acting-source authority, independently pins control/disclosure
-policies and keeps order distinct from shared time. It preserves ordinary
-injects and disclosure-only bindings. The
-[migration contract](../../docs/migration/reusable-mixed-control.md) defines
-explicit adoption and retains the old form's historical interpretation; the
-amendment does not introduce parser fields by this prose alone.
+Direction and intervention bindings state the controller, authority scope, effective order, validity interval, and evidence basis.
+These must agree with the transition and its target controller state.
+Their order must satisfy the named temporal constraints.
+Their control evidence must be covered by the named evidence requirements.
+An inject without that binding remains ordinary orchestration input.
+`injects.*.environment` never implies participant delivery.
+
+The view rule that admits the result must itself agree with the delivery's
+visibility and disclosure bases. Every control scope and evidence reference
+must resolve individually. Required source and result items must each project
+to one runtime address; an unaddressable item prevents compilation of that
+delivery and produces a diagnostic. Semantic-only authority and evidence
+references remain valid anchors without acquiring runtime addresses.
+
+The field-level description above is the legacy fixed-coordinate form, which a
+`mixed_control` without `semantics` keeps. The parser also accepts the reusable
+form of [ADR-110](../../docs/decisions/adrs/adr-110-reusable-mixed-control-policies-and-occurrences.md),
+selected only by `semantics: mixed-control-policy-occurrence/rev1` and a
+required `form` of `reusable-policy` or `finite-script`. Its
+`permitted_transitions` are reusable permissions with no fixed revision, order
+or proposal identity ([MC-01](../formal/participant-semantics/reusable-mixed-control.md#mc-01--policy-permissions-and-occurrence-facts)).
+A finite script adds ordered `script_steps` that may only narrow their edges
+([MC-02](../formal/participant-semantics/reusable-mixed-control.md#mc-02--reusable-policies-and-finite-scripts)).
+
+Each application is one API-409 `participant-control-occurrence-v2` occurrence.
+It has a fresh identity, its exact edge ref, and exact prior and resulting states.
+Each accepted kind has a resulting revision of expected + 1
+([MC-03](../formal/participant-semantics/reusable-mixed-control.md#mc-03--exact-state-relation-and-repeated-cycles)),
+and a participant-wide `occurrence_revision`. It carries the acting source
+controller, grant and scope
+([MC-04](../formal/participant-semantics/reusable-mixed-control.md#mc-04--acting-controller-authority-and-handoff)).
+
+An accepted occurrence records its admitted order and inclusive evaluated
+bounds; a rejected one keeps attempted and observed values apart and asserts
+no validity. Under that form a directed delivery carries a nested `control`
+block that names one permission and joins one exact accepted occurrence
+([MC-09](../formal/participant-semantics/reusable-mixed-control.md#mc-09--participant-directed-injects)).
+
+The block pins the control policy apart from the delivery policy.
+It uses the source-state controller and a non-widening scope.
+It compares no order with shared time. Ordinary injects and disclosure-only bindings are unchanged. The rev1 form validates and compiles.
+
+Planning refuses it for every backend.
+The reference runtime refuses its execution admission and control-plane construction.
+
+No runtime executes it. The
+[migration contract](../../docs/migration/reusable-mixed-control.md) retains
+the old form's historical interpretation, and the
+[finite-script conversion record](../../docs/migration/mixed-control-finite-script-conversion.md)
+states when a legacy declaration converts.
 
 `propositions` state typed claims; `assertions` use them as preconditions,
 invariants, or postconditions. Objective success composes invariant or
@@ -178,11 +274,10 @@ never as authored SDL.
 
 ## Extending the section set
 
-A new top-level authoring section is added by: defining its model and the
-published schema field, adding a row to this catalog (with its shape,
-requiredness, key shape, and references), adding its reference edges to
-[`references.md`](references.md), and updating the reference implementation and
-its tests. Scenario-native observability or authored evidence-requirement
-sections must also satisfy
-[`observability-and-evidence.md`](observability-and-evidence.md). No parallel
-section registry exists or should be created.
+A new top-level authoring section requires its model, published schema field, and a row in this catalog.
+The row gives its shape, requiredness, key shape, and references.
+Its reference edges belong in [the reference catalog](references.md).
+The reference implementation and its tests must also be updated.
+Scenario-native observability and authored evidence-requirement sections must also satisfy
+[the evidence-plane reference](observability-and-evidence.md).
+No parallel section registry exists or should be created.

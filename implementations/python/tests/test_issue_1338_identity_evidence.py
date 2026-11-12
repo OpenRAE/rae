@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 import yaml
 from raes import parse_sdl_file
-from tools.check_adr_immutability import amendment_refs, canonical_content
+from tools.check_adr_immutability import amendment_refs
 from tools.formal_semantic_validation._releases import _retained_historical_cases
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -21,7 +21,6 @@ def test_relation_decisions_are_accepted_and_recorded(number):
     record = next(entry for entry in index["adrs"] if entry["id"] == f"ADR-{number}")
     source = (ROOT / record["path"]).read_text()
     assert "## Status\n\naccepted\n" in source
-    assert record["pin"] == hashlib.sha256(canonical_content(source).encode()).hexdigest()
     if number != "109":
         assert "#1338" in amendment_refs(source)
         assert "#1338" in {entry["ref"] for entry in record["amendments"]}

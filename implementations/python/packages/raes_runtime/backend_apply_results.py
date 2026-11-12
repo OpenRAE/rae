@@ -6,21 +6,23 @@ from copy import deepcopy
 from dataclasses import replace
 from typing import cast
 
-from pydantic_core import to_jsonable_python
-from raes_contracts.canonical import jsonable_fallback
 from raes_contracts.contracts import ParticipantInformationStateContextResolver
 from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.planning import ProvisioningPlan
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.planning import ChangeAction, ProvisioningPlan
 from raes_contracts.runtime_state import ApplyResult, RealizationProvenanceEntry, RuntimeSnapshot
 from raes_processor.models import CompiledRealizationRequirement
 from raes_processor.planner import (
     prepared_delivery_violation,
+    prepared_node_disclosure,
     realization_authority_disclosure,
+    realization_cleanup_diagnostics,
     realization_disclosure,
     sanitize_plan_realization_snapshot,
     sanitize_prepared_node_snapshot,
     sanitize_realization_snapshot,
 )
+from raes_processor.semantics.realization_comparison import portable_realization_value
 
 from .backend_account_credentials import sanitize_account_credential_result
 from .backend_call_contracts import _apply_result_contract_violation
@@ -34,7 +36,7 @@ from .backend_result_diagnostics import (
     _snapshot_contract_diagnostics,
     _snapshot_transition_contract_diagnostics,
 )
-from .backend_snapshot_contracts import snapshot_address_contract_diagnostics
+from .backend_snapshot_contracts import snapshot_address_contract_diagnostics, snapshot_values_equal
 
 __all__ = ["_finalize_backend_apply"]
 
@@ -102,9 +104,37 @@ def _gated_backend_result(
         information_state_context_resolver=information_state_context_resolver,
     )
     if final_diagnostics:
-        return ApplyResult(False, baseline_snapshot, diagnostics=final_diagnostics)
-    attach = realization_provenance and finalized.success
-    return _with_realization_provenance(finalized, realization_provenance) if attach else finalized
+        finalized = ApplyResult(False, baseline_snapshot, diagnostics=final_diagnostics)
+    elif finalized.success:
+        finalized = _with_retained_realization_provenance(
+            finalized, baseline_snapshot, realization, realization_provenance
+        )
+    return finalized
+
+
+def _with_retained_realization_provenance(
+    result: ApplyResult,
+    baseline_snapshot: RuntimeSnapshot,
+    realization: _RealizationApplyContext,
+    provenance: tuple[RealizationProvenanceEntry, ...],
+) -> ApplyResult:
+    """Retain unaffected live-resource rows alongside newly disclosed rows."""
+
+    affected = (
+        {
+            operation.address
+            for operation in (realization.completion_plan or realization.operation_plan).operations
+            if operation.action is not ChangeAction.UNCHANGED
+        }
+        if realization.operation_plan is not None
+        else set()
+    )
+    retained = tuple(
+        entry
+        for entry in baseline_snapshot.realization_provenance
+        if entry.address in result.snapshot.entries and entry.address not in affected
+    )
+    return _with_realization_provenance(result, (*retained, *provenance))
 
 
 def _finalize_backend_apply(
@@ -171,16 +201,13 @@ def _post_apply_contract_result(
         information_state_context_resolver=information_state_context_resolver,
     )
     if not diagnostics and result.success and realization.completion_plan is not None:
-        violation = prepared_delivery_violation(realization.completion_plan, result.snapshot)
+        selected, returned = _portable_payloads(realization.completion_plan, result.snapshot)
+        violation = prepared_delivery_violation(selected, returned)
         if violation:
             diagnostics = [_backend_contract_invalid("runtime.preparation", violation)]
     if diagnostics or realization.plan is None:
         return diagnostics, ()
     return _realization_disclosure_result(result, realization)
-
-
-def _portable(payload: object) -> object:
-    return to_jsonable_python(payload, fallback=jsonable_fallback)
 
 
 def _portable_payloads(plan: ProvisioningPlan, snapshot: RuntimeSnapshot) -> tuple[ProvisioningPlan, RuntimeSnapshot]:
@@ -192,8 +219,13 @@ def _portable_payloads(plan: ProvisioningPlan, snapshot: RuntimeSnapshot) -> tup
     realization concern it encloses.
     """
 
-    operations = [replace(operation, payload=_portable(operation.payload)) for operation in plan.operations]
-    entries = {address: replace(entry, payload=_portable(entry.payload)) for address, entry in snapshot.entries.items()}
+    operations = [
+        replace(operation, payload=portable_realization_value(operation.payload)) for operation in plan.operations
+    ]
+    entries = {
+        address: replace(entry, payload=portable_realization_value(entry.payload))
+        for address, entry in snapshot.entries.items()
+    }
     return replace(plan, operations=operations), snapshot.with_entries(entries)
 
 
@@ -202,20 +234,23 @@ def _realization_disclosure_result(
 ) -> tuple[list[Diagnostic], tuple[RealizationProvenanceEntry, ...]]:
     """Disclose plan and supplemental realization authority over one result."""
 
-    # Failed apply results are cleanup inventory, not observation-success claims.
-    # Still check materialization authority and sanitize the snapshot; requiring
-    # the failed readback here would erase recoverable resources.
     plan = realization.plan
-    validation_plan, returned = _portable_payloads(
-        plan if result.success else replace(plan, observation_demands=()), result.snapshot
-    )
+    validation_plan, returned = _portable_payloads(plan, result.snapshot)
+    supplemental = _supplemental_realization_requirements(realization)
+    if not result.success:
+        return realization_cleanup_diagnostics(
+            validation_plan,
+            returned,
+            manifest=realization.manifest,
+            requirements=supplemental,
+            artifact_availability=realization.artifact_availability,
+        ), ()
     diagnostics, provenance = realization_authority_disclosure(
         validation_plan,
         returned,
         manifest=realization.manifest,
     )
-    supplemental = _supplemental_realization_requirements(realization)
-    if diagnostics or not supplemental:
+    if diagnostics:
         return diagnostics, provenance
     supplemental_diagnostics, supplemental_provenance = realization_disclosure(
         supplemental,
@@ -225,7 +260,17 @@ def _realization_disclosure_result(
         artifact_availability=realization.artifact_availability,
     )
     diagnostics.extend(supplemental_diagnostics)
-    return diagnostics, (*provenance, *supplemental_provenance)
+    prepared_provenance = ()
+    if not diagnostics and realization.completion_plan is not None:
+        selected, _ = _portable_payloads(realization.completion_plan, returned)
+        prepared_diagnostics, prepared_provenance = prepared_node_disclosure(
+            selected,
+            returned,
+            manifest=realization.manifest,
+            artifact_availability=realization.artifact_availability,
+        )
+        diagnostics.extend(prepared_diagnostics)
+    return diagnostics, (*provenance, *supplemental_provenance, *prepared_provenance)
 
 
 def _backend_snapshot_contract_diagnostics(
@@ -265,9 +310,12 @@ def _sanitize_backend_realization(
     if realization_plan is not None:
         try:
             sanitized = sanitize_account_credential_result(
-                sanitized, realization.completion_plan or realization_plan, baseline_snapshot
+                sanitized,
+                realization.completion_plan or realization_plan,
+                baseline_snapshot,
+                requirements=_supplemental_realization_requirements(realization),
             )
-        except ValueError:
+        except InvalidInputError:
             return _failed_apply_result(
                 baseline_snapshot,
                 _backend_contract_invalid(
@@ -277,7 +325,7 @@ def _sanitize_backend_realization(
     if realization_plan is not None and (realization_plan.realization_authority or realization_requirements):
         try:
             safe_snapshot = _safe_realization_snapshot(realization_plan, realization_requirements, sanitized.snapshot)
-        except (TypeError, ValueError):
+        except TypeError, ValueError:
             return _failed_apply_result(
                 baseline_snapshot,
                 _backend_contract_invalid(
@@ -323,13 +371,13 @@ def _safe_realization_snapshot(
     safe_view = _sanitized_realization(view_plan, requirements, view)
     try:
         kept = _sanitized_realization(plan, requirements, snapshot)
-    except (TypeError, ValueError):
+    except TypeError, ValueError:
         # The sanitized view is authoritative; an entry the sanitizer cannot
         # rewrite in place is replaced by its view below.
         kept = snapshot
     entries = {
         address: entry
-        if _portable(entry.payload) == _portable(safe_view.entries[address].payload)
+        if snapshot_values_equal(entry.payload, safe_view.entries[address].payload)
         else safe_view.entries[address]
         for address, entry in kept.entries.items()
     }
@@ -375,7 +423,12 @@ def _with_realization_provenance(
             result,
             snapshot=result.snapshot.with_entries(
                 dict(result.snapshot.entries),
-                realization_provenance=provenance,
+                realization_provenance=tuple(
+                    {
+                        (entry.address, entry.field_path, entry.domain, entry.requirement_kind): entry
+                        for entry in provenance
+                    }.values()
+                ),
             ),
         ),
     )

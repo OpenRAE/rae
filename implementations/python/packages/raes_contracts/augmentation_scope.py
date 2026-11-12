@@ -8,6 +8,7 @@ from typing import Annotated, Literal
 from pydantic import ConfigDict, Field, model_validator
 
 from ._base import ContractModel
+from .json_pointer import unescape_token
 from .observation_demand import SemanticScope
 from .realization_structure import semantic_address_contains
 
@@ -61,7 +62,7 @@ def effective_augmentation_scope(
     tokens = scope.split("/")
     owner = namespace
     if owner is None:
-        owner = tuple(tokens[2].replace("~1", "/").replace("~0", "~").split(".")[:-1]) if len(tokens) > 2 else ()
+        owner = tuple(unescape_token(tokens[2]).split(".")[:-1]) if len(tokens) > 2 else ()
     layers: dict[tuple[str, ...], list[AugmentationScopeRule]] = {(): []}
     for rule in policy.scopes:
         if owner[: len(rule.namespace)] == rule.namespace and semantic_address_contains(rule.scope, scope):

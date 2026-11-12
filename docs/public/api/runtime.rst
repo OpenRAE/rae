@@ -1,15 +1,14 @@
-Runtime Layer
+Runtime layer
 =============
 
-The ``raes_runtime`` package owns live runtime control: runtime targets,
-backend registry integration, manager lifecycle execution, control-plane
-submission and observation, operation persistence, security, and backend
-result-contract validation helpers.
+The ``raes_runtime`` package owns live runtime control. It manages targets,
+backends, and their lifecycle. It also handles control-plane requests, stores
+operations, applies access checks, and checks backend results.
 
-Runtime APIs consume neutral DTOs from ``raes_contracts`` at backend and
-control-plane boundaries. Header-based control-plane identity is disabled by
-default and requires an explicit ``ControlPlaneSecurityConfig`` with
-``trust_proxy_identity_headers=True``.
+Runtime APIs use shared data types from ``raes_contracts`` for backend and
+control-plane calls. The control plane ignores identity headers by default.
+To trust them, set ``trust_proxy_identity_headers=True`` in an explicit
+``ControlPlaneSecurityConfig``.
 
 .. currentmodule:: raes_runtime
 
@@ -20,43 +19,58 @@ Public API
    :members:
    :undoc-members:
 
-Runtime Manager
+Runtime manager
 ---------------
 
 .. automodule:: raes_runtime.manager
    :members:
 
-Backend Registry
+Backend registry
 ----------------
 
 .. automodule:: raes_runtime.registry
    :members:
 
-Control Plane
+Control plane
 -------------
 
 .. automodule:: raes_runtime.control_plane
    :members:
 
-Control Plane API
+Control plane API
 -----------------
 
 .. automodule:: raes_runtime.control_plane_api
    :members:
 
-Control Plane Store
+Control plane store
 -------------------
 
 .. automodule:: raes_runtime.control_plane_store
    :members:
 
-Control Plane Security
+Assigned trials
+---------------
+
+The :doc:`../guides/assigned-trials` guide describes coordinator admission,
+selected host execution, cancellation, and checked outcome ingestion.
+
+.. automodule:: raes_runtime.runtime_assigned_trial
+   :members: AssignedTrial
+
+.. automodule:: raes_contracts.assigned_trial
+   :members: TrialAssignmentModel, TrialAssignmentControlModel, TrialOutcomeModel
+
+.. autoclass:: raes_runtime.runtime_trial_services.TrialOutcomeVerifier
+   :members:
+
+Control plane security
 ----------------------
 
 .. automodule:: raes_runtime.control_plane_security
    :members:
 
-Result Contracts
+Result contracts
 ----------------
 
 .. automodule:: raes_runtime.result_contracts

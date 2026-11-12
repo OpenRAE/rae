@@ -1,4 +1,4 @@
-# Runtime Contract Semantics
+# Runtime contract semantics
 
 This directory holds the formal artifacts for portable runtime result contracts.
 
@@ -18,7 +18,8 @@ This directory holds the formal artifacts for portable runtime result contracts.
   [participant-backend-contracts.md](participant-backend-contracts.md),
   governed by ADR-060
 
-## API-405 - Backend Participant Capability Declarations
+<!-- vale RAES.HeadingCase = NO -->
+## API-405 - Backend participant capability declarations
 
 `API-405` requires backend manifests with a participant runtime surface to
 declare the participant roles, behavior features, and interaction features that
@@ -28,6 +29,8 @@ backend apparatus, not to authored participant assignments, control-plane
 caller roles, or mutable episode state. If `participant_runtime` is absent or
 `null`, the manifest is declaring that it has no participant-runtime surface;
 the API-405 role/feature fields are mandatory once that block is present.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 The standard vocabulary is intentionally lineage-bound:
 
@@ -55,13 +58,16 @@ remain bound through `concept_bindings`. RAES can verify the syntax and
 authority binding for extension terms; backend-specific evidence obligations
 remain owned by the backend that defines the extension.
 
-### API-405 Evidence Criteria
+<!-- vale RAES.HeadingCase = NO -->
+### API-405 evidence criteria
 
 Standard API-405 terms have term-level evidence criteria in
 `raes_backend_protocols.capabilities.PARTICIPANT_RUNTIME_CAPABILITY_REQUIRED_CONTRACTS`.
 `run_target_conformance()` rejects standard participant capability claims when
 the manifest omits the published contracts that carry the corresponding runtime
 evidence.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 The participant episode evidence set is
 `participant-episode-state-envelope-v1`,
@@ -90,11 +96,11 @@ The participant behavior evidence set is
 | `interference` | Participant behavior evidence set | SEM-209 and ADR-022 require one participant action's effect on another action's preconditions, observations, effects, or outcome to be reviewable. |
 | `shared_state_change` | Participant behavior evidence set | SEM-209 and ADR-022 require shared object reads/writes to be explicit so multi-participant semantics do not collapse into final state only. |
 
-## Implementation Mapping
+## Implementation mapping
 
-- shared result constraints: `implementations/python/packages/raes_processor/semantics/workflow.py`
+- shared result constraints: `implementations/python/packages/raes_contracts/workflow/semantics.py`
 - typed result models: `implementations/python/packages/raes_processor/models/`
-- manager contract validation: `implementations/python/packages/raes_processor/manager.py`
+- manager contract validation: `implementations/python/packages/raes_runtime/manager.py`
 - backend example: `implementations/python/packages/raes_backend_stubs/stubs.py`
 - participant capability contract model:
   `implementations/python/packages/raes_contracts/contracts/`

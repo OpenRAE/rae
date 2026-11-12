@@ -1,0 +1,49 @@
+{
+  "asset_ref": {
+    "asset_digest": "sha256:3937c6a70b759eecf2c320ba20d75535fe5bb439ef0810a6e43862f5b84794eb",
+    "asset_id": "privacy-instruction",
+    "asset_version": "two"
+  },
+  "audience_scope_ref": "audiences.red",
+  "delivery_ref": null,
+  "disposition": "selected",
+  "episode_generation": 0,
+  "episode_id": "episode-1",
+  "evidence_refs": [
+    "evidence.selection"
+  ],
+  "item_ref": null,
+  "participant_address": "participants.red",
+  "provenance_refs": [
+    "provenance.selection"
+  ],
+  "record_cut": {
+    "anchor_event_ref": "events.1",
+    "anchor_order": 1,
+    "cut_kind": "sequence_prefix",
+    "cut_ref": "cuts.1",
+    "history_domain": "participant_episode_lifecycle",
+    "history_prefix_length": 2,
+    "order_model": "control_plane_order",
+    "predecessor_event_refs": []
+  },
+  "record_id": "record.selected",
+  "run_id": "run-1",
+  "schema_version": "participant-control-context-record/v1",
+  "scope_ref": "catalog.training",
+  "selected_by_ref": "actors.director",
+  "selection_authority_ref": "authorities.select",
+  "selection_cut": {
+    "anchor_event_ref": "events.1",
+    "anchor_order": 1,
+    "cut_kind": "sequence_prefix",
+    "cut_ref": "cuts.1",
+    "history_domain": "participant_episode_lifecycle",
+    "history_prefix_length": 2,
+    "order_model": "control_plane_order",
+    "predecessor_event_refs": []
+  },
+  "selection_ref": "selections.red",
+  "surface_id": null,
+  "withholding_authority_ref": null
+}

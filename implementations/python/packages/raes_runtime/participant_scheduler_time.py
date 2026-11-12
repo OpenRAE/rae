@@ -2,6 +2,7 @@
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_processor.models import CompiledTimeModel, ParticipantAutonomousExecutionRuntime
 
@@ -10,10 +11,10 @@ def clock_coordinate(snapshot: RuntimeSnapshot, clock_address: str) -> tuple[int
     """Read one shared clock coordinate or fail closed."""
 
     if snapshot.time_model_state is None:
-        raise ValueError("autonomous participant execution requires typed shared-time state")
+        raise ConflictError("autonomous participant execution requires typed shared-time state")
     clock = snapshot.time_model_state.clocks.get(clock_address)
     if clock is None:
-        raise ValueError(f"autonomous participant clock {clock_address!r} has no runtime state")
+        raise ConflictError(f"autonomous participant clock {clock_address!r} has no runtime state")
     return clock.coordinate.segment, clock.coordinate.tick
 
 
@@ -49,7 +50,7 @@ def cadence(policy: ParticipantAutonomousExecutionRuntime, time_model: CompiledT
         if constraint.address in policy.temporal_constraint_addresses and constraint.kind == "cadence"
     ]
     if len(selected) != 1 or selected[0].cadence_ticks is None:
-        raise ValueError("autonomous participant execution requires exactly one cadence constraint")
+        raise ConflictError("autonomous participant execution requires exactly one cadence constraint")
     constraint = selected[0]
     return constraint.start_tick or 0, constraint.cadence_ticks
 

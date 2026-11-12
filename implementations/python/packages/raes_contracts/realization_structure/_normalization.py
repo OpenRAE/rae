@@ -6,8 +6,9 @@ import math
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 
+from ..json_pointer import pointer_from_tokens
 from ._build import RealizationConstraintBuildResult, build_failure
-from ._common import RelationBudget, actual_identity, pointer
+from ._common import RelationBudget, actual_identity
 from ._limits import admit_constraint_document, admit_normalization_metadata
 from ._models import (
     DEFAULT_REALIZATION_CONSTRAINT_LIMITS,
@@ -166,7 +167,7 @@ def _normalization_origin(
     origins: Mapping[str, RealizationOrigin | str],
     path: tuple[str, ...],
 ) -> RealizationOrigin:
-    return RealizationOrigin(origins.get(pointer(path), RealizationOrigin.AUTHOR))
+    return RealizationOrigin(origins.get(pointer_from_tokens(path), RealizationOrigin.AUTHOR))
 
 
 @dataclass(frozen=True)
@@ -200,7 +201,7 @@ def _normalize_literal_node(
     source_path: tuple[str, ...],
     context: _NormalizationContext,
 ) -> tuple[RecursiveRealizationStructure | None, RealizationConstraintBuildResult | None]:
-    current_pointer = pointer(semantic_path)
+    current_pointer = pointer_from_tokens(semantic_path)
     normalized = None
     failure = None
     if exhausted := context.budget.spend_node(len(semantic_path)):
@@ -210,7 +211,7 @@ def _normalize_literal_node(
             f"Literal normalization exceeded {exhausted}.",
         )
     origin = _normalization_origin(context.origins, source_path)
-    source_pointer = pointer(source_path)
+    source_pointer = pointer_from_tokens(source_path)
     context.visited.add(source_pointer)
     override = context.leaf_constraints.get(source_pointer)
     if override is not None:
@@ -262,7 +263,7 @@ def _record_member_limit_failure(
     return (
         build_failure(
             RealizationRelationStatus.LIMIT_EXCEEDED,
-            pointer(semantic_path),
+            pointer_from_tokens(semantic_path),
             "Literal normalization exceeded max_members.",
         )
         if len(value) > context.budget.limits.max_members
@@ -282,7 +283,7 @@ def _normalize_record_fields(
         if not isinstance(key, str):
             failure = build_failure(
                 RealizationRelationStatus.INVALID,
-                pointer(semantic_path),
+                pointer_from_tokens(semantic_path),
                 "Literal normalization requires string record keys.",
             )
         else:
@@ -312,11 +313,11 @@ def _normalize_collection(
     if len(value) > context.budget.limits.max_members:
         failure = build_failure(
             RealizationRelationStatus.LIMIT_EXCEEDED,
-            pointer(semantic_path),
+            pointer_from_tokens(semantic_path),
             "Literal normalization exceeded max_members.",
         )
     else:
-        profile = context.collection_profiles.get(pointer(source_path))
+        profile = context.collection_profiles.get(pointer_from_tokens(source_path))
         if profile is not None:
             node, failure = _normalize_keyed_collection(value, semantic_path, source_path, context, profile, origin)
         else:
@@ -443,7 +444,7 @@ def _normalize_keyed_member(
         if key in identities:
             failure = build_failure(
                 RealizationRelationStatus.INVALID,
-                pointer(semantic_path),
+                pointer_from_tokens(semantic_path),
                 "A profiled collection contains a duplicate semantic identity.",
             )
         else:
@@ -477,7 +478,7 @@ def _keyed_member_identity(
     if exhausted := context.budget.spend_identity():
         failure = build_failure(
             RealizationRelationStatus.LIMIT_EXCEEDED,
-            pointer(semantic_path),
+            pointer_from_tokens(semantic_path),
             f"Profiled collection normalization exceeded {exhausted}.",
         )
     else:
@@ -485,7 +486,7 @@ def _keyed_member_identity(
         if identity is None:
             failure = build_failure(
                 RealizationRelationStatus.INVALID,
-                pointer((*semantic_path, str(index))),
+                pointer_from_tokens((*semantic_path, str(index))),
                 "A profiled collection member has no complete concrete semantic identity.",
             )
     key = identity_key(identity) if identity is not None else None

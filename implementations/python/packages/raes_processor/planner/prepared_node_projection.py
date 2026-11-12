@@ -9,6 +9,8 @@ from typing import Any
 
 from pydantic_core import to_jsonable_python
 from raes_contracts.canonical import jsonable_fallback
+from raes_contracts.errors import InvalidInputError
+from raes_contracts.json_pointer import escape_token
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp
 from raes_contracts.realization_structure import (
     RealizationClosure,
@@ -20,6 +22,7 @@ from raes_contracts.realization_structure import (
     validate_realization_value,
 )
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.runtime_value_limits import PLAN_AUTHORITY_LIMITS, RUNTIME_SNAPSHOT_VALUE_LIMITS
 
 from ..semantics.realization_concerns import realization_concern_descriptors
 
@@ -27,18 +30,25 @@ _PROFILE = "raes/prepared-portable-node/v1"
 
 
 def prepared_node_payload_projection(payload: Mapping[str, Any]) -> dict[str, Any]:
-    """Use incumbent concern sanitizers; no backend-selected secret becomes authority."""
+    """Use incumbent concern sanitizers; no backend-selected secret becomes authority.
 
-    if not validate_realization_value(payload, python_carriers=True).conformant:
-        raise ValueError("prepared node exceeds its recursive projection bounds")
+    Raise ``InvalidInputError`` when the payload exceeds its bounds or a concern value is malformed.
+    """
+
+    if not validate_realization_value(payload, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS, python_carriers=True).conformant:
+        raise InvalidInputError("prepared node exceeds its recursive projection bounds")
     projected = deepcopy(payload)
     for descriptor in realization_concern_descriptors():
         current = projected
         for token in descriptor.payload_path[:-1]:
             current = current.get(token) if isinstance(current, dict) else None
         leaf = descriptor.payload_path[-1]
-        if isinstance(current, dict) and leaf in current:
-            current[leaf] = descriptor.sanitize_observation(current[leaf], recursive=True)
+        if isinstance(current, dict) and leaf in current and current[leaf] is not None:
+            try:
+                current[leaf] = descriptor.sanitize_observation(current[leaf], recursive=True)
+            except ValueError as exc:
+                # Concern validators and projectors refuse a malformed value with ValueError (E3).
+                raise InvalidInputError("prepared node concern value violates its observation contract") from exc
     return to_jsonable_python(projected, fallback=jsonable_fallback)
 
 
@@ -53,7 +63,7 @@ def _origin_children(value: object) -> Iterable[tuple[object, object]]:
 def _backend_origins(value: object, path: str = "") -> dict[str, RealizationOrigin]:
     origins = {path: RealizationOrigin.BACKEND}
     for key, child in _origin_children(value):
-        token = str(key).replace("~", "~0").replace("/", "~1")
+        token = escape_token(str(key))
         origins.update(_backend_origins(child, f"{path}/{token}"))
     return origins
 
@@ -63,13 +73,14 @@ def prepared_node_document(payload: Mapping[str, Any]) -> object:
     built = normalize_realization_literal(
         selected,
         semantic_profile=_PROFILE,
+        limits=PLAN_AUTHORITY_LIMITS,
         default_closure=RealizationClosure(posture="closed", universe="portable-node-value", profile=_PROFILE),
         metadata=RealizationNormalizationMetadata(
             origins=_backend_origins(selected),
         ),
     )
     if built.status is not RealizationRelationStatus.CONFORMANT:
-        raise ValueError("prepared node cannot be represented by a bounded recursive completion")
+        raise InvalidInputError("prepared node cannot be represented by a bounded recursive completion")
     return built.document
 
 
@@ -95,6 +106,7 @@ def prepared_node_delivery_violation(selected: ProvisioningPlan, snapshot: Runti
             or not evaluate_realization_constraint(
                 prepared_node_document(operation.payload),
                 prepared_node_payload_projection(entry.payload),
+                limits=PLAN_AUTHORITY_LIMITS,
             ).conformant
         ):
             return "Backend did not deliver its admitted portable node completion."

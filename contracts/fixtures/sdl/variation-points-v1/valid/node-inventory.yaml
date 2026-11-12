@@ -1,0 +1,25 @@
+name: node-inventory-family
+nodes:
+  worker:
+    type: compute
+    os: linux
+    resources: {ram: 1 gib, cpu: 1}
+    runtime:
+      scheduled_jobs:
+        - {scheduled_job_id: baseline, name: Baseline job}
+        - {scheduled_job_id: extra, name: Extra job}
+infrastructure:
+  worker: {count: 1}
+variation_points:
+  worker-state:
+    kind: alternative
+    target: {kind: structural, owner: worker, slot: nodes.presence}
+    alternatives:
+      absent: {kind: node-presence, present: false}
+      baseline:
+        kind: node-presence
+        present: true
+        inventory:
+          nodes.runtime.scheduled_jobs:
+            - nodes.worker.runtime.scheduled_jobs.baseline
+      complete: {kind: node-presence, present: true}

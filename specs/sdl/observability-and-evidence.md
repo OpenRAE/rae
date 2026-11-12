@@ -1,4 +1,5 @@
-# Catalog 5 - Observability and Evidence Planes
+<!-- vale RAES.HeadingCase = NO -->
+# Catalog 5 - observability and evidence planes
 
 This catalog states SDL authoring rules for ADR-066. The implemented
 `evidence_requirements` top-level section carries authored capture intent;
@@ -7,6 +8,8 @@ runtime families. A future field still has to update `sections.md`,
 `references.md`, the published SDL schemas, the reference implementation,
 fixtures, and tests.
 
+<!-- vale RAES.HeadingCase = YES -->
+
 [`augmentation_scope`](augmentation-scope.md) separately controls permission
 for in-world additions needed by capture or other apparatus. **Omission means
 open.** Authors must explicitly forbid additions: a closed default would impose
@@ -14,7 +17,7 @@ a large, unexpected burden by requiring them to anticipate every backend's
 implementation details. Closed scope cannot be bypassed by silently installing
 instrumentation or omitting required evidence while claiming success.
 
-## Plane Rule
+## Plane rule
 
 An SDL authoring construct that makes an observability or evidence claim MUST
 have a primary plane:
@@ -28,13 +31,11 @@ have a primary plane:
 The carrier decides the plane. A string such as `log`, `trace`, `telemetry`,
 `observation`, or `evidence` does not decide meaning on its own.
 
-## Scenario-Native Observability
+## Scenario-native observability
 
-A scenario-native observability system is an in-world resource. It may be a
-runtime service, sensor, detection engine, monitoring manager, telemetry
-collector, tracing backend, metrics store, dashboard, forwarding agent, or
-comparable scenario element when the scenario makes that system part of the
-environment.
+A scenario-native observability system is an in-world resource. It may be a runtime service, sensor, detection engine, monitoring manager, telemetry collector, tracing backend, metrics store, dashboard, or forwarding agent.
+It may also be a comparable scenario element.
+In each case, the scenario makes that system part of the environment.
 
 Scenario-native observability systems:
 
@@ -48,20 +49,16 @@ Scenario-native observability systems:
 - MUST NOT be represented as a generic top-level observability bag; and
 - MUST NOT satisfy an authored evidence requirement merely by existing.
 
-A new runtime family is appropriate only when the observability system has a
-distinct product-neutral logical service identity, collection name, primary id,
-child-ref tree, owning ADR, schema, validation, and tests.
+A new runtime family requires a distinct product-neutral logical service identity, collection name, primary id, and child-ref tree. It also requires an owning ADR, schema, validation, and tests.
 
-## Authored Evidence Requirements
+## Authored evidence requirements
 
 An authored evidence requirement says what data, evidence, or output must be
 captured. It is an authoring obligation, not proof of capture.
 
 SDL carries authored evidence requirements in the map-keyed
 `evidence_requirements` section. Each entry is a portable capture-intent
-declaration. It may cite a scenario-native observability runtime-family ref as
-one source, but that source remains an in-world system and does not satisfy the
-requirement merely by existing.
+declaration. It may cite a scenario-native observability runtime-family ref as one source. That source remains an in-world system and does not satisfy the requirement merely by existing.
 
 An authored evidence requirement MUST declare:
 
@@ -124,17 +121,16 @@ Authored component references are validated against SDL declarations and then
 compiled to their unique canonical runtime addresses. Runtime demand matching
 uses those addresses. When a more-specific descendant policy applies, it
 partitions the broader selector; a positive ancestor rule MUST NOT bypass a
-descendant prohibition or no-data rule. The normalized broad selector MUST
-carry the excluded descendant scopes so collection remains permitted over its
-unexcluded sibling remainder; inherited selectors are clipped to each child
-partition, including mandatory selectors. Fully inherited selector regions
+descendant prohibition or no-data rule.
+
+The normalized broad selector MUST carry the excluded descendant scopes. Collection remains permitted over its unexcluded sibling remainder. Inherited selectors are clipped to each child partition, including mandatory selectors. Fully inherited selector regions
 have one effective scope owner; a broader
 rule scope MUST NOT cause duplicate collection of the same inherited selector.
 Collection-member identities and authored exclusions MUST resolve uniquely
 through the shared semantic address
-resolver. Backend runtime support MUST be registered as a
-stable selector-family pattern and MUST resolve each scenario-specific selector
-to one unambiguous most-specific capability before any side effect.
+resolver.
+
+Backend runtime support MUST be registered as a stable selector-family pattern. It MUST resolve each scenario-specific selector to one unambiguous most-specific capability before any side effect.
 
 All phase plans carry the normalized demand so each is meaningful when
 submitted independently. Composite execution MUST designate exactly one phase
@@ -143,10 +139,7 @@ when no later phase is actionable. Only that phase executes the shared demand
 during composite apply.
 
 Protected values explicitly selected for retention MUST be committed atomically
-with terminal operation state. This store transaction is not a transaction over
-backend resources: the current runtime MUST reject mandatory observation demand
-combined with actionable backend operations before mutation, because it has no
-compensating execution owner. Required read-only demand and supported optional
+with terminal operation state. This store transaction is not a transaction over backend resources. The current runtime has no compensating execution owner. It MUST reject mandatory observation demand combined with actionable backend operations before mutation. Required read-only demand and supported optional
 demand can execute through registered adapters. Export demand MUST be rejected
 until a governed delivery owner exists; staging an outbox is not delivery.
 
@@ -154,11 +147,14 @@ Realization-description values selected for reporting are projected to the
 canonical experiment realized-form disclosure contract. Backend-selected
 compute-substrate descriptions use already-bound apparatus metadata without
 probing. A nonretained description is available only in the immediate manager
-result, not control-plane lookup, recovery, or a lifetime cache. Only explicit
+result, not control-plane lookup, recovery, or a lifetime cache.
+
+Only explicit
 retention permits storing its protected body. Native backend readback used for
 operational validation travels as transient apply-result data, not persisted
 snapshot observations. Demand selects optional native probes before the driver
 observe call; required ownership, readiness, and security checks remain active.
+
 If native readback fails after successful resource mutation, the operation MUST
 fail while preserving the changed, contract-valid inventory for recovery and
 cleanup. Missing data, malformed results, and readback exceptions MUST NOT
@@ -185,7 +181,7 @@ Environment-visible or comparability-relevant apparatus additionally maps to
 the existing run-level augmentation disclosure. Neither ownership role nor a
 configured ship target proves delivery or captured evidence.
 
-## Processor/Backend Operational Observability
+## Processor/Backend operational observability
 
 Processor/backend operational observability includes apparatus logs,
 diagnostics, audit records, health checks, traces, setup evidence, measurement
@@ -193,40 +189,49 @@ channels, and capability declarations. These facts are not scenario meaning
 unless an SDL or runtime contract explicitly projects them.
 
 Mandatory internal inputs for readiness, reconciliation, and execution remain
-under their existing owners. Native compute-substrate observation is a distinct
-readback action and occurs only when explicit effective collection demand
-selects it; realization posture or backend capability alone does not create that
-demand.
+under their existing owners. Native compute-substrate observation is a distinct readback action and occurs only when explicit effective collection demand selects it. Realization posture or backend capability alone does not create that demand.
 
-SDL authoring MUST NOT depend on backend-private object ids, raw trace payloads,
-operator secrets, process argv, environment dumps, full stack traces, or
-diagnostic text as portable evidence or participant-visible state.
+SDL authoring MUST NOT use backend-private object ids, raw trace payloads, operator secrets, process argv, or environment dumps as portable evidence or participant-visible state. Full stack traces and diagnostic text MUST NOT serve those purposes either.
 
-## Captured Evidence And Derived Analysis
+## Captured evidence and derived analysis
 
 Captured evidence belongs to evidence records or artifact references. Derived
 analysis belongs to derived measures, result summaries, outcome
 interpretations, studies, reports, exports, or claims.
 
-SDL authoring MAY name the requirement or source that later evidence must
-satisfy, but it MUST NOT treat a captured artifact, backend log, result
-summary, metric value, or analysis output as the authored requirement itself.
+SDL authoring MAY name the requirement or source that later evidence must satisfy.
+It MUST NOT treat a captured artifact, backend log, result summary, metric value, or analysis output as the authored requirement itself.
 
-Derived analysis MUST cite source evidence before it supports a claim. Hidden
-truth, hidden answer keys, evaluator state, private traces, prompts, secrets,
-and adjudication assets MUST NOT become participant-visible or public analysis
-content without an explicit marking, redaction, and authorization boundary.
+Derived analysis MUST cite source evidence before it supports a claim. Hidden truth, hidden answer keys, evaluator state, private traces, prompts, secrets, and adjudication assets require an explicit marking, redaction, and authorization boundary. Without that boundary, they MUST NOT become participant-visible or public analysis content.
 
-## Required-Capture Admission
+## Required-capture admission
 
-Every explicit SDL or experiment capture demand is conjunctive. Before any
-effect, the selected backend must provide one coherent versioned capture offer
-that covers the demand's output contract and fields together with its artifact,
-media, capture, source, scope, exact authored scope refs, channel, window,
-integrity, sensitivity, loss/redaction, the exact redaction-policy identity,
-retention, and export terms. Scope-ref offers name concrete targets; wildcard
-scope refs are not admission authority. Support must not be synthesized by
-combining legacy capability lists or independent offers.
+Every explicit SDL or experiment capture demand is conjunctive.
+Before any effect, the selected backend must provide one coherent versioned capture offer.
+That offer must cover the demand's output contract and fields together with all of these terms:
+
+- Artifact, media, capture, source, and scope.
+- Exact authored scope refs, channel, and window.
+- Integrity, sensitivity, and loss/redaction.
+- Exact redaction-policy identity, retention, and export.
+
+Scope-ref offers name concrete targets.
+Wildcard scope refs are not admission authority.
+Support must not be synthesized from legacy capability lists or independent offers.
+
+Scientific evidence admission MUST also require an implemented response verifier for the requested integrity mode.
+The current shared content proof supports `checksum` and `sha256-digest`.
+An authored `none` adds no integrity constraint to the backend offer and MUST NOT count as a stronger scoped requirement.
+
+The returned artifact still satisfies its existing content and checksum contract.
+Custody, signature, timestamp, and unknown modes MUST be refused before backend effects when that response verifier is absent.
+A matching backend offer or wildcard MUST NOT substitute for a verifier or weaken custody to checksum.
+
+Installed observation integrity providers keep their separate runtime interface and admission rules.
+RAE owns execution or refusal of effective SDL semantics through the backend interface.
+The experimentalist owns custody after the result handoff.
+
+RAE does not add a signing-key policy, external archive assurance, or a universal custody rule for experiment claims.
 
 An absent offer, or an offer marked unsupported, unavailable, lossy, redacted,
 or withheld where the demand requires available complete full capture, fails
@@ -238,16 +243,15 @@ An SDL requirement that names `capture_spec_ref` and
 capture-spec payload is available for resolution; a matching backend offer
 cannot substitute for the referenced governed requirement.
 
-After a run, a satisfaction claim is valid only when the task requirement
-resolves through the admitted capture specification and evidence record to one
-emitted artifact whose supplied bytes, digest, media/role, integrity mode, and
-required fields validate through both the published schema and the owning
-semantic model. Evidence-based study conditions consume only those validated
-bindings, never run reference metadata. The record timestamp must also fall
-inside the resolved capture window (and the run bounds for run/task windows). A redacted
-record must bind the exact governed policy and fails closed unless a content
-verifier for that policy is available. Artifact `satisfies_refs`, URIs, summaries, and
-backend assertions are not content proof.
+After a run, satisfaction requires a task requirement that resolves through the admitted capture specification and evidence record to one emitted artifact.
+Its supplied bytes, digest, media/role, integrity mode, and required fields must validate through the published schema and owning semantic model.
+Evidence-based study conditions consume only those validated bindings, never run reference metadata.
+
+The record timestamp must fall inside the resolved capture window.
+For run/task windows, it must also fall inside the run bounds.
+A redacted record must bind the exact governed policy.
+It fails closed unless a content verifier for that policy is available.
+Artifact `satisfies_refs`, URIs, summaries, and backend assertions are not content proof.
 
 ## Augmentation
 
@@ -277,15 +281,13 @@ The classification record itself remains
 `experiment-run-v1` `augmentation_disclosures`. That carrier records the
 augmentation purpose, realization layer, additive classifications, portable
 carrier refs, disclosure policy, markings, observer/comparability effects, and
-run-traced evidence refs. SDL authoring that depends on augmentation output
-must map to that run-provenance carrier rather than relying on backend logs,
-free-form metadata, evaluator internals, or untyped diagnostic text.
+run-traced evidence refs. SDL authoring that depends on augmentation output must map to that run-provenance carrier. It must not rely on backend logs, free-form metadata, evaluator internals, or untyped diagnostic text.
 
-## Reference And Validation Requirements
+## Reference and validation requirements
 
 Future SDL fields for this catalog must satisfy the existing SDL gates:
 
-- parser and model closure through `SDLModel`;
+- parser and model closure under the [document contract](document-model.md#4-structural-closure-fail-closed);
 - concrete identifier keys, with no `${var}` placeholders in symbol-defining
   keys;
 - fail-closed reference resolution through `references.md`;
@@ -294,7 +296,7 @@ Future SDL fields for this catalog must satisfy the existing SDL gates:
 - published schema parity with the reference implementation; and
 - ADR-056/057 redaction for observed values and secret-bearing facts.
 
-## Extension Rule
+## Extension rule
 
 To add a scenario-native observability or authored evidence-requirement
 surface, update the canonical catalogs instead of adding parallel prose:

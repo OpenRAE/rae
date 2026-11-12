@@ -1,6 +1,6 @@
-# Dependency Ordering
+# Dependency ordering
 
-## Graph Model
+## Graph model
 
 Planner semantics operate on canonical compiled resource identities, not on
 source-file locality or authoring layout.
@@ -14,7 +14,7 @@ Resources expose two typed dependency classes:
 `refresh` edges define recomputation/update propagation when upstream state
 changes.
 
-## Required Properties
+## Required properties
 
 - dependency graphs are normalized to known nodes only
 - ordering dependencies are evaluated per domain for cycle detection and stable
@@ -25,7 +25,7 @@ changes.
 - refresh propagation does not create cross-domain startup ordering
 - ordering cycles are reported fail-closed and invalidate the plan
 
-## Reconciliation Semantics
+## Reconciliation semantics
 
 Given desired resources and a prior snapshot:
 
@@ -38,7 +38,7 @@ Given desired resources and a prior snapshot:
 Refresh promotion uses the shared refresh graph closure rather than local
 planner heuristics.
 
-## Provenance and Applicability
+## provenance and applicability
 
 The planner produces a plan bound to:
 
@@ -50,7 +50,7 @@ Applicability checks compare those provenance anchors before apply. This keeps
 semantic planning and runtime execution aligned even when snapshots or targets
 change.
 
-## Composition-Ready Invariants
+## Composition-ready invariants
 
 - dependency semantics operate on resolved canonical identities
 - later module/import expansion may change how identities are produced, but not
@@ -58,12 +58,12 @@ change.
 - planner ordering and refresh semantics must remain independent of source-file
   boundaries
 
-## Implementation Mapping
+## Implementation mapping
 
 - shared semantic source of truth: `implementations/python/packages/raes_processor/semantics/planner.py`
 - planner use sites:
   - `implementations/python/packages/raes_processor/planner/`
-  - `implementations/python/packages/raes_processor/manager.py`
+  - `implementations/python/packages/raes_runtime/manager.py`
 - property and agreement tests:
   - `implementations/python/tests/test_semantics_planner.py`
   - `implementations/python/tests/test_runtime_planner.py`

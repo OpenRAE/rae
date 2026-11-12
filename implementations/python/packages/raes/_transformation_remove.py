@@ -35,6 +35,7 @@ from ._transformation_types import (
     RemoveSDLDeclarationRequest,
     SDLAuthoringArtifact,
     SDLTransformationResult,
+    _TransformationRefusal,
 )
 from .canonical import SDLCanonicalDigest, canonical_sdl_digest
 from .scenario import ExpandedScenario, Scenario
@@ -50,7 +51,7 @@ def _removed_candidate(
     payload = deepcopy(source.model_dump(mode="python", by_alias=True, exclude_unset=True))
     section_payload = payload.get(section)
     if not isinstance(section_payload, dict) or local_key not in section_payload:
-        raise ValueError("selected declaration is absent from the explicit source payload")
+        raise _TransformationRefusal("selected declaration is absent from the explicit source payload")
     del section_payload[local_key]
     module = payload.get("module")
     if isinstance(module, dict):
@@ -153,7 +154,7 @@ def remove_sdl_declaration(
         else:
             try:
                 target = _removed_candidate(source, section=section, local_key=local_key)
-            except (SDLValidationError, ValidationError, TypeError, ValueError):
+            except SDLValidationError, ValidationError, _TransformationRefusal:
                 result = refused_removal(
                     source_digest=source_digest,
                     request=request,

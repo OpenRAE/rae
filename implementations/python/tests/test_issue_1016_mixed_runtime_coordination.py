@@ -26,6 +26,7 @@ from raes_contracts.contracts.mixed_runtime import (
     MixedCompositionRuntimeStateModel,
 )
 from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import ConflictError
 from raes_contracts.participant_binding import ParticipantActionApplyResult
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.trial_compiler import compile_admitted_trial_plan
@@ -144,7 +145,7 @@ def test_runtime_state_rejects_membership_outside_the_admitted_phase() -> None:
         mixed_composition_history={run_id: [event]},
     )
 
-    with pytest.raises(ValueError, match="admitted phase"):
+    with pytest.raises(ConflictError, match="admitted phase"):
         runtime_state(binding, tampered)
 
 
@@ -452,7 +453,7 @@ def test_mixed_runtime_activation_commits_the_admitted_initial_phase() -> None:
     replay = plane.activate_mixed_composition(identity=identity(), idempotency_key="initial-phase")
     assert replay.operation_id == receipt.operation_id
     different_identity = identity()
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ConflictError):
         plane.activate_mixed_composition(identity=different_identity, idempotency_key="different-activation")
     assert len(plane.snapshot.mixed_composition_history[run_id]) == 1
 
@@ -681,7 +682,7 @@ def test_staged_phase_progression_is_bounded_append_only_and_idempotent() -> Non
     assert replay.operation_id == receipt.operation_id
     assert evaluations == [("transition.sim-to-emu", 0)]
     stale_identity = identity()
-    with pytest.raises(RuntimeError):
+    with pytest.raises(ConflictError):
         plane.advance_mixed_composition(
             "transition.sim-to-emu",
             identity=stale_identity,
@@ -691,7 +692,7 @@ def test_staged_phase_progression_is_bounded_append_only_and_idempotent() -> Non
     inactive_request = admission_request()
     inactive_identity = identity()
     inactive_evidence = evidence()
-    with pytest.raises(ValueError, match="active .* allocation"):
+    with pytest.raises(ConflictError, match="active .* allocation"):
         plane.admit_participant_action(
             inactive_behavior,
             inactive_request,
@@ -748,7 +749,7 @@ def test_phase_progression_rejects_an_outstanding_mixed_effect() -> None:
         assert started.wait(timeout=5)
         try:
             blocked_identity = identity()
-            with pytest.raises(RuntimeError):
+            with pytest.raises(ConflictError):
                 second.advance_mixed_composition(
                     "transition.sim-to-emu",
                     identity=blocked_identity,

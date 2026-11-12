@@ -1,4 +1,4 @@
-# Declarative Objective Semantics
+# Declarative objective semantics
 
 ## Scope
 
@@ -16,7 +16,7 @@ They do not choose participant implementations, backend probes, evaluator
 queries, execution adapters, prompts, credentials, polling loops, or live
 control-plane behavior.
 
-## Canonical Inputs
+## Canonical inputs
 
 The implementation must build on these existing authorities:
 
@@ -37,7 +37,7 @@ The implementation must build on these existing authorities:
   `specs/concept-authority/`, controlled vocabularies, reference models, and
   semantic profiles
 
-## Required Semantics
+## Required semantics
 
 Ownership and assignment ([participant contract](../../sdl/participant-identity.md)):
 
@@ -50,7 +50,9 @@ Ownership and assignment ([participant contract](../../sdl/participant-identity.
 
 Target resolution:
 
-- targets resolve through the existing targetable named-reference index
+- targets resolve through the objective-subject purpose of the existing
+  named-reference index: participants, organizations, resources,
+  relationships, propositions, and assertions
 - target resolution remains fail-closed for missing or ambiguous references
 - target meaning does not create runtime deployment dependencies unless a
   separately defined runtime contract says so
@@ -100,7 +102,7 @@ Dependency roles (which references propagate through the planner):
   `event.<n>`, `workflow.<n>`) so an assertion and an objective with the same SDL
   name remain distinguishable
 
-## Cross-Cutting Gates
+## Cross-cutting gates
 
 The design must satisfy every layer it passes through:
 
@@ -128,25 +130,21 @@ The design must satisfy every layer it passes through:
   snapshots, process arguments, and logs must not carry bearer tokens, secrets,
   raw credentials, backend-private payloads, or full tracebacks.
 
-## Extensibility Seam
+## Extensibility seam
 
-The extensibility seam is the pure objective-semantics helper
-`raes.semantics.objective_semantics.analyze_objective_semantics`: it produces
-a normalized objective analysis (`ObjectiveReference` /
-`ObjectiveResourceDependencies` / `ObjectiveSemanticAnalysis`) reused by
-validation, compilation, planning, and agreement tests, parameterized by the
-existing authorities it needs — the agent/entity indexes, the
-targetable-reference index, the assessment-resource indexes, the objective
-index, and the window-analysis inputs. The ordering/refresh-role decision is the
-companion `partition_objective_dependencies` plus the `OBJECTIVE_*_DEPENDENCY_ROLES`
-constants, so a future role change lands in one place.
+The pure helper `raes.semantics.objective_semantics.analyze_objective_semantics` supplies the extension interface.
+It produces normalized `ObjectiveReference`, `ObjectiveResourceDependencies`, and `ObjectiveSemanticAnalysis` values.
+Validation, compilation, planning, and agreement tests reuse that analysis.
+Its parameters are the existing authorities it needs: agent/entity indexes, objective-subject reference index, assessment-resource indexes, objective index, and window-analysis inputs.
 
-Each normalized `ObjectiveReference` carries a `namespace_path` slot reserved for
-later module/import expansion: namespacing may extend a reference's identity but
-must not change its reference kind, its dependency-role set, or the
-acyclicity/fail-closed rules above.
+The companion `partition_objective_dependencies` and `OBJECTIVE_*_DEPENDENCY_ROLES` constants own the ordering/refresh-role decision.
+A role change therefore has one owning location.
 
-## Anti-Patterns
+Each normalized `ObjectiveReference` carries a `namespace_path` slot reserved for module/import expansion.
+Namespacing may extend a reference's identity.
+It must not change the reference kind, dependency-role set, or acyclicity/fail-closed rules above.
+
+## Anti-patterns
 
 Avoid:
 
@@ -163,10 +161,10 @@ Avoid:
   regenerating
 - adding SEM-207-specific exception, logging, persistence, or audit stacks
 
-## Implementation Mapping
+## Implementation mapping
 
 - shared name-level semantic source of truth:
-  `implementations/python/packages/raes/semantics/objective_semantics.py`
+  `implementations/python/packages/raes/semantics/objective_semantics/`
   (`analyze_objective_semantics`, `partition_objective_dependencies`,
   `OBJECTIVE_*_DEPENDENCY_ROLES`)
 - objective-window analysis (reused, not re-implemented):
@@ -196,7 +194,7 @@ Avoid:
 - `implementations/python/tests/test_sdl_validator.py` (`TestVerifyObjectives`)
 - `implementations/python/tests/test_runtime_models.py`
 
-## Non-Goals
+## Non-goals
 
 This note does not introduce new SDL syntax, add runtime adapters, or define
 participant behavior semantics; those are governed elsewhere (the runtime

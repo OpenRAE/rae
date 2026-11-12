@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import json
 from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from contract_fixtures import load_contract_fixture
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes_contracts.contracts import BackendManifestV2Model, ProvisioningPlanModel, RuntimeSnapshotEnvelopeModel
@@ -317,10 +317,10 @@ def test_published_realization_envelope_fixture_corpus_is_nonvacuous():
 
     assert valid and invalid
     for path in valid:
-        BackendRealizationEnvelopeModel.model_validate(json.loads(path.read_text(encoding="utf-8")))
+        BackendRealizationEnvelopeModel.model_validate(load_contract_fixture(path))
     for path in invalid:
         with pytest.raises(ValidationError):
-            BackendRealizationEnvelopeModel.model_validate(json.loads(path.read_text(encoding="utf-8")))
+            BackendRealizationEnvelopeModel.model_validate(load_contract_fixture(path))
 
 
 def test_backend_manifest_requires_contract_declaration_for_envelope_identity():

@@ -38,7 +38,6 @@ from raes_contracts.contracts import (
     ValidationBasisDisclosureDocumentModel,
     canonical_semantic_projection_frame_digest,
     governed_semantic_projection_predicate_profile,
-    schema_bundle,
 )
 from raes_contracts.external_concept_bindings import (
     adapt_attack_enterprise_tactics_snapshot,
@@ -58,6 +57,7 @@ from raes_contracts.vocabulary_sources import (
     load_attack_enterprise_tactics_source,
     load_nist_csf_defensive_categories_source,
 )
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 BINDING_FIXTURES = REPO_ROOT / "contracts" / "fixtures" / "concept-authority" / "external-concept-bindings-v1"

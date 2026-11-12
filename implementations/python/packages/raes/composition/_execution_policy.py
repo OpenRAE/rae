@@ -3,9 +3,11 @@
 from typing import Any
 
 from raes_contracts.execution_policy import ExecutionPolicy, ExecutionPolicyDocument, ExecutionPolicyScope
+from raes_contracts.json_pointer import escape_token, unescape_token
 
 from .._composition_provenance import prefixed_scope_pointer
 from ..execution_policy_scope import EXECUTION_SECTIONS
+from ._lexical_scope import rewritten_namespaces
 
 
 def rewrite_execution_policy(payload: dict[str, Any], symbols: dict[str, dict[str, str]], namespace: str) -> None:
@@ -17,7 +19,7 @@ def rewrite_execution_policy(payload: dict[str, Any], symbols: dict[str, dict[st
     scopes = []
     for rule in document.scopes:
         policy = _rewritten_policy(rule.policy, symbols)
-        for owner in _rewritten_namespaces(rule, symbols, namespace):
+        for owner in rewritten_namespaces(rule, symbols, namespace, EXECUTION_SECTIONS):
             scopes.append(
                 ExecutionPolicyScope(
                     namespace=owner,
@@ -46,40 +48,10 @@ def _rewritten_policy(policy: ExecutionPolicy, symbols: dict[str, dict[str, str]
 def _rewritten_scope(pointer: str, symbols: dict[str, dict[str, str]]) -> str:
     parts = prefixed_scope_pointer(pointer, symbols=symbols).split("/")
     if len(parts) == 5 and parts[1] == "nodes" and parts[3] in {"features", "conditions", "injects"}:
-        identity = parts[4].replace("~1", "/").replace("~0", "~")
+        identity = unescape_token(parts[4])
         renamed = symbols[parts[3]].get(identity, identity)
-        parts[4] = renamed.replace("~", "~0").replace("/", "~1")
+        parts[4] = escape_token(renamed)
     return "/".join(parts)
-
-
-def _rewritten_namespaces(
-    rule: ExecutionPolicyScope, symbols: dict[str, dict[str, str]], namespace: str
-) -> tuple[tuple[str, ...], ...]:
-    prefix = (namespace,) if namespace else ()
-    if not rule.namespace:
-        return (prefix,)
-    targets = set()
-    pointer = rule.scope.split("/")
-    for section in EXECUTION_SECTIONS:
-        if rule.scope and pointer[1] != section:
-            continue
-        for old, new in symbols.get(section, {}).items():
-            owner = _renamed_owner(rule, pointer, old, new)
-            if owner is not None:
-                targets.add(owner)
-    return tuple(sorted(targets)) if targets else ((*prefix, *rule.namespace),)
-
-
-def _renamed_owner(rule: ExecutionPolicyScope, pointer: list[str], old: str, new: str) -> tuple[str, ...] | None:
-    if len(pointer) >= 3 and old != pointer[2].replace("~1", "/").replace("~0", "~"):
-        return None
-    old_owner = tuple(old.split(".")[:-1])
-    if old_owner[: len(rule.namespace)] != rule.namespace:
-        return None
-    new_owner = tuple(new.split(".")[:-1])
-    # Visibility can insert a private segment before the original lexical path.
-    depth = len(new_owner) - len(old_owner) + len(rule.namespace)
-    return new_owner[:depth]
 
 
 def merge_execution_policy(root: dict[str, Any], incoming: dict[str, Any]) -> None:

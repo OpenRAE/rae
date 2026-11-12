@@ -10,7 +10,7 @@ from pydantic_core import CoreSchema
 
 from ..versions import BACKEND_MANIFEST_V2_SCHEMA_VERSION, PROCESSOR_MANIFEST_V2_SCHEMA_VERSION
 from .experiment_references import ExperimentReferenceModel, PrunedReferenceFieldsMixin
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 _MANIFEST_REFERENCE_DEFS_POINTER = "#/$defs/ExperimentManifestReferenceModel"
 
@@ -134,7 +134,7 @@ class ExperimentManifestReferenceModel(ExperimentReferenceModel):
                 },
             ]
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "manifest-reference-digest-scope-valid",
             "Manifest digest qualifiers are limited to processor/backend manifest refs that can be checked "

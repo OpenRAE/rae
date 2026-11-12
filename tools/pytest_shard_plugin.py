@@ -54,7 +54,7 @@ def _record_manifest(config: pytest.Config, index: int, count: int, owned: list[
 @pytest.hookimpl(trylast=True)
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
     # trylast so the incumbent marker expression (`-m 'not fuzz and not
-    # integration and not docker'`) has already deselected its items: the shard
+    # integration'`) has already deselected its items: the shard
     # partitions the default suite, and the manifest must match the reducer's
     # fresh default-suite collection exactly.
     shard_count = config.getoption("raes_shard_count")

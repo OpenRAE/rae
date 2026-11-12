@@ -31,7 +31,7 @@ def test_partial_inventory_contract_records_have_bounded_semantics_ownership():
     forbidden = [
         "docs/requirements/GOV-941/requirement.md",
         "docs/research/unrelated-study/results.md",
-        "implementations/python/packages/raes_reference_backend/target.py",
+        "implementations/python/packages/raes_backend_stubs/stubs.py",
     ]
     failures = _check_path_ownership(policy, phase, forbidden)
     assert {row.path for row in failures} == set(forbidden)

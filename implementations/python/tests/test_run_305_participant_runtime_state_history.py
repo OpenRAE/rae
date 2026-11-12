@@ -6,7 +6,7 @@ import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes_backend_stubs.stubs import create_stub_target
-from raes_contracts.contracts import ParticipantBehaviorHistoryEventModel, schema_bundle
+from raes_contracts.contracts import ParticipantBehaviorHistoryEventModel
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from raes_runtime.backend_calls import _call_backend_apply, _RealizationApplyContext
 from raes_runtime.control_plane import RuntimeControlPlane
@@ -17,6 +17,7 @@ from raes_runtime.control_plane_security import (
     ControlPlaneSecurityConfig,
 )
 from raes_runtime.participant_result_contracts import participant_runtime_state_contract_diagnostics
+from raes_schemas import schema_bundle
 from starlette.testclient import TestClient
 
 PARTICIPANT = "participant.alice"

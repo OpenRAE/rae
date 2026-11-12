@@ -1,0 +1,47 @@
+name: CodeQL
+
+# Land on main/dev and review the cutover copy before switching default setup.
+# Main/dev contain the release helper's CJS source; go-cutover does not.
+# Update the matrix during hard cutover when main/dev adopt the Go tree.
+on:
+  push:
+    branches: [main, dev, go-cutover]
+  pull_request:
+    branches: [main, dev, go-cutover]
+  # Code scanning default setup does not run on merge groups. The `dev` merge
+  # queue requires this advanced workflow to report the CodeQL contexts (#2026).
+  merge_group:
+    types: [checks_requested]
+  schedule:
+    - cron: '23 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: ${{ vars.CODEQL_ADVANCED_ENABLED != 'true' && 'Staged ' || '' }}Analyze (${{ matrix.language }})
+    runs-on: ubuntu-24.04
+    # Keep default setup active until this workflow exists on every branch.
+    if: vars.CODEQL_ADVANCED_ENABLED == 'true'
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ${{ fromJSON((github.base_ref || github.ref_name) == 'go-cutover' && '["actions","python"]' || '["actions","python","javascript-typescript"]') }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: none
+      - name: Analyze
+        uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4
+        with:
+          category: /language:${{ matrix.language }}

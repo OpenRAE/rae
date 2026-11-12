@@ -1,10 +1,5 @@
 {
-  "content_hash": "c89bbbb26022f043fa1b7da27356d4667edd80426c359173c7238820d18ed122",
   "contract_id": "sdl-authoring-input-v1",
-  "last_change": {
-    "content_hash": "c89bbbb26022f043fa1b7da27356d4667edd80426c359173c7238820d18ed122",
-    "summary": "Reject empty and whitespace-only behavior specification version labels, matching existing parser validity; DSL-116 issue #297."
-  },
   "schema_path": "contracts/schemas/sdl/sdl-authoring-input-v1.json",
   "stability": "draft"
 }

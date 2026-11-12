@@ -163,3 +163,21 @@ def test_bounded_binding_cannot_be_promoted_to_universal_scope():
     )
     assert failures
     assert "universal quantification" in failures[0].message
+
+
+def test_an_unreadable_catalog_is_a_catalog_failure(tmp_path) -> None:
+    from tools.check_behavioral_relation_claims import RULE_CATALOG_INVALID, evaluate
+
+    failures = evaluate(tmp_path)
+    assert [failure.rule_id for failure in failures] == [RULE_CATALOG_INVALID]
+
+
+def test_a_defect_while_loading_the_catalog_is_not_reported_as_an_invalid_catalog(monkeypatch) -> None:
+    import tools.check_behavioral_relation_claims as gate
+
+    def defective(_payload: str) -> object:
+        raise ValueError("loader defect outside Pydantic")
+
+    monkeypatch.setattr(gate.BehavioralRelationCatalogModel, "model_validate_json", defective)
+    with pytest.raises(ValueError, match="loader defect outside Pydantic"):
+        gate.evaluate(gate.REPO_ROOT)

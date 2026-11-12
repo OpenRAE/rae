@@ -6,10 +6,11 @@ from collections.abc import Sequence
 from graphlib import TopologicalSorter
 from typing import Annotated, Literal, Self
 
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import ConfigDict, Field, ValidationError, model_validator
 
 from .._canonical import canonical_json_digest
-from ..json_ingress import parse_bounded_json_object
+from ..errors import InvalidInputError
+from ..json_ingress import StrictJsonIngressError, parse_bounded_json_object
 from .base import ContractModel
 from .participant_control_coordinates import (
     ControlArtifactReferenceModel,
@@ -122,13 +123,15 @@ def _validate_ifc_result(
     if result.payload is None or result.payload.kind != "ifc-fact":
         return
     profiles = {profile.ref for profile in binding.profiles}
-    expected = (
-        "teaching-influence"
-        if result.payload.domain == "teaching-influence-domain/rev1"
-        else "participant-boundary-flow-policy-v1"
-    )
+    expected = {
+        "teaching-influence-domain/rev1": "teaching-influence",
+        "sem-233/rev1": "participant-boundary-flow-policy-v1",
+        "owner-ifc/rev1": "participant-owner-flow-policy-v1",
+    }[result.payload.domain]
     if expected not in profiles:
         raise ValueError("IFC fact domain is not selected by its mechanism")
+    if expected == "participant-owner-flow-policy-v1" and result.payload.profile not in binding.profiles:
+        raise ValueError("owner IFC fact exact profile is not selected by its mechanism")
     if expected == "teaching-influence" and set(result.payload.source_refs) != set(context.inputs):
         raise ValueError("teaching propagation must cover every admitted input")
 
@@ -399,6 +402,7 @@ def parse_participant_control_evaluation(source: str | bytes) -> ParticipantCont
     """Bound ingress and expose no rejected value in public parse failures."""
     try:
         payload = parse_bounded_json_object(source, max_bytes=1_048_576, max_depth=32)
-        return ParticipantControlEvaluationModel.model_validate(payload)
-    except (TypeError, ValueError):
-        raise ValueError("invalid participant control evaluation") from None
+        evaluation = ParticipantControlEvaluationModel.model_validate(payload)
+    except StrictJsonIngressError, ValidationError:
+        raise InvalidInputError("invalid participant control evaluation") from None
+    return evaluation

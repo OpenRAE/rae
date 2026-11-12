@@ -10,11 +10,13 @@ from pathlib import Path
 
 import pytest
 import raes_processor.trial_compiler.compiler as trial_compiler_module
+from contract_fixtures import load_contract_fixture
 from hypothesis import given, settings
 from hypothesis import strategies as st
 from paths import REPO_ROOT
+from raes import admit_scenario_family, parse_sdl
 from raes.canonical import canonical_sdl_digest
-from raes.scenario import ExpandedScenario, Scenario
+from raes.scenario import ExpandedScenario
 from raes.validator import SemanticValidator
 from raes.variation import ParameterVariationPoint
 from raes_contracts.canonical import canonical_json_bytes, canonical_json_digest
@@ -39,9 +41,8 @@ from raes_contracts.contracts import (
     TrialCoordinateModel,
     TrialExecutionAuthorityModel,
 )
-from raes_contracts.random_stream_engine import BoundedIntegerBatchResult, BoundedIntegerDraw
-from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
-from raes_contracts.realization_envelope_carrier import realization_envelope_digest
+from raes_contracts.contracts.random_stream_engine import BoundedIntegerBatchResult, BoundedIntegerDraw
+from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel, realization_envelope_digest
 from raes_processor.capture_admission import compile_capture_spec_demands
 from raes_processor.trial_compiler import TrialCompilationRequest, compile_admitted_trial_plan
 from raes_processor.trial_compiler.domains import canonical_domain_outcomes
@@ -117,11 +118,7 @@ def _family() -> ExpandedScenario:
             }
         },
     }
-    authored = Scenario.model_validate(payload)
-    SemanticValidator(authored).validate()
-    expanded = ExpandedScenario.model_validate(payload)
-    expanded._set_semantic_validated(True)
-    return expanded
+    return admit_scenario_family(parse_sdl(json.dumps(payload)))
 
 
 def _product_family() -> ExpandedScenario:
@@ -350,7 +347,7 @@ def _request(*, run_count: int = 2, sample: bool = False) -> TrialCompilationReq
     }
     capture_spec = ExperimentCaptureSpecModel.model_validate(capture_payload)
     authoring_digest = canonical_json_digest(experiment.model_dump(mode="json"))
-    envelope = BackendRealizationEnvelopeModel.model_validate_json(_ENVELOPE_FIXTURE.read_text(encoding="utf-8"))
+    envelope = BackendRealizationEnvelopeModel.model_validate(load_contract_fixture(_ENVELOPE_FIXTURE))
     manifest_payload = json.loads(_BACKEND_MANIFEST_FIXTURE.read_text(encoding="utf-8"))
     manifest_payload["identity"] = {"name": "backend-a", "version": "1"}
     manifest_payload["supported_contract_versions"].append("realization-envelope-v1")
@@ -810,7 +807,7 @@ def test_partition_order_drives_coordinate_admission(monkeypatch) -> None:
 
 def test_reversed_partition_order_cannot_change_coordinate_failure_diagnostic() -> None:
     request = _request()
-    payload = json.loads(_ENVELOPE_FIXTURE.read_text(encoding="utf-8"))
+    payload = load_contract_fixture(_ENVELOPE_FIXTURE)
     payload["expression"]["domains"] = {
         "windows-only": {
             "kind": "enum",
@@ -1087,7 +1084,7 @@ def test_product_limit_precedes_cartesian_materialization(monkeypatch) -> None:
 
 def test_selected_scenario_must_be_a_member_of_exact_envelope() -> None:
     request = _request()
-    payload = json.loads(_ENVELOPE_FIXTURE.read_text(encoding="utf-8"))
+    payload = load_contract_fixture(_ENVELOPE_FIXTURE)
     payload["expression"]["domains"] = {"windows-only": {"kind": "enum", "values": ["windows"]}}
     payload["expression"]["bindings"] = [
         {
@@ -1108,7 +1105,7 @@ def test_selected_scenario_must_be_a_member_of_exact_envelope() -> None:
 
 def test_realization_envelope_content_digest_changes_sealed_plan_identity() -> None:
     request = _request()
-    changed_payload = json.loads(_ENVELOPE_FIXTURE.read_text(encoding="utf-8"))
+    changed_payload = load_contract_fixture(_ENVELOPE_FIXTURE)
     topology = next(claim for claim in changed_payload["concerns"] if claim["concern"] == "topology")
     topology["mechanism"] = "alternate-trusted-topology-mechanism"
     changed_payload["digest"] = realization_envelope_digest(changed_payload)
@@ -1274,3 +1271,40 @@ def test_compilation_has_no_filesystem_side_effect(tmp_path: Path) -> None:
     _compile_bytes(_request())
 
     assert tuple(tmp_path.iterdir()) == before
+
+
+def test_compilation_defect_propagates_instead_of_becoming_an_input_diagnostic(monkeypatch) -> None:
+    def defect(*_args, **_kwargs):
+        raise TypeError("programming defect")
+
+    monkeypatch.setattr(trial_compiler_module, "plan_intent", defect)
+
+    request = _request()
+    with pytest.raises(TypeError, match="programming defect"):
+        compile_admitted_trial_plan(request)
+
+
+def test_entry_defect_propagates_instead_of_becoming_an_entry_diagnostic(monkeypatch) -> None:
+    def defect(*_args, **_kwargs):
+        raise ValueError("programming defect")
+
+    monkeypatch.setattr(trial_compiler_module, "_entry_bindings", defect)
+
+    request = _request()
+    with pytest.raises(ValueError, match="programming defect"):
+        compile_admitted_trial_plan(request)
+
+
+def test_replacement_defect_propagates_instead_of_becoming_a_replacement_diagnostic(monkeypatch) -> None:
+    import raes_processor.trial_compiler.replacement as replacement_module
+
+    def defect(*_args, **_kwargs):
+        raise KeyError("programming defect")
+
+    monkeypatch.setattr(replacement_module, "_validated_root", defect)
+
+    request = _request()
+    with pytest.raises(KeyError):
+        replacement_module.compile_replacement_trial(
+            request, original_plan=None, root_entry_id="entry", failed_run=None, cleanup_receipts=()
+        )

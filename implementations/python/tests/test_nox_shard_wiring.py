@@ -17,6 +17,7 @@ from types import ModuleType, SimpleNamespace
 import pytest
 import yaml
 from paths import REPO_ROOT
+from raes_contracts.errors import InvalidInputError, OperationalError
 from tools.verification_plan import ChangeRecord
 
 
@@ -109,7 +110,14 @@ def test_hygiene_session_only_delegates_selected_files(monkeypatch, noxfile_modu
     def unexpected(*args, **kwargs):
         pytest.fail("commit hygiene must not invoke expensive verification")
 
-    for name in ("_run_policy", "_run_contracts", "_run_tests", "_run_pytest", "_run_parallel_verification"):
+    for name in (
+        "_run_policy",
+        "_run_contracts",
+        "_run_tests",
+        "_run_pytest",
+        "_run_changed_test_modules",
+        "_run_parallel_verification",
+    ):
         monkeypatch.setattr(noxfile_module, name, unexpected)
     session = _Session()
     session.posargs = [".pre-commit-config.yaml", "sample.py"]
@@ -146,14 +154,14 @@ def test_fast_feedback_runs_changed_test_modules(monkeypatch: pytest.MonkeyPatch
     monkeypatch.setattr(graph, "_run_hygiene", lambda *a, **k: calls.append("hygiene"))
     monkeypatch.setattr(graph, "_run_policy", lambda *a, **k: calls.append("policy"))
     monkeypatch.setattr(graph, "_run_changed_lint", lambda *a, **k: calls.append("lint"))
-    pytest_args: list[tuple[str, ...]] = []
-    monkeypatch.setattr(graph, "_run_pytest", lambda _session, *args, **_k: pytest_args.append(args))
+    modules: list[list[str]] = []
+    monkeypatch.setattr(graph, "_run_changed_test_modules", lambda _session, changed: modules.append(list(changed)))
 
     reporter = _Reporter()
     graph._run_fast_feedback(_Session(), reporter, ["--base-rev", "BASE"])
 
     assert calls == ["hygiene", "policy", "lint"]
-    assert pytest_args == [("implementations/python/tests/test_x.py", "-q")]
+    assert modules == [["implementations/python/tests/test_x.py"]]
 
 
 def test_fast_feedback_uses_current_paths_for_lint_and_tests(
@@ -174,14 +182,14 @@ def test_fast_feedback_uses_current_paths_for_lint_and_tests(
     monkeypatch.setattr(graph, "_run_policy", lambda *a, **k: None)
     lint_paths: list[str] = []
     monkeypatch.setattr(graph, "_run_changed_lint", lambda _session, _reporter, paths: lint_paths.extend(paths))
-    pytest_args: list[tuple[str, ...]] = []
-    monkeypatch.setattr(graph, "_run_pytest", lambda _session, *args, **_k: pytest_args.append(args))
+    modules: list[list[str]] = []
+    monkeypatch.setattr(graph, "_run_changed_test_modules", lambda _session, changed: modules.append(list(changed)))
 
     graph._run_fast_feedback(_Session(), _Reporter(), ["--base-rev", "BASE"])
 
     expected = [f"{prefix}test_{name}.py" for name in ("renamed", "copied", "modified", "added")]
     assert lint_paths == expected
-    assert pytest_args == [(*expected, "-q")]
+    assert modules == [expected]
 
 
 def test_fast_feedback_defers_when_no_test_module_changed(monkeypatch: pytest.MonkeyPatch, graph: ModuleType) -> None:
@@ -191,12 +199,62 @@ def test_fast_feedback_defers_when_no_test_module_changed(monkeypatch: pytest.Mo
     monkeypatch.setattr(graph, "_run_hygiene", lambda *a, **k: None)
     monkeypatch.setattr(graph, "_run_policy", lambda *a, **k: None)
     monkeypatch.setattr(graph, "_run_changed_lint", lambda *a, **k: None)
-    monkeypatch.setattr(graph, "_run_pytest", lambda *a, **k: pytest.fail("must not run tests when none changed"))
+    monkeypatch.setattr(
+        graph, "_run_changed_test_modules", lambda *a, **k: pytest.fail("must not run tests when none changed")
+    )
 
     reporter = _Reporter()
     graph._run_fast_feedback(_Session(), reporter, ["--base-rev", "BASE"])
 
     assert any("no authoritative targeted selection" in reason for _name, reason in reporter.skipped)
+
+
+def _stub_fast_feedback_lanes(monkeypatch: pytest.MonkeyPatch, graph: ModuleType, calls: list[object]) -> None:
+    monkeypatch.setattr(graph, "_requirement_aware_policy_args", lambda *args: list(args))
+    monkeypatch.setattr(graph, "_run_hygiene", lambda *a, **k: calls.append(k["posargs"]))
+    monkeypatch.setattr(graph, "_run_policy", lambda *a, **k: None)
+    monkeypatch.setattr(graph, "_run_changed_lint", lambda *a, **k: None)
+    monkeypatch.setattr(graph, "_run_changed_test_modules", lambda *a, **k: pytest.fail("no test module changed"))
+
+
+@pytest.mark.parametrize(
+    "failure",
+    [OperationalError("git diff failed with exit code 128"), InvalidInputError("--base-rev requires a revision")],
+)
+def test_fast_feedback_falls_back_when_change_classification_fails(
+    monkeypatch: pytest.MonkeyPatch, graph: ModuleType, failure: Exception
+) -> None:
+    def unavailable(_root: object, _base: object) -> list[ChangeRecord]:
+        raise failure
+
+    calls: list[object] = []
+    monkeypatch.setattr(graph, "collect_git_changes", unavailable)
+    _stub_fast_feedback_lanes(monkeypatch, graph, calls)
+    session = _Session()
+
+    graph._run_fast_feedback(session, _Reporter(), ["--base-rev", "BASE"])
+
+    assert calls == [["--all-files"]]
+    assert session.logs == [f"fast-feedback change classification unavailable: {failure}"]
+
+
+def test_fast_feedback_does_not_hide_a_defect_as_unavailable_classification(
+    monkeypatch: pytest.MonkeyPatch, graph: ModuleType
+) -> None:
+    """A built-in ValueError is a defect; it fails the lane instead of degrading to the fallback."""
+
+    def defect(_root: object, _base: object) -> list[ChangeRecord]:
+        raise ValueError("synthetic defect")
+
+    calls: list[object] = []
+    monkeypatch.setattr(graph, "collect_git_changes", defect)
+    _stub_fast_feedback_lanes(monkeypatch, graph, calls)
+
+    session = _Session()
+    reporter = _Reporter()
+    with pytest.raises(ValueError, match="synthetic defect"):
+        graph._run_fast_feedback(session, reporter, ["--base-rev", "BASE"])
+    assert calls == []
 
 
 def test_verify_shard_session_delegates(monkeypatch: pytest.MonkeyPatch, noxfile_module: ModuleType) -> None:
@@ -250,9 +308,14 @@ def test_verify_fast_feedback_session_delegates(monkeypatch: pytest.MonkeyPatch,
 
 def test_required_env_helpers_fail_closed(monkeypatch: pytest.MonkeyPatch, noxfile_module: ModuleType) -> None:
     monkeypatch.delenv("RAES_SHARD_COUNT", raising=False)
-    with pytest.raises(RuntimeError, match="required"):
+    with pytest.raises(InvalidInputError, match="required"):
         noxfile_module._required_env("RAES_SHARD_COUNT")
 
-    monkeypatch.setenv("RAES_SHARD_COUNT", "not-an-int")
-    with pytest.raises(RuntimeError, match="must be an integer"):
+    monkeypatch.setenv("RAES_SHARD_COUNT", "not-an-int-secret-sentinel")
+    with pytest.raises(InvalidInputError, match="must be an integer") as raised:
         noxfile_module._required_env_int("RAES_SHARD_COUNT")
+    assert "secret-sentinel" not in str(raised.value)
+
+    monkeypatch.delenv(noxfile_module.VERIFY_COVERAGE_FILE_ENV, raising=False)
+    with pytest.raises(InvalidInputError, match="required for an orchestrated coverage lane"):
+        noxfile_module._required_coverage_file()

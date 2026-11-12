@@ -88,6 +88,12 @@ def _identity_failures(artifact_id: str, artifact: Mapping[str, Any], graph: Map
     ]
 
 
+def _repeats(values: Sequence[object]) -> bool:
+    """Return whether two values are equal; list membership compares without hashing the values."""
+
+    return any(value in values[:index] for index, value in enumerate(values))
+
+
 def _layer_failures(artifact_id: str, graph: Mapping[str, Any]) -> list[PolicyFailure]:
     layers = as_list(graph.get("layers"))
     digests = [as_mapping(layer).get("digest") for layer in layers]
@@ -99,7 +105,8 @@ def _layer_failures(artifact_id: str, graph: Mapping[str, Any]) -> list[PolicyFa
                 f"{artifact_id} platform graph does not pair every layer with its uncompressed identity",
             )
         )
-    if len(set(digests)) != len(digests):
+    # A schema-invalid lock can carry a digest that is a list or an object, which a set cannot hold.
+    if _repeats(digests):
         failures.append(
             _lock_failure(
                 RULE_LAYER_DUPLICATE,

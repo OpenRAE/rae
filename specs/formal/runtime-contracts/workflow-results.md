@@ -1,4 +1,4 @@
-# Workflow Result Contract
+# Workflow result contract
 
 ## Envelope
 
@@ -18,7 +18,7 @@ Each workflow result is a plain-data portable envelope with:
 
 `state_schema_version` is fixed to `workflow-step-state/v1` in this rollout.
 
-## Step State
+## Step state
 
 Each observable step result contains:
 
@@ -26,7 +26,7 @@ Each observable step result contains:
 - `outcome`: optional until completion, then required
 - `attempts`: non-negative integer
 
-## Semantic Constraints
+## Semantic constraints
 
 - only observable step kinds may appear in `steps`
 - all observable steps from the compiled workflow contract must appear in `steps`
@@ -47,8 +47,7 @@ Workflow observation is split into:
 - a separate ordered workflow history stream
 
 History events are validated against the compiled workflow `execution_contract`
-so the manager can reject impossible global causality, not just illegal
-step-local states.
+so the manager can reject impossible global causality as well as illegal step-local states.
 
 When workflow compensation is configured, the history stream may also include:
 
@@ -60,7 +59,7 @@ When workflow compensation is configured, the history stream may also include:
 - `compensation_completed`
 - `compensation_failed`
 
-## Validation Boundary
+## Validation boundary
 
 Backends may hold richer internal state, but the manager only accepts the
 portable envelope defined here. Validation is performed against the compiled

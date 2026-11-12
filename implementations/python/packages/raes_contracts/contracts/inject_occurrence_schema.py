@@ -6,7 +6,12 @@ from typing import Any
 
 from .inject_occurrence import InjectOccurrenceModel, InjectTriggerRequestModel
 from .inject_occurrence_outcome import InjectOccurrenceCorrelationModel, InjectOccurrenceOutcomeModel
-from .schema_invariants import _add_raes_invariant
+from .participant_inject_application import (
+    ParticipantInjectApplicationModel,
+    ParticipantInjectContentModel,
+    ParticipantInjectDeliveryReceiptModel,
+)
+from .schema_invariants import add_raes_invariant
 
 _REQUEST = {"contract_id": "inject-trigger-request-v1", "instance_path": "#"}
 _OCCURRENCE = {"contract_id": "inject-occurrence-v1", "instance_path": "#"}
@@ -14,6 +19,27 @@ _OUTCOME = {"contract_id": "inject-occurrence-outcome-v1", "instance_path": "#"}
 _CORRELATION = {"contract_id": "inject-occurrence-correlation-v1", "instance_path": "#"}
 _INVOCATION = {"contract_id": "backend-operation-request-v1", "instance_path": "#"}
 _LOCAL = (
+    (
+        {"contract_id": "participant-inject-delivery-receipt-v1", "instance_path": "#"},
+        ParticipantInjectDeliveryReceiptModel,
+        "participant-inject-delivery-receipt-local-consistency",
+        "Bind the durable operation identity to its governed local delivery result; this is neither "
+        "participant observation nor external transport acknowledgement.",
+    ),
+    (
+        {"contract_id": "participant-inject-application-v1", "instance_path": "#"},
+        ParticipantInjectApplicationModel,
+        "participant-inject-application-local-consistency",
+        "Pin an authored delivery, world operation, exact participant episode and snapshot cut, and "
+        "optional exact control event; shape grants no delivery authority.",
+    ),
+    (
+        {"contract_id": "participant-inject-delivery-v1", "instance_path": "#"},
+        ParticipantInjectContentModel,
+        "participant-inject-delivery-local-consistency",
+        "Retain the application recipient, snapshot cut, successful world correlation and bounded "
+        "owner-projected content; emitted content proves no participant observation.",
+    ),
     (
         _REQUEST,
         InjectTriggerRequestModel,
@@ -51,7 +77,7 @@ def inject_occurrence_schema_bundle() -> dict[str, dict[str, Any]]:
     schemas = {}
     for inputs, model, invariant_id, description in _LOCAL:
         schema = model.model_json_schema()
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             invariant_id,
             description,
@@ -59,7 +85,7 @@ def inject_occurrence_schema_bundle() -> dict[str, dict[str, Any]]:
             inputs=[inputs],
         )
         schemas[inputs["contract_id"]] = schema
-    _add_raes_invariant(
+    add_raes_invariant(
         schemas["inject-trigger-request-v1"],
         "inject-trigger-exact-retry",
         "Only the original actor, key and request commitment retrieve the original claim; changed content conflicts "
@@ -67,7 +93,7 @@ def inject_occurrence_schema_bundle() -> dict[str, dict[str, Any]]:
         validator="raes_contracts.contracts.require_inject_trigger_retry",
         inputs=[_OCCURRENCE, _REQUEST],
     )
-    _add_raes_invariant(
+    add_raes_invariant(
         schemas["inject-occurrence-v1"],
         "inject-occurrence-unique-claims",
         "Retry keys, occurrences, operations, schedule slots, order positions and order predecessors are each claimed "
@@ -76,7 +102,7 @@ def inject_occurrence_schema_bundle() -> dict[str, dict[str, Any]]:
         validator="raes_contracts.contracts.validate_inject_occurrence_claims",
         inputs=[_OCCURRENCE],
     )
-    _add_raes_invariant(
+    add_raes_invariant(
         schemas["inject-occurrence-outcome-v1"],
         "inject-occurrence-outcome-binding",
         "Readback answers one backend invocation that commands the exact claimed occurrence under its operation and "
@@ -86,7 +112,7 @@ def inject_occurrence_schema_bundle() -> dict[str, dict[str, Any]]:
         validator="raes_contracts.contracts.validate_inject_occurrence_outcome",
         inputs=[_OCCURRENCE, _INVOCATION, _OUTCOME],
     )
-    _add_raes_invariant(
+    add_raes_invariant(
         schemas["inject-occurrence-correlation-v1"],
         "inject-occurrence-correlation-source",
         "A received correlation equals the join recomputed from its occurrence, invocation and validated outcome; "

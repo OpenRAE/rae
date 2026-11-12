@@ -29,3 +29,5 @@ Primary-source refresh shows that participant-supporting runtimes commonly depen
 - TESTS → TEST `implementations/python/tests/test_runtime_registry.py` (Registry shape validation for participant_runtime field)
 - IMPLEMENTS → GITHUB_ISSUE `599` (Issue 599 participant implementation action admission binding)
 - IMPLEMENTS → PULL_REQUEST `617` (PR 617 participant implementation action admission binding)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/participant-episode-history-event-stream-v1.json` (participant-episode-history-event-stream-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/control-plane/participant-episode-state-envelope-v1.json` (participant-episode-state-envelope-v1 published schema)

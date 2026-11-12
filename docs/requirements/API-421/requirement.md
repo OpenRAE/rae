@@ -21,3 +21,6 @@ Independent processors and backends need explicit external declarations for how 
 ## Traceability
 
 - DOCUMENTS → SPEC `https://fmi-standard.org/docs/3.0.2/` (FMI 3.0.2 Specification)
+- IMPLEMENTS → SPEC `contracts/schemas/time/realized-time-model-v1.json` (realized-time-model-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/time/time-model-v1.json` (time-model-v1 published schema)
+- IMPLEMENTS → SPEC `contracts/schemas/time/time-runtime-state-v1.json` (time-runtime-state-v1 published schema)

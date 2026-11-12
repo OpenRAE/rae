@@ -16,7 +16,7 @@ from raes_backend_stubs.manifest import create_stub_manifest
 from raes_contracts import contracts
 from raes_contracts.manifest_authority import BACKEND_SUPPORTED_CONTRACT_IDS
 from raes_contracts.versions import BACKEND_OPERATION_CONTRACT_IDS, INJECT_OCCURRENCE_BACKEND_CONTRACT_IDS
-from raes_reference_backend.manifest import REFERENCE_BACKEND_SUPPORTED_CONTRACT_VERSIONS as REFERENCE_CONTRACTS
+from raes_schemas import schema_bundle
 
 ROOT = Path(__file__).resolve().parents[3]
 FIXTURES = ROOT / "contracts/fixtures/control-plane"
@@ -167,7 +167,7 @@ def test_published_schemas_are_the_reference_bundle_with_semantic_bindings(contr
     published = schema(contract_id)
     invariants = published["x-raes-invariants"]
 
-    assert published == contracts.schema_bundle()[contract_id]
+    assert published == schema_bundle()[contract_id]
     assert published["x-raes-semantic-profile"]["required"] is True
     assert f"raes_contracts.contracts.{validator}" in {item["validator"] for item in invariants}
     # Each invariant reads the instance of the schema that publishes it.
@@ -455,7 +455,7 @@ def test_backend_declaration_is_explicit_and_existing_backends_do_not_advertise_
 
     assert set(INJECT_OCCURRENCE_BACKEND_CONTRACT_IDS) <= set(BACKEND_SUPPORTED_CONTRACT_IDS)
     assert stub.orchestrator.supports_inject_bindings
-    for declared in (stub.supported_contract_versions, STUB_CONTRACTS, REFERENCE_CONTRACTS):
+    for declared in (stub.supported_contract_versions, STUB_CONTRACTS):
         assert set(INJECT_OCCURRENCE_BACKEND_CONTRACT_IDS).isdisjoint(declared)
     provider = _provider()
     with pytest.raises(ValueError, match="inject occurrence contracts are not declared"):

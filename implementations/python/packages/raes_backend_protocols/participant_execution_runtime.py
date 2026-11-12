@@ -5,17 +5,18 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_execution import (
     ParticipantExecutionServiceStateModel,
 )
-from raes_contracts.participant_binding import (
-    ParticipantActionAdmissionRequest,
-    ParticipantActionApplyResult,
-)
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
+from raes_contracts.participant_binding import ParticipantActionApplyResult
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 from .participant_action_commit import reject_participant_action_outcome
 from .participant_execution_service import participant_execution_state
+
+_LOGGER = get_logger(__name__)
 
 
 class ParticipantExecutionRuntimeMixin:
@@ -122,4 +123,14 @@ class ParticipantExecutionRuntimeMixin:
                 executor.submit(self.admit_action, request, predecessor)
                 for request, predecessor in zip(requests, predecessors, strict=True)
             ]
-            return tuple(future.result() for future in futures)
+            failures = [error for error in (future.exception() for future in futures) if error is not None]
+        # The first failure propagates unchanged; each later failure would otherwise be lost. A
+        # participant runtime can be backend code, so the record omits foreign content.
+        for failure in failures[1:]:
+            _LOGGER.warning(
+                "participant action failed after an earlier failure in its batch",
+                exc_info=foreign_failure_record(failure),
+            )
+        if failures:
+            raise failures[0]
+        return tuple(future.result() for future in futures)

@@ -1,4 +1,4 @@
-# Controlled Vocabularies And Enumerations
+# Controlled vocabularies and enumerations
 
 ## Scope
 
@@ -17,12 +17,12 @@ Controlled vocabularies do not replace concept families, reference models, or
 semantic profiles. They govern the stable term sets used inside those other
 surfaces where cross-artifact comparison depends on shared portable values.
 
-## Decision Record
+## Decision record
 
-[ADR-012](../../docs/decisions/adrs/adr-012-shared-concept-authority-and-raes-extension-discipline.md)
+ADR-012 in the [decision index](../../docs/decisions/adrs/README.md)
 governs this specification.
 
-## Controlled Vocabulary Catalog
+## Controlled vocabulary catalog
 
 Each controlled-vocabulary catalog declares:
 
@@ -56,7 +56,7 @@ the external identifiers and source text while each catalog description clearly
 states the narrower RAES binding. Adaptation must not claim endorsement or
 conformance by the external authority.
 
-### Enumeration Rules
+### Enumeration rules
 
 Closed enumerations are for stable portable values where cross-artifact
 comparison must remain exact.
@@ -67,7 +67,7 @@ Enumerations:
 - must not declare `extension_pattern`
 - may declare governed scopes when they are bound to a published field surface
 
-### Governed-Extension Rules
+### Governed-extension rules
 
 Governed-extension vocabularies are for portable terms that need stable shared
 comparison today while still permitting disciplined local extension space.
@@ -82,7 +82,7 @@ Extension values are valid only when they match the declared extension
 pattern. Values that are neither declared portable terms nor valid governed
 extensions are invalid.
 
-## Initial Catalog
+## Initial catalog
 
 The initial GOV-922 catalog is:
 
@@ -98,7 +98,7 @@ It defines:
   provisioner node types, compute substrates, operating-system families, node CPU architectures,
   content types, account features, orchestrator supported sections, and
   evaluator supported sections
-- a governed-extension vocabulary for
+- a closed vocabulary for
   `participant-offensive-behavior-activities`, whose base terms are a direct
   adoption of MITRE ATT&CK Enterprise tactics v19.1. The pinned source artifact
   is `contracts/concept-authority/attack-enterprise-tactics-source-v1.json`;
@@ -108,7 +108,7 @@ It defines:
   `sha256:bdf1ce86a4e604214c5076d37ae4dcb322678afc528df8492e6fdc1b554f5da3`.
   MITRE's ATT&CK version history, data and tools page, and terms of use are
   recorded in the source artifact's `citation_urls`.
-- a separate governed-extension vocabulary for
+- a separate closed vocabulary for
   `participant-ai-offensive-behavior-activities`, whose base terms are a direct
   adoption of MITRE ATLAS tactics release v2026.06 (`collection.version`
   `2026.06`, `format-version` `6.0.0`). The pinned source artifact is
@@ -119,7 +119,7 @@ It defines:
   `sha256:b771de8b1489564b2838a709c7429849a9575dbd94073928817fe1a21661e70a`.
   MITRE ATLAS release, data-format, project, and license citations are recorded
   in the source artifact's `citation_urls`.
-- an independent governed-extension vocabulary for
+- an independent closed vocabulary for
   `participant-defensive-behavior-activities`, whose base terms adapt the eight
   active NIST CSF 2.0 Detect, Respond, and Recover categories. The pinned source
   artifact is
@@ -134,10 +134,13 @@ artifact and catalog metadata:
 > &copy; 2026 The MITRE Corporation. This work is reproduced and distributed with
 > the permission of The MITRE Corporation.
 
-### ATT&CK Adoption Guardrail
+<!-- vale RAES.HeadingCase = NO -->
+### ATT&CK adoption guardrail
 
 The ACT-609 base term set is not editable by hand. To move from ATT&CK v19.1 to
 another ATT&CK release, a change must update all of the following together:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 - the pinned source artifact, including `source_version`, `source_url`,
   `source_digest`, retrieval date, citations, and license notice
@@ -149,12 +152,15 @@ another ATT&CK release, a change must update all of the following together:
 - `tools/check_attack_tactic_vocabulary.py` evidence or test expectations for
   the new pinned release
 
-### ATLAS Adoption Guardrail
+<!-- vale RAES.HeadingCase = NO -->
+### ATLAS adoption guardrail
 
 The ACT-609 AI-offensive base term set is also not editable by hand. It is a
 separate direct adoption of MITRE ATLAS tactics, not an extension or mutation of
 the ATT&CK vocabulary. To move from ATLAS release v2026.06 to another ATLAS
 release, a change must update all of the following together:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 - the pinned ATLAS source artifact, including `source_version`,
   `source_format_version`, `source_url`, `source_digest`, retrieval date,
@@ -169,7 +175,7 @@ release, a change must update all of the following together:
 - affected authoring and behavior-model documentation
 
 ATT&CK, ATLAS, and NIST CSF remain distinct optional source catalogs. Their
-`governed_scopes` are empty and their adopted term sets are closed. Generic
+`governed_scopes` are empty and their term sets are closed. Generic
 [external concept bindings](external-concept-bindings.md) carry explicit scheme
 coordinates; no catalog governs a privileged SDL classification field.
 Extensions require their own explicit source context, not an implicit adopted
@@ -187,7 +193,8 @@ ATLAS source artifact. Its `--verify-remote` mode fetches the pinned upstream
 YAML release asset, verifies the recorded SHA-256 digest, extracts ATLAS tactics
 in matrix order, and compares them to the checked-in source artifact.
 
-### NIST CSF Adaptation Guardrail
+<!-- vale RAES.HeadingCase = NO -->
+### NIST CSF adaptation guardrail
 
 The ACT-610 base terms are adapted classifications, not claims that a NIST CSF
 outcome was achieved. A source update must change the pinned category snapshot,
@@ -198,7 +205,9 @@ downloads the official NIST Core export, extracts the eight active categories,
 and compares their canonical semantic digest and content with the checked-in
 snapshot.
 
-## Machine-Readable Artifacts
+<!-- vale RAES.HeadingCase = YES -->
+
+## Machine-readable artifacts
 
 The JSON Schema for the catalog format is published at:
 
@@ -214,7 +223,7 @@ under:
 
 `contracts/fixtures/concept-authority/controlled-vocabularies-v1/`
 
-## Validation Expectations
+## Validation expectations
 
 ### SDL runtime identity definitions
 
@@ -248,7 +257,7 @@ For governed apparatus-manifest capability fields:
 - extension values must match the governed extension pattern
 - closed enumerations must reject extension values
 
-## Relationship To Other Requirements
+## Relationship to other requirements
 
 - GOV-917: canonical concept authority
 - GOV-918: cross-artifact concept binding

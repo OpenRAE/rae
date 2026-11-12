@@ -133,14 +133,12 @@
       "model_id": "sem-230-participant-crossing-multi-abstract",
       "revision": "rev1",
       "source_path": "implementations/formal/participant_crossing/multi_abstract.py",
-      "source_digest": "sha256:ea7856a7f2ebee7057e5012c956caff0d4d4b62b913039ef477c11eb5a3136b0",
       "initial_state_ordinal": 0
     },
     "right": {
       "model_id": "api-423-run-319-crossing-multi-kernel",
       "revision": "rev1",
       "source_path": "implementations/formal/participant_crossing/multi_concrete.py",
-      "source_digest": "sha256:8c33ddb7c803936c9a701e7e4197bad697a3729a0ef6851861e8bed0c1602678",
       "initial_state_ordinal": 0
     },
     "visible_labels": [
@@ -209,8 +207,7 @@
   },
   "source_refs": [
     {
-      "source_ref": "specs/formal/participant-semantics/participant-crossing-multi-operation-models.md",
-      "source_digest": "sha256:7234a2ceeeb99f902213c0a17b13f8b05d77e314ec1418e324f2a19f8ffef061"
+      "source_ref": "specs/formal/participant-semantics/participant-crossing-multi-operation-models.md"
     }
   ],
   "limitations": [

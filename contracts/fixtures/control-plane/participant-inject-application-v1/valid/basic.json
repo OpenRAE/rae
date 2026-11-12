@@ -1,0 +1,11 @@
+{
+  "schema_version": "participant-inject-application/v1",
+  "request_key": "delivery-request-1",
+  "world_operation_id": "world-operation-1",
+  "delivery_address": "participant.behavior-specification.briefing.inject-delivery.result",
+  "delivery_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "participant_address": "participant.behavior.reader",
+  "episode_id": "episode-1",
+  "expected_snapshot_revision": 0,
+  "control": null
+}

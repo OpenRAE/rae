@@ -26,6 +26,7 @@ from .participant_exposure_policy import (
     _validate_authorization_scope,
     _validate_authorization_shape,
     _validate_exposure_operation,
+    resolve_from_host,
 )
 
 
@@ -75,10 +76,11 @@ def _resolve_occurrence(
         return None
     if not realization.occurrence_ref:
         raise ValueError("realized exposure requires an occurrence_ref")
-    try:
-        occurrence = resolvers.occurrence(occurrence_ref=realization.occurrence_ref)
-    except Exception as exc:
-        raise ValueError("realized exposure occurrence resolution failed") from exc
+    occurrence = resolve_from_host(
+        "occurrence",
+        "realized exposure occurrence resolution failed",
+        lambda: resolvers.occurrence(occurrence_ref=realization.occurrence_ref),
+    )
     if occurrence is None or occurrence.occurrence_ref != realization.occurrence_ref:
         raise ValueError("realized exposure occurrence_ref did not resolve")
     if occurrence.item_ref != assessment.item_ref:

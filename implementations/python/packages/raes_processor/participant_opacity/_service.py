@@ -6,6 +6,10 @@ from itertools import product
 from pathlib import Path
 
 from pydantic import ValidationError
+from raes_contracts.behavioral_authority_errors import (
+    BehavioralAuthorityArtifactError,
+    BehavioralAuthorityUnsupportedError,
+)
 from raes_contracts.behavioral_relation_profiles import (
     ActiveOpacityStrategyModel,
     BehavioralRelationProfileModel,
@@ -19,6 +23,7 @@ from raes_contracts.behavioral_relations import (
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.diagnostics import DiagnosticModel
 from raes_contracts.json_ingress import (
+    StrictJsonIngressError,
     parse_bounded_json_object,
 )
 from raes_contracts.participant_opacity import (
@@ -34,12 +39,15 @@ from raes_contracts.participant_opacity import (
 
 from ._errors import (
     ParticipantOpacityEvidenceError,
+    ParticipantOpacityInputError,
     ParticipantOpacityOperationalError,
 )
 from ._kernel import evaluate_opacity_kernel, information_cell_key
 
 ANALYSIS_PROFILE = "raes-participant-opacity-bounded-test/v1"
 _MAX_INPUT_BYTES = 8 * 1024 * 1024
+_INPUT_REFUSED = "opacity analysis input failed bounded closed-world admission"
+_AUTHORITY_DAMAGED = "the packaged opacity profile authority is damaged"
 _INCOMPLETE_CODE = "participant-opacity.incomplete-enumeration"
 _VACUOUS_CODE = "participant-opacity.vacuous-secret-domain"
 _BOUND_CODE = "participant-opacity.analysis-bound-exceeded"
@@ -350,19 +358,25 @@ def analyze_participant_opacity_file(
     """Analyze one bounded strict-JSON normalized finite carrier."""
 
     try:
-        payload = parse_bounded_json_object(
-            path.read_bytes(),
-            max_bytes=_MAX_INPUT_BYTES,
-        )
+        content = path.read_bytes()
+    except OSError:
+        # A file that cannot be read is a host failure; a later attempt can succeed.
+        raise ParticipantOpacityOperationalError(_INPUT_REFUSED) from None
+    try:
+        payload = parse_bounded_json_object(content, max_bytes=_MAX_INPUT_BYTES)
         request = ParticipantOpacityAnalysisInputModel.model_validate(payload)
+    except StrictJsonIngressError, ValidationError:
+        # The caller can correct a document that is not strict JSON or fails its governed contract.
+        raise ParticipantOpacityInputError(_INPUT_REFUSED) from None
+    try:
         profile = load_behavioral_relation_profile_revision(
             request.profile_id,
             request.profile_revision,
         )
-    except (OSError, ValidationError, ValueError):
-        raise ParticipantOpacityOperationalError(
-            "opacity analysis input failed bounded closed-world admission"
-        ) from None
+    except BehavioralAuthorityUnsupportedError as exc:
+        raise ParticipantOpacityInputError(_INPUT_REFUSED) from exc
+    except BehavioralAuthorityArtifactError as exc:
+        raise ParticipantOpacityOperationalError(_AUTHORITY_DAMAGED) from exc
     return analyze_participant_opacity_input(request, profile=profile)
 
 

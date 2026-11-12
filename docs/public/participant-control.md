@@ -1,124 +1,25 @@
 # Control participant input and output
 
-For task/effect attainment independent of evaluation and reward, see
-[participant-local outcome reporting](https://github.com/OpenRAE/rae/blob/dev/docs/explain/reference/participant-local-outcomes.md).
+Select a task that sets what may cross a participant boundary and retains the right evidence.
+These routes describe RAES 11.0.2. Each route needs the exact compiled policy and installed owners.
+A manifest declaration alone does not install enforcement.
 
-Use participant control to set three things. Set what may cross a participant
-boundary. Set who may direct the participant. Set what proof a run retains.
-This guide explains the shipped RAES model. It serves five reader roles. It
-does not define participant-control semantics.
+## Before you start
 
-Read
-[ADR-085](https://github.com/OpenRAE/rae/blob/main/docs/decisions/adrs/adr-085-participant-information-flow-and-control.md),
-[ADR-095](https://github.com/OpenRAE/rae/blob/main/docs/decisions/adrs/adr-095-participant-decision-epoch-state-cut-and-delivery-semantics.md),
-[SEM-230 information-flow specification](https://github.com/OpenRAE/rae/blob/main/specs/formal/participant-semantics/information-flow-control.md),
-and the
-[API-423 crossing schema](https://github.com/OpenRAE/rae/blob/main/contracts/schemas/participant-runtime/participant-crossing-occurrence-v1.json).
-They own the rules. Follow them if this guide seems to differ.
-
-## Keep four planes separate
-
-For backend authors, the
-[modular provider contract reference](https://github.com/OpenRAE/rae/blob/dev/docs/explain/reference/modular-participant-control-contracts.md)
-describes closed profile selections, typed results and requested effects, and
-how the reference runtime orchestrates them. Publishing these contracts does
-not install a provider or execute its requests. The runtime invokes only
-providers an operator constructed and bound to the admitted selection. It
-commits the composed decision before any backend effect or delivery. It
-dispatches an admitted effect only through the RAES operation that already owns
-it. An effect acts for the principal whose operation admitted it, never for the
-caller that later requests its dispatch.
-
-API-424 now also publishes v2 selection/evaluation contracts and
-`ParticipantControlProviderV2` for per-crossing applicability and typed
-dependency inputs. Those contracts keep the complete admitted apparatus
-separate from the slots applicable at one state cut, require profile-owned
-coverage and explicit input support, and separate parent decisions from
-effect prerequisites. They require exact protocol/schema negotiation and a
-trusted operator resolver. The current reference runtime and retained v1
-history continue to use provider/v1; v2 publication alone does not activate
-v2 scheduling, state commit or effect dispatch. See the
-[migration rules](https://github.com/OpenRAE/rae/blob/dev/docs/migration/control-applicability-and-evaluation.md).
-
-| Plane | What it contains | What it does not imply |
-| --- | --- | --- |
-| World truth | Backend or environment state under its owning semantics | Participant visibility |
-| Participant view | A projection authorized for one participant and audience at an exact policy state cut | Complete world truth or future delivery |
-| Participant-visible history | The append-only actions, controls, views, deliveries, and observations exposed to that participant | Administrative crossing history |
-| Archival evidence | Crossing decisions, operations, audit, provenance, and conformance records retained for authorized review | Participant disclosure |
-
-Projection, disclosure, delivery, and observation are different facts. A
-permitted projection can still fail before delivery. A delivered value may
-never be observed. Audit retention does not put a value in the participant
-view.
-
-The crossing history keeps each API-423 stage apart. The stages are request,
-decision, change, release, delivery attempt, delivery, observation, and audit.
-Each stage refers to an existing carrier. It does not copy the carrier payload
-into a generic participant message.
-
-## Mixed simulation and emulation semantics
-
-Issue #813 and ADR-102 define the design boundary for using the same
-participant-control intent in:
-
-- simulation or emulation/operation as alternative realizations; and
-- simulation and emulation/operation together in one admitted trial.
-
-Issue #1013 publishes SEM-234's revisioned semantic definition and finite
-admission/phase examples. ASR-537's realization demonstration remains DRAFT.
-This does not mean current RAES runtimes can execute a mixed trial.
-
-Portable SDL stays backend-neutral. Future admitted trial intent will allocate
-stable participant-runtime, controlled-scope, action-family,
-observation-source, and crossing refs to exact apparatus components. Every
-component edge must state its adapter, authority, action/observation mapping,
-participant/audience policy, clock/order mapping, support strength, loss,
-failure behavior, and evidence.
-
-These are admitted apparatus obligations. They do not require authors to
-specify internal installation recipes. Open materialization scopes retain
-their delegated choices, exact constraints stay binding, and abstract models
-can be complete. Reporting, experimental collection, retention and export are
-independently requested; precise scenario detail does not imply telemetry.
-
-Keep these separate:
-
-- participant identity;
-- the one acting controller in revision 1;
-- authority basis and controlled scope;
-- action admission;
-- the provider responsible for realizing an action or observation;
-- HLA-style object/attribute ownership;
-- delivery routing; and
-- participant disclosure authority.
-
-Multiple providers are not multiple controllers. Revision 1 does not support
-leases, simultaneous scoped controllers, or joint/fused control.
-
-The design also separates three meanings of open/closed:
-
-1. open-loop observation versus closed-loop actuation;
-2. closed-world versus bounded-open-world assumptions; and
-3. fixed versus finite pre-admitted dynamic membership.
-
-Closed-loop does not grant action authority. Bounded-open-world does not allow
-unknown commands or mappings. Dynamic membership does not allow an unadmitted
-backend to join.
-
-An inter-trial realization change creates a new linked plan entry and run. A
-within-run change is permitted only as a finite schedule whose components,
-mappings, policy, clocks, and failure behavior were admitted before execution.
-Neither kind erases prior delivery or participant knowledge.
-
-Do not treat a shared adapter, passing conformance probe, paired backend run,
-or successful transfer trial as backend equivalence. The contract, runtime and
-evidence work is tracked by issues #1014 through #1019. See the
-[issue #813 design record](https://github.com/OpenRAE/rae/issues/813).
+Keep world state, governed participant views, participant-visible history, and protected evidence separate.
+Use only the caller identity and scope admitted by your host.
+Never expose a P2 token, raw snapshot, or store to a participant.
+Read the [participant crossing specification](https://github.com/OpenRAE/rae/blob/main/specs/formal/participant-semantics/information-flow-control.md)
+before changing policy. It retains normative authority.
 
 ## Choose the route for your role
 
+
 ### Scenario author
+
+Outcome: a validated declaration with explicit participant, control, and disclosure intent.
+Use [SDL validation](sdl/validate-compile-plan.md) after editing the source.
+This changes the authored file only; it does not dispatch a runtime action.
 
 Start with the participant and behavior specification. Then select an
 observation boundary. Reuse the action, control, or inject carrier.
@@ -148,6 +49,10 @@ runtime delivery.
 
 ### Participant-implementation author
 
+Outcome: your implementation consumes only the carrier admitted for its participant and audience.
+Keep its participant, episode, projection revision, and order coordinates.
+If delivery or observation evidence is absent, retain that uncertainty.
+
 Consume only the carrier sent through the participant interface. It may be an
 admitted action or control input. It may be a projected status, context,
 history, observation, or inject view. Keep its source ID. Keep its exposed
@@ -172,6 +77,10 @@ success. Neither one proves a policy denial. Check the allowed operation and
 evidence surfaces.
 
 ### Runtime operator
+
+Outcome: the installed mediator authorizes a crossing at the exact state cut before release or dispatch.
+This task changes runtime state and can release data or authorize native effects.
+Use the [private control-plane setup](guides/control-plane.md#before-you-start) and its original runtime owner.
 
 Select participant control by backend profile and feature strength. Governed
 operation requires:
@@ -211,6 +120,10 @@ not rebuild them from policy, time stamps, logs, or empty defaults.
 
 ### Build a backend
 
+Outcome: a finite support report for the exact installed target and profile.
+Use [fixture checking](backends.md#run-the-portable-fixture-check) before live qualification.
+Live target probes need resource permissions, readback, and verified native cleanup.
+
 Declare each participant-policy feature on its own. Use the API-407 backend
 manifest. A positive entry needs an exact support strength. It also needs the
 required contracts, limits, release, and proof. A method or valid schema does
@@ -221,15 +134,18 @@ target may test. Keep the target and profile in the report. Keep the probe-set
 digest and case IDs. Keep the finite scope, errors, and real support. A feature
 without an allowed probe result is `unsupported`. It is not conformant.
 
-The shipped reference backend currently declares all six participant-policy
-features `unsupported`. Some tests use stronger manifests. Those tests do not
-turn the reference backend into a native implementation. Start with the
+The stub test double declares all six participant-policy features
+`unsupported`. Some tests use stronger manifests. Those tests do not make the
+stub a native implementation. RAES ships no concrete backend. Start with the
 [backend guide](backends.md). Then read the
 [feature-admission implementation](https://github.com/OpenRAE/rae/blob/main/implementations/python/packages/raes_backend_protocols/participant_feature_admission.py),
 and
 [finite participant-policy probes](https://github.com/OpenRAE/rae/blob/dev/implementations/python/packages/raes_conformance/conformance/participant_policy_probes.py).
 
 ### Researcher
+
+Outcome: an explicitly bounded claim with the correct relation and evidence.
+Use [the relation catalogue](participant-control-explanation.md#select-a-behavioral-claim) before recording a claim.
 
 Name the question first. Then select a relation. Record the subject and
 carriers. Record the direction and projection revision. Name all quantifiers.
@@ -241,124 +157,28 @@ probes. They do not prove a broad property. Keep each failed case as a
 counterexample. Do not average it away. Do not give a finite report a stronger
 relation.
 
-## Read the crossing examples
+## Diagnose failures without leaking data
 
-The examples below use synthetic identifiers and summarize existing evidence.
-They are explanatory illustrations, not new API payloads.
+Keep expected failures on the existing safe surfaces. These include
+diagnostic, operation, and HTTP results. An HTTP authorization failure is a
+generic `403 forbidden`. An ambiguity or state conflict uses a bounded `409`
+detail. An unexpected fault stays `{"detail":"internal server error"}`.
 
-### Denial
+Do not expose rejected payloads or policy bodies. Do not expose hidden state
+or participant existence. Keep credentials and bearer tokens out. Keep
+backend objects, exception strings, and tracebacks out. The same rule covers
+environment values, host paths, and raw proof. Do not place these values in
+responses, logs, fixtures, screenshots, or docs.
 
-An egress request names participant `red-1`. It also names audience
-`red-primary`. A policy or audience gate returns deny at the exact state cut.
-The runtime records the request. It also records the deny result. It releases
-no value and makes no backend call. Safe audit proof may retain the refusal.
-It does not reveal the rejected value or a hidden participant.
-
-The ASR-535 `denial` case checks the refusal and those side-effect boundaries
-through the shipped runtime. It is one named finite case. It is not a broad
-information-flow result.
-
-### Withholding
-
-Withholding is a choice not to release an available item. It is not packet
-loss. It is not a backend fault or missing record. API-423 can record a
-`withhold` result. It can keep safe proof of why the crossing stopped.
-
-The current RUN-319 decision mapper does not emit `withhold`. Its finite
-ASR-535 probe accepts a deny as refusal proof. The probe tests nonrelease. It
-does not show that the runtime made a distinct withholding fact.
-
-### Redaction
-
-For an allowed status projection, policy can select redaction. It can also
-select a governed change before release. The result keeps a typed subject. It
-records the source and result link. It records loss, markings, the policy
-result, and proof. Only the new carrier may be written to the view.
-
-Redaction does not allow a crossing. It does not declassify the source. An
-ingress change creates a new typed subject. That subject needs fresh checks
-and full action admission. The ASR-535 `redaction` case gives bounded runtime
-proof of this split.
-
-### Governed declassification
-
-Declassification needs an exact authority basis. It needs the policy result,
-state cut, source mark, allowed release, order, and proof. Authority at one cut
-does not change the past. It does not survive an unrelated policy revision.
-The result is still not delivery or observation.
-
-The finite ASR-535 governed-declassification case drives a status projection.
-It does not request a separate declassification operation. It does not prove
-support for the `participant_declassification` backend feature.
-
-### Intervention and transformation
-
-Each external control event remains an API-409 control occurrence. This
-includes a proposal, approval, intervention, handoff, override, or
-cancellation. The event stays bound to the authored mixed-control state
-machine. Participant ingress adds the needed API-423 crossing facts. Approval
-does not admit or run an action. An intervention does not replace the control
-move.
-
-If mediation transforms the proposed ingress, the transformed subject gets a
-new identity. It gets a fresh semantic check and action-admission result. The
-ASR-535 `transformation` case is bounded refusal proof. It is not a general
-refinement or simulation result.
-
-### Participant-directed inject delivery
-
-The authoring model binds one participant to one inject occurrence. It binds
-the observation boundary, order, and proof needs. It may also bind a matching
-mixed-control move. Environment-only injects stay as orchestration events.
-Normal participant projection must allow them.
-
-The shipped runtime probe records delivery of an already projected status view
-under the `participant-inject-delivery` interaction kind. It keeps delivery
-apart from observation. It does not bind the compiled DSL-142 delivery to the
-original DSL-111 inject identity. It also does not bind the full
-event/script/story identity end to end.
-
-### Unsupported capability
-
-The selected target may omit a needed feature. It may omit a contract, proof,
-resolver, or minimum strength. In each case, selection or crossing fails
-closed. This happens before backend dispatch or view output. The report keeps
-the stated level and a safe reason. It makes no positive support claim.
-
-The ASR-535 `unsupported-capability` case and the no-harness path demonstrate
-this bounded behavior. A manifest entry alone is not runtime support. It is
-not conformance.
-
-All seven finite cases are exercised and bounded in
-[the ASR-535 assurance tests](https://github.com/OpenRAE/rae/blob/dev/implementations/python/tests/test_asr_535_participant_flow_assurance.py).
+For current delivery status, evidence, and known limits, use the
+[participant-control adoption index](https://github.com/OpenRAE/rae/tree/main/docs/research/participant-io-control)
+and [current project limitations](limitations.md).
 
 ## Select a behavioral claim
 
-Read the current
-[behavioral-relation catalog](https://github.com/OpenRAE/rae/blob/main/contracts/concept-authority/behavioral-relations-v1.json)
-instead of defining relation meaning in a report.
-
-| Question | Catalog relation | Required boundary |
-| --- | --- | --- |
-| Did named finite fixtures or probes produce their expected results? | `bounded-probe-success` | Exact target, profile, cases, assumptions, failures, and finite bound |
-| Are two histories equal for one participant under one projection revision? | `participant-projected-history-equivalence` | Both carriers, participant, projection, order, and compared bound |
-| Are unauthorized high variations invisible under the full participant policy? | `policy-noninterference` | Adaptive strategies, memory, exact policy cuts, purge and declassification schedule, scheduler, environment, order, and support-set quantifiers |
-| Does every actual secret point retain a nonsecret alternative in the same observer information cell? | `participant-predicate-opacity` | Exact revisioned opacity profile; a model-check claim additionally binds the complete finite transition model, assumptions, tool, explored coverage, and result |
-| Does every projected implementation trace belong to an abstract trace set? | `trace-inclusion` | Left-to-right direction, labels, hiding, projection, assumptions, and the universal obligation |
-| Can implementation and abstract steps be matched in one direction? | `forward-simulation` or `backward-simulation` | State relation, initiality, direction, and step obligations |
-| Do concrete states and operations preserve an abstract data model? | `data-refinement` | Retrieve relation plus initialization and operation obligations |
-| Do two branching systems match in both directions? | `strong-bisimulation` or `weak-bisimulation` | Symmetry; weak matching also names the governed hidden-action set, closure, stuttering, and divergence treatment |
-
-Two equal sampled histories support a bounded comparison. They do not show
-participant-policy noninterference. A successful trace sample does not show
-trace inclusion. A matching finite example does not show simulation or
-refinement. It also does not show strong or weak bisimulation. The finite
-participant-opacity model check covers only its exact digest-bound model and
-profile; it does not establish runtime enforcement, backend realization, or an
-unbounded theorem.
-
-The following existing claim-binding contract reports only the seven named
-examples in this guide:
+For the seven existing finite examples, retain the following claim without strengthening its relation or quantifiers.
+The [crossing examples](participant-control-explanation.md#read-the-crossing-examples)
+explain what each case establishes. This is a bounded evidence example, not a live-backend certificate.
 
 <!-- participant-control-claim:start -->
 ```json
@@ -379,7 +199,7 @@ examples in this guide:
     "implementations/python/tests/test_asr_535_participant_flow_assurance.py"
   ],
   "limitations": [
-    "The reference backend declares all participant-policy features unsupported; positive paths use explicit test manifests."
+    "The stub test double declares all participant-policy features unsupported; positive paths use explicit test manifests."
   ],
   "explicit_non_claims": [
     "Does not establish universal participant-policy noninterference or participant-projected history equivalence.",
@@ -389,57 +209,73 @@ examples in this guide:
 ```
 <!-- participant-control-claim:end -->
 
-The public documentation test loads this JSON through
-`BehavioralClaimBindingModel` and resolves its relation against the canonical
-catalog. A stronger claim needs the full governed binding. It also needs the
-right proof. A prose change is not enough.
+The existing documentation test validates this JSON through `BehavioralClaimBindingModel` and the canonical relation catalogue.
+A stronger claim needs its own governed binding and supporting evidence.
 
-## Diagnose failures without leaking data
+## Finish
 
-Keep expected failures on the existing safe surfaces. These include
-diagnostic, operation, and HTTP results. An HTTP authorization failure is a
-generic `403 forbidden`. An ambiguity or state conflict uses a bounded `409`
-detail. An unexpected fault stays `{"detail":"internal server error"}`.
+Keep the crossing decision, release, delivery, observation, and cleanup outcomes separately.
+A permitted crossing does not prove a native effect or participant observation.
+For uncertain effects, preserve reservations and use the original runtime's reconciliation path.
+Use the backend owner's verified cleanup procedure before resource reuse.
 
-Do not expose rejected payloads or policy bodies. Do not expose hidden state
-or participant existence. Keep credentials and bearer tokens out. Keep
-backend objects, exception strings, and tracebacks out. The same rule covers
-environment values, host paths, and raw proof. Do not place these values in
-responses, logs, fixtures, screenshots, or docs.
+Native enforcement remains unverified without the exact backend release, installed resolver, authorized crossing, readback, and cleanup evidence.
+Read the [runtime API reference](api/runtime.rst) and [participant-control explanation](participant-control-explanation.md).
 
-For current delivery status, evidence, and known limits, use the
-[participant-control adoption index](https://github.com/OpenRAE/rae/tree/main/docs/research/participant-io-control)
-and [current project limitations](limitations.md).
+## Keep four planes separate
+
+Read [keep four planes separate](participant-control-explanation.md#keep-four-planes-separate) in the explanation.
+
+## Mixed simulation and emulation semantics
+
+Read [mixed simulation and emulation semantics](participant-control-explanation.md#mixed-simulation-and-emulation-semantics) in the explanation.
+
+## Read the crossing examples
+
+Read [read the crossing examples](participant-control-explanation.md#read-the-crossing-examples) in the explanation.
+
+### Denial
+
+Read [denial](participant-control-explanation.md#denial).
+
+### Withholding
+
+Read [withholding](participant-control-explanation.md#withholding).
+
+### Redaction
+
+Read [redaction](participant-control-explanation.md#redaction).
+
+### Governed declassification
+
+Read [governed declassification](participant-control-explanation.md#governed-declassification).
+
+### Intervention and transformation
+
+Read [intervention and transformation](participant-control-explanation.md#intervention-and-transformation).
+
+### Participant-directed inject delivery
+
+Read [participant-directed inject delivery](participant-control-explanation.md#participant-directed-inject-delivery).
+
+### Unsupported capability
+
+Read [unsupported capability](participant-control-explanation.md#unsupported-capability).
+
+## Read the finite participant-crossing result
+
+Read [read the finite participant-crossing result](participant-control-explanation.md#read-the-finite-participant-crossing-result) in the explanation.
 
 ## Treat adversarial participants as a boundary problem
 
-Issue #812 and ADR-101
-define a DRAFT participant-neutral design for intentionally subverting
-participants and untrusted content.
+Read [treat adversarial participants as a boundary problem](participant-control-explanation.md#treat-adversarial-participants-as-a-boundary-problem) in the explanation.
 
-The design keeps two coordinates separate:
+## Finite owner-qualified information flow profiles
 
-- confidentiality restricts audiences, destinations, and sink classes; and
-- integrity records the origins that may have influenced a value and the trust
-  a sink requires.
+Read [finite owner-qualified information flow profiles](participant-control-explanation.md#finite-owner-qualified-information-flow-profiles) in the explanation.
 
-Labels and provenance follow observations, tool results, retained memory,
-proposals, action arguments, handoffs, crossings, outputs, and errors.
-Authentication, approval, action admission, authorization, declassification,
-integrity endorsement, editing, and execution remain distinct.
+```{toctree}
+:hidden:
 
-The reference enforcement point is immediately before `RuntimeTarget` performs
-an external effect or before participant-facing or external data is
-serialized or delivered. A monitor score is evidence or advice, never
-authorization. Missing labels, provenance, profile support, or a stable state
-cut fail closed.
-
-The companion DRAFT evaluation profile distinguishes honest and attack modes
-and makes objectives, policy/monitor knowledge, adaptation, collusion, audit
-budgets, monitor correlation, interventions, memory, safety, usefulness, cost,
-uncertainty, and limitations explicit.
-
-This is design authority, not a delivered robustness claim. Runtime and
-backend enforcement, attack evaluations, monitor honesty, model alignment,
-private reasoning, and undeclared covert channels remain unclaimed. See the
-[issue #812 design record](https://github.com/OpenRAE/rae/issues/812).
+participant-control-explanation
+```

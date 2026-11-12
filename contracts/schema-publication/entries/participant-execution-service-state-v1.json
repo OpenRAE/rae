@@ -1,10 +1,5 @@
 {
   "contract_id": "participant-execution-service-state-v1",
   "schema_path": "contracts/schemas/participant-runtime/participant-execution-service-state-v1.json",
-  "stability": "draft",
-  "content_hash": "a56394b0acd4db4a1d10cc71bfe516734cc3b6b514a522baf64bcf0753069f35",
-  "last_change": {
-    "summary": "Rebound the published schema namespace to the renamed OpenRAE GitHub organization for issue #963.",
-    "content_hash": "a56394b0acd4db4a1d10cc71bfe516734cc3b6b514a522baf64bcf0753069f35"
-  }
+  "stability": "draft"
 }

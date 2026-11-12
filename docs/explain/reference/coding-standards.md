@@ -246,14 +246,14 @@ that makes the semantic behavior clear and testable.
 
 ## Static Analysis Alignment
 
-The Python implementation supports standard CPython 3.11 through 3.14 and uses
-Ruff with pyupgrade as the local style contract. `Requires-Python` is bounded
-below 3.15; the blocking CI matrix and classifiers define the tested standard
-interpreter set. A scheduled/manual 3.14t lane is preview-only and does not
-extend the production support claim. SonarCloud is advisory but must not
-contradict that contract. Rules that require Python 2 compatibility idioms, Python 3.12-only
-generic syntax, or mechanical docstrings on every private helper are disabled in
-`sonar-project.properties` rather than encoded as source churn.
+The Python implementation supports only standard CPython 3.14. It uses Ruff with
+pyupgrade as the local style contract. `Requires-Python` is `>=3.14,<3.15`, and
+the classifiers and the blocking CI job use the same interpreter. A
+scheduled/manual 3.14t lane is preview-only and does not extend the production
+support claim. SonarCloud is advisory but must not contradict that contract.
+Rules that require Python 2 compatibility idioms or mechanical docstrings on
+every private helper are disabled in `sonar-project.properties` rather than
+encoded as source churn.
 
 Compatibility modules that intentionally re-export symbols, such as
 `raes_processor.models`, may also receive a narrow Sonar unused-import exclusion.

@@ -37,9 +37,10 @@ def _validate(scenario: Scenario) -> list[str]:
     validator = SemanticValidator(scenario)
     try:
         validator.validate()
-        return []
     except SDLValidationError as exc:
         return exc.errors
+    else:
+        return []
 
 
 def _ssh_node() -> dict:
@@ -569,6 +570,7 @@ class TestRuntimeFamilyRegistrySshCoverage:
             module=ssh_family.module,
             collection_name="duplicate_ssh_servers",
             id_field="ssh_server_id",
+            reference_policy=ssh_family.reference_policy,
         )
         monkeypatch.setattr(
             runtime_family_registry,

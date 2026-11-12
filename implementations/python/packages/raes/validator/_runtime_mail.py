@@ -6,6 +6,9 @@ Part of the SemanticValidator mixin composition; see __init__.py.
 from collections.abc import Callable, Iterable, Sequence
 from dataclasses import dataclass
 
+from .._reference_targetability import ReferencePurpose
+from ._core import runtime_reference_eligible
+
 
 @dataclass(frozen=True)
 class _MailServiceLocalIds:
@@ -67,20 +70,21 @@ class _RuntimeMailMixin:
             local_user_names = self._node_local_user_names(node)
             for service in mail_services:
                 label = f"Node '{node_name}' runtime mail service '{service.mail_service_id}'"
-                self._verify_owned_service_ref(
-                    node_name,
-                    service.service,
-                    service_names,
-                    owner_label=label,
-                )
-                self._verify_mail_service_children(
-                    node_name=node_name,
-                    label=label,
-                    service=service,
-                    service_names=service_names,
-                    observed_paths=observed_paths,
-                    local_user_names=local_user_names,
-                )
+                with self._owner(("nodes", node_name)):
+                    self._verify_owned_service_ref(
+                        node_name,
+                        service.service,
+                        service_names,
+                        owner_label=label,
+                    )
+                    self._verify_mail_service_children(
+                        node_name=node_name,
+                        label=label,
+                        service=service,
+                        service_names=service_names,
+                        observed_paths=observed_paths,
+                        local_user_names=local_user_names,
+                    )
 
     def _verify_mail_service_children(
         self,
@@ -105,7 +109,7 @@ class _RuntimeMailMixin:
         label: str,
         service: object,
         service_names: set[str],
-        local_ids: "_MailServiceLocalIds",
+        local_ids: _MailServiceLocalIds,
     ) -> None:
         for listener in service.listeners:
             listener_label = f"{label} listener '{listener.listener_id}'"
@@ -127,7 +131,7 @@ class _RuntimeMailMixin:
         label: str,
         service: object,
         local_user_names: set[str],
-        local_ids: "_MailServiceLocalIds",
+        local_ids: _MailServiceLocalIds,
     ) -> None:
         for mailbox in service.mailboxes:
             mailbox_label = f"{label} mailbox '{mailbox.mailbox_id}'"
@@ -140,7 +144,7 @@ class _RuntimeMailMixin:
         self,
         label: str,
         service: object,
-        local_ids: "_MailServiceLocalIds",
+        local_ids: _MailServiceLocalIds,
     ) -> None:
         for alias in service.aliases:
             alias_label = f"{label} alias '{alias.alias_id}'"
@@ -157,7 +161,7 @@ class _RuntimeMailMixin:
         self,
         label: str,
         service: object,
-        local_ids: "_MailServiceLocalIds",
+        local_ids: _MailServiceLocalIds,
     ) -> None:
         for rule in service.routing_rules:
             rule_label = f"{label} routing rule '{rule.rule_id}'"
@@ -169,7 +173,7 @@ class _RuntimeMailMixin:
         label: str,
         service: object,
         observed_paths: set[str],
-        local_ids: "_MailServiceLocalIds",
+        local_ids: _MailServiceLocalIds,
     ) -> None:
         for setting in service.settings:
             setting_label = f"{label} setting '{setting.setting_id}'"
@@ -222,27 +226,28 @@ class _RuntimeMailMixin:
             if access is None:
                 continue
             label = f"Relationship '{name}'"
-            mail_service = self._check_mail_access_target(relationship.target, label)
-            if mail_service is None:
-                continue
-            self._verify_mail_ref(
-                access.listener_ref,
-                {listener.listener_id for listener in mail_service.listeners},
-                label=f"{label} mail_access",
-                field_name="listener_ref",
-            )
-            self._verify_mail_ref(
-                access.mailbox_ref,
-                {mailbox.mailbox_id for mailbox in mail_service.mailboxes},
-                label=f"{label} mail_access",
-                field_name="mailbox_ref",
-            )
-            self._verify_mail_ref(
-                access.domain_ref,
-                {domain.domain_id for domain in mail_service.domains},
-                label=f"{label} mail_access",
-                field_name="domain_ref",
-            )
+            with self._owner(("relationships", name)):
+                mail_service = self._check_mail_access_target(relationship.target, label)
+                if mail_service is None:
+                    continue
+                self._verify_mail_ref(
+                    access.listener_ref,
+                    {listener.listener_id for listener in mail_service.listeners},
+                    label=f"{label} mail_access",
+                    field_name="listener_ref",
+                )
+                self._verify_mail_ref(
+                    access.mailbox_ref,
+                    {mailbox.mailbox_id for mailbox in mail_service.mailboxes},
+                    label=f"{label} mail_access",
+                    field_name="mailbox_ref",
+                )
+                self._verify_mail_ref(
+                    access.domain_ref,
+                    {domain.domain_id for domain in mail_service.domains},
+                    label=f"{label} mail_access",
+                    field_name="domain_ref",
+                )
 
     def _check_mail_access_target(self, target: str, label: str) -> object | None:
         mail_service = self._resolve_mail_service_ref(target)
@@ -254,6 +259,8 @@ class _RuntimeMailMixin:
     def _resolve_mail_service_ref(self, ref: object) -> object | None:
         """Resolve a qualified runtime mail-service or child ref to the service."""
         reference = self._runtime_reference(ref)
-        if reference is None or reference.family.collection_name != "mail_services":
-            return None
-        return reference.owning_item
+        return (
+            reference.owning_item
+            if runtime_reference_eligible(reference, ReferencePurpose.MAIL_SERVICE_ENDPOINT)
+            else None
+        )

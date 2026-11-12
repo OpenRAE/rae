@@ -89,7 +89,13 @@ class DiffRecordingLiteralInclude(LiteralInclude):
 
 def _refuse_file_url(directive: Raw | CSVTable) -> None:
     # docutils reads a :url: with urllib, which opens file: URLs, and records no dependency.
-    if urlsplit(unwrap(directive.options.get("url", ""))).scheme == "file":
+    try:
+        scheme = urlsplit(unwrap(directive.options.get("url", ""))).scheme
+    except ValueError as exc:
+        # urlsplit refuses a malformed authority, such as an unclosed IPv6 bracket, and so does docutils.
+        directive.state.document.settings.env.note_reread()
+        raise directive.warning(f'"{directive.name}" has a :url: that urllib cannot parse') from exc
+    if scheme == "file":
         directive.state.document.settings.env.note_reread()
         raise directive.warning(f'"{directive.name}" must not read a local file through a file: URL')
 

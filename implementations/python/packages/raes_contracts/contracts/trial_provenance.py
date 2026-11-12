@@ -9,7 +9,7 @@ from pydantic import Field, model_validator
 from .base import ContractModel, NonEmptyString, PrefixedDigestString
 from .experiment_references import ExperimentReferenceModel
 from .random_stream import TrialCoordinateModel
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 ProcessorPlanKind = Literal["provisioning", "orchestration", "evaluation"]
 
@@ -105,7 +105,7 @@ def validate_trial_run_provenance_binding(
 def add_trial_run_provenance_invariant(json_schema: dict[str, Any]) -> None:
     """Describe the cross-contract admitted-trial validation boundary."""
 
-    _add_raes_invariant(
+    add_raes_invariant(
         json_schema,
         "experiment-run-admitted-trial-provenance",
         "When present, trial provenance binds the archival run id to one admitted plan entry, the canonical "

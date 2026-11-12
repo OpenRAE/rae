@@ -6,7 +6,7 @@ import copy
 from unittest.mock import ANY
 
 import pytest
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.planning import ChangeAction, ProvisioningPlan, ProvisionOp, RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
 from raes_processor.semantics.realization import (

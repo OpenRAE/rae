@@ -89,13 +89,7 @@ def test_single_snapshot_matches_repeated_lookup_runtime_and_plan(
     assert plan(optimized, manifest) == plan(reference, manifest)
 
 
-@pytest.mark.integration
-def test_complex_compile_materializes_instantiated_explicitness_once() -> None:
-    """Guard work count, not machine-dependent wall-clock latency."""
-
-    source = parse_sdl_file(EXAMPLES_DIR / "hospital-ransomware-surgery-day.sdl.yaml")
-    parameters = {name: variable.default for name, variable in source.variables.items() if variable.default is not None}
-    scenario = instantiate_scenario(source, parameters=parameters)
+def _compile_with_explicitness_count(scenario: InstantiatedScenario):
     original_getter = InstantiatedScenario.explicitness.fget
     assert original_getter is not None
     calls = 0
@@ -107,6 +101,24 @@ def test_complex_compile_materializes_instantiated_explicitness_once() -> None:
 
     with patch.object(InstantiatedScenario, "explicitness", property(counted_explicitness)):
         compiled = compile_runtime_model(scenario)
+    return compiled, calls
+
+
+def test_small_compile_materializes_instantiated_explicitness_once() -> None:
+    scenario = instantiate_scenario(_generated_scenario(node_count=3, constrained_os=True, open_default=True))
+    compiled, calls = _compile_with_explicitness_count(scenario)
+    assert len(compiled.node_deployments) == 3
+    assert calls == 1
+
+
+@pytest.mark.integration
+def test_complex_compile_materializes_instantiated_explicitness_once() -> None:
+    """Guard work count, not machine-dependent wall-clock latency."""
+
+    source = parse_sdl_file(EXAMPLES_DIR / "hospital-ransomware-surgery-day.sdl.yaml")
+    parameters = {name: variable.default for name, variable in source.variables.items() if variable.default is not None}
+    scenario = instantiate_scenario(source, parameters=parameters)
+    compiled, calls = _compile_with_explicitness_count(scenario)
 
     assert len(compiled.realization_authority) > 100
     assert calls == 1
