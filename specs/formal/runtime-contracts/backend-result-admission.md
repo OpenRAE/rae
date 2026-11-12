@@ -30,6 +30,14 @@ An operation on one participant, execution service or clock does not grant acces
 the admitted participant reset batch. Rights over a resource target do not grant rights over other carriers with the same key. Native participant
 and shared-time history validators remain mandatory.
 
+When a provisioning plan names a realization envelope, admission against a backend manifest MUST check that identity before backend invocation.
+This check also applies to delete plans without open realization concerns.
+A mismatch MUST produce an envelope diagnostic without invoking the provisioner, including on a later teardown attempt.
+
+The returned envelope MUST equal the plan's selected identity or the trusted predecessor's identity when the plan names an envelope.
+Calls without a provisioning plan MUST preserve the realization carriers.
+A plan without an envelope keeps its existing backend binding behavior.
+
 ## Transition accounting
 
 For a successful plan result:

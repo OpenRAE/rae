@@ -6,9 +6,11 @@ from collections.abc import Callable
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, TypedDict, Unpack, cast
 
+from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.operation_lifecycle import OperationAdmissionContext
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import ApplyResult, OperationKind, OperationReceipt, OperationState, RuntimeSnapshot
+from raes_processor.planner import realization_authority_diagnostics
 
 from .backend_calls import _BackendCallContext, _call_backend_apply, _RealizationApplyContext
 from .backend_observation_calls import _RuntimePlanApplyRequest
@@ -102,6 +104,14 @@ def _interaction_invoker(
         return result, None
 
     return invoke
+
+
+def _interaction_authority_diagnostics(target: RuntimeTarget, args: tuple[object, ...]) -> list[Diagnostic]:
+    """Check provisioning authority without treating snapshot callbacks as plans."""
+
+    if args and isinstance(args[0], ProvisioningPlan):
+        return realization_authority_diagnostics(args[0], target.manifest)
+    return []
 
 
 class RuntimeInteractionDispatchMixin:
@@ -221,6 +231,7 @@ class RuntimeInteractionDispatchMixin:
                 execute_observation=False,
                 result_sink=results.append,
                 cancellation_result=_cancellation_reader(self, cancelled, address) if runtime_composition else None,
+                admission_diagnostics=lambda: _interaction_authority_diagnostics(self._target, args),
             ),
         )
         return self._interaction_phase_result(receipt, results)

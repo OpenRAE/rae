@@ -95,6 +95,8 @@ def _compiled_case_digest(repo_root: Path, case: Mapping[str, object], path: Pat
     # Absence adds no semantic value to retained fingerprints. Authored proofs stay bound.
     if compiled["safe_states"] == ():
         compiled.pop("safe_states")
+    if compiled["participant_episode_policies"] == {}:
+        compiled.pop("participant_episode_policies")
     return _digest(compiled)
 
 

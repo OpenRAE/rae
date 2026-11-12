@@ -17,8 +17,8 @@ It is governed by ADR-067. It composes the participant semantics from ADR-022
 with SDL participant framing, participant runtime records, backend-facing
 contracts, controlled vocabularies, and participant implementation provenance.
 It remains the normative design artifact for the complete behavior-model
-family. That historical role does not make all implementation coverage absent:
-the delivered ACT-606 slice below provides SDL authoring, semantic validation,
+family. That historical role does not make all implementation coverage absent.
+The delivered ACT-606 slice below provides SDL authoring, semantic validation,
 generated schema coverage, compiled runtime records, and focused tests. It
 does not establish complete ACT-602, ACT-607, or ACT-608 behavior-model
 enforcement or mixed-backend conformance.
@@ -55,8 +55,8 @@ Remaining child-issue boundaries:
 Current disposition (issue #219): every issue in the child-issue mapping below
 is closed. The
 [participant semantic coverage matrix](../participant-semantics/semantic-coverage.md)
-maps PBM-01 to PBM-12 to their current contracts, implementation, tests, and
-coverage, and names the open owner of each remaining gap.
+maps PBM-01 to PBM-12 to their current contracts, implementation, tests, and coverage.
+It names the open owner of each remaining gap.
 
 ## Model summary
 
@@ -173,17 +173,19 @@ new participant stack. The canonical incumbents are:
 Security and boundary gates that any ACT-603 implementation touches must remain
 in force:
 
-- SDL authoring is closed by `SDLModel(extra="forbid")`; instantiated scenarios
-  reject unresolved `${name}` tokens; `SemanticValidator` resolves participant
-  refs and fails closed on unknown action contracts, observation boundaries,
+- SDL authoring is closed by `SDLModel(extra="forbid")`.
+  Instantiated scenarios reject unresolved `${name}` tokens.
+  `SemanticValidator` resolves participant refs.
+  It fails closed on unknown action contracts, observation boundaries,
   targetable refs, authority anchors, operating scope, and outcome-rule refs.
-- Published exchange payloads are closed `ContractModel` payloads and must
-  validate through JSON Schema plus semantic validators; a schema change must
+- Published exchange payloads are closed `ContractModel` payloads.
+  They must validate through JSON Schema plus semantic validators.
+  A schema change must
   update the publication manifest ledger and fixtures, not only Python models.
 - Runtime behavior history must pass participant episode/state/history,
   shared-state, concurrency, visibility, temporal, precondition/effect,
-  failure-class, attribution, and outcome-grounding checks through the existing
-  participant runtime validators.
+  failure-class, attribution, and outcome-grounding checks.
+  These checks use the existing participant runtime validators.
 - Control-plane exposure must use the existing FastAPI security model: strict
   auth defaults, read vs mutating role dependencies, request-size guard,
   idempotency fingerprinting, redacted internal-error envelopes, and audit
@@ -195,12 +197,11 @@ in force:
   value and evidence surfaces.
 
 The extensibility seam is declaration plus disclosure, not a backend-specific
-DTO. New or weaker realizations should be expressed through governed feature
-support, support level, disclosure refs, mapping-loss labels, limitations, and
-`x-<owner>:<term>` governed extensions where the vocabulary allows them. New
-portable concepts must extend the existing typed precondition, effect, failure,
-observation, attribution, temporal, outcome, interaction, or controlled
-vocabulary surface before they appear in runtime evidence.
+DTO. New or weaker realizations should use governed feature support, support level,
+disclosure refs, mapping-loss labels, and limitations.
+They should also use `x-<owner>:<term>` governed extensions where the vocabulary allows them.
+New portable concepts must extend an existing typed surface before they appear in runtime evidence.
+These are the precondition, effect, failure, observation, attribution, temporal, outcome, interaction, and controlled vocabulary surfaces.
 
 Anti-patterns for ACT-603 implementations:
 
@@ -278,6 +279,7 @@ BehaviorSpecification =
   evidence_contract_ref*
   tool_affordance*
   participant_inject_delivery*
+  episode_policy?
   extension_policy
   extension*
 ```
@@ -303,6 +305,9 @@ Rules:
 - `participant_inject_delivery` entries are the DSL-142 participant-directed
   inject deliveries defined in `specs/sdl/sections.md` and MC-09 of
   [reusable mixed control](../participant-semantics/reusable-mixed-control.md).
+- `episode_policy` declares episode structure intent under
+  [DSL-120](../../sdl/sections.md#participant-episode-structure).
+  It does not assert observed episode state or history.
 - Offensive (ACT-609) and defensive (ACT-610) behavior classifications are not
   aggregate fields. They use generic concept bindings against the exact
   behavior specification. SDL parsing rejects the retired
@@ -398,13 +403,13 @@ Security and boundary gates remain in force:
   targets. Instantiated scenarios must not carry unresolved `${name}` tokens.
 - Participant authority is not control-plane authorization. Bearer tokens,
   proxy headers, control-plane identities, OS users, process boundaries, and
-  backend sandbox settings may enforce or observe a boundary, but they do not
-  define the authored authority/scope boundary.
-- Secrets and private material stay out of portable authority evidence:
-  credentials, tokens, hidden prompts, answer keys, backend-private
+  backend sandbox settings may enforce or observe a boundary.
+  They do not define the authored authority/scope boundary.
+- Secrets and private material stay out of portable authority evidence.
+  This material includes credentials, tokens, hidden prompts, answer keys, backend-private
   configuration, raw command output, raw logs, argv/env values, and
-  adjudication assets require refs, digests, markings, redaction policy, and
-  evidence boundaries.
+  adjudication assets.
+  They require refs, digests, markings, redaction policy, and evidence boundaries.
 - Error surfaces must use existing collected `SDLValidationError`,
   `Diagnostic`, `HTTPException`, audit, and redacted internal-error patterns.
   New checks must not create a participant-specific exception hierarchy or
@@ -488,6 +493,7 @@ The `participant-ai-offensive-behavior-activities` base terms directly adopt MIT
 The `collection.version` is `2026.06`.
 The `format-version` is `6.0.0`.
 The pinned source is `contracts/concept-authority/atlas-tactics-source-v1.json`.
+
 It records the upstream YAML release asset URL, ATLAS content and format versions, retrieval date, and SHA-256 digest.
 It also records MITRE ATLAS project and license citations, matrix id, and term lineage fields.
 Extraction uses the ATLAS `ATLAS-matrix` sequence order, not a term order selected by RAES.
@@ -499,24 +505,24 @@ Rules:
 - Base vocabulary values preserve ATT&CK tactic shortnames, IDs, names, URLs,
   descriptions, and matrix order from the pinned v19.1 source artifact.
 - ATLAS base vocabulary values preserve ATLAS tactic shortnames, IDs, names,
-  URLs, descriptions, UUIDs, creation/modification dates, ATT&CK cross-reference
-  metadata where present, and matrix order from the pinned v2026.06 source
-  artifact.
+  URLs, descriptions, UUIDs, and creation/modification dates from the pinned v2026.06 source artifact.
+  They also preserve ATT&CK cross-reference metadata where present and the source artifact's matrix order.
 - Optional source catalogs have no governed SDL scopes and closed adopted
   term sets; additional schemes require explicit source context.
-- External behavior bindings classify authored behavior intent; they do not
+- External behavior bindings classify authored behavior intent.
+  They do not
   replace action contracts, observation boundaries, outcome rules, authority
-  refs, SDL `goals`, experiment tasks, workflow steps, participant roles,
-  behavior modes, backend feature support, or runtime history.
+  refs, SDL `goals`, experiment tasks, or workflow steps.
+  They also do not replace participant roles, behavior modes, backend feature support, or runtime history.
 - ATT&CK and ATLAS are distinct adopted authorities. Do not merge ATLAS terms
-  into the ATT&CK vocabulary, use one vocabulary to govern native fields, or treat
-  overlapping labels as interchangeable without an explicit mapping surface.
+  into the ATT&CK vocabulary or use one vocabulary to govern native fields.
+  Do not treat overlapping labels as interchangeable without an explicit mapping surface.
 - External technique, tool, CVE, or command identifiers require explicit
-  mapping or loss metadata on the owning surface; they are not accepted as raw
-  portable RAES semantics as native configuration.
+  mapping or loss metadata on the owning surface.
+  They are not accepted as raw portable RAES semantics as native configuration.
 - Future ATT&CK or ATLAS release updates must update the matching pinned source
-  artifact, catalog terms, fixture, docs, schema metadata as needed, and
-  checker validation evidence in one reviewable change.
+  artifact, catalog terms, fixture, and docs.
+  They must also update schema metadata as needed and checker validation evidence, in the same reviewable change.
 
 Pinned ATT&CK v19.1 tactics:
 
@@ -592,9 +598,10 @@ whose ZIP metadata changes between downloads.
 | RC.RP | `incident-recovery-plan-execution` | Recover |
 | RC.CO | `incident-recovery-communication` | Recover |
 
-These terms classify authored behavior; they do not prove that an incident
-exists, a detection or investigation is correct, mitigation contains an event,
-recovery completed, or an organization conforms to NIST CSF. Those claims use
+These terms classify authored behavior.
+They do not prove that an incident exists or that a detection or investigation is correct.
+They also do not prove that mitigation contains an event, recovery completed, or an organization conforms to NIST CSF.
+Those claims use
 the existing action, observation, outcome, evidence, runtime, and conformance
 surfaces. D3FEND tactics and techniques remain distinct external mappings and
 are not aliases for these categories. The catalog's term set is
@@ -654,9 +661,9 @@ The SDL and compiler publish two forms. The following describes the legacy
 form, selected when `mixed_control` has no `semantics`, and its retained
 historical interpretation. The other published form is the reusable
 `mixed-control-policy-occurrence/rev1` form (issue #1363). Only the explicitly
-installed RUN-310 control path of issue #1364 executes it; planning without
-that path's admission, the runtime manager, and control-plane construction
-without the installed binding refuse it.
+installed RUN-310 control path of issue #1364 executes it.
+Planning without that path's admission and the runtime manager refuse it.
+Control-plane construction without the installed binding also refuses it.
 
 A behavior specification in `mixed-control` mode carries one explicit
 `mixed_control` policy for one of its `participant_refs`. The policy is a
@@ -734,8 +741,8 @@ address `participant.behavior-specification.<name>`, and each binding keeps
 may carry `participant_ref*` and `participant_role_ref*`, the same selector
 item shape as the specification. Let `Sel(X)` be the PI-03 resolver of
 [participant identity](../../sdl/participant-identity.md) applied to the
-selector of `X` over the composed scenario, and let `A_f` and `B_f` be the
-binding's action and boundary refs.
+selector of `X` over the composed scenario.
+Let `A_f` and `B_f` be the binding's action and boundary refs.
 
 <!-- vale RAES.HeadingCase = YES -->
 
@@ -766,15 +773,16 @@ Conflict classes:
   PI-06 ownership still runs on specification selection, and a surface for
   `(p, S)` carries only the bindings of `S`.
 
-Admission is independent of bindings. A participant may invoke any action it
-declares and its specification admits, with or without a binding, so a tool
-profile is not a permission profile. Evidence identifies the profile by its
+Admission is independent of bindings.
+A participant may invoke any action it declares and its specification admits.
+This holds with or without a binding, so a tool profile is not a permission profile.
+Evidence identifies the profile by its
 address; its version label and content are pinned only through the
 instantiated-snapshot digest.
 
 | Row | Verification |
 | --- | --- |
-| ACT-619 A | Selection and narrowing: two roles share one profile with different availability, visibility, and invocation constraints; the full-coverage selector equals no selector; a scoped binding that resolves to nobody is offered to nobody. |
+| ACT-619 A | Selection and narrowing: two roles share one profile with different availability, visibility, and invocation constraints. The full-coverage selector equals no selector. A scoped binding that resolves to nobody is offered to nobody. |
 | ACT-619 B | Conflict classes K1-K5 each have one rejected fixture, plus the TP-7 disposition conflict and the twice-imported module seam. |
 | ACT-619 C | No inference: manifest expectations, interactive access, affiliation, visibility, and exposure policy never add a binding, and admission outcomes do not depend on bindings. |
 
@@ -793,8 +801,8 @@ records the alternatives, the #294 reconciliation, and the unsupported cases.
 | PBM-06 | Backend support claims require governed feature terms, support levels, disclosure refs, and evidence contracts. | ACT-602, ACT-608 |
 | PBM-07 | Hidden prompts, credentials, answer keys, raw command output, backend-private objects, and adjudication assets stay out of portable behavior artifacts. | ACT-606, ACT-607 |
 | PBM-08 | Unknown, opaque, unsupported, not applicable, bounded, lossy, and exact are distinct claims. | ACT-602, ACT-603, ACT-608 |
-| PBM-09 | Offensive behavior classifications are generic concept bindings against an exact behavior specification, not behavior-specification fields, raw action names, roles, goals, tasks, commands, or external technique labels. | ACT-609 |
-| PBM-10 | Defensive behavior classifications are generic concept bindings against an exact behavior specification; they classify intent or outcome domains and do not prove incident existence, effectiveness, recovery, or CSF conformance. | ACT-610 |
+| PBM-09 | Offensive behavior classifications are generic concept bindings against an exact behavior specification. They are not behavior-specification fields, raw action names, roles, goals, tasks, commands, or external technique labels. | ACT-609 |
+| PBM-10 | Defensive behavior classifications are generic concept bindings against an exact behavior specification. They classify intent or outcome domains. They do not prove incident existence, effectiveness, recovery, or CSF conformance. | ACT-610 |
 | PBM-11 | Mixed-control authority and ordered control facts are explicit, fail closed, and remain distinct from admission, execution, and observation. | ACT-617 |
 | PBM-12 | Autonomous behavior vocabulary terms are external assertions about exact behavior specifications and do not create native or executable behavior meaning. | ACT-611 |
 | PBM-13 | Tool-profile bindings only narrow their behavior specification, add up without precedence, and never grant availability, visibility, or admission by themselves. | ACT-619 |
