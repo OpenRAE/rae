@@ -199,6 +199,9 @@ class RuntimeTimeControlMixin:
                 default_args,
                 _RealizationApplyContext(effect_owners=frozenset({"time"}), effect_targets=frozenset({str(args[0])})),
             )
+        refusal = self._episode_reset_refusal(reset_requests)
+        if refusal is not None:
+            return refusal
         capability = self._target.manifest.time
         if (
             capability is None
@@ -228,6 +231,29 @@ class RuntimeTimeControlMixin:
                 effect_targets=frozenset({str(args[0]), *(request.participant_address for request in reset_requests)}),
             ),
         )
+
+    def _episode_reset_refusal(self, reset_requests: tuple[object, ...]) -> ApplyResult | None:
+        """Refuse a clock reset before dispatch when an authored episode policy does not admit it."""
+
+        binding = self._participant_episode
+        if binding is None:
+            return None
+        try:
+            for request in reset_requests:
+                binding.require_request(request)
+        except ConflictError:
+            return ApplyResult(
+                success=False,
+                snapshot=self._snapshot,
+                diagnostics=[
+                    _failure_diagnostic(
+                        "runtime.participant-episode-reset-refused",
+                        "runtime.time.reset",
+                        "The clock reset would reset a participant episode that its authored policy does not admit.",
+                    )
+                ],
+            )
+        return None
 
     def _synchronize_participant_clock(
         self,

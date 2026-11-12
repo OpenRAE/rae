@@ -97,6 +97,10 @@ class ParticipantEpisodeRuntimeBinding:
             if compatibility.backends and target.manifest.name not in compatibility.backends:
                 raise ValueError("episode implementation does not support the selected backend")
 
+    def admits_model(self, model: RuntimeModel) -> bool:
+        """Return whether a plan model is the exact compiled model that this binding installed."""
+        return model == self._model
+
     def policy(self, participant_address: str) -> ParticipantEpisodePolicyRuntime | None:
         return next(
             (

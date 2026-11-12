@@ -215,8 +215,10 @@ behavior_specifications:
     from raes_contracts.runtime_state import RuntimeSnapshot
     from raes_runtime.manager_plan_admission import runtime_plan_precondition_diagnostics
 
-    diagnostics = runtime_plan_precondition_diagnostics(plan, target, RuntimeSnapshot())
-    assert any(diagnostic.code == "runtime.participant-episode-binding-unavailable" for diagnostic in diagnostics)
+    refused = runtime_plan_precondition_diagnostics(plan, target, RuntimeSnapshot())
+    assert any(diagnostic.code == "runtime.participant-episode-binding-unavailable" for diagnostic in refused)
+    admitted = runtime_plan_precondition_diagnostics(plan, target, RuntimeSnapshot(), participant_episode=binding)
+    assert not any(diagnostic.code == "runtime.participant-episode-binding-unavailable" for diagnostic in admitted)
 
 
 @pytest.mark.parametrize("field", ["participant_address", "selected_decision_surface_mode"])

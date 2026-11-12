@@ -335,6 +335,7 @@ class RuntimeInteractionMixin(
             self._snapshot,
             durable_lifecycle_available=self._store_commits.crash_atomic,
             delivery_actions=delivery_tool_driver_actions(self, execution_plan.model),
+            participant_episode=self._participant_episode,
         )
         diagnostics.extend(precondition_diagnostics)
         failure = None

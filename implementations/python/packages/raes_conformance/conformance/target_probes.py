@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from types import SimpleNamespace
 
 from raes_contracts.diagnostics import Diagnostic
@@ -13,7 +14,7 @@ from raes_contracts.participant_episode_snapshot import iter_participant_episode
 from raes_contracts.planning import PlanScope, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
-from raes_processor.models import ExecutionPlan
+from raes_processor.models import ExecutionPlan, RuntimeModel
 from raes_processor.reference import ScenarioInput
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.participant_episode_binding import ParticipantEpisodeRuntimeBinding
@@ -346,6 +347,14 @@ def _hermetic_snapshot_case(
     )
 
 
+@dataclass(frozen=True)
+class TargetAdapterRun:
+    """Target-adapter probe cases and the compiled model of the probe scenario, when one was planned."""
+
+    cases: tuple[ConformanceCaseResult, ...]
+    model: RuntimeModel | None = None
+
+
 def _target_adapter_cases(
     target: RuntimeTarget,
     profile: BackendProfileSelector,
@@ -353,6 +362,23 @@ def _target_adapter_cases(
     reference_scenario: ScenarioInput | None = None,
     participant_episode: ParticipantEpisodeRuntimeBinding | None = None,
 ) -> tuple[ConformanceCaseResult, ...]:
+    """Return only the target-adapter probe cases."""
+
+    return target_adapter_run(
+        target,
+        profile,
+        reference_scenario=reference_scenario,
+        participant_episode=participant_episode,
+    ).cases
+
+
+def target_adapter_run(
+    target: RuntimeTarget,
+    profile: BackendProfileSelector,
+    *,
+    reference_scenario: ScenarioInput | None = None,
+    participant_episode: ParticipantEpisodeRuntimeBinding | None = None,
+) -> TargetAdapterRun:
     """Run target-adapter probes appropriate for known runtime surfaces only.
 
     Every known profile requires a provisioner, so target conformance always
@@ -374,7 +400,7 @@ def _target_adapter_cases(
     cases = [target_manifest_case(target)]
     known = _to_known_profile(profile)
     if not cases[0].valid or known is None:
-        return tuple(cases)
+        return TargetAdapterRun(tuple(cases))
 
     scenario = DEFAULT_TARGET_CONFORMANCE_SCENARIO if reference_scenario is None else reference_scenario
     scope = materialization_probe_scope(target)
@@ -403,7 +429,7 @@ def _target_adapter_cases(
             )
         )
     elif execution_plan.model.participant_episode_policies and (
-        participant_episode is None or participant_episode.model != execution_plan.model
+        participant_episode is None or not participant_episode.admits_model(execution_plan.model)
     ):
         cases.append(
             ConformanceCaseResult(
@@ -423,7 +449,7 @@ def _target_adapter_cases(
         )
     else:
         cases.extend(_target_runtime_cases(target, known, execution_plan, scope, participant_episode))
-    return tuple(cases)
+    return TargetAdapterRun(tuple(cases), execution_plan.model)
 
 
 def _target_runtime_cases(

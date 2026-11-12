@@ -23,7 +23,7 @@ from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 from raes_processor.models import RuntimeModel
-from raes_processor.reference import ScenarioInput, run_reference_processor
+from raes_processor.reference import ScenarioInput
 from raes_runtime.participant_episode_binding import ParticipantEpisodeRuntimeBinding
 from raes_runtime.registry import RuntimeTarget
 
@@ -52,7 +52,7 @@ from raes_conformance.conformance.report import (
     ConformanceCaseResult,
     _bounded_conformance_claim,
 )
-from raes_conformance.conformance.target_probes import _target_adapter_cases
+from raes_conformance.conformance.target_probes import target_adapter_run
 from raes_conformance.realization import (
     ExecutionBasis,
     RealizationConformanceHarness,
@@ -346,11 +346,6 @@ def _known_profile_report(
     fixture_report: BackendConformanceReport,
     options: _TargetConformanceOptions,
 ) -> BackendConformanceReport:
-    episode_model = options.participant_episode_model
-    if episode_model is None and options.participant_episode is not None:
-        episode_model = options.participant_episode.model
-    if episode_model is None and options.reference_scenario is not None:
-        episode_model = run_reference_processor(options.reference_scenario, target.manifest).execution_plan.model
     contract_gaps = _declared_contract_gaps(profile, target.manifest, profiles_root=options.profiles_root)
     surface_gaps = _capability_gaps(profile, target)
     claim_gaps = (
@@ -363,12 +358,19 @@ def _known_profile_report(
         *fixture_report.diagnostics,
         *_gap_diagnostics(target, profile, contract_gaps, surface_gaps, claim_gaps),
     ]
-    adapter_cases = _target_adapter_cases(
+    adapter_run = target_adapter_run(
         target,
         profile,
         reference_scenario=options.reference_scenario,
         participant_episode=options.participant_episode,
     )
+    adapter_cases = adapter_run.cases
+    # The probe planning above compiles the scenario once; the episode case reuses that model.
+    episode_model = options.participant_episode_model
+    if episode_model is None and options.participant_episode is not None:
+        episode_model = options.participant_episode.model
+    if episode_model is None:
+        episode_model = adapter_run.model
     participant_feature_cases = _participant_feature_cases(target, profile)
     policy_cases = participant_policy_cases(target, profile, options.participant_policy_harness)
     opacity_cases = participant_opacity_cases(

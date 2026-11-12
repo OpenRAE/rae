@@ -1,4 +1,4 @@
-"""Issue #309: ACT-623 owns its episode-structure delivery; the stacked #307 files keep DSL-120's checks."""
+"""Issue #309: ACT-623 owns its episode-structure delivery under its own governance phase."""
 
 import json
 from pathlib import Path
@@ -24,30 +24,23 @@ def test_act_623_has_its_own_phase_and_keeps_the_shared_prerequisites():
 def test_the_issue_scope_selects_act_623_and_every_bound_file_passes_its_owners_governance():
     scope = load_requirement_scope(ROOT, _BRANCH)
     assert scope is not None
-    assert (scope.primary_requirement_uid, scope.requirement_uids) == ("ACT-623", ("ACT-623", "DSL-120"))
+    assert (scope.primary_requirement_uid, scope.requirement_uids) == ("ACT-623", ("ACT-623",))
     client = RepositoryRequirementClient(ROOT)
     assert evaluate_requirement_scope(ROOT, sorted(scope.bindings), client=client, scope=scope) == []
 
 
-def test_the_stacked_issue_307_files_stay_bound_to_dsl_120():
-    stacked = load_requirement_scope(ROOT, "307-participant-episode-surface")
-    scope = load_requirement_scope(ROOT, _BRANCH)
-    assert {path for path, owners in scope.bindings.items() if "DSL-120" in owners} == set(stacked.bindings)
-
-
-def test_act_623_cannot_absorb_the_stacked_dsl_120_files():
+def test_act_623_does_not_absorb_dsl_120_bindings():
     document = json.loads((ROOT / _SCOPE).read_text(encoding="utf-8"))
-    document["bindings"] = {path: ["ACT-623"] for path in document["bindings"]}
+    assert {owner for owners in document["bindings"].values() for owner in owners} == {"ACT-623"}
+    document["bindings"]["docs/public/participant-control.md"] = ["ACT-623"]
     scope = parse_requirement_scope(document, issue_number=309)
 
     failures = evaluate_requirement_scope(
         ROOT, sorted(scope.bindings), client=RepositoryRequirementClient(ROOT), scope=scope
     )
 
-    assert {(failure.rule_id, failure.path) for failure in failures} >= {
-        ("requirement-ownership-mismatch", "docs/public/participant-control.md"),
-        ("requirement-ownership-mismatch", "specs/concept-authority/semantic-profiles.md"),
-        ("traceability-missing-implements", "implementations/python/packages/raes/composition/_episode_policy.py"),
+    assert ("requirement-ownership-mismatch", "docs/public/participant-control.md") in {
+        (failure.rule_id, failure.path) for failure in failures
     }
 
 

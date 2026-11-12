@@ -54,7 +54,7 @@ class RuntimePlanAuthorizationMixin:
 
     def _require_episode_planning_model(self, model: RuntimeModel) -> None:
         if model.participant_episode_policies and (
-            self._participant_episode is None or self._participant_episode.model != model
+            self._participant_episode is None or not self._participant_episode.admits_model(model)
         ):
             raise ConflictError("episode plan requires its exact installed runtime binding")
 

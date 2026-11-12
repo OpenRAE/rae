@@ -14,6 +14,7 @@ from raes_conformance.conformance.report import (
     _bounded_conformance_claim,
     backend_conformance_report_payload,
 )
+from raes_conformance.conformance.target_probes import TargetAdapterRun
 from raes_contracts.participant_episode import ParticipantEpisodeTerminalReason
 from raes_runtime.control_plane import RuntimeControlPlane
 from test_issue_309_episode_runtime_binding import PARTICIPANT, episode_model
@@ -31,7 +32,7 @@ def isolated_runner(monkeypatch):
         claim=_bounded_conformance_claim(profile=profile, cases=(case,), left_carrier_ref="test:episode"),
     )
     monkeypatch.setattr(runner, "run_fixture_suite", lambda **kwargs: fixture)
-    monkeypatch.setattr(runner, "_target_adapter_cases", lambda *args, **kwargs: ())
+    monkeypatch.setattr(runner, "target_adapter_run", lambda *args, **kwargs: TargetAdapterRun(()))
     monkeypatch.setattr(runner, "_participant_feature_cases", lambda *args: ())
     monkeypatch.setattr(runner, "participant_policy_cases", lambda *args: ())
     monkeypatch.setattr(runner, "participant_opacity_cases", lambda *args: ())
@@ -92,6 +93,15 @@ def test_target_runner_refuses_missing_episode_evidence(isolated_runner):
     episode = next(case for case in report.cases if case.name == "participant-episode-structure")
     assert episode.outcome == "unsupported"
     assert episode.diagnostics[0].code == "conformance.participant-episode-evidence-missing"
+
+
+def test_target_runner_inspects_the_probe_scenario_model_it_compiled_once(isolated_runner, monkeypatch):
+    # The probe run returns the model it compiled; the episode case uses it without a second compilation.
+    monkeypatch.setattr(runner, "target_adapter_run", lambda *args, **kwargs: TargetAdapterRun((), episode_model()))
+    report = run_target_conformance(create_stub_target(), participant_episode_snapshot=recorded_snapshot())
+    episode = next(case for case in report.cases if case.name == "participant-episode-structure")
+    assert episode.outcome == "passed"
+    assert not hasattr(runner, "run_reference_processor")
 
 
 def test_target_without_episode_support_reports_not_applicable(isolated_runner):
