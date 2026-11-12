@@ -88,6 +88,18 @@ def test_serializer_cannot_keep_a_raw_open_observation(carrier):
     assert any(d.code == "runtime.backend-contract-invalid" for d in result.diagnostics)
 
 
+@pytest.mark.parametrize("carrier", _LOSSY_CARRIERS)
+def test_serializer_mismatch_is_refused_inside_an_enum(carrier):
+    def wrap(spec):
+        return _enum_member(_node_carrier(carrier)(spec))
+
+    manager, result = _apply(_closed_excess(wrap))
+
+    assert not result.success
+    assert manager.snapshot.entries == {}
+    assert any(d.code == "runtime.backend-contract-invalid" for d in result.diagnostics)
+
+
 @pytest.mark.parametrize("wrap", list(_CARRIERS.values()), ids=list(_CARRIERS))
 def test_admitted_payload_carriers_survive_durable_storage(tmp_path, wrap):
     def rewrite(entry):
