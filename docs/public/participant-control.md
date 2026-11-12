@@ -40,7 +40,6 @@ observation boundary. Reuse the action, control, or inject carrier.
   participant's episodes start, take turns, end, and reset. Each end condition
   names one terminal reason and its evidence. The policy declares intent only.
   It does not start, reset, or end an episode.
-  Read the [episode structure guide](https://github.com/OpenRAE/rae/blob/dev/docs/explain/sdl/participant-episode-structure.md) for the authoring and runtime boundaries.
 - Do not infer a participant addressee from an environment inject. Do not put
   policy text, hidden answers, credentials, or raw evidence in a participant
   carrier.
@@ -113,10 +112,10 @@ Legacy API-408 status, context, and history retrieval remains available when
 no crossing resolver is set. That legacy mode is not governed egress. With a
 resolver, the HTTP adapter binds the audience before lookup. It resolves
 trusted evidence. It commits crossing facts before it writes the view.
-If the final flow-sink check refuses release, retrieval returns no view and
-the same atomic write records a failed operation and denied audit.
 
-Earlier crossing decisions remain in history as evidence of work performed; they do
+If the final flow-sink check refuses release, retrieval returns no view and
+the same atomic write records a failed operation and denied audit. Earlier
+crossing decisions remain in history as evidence of work performed; they do
 not mean the view was delivered. Retrying the same request returns the denied
 outcome, including after the local store is reopened.
 
@@ -157,9 +156,8 @@ Outcome: an explicitly bounded claim with the correct relation and evidence.
 Use [the relation catalogue](participant-control-explanation.md#select-a-behavioral-claim) before recording a claim.
 
 Name the question first. Then select a relation. Record the subject and
-carriers. Record the direction and projection revision.
+carriers. Record the direction and projection revision. Name all quantifiers.
 
-Name all quantifiers.
 State the scheduler, setting, and order assumptions. State the evidence bound,
 status, limits, and nonclaims.
 

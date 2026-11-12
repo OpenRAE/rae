@@ -25,10 +25,16 @@ def _private_prefix(namespace: str, name: str) -> str:
     return QualifiedName.parse(name).prefixed(namespace, private=True).render()
 
 
-def _maybe_rename(name: str, name_map: Mapping[str, str]) -> str:
+def rename_reference(name: str, name_map: Mapping[str, str]) -> str:
+    """Rename a known reference while preserving unresolved variable tokens."""
+
     if not name or is_variable_ref(name):
         return name
     return name_map.get(name, name)
+
+
+# Existing callers retain their spelling while new callers use the public interface.
+_maybe_rename = rename_reference
 
 
 def _rewrite_section_ref(name: str, section: str, name_map: Mapping[str, str]) -> str:
@@ -129,7 +135,3 @@ def _rewrite_variable_tokens(value: object, variables: Mapping[str, str]) -> obj
     else:
         rewritten = value
     return rewritten
-
-
-# Public identity-preserving rename seam for composition collaborators.
-rename_reference = _maybe_rename

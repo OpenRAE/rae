@@ -28,7 +28,7 @@ from ..semantics.participant_outcome import (
 from ..semantics.participant_temporal_bindings import participant_temporal_binding_errors
 from ._issue_owners import objective_issue_owner, participant_behavior_issue_owner, participant_outcome_issue_owner
 from ._objective_issue_renderers import OBJECTIVE_ISSUE_RENDERERS
-from ._participant_episode_policies import ParticipantEpisodePolicyValidator
+from ._participant_episode_policies import EpisodePolicyValidator
 from ._participant_execution_renderers import AUTONOMOUS_PARTICIPANT_ISSUE_RENDERERS
 from ._participant_outcome_renderers import PARTICIPANT_OUTCOME_ISSUE_RENDERERS
 from ._participant_resource_budget_owners import participant_resource_budget_owner_errors
@@ -334,14 +334,13 @@ class _ContentObjectivesMixin:
                 self._err(finding.message)
         self._verify_tool_affordance_tool_refs()
         self._verify_participant_inject_deliveries()
-        ParticipantEpisodePolicyValidator(
-            scenario=self._s,
-            declaration_index=self._declaration_index,
-            roles=self._participant_roles_by_agent(),
-            is_unresolved=self._is_unresolved_var,
+        EpisodePolicyValidator(
+            self._s,
+            self._declaration_index,
+            self._participant_roles_by_agent(),
             report_error=self._err,
             validate_named_ref=self._validate_named_ref,
-        ).verify()
+        ).validate()
         self._verify_participant_interaction_refs()
         self._verify_behavior_specification_authority_refs()
         self._verify_mixed_control_semantics()

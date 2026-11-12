@@ -12,13 +12,19 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 from raes_contracts.propositions import AssertionRole
+from raes_contracts.variable_references import is_variable_ref
 
 from .._reference_targetability import ReferencePurpose
 from ..participant_episode_policy import ParticipantEpisodeTimeoutCondition
 from ..semantics.participant_behavior import select_participants
 from ..time_model import TemporalConstraintKind
+
+if TYPE_CHECKING:
+    from .._declarations import DeclarationIndex
+    from ..scenario import ScenarioContent
 
 _DECLARATION_INDEX_REQUIRED = "declaration index must be built before reference validation"
 # Constraint kinds that bound elapsed shared time, so their expiry can be a
@@ -46,27 +52,25 @@ class _EpisodeOwner:
     selection_resolved: bool
 
 
-class ParticipantEpisodePolicyValidator:
-    """Compose episode checks with the existing validator's reference and error owners."""
+class EpisodePolicyValidator:
+    """Compose episode checks with the existing behavior pass and diagnostic sink."""
 
     def __init__(
         self,
+        scenario: ScenarioContent,
+        declaration_index: DeclarationIndex | None,
+        participant_roles: dict[str, str],
         *,
-        scenario: object,
-        declaration_index: object,
-        roles: dict[str, str],
-        is_unresolved: Callable[[object], bool],
         report_error: Callable[[str], None],
-        validate_named_ref: Callable[..., object],
+        validate_named_ref: Callable[..., None],
     ) -> None:
         self._s = scenario
         self._declaration_index = declaration_index
-        self._roles = roles
-        self._is_unresolved_var = is_unresolved
+        self._participant_roles = participant_roles
         self._err = report_error
         self._validate_named_ref = validate_named_ref
 
-    def verify(self) -> None:
+    def validate(self) -> None:
         if self._declaration_index is None:
             raise RuntimeError(_DECLARATION_INDEX_REQUIRED)
         governed = [
@@ -76,7 +80,7 @@ class ParticipantEpisodePolicyValidator:
         ]
         if not governed:
             return
-        roles = self._roles
+        roles = self._participant_roles
         owners = [self._episode_owner(spec_name, behavior_spec, roles) for spec_name, behavior_spec in governed]
         for owner in owners:
             self._verify_episode_policy(owner)
@@ -84,9 +88,9 @@ class ParticipantEpisodePolicyValidator:
 
     def _episode_owner(self, spec_name: str, behavior_spec: object, roles: dict[str, str]) -> _EpisodeOwner:
         role_selected = bool(behavior_spec.participant_role_refs)
-        unresolved = any(self._is_unresolved_var(ref) for ref in behavior_spec.participant_refs) or (
+        unresolved = any(is_variable_ref(ref) for ref in behavior_spec.participant_refs) or (
             role_selected
-            and any(self._is_unresolved_var(ref) for ref in (*behavior_spec.participant_role_refs, *roles.values()))
+            and any(is_variable_ref(ref) for ref in (*behavior_spec.participant_role_refs, *roles.values()))
         )
         participants = frozenset(select_participants(behavior_spec, set(self._s.agents), roles))
         return _EpisodeOwner(spec_name, behavior_spec, participants, selection_resolved=not unresolved)
@@ -135,7 +139,7 @@ class ParticipantEpisodePolicyValidator:
     def _verify_episode_reset_policy(self, label: str, reset_policy: object) -> None:
         # The ADR-095 reset authority must be exactly one declared targetable element.
         authority = reset_policy.memory_reset_authority_ref
-        if authority is not None and not self._is_unresolved_var(authority):
+        if authority is not None and not is_variable_ref(authority):
             self._validate_named_ref(
                 authority,
                 owner_label=label,
@@ -155,7 +159,7 @@ class ParticipantEpisodePolicyValidator:
         role_label: str,
     ) -> None:
         for ref in refs:
-            if self._is_unresolved_var(ref):
+            if is_variable_ref(ref):
                 continue
             assertion = self._s.assertions.get(ref)
             if assertion is None:
@@ -165,20 +169,20 @@ class ParticipantEpisodePolicyValidator:
 
     def _verify_episode_turn_actions(self, label: str, owner: _EpisodeOwner, refs: Iterable[str]) -> None:
         spec_actions = owner.behavior_spec.action_contract_refs
-        spec_actions_resolved = not any(self._is_unresolved_var(ref) for ref in spec_actions)
+        spec_actions_resolved = not any(is_variable_ref(ref) for ref in spec_actions)
         for ref in refs:
-            if self._is_unresolved_var(ref):
+            if is_variable_ref(ref):
                 continue
             ref_label = f"{label} interaction_structure action_contract_ref '{ref}'"
             if spec_actions_resolved and ref not in spec_actions:
                 self._err(f"{ref_label} is outside the owning behavior specification")
             for participant in sorted(owner.participants):
                 actions = self._s.agents[participant].actions
-                if ref not in actions and not any(self._is_unresolved_var(action) for action in actions):
+                if ref not in actions and not any(is_variable_ref(action) for action in actions):
                     self._err(f"{ref_label} is outside participant '{participant}'")
 
     def _verify_episode_timeout(self, label: str, ref: str, owner: _EpisodeOwner) -> None:
-        if self._is_unresolved_var(ref):
+        if is_variable_ref(ref):
             return
         constraint = self._s.temporal_constraints.get(ref)
         if constraint is None:
@@ -186,7 +190,7 @@ class ParticipantEpisodePolicyValidator:
             return
         if constraint.constraint_kind not in _TIMEOUT_CONSTRAINT_KINDS:
             self._err(f"{label} temporal_constraint_ref '{ref}' must be a deadline, window, or duration constraint")
-        if not owner.selection_resolved or any(self._is_unresolved_var(subject) for subject in constraint.subject_refs):
+        if not owner.selection_resolved or any(is_variable_ref(subject) for subject in constraint.subject_refs):
             return
         subjects: set[str] = set()
         for subject in constraint.subject_refs:
@@ -208,7 +212,7 @@ class ParticipantEpisodePolicyValidator:
 
     def _verify_episode_evidence(self, label: str, refs: Iterable[str]) -> None:
         for ref in refs:
-            if self._is_unresolved_var(ref):
+            if is_variable_ref(ref):
                 continue
             if ref not in self._s.evidence_requirements:
                 self._err(

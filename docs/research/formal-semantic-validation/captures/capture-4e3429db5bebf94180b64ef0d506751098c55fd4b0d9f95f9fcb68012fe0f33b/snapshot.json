@@ -1,11 +1,11 @@
 {
   "baseline": {
-    "execution_id": "pr-1642-dev-sync-formal-execution",
-    "release_path": "docs/research/formal-semantic-validation/captures/capture-5118e02a713b928c41bbb9966c6d9d99162f6e9cce7f951c2165acef5d66e688/manifest.json",
-    "release_revision": "capture-5118e02a713b928c41bbb9966c6d9d99162f6e9cce7f951c2165acef5d66e688",
-    "release_sha256": "f63c78e73e8e5d7977a6387f1163ff4ea69c78accb7c6236126c4634c3a2b105"
+    "execution_id": "issue-1395-crossing-formal-3c684ef5d50a",
+    "release_path": "docs/research/formal-semantic-validation/captures/capture-3bad394534ce94f3cfc052a52e3305495c2733ddda860ab3b1e5c24758a3f62c/manifest.json",
+    "release_revision": "capture-3bad394534ce94f3cfc052a52e3305495c2733ddda860ab3b1e5c24758a3f62c",
+    "release_sha256": "f9544867cb1bedeb1cc1d0903e0dde2fdf22d1bda17819d90dad28de395ecc61"
   },
-  "captured_at": "2026-10-26T07:18:45.316196+00:00",
+  "captured_at": "2026-10-14T02:04:08.732771+00:00",
   "commands": [
     {
       "argv": [
@@ -89,47 +89,8 @@
   ],
   "configuration_id": "raes-python-reference-offline-v41",
   "corpus_revision": "4.0.0",
-  "deviations": [
-    {
-      "baseline": {
-        "actual_outcome": "distinguishable",
-        "diagnostic_kind": null,
-        "result_digest": "a2fcebba3341592b133af813e8bb8e5f47270418bc58bfd471a89bfbc8ba46da"
-      },
-      "case_id": "compile-non-vacuity-control",
-      "category": "compiled-representation-change",
-      "changed_fields": [
-        "result_digest"
-      ],
-      "disposition": "accepted",
-      "rationale": "The compiled runtime model now carries the participant_episode_policies map from issue 307, empty for this control because it declares no episode policy; the control declares no behavior specification, so the issue 309 episode_policy_address member does not appear. The serialized representation changes the compiled digest; replayed outcomes and claim strength are unchanged.",
-      "retest": {
-        "actual_outcome": "distinguishable",
-        "diagnostic_kind": null,
-        "result_digest": "961fc5c6ec80c5ec7946814501d7d6dc3e8a7b2f2b159ea6010d8a73be765a49"
-      }
-    },
-    {
-      "baseline": {
-        "actual_outcome": "stable",
-        "diagnostic_kind": null,
-        "result_digest": "d7c098c5d063b8d1b0747e8df5daa90061456065cdda0bbedfa10918442f5daa"
-      },
-      "case_id": "compile-repeatability-control",
-      "category": "compiled-representation-change",
-      "changed_fields": [
-        "result_digest"
-      ],
-      "disposition": "accepted",
-      "rationale": "The compiled runtime model now carries the participant_episode_policies map from issue 307, empty for this control because it declares no episode policy; the control declares no behavior specification, so the issue 309 episode_policy_address member does not appear. The serialized representation changes the compiled digest; replayed outcomes and claim strength are unchanged.",
-      "retest": {
-        "actual_outcome": "stable",
-        "diagnostic_kind": null,
-        "result_digest": "c7ad7c6da1f2590234c92aec30ddf5d3f3756fac3cadba005529c15a83cce3e5"
-      }
-    }
-  ],
-  "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+  "deviations": [],
+  "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
   "execution_status": "complete",
   "observations": [
     {
@@ -146,7 +107,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/schema-valid.sdl.yaml"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "A passing minimal source does not establish semantic correctness."
       ],
@@ -168,7 +129,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/schema-invalid-unknown-field.sdl.yaml"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "The observation covers one unknown-field defect only."
       ],
@@ -190,7 +151,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/semantic-valid-participant-identity-v2.sdl.yaml"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "This is a positive control for one objective-reference slice."
       ],
@@ -212,7 +173,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/semantic-invalid-dangling-ref-participant-identity-v2.sdl.yaml"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "A single dangling reference does not prove complete semantic coverage."
       ],
@@ -234,7 +195,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/semantic-invalid-ambiguous-ref.sdl.yaml"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "One namespace collision does not enumerate every ambiguity surface."
       ],
@@ -256,7 +217,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/semantic-invalid-feature-cycle.sdl.yaml"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "One static dependency cycle does not establish general constraint satisfiability."
       ],
@@ -278,7 +239,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/workflow-reachable.sdl.yaml"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "The graph is workflow control flow only."
       ],
@@ -300,7 +261,7 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/workflow-unreachable.sdl.yaml"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "The result does not establish network, service, participant, or exploit reachability."
       ],
@@ -322,7 +283,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "No governed whole-scenario constraint theory or solver exists."
       ],
@@ -344,7 +305,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "Local checks cannot produce a whole-scenario unsat certificate."
       ],
@@ -366,7 +327,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "The issue-168 baseline had no canonical typed attack graph or path-query entrypoint."
       ],
@@ -388,7 +349,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "Vulnerability and topology declarations are not an invalid-path proof."
       ],
@@ -410,12 +371,12 @@
       "evidence_refs": [
         "docs/research/formal-semantic-validation/corpus/determinism-a.sdl.yaml"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "The witness ends at compiled output."
       ],
       "replayable": true,
-      "result_digest": "c7ad7c6da1f2590234c92aec30ddf5d3f3756fac3cadba005529c15a83cce3e5",
+      "result_digest": "d7c098c5d063b8d1b0747e8df5daa90061456065cdda0bbedfa10918442f5daa",
       "source_digest": null
     },
     {
@@ -433,12 +394,12 @@
         "docs/research/formal-semantic-validation/corpus/determinism-a.sdl.yaml",
         "docs/research/formal-semantic-validation/corpus/determinism-b.sdl.yaml"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "Distinct digests are a non-vacuity control, not semantic non-equivalence proof."
       ],
       "replayable": true,
-      "result_digest": "961fc5c6ec80c5ec7946814501d7d6dc3e8a7b2f2b159ea6010d8a73be765a49",
+      "result_digest": "a2fcebba3341592b133af813e8bb8e5f47270418bc58bfd471a89bfbc8ba46da",
       "source_digest": null
     },
     {
@@ -455,7 +416,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "No governed intervention or ablation protocol exists."
       ],
@@ -477,7 +438,7 @@
       "evidence_refs": [
         "docs/decisions/issue-168-formal-semantic-validation-reachability-preflight.md"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "Attribution and negative fixtures do not demonstrate non-necessity."
       ],
@@ -501,7 +462,7 @@
         "docs/research/formal-semantic-validation/evidence/finite-domain-satisfiable-v4.json",
         "specs/formal/scenario-satisfiability/README.md"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "Demonstrates only the pinned finite-domain theory, translation, solver profile, and source."
       ],
@@ -525,7 +486,7 @@
         "docs/research/formal-semantic-validation/evidence/finite-domain-unsatisfiable-v4.json",
         "specs/formal/scenario-satisfiability/README.md"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "The subset-minimal core is evidence for the pinned translation and solver, not a proof certificate for arbitrary SDL."
       ],
@@ -549,7 +510,7 @@
         "docs/research/formal-semantic-validation/evidence/typed-exploit-path-valid-v4.json",
         "specs/formal/exploit-path-analysis/README.md"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "The witness is bounded to the admitted snapshot, normalized graph, query, semantics, and search profile; it does not establish backend execution."
       ],
@@ -573,7 +534,7 @@
         "docs/research/formal-semantic-validation/evidence/typed-exploit-path-invalid-v4.json",
         "specs/formal/exploit-path-analysis/README.md"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "Structured rejection proves only that this bounded graph/query cannot reach its goal; it does not establish real-world non-exploitability."
       ],
@@ -588,7 +549,7 @@
         "implementations/python/tests/test_sem_208_participant_behavior.py::test_hidden_truth_disclosure_is_separate_from_observable_projection",
         "implementations/python/tests/test_sem_208_participant_behavior.py::test_hidden_truth_cannot_be_observed_without_explicit_disclosure_rule"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "Covers the reference SDL/contract path, not every backend projection."
       ],
@@ -601,7 +562,7 @@
         "implementations/python/tests/test_sem_211_participant_action_semantics.py::test_action_contract_declares_sem_211_classes_and_compiles_them",
         "implementations/python/tests/test_sem_211_participant_action_semantics.py::test_action_result_rejects_success_when_preconditions_are_unresolved"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "Covers declared applicability and one unresolved-precondition failure."
       ],
@@ -614,7 +575,7 @@
         "implementations/python/tests/test_run_308_concurrent_participant_execution.py::test_runtime_snapshot_publishes_joint_action_and_time_context_records",
         "implementations/python/tests/test_run_308_concurrent_participant_execution.py::test_joint_action_record_contract_rejects_unordered_conflicting_writes"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "Contract evidence does not prove every backend's live concurrency fidelity."
       ],
@@ -627,7 +588,7 @@
         "implementations/python/tests/test_participant_runtime_invariants.py::test_order_discipline_accepts_supported_order_claim_strengths",
         "implementations/python/tests/test_participant_runtime_invariants.py::test_order_discipline_rejects_wall_clock_causality"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "Rejecting timestamp-only causality does not supply counterfactual proof."
       ],
@@ -640,7 +601,7 @@
         "implementations/python/tests/test_sem_212_participant_attribution_semantics.py::test_attribution_edge_round_trips_on_terminal_observation",
         "implementations/python/tests/test_sem_212_participant_attribution_semantics.py::test_timestamp_adjacency_cannot_be_reported_as_strong_causality"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "Attribution labels disclose basis; they do not demonstrate necessity."
       ],
@@ -653,7 +614,7 @@
         "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py::test_outcome_interpretation_rule_parses_and_compiles_explicit_layers",
         "implementations/python/tests/test_sem_215_participant_outcome_interpretation.py::test_local_action_success_does_not_imply_objective_success_without_rule_record"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "The fixtures establish layer separation, not outcome validity in every realization."
       ],
@@ -666,7 +627,7 @@
         "implementations/python/tests/test_realization_honesty_conformance.py::test_constructive_envelope_runs_positive_and_negative_honesty_probes",
         "implementations/python/tests/test_realization_honesty_conformance.py::test_only_native_live_can_support_native_conformance"
       ],
-      "execution_id": "issue-309-participant-episode-structure-formal-5c16b39dc0b6",
+      "execution_id": "issue-1450-realization-envelope-binding-formal-06078b82cdbe",
       "limitations": [
         "Reference conformance evidence remains bounded to declared realization profiles."
       ],
@@ -676,16 +637,16 @@
     }
   ],
   "protocol_revision": "2.0.0",
-  "raes_revision": "cf9e02310b5848f2604683790a95bab25fc582c0",
+  "raes_revision": "439fcc1c9e573c9ccf8f9488803f9efa77c68dd3",
   "source_state": {
-    "base_revision": "cf9e02310b5848f2604683790a95bab25fc582c0",
+    "base_revision": "439fcc1c9e573c9ccf8f9488803f9efa77c68dd3",
     "checkout_state": "clean",
-    "implementation_digest": "5c16b39dc0b655d7b07d38419becc5fc733e9e5fe8db9910bca27747e0d84a32",
+    "implementation_digest": "06078b82cdbee2f3190bace3063641d1be90cf3dc10be40f044c323510a0fc22",
     "profile": "python-reference-source/v2"
   },
   "versions": {
-    "python": "3.12.13",
-    "raes": "7.0.0",
+    "python": "3.12.3",
+    "raes": "5.0.0",
     "z3_engine": "4.16.0",
     "z3_solver": "4.16.0.0"
   }

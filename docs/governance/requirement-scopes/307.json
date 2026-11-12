@@ -6,6 +6,9 @@
     "DSL-120"
   ],
   "bindings": {
+    ".vale.ini": [
+      "DSL-120"
+    ],
     "contracts/fixtures/sdl/participant-episode-policy-v1/README.md": [
       "DSL-120"
     ],
@@ -48,10 +51,7 @@
     "docs/decisions/package-artifacts/operations.md": [
       "DSL-120"
     ],
-    "docs/explain/sdl/participant-episode-lineage.md": [
-      "DSL-120"
-    ],
-    "docs/explain/sdl/participant-episode-structure.md": [
+    "docs/explain/sdl/participant-episode-policies.md": [
       "DSL-120"
     ],
     "docs/governance/requirement-scopes/307.json": [
@@ -99,13 +99,13 @@
     "implementations/python/packages/raes/composition/_episode_policy.py": [
       "DSL-120"
     ],
+    "implementations/python/packages/raes/composition/_references.py": [
+      "DSL-120"
+    ],
     "implementations/python/packages/raes/participant_behavior_specification.py": [
       "DSL-120"
     ],
     "implementations/python/packages/raes/participant_episode_policy.py": [
-      "DSL-120"
-    ],
-    "implementations/python/packages/raes/validator/__init__.py": [
       "DSL-120"
     ],
     "implementations/python/packages/raes/validator/_content_objectives.py": [
@@ -132,13 +132,16 @@
     "implementations/python/packages/raes_processor/models/runtime_model.py": [
       "DSL-120"
     ],
-    "implementations/python/tests/test_formal_semantic_validation.py": [
-      "DSL-120"
-    ],
     "implementations/python/tests/test_issue_307_dsl_120_participant_episode_policy.py": [
       "DSL-120"
     ],
     "implementations/python/tests/test_issue_307_policy_ownership.py": [
+      "DSL-120"
+    ],
+    "implementations/python/tests/test_issue_989_versioned_evidence.py": [
+      "DSL-120"
+    ],
+    "implementations/python/tests/test_sdl_diagnostic_boundary.py": [
       "DSL-120"
     ],
     "specs/concept-authority/semantic-profiles.md": [
@@ -147,10 +150,22 @@
     "specs/formal/assurance-fulfillment.yaml": [
       "DSL-120"
     ],
+    "specs/formal/participant-behavior-model/README.md": [
+      "DSL-120"
+    ],
+    "specs/formal/participant-semantics/semantic-coverage/behavior-model-and-runtime.md": [
+      "DSL-120"
+    ],
     "specs/sdl/references.md": [
       "DSL-120"
     ],
     "specs/sdl/sections.md": [
+      "DSL-120"
+    ],
+    "tools/formal_semantic_validation/_replay.py": [
+      "DSL-120"
+    ],
+    "tools/policy/adr_policy.yaml": [
       "DSL-120"
     ],
     "tools/policy/requirement_order.yaml": [

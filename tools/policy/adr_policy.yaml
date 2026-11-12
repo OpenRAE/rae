@@ -111,8 +111,8 @@ module_boundaries:
           - raes.parse_sdl
           - raes.parser
           - raes.participant_behavior_specification
-          - raes.participant_episode_policy
           - raes.participant_control_context
+          - raes.participant_episode_policy
           - raes.participant_mixed_control_policy
           - raes.participant_temporal_semantics
           - raes.phase_contracts

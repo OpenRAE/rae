@@ -198,6 +198,18 @@ class ParticipantEpisodePolicy(_EpisodePolicyIntent):
     )
     reset_policy: ParticipantEpisodeResetPolicy | None = None
 
+    @classmethod
+    def __get_pydantic_json_schema__(cls, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> dict[str, Any]:
+        json_schema = handler.resolve_ref_schema(handler(core_schema))
+        json_schema["anyOf"] = [
+            {
+                "properties": {name: {"type": "object", "minProperties": 1}},
+                "required": [name],
+            }
+            for name in (*_STRUCTURE_RECORDS, *_STRUCTURE_MAPS)
+        ]
+        return json_schema
+
     @model_validator(mode="after")
     def _validate_policy_shape(self) -> ParticipantEpisodePolicy:
         if not any(getattr(self, name) for name in (*_STRUCTURE_RECORDS, *_STRUCTURE_MAPS)):

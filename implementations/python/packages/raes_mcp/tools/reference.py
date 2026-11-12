@@ -7,7 +7,6 @@ and annotated real-world examples.
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
@@ -96,12 +95,12 @@ _SECTION_NAMES: dict[str, str] = {
 
 def _extract_section(doc_text: str, heading: str) -> str:
     """Extract a single ## section from the sections.md document."""
-    match = re.search(rf"^## {re.escape(heading)}\r?$", doc_text, flags=re.IGNORECASE | re.MULTILINE)
-    if match is None:
+    marker = f"## {heading}\n"
+    start = doc_text.find(marker)
+    if start == -1:
         return f"Section '{heading}' not found in reference docs."
-    start = match.start()
     # Find end: next ## heading or end of file
-    next_h2 = doc_text.find("\n## ", match.end())
+    next_h2 = doc_text.find("\n## ", start + len(marker))
     if next_h2 == -1:
         return doc_text[start:]
     return doc_text[start:next_h2].rstrip()

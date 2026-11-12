@@ -170,7 +170,7 @@ def test_current_compile_replay_hashes_complete_capture_dimension():
     scenario = parse_sdl_file(path, migration_policy=_migration_policy_for_case(ROOT, case, path))
     compiled = dataclasses.asdict(compile_runtime_model(instantiate_scenario(scenario, parameters={})))
     assert "capture_demands" in compiled
-    # Absent optional intent adds no semantic value; complete capture demands remain hashed.
+    # The retained fixture has neither safe-state nor episode-policy intent; empty optional values are omitted.
     assert compiled.pop("safe_states") == ()
     assert compiled.pop("participant_episode_policies") == {}
     for specification in compiled["behavior_specifications"].values():

@@ -10711,6 +10711,63 @@
     },
     "ParticipantEpisodePolicy": {
       "additionalProperties": false,
+      "anyOf": [
+        {
+          "properties": {
+            "initialization": {
+              "minProperties": 1,
+              "type": "object"
+            }
+          },
+          "required": [
+            "initialization"
+          ]
+        },
+        {
+          "properties": {
+            "interaction_structure": {
+              "minProperties": 1,
+              "type": "object"
+            }
+          },
+          "required": [
+            "interaction_structure"
+          ]
+        },
+        {
+          "properties": {
+            "reset_policy": {
+              "minProperties": 1,
+              "type": "object"
+            }
+          },
+          "required": [
+            "reset_policy"
+          ]
+        },
+        {
+          "properties": {
+            "terminal_conditions": {
+              "minProperties": 1,
+              "type": "object"
+            }
+          },
+          "required": [
+            "terminal_conditions"
+          ]
+        },
+        {
+          "properties": {
+            "truncation_conditions": {
+              "minProperties": 1,
+              "type": "object"
+            }
+          },
+          "required": [
+            "truncation_conditions"
+          ]
+        }
+      ],
       "description": "Versioned episode structure intent of a behavior specification.",
       "properties": {
         "initialization": {

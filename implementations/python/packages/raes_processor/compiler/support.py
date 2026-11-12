@@ -27,9 +27,3 @@ def _dedupe_by_value(items: list[Any]) -> tuple[Any, ...]:
         key = getattr(item, "value", repr(item))
         ordered.setdefault(key, item)
     return tuple(item for _, item in sorted(ordered.items()))
-
-
-# Public value helpers for compiler collaborators.
-canonical_address = _address
-deduplicate = _dedupe
-dump_spec = _dump
