@@ -294,9 +294,24 @@ These probes selected the comparison projection and software refinement tests on
 ADR-121 requires 25-minute normal Go jobs and 90-percent coverage of each module.
 The workflow now uses four product test groups and one tooling group.
 An explicit inventory check proves that every module package occurs exactly once.
-The package timeout remains 20 minutes, with race detection and module instrumentation.
+The package timeout remains 20 minutes.
+Each group has separate required race and atomic module-coverage jobs at the same revision.
 Module jobs require all group results, complete native data and the same 90-percent floor.
 Existing module coverage artifact names still feed Sonar.
+
+The first grouped run passed shared-contract and tooling tests.
+Parity hit its package timeout; authoring and processor reached the job limits.
+The retained parity stack was walking compiled schema fragments.
+Fragment lookup now builds a bounded immutable index once for each compiled schema.
+Unknown pointers cannot grow the index, and an incomplete index refuses lookup.
+Fresh request values and copied rule registries stay independent.
+
+The focused published-fragment benchmark fell from 3.48 milliseconds and 18,457 allocations per lookup to 1.00 microsecond and 14 allocations after initialization.
+Targeted race checks cover concurrent requests, separate schema and rule owners, recursive fragments, unknown fragments and incomplete graph refusal.
+The 765 published identity and mixed-control schema cases pass with race detection.
+The selected publication case from the timeout stack also passes with combined race and module instrumentation.
+Normal CI runs those checks separately to avoid their combined instrumentation cost.
+Both modes remain required for every package group.
 
 Manifest and profile checks reuse the existing immutable processor admission owner.
 Participant reference fragments also reuse a stock validator and decode fresh request values.
@@ -305,6 +320,7 @@ The same 139 history and argument cases fell from 50.768 to 8.930 seconds in tar
 Manifest, profile, architecture, lint and targeted Go workflow-policy checks pass after these repairs.
 The four product groups cover all 36 packages exactly once; the tooling group covers all 11 packages.
 The Go job shell scripts parse and the tooling artifact policy passes.
+The collector script also passes a targeted clock-package probe in both modes and writes native data only for coverage.
 The complete hosted Go and Sonar gates must still pass on the new commit.
 
 ## Requirement traceability

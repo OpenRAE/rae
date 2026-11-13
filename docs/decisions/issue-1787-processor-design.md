@@ -983,13 +983,28 @@ Only stock schemas, catalogs and rules are shared.
 Each request still owns its input, context, findings and returned projections.
 Reference fragment tests also share an immutable validator while decoding fresh request values.
 
+Fragment lookup indexes each immutable compiled schema once with `sync.OnceValue`.
+The private index stays in `contract/validation`, beside the compiled schema.
+It contains only reachable schema locations and keeps the existing 100,000-visit work bound.
+An incomplete index refuses all fragment lookups.
+Unknown caller pointers do not add entries.
+Published and construction schemas keep separate indexes, and copied rule registries share only their compiled schema index.
+Each call still parses and validates fresh bounded input, applies the current rules and returns fresh values.
+The public API, package imports and trust boundaries do not change.
+
 Normal Go jobs have the 25-minute limit required by ADR-121.
 Product race tests use four package groups: shared contracts and primitives, native authoring, parity adapters, and processor with public SDL.
 The tooling module has one test group.
 Each package keeps its 20-minute test timeout.
 The groups must cover each module package exactly once.
 
-Each test instruments the module with `-coverpkg=./...` and records native binary coverage data.
+Each group runs separate required race and coverage jobs at the same revision.
+Race jobs run every selected test with `-race`.
+Coverage jobs run the same tests with atomic module instrumentation and native binary data.
+This avoids the combined runtime cost of race detection and module-wide counters.
+Only the authoring and parity groups need the independent SDL oracles.
+
+Each coverage job instruments the module with `-coverpkg=./...`.
 This records shared-owner calls made through SDK tests.
 The existing module jobs merge the data with `go tool covdata` and enforce 90-percent statement coverage.
 They compare the supplied package inventory with `go list ./...` before merging.

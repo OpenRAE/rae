@@ -20,7 +20,7 @@ func (v *Validator) DecodeObjectFragment(id, pointer string, data []byte, limits
 	if pointer != "#" && !strings.HasPrefix(pointer, "#/") {
 		return nil, failure(fault.InvalidInput, codeContractFragmentUnknown)
 	}
-	schema := findSchemaFragment(v.contracts[id].schema, pointer)
+	schema := findSchemaFragment(v.contracts[id], pointer)
 	if schema == nil {
 		return nil, failure(fault.InvalidInput, codeContractFragmentUnknown)
 	}
@@ -50,7 +50,7 @@ func (v *Validator) DefaultedObjectFragment(id, pointer string, data []byte, lim
 	if err != nil {
 		return nil, err
 	}
-	schema := findSchemaFragment(v.contracts[id].schema, pointer)
+	schema := findSchemaFragment(v.contracts[id], pointer)
 	if schema == nil {
 		return nil, failure(fault.InvalidInput, codeContractFragmentUnknown)
 	}
@@ -65,7 +65,17 @@ func (v *Validator) DefaultedObjectFragment(id, pointer string, data []byte, lim
 	return result, nil
 }
 
-func findSchemaFragment(root *jsonschema.Schema, pointer string) *jsonschema.Schema {
+func findSchemaFragment(entry contract, pointer string) *jsonschema.Schema {
+	if entry.fragments == nil {
+		return nil
+	}
+	return entry.fragments()[pointer]
+}
+
+// Only compiled locations enter this bounded immutable index, never caller
+// pointers or payloads. Each compiled contract publishes it once.
+func indexSchemaFragments(root *jsonschema.Schema) map[string]*jsonschema.Schema {
+	fragments := map[string]*jsonschema.Schema{}
 	seen := map[*jsonschema.Schema]bool{}
 	pending := []*jsonschema.Schema{root}
 	for work := 0; len(pending) > 0 && work < 100000; work++ {
@@ -76,12 +86,18 @@ func findSchemaFragment(root *jsonschema.Schema, pointer string) *jsonschema.Sch
 		}
 		seen[current] = true
 		location, err := url.Parse(current.Location)
-		if err == nil && "#"+location.Fragment == pointer {
-			return current
+		if err == nil {
+			pointer := "#" + location.Fragment
+			if fragments[pointer] == nil {
+				fragments[pointer] = current
+			}
 		}
 		pending = append(pending, compiledChildren(current)...)
 	}
-	return nil
+	if len(pending) != 0 {
+		return nil
+	}
+	return fragments
 }
 
 func compiledChildren(s *jsonschema.Schema) []*jsonschema.Schema {
@@ -131,7 +147,7 @@ func (v *Validator) CheckLocalFragment(id, pointer string, data []byte, limits i
 	if !strings.HasPrefix(pointer, "#/") {
 		return failure(fault.InvalidInput, codeContractFragmentUnknown)
 	}
-	schema := findSchemaFragment(v.contracts[id].schema, pointer)
+	schema := findSchemaFragment(v.contracts[id], pointer)
 	if schema == nil {
 		return failure(fault.InvalidInput, codeContractFragmentUnknown)
 	}

@@ -588,13 +588,15 @@ jobs:
   # opt-in; the separate scheduled sweep is delivered by issue #1898.
   # The Go toolchain and tools come from their locks.
   go-test:
-    name: Go race tests (${{ matrix.module }}, ${{ matrix.group }})
+    name: Go tests (${{ matrix.module }}, ${{ matrix.group }}, ${{ matrix.mode }})
     needs: trust-ref
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
+        group: [shared, authoring, parity, processor, tooling]
+        mode: [race, coverage]
         include:
           - {module: product, group: shared, path: implementations/go, packages: './base/... ./contract/... ./internal/base/... ./internal/contract/... ./internal/sdl/source/...'}
           - {module: product, group: authoring, path: implementations/go, packages: './internal/sdl/authoring/...'}
@@ -631,7 +633,7 @@ jobs:
         if: matrix.module == 'tooling'
         run: go -C implementations/go mod download
       - name: Record independent SDL test oracles
-        if: matrix.module == 'product'
+        if: matrix.group == 'authoring' || matrix.group == 'parity'
         run: |
           uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_authoring_vectors.py --corpus --output "${RUNNER_TEMP}/sdl-semantic-oracle.json"
@@ -639,38 +641,50 @@ jobs:
           uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_format_bytes.py --output "${RUNNER_TEMP}/sdl-format-bytes.json"
           echo "RAES_FORMAT_BYTE_ORACLE=${RUNNER_TEMP}/sdl-format-bytes.json" >> "${GITHUB_ENV}"
-      - name: Run the race-tested package group
+      - name: Run the package group
         working-directory: ${{ matrix.path }}
         env:
           PACKAGE_PATTERNS: ${{ matrix.packages }}
+          TEST_MODE: ${{ matrix.mode }}
         run: |
           set -euo pipefail
           coverage_dir="${RUNNER_TEMP}/go-coverage"
           mkdir -p "${coverage_dir}/data"
           read -r -a test_packages <<< "${PACKAGE_PATTERNS}"
           go list "${test_packages[@]}" > "${coverage_dir}/packages.txt"
-          log="${RUNNER_TEMP}/go-test-${{ matrix.module }}-${{ matrix.group }}.log"
-          if ! go test -v -race -covermode=atomic -coverpkg=./... -coverprofile=cover.out \
-            "${test_packages[@]}" -p 1 -timeout 20m \
-            -args "-test.gocoverdir=${coverage_dir}/data" 2>&1 |
+          coverage_arguments=()
+          case "${TEST_MODE}" in
+            race) test_flags=(-race) ;;
+            coverage)
+              test_flags=(-covermode=atomic -coverpkg=./... -coverprofile=cover.out)
+              coverage_arguments=(-args "-test.gocoverdir=${coverage_dir}/data")
+              ;;
+            *) echo "Unknown Go verification mode" >&2; exit 1 ;;
+          esac
+          log="${RUNNER_TEMP}/go-test-${{ matrix.module }}-${{ matrix.group }}-${TEST_MODE}.log"
+          if ! go test -v "${test_flags[@]}" "${test_packages[@]}" -p 1 -timeout 20m \
+            "${coverage_arguments[@]}" 2>&1 |
             tee "${log}" |
             awk '/^=== RUN   Test[^/ ]+$/ || /^--- (PASS|FAIL): Test/ || /^panic:/ || /^FAIL/ { print; fflush() }'; then
             cat "${log}"
             exit 1
           fi
           awk '/no Go runner covers/ || /^ok[[:space:]]/ { print }' "${log}"
-          cp cover.out "${coverage_dir}/package-profile.out"
+          if [ "${TEST_MODE}" = coverage ]; then
+            cp cover.out "${coverage_dir}/package-profile.out"
+          fi
       - name: Retain Go test diagnostics
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: go-test-diagnostics-${{ matrix.module }}-${{ matrix.group }}-${{ inputs.ref }}
+          name: go-test-diagnostics-${{ matrix.module }}-${{ matrix.group }}-${{ matrix.mode }}-${{ inputs.ref }}
           path: |
             ${{ matrix.path }}/cover.out
-            ${{ runner.temp }}/go-test-${{ matrix.module }}-${{ matrix.group }}.log
+            ${{ runner.temp }}/go-test-${{ matrix.module }}-${{ matrix.group }}-${{ matrix.mode }}.log
           if-no-files-found: ignore
           retention-days: 1
       - name: Carry the complete package-group execution data
+        if: matrix.mode == 'coverage'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: go-test-coverage-${{ matrix.module }}-${{ matrix.group }}-${{ inputs.ref }}

@@ -38,7 +38,7 @@ type schemaDefectCase struct {
 
 func checkSchemaDefect(t *testing.T, v *Validator, c schemaDefectCase) {
 	t.Helper()
-	schema := findSchemaFragment(v.contracts[c.Contract].schema, c.Pointer)
+	schema := findSchemaFragment(v.contracts[c.Contract], c.Pointer)
 	if schema == nil {
 		t.Fatal("published fragment missing", c.Pointer)
 	}

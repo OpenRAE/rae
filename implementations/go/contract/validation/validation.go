@@ -57,6 +57,7 @@ type annotation struct {
 
 type contract struct {
 	schema           *jsonschema.Schema
+	fragments        func() map[string]*jsonschema.Schema
 	annotations      map[string][]annotation
 	raw              map[string]any
 	constructionWork int
@@ -297,7 +298,8 @@ func compileDocument(id string, root map[string]any, annotations map[string][]an
 	if err != nil {
 		return contract{}, failure(fault.Operational, codeContractSchemaInvalid)
 	}
-	return contract{schema: compiled, annotations: annotations, raw: root}, nil
+	fragments := sync.OnceValue(func() map[string]*jsonschema.Schema { return indexSchemaFragments(compiled) })
+	return contract{schema: compiled, fragments: fragments, annotations: annotations, raw: root}, nil
 }
 
 // CheckSchema validates bounded JSON bytes against the published schema only.

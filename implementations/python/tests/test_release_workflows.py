@@ -1836,7 +1836,9 @@ def test_go_lanes_enforce_each_go_engineering_standard() -> None:
         "go mod verify",
         "golangci-lint run ./...",
         'go vet -vettool="$(command -v raesvet)" ./...',
-        "go test -v -race -covermode=atomic -coverpkg=./... -coverprofile=cover.out",
+        "go test -v",
+        "test_flags=(-race)",
+        "test_flags=(-covermode=atomic -coverpkg=./... -coverprofile=cover.out)",
         "-p 1 -timeout 20m",
         "exit !(total >= 90)",
         "go test -list '^Fuzz' ./...",
@@ -1873,6 +1875,8 @@ def test_go_test_groups_collect_and_merge_complete_module_execution() -> None:
     assert tests["timeout-minutes"] == 25
     assert go["timeout-minutes"] == "${{ inputs.exhaustive-mutations && 360 || 25 }}"
     groups = tests["strategy"]["matrix"]["include"]
+    assert tests["strategy"]["matrix"]["mode"] == ["race", "coverage"]
+    assert set(tests["strategy"]["matrix"]["group"]) == {group["group"] for group in groups}
     modules = go["strategy"]["matrix"]["include"]
     assert len({(group["module"], group["group"]) for group in groups}) == len(groups)
     for module in modules:
@@ -1880,11 +1884,18 @@ def test_go_test_groups_collect_and_merge_complete_module_execution() -> None:
         assert len(selected) == module["shards"]
         assert {group["path"] for group in selected} == {module["path"]}
         assert all(group["packages"].startswith("./") for group in selected)
-    collector = _named_step(tests, "Run the race-tested package group")["run"]
+    collection = _named_step(tests, "Run the package group")
+    assert collection["env"]["TEST_MODE"] == "${{ matrix.mode }}"
+    collector = collection["run"]
+    assert "case" in collector
+    assert "test_flags=(-race)" in collector
+    assert "test_flags=(-covermode=atomic -coverpkg=./... -coverprofile=cover.out)" in collector
     assert "-coverpkg=./..." in collector
     assert "-test.gocoverdir=" in collector
     assert 'go list "${test_packages[@]}"' in collector
     assert 'cp cover.out "${coverage_dir}/package-profile.out"' in collector
+    carry = _named_step(tests, "Carry the complete package-group execution data")
+    assert carry["if"] == "matrix.mode == 'coverage'"
     reducer = _named_step(go, "Merge complete module coverage and enforce the floor")["run"]
     for command in (
         "go list ./...",

@@ -105,7 +105,7 @@ func (v *Validator) checkSDLConstruction(id, pointer string, data []byte, limits
 	if rootRules {
 		entry.annotations = v.contracts[id].annotations
 	}
-	schema := findSchemaFragment(entry.schema, pointer)
+	schema := findSchemaFragment(entry, pointer)
 	if schema == nil {
 		return failure(fault.InvalidInput, codeContractFragmentUnknown)
 	}
