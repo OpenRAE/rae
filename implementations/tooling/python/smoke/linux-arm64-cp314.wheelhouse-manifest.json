@@ -345,20 +345,20 @@
       "version": "7.36.2"
     },
     {
-      "filename": "psycopg-3.3.6-py3-none-any.whl",
+      "filename": "psycopg-3.3.8-py3-none-any.whl",
       "name": "psycopg",
-      "sha256": "a1db9f7148b06a28606767efaca51fa6f9398c5c0a3810519be69d7000bdb631",
-      "size": 215490,
-      "url": "https://files.pythonhosted.org/packages/4e/de/748bd7609c71cae5d737f0ba9192f19329f70180ecda8fff3cac02c5abe3/psycopg-3.3.6-py3-none-any.whl",
-      "version": "3.3.6"
+      "sha256": "ca50af6072ba9ea6866f33021975230c2555d7bfdb9d8f94ca3af5c3d1bf2167",
+      "size": 216209,
+      "url": "https://files.pythonhosted.org/packages/7b/5c/50a0b0796ccb69b11934f7c5758051c08019bda2fafb417501109fffd569/psycopg-3.3.8-py3-none-any.whl",
+      "version": "3.3.8"
     },
     {
-      "filename": "psycopg_binary-3.3.6-cp314-cp314-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl",
+      "filename": "psycopg_binary-3.3.8-cp314-cp314-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl",
       "name": "psycopg-binary",
-      "sha256": "4690cf67738f0e0e49a32aeec99bf0e4595cc2b4f1af984a4345394b1dcff91a",
-      "size": 6847192,
-      "url": "https://files.pythonhosted.org/packages/d4/c1/b8a1f18fb1b7558a17f57f7cb3fc8bc93189feea2958925950b3acb15743/psycopg_binary-3.3.6-cp314-cp314-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl",
-      "version": "3.3.6"
+      "sha256": "df35063b88af16c08bb8960aac9882cce620aea478dfec5a67cff397b575b97d",
+      "size": 6851902,
+      "url": "https://files.pythonhosted.org/packages/b6/b3/8bc56251ee11c9fcbf83fd87970116d9997834bb7ff8b9d1b8e23b468581/psycopg_binary-3.3.8-cp314-cp314-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl",
+      "version": "3.3.8"
     },
     {
       "filename": "pycparser-3.0-py3-none-any.whl",
@@ -561,12 +561,12 @@
       "version": "2.4.0"
     },
     {
-      "filename": "soupsieve-2.9.1-py3-none-any.whl",
+      "filename": "soupsieve-4.1-py3-none-any.whl",
       "name": "soupsieve",
-      "sha256": "4f4477399246b7a0c720a88ca2454b11cd6bb9ae4c9d170140786e916776c14c",
-      "size": 37404,
-      "url": "https://files.pythonhosted.org/packages/0f/2c/437fe806897c2d6cfdc3ee43a18da8bf8e568530a4ae9bac781541ca9896/soupsieve-2.9.1-py3-none-any.whl",
-      "version": "2.9.1"
+      "sha256": "e4d667b3974ce6e038e7390486b8093369854a1d345ffdd4c121dfc4a782e809",
+      "size": 52302,
+      "url": "https://files.pythonhosted.org/packages/88/73/6a2087c72975cfc07394623bca8d17654342ea4055ae368deafe5a81a542/soupsieve-4.1-py3-none-any.whl",
+      "version": "4.1"
     },
     {
       "filename": "sphinx-9.1.0-py3-none-any.whl",
@@ -673,12 +673,12 @@
       "version": "1.3.1"
     },
     {
-      "filename": "temporalio-1.34.0-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+      "filename": "temporalio-1.35.0-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
       "name": "temporalio",
-      "sha256": "cdb6e2fb525ea5635afa4a3f1ae4c992c16dbe29dc92939a85153baeb69d95a2",
-      "size": 14121901,
-      "url": "https://files.pythonhosted.org/packages/e9/00/4a4b4e018c4c12b4691211aca1d97db8707ed4c9e31f40dcf09784c9913d/temporalio-1.34.0-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
-      "version": "1.34.0"
+      "sha256": "b93845a2200d23b8edc9a8b0bf78b58bdb5e78721602b3f64072867e07e28504",
+      "size": 13927445,
+      "url": "https://files.pythonhosted.org/packages/3c/ed/a776afec1033f749ec8f4c0c5264167aedc56a108a5adebfa4084af8aa82/temporalio-1.35.0-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+      "version": "1.35.0"
     },
     {
       "filename": "typer-0.24.1-py3-none-any.whl",
@@ -770,8 +770,8 @@
     }
   ],
   "lock_path": "implementations/python/uv.lock",
-  "lock_sha256": "94e871a10d6fafd7759a5c8de03635bd6132ce12be9630847592e982c5b3405b",
+  "lock_sha256": "d3f57eb3f12aa3ca583f9777d9167d2d6ee032fc9c7a9dc4fdd72d84fa53ceca",
   "python_closure_profile_id": "public-linux-arm64-cp314-all-extras",
-  "requirements_sha256": "dd45dd4a79fa4e633979c362ffea96c1e67385f1ed6c1b3e2709c94c82536d23",
+  "requirements_sha256": "d90879700f273eaaeaa256ff45c7294b2a3d6710318ff245a7d9d19ff6db9137",
   "schema_version": "raes-python-wheelhouse-manifest/v1"
 }

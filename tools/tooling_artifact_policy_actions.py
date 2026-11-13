@@ -26,6 +26,8 @@ _SONAR_GUARD = """inputs.sonar-enabled
 _GGSHIELD_WORKFLOW = ".github/workflows/secret-scan.yml"
 _GGSHIELD_CREDENTIAL = "${{ secrets.GITGUARDIAN_API_KEY }}"
 _GGSHIELD_IMAGE = "docker://gitguardian/ggshield@"
+_PHASE_E_WORKFLOW = ".github/workflows/ground-control-phase-e.yml"
+_PHASE_E_CREDENTIAL = "${{ secrets.GROUND_CONTROL_READ_TOKEN }}"
 # Events that run code or data from an unmerged change. A merge group commit
 # contains the queued pull requests before they merge (#2026).
 _UNTRUSTED_EVENTS = frozenset({"pull_request", "pull_request_target", "workflow_call", "merge_group"})
@@ -84,6 +86,41 @@ def _secret_scan_boundary(path: str, name: str, job: Mapping[str, Any]) -> bool:
         and str(holders[0].get("uses", "")).startswith(_GGSHIELD_IMAGE)
         and _secret_expressions(holders[0].get("env")) == {_GGSHIELD_CREDENTIAL}
         and not any("run" in step for step in steps)
+    )
+
+
+def _download_holder(steps: Sequence[Mapping[str, Any]]) -> int | None:
+    """Return the index of the one run step that holds only the release token, before every checkout."""
+
+    holders = [index for index, step in enumerate(steps) if _secret_expressions(step)]
+    if len(holders) != 1:
+        return None
+    holder = steps[holders[0]]
+    valid = (
+        _secret_expressions(holder.get("env")) == {_PHASE_E_CREDENTIAL}
+        and set(holder) <= {"name", "env", "run"}
+        and "run" in holder
+    )
+    return holders[0] if valid else None
+
+
+def _release_download_boundary(path: str, name: str, job: Mapping[str, Any], triggers: object) -> bool:
+    """Admit the Ground Control read token only in the merged finalizer's release download.
+
+    The download is a ``run`` step that precedes every checkout, so no repository
+    file is present while the token is. No other step or job field receives it.
+    """
+
+    if (path, name) != (_PHASE_E_WORKFLOW, "finalize") or not _merged_issue_boundary(triggers, job):
+        return False
+    steps = [as_mapping(step) for step in as_list(job.get("steps"))]
+    holder = _download_holder(steps)
+    checkouts = [index for index, step in enumerate(steps) if str(step.get("uses", "")).startswith("actions/checkout@")]
+    return bool(
+        holder is not None
+        and _secret_expressions(job) == {_PHASE_E_CREDENTIAL}
+        and not _secret_expressions({key: value for key, value in job.items() if key != "steps"})
+        and all(index > holder for index in checkouts)
     )
 
 
@@ -220,6 +257,7 @@ def _credential_failures(
         _secret_expressions(job)
         and not _sonar_boundary(path, name, job, workflows)
         and not _secret_scan_boundary(path, name, job)
+        and not _release_download_boundary(path, name, job, workflow.get("on", workflow.get(True, {})))
     )
     if untrusted and exposed:
         failures.append(
