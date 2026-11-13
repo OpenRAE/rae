@@ -253,7 +253,7 @@ func checkResolutionTarget(options ResolveOptions) error {
 	if err != nil {
 		return invalidRealization()
 	}
-	if err := owner.CheckPortable("realization-envelope-v1", envelopeRaw, limits); err != nil {
+	if err := owner.CheckPortable(realizationEnvelopeContract, envelopeRaw, limits); err != nil {
 		return err
 	}
 	return checkResolutionEnvelopeIdentity(identity, *options.Envelope)
@@ -272,7 +272,7 @@ func checkResolutionEnvelopeIdentity(identity []byte, envelope binding.Realizati
 	}
 	declared.ContractID, declared.SchemaVersion, declared.ID, declared.Digest, declared.ConfigurationDigest = portable.ContractID, portable.SchemaVersion, portable.ID, portable.Digest, portable.ConfigurationDigest
 	if declared.ContractID == "" {
-		declared.ContractID = "realization-envelope-v1"
+		declared.ContractID = realizationEnvelopeContract
 	}
 	if declared.SchemaVersion == "" {
 		declared.SchemaVersion = "realization-envelope/v1"
@@ -280,7 +280,7 @@ func checkResolutionEnvelopeIdentity(identity []byte, envelope binding.Realizati
 	configuration := sourceValue(envelope.Configuration)
 	contractID, schemaVersion := sourceValue(envelope.ContractId), sourceValue(envelope.SchemaVersion)
 	if contractID == "" {
-		contractID = "realization-envelope-v1"
+		contractID = realizationEnvelopeContract
 	}
 	if schemaVersion == "" {
 		schemaVersion = "realization-envelope/v1"

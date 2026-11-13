@@ -72,8 +72,8 @@ func (state *compilerState) compileEvents() {
 		event := events[name]
 		addr := state.address(termOrchestration, termEvent, name)
 		assertionNames, injectNames := nonNilStrings(fieldValue(event.Assertions)), nonNilStrings(fieldValue(event.Injects))
-		assertions, assertionFindings := state.namedReferences(termAssertions, termEvaluation, termAssertion, assertionNames, addr, termOrchestration, "orchestration.assertion-ref", termAssertion)
-		injects, injectFindings := state.namedReferences(termInjects, termOrchestration, termInject, injectNames, addr, termOrchestration, "orchestration.inject-ref", termInject)
+		assertions, assertionFindings := state.namedReferences(termAssertions, termEvaluation, termAssertion, assertionNames, referenceFindingContext{owner: addr, domain: termOrchestration, code: "orchestration.assertion-ref", label: termAssertion})
+		injects, injectFindings := state.namedReferences(termInjects, termOrchestration, termInject, injectNames, referenceFindingContext{owner: addr, domain: termOrchestration, code: "orchestration.inject-ref", label: termInject})
 		findings = append(findings, assertionFindings...)
 		findings = append(findings, injectFindings...)
 		bindingDependencies := []string{}
@@ -106,7 +106,7 @@ func (state *compilerState) compileScripts() {
 		addr := state.address(termOrchestration, termScript, name)
 		events := fieldValue(script.Events)
 		refs := orderedNames(events, state.input.order["/scripts/"+escapePointer(name)+"/events"])
-		dependencies, local := state.namedReferences(termEvents, termOrchestration, termEvent, refs, addr, termOrchestration, "orchestration.event-ref", termEvent)
+		dependencies, local := state.namedReferences(termEvents, termOrchestration, termEvent, refs, referenceFindingContext{owner: addr, domain: termOrchestration, code: "orchestration.event-ref", label: termEvent})
 		findings = append(findings, local...)
 		payload := struct {
 			Name           string          `json:"name"`
@@ -123,7 +123,7 @@ func (state *compilerState) compileStories() {
 	for _, name := range orderedNames(stories, state.names(termStories)) {
 		story := stories[name]
 		addr := state.address(termOrchestration, termStory, name)
-		dependencies, local := state.namedReferences(termScripts, termOrchestration, termScript, fieldValue(story.Scripts), addr, termOrchestration, "orchestration.script-ref", termScript)
+		dependencies, local := state.namedReferences(termScripts, termOrchestration, termScript, fieldValue(story.Scripts), referenceFindingContext{owner: addr, domain: termOrchestration, code: "orchestration.script-ref", label: termScript})
 		findings = append(findings, local...)
 		payload := struct {
 			Name            string          `json:"name"`

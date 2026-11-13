@@ -273,7 +273,7 @@ func orchestrationDiagnostics(kinds map[string][]processor.Resource, raw json.Ra
 		}
 	}
 	if len(kinds["workflow"]) > 0 && !caps.SupportsWorkflows {
-		add("orchestrator.workflows-unsupported", "orchestration.workflows", "Orchestrator does not support workflows.")
+		add("orchestrator.workflows-unsupported", termOrchestrationWorkflows, "Orchestrator does not support workflows.")
 	}
 	result = append(result, workflowCapabilityDiagnostics(kinds, caps)...)
 	if len(kinds["inject-binding"]) > 0 && !caps.SupportsInjectBindings {
@@ -345,7 +345,7 @@ func workflowCapabilityDiagnostics(kinds map[string][]processor.Resource, caps o
 	features = slices.Compact(features)
 	for _, feature := range features {
 		if !slices.Contains(caps.SupportedWorkflowFeatures, feature) {
-			add("orchestrator.workflow-feature-unsupported", "orchestration.workflows", "Orchestrator does not support workflow feature '"+feature+"'.")
+			add("orchestrator.workflow-feature-unsupported", termOrchestrationWorkflows, "Orchestrator does not support workflow feature '"+feature+"'.")
 		}
 	}
 	if usesAssertions && !caps.SupportsAssertionRefs {
@@ -355,7 +355,7 @@ func workflowCapabilityDiagnostics(kinds map[string][]processor.Resource, caps o
 	predicates = slices.Compact(predicates)
 	for _, feature := range predicates {
 		if !slices.Contains(caps.SupportedWorkflowStatePredicates, feature) {
-			add("orchestrator.step-state-predicate-feature-unsupported", "orchestration.workflows", "Orchestrator does not support workflow state predicate feature '"+feature+"'.")
+			add("orchestrator.step-state-predicate-feature-unsupported", termOrchestrationWorkflows, "Orchestrator does not support workflow state predicate feature '"+feature+"'.")
 		}
 	}
 	return result

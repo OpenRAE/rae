@@ -2,6 +2,8 @@ package realization
 
 // Shared vocabulary for the admitted processor wire projections.
 const (
+	realizationEnvelopeContract                 = "realization-envelope-v1"
+	realizationProfileContract                  = "plan-realization-profiles-v1"
 	termContentPlacement                        = "content-placement"
 	termDelete                                  = "delete"
 	termError                                   = "error"

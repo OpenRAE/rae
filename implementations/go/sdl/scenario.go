@@ -53,8 +53,12 @@ func newScenario(document *authoring.Document, parser *authoring.Parser) *scenar
 	return &scenario{document: document, parser: parser}
 }
 
-func (*scenario) admittedScenario()         {}
-func (*instantiated) instantiatedScenario() {}
+func (*scenario) admittedScenario() {
+	// This unexported marker seals the handle to its native owner.
+}
+func (*instantiated) instantiatedScenario() {
+	// This unexported marker seals the handle to its native owner.
+}
 
 func (s *scenario) SemanticallyValidated() bool {
 	return s != nil && s.document != nil && s.document.Validated()

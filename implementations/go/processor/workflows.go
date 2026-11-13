@@ -54,9 +54,9 @@ func workflowEdges(step workflowStepSource) []string {
 	return dedupe(filtered)
 }
 func (state *compilerState) compileWorkflowPredicate(source workflowPredicateSource, owner string, output *workflowCompilation) workflowPredicate {
-	assertions, local := state.namedReferences(termAssertions, termEvaluation, termAssertion, source.Assertions, owner, termOrchestration, "orchestration.assertion-ref", termAssertion)
+	assertions, local := state.namedReferences(termAssertions, termEvaluation, termAssertion, source.Assertions, referenceFindingContext{owner: owner, domain: termOrchestration, code: "orchestration.assertion-ref", label: termAssertion})
 	output.diagnostics = append(output.diagnostics, local...)
-	objectives, local := state.namedReferences(termObjectives, termEvaluation, termObjective, source.Objectives, owner, termOrchestration, "orchestration.objective-ref", termObjective)
+	objectives, local := state.namedReferences(termObjectives, termEvaluation, termObjective, source.Objectives, referenceFindingContext{owner: owner, domain: termOrchestration, code: "orchestration.objective-ref", label: termObjective})
 	output.diagnostics = append(output.diagnostics, local...)
 	result := workflowPredicate{AssertionAddresses: assertions, ObjectiveAddresses: objectives, StepStatePredicates: []workflowStatePredicate{}}
 	for _, predicate := range source.Steps {
@@ -113,21 +113,21 @@ func (state *compilerState) compileWorkflowStep(source workflowStepSource, name,
 }
 func (state *compilerState) compileWorkflowStepReferences(source workflowStepSource, name, owner string, output *workflowCompilation, result *workflowRuntimeStep) {
 	if source.Objective != "" {
-		addresses, local := state.namedReferences(termObjectives, termEvaluation, termObjective, []string{source.Objective}, owner, termOrchestration, "orchestration.objective-ref", termObjective)
+		addresses, local := state.namedReferences(termObjectives, termEvaluation, termObjective, []string{source.Objective}, referenceFindingContext{owner: owner, domain: termOrchestration, code: "orchestration.objective-ref", label: termObjective})
 		output.diagnostics = append(output.diagnostics, local...)
 		output.objectiveAddresses = append(output.objectiveAddresses, addresses...)
 		if len(addresses) > 0 {
 			result.ObjectiveAddress = addresses[0]
 		}
 	} else if source.Workflow != "" {
-		addresses, local := state.namedReferences(termWorkflows, termOrchestration, termWorkflow, []string{source.Workflow}, owner, termOrchestration, "orchestration.workflow-ref", termWorkflow)
+		addresses, local := state.namedReferences(termWorkflows, termOrchestration, termWorkflow, []string{source.Workflow}, referenceFindingContext{owner: owner, domain: termOrchestration, code: "orchestration.workflow-ref", label: termWorkflow})
 		output.diagnostics = append(output.diagnostics, local...)
 		if len(addresses) > 0 {
 			result.CalledWorkflowAddress = addresses[0]
 		}
 	}
 	if source.CompensateWith != "" {
-		addresses, local := state.namedReferences(termWorkflows, termOrchestration, termWorkflow, []string{source.CompensateWith}, owner, termOrchestration, "orchestration.workflow-ref", termWorkflow)
+		addresses, local := state.namedReferences(termWorkflows, termOrchestration, termWorkflow, []string{source.CompensateWith}, referenceFindingContext{owner: owner, domain: termOrchestration, code: "orchestration.workflow-ref", label: termWorkflow})
 		output.diagnostics = append(output.diagnostics, local...)
 		if len(addresses) > 0 {
 			result.CompensationWorkflowAddress = addresses[0]

@@ -62,9 +62,9 @@ func (state *compilerState) compileObjectives() {
 			return
 		}
 		addr := state.address(termEvaluation, termObjective, name)
-		successes, local := state.namedReferences(termAssertions, termEvaluation, termAssertion, source.Success.Assertions, addr, termEvaluation, "evaluation.assertion-ref", termAssertion)
+		successes, local := state.namedReferences(termAssertions, termEvaluation, termAssertion, source.Success.Assertions, referenceFindingContext{owner: addr, domain: termEvaluation, code: "evaluation.assertion-ref", label: termAssertion})
 		findings = append(findings, local...)
-		dependencies, local := state.namedReferences(termObjectives, termEvaluation, termObjective, source.DependsOn, addr, termEvaluation, "evaluation.objective-ref", termObjective)
+		dependencies, local := state.namedReferences(termObjectives, termEvaluation, termObjective, source.DependsOn, referenceFindingContext{owner: addr, domain: termEvaluation, code: "evaluation.objective-ref", label: termObjective})
 		findings = append(findings, local...)
 		resultContract, executionContract := evaluationContracts(termObjective)
 		payload := objectivePayload{Name: name, Spec: objectives[name], OwnerName: source.Owner, AssignedParticipantName: source.AssignedParticipant, SuccessAddresses: successes, ObjectiveDependencies: dependencies, WindowStoryAddresses: []string{}, WindowScriptAddresses: []string{}, WindowEventAddresses: []string{}, WindowWorkflowAddresses: []string{}, WindowStepRefs: []string{}, WindowStepWorkflowAddresses: []string{}, WindowReferences: []objectiveWindowReference{}, ResultContract: resultContract, ExecutionContract: executionContract}
@@ -111,7 +111,7 @@ func (compiler *objectiveWindowCompiler) stories() map[string]bool {
 	stories := fieldValue(compiler.state.input.model.Stories)
 	for _, ref := range dedupe(compiler.window.Stories) {
 		if !compiler.state.known(termStories)[ref] {
-			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.story-ref-unbound", termEvaluation, compiler.owner, "Reference '"+ref+"' does not resolve to a defined story."))
+			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.story-ref-unbound", termEvaluation, compiler.owner, referenceDiagnosticPrefix+ref+"' does not resolve to a defined story."))
 			continue
 		}
 		compiler.output.WindowStoryAddresses = append(compiler.output.WindowStoryAddresses, compiler.state.address(termOrchestration, termStory, ref))
@@ -126,11 +126,11 @@ func (compiler *objectiveWindowCompiler) scripts(reachableScripts map[string]boo
 	referencedScripts := []string{}
 	for _, ref := range dedupe(compiler.window.Scripts) {
 		if !compiler.state.known(termScripts)[ref] {
-			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.script-ref-unbound", termEvaluation, compiler.owner, "Reference '"+ref+"' does not resolve to a defined script."))
+			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.script-ref-unbound", termEvaluation, compiler.owner, referenceDiagnosticPrefix+ref+"' does not resolve to a defined script."))
 			continue
 		}
 		if len(compiler.window.Stories) > 0 && !reachableScripts[ref] {
-			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.script-ref-outside-window-stories", termEvaluation, compiler.owner, "Reference '"+ref+"' is not included by the objective window's referenced stories."))
+			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.script-ref-outside-window-stories", termEvaluation, compiler.owner, referenceDiagnosticPrefix+ref+"' is not included by the objective window's referenced stories."))
 		}
 		compiler.output.WindowScriptAddresses = append(compiler.output.WindowScriptAddresses, compiler.state.address(termOrchestration, termScript, ref))
 		compiler.addReference(ref, termScript, "", "")
@@ -154,11 +154,11 @@ func (compiler *objectiveWindowCompiler) events(reachableScripts map[string]bool
 	}
 	for _, ref := range dedupe(compiler.window.Events) {
 		if !compiler.state.known(termEvents)[ref] {
-			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.event-ref-unbound", termEvaluation, compiler.owner, "Reference '"+ref+"' does not resolve to a defined event."))
+			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.event-ref-unbound", termEvaluation, compiler.owner, referenceDiagnosticPrefix+ref+"' does not resolve to a defined event."))
 			continue
 		}
 		if (len(compiler.window.Scripts) > 0 || len(compiler.window.Stories) > 0) && !reachableEvents[ref] {
-			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.event-ref-outside-window-scripts", termEvaluation, compiler.owner, "Reference '"+ref+"' is not included by the objective window's referenced scripts."))
+			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.event-ref-outside-window-scripts", termEvaluation, compiler.owner, referenceDiagnosticPrefix+ref+"' is not included by the objective window's referenced scripts."))
 		}
 		compiler.output.WindowEventAddresses = append(compiler.output.WindowEventAddresses, compiler.state.address(termOrchestration, termEvent, ref))
 		compiler.addReference(ref, termEvent, "", "")
@@ -168,7 +168,7 @@ func (compiler *objectiveWindowCompiler) workflows() map[string]bool {
 	referencedWorkflows := map[string]bool{}
 	for _, ref := range dedupe(compiler.window.Workflows) {
 		if !compiler.state.known(termWorkflows)[ref] {
-			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.workflow-ref-unbound", termEvaluation, compiler.owner, "Reference '"+ref+"' does not resolve to a defined workflow."))
+			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.workflow-ref-unbound", termEvaluation, compiler.owner, referenceDiagnosticPrefix+ref+"' does not resolve to a defined workflow."))
 			continue
 		}
 		referencedWorkflows[ref] = true
@@ -185,20 +185,20 @@ func (compiler *objectiveWindowCompiler) steps(referencedWorkflows map[string]bo
 	for _, ref := range dedupe(compiler.window.Steps) {
 		split := strings.LastIndexByte(ref, '.')
 		if split <= 0 || split == len(ref)-1 {
-			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.workflow-step-ref-invalid-format", termEvaluation, compiler.owner, "Reference '"+ref+"' must use '<workflow>.<step>' syntax."))
+			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.workflow-step-ref-invalid-format", termEvaluation, compiler.owner, referenceDiagnosticPrefix+ref+"' must use '<workflow>.<step>' syntax."))
 			continue
 		}
 		workflow, step := ref[:split], ref[split+1:]
 		if !compiler.state.known(termWorkflows)[workflow] {
-			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.workflow-step-ref-workflow-unbound", termEvaluation, compiler.owner, "Reference '"+ref+"' does not resolve to a defined workflow."))
+			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.workflow-step-ref-workflow-unbound", termEvaluation, compiler.owner, referenceDiagnosticPrefix+ref+"' does not resolve to a defined workflow."))
 			continue
 		}
 		if !referencedWorkflows[workflow] {
-			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.workflow-step-ref-workflow-outside-window", termEvaluation, compiler.owner, "Reference '"+ref+"' is not part of the objective window's referenced workflows."))
+			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.workflow-step-ref-workflow-outside-window", termEvaluation, compiler.owner, referenceDiagnosticPrefix+ref+"' is not part of the objective window's referenced workflows."))
 			continue
 		}
 		if _, exists := fieldValue(workflows[workflow].Steps)[step]; !exists {
-			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.workflow-step-ref-step-unbound", termEvaluation, compiler.owner, "Reference '"+ref+"' does not resolve to a defined workflow step."))
+			compiler.findings = append(compiler.findings, compileDiagnostic("evaluation.workflow-step-ref-step-unbound", termEvaluation, compiler.owner, referenceDiagnosticPrefix+ref+"' does not resolve to a defined workflow step."))
 			continue
 		}
 		compiler.output.WindowStepRefs = append(compiler.output.WindowStepRefs, ref)

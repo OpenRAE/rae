@@ -75,7 +75,7 @@ func (state *compilerState) compileNode(name string, descriptors []realization.D
 func (state *compilerState) nodeConcernProjection(name string, descriptors []realization.Descriptor) json.RawMessage {
 	omissions := [][]string{}
 	for _, descriptor := range descriptors {
-		if descriptor.Section == termNodes && !state.input.supplied["nodes."+name+"."+strings.Join(descriptor.AuthoredPath, ".")] {
+		if descriptor.Section == termNodes && !state.input.supplied[termNodesPrefix+name+"."+strings.Join(descriptor.AuthoredPath, ".")] {
 			omissions = append(omissions, descriptor.AuthoredPath)
 		}
 	}
@@ -122,15 +122,22 @@ func (state *compilerState) nodeInfrastructureReference(ref, address string, gro
 	}
 	return state.nodeAddress(ref), nil
 }
+
+type nodeNamespaceNetwork struct {
+	TargetNodeRef string `json:"target_node_ref"`
+}
+
+type nodeContainerNamespaces struct {
+	Network *nodeNamespaceNetwork `json:"network"`
+}
+
+type nodeContainerRuntime struct {
+	Namespaces *nodeContainerNamespaces `json:"namespaces"`
+}
+
 func (state *compilerState) nodeNamespaceTarget(raw json.RawMessage) string {
 	var runtime struct {
-		Container *struct {
-			Namespaces *struct {
-				Network *struct {
-					TargetNodeRef string `json:"target_node_ref"`
-				} `json:"network"`
-			} `json:"namespaces"`
-		} `json:"container"`
+		Container *nodeContainerRuntime `json:"container"`
 	}
 	if err := json.Unmarshal(raw, &runtime); err != nil && len(raw) > 0 {
 		state.err = invalidCompiled()
@@ -139,7 +146,7 @@ func (state *compilerState) nodeNamespaceTarget(raw json.RawMessage) string {
 	if runtime.Container == nil || runtime.Container.Namespaces == nil || runtime.Container.Namespaces.Network == nil {
 		return ""
 	}
-	return state.address(termProvision, termNode, strings.TrimPrefix(runtime.Container.Namespaces.Network.TargetNodeRef, "nodes."))
+	return state.address(termProvision, termNode, strings.TrimPrefix(runtime.Container.Namespaces.Network.TargetNodeRef, termNodesPrefix))
 }
 func (state *compilerState) nodeCount(name string, strict bool) *json.Number {
 	infra, exists := fieldValue(state.input.model.Infrastructure)[name]
@@ -170,16 +177,16 @@ func (state *compilerState) compileComputeNode(resource *Resource, wire nodeWire
 	name := resource.Name
 	node := fieldValue(state.input.model.Nodes)[name]
 	osFamily, distribution, version, architecture := "", "", "", ""
-	if state.input.supplied["nodes."+name+".os"] {
+	if state.input.supplied[termNodesPrefix+name+".os"] {
 		osFamily = rawString(fieldValue(node.Os))
 	}
-	if state.input.supplied["nodes."+name+".os_distribution"] {
+	if state.input.supplied[termNodesPrefix+name+".os_distribution"] {
 		distribution = rawString(fieldValue(node.OsDistribution))
 	}
-	if state.input.supplied["nodes."+name+".os_version"] {
+	if state.input.supplied[termNodesPrefix+name+".os_version"] {
 		version = fieldValue(node.OsVersion)
 	}
-	if state.input.supplied["nodes."+name+".architecture"] {
+	if state.input.supplied[termNodesPrefix+name+".architecture"] {
 		architecture = rawString(fieldValue(node.Architecture))
 	}
 	kind := string(fieldValue(node.Type))

@@ -52,19 +52,19 @@ func (index *capabilityDomainIndex) domain(resource processor.Resource, kind, co
 	result := []string{}
 	for _, scalar := range constraint.AllowedValues {
 		fragment, err := index.normalizedScalar(concern, scalar)
-		message := "Variable '" + name + "' has an invalid " + concern + " domain."
+		message := variableDiagnosticPrefix + name + "' has an invalid " + concern + " domain."
 		if err != nil {
 			if kind != termOsFamily {
-				message = "Variable '" + name + "' allowed_values contain a value invalid for nodes." + field + "."
+				message = variableDiagnosticPrefix + name + "' allowed_values contain a value invalid for nodes." + field + "."
 			}
-			return failure("-variable-domain-invalid", message)
+			return failure(variableDomainInvalidSuffix, message)
 		}
 		token, ok := fragment.Document().(string)
 		if !ok || token == "" {
-			return failure("-variable-domain-invalid", message)
+			return failure(variableDomainInvalidSuffix, message)
 		}
 		if variableName(token) != "" {
-			return failure("-variable-domain-invalid", "Variable '"+name+"' has a non-concrete "+concern+" domain.")
+			return failure(variableDomainInvalidSuffix, variableDiagnosticPrefix+name+"' has a non-concrete "+concern+" domain.")
 		}
 		result = append(result, token)
 	}
@@ -129,7 +129,7 @@ func (index *capabilityDomainIndex) count(resource processor.Resource) (*big.Int
 			}
 			continue
 		}
-		d := planDiagnostic("provisioner.count-variable-domain-invalid", termProvisioning, resource.Address, "Variable '"+name+"' allowed_values contain a value invalid for infrastructure.count.")
+		d := planDiagnostic("provisioner.count-variable-domain-invalid", termProvisioning, resource.Address, variableDiagnosticPrefix+name+"' allowed_values contain a value invalid for infrastructure.count.")
 		return nil, &d
 	}
 	return maximum, nil

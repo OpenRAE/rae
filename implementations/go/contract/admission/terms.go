@@ -1,14 +1,16 @@
 package admission
 
 const (
-	codeContractCatalogInvalid    = "contract-catalog-invalid"
-	manifestV2Suffix              = "-manifest/v2"
-	parentAdmittedMarker          = "@parent-admitted"
-	reasonEffectConflict          = "effect-conflict"
-	codeContractTime              = "contract-time"
-	schemaDefinitionsPrefix       = "#/$defs/"
-	traceImportedAssertion        = "imported-assertion"
-	traceTransformationAssumption = "transformation-assumption"
+	termLimitExceeded              = "limit-exceeded"
+	normalizationMetadataWorkLimit = "Normalization metadata exceeded bounded work limits."
+	codeContractCatalogInvalid     = "contract-catalog-invalid"
+	manifestV2Suffix               = "-manifest/v2"
+	parentAdmittedMarker           = "@parent-admitted"
+	reasonEffectConflict           = "effect-conflict"
+	codeContractTime               = "contract-time"
+	schemaDefinitionsPrefix        = "#/$defs/"
+	traceImportedAssertion         = "imported-assertion"
+	traceTransformationAssumption  = "transformation-assumption"
 )
 
 // Published terms shared by the family validators.

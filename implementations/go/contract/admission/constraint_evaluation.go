@@ -138,7 +138,7 @@ func constraintFailure(status, address, message string) constraintResult {
 		Domain: "realization", Address: address, Message: message, Severity: termError}}}
 }
 func constraintCombine(results []constraintResult, maximum int) constraintResult {
-	for _, status := range []string{"limit-exceeded", "invalid", statusUnsupported, "nonconformant", "unresolved"} {
+	for _, status := range []string{termLimitExceeded, "invalid", statusUnsupported, "nonconformant", "unresolved"} {
 		combined := constraintResult{Status: status, Diagnostics: []constraintFinding{}}
 		matched := false
 		for _, result := range results {
@@ -200,7 +200,7 @@ func EvaluateRealizationConstraint(constraint, actual Fragment, limits Constrain
 	case !observedWork.walk(actualValue, "", 0):
 		result = *observedWork.failure
 	case !engine.indexScopes():
-		result = constraintFailure("limit-exceeded", "", "Scope indexing exceeded max_operations.")
+		result = constraintFailure(termLimitExceeded, "", "Scope indexing exceeded max_operations.")
 	default:
 		overlays := engine.scopeOverlays(actualValue)
 		root := engine.evaluate(document.Root, actualValue, "", 0, nil)
@@ -215,7 +215,7 @@ func EvaluateRealizationConstraint(constraint, actual Fragment, limits Constrain
 
 func (e *constraintEvaluation) evaluate(rule *constraintNode, actual any, pointer string, depth int, references []string) constraintResult {
 	if !e.spend(depth) {
-		return constraintFailure("limit-exceeded", pointer, "Recursive realization evaluation exceeded bounded work limits.")
+		return constraintFailure(termLimitExceeded, pointer, "Recursive realization evaluation exceeded bounded work limits.")
 	}
 	switch rule.Kind {
 	case kindLiteral:
@@ -319,7 +319,7 @@ func (e *constraintEvaluation) sequence(rule *constraintNode, actual any, pointe
 
 func (e *constraintEvaluation) reference(rule *constraintNode, actual any, pointer string, depth int, references []string) constraintResult {
 	if len(references) >= e.limits.MaxReferenceHops {
-		return constraintFailure("limit-exceeded", pointer, "Constraint definition resolution exceeded max_reference_hops.")
+		return constraintFailure(termLimitExceeded, pointer, "Constraint definition resolution exceeded max_reference_hops.")
 	}
 	if slices.Contains(references, rule.Target) {
 		return constraintFailure("invalid", pointer, "Constraint definitions contain a reference cycle.")
@@ -359,7 +359,7 @@ func (e *constraintEvaluation) closure(local constraintClosure, pointer string, 
 		var valid bool
 		closure, valid = e.inheritedClosure(pointer)
 		if !valid {
-			return constraintFailure("limit-exceeded", pointer, "Closure resolution exceeded max_operations.")
+			return constraintFailure(termLimitExceeded, pointer, "Closure resolution exceeded max_operations.")
 		}
 	}
 	if closure.Posture == "" || closure.Posture == termUndefined {

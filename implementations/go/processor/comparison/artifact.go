@@ -39,7 +39,7 @@ func scenarioProjection(input sdl.ComparisonProjection) (ownerProjection, error)
 	if err != nil {
 		return ownerProjection{}, err
 	}
-	result := ownerProjection{identity: "scenario:" + input.Name, subjects: []subject{{identity: "scenario:" + input.Name, structural: structural, semantic: semantic}}, dependencies: []dependency{}}
+	result := ownerProjection{identity: scenarioIdentityPrefix + input.Name, subjects: []subject{{identity: scenarioIdentityPrefix + input.Name, structural: structural, semantic: semantic}}, dependencies: []dependency{}}
 	// Keep the coordinate digest with the root's private facts; no source is reparsed later.
 	result.subjects[0].representation = input.CanonicalDigest
 	for _, child := range input.Subjects {
@@ -55,7 +55,7 @@ func scenarioProjection(input sdl.ComparisonProjection) (ownerProjection, error)
 		if err != nil {
 			return ownerProjection{}, err
 		}
-		result.subjects = append(result.subjects, subject{identity: "scenario:" + input.Name + "/" + child.Family + ":" + child.Name, structural: structural, semantic: semantic})
+		result.subjects = append(result.subjects, subject{identity: scenarioIdentityPrefix + input.Name + "/" + child.Family + ":" + child.Name, structural: structural, semantic: semantic})
 	}
 	for _, decl := range input.Imports {
 		raw, err := fragmentBytes(decl, admission.RealizationValue)
@@ -72,7 +72,7 @@ func scenarioProjection(input sdl.ComparisonProjection) (ownerProjection, error)
 		if err != nil {
 			return ownerProjection{}, err
 		}
-		result.dependencies = append(result.dependencies, dependency{dependent: "scenario:" + input.Name, target: "module:" + imported.Namespace, rule: "scenario-import", provenance: provenance})
+		result.dependencies = append(result.dependencies, dependency{dependent: scenarioIdentityPrefix + input.Name, target: "module:" + imported.Namespace, rule: "scenario-import", provenance: provenance})
 	}
 	slices.SortFunc(result.subjects, func(a, b subject) int { return compareStrings(a.identity, b.identity) })
 	return result, nil

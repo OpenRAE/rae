@@ -2231,21 +2231,21 @@
   ],
   "evidence": {
     "red_green": [
-      "TestArtifactSupportKeepsAddressLocalFacts (missing API compile red\u2192green)",
-      "TestArtifactEvaluationRequiresVerifiedTrustAndExactIdentity (missing API compile red\u2192green)",
-      "TestArtifactAvailabilityRefusesMalformedSpecificationDigest (accepted invalid digest red\u2192green)",
-      "TestSelectionAdmitsExactAndFiniteCandidatesWithoutDelivery/TestSelectionAdmitsChecksCandidateDisclosureShape (missing API compile red\u2192green)",
-      "TestEvaluationRefusesUnverifiedSubstrateDisclosureAtInputBoundary (accepted binding_verified=false red\u2192green)",
-      "TestSourceArtifactsUseBoundDeclarationNamesAndOrder (role values silently erased source-artifact requirements red\u2192green; Python identities/order confirmed)",
-      "TestPreparedNodeUsesSharedRuntimeOwnerAndBackendRequirements/TestPreparedNodeRefusesForeignHandleAndMismatchedIdentity (missing API compile red\u2192green)",
-      "TestPreparedNodeRetainsProtectedLogicalPresence (malformed transient overlay red\u2192green)",
+      "TestArtifactSupportKeepsAddressLocalFacts (missing API compile red→green)",
+      "TestArtifactEvaluationRequiresVerifiedTrustAndExactIdentity (missing API compile red→green)",
+      "TestArtifactAvailabilityRefusesMalformedSpecificationDigest (accepted invalid digest red→green)",
+      "TestSelectionAdmitsExactAndFiniteCandidatesWithoutDelivery/TestSelectionAdmitsChecksCandidateDisclosureShape (missing API compile red→green)",
+      "TestEvaluationRefusesUnverifiedSubstrateDisclosureAtInputBoundary (accepted binding_verified=false red→green)",
+      "TestSourceArtifactsUseBoundDeclarationNamesAndOrder (role values silently erased source-artifact requirements red→green; Python identities/order confirmed)",
+      "TestPreparedNodeUsesSharedRuntimeOwnerAndBackendRequirements/TestPreparedNodeRefusesForeignHandleAndMismatchedIdentity (missing API compile red→green)",
+      "TestPreparedNodeRetainsProtectedLogicalPresence (malformed transient overlay red→green)",
       "TestEvaluationBoundsAggregateRequirementScalarsBeforePhaseChecks (individually admitted 2100x4KiB requirements exceeded aggregate scalar budget but were accepted before delete phase; now Plan-budget refusal)",
-      "TestProjectedConstraintsKeepReferencePrivateAndPartialRelations (metadata operation/location and actual value depth/node/aggregate guards red\u2192green, preserving exact Python guard charge order)",
-      "TestDerivedConcernSelectionAndEvaluationUsePublishedPayloadPaths (five derived concerns rejected during unchanged selection and skipped during readback; red\u2192green)",
-      "TestComputeSubstrateRetainsNeutralExactFiniteAndMigratedAuthority/legacy-vm (processor-owned migration constraint provenance erased; red\u2192green)",
-      "TestRealizationInputModelsUseExistingNativeConstructionOwner Source/38 and ArtifactRequirement/49 (exact source identity and dangling materialization input accepted; red\u2192green through reused invariant owner)",
-      "TestCaptureCompileRetainsExplicitAuthoredRelationAuthority: nil primary scenario with explicit RelationScenario admitted scoped capture while dropping all SDLbase demands; actual red4.73s\u2192early refusal\u2192green5.049s. Initial missing capture/bridge/checker APIs also observed compile red before implementation.",
-      "TestMaterializedCaptureCompilationRequiresTheExplicitAuthoredRelationOwner: explicit CaptureInputs were silently skipped by descriptive materialized compilation; actual red4.36s\u2192conjoin supplied inputs only\u2192green4.800s, preserving zero-options descriptive output and no inferred observations.",
+      "TestProjectedConstraintsKeepReferencePrivateAndPartialRelations (metadata operation/location and actual value depth/node/aggregate guards red→green, preserving exact Python guard charge order)",
+      "TestDerivedConcernSelectionAndEvaluationUsePublishedPayloadPaths (five derived concerns rejected during unchanged selection and skipped during readback; red→green)",
+      "TestComputeSubstrateRetainsNeutralExactFiniteAndMigratedAuthority/legacy-vm (processor-owned migration constraint provenance erased; red→green)",
+      "TestRealizationInputModelsUseExistingNativeConstructionOwner Source/38 and ArtifactRequirement/49 (exact source identity and dangling materialization input accepted; red→green through reused invariant owner)",
+      "TestCaptureCompileRetainsExplicitAuthoredRelationAuthority: nil primary scenario with explicit RelationScenario admitted scoped capture while dropping all SDLbase demands; actual red4.73s→early refusal→green5.049s. Initial missing capture/bridge/checker APIs also observed compile red before implementation.",
+      "TestMaterializedCaptureCompilationRequiresTheExplicitAuthoredRelationOwner: explicit CaptureInputs were silently skipped by descriptive materialized compilation; actual red4.36s→conjoin supplied inputs only→green4.800s, preserving zero-options descriptive output and no inferred observations.",
       "TestPortableRealizationKeepsIndependentAuthorityAndReadbackReference:4missing APIs observed compile red; initial57vectors green6.595s;2independent extra edges observed red4.758s (canonical late-bound order and source-binding diagnostic priority), fixed through incumbent projection owners;62constructor-valid final vectors green6.458s.",
       "Review security-F1: TestOSEvidenceMatchesTheCurrentOperationAndApparatus exposes14 accepted replay/mismatch contexts before repair; valid current evidence and all refusals pass after shared observation binding checks.",
       "Review core-F4: TestPortableOSBoundsCheckTheDedicatedObservedValue exposes inventory/disclosure contradictions plus absent authoritative value/no-floor acceptance; both evaluation routes now consume dedicated OS identity and refuse failed bounds without target provenance."
@@ -3578,8 +3578,8 @@
       },
       {
         "path": "implementations/go/processor/capture_inputs_test.go",
-        "sha256": "ad9680afc494e24c7a4f1a5bbdfc10a6c3ae39c1a16dcf003d69f42f9d6ac7ad",
-        "bytes": 9669
+        "sha256": "ebc9595fbc0305ab049ab44d653c885af113a7f883967db75dd19f5591dc1ac9",
+        "bytes": 9655
       },
       {
         "path": "implementations/go/processor/capture_spec.go",
@@ -3588,13 +3588,13 @@
       },
       {
         "path": "implementations/go/processor/compile.go",
-        "sha256": "2ad3ec5d9b3b4325e85abb1f65ec462eeb64dc45af49c1d9916304c5674c3d5b",
-        "bytes": 14048
+        "sha256": "84a1bc64349d53c9aa825b7f3e2db4e8ca07937266b307880b98313ebfd920d0",
+        "bytes": 14004
       },
       {
         "path": "implementations/go/processor/evidence.go",
-        "sha256": "a80381b9f3aa0f5b652701551585d4da9f80f62b14870ed5ca1bf0be50cc3b7b",
-        "bytes": 14147
+        "sha256": "e078ea99f3eff1c6d3d20637d44bec4b0a9990d14d344d0fd0ef6aaa0da46f33",
+        "bytes": 14150
       },
       {
         "path": "implementations/go/processor/manifest_test.go",
@@ -3833,8 +3833,8 @@
       },
       {
         "path": "implementations/go/processor/realization/portable_boundary_test.go",
-        "sha256": "363d3c8b7a7db08150430dcd5470a0afff0810d38d35096f1c89f317163d2f9c",
-        "bytes": 4987
+        "sha256": "ebea25bf0d0fa0ae250009a7faf2789fbbc3229401fe9f3c3c596e2f17035197",
+        "bytes": 4975
       },
       {
         "path": "implementations/go/processor/realization/portable_reference_test.go",
@@ -3868,8 +3868,8 @@
       },
       {
         "path": "implementations/go/processor/realization/processor_terms.go",
-        "sha256": "0295544bd1e4cd4bb442d935868b3bfd376e32b563f96ae5b32ac3ac92d082fa",
-        "bytes": 6088
+        "sha256": "113e3dc0df7d92019c59a23523f48770ae73898d518a9a2a953bd1db8b337101",
+        "bytes": 6239
       },
       {
         "path": "implementations/go/processor/realization/projection.go",
@@ -3953,8 +3953,8 @@
       },
       {
         "path": "implementations/go/processor/realization/resolve.go",
-        "sha256": "15385ff8796c919f80c6414d5be50089edbd6a5990a0d3aa0c25a655785731be",
-        "bytes": 10662
+        "sha256": "4faaab922bcba7d7737fdab6a641eb89f98363648a898991f7a848a14af29f1c",
+        "bytes": 10668
       },
       {
         "path": "implementations/go/processor/realization/resolve_test.go",
@@ -3983,8 +3983,8 @@
       },
       {
         "path": "implementations/go/processor/realization/software_profiles.go",
-        "sha256": "b5d0b52a2f114643385c1a2be3dea76dd39870378df79eb36b77ce4bccfbb0cf",
-        "bytes": 13879
+        "sha256": "26d048fe875928de8ff2a2628661d7ab1f96eca82799b5a240072427930ba697",
+        "bytes": 13867
       },
       {
         "path": "implementations/go/processor/realization/support.go",

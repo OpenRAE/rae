@@ -56,10 +56,11 @@ func ParticipantFeatureSupportGaps(v *Validator, manifest binding.BackendManifes
 	for _, declaration := range array(at(capability, "feature_support")) {
 		declarations[stringAt(declaration, "feature")] = declaration
 	}
+	support := participantFeatureSupport{capability: capability, supported: supported, contracts: contracts, requiredLevel: requiredLevel, ranks: ranks}
 	gaps := []string{}
 	for _, feature := range required {
 		declaration, declared := declarations[feature]
-		if gap := participantFeatureGap(capability, feature, declaration, declared, supported, contracts, requiredLevel, ranks); gap != "" {
+		if gap := support.gap(feature, declaration, declared); gap != "" {
 			gaps = append(gaps, gap)
 		}
 	}
@@ -77,13 +78,20 @@ func participantFeaturesWithin(features []string, budget value.Limits) bool {
 	return true
 }
 
-func participantFeatureGap(capability any, feature string, declaration any, declared bool, supported, contracts map[string]bool, requiredLevel string, ranks map[string]int) string {
+type participantFeatureSupport struct {
+	capability           any
+	supported, contracts map[string]bool
+	requiredLevel        string
+	ranks                map[string]int
+}
+
+func (support participantFeatureSupport) gap(feature string, declaration any, declared bool) string {
 	prefix := "participant feature '" + feature + "' "
 	switch {
-	case capability == nil:
+	case support.capability == nil:
 		return prefix + "requires participant runtime capabilities"
 	case !declared:
-		if supported[feature] && !participantEvidenceFeature(feature) {
+		if support.supported[feature] && !participantEvidenceFeature(feature) {
 			return ""
 		}
 		return prefix + "has no explicit support declaration"
@@ -92,7 +100,7 @@ func participantFeatureGap(capability any, feature string, declaration any, decl
 	}
 	missing := []string{}
 	for _, contract := range participantFeatureContracts(feature) {
-		if !contracts[contract] {
+		if !support.contracts[contract] {
 			missing = append(missing, contract)
 		}
 	}
@@ -102,8 +110,8 @@ func participantFeatureGap(capability any, feature string, declaration any, decl
 		return prefix + "is missing required contracts: " + strings.Join(missing, ", ")
 	case participantEvidenceFeature(feature) && len(array(at(declaration, "evidence_refs"))) == 0:
 		return prefix + "has no conformance evidence"
-	case ranks[stringAt(declaration, "support_level")] < ranks[requiredLevel]:
-		return prefix + "requires " + requiredLevel + " support; backend declares " + stringAt(declaration, "support_level")
+	case support.ranks[stringAt(declaration, "support_level")] < support.ranks[support.requiredLevel]:
+		return prefix + "requires " + support.requiredLevel + " support; backend declares " + stringAt(declaration, "support_level")
 	}
 	return ""
 }

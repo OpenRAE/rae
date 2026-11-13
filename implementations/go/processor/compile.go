@@ -75,7 +75,7 @@ func CompileWithOptions(scenario sdl.Scenario, options CompileOptions) (Compilat
 	var phase struct {
 		MaterializationProvenance json.RawMessage `json:"materialization_provenance"`
 	}
-	if checkErr := json.Unmarshal(raw, &phase); checkErr != nil {
+	if json.Unmarshal(raw, &phase) != nil {
 		return nil, invalidCompiled()
 	}
 	if phase.MaterializationProvenance != nil {
@@ -174,7 +174,7 @@ func newCompilerState(scenario sdl.Scenario, descriptive bool) (compilerState, e
 		return compilerState{}, err
 	}
 	var input binding.InstantiatedScenarioV1
-	if checkErr := json.Unmarshal(raw, &input); checkErr != nil {
+	if json.Unmarshal(raw, &input) != nil {
 		return compilerState{}, invalidCompiled()
 	}
 	order, err := compileFieldOrder(raw)

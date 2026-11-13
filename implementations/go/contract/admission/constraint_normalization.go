@@ -77,7 +77,7 @@ func (n *literalNormalizer) fail(status, pointer, message string) {
 func (n *literalNormalizer) identity(pointer string) bool {
 	n.identities++
 	if n.identities > n.limits.MaxIdentityChecks {
-		n.fail("limit-exceeded", pointer, "Profiled collection normalization exceeded max_identity_checks.")
+		n.fail(termLimitExceeded, pointer, "Profiled collection normalization exceeded max_identity_checks.")
 		return false
 	}
 	return true
@@ -101,8 +101,8 @@ func NormalizeRealizationLiteral(input Fragment, semanticProfile string, default
 		return *result, nil
 	}
 	source := input.Document()
-	if checkErr := value.Validate(source, limits.native()); checkErr != nil {
-		return normalizationFailure("limit-exceeded", "", "Literal normalization exceeded admitted value bounds."), nil //nolint:nilerr // This relation reports candidate refusal in its result without failing the enclosing operation.
+	if value.Validate(source, limits.native()) != nil {
+		return normalizationFailure(termLimitExceeded, "", "Literal normalization exceeded admitted value bounds."), nil //nolint:nilerr // This relation reports candidate refusal in its result without failing the enclosing operation.
 	}
 	scopes := n.scopes(source)
 	if n.failure != nil {
@@ -138,7 +138,7 @@ func NormalizeRealizationLiteral(input Fragment, semanticProfile string, default
 		return RealizationConstraintBuildResult{}, fragmentInvalid()
 	}
 	if !admitConstraintWork(admitted, document, limits) {
-		return normalizationFailure("limit-exceeded", "", "Constraint admission exceeded bounded work limits."), nil
+		return normalizationFailure(termLimitExceeded, "", "Constraint admission exceeded bounded work limits."), nil
 	}
 	return RealizationConstraintBuildResult{Status: assuranceConformant, Document: builtFragment, Diagnostics: []diagnostic.Diagnostic{}}, nil
 }
@@ -155,7 +155,7 @@ func normalizationPointersVisited[T any](visited map[string]bool, pointers map[s
 func (n *literalNormalizer) node(input any, semanticPointer, sourcePointer string, depth int) map[string]any {
 	n.nodes++
 	if n.nodes > n.limits.MaxNodes || depth > n.limits.MaxDepth {
-		n.fail("limit-exceeded", semanticPointer, "Literal normalization exceeded bounded work limits.")
+		n.fail(termLimitExceeded, semanticPointer, "Literal normalization exceeded bounded work limits.")
 		return nil
 	}
 	n.visited[sourcePointer] = true

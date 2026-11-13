@@ -11,16 +11,16 @@ import (
 func (n *literalNormalizer) admitMetadata(profile string, closure RealizationClosure) (*RealizationConstraintBuildResult, error) {
 	m := n.metadata
 	if max(len(m.Scopes), len(m.CollectionProfiles), len(m.Origins), len(m.LeafConstraints), len(m.OptionalFields), len(m.MemberPresence)) > n.limits.MaxMembers {
-		result := normalizationFailure("limit-exceeded", "", "Normalization metadata exceeded max_members.")
+		result := normalizationFailure(termLimitExceeded, "", "Normalization metadata exceeded max_members.")
 		return &result, nil
 	}
 	budget := constraintAdmission{limits: n.limits}
 	if !budget.metadata(map[string]any{termSemanticProfile: profile, termDefaultClosure: normalizationClosure(closure)}) {
-		n.fail("limit-exceeded", "", "Normalization metadata exceeded bounded work limits.")
+		n.fail(termLimitExceeded, "", normalizationMetadataWorkLimit)
 	}
 	for _, scope := range m.Scopes {
 		if !budget.metadata(map[string]any{termFieldPointer: scope.FieldPointer, termClosure: normalizationClosure(scope.Closure), termOrigin: scope.Origin}) {
-			n.fail("limit-exceeded", scope.FieldPointer, "Normalization metadata exceeded bounded work limits.")
+			n.fail(termLimitExceeded, scope.FieldPointer, normalizationMetadataWorkLimit)
 			break
 		}
 	}
@@ -29,13 +29,13 @@ func (n *literalNormalizer) admitMetadata(profile string, closure RealizationClo
 	}
 	for pointer, origin := range m.Origins {
 		if !budget.metadata(map[string]any{termFieldPointer: pointer, termOrigin: origin}) {
-			n.fail("limit-exceeded", "", "Normalization metadata exceeded bounded work limits.")
+			n.fail(termLimitExceeded, "", normalizationMetadataWorkLimit)
 			break
 		}
 	}
 	for _, pointer := range m.OptionalFields {
 		if !budget.metadata(pointer) {
-			n.fail("limit-exceeded", "", "Normalization metadata exceeded bounded work limits.")
+			n.fail(termLimitExceeded, "", normalizationMetadataWorkLimit)
 			break
 		}
 		n.optional[pointer] = true
@@ -50,7 +50,7 @@ func (n *literalNormalizer) admitMetadata(profile string, closure RealizationClo
 func (n *literalNormalizer) admitCollectionProfiles(budget *constraintAdmission) error {
 	for _, profile := range n.metadata.CollectionProfiles {
 		if len(profile.IdentityFields) > n.limits.MaxMembers || !budget.metadata(map[string]any{termFieldPointer: profile.FieldPointer, termCollectionKind: profile.CollectionKind, termIdentityFields: stringInterfaces(profile.IdentityFields), termClosure: normalizationClosure(profile.Closure)}) {
-			n.fail("limit-exceeded", "", "Normalization metadata exceeded bounded work limits.")
+			n.fail(termLimitExceeded, "", normalizationMetadataWorkLimit)
 			break
 		}
 		if _, exists := n.profiles[profile.FieldPointer]; exists {
@@ -78,7 +78,7 @@ func (n *literalNormalizer) admitCollectionProfiles(budget *constraintAdmission)
 func (n *literalNormalizer) admitMemberPresence(budget *constraintAdmission) {
 	for pointer, presence := range n.metadata.MemberPresence {
 		if !budget.metadata(map[string]any{termFieldPointer: pointer, termPresence: presence}) {
-			n.fail("limit-exceeded", "", "Normalization metadata exceeded bounded work limits.")
+			n.fail(termLimitExceeded, "", normalizationMetadataWorkLimit)
 			break
 		}
 		if presence != termOptional && presence != requirementRequired && presence != termForbidden {
@@ -97,7 +97,7 @@ func (n *literalNormalizer) admitLeafConstraints(budget *constraintAdmission) er
 			continue
 		}
 		if !budget.metadata(map[string]any{termFieldPointer: pointer, termConstraint: leaf.Document()}) {
-			n.fail("limit-exceeded", "", "Leaf metadata exceeds its admitted value bounds.")
+			n.fail(termLimitExceeded, "", "Leaf metadata exceeds its admitted value bounds.")
 			break
 		}
 	}
@@ -144,7 +144,7 @@ func (n *literalNormalizer) scopePointer(source any, pointer string, operations 
 	for _, token := range jsonpointer.Tokens(pointer) {
 		*operations++
 		if *operations > n.limits.MaxOperations {
-			n.fail("limit-exceeded", pointer, "Scope normalization exceeded max_operations.")
+			n.fail(termLimitExceeded, pointer, "Scope normalization exceeded max_operations.")
 			return ""
 		}
 		next, nextToken := n.scopeMember(current, sourcePointer, token, pointer)

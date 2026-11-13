@@ -2,7 +2,7 @@ package comparison
 
 import (
 	"bytes"
-	_ "embed"
+	_ "embed" // Required by the go:embed directive for native owner metadata.
 	"encoding/json"
 	"sync"
 )

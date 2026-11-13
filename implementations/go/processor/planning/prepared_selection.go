@@ -30,7 +30,9 @@ type preparedSelection struct {
 
 type preparedConcernKey struct{ address, fieldPath, kind string }
 
-func (*preparedSelection) preparedSelection() {}
+func (*preparedSelection) preparedSelection() {
+	// This unexported marker seals the handle to its native owner.
+}
 func (selection *preparedSelection) Provisioning() binding.ProvisioningPlanV1 {
 	return copyTransport(selection.selected)
 }

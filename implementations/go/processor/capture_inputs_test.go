@@ -208,7 +208,7 @@ func TestCaptureCompileRetainsExplicitAuthoredRelationAuthority(t *testing.T) {
 	}
 	view := compiled.Model().View()
 	view.CaptureDemands[0].FieldSelectors[0] = "changed"
-	if diff := cmp.Diff(fixture.Cases[0].Demands, captureReferenceProjection(t, compiled.Model().View().CaptureDemands)); diff != "" {
+	if cmp.Diff(fixture.Cases[0].Demands, captureReferenceProjection(t, compiled.Model().View().CaptureDemands)) != "" {
 		t.Fatal("returned capture dimensions changed sealed compilation")
 	}
 }

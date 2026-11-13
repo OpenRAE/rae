@@ -32,7 +32,9 @@ type executionPlan struct {
 	operations                 map[string][]planOperation
 }
 
-func (*executionPlan) plannerProduced() {}
+func (*executionPlan) plannerProduced() {
+	// This unexported marker seals the handle to its native owner.
+}
 func (plan *executionPlan) Valid() bool {
 	for _, finding := range plan.diagnostics {
 		if finding.Severity == "error" || finding.Severity == "" {
@@ -127,7 +129,9 @@ func copyDiagnostics(input []diagnostic.Diagnostic) []diagnostic.Diagnostic {
 
 type mixedControlAdmission struct{ model processor.RuntimeModel }
 
-func (*mixedControlAdmission) mixedControlAdmission() {}
+func (*mixedControlAdmission) mixedControlAdmission() {
+	// This unexported marker seals the handle to its native owner.
+}
 
 //nolint:ireturn // The declared consumer API returns an opaque handle from its native owner.
 func (admission *mixedControlAdmission) Model() processor.RuntimeModel { return admission.model }

@@ -216,7 +216,7 @@ func (n *observationNormalizer) effective(rules []observationRule, scope, purpos
 	mode, modeOrigin := n.axis(applicable, "mode", fallbackMode, scope)
 	effectiveRules := n.effectiveRules(applicable, mode)
 	selectors := observationSelectedSelectors(selected, effectiveRules, scope)
-	values, origins := n.effectiveAxes(effectiveRules, scope, purpose, mode, fallbackBasis, modeOrigin, selected, selectors)
+	values, origins := n.effectiveAxes(effectiveRules, observationAxisSelection{scope: scope, purpose: purpose, mode: mode, fallbackBasis: fallbackBasis, modeOrigin: modeOrigin, selected: selected, selectors: selectors})
 	mode, selectors = n.lifecycle(mode, selectors, values, scope, applicable)
 	prohibited, required := observationProhibitions(applicable)
 	return observationEffective{Scope: scope, Purpose: purpose, Mode: mode, Selectors: selectors, Collection: values[termCollection], Retention: values[termRetention], Export: values[termExport], Basis: values[termBasis], Redaction: observationNullable(values[termRedaction]), Integrity: observationNullable(values[termIntegrity]), Prohibited: prohibited, Required: required, Origins: origins}
@@ -282,14 +282,20 @@ func observationSelectedSelectors(selected *observationRule, effectiveRules []ob
 	return selectors
 }
 
-func (n *observationNormalizer) effectiveAxes(effectiveRules []observationRule, scope, purpose, mode, fallbackBasis, modeOrigin string, selected *observationRule, selectors []observationSelector) (map[string]string, map[string]string) {
+type observationAxisSelection struct {
+	scope, purpose, mode, fallbackBasis, modeOrigin string
+	selected                                        *observationRule
+	selectors                                       []observationSelector
+}
+
+func (n *observationNormalizer) effectiveAxes(effectiveRules []observationRule, selection observationAxisSelection) (map[string]string, map[string]string) {
 	collectionDefault := termDisable
-	if purpose != termRealizationDescription && (mode == termSelected || mode == "exhaustive" || mode == "operational-only") && len(selectors) > 0 {
+	if selection.purpose != termRealizationDescription && (selection.mode == termSelected || selection.mode == "exhaustive" || selection.mode == "operational-only") && len(selection.selectors) > 0 {
 		collectionDefault = termRequire
 	}
-	origins := map[string]string{"mode": modeOrigin}
-	if selected != nil {
-		origins["selector"], origins["authority"] = selected.ID, selected.Authority
+	origins := map[string]string{"mode": selection.modeOrigin}
+	if selection.selected != nil {
+		origins["selector"], origins["authority"] = selection.selected.ID, selection.selected.Authority
 	}
 	values := map[string]string{}
 	for _, axis := range []string{termCollection, termRetention, termExport, termBasis, termRedaction, termIntegrity} {
@@ -300,9 +306,9 @@ func (n *observationNormalizer) effectiveAxes(effectiveRules []observationRule, 
 		case termRetention, termExport:
 			fallback = termDisable
 		case termBasis:
-			fallback = fallbackBasis
+			fallback = selection.fallbackBasis
 		}
-		values[axis], origins[axis] = n.axis(effectiveRules, axis, fallback, scope)
+		values[axis], origins[axis] = n.axis(effectiveRules, axis, fallback, selection.scope)
 	}
 	return values, origins
 }

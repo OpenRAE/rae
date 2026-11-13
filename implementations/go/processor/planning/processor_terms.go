@@ -2,16 +2,19 @@ package planning
 
 // Shared vocabulary for the admitted processor wire projections.
 const (
-	termCreate         = "create"
-	termDelete         = "delete"
-	termEvaluation     = "evaluation"
-	termNull           = "null"
-	termOrchestration  = "orchestration"
-	termOsDistribution = "os-distribution"
-	termProvisioning   = "provisioning"
-	termSubset         = "subset"
-	termUnchanged      = "unchanged"
-	termUpdate         = "update"
+	termOrchestrationWorkflows  = "orchestration.workflows"
+	variableDiagnosticPrefix    = "Variable '"
+	variableDomainInvalidSuffix = "-variable-domain-invalid"
+	termCreate                  = "create"
+	termDelete                  = "delete"
+	termEvaluation              = "evaluation"
+	termNull                    = "null"
+	termOrchestration           = "orchestration"
+	termOsDistribution          = "os-distribution"
+	termProvisioning            = "provisioning"
+	termSubset                  = "subset"
+	termUnchanged               = "unchanged"
+	termUpdate                  = "update"
 )
 
 const (

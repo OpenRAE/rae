@@ -15,7 +15,7 @@ func (e *constraintEvaluation) keyedAliases(rule *constraintNode, pointer string
 	aliases := make(map[string][]any, len(rule.Aliases))
 	for _, alias := range rule.Aliases {
 		if !e.identity() {
-			return nil, constraintFailure("limit-exceeded", pointer, "Keyed collection alias evaluation exceeded max_identity_checks.")
+			return nil, constraintFailure(termLimitExceeded, pointer, "Keyed collection alias evaluation exceeded max_identity_checks.")
 		}
 		key, err := jsonDigest(alias.Identity)
 		if err != nil {
@@ -48,7 +48,7 @@ func keyedIdentity(record map[string]any, fields []string) ([]any, bool) {
 
 func (e *constraintEvaluation) keyedRecord(rule *constraintNode, item any, aliases map[string][]any, pointer string) (string, map[string]any, constraintResult) {
 	if !e.identity() {
-		return "", nil, constraintFailure("limit-exceeded", pointer, "Keyed collection evaluation exceeded max_identity_checks.")
+		return "", nil, constraintFailure(termLimitExceeded, pointer, "Keyed collection evaluation exceeded max_identity_checks.")
 	}
 	record, ok := item.(map[string]any)
 	if !ok {
@@ -64,7 +64,7 @@ func (e *constraintEvaluation) keyedRecord(rule *constraintNode, item any, alias
 	}
 	if canonical, aliased := aliases[key]; aliased {
 		if !e.identity() {
-			return "", nil, constraintFailure("limit-exceeded", pointer, "Keyed collection alias evaluation exceeded max_identity_checks.")
+			return "", nil, constraintFailure(termLimitExceeded, pointer, "Keyed collection alias evaluation exceeded max_identity_checks.")
 		}
 		key, err = jsonDigest(canonical)
 		if err != nil {
@@ -102,7 +102,7 @@ func (e *constraintEvaluation) keyedDeclarations(rule *constraintNode, pointer s
 	order := make([]string, 0, len(rule.Members))
 	for _, member := range rule.Members {
 		if !e.identity() {
-			return nil, nil, constraintFailure("limit-exceeded", pointer, "Keyed collection declaration evaluation exceeded max_identity_checks.")
+			return nil, nil, constraintFailure(termLimitExceeded, pointer, "Keyed collection declaration evaluation exceeded max_identity_checks.")
 		}
 		key, err := jsonDigest(member.Identity)
 		if err != nil {

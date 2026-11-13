@@ -40,11 +40,11 @@ func (b *constraintValueAdmission) nodeFailure(path string, depth int) bool {
 	} else if b.engine.nodes > b.engine.limits.MaxNodes {
 		limit = "max_nodes"
 	}
-	return b.fail("limit-exceeded", path, "Realization value validation exceeded "+limit+".")
+	return b.fail(termLimitExceeded, path, "Realization value validation exceeded "+limit+".")
 }
 func (b *constraintValueAdmission) record(input map[string]any, path string, depth int) bool {
 	if len(input) > b.engine.limits.MaxMembers {
-		return b.fail("limit-exceeded", path, "Realization value validation exceeded max_members.")
+		return b.fail(termLimitExceeded, path, "Realization value validation exceeded max_members.")
 	}
 	for _, field := range constraintMetadataObject(input) {
 		if !b.scalar(field.name, path) || !b.walk(field.value, constraintAdmissionPath(path, field.name), depth+1) {
@@ -55,7 +55,7 @@ func (b *constraintValueAdmission) record(input map[string]any, path string, dep
 }
 func (b *constraintValueAdmission) sequence(input []any, path string, depth int) bool {
 	if len(input) > b.engine.limits.MaxMembers {
-		return b.fail("limit-exceeded", path, "Realization value validation exceeded max_members.")
+		return b.fail(termLimitExceeded, path, "Realization value validation exceeded max_members.")
 	}
 	for index, child := range input {
 		if !b.walk(child, path+"/"+strconv.Itoa(index), depth+1) {
@@ -67,11 +67,11 @@ func (b *constraintValueAdmission) sequence(input []any, path string, depth int)
 func (b *constraintValueAdmission) scalar(input any, path string) bool {
 	size := constraintScalarBytes(input)
 	if size > b.engine.limits.MaxScalarBytes {
-		return b.fail("limit-exceeded", path, "Realization value validation exceeded max_scalar_bytes.")
+		return b.fail(termLimitExceeded, path, "Realization value validation exceeded max_scalar_bytes.")
 	}
 	b.scalarBytes += size
 	if b.scalarBytes > b.engine.limits.MaxTotalScalarBytes {
-		return b.fail("limit-exceeded", path, "Realization value validation exceeded max_total_scalar_bytes.")
+		return b.fail(termLimitExceeded, path, "Realization value validation exceeded max_total_scalar_bytes.")
 	}
 	if value.Validate(input, constraintScalarLimits(b.engine.limits)) != nil {
 		return b.fail("invalid", path, "Realization value is not JSON-compatible.")

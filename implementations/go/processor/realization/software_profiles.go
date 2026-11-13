@@ -296,7 +296,7 @@ func (assembly *softwareProfileAssembly) includeBinding(attachment softwareAttac
 	if checkErr != nil {
 		return nil, checkErr
 	}
-	assembly.bindings = append(assembly.bindings, map[string]any{termSchemaVersion: "domain-profile-binding/v1", "binding_id": id, "children": []any{}, "coordinate": coordinateValue, "owner": map[string]any{"owning_contract_id": "plan-realization-profiles-v1", "canonical_address": "#/resources/" + compiledAddress, "concept_family": "resource-realization", "lifecycle_phase": "planning", "context": context, "use": "constraint"}, termValue: profileValue, termProvenance: map[string]any{"basis": "author-supplied", "source_ref": "software:" + attachment.identity + "/" + refinement.ID, termEvidenceRefs: []any{}}})
+	assembly.bindings = append(assembly.bindings, map[string]any{termSchemaVersion: "domain-profile-binding/v1", "binding_id": id, "children": []any{}, "coordinate": coordinateValue, "owner": map[string]any{"owning_contract_id": realizationProfileContract, "canonical_address": "#/resources/" + compiledAddress, "concept_family": "resource-realization", "lifecycle_phase": "planning", "context": context, "use": "constraint"}, termValue: profileValue, termProvenance: map[string]any{"basis": "author-supplied", "source_ref": "software:" + attachment.identity + "/" + refinement.ID, termEvidenceRefs: []any{}}})
 	return profileValue, nil
 }
 func (assembly *softwareProfileAssembly) includeConstraint(attachment softwareAttachment, profileValue any, digest, id string) error {
@@ -320,8 +320,8 @@ func (assembly *softwareProfileAssembly) includeConstraint(attachment softwareAt
 	return nil
 }
 func (assembly *softwareProfileAssembly) authority() (*binding.PlanRealizationProfilesV1, error) {
-	encoded, err := value.Encode(map[string]any{"contract_id": "plan-realization-profiles-v1", "definitions": assembly.definitions, "bindings": assembly.bindings, "constraints": assembly.constraints}, value.Default())
-	if err != nil || assembly.owner.CheckPortable("plan-realization-profiles-v1", encoded, ingress.Limits{MaxBytes: 8 << 20, MaxDepth: 64}) != nil {
+	encoded, err := value.Encode(map[string]any{"contract_id": realizationProfileContract, "definitions": assembly.definitions, "bindings": assembly.bindings, "constraints": assembly.constraints}, value.Default())
+	if err != nil || assembly.owner.CheckPortable(realizationProfileContract, encoded, ingress.Limits{MaxBytes: 8 << 20, MaxDepth: 64}) != nil {
 		return nil, invalidRealization()
 	}
 	var result binding.PlanRealizationProfilesV1

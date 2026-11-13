@@ -332,6 +332,15 @@ The reducer now accepts that root layout and named group folders, and still coun
 Eighteen targeted shell cases check both layouts, multiple groups, extra groups, duplicate packages, missing counters, incomplete statements and the coverage floor.
 The actual reducer also passes with retained hosted native data in both single-artifact layouts and the four-group product layout.
 
+The repaired hosted run passes all ten Go workers and both complete module gates.
+The first complete Sonar analysis reports 48 code quality findings and no open security hotspots.
+The repairs reuse package constants, group related helper arguments and name private wire records.
+Ownership marker bodies now explain their empty implementation.
+The comparison marker uses `isArtifact`, with matching intended declarations and API commitments.
+Public API names, callable methods, schema fields, diagnostic text and serialized reference results remain unchanged.
+Targeted reference, ownership and refusal tests pass after these changes.
+The published candidate must still pass CI and a new Sonar analysis.
+
 Manifest and profile checks reuse the existing immutable processor admission owner.
 Participant reference fragments also reuse a stock validator and decode fresh request values.
 The same 139 history and argument cases fell from 50.768 to 8.930 seconds in targeted local runs.

@@ -68,15 +68,21 @@ func materializationSnapshotWithinLimits(snapshot []byte) bool {
 	return err == nil && value.Validate(parsed, value.Runtime()) == nil
 }
 
+type materializationAuthoredDigest struct {
+	Value string `json:"value"`
+}
+
+type materializationInstantiationHeader struct {
+	Authored materializationAuthoredDigest `json:"authored_digest"`
+}
+
+type materializationSnapshotScenario struct {
+	Provenance materializationInstantiationHeader `json:"instantiation_provenance"`
+}
+
 func sealMaterializationSource(snapshot []byte, scope *Scope, descendants bool) (json.RawMessage, string, error) {
 	var header struct {
-		Scenario struct {
-			Provenance struct {
-				Authored struct {
-					Value string `json:"value"`
-				} `json:"authored_digest"`
-			} `json:"instantiation_provenance"`
-		} `json:"scenario"`
+		Scenario materializationSnapshotScenario `json:"scenario"`
 	}
 	if json.Unmarshal(snapshot, &header) != nil {
 		return nil, "invalid", nil //nolint:nilerr // This relation reports candidate refusal in its result without failing the enclosing operation.

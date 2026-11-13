@@ -8,7 +8,8 @@ import (
 )
 
 // Artifact is an immutable artifact admitted by its exact native owner.
-type Artifact interface{ artifact() }
+// Its private marker names membership, not a behavior that callers implement.
+type Artifact interface{ isArtifact() }
 
 // Options supplies the complete declared scopes and digest-only context evidence.
 type Options struct {
@@ -22,7 +23,9 @@ type artifact struct {
 	projections                         map[string]ownerProjection
 }
 
-func (*artifact) artifact() {}
+func (*artifact) isArtifact() {
+	// This unexported marker seals the handle to its native owner.
+}
 
 type ownerProjection struct {
 	identity     string

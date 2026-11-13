@@ -86,17 +86,17 @@ func (state *compilerState) observationProfiles() []admission.RealizationCollect
 	return result
 }
 func (state *compilerState) observationComponents(refs []string, required bool) ([]string, error) {
-	aliases, loaded := state.input.references["observation-subject"]
+	aliases, loaded := state.input.references[termObservationSubject]
 	if !loaded {
 		var err error
-		aliases, err = sdl.ReferenceBindingsFor(state.input.scenario, "observation-subject")
+		aliases, err = sdl.ReferenceBindingsFor(state.input.scenario, termObservationSubject)
 		if err != nil {
 			return nil, err
 		}
 		if state.input.references == nil {
 			state.input.references = map[string]map[string][]string{}
 		}
-		state.input.references["observation-subject"] = aliases
+		state.input.references[termObservationSubject] = aliases
 	}
 	result := []string{}
 	for _, ref := range refs {

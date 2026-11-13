@@ -30,7 +30,7 @@ func compareSubjects(input request, before, after ownerProjection, context conte
 			consumedBefore[identity], consumedAfter[identity] = true, true
 		}
 	}
-	result = append(result, renamedChanges(input, context, beforeMap, afterMap, allowed, consumedBefore, consumedAfter, reasons)...)
+	result = append(result, input.renamedChanges(context, beforeMap, afterMap, allowed, consumedBefore, consumedAfter, reasons)...)
 	for _, identity := range identities {
 		if _, present := afterMap[identity]; present && !consumedAfter[identity] {
 			result = append(result, unpairedChange(identity, relationAdded))
@@ -44,7 +44,7 @@ func compareSubjects(input request, before, after ownerProjection, context conte
 	})
 	return result
 }
-func renamedChanges(input request, context context, beforeMap, afterMap map[string]subject, allowed, consumedBefore, consumedAfter map[string]bool, reasons reasonSet) []change {
+func (input request) renamedChanges(context context, beforeMap, afterMap map[string]subject, allowed, consumedBefore, consumedAfter map[string]bool, reasons reasonSet) []change {
 	result := []change{}
 	renames := renameMap(input, context, reasons)
 	oldNames := []string{}

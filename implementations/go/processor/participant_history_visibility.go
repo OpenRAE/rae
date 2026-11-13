@@ -235,18 +235,25 @@ func (analysis *participantHistoryAnalysis) detailVisibility(pointer string, det
 		}
 	}
 }
-func (analysis *participantHistoryAnalysis) resultRefsVisibility(pointer, owner, field string, refs []string, evidence bool, boundary participantBoundary, relation map[string]string, order string) {
+
+type participantVisibilityCut struct {
+	boundary participantBoundary
+	relation map[string]string
+	order    string
+}
+
+func (analysis *participantHistoryAnalysis) resultRefsVisibility(pointer, owner, field string, refs []string, evidence bool, cut participantVisibilityCut) {
 	if owner != "" {
 		owner = " " + owner
 	}
 	for _, ref := range refs {
-		disposition, present := participantDisposition(boundary, relation, ref)
+		disposition, present := participantDisposition(cut.boundary, cut.relation, ref)
 		if evidence {
-			if !participantEvidenceAuthorized(boundary, relation, ref) {
-				analysis.add(pointer, fmt.Sprintf("action_result%s %s %s is not authorized evidence at effective_order %s%s", owner, field, pyrepr.Quote(ref), order, participantDispositionSuffix(disposition, present)))
+			if !participantEvidenceAuthorized(cut.boundary, cut.relation, ref) {
+				analysis.add(pointer, fmt.Sprintf("action_result%s %s %s is not authorized evidence at effective_order %s%s", owner, field, pyrepr.Quote(ref), cut.order, participantDispositionSuffix(disposition, present)))
 			}
 		} else if present && !participantVisible(disposition) {
-			analysis.add(pointer, fmt.Sprintf("action_result%s %s %s is not participant-visible at effective_order %s: disposition %s", owner, field, pyrepr.Quote(ref), order, pyrepr.Quote(disposition)))
+			analysis.add(pointer, fmt.Sprintf("action_result%s %s %s is not participant-visible at effective_order %s: disposition %s", owner, field, pyrepr.Quote(ref), cut.order, pyrepr.Quote(disposition)))
 		}
 	}
 }
@@ -254,17 +261,18 @@ func (analysis *participantHistoryAnalysis) resultVisibility(pointer string, eve
 	if event.Result == nil {
 		return
 	}
+	cut := participantVisibilityCut{boundary: boundary, relation: relation, order: order}
 	for _, record := range event.Result.Preconditions {
 		owner := "precondition " + pyrepr.Quote(record.ID)
-		analysis.resultRefsVisibility(pointer, owner, "support_ref", record.SupportRefs, false, boundary, relation, order)
-		analysis.resultRefsVisibility(pointer, owner, "evidence_ref", record.EvidenceRefs, true, boundary, relation, order)
+		analysis.resultRefsVisibility(pointer, owner, "support_ref", record.SupportRefs, false, cut)
+		analysis.resultRefsVisibility(pointer, owner, "evidence_ref", record.EvidenceRefs, true, cut)
 	}
 	for _, record := range event.Result.Effects {
 		owner := "effect " + pyrepr.Quote(record.ID)
-		analysis.resultRefsVisibility(pointer, owner, "target_ref", record.TargetRefs, false, boundary, relation, order)
-		analysis.resultRefsVisibility(pointer, owner, "evidence_ref", record.EvidenceRefs, true, boundary, relation, order)
+		analysis.resultRefsVisibility(pointer, owner, "target_ref", record.TargetRefs, false, cut)
+		analysis.resultRefsVisibility(pointer, owner, "evidence_ref", record.EvidenceRefs, true, cut)
 	}
-	analysis.resultRefsVisibility(pointer, "", "evidence_ref", event.Result.EvidenceRefs, true, boundary, relation, order)
+	analysis.resultRefsVisibility(pointer, "", "evidence_ref", event.Result.EvidenceRefs, true, cut)
 }
 func (analysis *participantHistoryAnalysis) attributionVisibility(pointer string, event participantHistoryEvent, boundary participantBoundary, relation map[string]string, order string) {
 	for _, edge := range event.Attributions {

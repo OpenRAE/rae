@@ -102,7 +102,7 @@ func TestPortableProcessBoundLookupKeepsTheReferenceFirstMatch(t *testing.T) {
 	second[termSoft] = json.Number("200")
 	lookup := plannedBoundLookup{input: []any{first, second}}
 	for range 3 {
-		if got := lookup.value(plannedBound{Identity: identity, Pointer: "/soft"}); got != json.Number("100") {
+		if lookup.value(plannedBound{Identity: identity, Pointer: "/soft"}) != json.Number("100") {
 			t.Fatal("portable duplicate identity changed the reference first-match rule")
 		}
 	}

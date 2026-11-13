@@ -2,6 +2,13 @@ package processor
 
 // Shared vocabulary for the admitted processor wire projections.
 const (
+	termObservationSubject               = "observation-subject"
+	termControllerState                  = "controller-state"
+	termPermittedTransition              = "permitted-transition"
+	termScriptStep                       = "script-step"
+	referenceDiagnosticPrefix            = "Reference '"
+	participantResourceBudgetPrefix      = "participant resource budget "
+	termNodesPrefix                      = "nodes."
 	termUnknown                          = "unknown"
 	termAccountPlacement                 = "account-placement"
 	termAccounts                         = "accounts"

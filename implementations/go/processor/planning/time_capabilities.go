@@ -29,6 +29,12 @@ type timeCapabilities struct {
 	SupportsRunProvenance         bool         `json:"supports_run_provenance"`
 }
 
+type timeRequirements struct {
+	domains, authorities, advancements, synchronizations []string
+	mappings, constraints, resets, replays               []string
+	pause, jump                                          bool
+}
+
 func timeDiagnostics(model processor.CompiledScenario, raw json.RawMessage) ([]diagnostic.Diagnostic, error) {
 	result := []diagnostic.Diagnostic{}
 	if !model.HasTimeModel {
@@ -45,29 +51,28 @@ func timeDiagnostics(model processor.CompiledScenario, raw json.RawMessage) ([]d
 	if json.Unmarshal(raw, &caps) != nil {
 		return nil, invalidPlan()
 	}
-	domains, authorities, advancements, synchronizations, mappings, constraints, resets, replays := []string{}, []string{}, []string{}, []string{}, []string{}, []string{}, []string{}, []string{}
-	pause, jump := false, false
+	var required timeRequirements
 	for _, domain := range model.TimeModel.Domains {
-		domains = append(domains, domain.Kind)
+		required.domains = append(required.domains, domain.Kind)
 	}
 	for _, clock := range model.TimeModel.Clocks {
-		authorities = append(authorities, clock.AuthorityKind)
-		pause = pause || clock.SupportsPause
-		jump = jump || clock.SupportsJump
+		required.authorities = append(required.authorities, clock.AuthorityKind)
+		required.pause = required.pause || clock.SupportsPause
+		required.jump = required.jump || clock.SupportsJump
 	}
 	for _, policy := range model.TimeModel.ProgressionPolicies {
-		advancements = append(advancements, policy.AdvancementMode)
-		synchronizations = append(synchronizations, policy.SynchronizationMode)
-		resets = append(resets, policy.ResetBehavior)
-		replays = append(replays, policy.ReplayBehavior)
+		required.advancements = append(required.advancements, policy.AdvancementMode)
+		required.synchronizations = append(required.synchronizations, policy.SynchronizationMode)
+		required.resets = append(required.resets, policy.ResetBehavior)
+		required.replays = append(required.replays, policy.ReplayBehavior)
 	}
 	for _, mapping := range model.TimeModel.Mappings {
-		mappings = append(mappings, mapping.Kind)
+		required.mappings = append(required.mappings, mapping.Kind)
 	}
 	for _, constraint := range model.TimeModel.Constraints {
-		constraints = append(constraints, constraint.Kind)
+		required.constraints = append(required.constraints, constraint.Kind)
 	}
-	gaps, err := timeCapabilityGaps(model, caps, domains, authorities, advancements, synchronizations, mappings, constraints, resets, replays, pause, jump)
+	gaps, err := timeCapabilityGaps(model, caps, required)
 	if err != nil {
 		return nil, err
 	}
@@ -76,14 +81,14 @@ func timeDiagnostics(model processor.CompiledScenario, raw json.RawMessage) ([]d
 	}
 	return result, nil
 }
-func timeCapabilityGaps(model processor.CompiledScenario, caps timeCapabilities, domains, authorities, advancements, synchronizations, mappings, constraints, resets, replays []string, pause, jump bool) ([]string, error) {
+func timeCapabilityGaps(model processor.CompiledScenario, caps timeCapabilities, required timeRequirements) ([]string, error) {
 	result := []string{}
 	add := func(message string) { result = append(result, message) }
 	for _, item := range []struct {
 		label               string
 		required, supported []string
 	}{
-		{"domain kinds", domains, caps.DomainKinds}, {"authority kinds", authorities, caps.AuthorityKinds}, {"advancement modes", advancements, caps.AdvancementModes}, {"synchronization modes", synchronizations, caps.SynchronizationModes}, {"mapping kinds", mappings, caps.MappingKinds}, {"constraint kinds", constraints, caps.ConstraintKinds}, {"reset behaviors", resets, caps.ResetBehaviors}, {"replay behaviors", replays, caps.ReplayBehaviors},
+		{"domain kinds", required.domains, caps.DomainKinds}, {"authority kinds", required.authorities, caps.AuthorityKinds}, {"advancement modes", required.advancements, caps.AdvancementModes}, {"synchronization modes", required.synchronizations, caps.SynchronizationModes}, {"mapping kinds", required.mappings, caps.MappingKinds}, {"constraint kinds", required.constraints, caps.ConstraintKinds}, {"reset behaviors", required.resets, caps.ResetBehaviors}, {"replay behaviors", required.replays, caps.ReplayBehaviors},
 	} {
 		if missing := missingTimeValues(item.required, item.supported); len(missing) > 0 {
 			add("unsupported time " + item.label + ": " + strings.Join(missing, ", "))
@@ -108,7 +113,7 @@ func timeCapabilityGaps(model processor.CompiledScenario, caps timeCapabilities,
 	for _, item := range []struct {
 		required, supported bool
 		label               string
-	}{{pause, caps.SupportsPause, "pause control"}, {jump, caps.SupportsJump, "jump control"}, {len(model.TimeModel.Mappings) > 0, caps.SupportsExactRationalMappings, "exact rational mappings"}, {true, caps.SupportsAppendOnlyHistory, "append-only clock transition history"}, {true, caps.SupportsRunProvenance, "realized run provenance"}} {
+	}{{required.pause, caps.SupportsPause, "pause control"}, {required.jump, caps.SupportsJump, "jump control"}, {len(model.TimeModel.Mappings) > 0, caps.SupportsExactRationalMappings, "exact rational mappings"}, {true, caps.SupportsAppendOnlyHistory, "append-only clock transition history"}, {true, caps.SupportsRunProvenance, "realized run provenance"}} {
 		if item.required && !item.supported {
 			add("time model requires " + item.label)
 		}

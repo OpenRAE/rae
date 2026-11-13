@@ -166,18 +166,18 @@ func (state *resourceSupportAssessment) assessDemand(policy *participantAutonomo
 		return err
 	}
 	if !supported {
-		state.gaps = append(state.gaps, "participant resource budget "+demand.BudgetID+" lacks supported profile semantics")
+		state.gaps = append(state.gaps, participantResourceBudgetPrefix+demand.BudgetID+" lacks supported profile semantics")
 		return nil
 	}
 	unsupported := resourceUnsupportedAttributes(demand, state.caps)
 	if len(unsupported) > 0 {
-		state.gaps = append(state.gaps, "participant resource budget "+demand.BudgetID+" unsupported: "+strings.Join(unsupported, ", "))
+		state.gaps = append(state.gaps, participantResourceBudgetPrefix+demand.BudgetID+" unsupported: "+strings.Join(unsupported, ", "))
 		return nil
 	}
 	key := [7]string{demand.PoolRef, demand.OwnerKind, demand.OwnerAddress, string(demand.ResourceKind), demand.Unit, demand.AccountingMode, demand.MeterProfileRef}
 	pool, exists := state.pools[key]
 	if !exists {
-		state.gaps = append(state.gaps, "participant resource budget "+demand.BudgetID+" ("+demand.ResourceKind.label()+") has no exact configured owner/unit/accounting/meter capacity")
+		state.gaps = append(state.gaps, participantResourceBudgetPrefix+demand.BudgetID+" ("+demand.ResourceKind.label()+") has no exact configured owner/unit/accounting/meter capacity")
 		return nil
 	}
 	if seen[key] {
@@ -204,7 +204,7 @@ func (state *resourceSupportAssessment) countDemand(key [7]string, demand partic
 
 func resourcePoolPolicyGaps(demand participantResourceDemand, fairness participantResourceFairness, pool resourceSupportPool) []string {
 	gaps := []string{}
-	prefix := "participant resource budget " + demand.BudgetID + " (" + demand.ResourceKind.label() + ")"
+	prefix := participantResourceBudgetPrefix + demand.BudgetID + " (" + demand.ResourceKind.label() + ")"
 	if exactInteger(pool.Capacity).Cmp(exactInteger(demand.Limit)) < 0 {
 		gaps = append(gaps, prefix+" requires capacity "+exactInteger(demand.Limit).String()+"; configured capacity is "+exactInteger(pool.Capacity).String())
 	}

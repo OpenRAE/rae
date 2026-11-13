@@ -69,7 +69,7 @@ func (state *compilerState) compileMixedControllerStates(spec string, source mix
 		refs = append(refs, scope...)
 		refs = append(refs, evidence...)
 		refs = dedupe(refs)
-		result = append(result, mixedControllerState{Address: state.mixedAddress(spec, "controller-state", id), Name: id, Spec: raw, OrderingDependencies: []string{}, RefreshDependencies: refs, StateID: id, ControllerRef: input.ControllerRef, ControllerAddress: controller, AuthorityBasisRefs: nonNilStrings(input.AuthorityBasisRefs), AuthorityBasisAddresses: authority, ScopeRefs: nonNilStrings(input.ScopeRefs), ScopeAddresses: scope, PolicyRevision: input.PolicyRevision, ValidFromOrder: input.ValidFromOrder, ValidUntilOrder: input.ValidUntilOrder, AuthorityStatus: input.AuthorityStatus, EvidenceRefs: nonNilStrings(input.EvidenceRefs), EvidenceAddresses: evidence})
+		result = append(result, mixedControllerState{Address: state.mixedAddress(spec, termControllerState, id), Name: id, Spec: raw, OrderingDependencies: []string{}, RefreshDependencies: refs, StateID: id, ControllerRef: input.ControllerRef, ControllerAddress: controller, AuthorityBasisRefs: nonNilStrings(input.AuthorityBasisRefs), AuthorityBasisAddresses: authority, ScopeRefs: nonNilStrings(input.ScopeRefs), ScopeAddresses: scope, PolicyRevision: input.PolicyRevision, ValidFromOrder: input.ValidFromOrder, ValidUntilOrder: input.ValidUntilOrder, AuthorityStatus: input.AuthorityStatus, EvidenceRefs: nonNilStrings(input.EvidenceRefs), EvidenceAddresses: evidence})
 		dependencies = append(dependencies, refs...)
 	}
 	return result, dedupe(dependencies)
@@ -117,7 +117,7 @@ func (state *compilerState) compileMixedTransitions(spec string, source mixedSou
 	dependencies := []string{}
 	for _, id := range ids {
 		input := inputs[id]
-		from, to := state.mixedAddress(spec, "controller-state", input.FromStateRef), state.mixedAddress(spec, "controller-state", input.ToStateRef)
+		from, to := state.mixedAddress(spec, termControllerState, input.FromStateRef), state.mixedAddress(spec, termControllerState, input.ToStateRef)
 		proposal := ""
 		refs := []string{from, to}
 		if input.ProposalRef != nil {
@@ -147,7 +147,7 @@ func (state *compilerState) compileMixedPermissions(spec string, source mixedSou
 			state.err = invalidCompiled()
 			return nil
 		}
-		from, to := state.mixedAddress(spec, "controller-state", input.FromStateRef), state.mixedAddress(spec, "controller-state", input.ToStateRef)
+		from, to := state.mixedAddress(spec, termControllerState, input.FromStateRef), state.mixedAddress(spec, termControllerState, input.ToStateRef)
 		evidence := state.runtimeAddresses(input.EvidenceRefs)
 		completion := state.runtimeAddresses(input.CompletionEvidenceRefs)
 		refs := []string{from, to}
@@ -157,7 +157,7 @@ func (state *compilerState) compileMixedPermissions(spec string, source mixedSou
 		if targets == nil {
 			targets = mixedKindTargets[input.TransitionKind]
 		}
-		result = append(result, mixedPermission{Address: state.mixedAddress(spec, "permitted-transition", id), Name: id, Spec: raw, OrderingDependencies: []string{}, RefreshDependencies: dedupe(refs), TransitionID: id, TransitionKind: input.TransitionKind, FromStateAddress: from, ToStateAddress: to, ValidFromOrder: input.ValidFromOrder, ValidUntilOrder: input.ValidUntilOrder, TargetKinds: sortedTerms(targets), EvidenceRefs: nonNilStrings(input.EvidenceRefs), EvidenceAddresses: evidence, CompletionEvidenceRefs: nonNilStrings(input.CompletionEvidenceRefs), CompletionEvidenceAddresses: completion})
+		result = append(result, mixedPermission{Address: state.mixedAddress(spec, termPermittedTransition, id), Name: id, Spec: raw, OrderingDependencies: []string{}, RefreshDependencies: dedupe(refs), TransitionID: id, TransitionKind: input.TransitionKind, FromStateAddress: from, ToStateAddress: to, ValidFromOrder: input.ValidFromOrder, ValidUntilOrder: input.ValidUntilOrder, TargetKinds: sortedTerms(targets), EvidenceRefs: nonNilStrings(input.EvidenceRefs), EvidenceAddresses: evidence, CompletionEvidenceRefs: nonNilStrings(input.CompletionEvidenceRefs), CompletionEvidenceAddresses: completion})
 	}
 	return result
 }
@@ -177,14 +177,14 @@ func (state *compilerState) compileMixedScript(spec string, source mixedSource) 
 			state.err = invalidCompiled()
 			return nil
 		}
-		transition := state.mixedAddress(spec, "permitted-transition", input.PermittedTransitionRef)
+		transition := state.mixedAddress(spec, termPermittedTransition, input.PermittedTransitionRef)
 		target := ""
 		refs := []string{transition}
 		if input.TargetStepRef != "" {
-			target = state.mixedAddress(spec, "script-step", input.TargetStepRef)
+			target = state.mixedAddress(spec, termScriptStep, input.TargetStepRef)
 			refs = append(refs, target)
 		}
-		result = append(result, mixedScriptStep{Address: state.mixedAddress(spec, "script-step", input.StepID), Name: input.StepID, Spec: raw, OrderingDependencies: []string{}, RefreshDependencies: dedupe(refs), StepID: input.StepID, Position: json.Number(strconv.Itoa(i + 1)), PermittedTransitionAddress: transition, ExpectedStateRevision: input.ExpectedStateRevision, ValidFromOrder: input.ValidFromOrder, ValidUntilOrder: input.ValidUntilOrder, TargetKind: input.TargetKind, TargetStepAddress: target})
+		result = append(result, mixedScriptStep{Address: state.mixedAddress(spec, termScriptStep, input.StepID), Name: input.StepID, Spec: raw, OrderingDependencies: []string{}, RefreshDependencies: dedupe(refs), StepID: input.StepID, Position: json.Number(strconv.Itoa(i + 1)), PermittedTransitionAddress: transition, ExpectedStateRevision: input.ExpectedStateRevision, ValidFromOrder: input.ValidFromOrder, ValidUntilOrder: input.ValidUntilOrder, TargetKind: input.TargetKind, TargetStepAddress: target})
 	}
 	return result
 }
@@ -204,7 +204,7 @@ func (state *compilerState) compileMixed(spec string, raw json.RawMessage) mixed
 	result.participant = state.address(termParticipant, "behavior", source.ParticipantRef)
 	result.revision = source.PolicyRevision
 	result.order = source.OrderStrategy
-	result.initial = state.mixedAddress(spec, "controller-state", source.InitialStateRef)
+	result.initial = state.mixedAddress(spec, termControllerState, source.InitialStateRef)
 	result.dispositions = &source.Dispositions
 	states, stateDependencies := state.compileMixedControllerStates(spec, source, result.participant)
 	result.states = states
@@ -241,13 +241,13 @@ func (state *compilerState) mixedReferenceDiagnostics(spec string, result mixedC
 	findings := []diagnostic.Diagnostic{}
 	refs := []mixedReference{{"policy", policy.Address}, {termParticipantBehavior, policy.ParticipantAddress}}
 	for _, item := range permissions {
-		refs = append(refs, mixedReference{"permitted-transition", item.Address})
+		refs = append(refs, mixedReference{termPermittedTransition, item.Address})
 	}
 	for _, item := range steps {
-		refs = append(refs, mixedReference{"script-step", item.Address})
+		refs = append(refs, mixedReference{termScriptStep, item.Address})
 	}
 	for _, item := range states {
-		refs = append(refs, mixedReference{"controller-state", item.Address}, mixedReference{"controller", item.ControllerAddress})
+		refs = append(refs, mixedReference{termControllerState, item.Address}, mixedReference{"controller", item.ControllerAddress})
 	}
 	slices.SortFunc(refs, func(a, b mixedReference) int {
 		if order := cmp.Compare(a.label, b.label); order != 0 {

@@ -30,8 +30,12 @@ type compiledParticipants struct {
 }
 type compilation struct{ model *runtimeModel }
 
-func (*runtimeModel) compiledModel()   {}
-func (*compilation) compiledScenario() {}
+func (*runtimeModel) compiledModel() {
+	// This unexported marker seals the handle to its native owner.
+}
+func (*compilation) compiledScenario() {
+	// This unexported marker seals the handle to its native owner.
+}
 
 // JSON returns a copy of the published operation payload.
 func (payload ResourcePayload) JSON() []byte         { return slices.Clone(payload.data) }

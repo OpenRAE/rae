@@ -57,7 +57,7 @@ func entryMatches(entry snapshotEntry, resource plannedResource, requirements []
 		decoder := json.NewDecoder(bytes.NewReader(raw))
 		decoder.UseNumber()
 		var value any
-		if checkErr := decoder.Decode(&value); checkErr != nil {
+		if decoder.Decode(&value) != nil {
 			return nil, invalidPlan()
 		}
 		return admission.AdmitFragment(owner, admission.RealizationValue, value, ingress.Limits{MaxBytes: 8 << 20, MaxDepth: 128})

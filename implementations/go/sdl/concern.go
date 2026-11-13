@@ -82,7 +82,7 @@ func normalizeFieldValue(section string, path []string, value admission.Fragment
 	decoder := json.NewDecoder(bytes.NewReader(normalized))
 	decoder.UseNumber()
 	var result any
-	if checkErr := decoder.Decode(&result); checkErr != nil {
+	if decoder.Decode(&result) != nil {
 		return nil, invalidScenario()
 	}
 	validator, err := fragmentOwner()

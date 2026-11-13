@@ -96,13 +96,17 @@ func (state *compilerState) contentRuntimeReferences(result map[string]string) {
 	}
 }
 
-func (state *compilerState) namedReferences(section, root, kind string, refs []string, owner, domain, code, label string) ([]string, []diagnostic.Diagnostic) {
+type referenceFindingContext struct {
+	owner, domain, code, label string
+}
+
+func (state *compilerState) namedReferences(section, root, kind string, refs []string, context referenceFindingContext) ([]string, []diagnostic.Diagnostic) {
 	result := []string{}
 	findings := []diagnostic.Diagnostic{}
 	known := state.known(section)
 	for _, ref := range dedupe(refs) {
 		if !known[ref] {
-			findings = append(findings, compileDiagnostic(code+"-unbound", domain, owner, "Reference '"+ref+"' does not resolve to a defined "+label+"."))
+			findings = append(findings, compileDiagnostic(context.code+"-unbound", context.domain, context.owner, "Reference '"+ref+"' does not resolve to a defined "+context.label+"."))
 			continue
 		}
 		result = append(result, state.address(root, kind, ref))

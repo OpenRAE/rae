@@ -16,7 +16,9 @@ type ProspectiveContent interface {
 }
 type prospectiveContent struct{ document *authoring.Document }
 
-func (prospectiveContent) prospectiveContent() {}
+func (prospectiveContent) prospectiveContent() {
+	// This unexported marker seals the handle to its native owner.
+}
 func (p prospectiveContent) JSON() []byte      { return p.document.JSON() }
 func (p prospectiveContent) ModelJSON() []byte { return p.document.ModelJSON() }
 
