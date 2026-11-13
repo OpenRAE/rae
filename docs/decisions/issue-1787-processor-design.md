@@ -803,7 +803,7 @@ It applies the same phase and runtime value bounds as composition.
 It returns whether the content difference is empty.
 It grants no report, execution or archive authority.
 
-<!-- go-api implementations/go/processor/comparison d014f9be029a1921622ba01ac975f4f8d7b28971bf11c33ad7323a2344180b67 -->
+<!-- go-api implementations/go/processor/comparison b44654d7688dd6f45b7f20658193921aa6ca738abb3c7265f80c530655739951 -->
 
 ## Capture specification and scoped evidence compilation
 
@@ -1016,12 +1016,14 @@ They also check that the merged source-block inventory matches the Go-generated 
 Missing groups, duplicate packages, test failures and incomplete inventories fail the gate.
 Sonar keeps its existing module coverage artifact names.
 
-Static-analysis repairs keep the same public API and serialized bytes.
+Static-analysis repairs keep the same public caller signatures and serialized bytes.
 Related private helper arguments use named context records or their existing native receiver.
 Repeated protocol and diagnostic strings use constants in their owning package.
 Nested wire records use private named types with the same JSON fields.
 Private ownership markers state their sealing purpose; they grant no behavior or caller authority.
-The comparison marker names membership explicitly as `isArtifact` while the public handle remains `Artifact`.
+The comparison interface is named `artifactMarker` for its sealing role.
+The public `Artifact` alias retains that interface and its private `isArtifact` method.
+Native admission still checks the exact concrete owner before it reads any supplied value.
 
 ```mermaid
 flowchart LR

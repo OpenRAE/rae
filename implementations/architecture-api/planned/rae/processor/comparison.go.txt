@@ -7,7 +7,8 @@ import (
  "github.com/OpenRAE/rae/implementations/go/sdl"
 )
 
-type Artifact interface { isArtifact() }
+type Artifact = artifactMarker
+type artifactMarker interface { isArtifact() }
 type Options struct {
  BeforeScope, AfterScope []Artifact
  TransformationReport validation.Value

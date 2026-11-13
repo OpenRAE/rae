@@ -341,6 +341,15 @@ Public API names, callable methods, schema fields, diagnostic text and serialize
 Targeted reference, ownership and refusal tests pass after these changes.
 The published candidate must still pass CI and a new Sonar analysis.
 
+The next hosted run passes all ten Go workers and both module gates.
+Sonar clears 47 findings and reports one remaining interface naming finding.
+The private sealed interface is now `artifactMarker`; `Artifact` remains its public alias.
+Public function signatures and exact native-owner admission stay unchanged.
+The design declaration and typed snapshot precede the source change.
+Six targeted comparison reference and ownership tests pass with race detection.
+Lint and both architecture checks report no findings; all 288 unique pinned hashes match.
+A new published candidate must still pass CI and Sonar.
+
 Manifest and profile checks reuse the existing immutable processor admission owner.
 Participant reference fragments also reuse a stock validator and decode fresh request values.
 The same 139 history and argument cases fell from 50.768 to 8.930 seconds in targeted local runs.

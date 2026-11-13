@@ -9,7 +9,9 @@ import (
 
 // Artifact is an immutable artifact admitted by its exact native owner.
 // Its private marker names membership, not a behavior that callers implement.
-type Artifact interface{ isArtifact() }
+type Artifact = artifactMarker
+
+type artifactMarker interface{ isArtifact() }
 
 // Options supplies the complete declared scopes and digest-only context evidence.
 type Options struct {

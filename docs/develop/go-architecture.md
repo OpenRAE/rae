@@ -375,7 +375,7 @@ flowchart BT
 | `raes` | runtime | `RUNTIME/cmd/raes` | rae:command/authoring, runtime:runtime/control |
 | `raes-mcp` | rae | `github.com/OpenRAE/rae/implementations/go/cmd/raes-mcp` | rae:sdl/language, rae:processor, rae:contract/admission |
 
-<!-- go-consumer 41f5e4d3fd808c67805fb513b99d66ce9c6775ebc9602a4afafb1272a1cf3a35 -->
+<!-- go-consumer 47ba0a4c310f387d56f496c95136ac92c3064671b86ae51caf2ee88264b6bd50 -->
 
 | Trust-view evidence | SHA-256 |
 | --- | --- |
@@ -399,7 +399,7 @@ flowchart BT
 | `docs/decisions/issue-1783-sdl-semantics-design.md` | `fd11370fc74df070907fffc80e5ee400e14e2ca0585edfa29f75c6921b37c084` |
 | `docs/decisions/issue-1784-runtime-inventory-design.md` | `58b113c6cbb591035e86d1745870478fbf8aea190cac760dc4c329f813c0ee36` |
 | `docs/decisions/issue-1785-sdl-operations-design.md` | `5dda1cdd8572b3c839dc28b5a4b8bb7201c8c6441cc5df4ea09b67b02d1674ba` |
-| `docs/decisions/issue-1787-processor-design.md` | `9d2ed8ee646320983f6c12e3d5dc2f226447088c2680ffc7bc254122734ac23e` |
+| `docs/decisions/issue-1787-processor-design.md` | `130857b7a810e0f58fd694156b7b661e613caf9d0188fa5aea8ba37ced187219` |
 | `docs/decisions/issue-1787-processor-semantics-preflight.md` | `110613485f30ee8bd618c04b1433ce7666d8dc73182c23ed45ea0cfbb031468a` |
 | `docs/decisions/issue-1799-go-governance-design.md` | `abcc366a9fba4afcd8a9e0e42af3907f5cd858249152b8eacad25b85fb91e6e7` |
 | `docs/decisions/issue-1825-public-go-api.md` | `839639219110331b5566d510a55b032d29444b68ee3aada3b1f4f4a3cf5748c8` |
@@ -409,17 +409,17 @@ flowchart BT
 | `docs/decisions/issue-2008-sdl-semantic-fixtures-design.md` | `93ee0f27747f5adce6296d00f5190a7f5b7a917d9a6ad1afaa7d1ca2554c53b6` |
 | `specs/sdl/diagnostics.md` | `422c46a1080f4dced095729967658f300520fa59b16c1923d113a758422a231e` |
 | `specs/sdl/document-model.md` | `496290792659c189242ab93923f6f50e305e383d50588a4d75269d9ade2e2970` |
-<!-- go-component base 2d35460739b27c3056b006d3846ec4f9624637e1a6674f33ab189159861fa0d0 -->
-<!-- go-component contract 74fce1d4959b4583992bba4326f4f1c3e871e83a70bc1bf2f89601ae1f6b2fa8 -->
-<!-- go-component sdl 89bb55a6d130e408aca3813827c943cfb149c3c7775dcf5252ad425f66e51b8f -->
-<!-- go-component processor 6e20ed85293324888a0cc7b4e472cf30b07d6c175dd455a2e2e9775473dcb45e -->
-<!-- go-component backend 146f3af3b4242c603fa33ab14c0e59ef8cebbd2eddc86ef30b6c384df8067096 -->
-<!-- go-component runtime 216e5bff0184207d12bf8d78286c9fe84558c80a1979762db524fcb1684e019a -->
-<!-- go-component conformance 80d4c693969d347cc327c2f9ef33c6c638bb6e100ee559462759450897ad850d -->
-<!-- go-component app ebd33db0e0ad1339221da435d01e655b7927a69efc5c0552fd362a76d74f3446 -->
-<!-- go-component adapter 971befb6a4d87f9fa73eaf7f73b5464e1e7161aed937c2bd00a925d3ae18b316 -->
-<!-- go-component command 3a417794c62cd6f59ffdf83680082d3da19afa517d41c9cc7bc78a95c4c7be3c -->
-<!-- go-component parity 3c9f4682c898fb8f8a034773821eb5622d4402e0e5cd6f06f4e0445e8e301fde -->
-<!-- go-component tooling 8ee57019020482e9ed2aea312a97be212d050bca8e207ddcbd8fd00f4090e93b -->
+<!-- go-component base 3c8fcf54eef6654ef9ad7eca63ca03009161ebd577eaae3e707b6903b77511e6 -->
+<!-- go-component contract 63c02e0a95ab28333b8169ecdc81251d3ee300d8243fabb94fbae7a32f3b8206 -->
+<!-- go-component sdl fadd4251598160fe682652932e88974c00864256b6ae7d1155cc51236fa399fc -->
+<!-- go-component processor 32ca7aac2746ba33ff2523c8f98fe0613ff9ebba44533e9ce1af72f9a1157c1b -->
+<!-- go-component backend fecb09beb9f097da3a0e72115c3ab511fa9ebeb1e3c117510cfcf9dd46658196 -->
+<!-- go-component runtime 4d260ae803e8489fde254d8b4b7b75e8ec8d05ac6cd2ed7472d64ce9d1ffe41b -->
+<!-- go-component conformance 78e327aa1d23b15ef2ed2ebc66b85b6e09482e9787927320c4f2a29c9df15dee -->
+<!-- go-component app a00591c1461291bc60f46f417dce01a4231fdfab6a522bde6ae4d23acbc27ee8 -->
+<!-- go-component adapter 3de3c69d57eca79fa4344648c7180c90762c288fb56da26a0e6c6bd9931b3c96 -->
+<!-- go-component command fbc870b2e0ec6943f0106f5ece673ccfee222f9dc48e066d2335a551e6f444ee -->
+<!-- go-component parity 367a4d6adaf67519cec2eb555c3069c98639b653b2f81908dec85f2313fe8f66 -->
+<!-- go-component tooling 2dd791de0b341dbeeaaf4295a4623a356300bee29fcfa9df70ddf01df140c334 -->
 
 <!-- /go-view -->
