@@ -4,9 +4,15 @@ import (
 	"context"
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
 	"github.com/OpenRAE/rae/implementations/go/contract/binding"
+	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
 	"github.com/OpenRAE/rae/implementations/go/contract/validation"
 	"io"
 )
+
+func CheckTransport(document any, limits ingress.Limits) error
+func ProjectProcessIdentity(v *Validator, input Fragment) (Fragment, error)
+func ProjectProcessResourceLimit(v *Validator, input Fragment) (Fragment, error)
+func ProcessResourceLimitCapabilityAdmits(v *Validator, capability Fragment, resource, scope string, soft, hard Fragment) (bool, error)
 
 // Fragment is an admitted native submodel, not a published document Value.
 // Profile identifies the exact existing owner model; Document returns a copy.
@@ -81,6 +87,34 @@ type ConstraintLimits struct {
 func DefaultConstraintLimits() ConstraintLimits
 func (limits ConstraintLimits) Validate() error
 func EvaluateRealizationConstraint(constraint, actual Fragment, limits ConstraintLimits) (Fragment, error)
+func CheckFragment(input Fragment, profile FragmentProfile) error
+
+type RealizationClosure struct{ Posture, Universe, Profile string }
+type RealizationScope struct {
+	FieldPointer string
+	Closure RealizationClosure
+	Origin string
+}
+type RealizationCollectionProfile struct {
+	FieldPointer, CollectionKind string
+	IdentityFields []string
+	Closure RealizationClosure
+}
+type RealizationNormalizationMetadata struct {
+	Scopes []RealizationScope
+	CollectionProfiles []RealizationCollectionProfile
+	Origins map[string]string
+	LeafConstraints map[string]Fragment
+	OptionalFields []string
+	MemberPresence map[string]string
+}
+type RealizationConstraintBuildResult struct {
+	Status string
+	Document Fragment
+	Diagnostics []diagnostic.Diagnostic
+}
+func NormalizeRealizationLiteral(input Fragment, semanticProfile string, defaultClosure RealizationClosure, metadata RealizationNormalizationMetadata, limits ConstraintLimits) (RealizationConstraintBuildResult, error)
+func RealizationConstraintBinding(constraint, source Fragment) (string, error)
 
 type ImplementationIdentity struct{ Name, Version string }
 type BindingOwner struct{ ContractID, ContractVersion, ValidatorID, ValidatorVersion string }
@@ -146,3 +180,62 @@ type ScenarioBindingTargetResolver interface {
 func ValidateExperimentBindingTargets(v *Validator, descriptors binding.ExperimentBindingDescriptorsV1, resolver ScenarioBindingTargetResolver, participants map[ParticipantManifestKey]binding.ParticipantImplementationManifestV1, apparatus map[ApparatusManifestKey]ApparatusManifest) (binding.ExperimentBindingDescriptorsV1, error)
 func MaterializationArchive(v *Validator, record binding.MaterializationArchiveRecordV1, inventory *binding.BackendRuntimeDescendantsV1, limits ingress.Limits, context MaterializationInventoryContext) (validation.Value, error)
 func RestoreMaterializationArchive(v *Validator, data []byte, limits ingress.Limits, context MaterializationInventoryContext) (binding.MaterializationArchiveRecordV1, *binding.BackendRuntimeDescendantsV1, validation.Value, error)
+
+func ParticipantFeatureSupportGaps(v *Validator, manifest binding.BackendManifestV2, features []string, requiredLevel string) ([]string, error)
+
+const EffectiveObservationDemand FragmentProfile = "effective-observation-demand"
+type ObservationDemandResolution struct { Effective []Fragment; Diagnostics []diagnostic.Diagnostic }
+func NormalizeObservationDemands(v *Validator, document binding.ObservationDemandV1, targetScopes []string, limits ConstraintLimits) (ObservationDemandResolution,error)
+func ResolveSDLObservationScopeWithProfiles(value any, pointer string, profiles []RealizationCollectionProfile) (string,string,error)
+
+func ValueFreeAccountPlacement(input Fragment) (Fragment,error)
+
+const OperationPolicyDocument FragmentProfile = "operation-policy-document"
+const OperationPolicyCapabilities FragmentProfile = "operation-policy-capabilities"
+func ResolveExecutionPolicy(v *Validator, document Fragment, scope string, namespace []string, evidence map[string]Fragment) (Fragment,error)
+func ExecutionPolicyCapabilityGaps(effective, support Fragment) ([]string,error)
+
+func DomainProfileContextDigest(v *Validator, context binding.DomainProfileResolutionContextV1) (string, error)
+func CheckDomainProfileBindings(v *Validator, bindings []binding.DomainProfileBindingV1, context binding.DomainProfileResolutionContextV1, policy binding.DomainProfileAdmissionPolicyV1) (bool, error)
+func ResolvePlanProfileAuthority(v *Validator, authored []binding.DomainProfileBindingV1, supplied *binding.PlanRealizationProfilesV1, context *binding.DomainProfileResolutionContextV1) (*binding.PlanRealizationProfilesV1, error)
+func CheckPlanProfileAuthority(v *Validator, authority binding.PlanRealizationProfilesV1, context binding.DomainProfileResolutionContextV1) (bool, error)
+func CheckPlanProfileSelection(v *Validator, authority binding.PlanRealizationProfilesV1, selected []binding.DomainProfileBindingV1, context binding.DomainProfileResolutionContextV1) (bool, error)
+
+const MaterializationSourceContext FragmentProfile = "materialization-source-context"
+
+const PortableNodeCollectionAuthority FragmentProfile = "portable-node-collection-authority"
+
+func ParticipantResourceMeasureSupported(v *Validator, kind Fragment, unit, accountingMode, meterProfileRef, reset string, context *binding.DomainProfileResolutionContextV1) (bool, error)
+
+func NormalizeBackendManifest(v *Validator, manifest binding.BackendManifestV2) (binding.BackendManifestV2,error)
+
+const ArtifactSatisfaction FragmentProfile = "artifact-satisfaction"
+
+func RealizationOfferAdmits(v *Validator,envelope binding.RealizationEnvelopeV1,fieldPath string,projection Fragment,presence map[string][]string)(bool,error)
+
+func CheckPreparationOperations(plan binding.ProvisioningPlanV1) error
+
+func CheckPortableNodeInventory(v *Validator,inventory binding.RuntimeSnapshotV1,manifest binding.BackendManifestV2,envelope binding.RealizationEnvelopeV1,originalAddresses []string,compilation MaterializationCompilation)(bool,error)
+
+const ParticipantOutcomeInterpretationRecord FragmentProfile = "participant-outcome-interpretation-record"
+
+func ComposeMaterializationContent(v *Validator,source,preceding,local MaterializationCompilation)(Fragment,error)
+func CheckAugmentationPreparation(v *Validator,report binding.BackendAugmentationScopeV1,request validation.Value,manifest binding.BackendManifestV2,previous binding.RuntimeSnapshotV1,original,prospective MaterializationCompilation)([]diagnostic.Diagnostic,error)
+
+const (
+ ResolvedImportProvenance FragmentProfile = "resolved-import-provenance"
+ ComparisonCoordinate FragmentProfile = "comparison-coordinate"
+ ComparisonImpactScope FragmentProfile = "comparison-impact-scope"
+ ExactRepresentation FragmentProfile = "exact-representation"
+)
+
+func MaterializationContentMatches(source,current MaterializationCompilation)(bool,error)
+
+type EvidenceScenario struct { Value validation.Value; Digest string }
+const ExperimentEvidenceRequirementRelation FragmentProfile = "experiment-evidence-requirement-relation"
+func CheckEvidenceRequirementRelations(v *Validator, relations []Fragment, scenarios []EvidenceScenario, specs []binding.ExperimentCaptureSpecV1) error
+
+func RealizationOpenOfferDiagnostics(v *Validator,envelope binding.RealizationEnvelopeV1,paths []string)([]diagnostic.Diagnostic,error)
+func RealizationMemberDiagnostics(v *Validator,envelope binding.RealizationEnvelopeV1,projection Fragment,presence map[string][]string)([]diagnostic.Diagnostic,error)
+
+func CheckPreparedSnapshot(snapshot binding.RuntimeSnapshotV1) error

@@ -84,12 +84,22 @@ func augmentationPreparationModel(v any) error {
 	effects := array(at(v, "effects"))
 	work := 0
 	for _, effect := range effects {
-		work += 1 + len(array(at(effect, "requirement_refs"))) + len(array(at(effect, "affected_scopes")))
+		if err := augmentationScopeWork(&work, len(array(at(effect, "requirement_refs"))), len(array(at(effect, "affected_scopes")))); err != nil {
+			return err
+		}
 	}
-	if work > 16384 || len(rowSet(effects, "field_pointer")) != len(effects) {
+	if len(rowSet(effects, "field_pointer")) != len(effects) {
 		return invalid()
 	}
 	return value.Validate(effects, value.Runtime())
+}
+
+func augmentationScopeWork(work *int, requirements, affected int) error {
+	*work += 1 + requirements + affected
+	if *work > 16384 {
+		return invalid()
+	}
+	return nil
 }
 
 type planOperationIndex struct{ addresses, live, nodes map[string]bool }

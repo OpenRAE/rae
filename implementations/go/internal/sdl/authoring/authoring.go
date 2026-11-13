@@ -40,6 +40,9 @@ type Request struct {
 	FS       fs.FS
 	Sources  map[string][]byte
 	Registry *module.Registry
+	// LocalTrust can narrow local import admission after native integrity checks.
+	// It grants no filesystem or registry access.
+	LocalTrust module.TrustPolicy
 }
 
 // Result contains strict authored YAML and migration advisories.
@@ -60,6 +63,8 @@ type Parser struct {
 }
 
 type layout struct {
+	ModelType            string                     `json:"model_type"`
+	NativeSDL            bool                       `json:"native_sdl"`
 	CapabilityClassified bool                       `json:"capability_classified"`
 	CapabilityPublic     []string                   `json:"capability_public"`
 	ModelNames           map[string]string          `json:"model_names"`
@@ -144,6 +149,15 @@ type Document struct {
 // JSON copies the normalized, supplied-field representation.
 func (d *Document) JSON() []byte { return slices.Clone(d.data) }
 
+// ModelJSON returns a copy of the same constructor's defaulted model.
+// A document without semantic admission does not expose compiled input.
+func (d *Document) ModelJSON() []byte {
+	if !d.Validated() {
+		return nil
+	}
+	return slices.Clone(d.modelBytes())
+}
+
 // Decode checks strict source and the structural model, including imports.
 func (p *Parser) Decode(request Request) (*Document, error) {
 	return p.DecodeContext(context.Background(), request)
@@ -151,6 +165,23 @@ func (p *Parser) Decode(request Request) (*Document, error) {
 
 // DecodeContext checks source and composition using caller cancellation.
 func (p *Parser) DecodeContext(ctx context.Context, request Request) (*Document, error) {
+	return p.decodeWithPolicy(ctx, request, "reject")
+}
+
+// DecodeWithPolicy uses native migration and composition admission.
+func (p *Parser) DecodeWithPolicy(request Request, policy string) (*Document, error) {
+	return p.DecodeWithPolicyContext(context.Background(), request, policy)
+}
+
+// DecodeWithPolicyContext retains explicit migration policy and caller cancellation.
+func (p *Parser) DecodeWithPolicyContext(ctx context.Context, request Request, policy string) (*Document, error) {
+	if ctx == nil || policy != termAccept && policy != "reject" {
+		return nil, invalid()
+	}
+	return p.decodeWithPolicy(ctx, request, policy)
+}
+
+func (p *Parser) decodeWithPolicy(ctx context.Context, request Request, policy string) (*Document, error) {
 	if err := ctx.Err(); err != nil {
 		return nil, fault.New(fault.Operational, "sdl-operation-canceled", err)
 	}
@@ -158,7 +189,7 @@ func (p *Parser) DecodeContext(ctx context.Context, request Request) (*Document,
 	if err != nil {
 		return nil, err
 	}
-	document, err := p.decode(request.Source, request.Name, "reject")
+	document, err := p.decode(request.Source, request.Name, policy)
 	if err != nil {
 		return nil, err
 	}
@@ -183,7 +214,7 @@ func (p *Parser) FormatContext(ctx context.Context, request Request) (Result, er
 	if err != nil {
 		return Result{}, err
 	}
-	d, err := p.decode(request.Source, request.Name, "accept")
+	d, err := p.decode(request.Source, request.Name, termAccept)
 	if err != nil {
 		return Result{}, err
 	}
@@ -278,6 +309,15 @@ func (p *Parser) precheckComposition(value map[string]any, imported bool) error 
 	return budget.AddValue(value)
 }
 func (p *Parser) construct(value map[string]any, id string, hints map[string][]string, parsed *source.Document) ([]byte, []byte, error) {
+	normalized, modelData, err := p.constructValue(value, id, hints, parsed)
+	if err != nil {
+		return nil, nil, err
+	}
+	serialized, err := encode(normalized, jsonWorkingLimit(p.limits.MaxInputBytes, p.limits.MaxExpandedNodes), true)
+	return serialized, modelData, err
+}
+
+func (p *Parser) constructValue(value map[string]any, id string, hints map[string][]string, parsed *source.Document) (any, []byte, error) {
 	limit := jsonWorkingLimit(p.limits.MaxInputBytes, p.limits.MaxExpandedNodes)
 	walk := normalizer{parser: p, id: id, hints: hints, workingLimit: limit}
 	normalized, err := walk.walk(p.schemas[id], "#", value, nil, scalarPolicy{}, parsed.View())
@@ -292,8 +332,7 @@ func (p *Parser) construct(value map[string]any, id string, hints map[string][]s
 	if err != nil {
 		return nil, nil, &modelError{path: "", cause: err}
 	}
-	serialized, err := encode(normalized, limit, true)
-	return serialized, encoded, err
+	return normalized, encoded, nil
 }
 
 func (d *Document) modelBytes() []byte {

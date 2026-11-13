@@ -1,0 +1,458 @@
+{
+  "support_strength": "exact",
+  "supported_owner_kinds": [
+    "deployment_tenant",
+    "fleet",
+    "participant",
+    "shared_service"
+  ],
+  "supported_resource_kinds": [
+    "accelerator",
+    "action_rate",
+    "concurrent_actions",
+    "image_generations",
+    "inference_tokens",
+    {
+      "namespace": "com.example.private",
+      "authority": "urn:example:profiles",
+      "profile_id": "packet-counter",
+      "revision": "1.0.0",
+      "definition_digest": "sha256:0992f3543a26f9ee724c5b8c657ed9839b87db7b139515ad17538073452fbedc"
+    },
+    "storage_growth"
+  ],
+  "supported_accounting_modes": [
+    "cumulative_counter",
+    "growth_counter",
+    "lease",
+    "reservable_gauge",
+    "windowed_counter"
+  ],
+  "supported_reset_modes": [
+    "reconciled",
+    "run",
+    "time_segment"
+  ],
+  "supported_fairness_policies": [
+    "weighted_fair"
+  ],
+  "supported_isolation_strengths": [
+    "tenant_partitioned"
+  ],
+  "configured_pools": [
+    {
+      "schema_version": "participant-resource-pool-capacity/v1",
+      "pool_ref": "participant-pool",
+      "owner_kind": "participant",
+      "owner_ref": "participant.behavior.participant-agent",
+      "resource_kind": "action_rate",
+      "unit": "actions",
+      "accounting_mode": "windowed_counter",
+      "meter_profile_ref": "raes.action-attempt/v1",
+      "capacity": 24,
+      "tenant_isolation": "tenant_partitioned",
+      "configuration_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "fairness_policy": "weighted_fair",
+      "priority_classes": [
+        "evaluated",
+        "standard",
+        "background"
+      ],
+      "borrowing": "lendable_only",
+      "reclaim": "yield",
+      "max_queue_ticks": 20,
+      "starvation_bound_ticks": 100,
+      "protected_capacity": 1,
+      "evidence_contract_ids": [
+        "participant-resource-budget-event-v1"
+      ]
+    },
+    {
+      "schema_version": "participant-resource-pool-capacity/v1",
+      "pool_ref": "participant-pool",
+      "owner_kind": "participant",
+      "owner_ref": "participant.behavior.participant-agent",
+      "resource_kind": "concurrent_actions",
+      "unit": "actions",
+      "accounting_mode": "reservable_gauge",
+      "meter_profile_ref": "raes.concurrent-action/v1",
+      "capacity": 2,
+      "tenant_isolation": "tenant_partitioned",
+      "configuration_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "fairness_policy": "weighted_fair",
+      "priority_classes": [
+        "evaluated",
+        "standard",
+        "background"
+      ],
+      "borrowing": "lendable_only",
+      "reclaim": "yield",
+      "max_queue_ticks": 20,
+      "starvation_bound_ticks": 100,
+      "protected_capacity": 1,
+      "evidence_contract_ids": [
+        "participant-resource-budget-event-v1"
+      ]
+    },
+    {
+      "schema_version": "participant-resource-pool-capacity/v1",
+      "pool_ref": "range-pool",
+      "owner_kind": "deployment_tenant",
+      "owner_ref": "deployment.tenant.range-a",
+      "resource_kind": "action_rate",
+      "unit": "actions",
+      "accounting_mode": "windowed_counter",
+      "meter_profile_ref": "raes.action-attempt/v1",
+      "capacity": 240,
+      "tenant_isolation": "tenant_partitioned",
+      "configuration_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "fairness_policy": "weighted_fair",
+      "priority_classes": [
+        "evaluated",
+        "standard",
+        "background"
+      ],
+      "borrowing": "lendable_only",
+      "reclaim": "yield",
+      "max_queue_ticks": 20,
+      "starvation_bound_ticks": 100,
+      "protected_capacity": 1,
+      "evidence_contract_ids": [
+        "participant-resource-budget-event-v1"
+      ]
+    },
+    {
+      "schema_version": "participant-resource-pool-capacity/v1",
+      "pool_ref": "range-pool",
+      "owner_kind": "deployment_tenant",
+      "owner_ref": "deployment.tenant.range-a",
+      "resource_kind": "storage_growth",
+      "unit": "bytes",
+      "accounting_mode": "growth_counter",
+      "meter_profile_ref": "raes.logical-byte/v1",
+      "capacity": 1048576,
+      "tenant_isolation": "tenant_partitioned",
+      "configuration_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "fairness_policy": "weighted_fair",
+      "priority_classes": [
+        "evaluated",
+        "standard",
+        "background"
+      ],
+      "borrowing": "lendable_only",
+      "reclaim": "yield",
+      "max_queue_ticks": 20,
+      "starvation_bound_ticks": 100,
+      "protected_capacity": 1,
+      "evidence_contract_ids": [
+        "participant-resource-budget-event-v1"
+      ]
+    },
+    {
+      "schema_version": "participant-resource-pool-capacity/v1",
+      "pool_ref": "inference-pool",
+      "owner_kind": "shared_service",
+      "owner_ref": "provision.node.customer-portal.service.http",
+      "resource_kind": "inference_tokens",
+      "unit": "tokens",
+      "accounting_mode": "windowed_counter",
+      "meter_profile_ref": "tokenizer.example/v1",
+      "capacity": 20000,
+      "tenant_isolation": "tenant_partitioned",
+      "configuration_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "fairness_policy": "weighted_fair",
+      "priority_classes": [
+        "evaluated",
+        "standard",
+        "background"
+      ],
+      "borrowing": "lendable_only",
+      "reclaim": "yield",
+      "max_queue_ticks": 20,
+      "starvation_bound_ticks": 100,
+      "protected_capacity": 1,
+      "evidence_contract_ids": [
+        "participant-resource-budget-event-v1"
+      ]
+    },
+    {
+      "schema_version": "participant-resource-pool-capacity/v1",
+      "pool_ref": "inference-pool",
+      "owner_kind": "shared_service",
+      "owner_ref": "provision.node.customer-portal.service.http",
+      "resource_kind": "image_generations",
+      "unit": "images",
+      "accounting_mode": "cumulative_counter",
+      "meter_profile_ref": "raes.image-generation/v1",
+      "capacity": 20,
+      "tenant_isolation": "tenant_partitioned",
+      "configuration_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "fairness_policy": "weighted_fair",
+      "priority_classes": [
+        "evaluated",
+        "standard",
+        "background"
+      ],
+      "borrowing": "lendable_only",
+      "reclaim": "yield",
+      "max_queue_ticks": 20,
+      "starvation_bound_ticks": 100,
+      "protected_capacity": 1,
+      "evidence_contract_ids": [
+        "participant-resource-budget-event-v1"
+      ]
+    },
+    {
+      "schema_version": "participant-resource-pool-capacity/v1",
+      "pool_ref": "fleet-pool",
+      "owner_kind": "fleet",
+      "owner_ref": "fleet.primary",
+      "resource_kind": "action_rate",
+      "unit": "actions",
+      "accounting_mode": "windowed_counter",
+      "meter_profile_ref": "raes.action-attempt/v1",
+      "capacity": 2400,
+      "tenant_isolation": "tenant_partitioned",
+      "configuration_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "fairness_policy": "weighted_fair",
+      "priority_classes": [
+        "evaluated",
+        "standard",
+        "background"
+      ],
+      "borrowing": "lendable_only",
+      "reclaim": "yield",
+      "max_queue_ticks": 20,
+      "starvation_bound_ticks": 100,
+      "protected_capacity": 1,
+      "evidence_contract_ids": [
+        "participant-resource-budget-event-v1"
+      ]
+    },
+    {
+      "schema_version": "participant-resource-pool-capacity/v1",
+      "pool_ref": "accelerator-pool",
+      "owner_kind": "fleet",
+      "owner_ref": "fleet.primary",
+      "resource_kind": "accelerator",
+      "unit": "accelerator_milliseconds",
+      "accounting_mode": "lease",
+      "meter_profile_ref": "raes.accelerator-class.generic/v1",
+      "capacity": 60000,
+      "tenant_isolation": "tenant_partitioned",
+      "configuration_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "fairness_policy": "weighted_fair",
+      "priority_classes": [
+        "evaluated",
+        "standard",
+        "background"
+      ],
+      "borrowing": "lendable_only",
+      "reclaim": "yield",
+      "max_queue_ticks": 20,
+      "starvation_bound_ticks": 100,
+      "protected_capacity": 1,
+      "evidence_contract_ids": [
+        "participant-resource-budget-event-v1"
+      ]
+    },
+    {
+      "schema_version": "participant-resource-pool-capacity/v1",
+      "pool_ref": "packet-pool",
+      "owner_kind": "participant",
+      "owner_ref": "participant.behavior.participant-agent",
+      "resource_kind": {
+        "namespace": "com.example.private",
+        "authority": "urn:example:profiles",
+        "profile_id": "packet-counter",
+        "revision": "1.0.0",
+        "definition_digest": "sha256:0992f3543a26f9ee724c5b8c657ed9839b87db7b139515ad17538073452fbedc"
+      },
+      "unit": "packets",
+      "accounting_mode": "cumulative_counter",
+      "meter_profile_ref": "urn:example:packet-meter:1",
+      "capacity": 12,
+      "tenant_isolation": "tenant_partitioned",
+      "configuration_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+      "fairness_policy": "weighted_fair",
+      "priority_classes": [
+        "evaluated",
+        "standard",
+        "background"
+      ],
+      "borrowing": "lendable_only",
+      "reclaim": "yield",
+      "max_queue_ticks": 20,
+      "starvation_bound_ticks": 100,
+      "protected_capacity": 1,
+      "evidence_contract_ids": [
+        "participant-resource-budget-event-v1"
+      ]
+    }
+  ],
+  "realization_contract_ids": [
+    "participant-resource-budget-event-v1",
+    "participant-resource-budget-state-v1"
+  ],
+  "cross_range_pool_refs": [],
+  "domain_profile_context": {
+    "schema_version": "domain-profile-resolution-context/v1",
+    "namespace_admissions": [
+      {
+        "namespace": "com.example.private",
+        "authority": "urn:example:profiles",
+        "trust_decision_id": "trust-namespace-1"
+      }
+    ],
+    "definitions": [
+      {
+        "definition": {
+          "schema_version": "domain-profile-definition/v1",
+          "coordinate": {
+            "namespace": "com.example.private",
+            "authority": "urn:example:profiles",
+            "profile_id": "packet-counter",
+            "revision": "1.0.0",
+            "definition_digest": "sha256:0992f3543a26f9ee724c5b8c657ed9839b87db7b139515ad17538073452fbedc"
+          },
+          "profile_schema": {
+            "dialect": "https://json-schema.org/draft/2020-12/schema",
+            "schema_id": "urn:example:packet-measure",
+            "revision": "1",
+            "schema_digest": "sha256:57e1bf8204f48566bc2f5850d15fa1a6e4e715517653af0960cf1c9be7f98ca8",
+            "required_vocabularies": [],
+            "schema_document": {
+              "$schema": "https://json-schema.org/draft/2020-12/schema",
+              "$id": "urn:example:packet-measure",
+              "type": "object",
+              "properties": {
+                "unit": {
+                  "const": "packets"
+                },
+                "accounting_mode": {
+                  "const": "cumulative_counter"
+                },
+                "meter_profile_ref": {
+                  "const": "urn:example:packet-meter:1"
+                },
+                "reset": {
+                  "const": "run"
+                }
+              },
+              "required": [
+                "unit",
+                "accounting_mode",
+                "meter_profile_ref",
+                "reset"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "semantic_contract": {
+            "authority": "https://openrae.org/profiles",
+            "contract_id": "participant-resource-measure",
+            "revision": "1",
+            "digest": "sha256:9654cca704b9f5110d61aca3763606d3133252d7d58f504225f4b32cf5fec200"
+          },
+          "allowed_contexts": [
+            "participant-resource-measure"
+          ]
+        },
+        "provenance": {
+          "source_locator": "urn:example:admitted-profile",
+          "source_digest": "sha256:0992f3543a26f9ee724c5b8c657ed9839b87db7b139515ad17538073452fbedc",
+          "trust_decision_id": "trust-private-profile-1"
+        }
+      }
+    ],
+    "support_declarations": [
+      {
+        "schema_version": "domain-profile-support-declaration/v1",
+        "coordinate": {
+          "namespace": "com.example.private",
+          "authority": "urn:example:profiles",
+          "profile_id": "packet-counter",
+          "revision": "1.0.0",
+          "definition_digest": "sha256:0992f3543a26f9ee724c5b8c657ed9839b87db7b139515ad17538073452fbedc"
+        },
+        "semantic_contract": {
+          "authority": "https://openrae.org/profiles",
+          "contract_id": "participant-resource-measure",
+          "revision": "1",
+          "digest": "sha256:9654cca704b9f5110d61aca3763606d3133252d7d58f504225f4b32cf5fec200"
+        },
+        "operations": [
+          "comparison",
+          "execution",
+          "interpretation",
+          "refinement",
+          "semantic-validation",
+          "structural-validation",
+          "typed-report"
+        ],
+        "supported_schema_dialects": [
+          "https://json-schema.org/draft/2020-12/schema"
+        ],
+        "supported_vocabularies": [],
+        "supported_schema_keywords": [
+          "$anchor",
+          "$comment",
+          "$defs",
+          "$id",
+          "$ref",
+          "$schema",
+          "$vocabulary",
+          "additionalProperties",
+          "allOf",
+          "anyOf",
+          "const",
+          "contains",
+          "default",
+          "dependentRequired",
+          "dependentSchemas",
+          "deprecated",
+          "description",
+          "else",
+          "enum",
+          "examples",
+          "exclusiveMaximum",
+          "exclusiveMinimum",
+          "if",
+          "items",
+          "maxContains",
+          "maxItems",
+          "maxLength",
+          "maxProperties",
+          "maximum",
+          "minContains",
+          "minItems",
+          "minLength",
+          "minProperties",
+          "minimum",
+          "multipleOf",
+          "not",
+          "oneOf",
+          "prefixItems",
+          "properties",
+          "propertyNames",
+          "readOnly",
+          "required",
+          "then",
+          "title",
+          "type",
+          "writeOnly"
+        ]
+      }
+    ],
+    "limits": {
+      "max_definitions": 256,
+      "max_bindings": 256,
+      "max_depth": 16,
+      "max_nodes": 4096,
+      "max_scalar_bytes": 1048576,
+      "max_references": 128,
+      "max_evaluations": 65536,
+      "max_diagnostics": 64
+    }
+  }
+}

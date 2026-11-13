@@ -111,6 +111,6 @@ func addVMConstraint(realization map[string]any, pointer string) error {
 			return invalid()
 		}
 	}
-	realization["constraints"] = append(array(realization["constraints"]), map[string]any{fieldPointerField: pointer, "concern": "compute-substrate", "posture": exactTerm, termDomain: map[string]any{kindField: exactTerm, valueField: "virtual-machine"}})
+	realization["constraints"] = append(array(realization["constraints"]), map[string]any{fieldPointerField: pointer, "concern": "compute-substrate", "posture": exactTerm, termDomain: map[string]any{kindField: exactTerm, valueField: "virtual-machine"}, "provenance": "legacy-node-type-vm"})
 	return nil
 }

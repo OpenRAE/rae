@@ -58,6 +58,11 @@ func materializationScopeContains(parent, child string) bool {
 	return len(left) <= len(right) && slices.Equal(left, right[:len(left)])
 }
 func materializationScopeOpen(policy any, rules []materializationScopeRule, location string, namespace []string) bool {
+	permission, _ := materializationScopeDecision(policy, rules, location, namespace)
+	return permission == termOpen
+}
+
+func materializationScopeDecision(policy any, rules []materializationScopeRule, location string, namespace []string) (string, string) {
 	layers := map[string][]materializationScopeRule{"": {}}
 	for _, rule := range rules {
 		if len(rule.namespace) <= len(namespace) && slices.Equal(rule.namespace, namespace[:len(rule.namespace)]) && materializationScopeContains(rule.path, location) {
@@ -71,15 +76,16 @@ func materializationScopeOpen(policy any, rules []materializationScopeRule, loca
 	}
 	slices.Sort(names)
 	permission := text(defaultMember(policy, termDefault, termOpen))
+	governing := ""
 	for _, name := range names {
-		if selected := materializationMostSpecificScope(layers[name]); selected != "" {
-			permission = selected
+		if selected, present := materializationMostSpecificRule(layers[name]); present {
+			permission, governing = selected.permission, selected.path
 		}
 		if permission == termClosed {
-			return false
+			return permission, governing
 		}
 	}
-	return permission == termOpen
+	return permission, governing
 }
 
 func (r *materializationInventory) augmentationDifference(difference, policy any, rules []materializationScopeRule, remaining *int) error {
@@ -117,7 +123,7 @@ func (r *materializationInventory) augmentationDifference(difference, policy any
 	return nil
 }
 
-func materializationMostSpecificScope(rules []materializationScopeRule) string {
+func materializationMostSpecificRule(rules []materializationScopeRule) (materializationScopeRule, bool) {
 	selected := -1
 	for index, rule := range rules {
 		if selected < 0 || len(jsonpointer.Tokens(rule.path)) > len(jsonpointer.Tokens(rules[selected].path)) {
@@ -125,7 +131,7 @@ func materializationMostSpecificScope(rules []materializationScopeRule) string {
 		}
 	}
 	if selected < 0 {
-		return ""
+		return materializationScopeRule{}, false
 	}
-	return rules[selected].permission
+	return rules[selected], true
 }

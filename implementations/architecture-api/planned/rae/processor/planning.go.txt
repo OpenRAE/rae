@@ -6,6 +6,7 @@ import (
 	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
 	"github.com/OpenRAE/rae/implementations/go/contract/validation"
 	"github.com/OpenRAE/rae/implementations/go/processor"
+"github.com/OpenRAE/rae/implementations/go/processor/realization"
 )
 
 type Result struct {
@@ -23,6 +24,7 @@ type ExecutionPlan interface {
 	Orchestration() binding.OrchestrationPlanV1
 	Evaluation() binding.EvaluationPlanV1
 	Context() PlanningContext
+ ObservationOwner() string
 	plannerProduced()
 }
 type Scope struct{ TargetName, RunID, InstantiationID *string }
@@ -34,20 +36,15 @@ const (
 )
 
 type ApparatusDefaultResolver interface {
-	Resolve(admission.Fragment, binding.BackendManifestV2) (Closure, error)
+	Resolve(requirement admission.Fragment,manifest binding.BackendManifestV2) (Closure, error)
 }
-type ArtifactAvailability struct {
-	Address                                                                                                              string
-	AvailableArtifactDigests, AvailableCandidateIDs, VerifiedLockedInputIDs, SatisfiedConstraintIDs                      []string
-	AvailableMaterializationSpecificationDigests                                                                         []string
-	VerifiedIntegrityRefs, VerifiedAuthenticityRefs, VerifiedAdmissionRefs, VerifiedProvenanceRefs, VerifiedEvidenceRefs []string
-}
+type ArtifactAvailability = realization.ArtifactAvailability
 type MixedControlAdmission interface {
 	Model() processor.RuntimeModel
 	mixedControlAdmission()
 }
 
-func NewMixedControlAdmission(processor.RuntimeModel) (MixedControlAdmission, error)
+func NewMixedControlAdmission(model processor.RuntimeModel) (MixedControlAdmission, error)
 
 type Options struct {
 	Snapshot              *binding.RuntimeSnapshotV1
@@ -58,9 +55,11 @@ type Options struct {
 	MixedControlAdmission MixedControlAdmission
 	RefreshEvaluation     bool
 	ProcessorManifest     *binding.ProcessorManifestV2
+	RealizationEnvelope   *binding.RealizationEnvelopeV1
 }
 type RequirementKey struct{ Address, FieldPath, RequirementKind string }
 type PlanningContext struct {
+	OriginalModel         processor.RuntimeModel
 	Snapshot              binding.RuntimeSnapshotV1
 	Scope                 *Scope
 	ApparatusDecisions    map[RequirementKey]Closure
@@ -69,7 +68,26 @@ type PlanningContext struct {
 	MixedControlAdmission MixedControlAdmission
 	RefreshEvaluation     bool
 	ProcessorManifest     *binding.ProcessorManifestV2
+	RealizationEnvelope   *binding.RealizationEnvelopeV1
+}
+
+type Actions struct{ Create, Update, Delete, Unchanged int }
+type Reconciliation struct {
+	Baseline, Candidate Result
+	Snapshot            binding.RuntimeSnapshotV1
+	Actions             *Actions
 }
 
 func Plan(compilation processor.Compilation, manifest validation.Value, options Options) (Result, error)
 func PlanWithManifest(compilation processor.Compilation, manifest binding.BackendManifestV2, options Options) (Result, error)
+func Reconcile(baseline, candidate processor.Compilation, manifest binding.BackendManifestV2, options Options) (Reconciliation, error)
+func AssumedSnapshot(input ExecutionPlan) (binding.RuntimeSnapshotV1, error)
+
+// Native admission binds a prepared choice to its original plan and target.
+type PreparedSelection interface {
+ Provisioning() binding.ProvisioningPlanV1
+ preparedSelection()
+}
+func CheckPreparedSelection(original ExecutionPlan, selected binding.ProvisioningPlanV1) (PreparedSelection,string,error)
+func CheckPreparedDelivery(input PreparedSelection,snapshot binding.RuntimeSnapshotV1) (string,error)
+func SanitizePreparedSnapshot(input PreparedSelection,snapshot binding.RuntimeSnapshotV1) (binding.RuntimeSnapshotV1,error)

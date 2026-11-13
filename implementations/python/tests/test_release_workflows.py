@@ -369,6 +369,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
         "proof",
         "model-check",
         "coverage-reduce",
+        "go-test",
         "go",
         "go-architecture",
         "governance-parity",
@@ -469,6 +470,7 @@ def test_canonical_verifier_preserves_proof_install_and_full_verify_graph() -> N
         "proof",
         "model-check",
         "coverage-reduce",
+        "go-test",
         "go",
         "go-architecture",
         "governance-parity",
@@ -1819,20 +1821,25 @@ def test_github_attachment_refuses_preexisting_conflicting_evidence(tmp_path: Pa
 def test_go_lanes_enforce_each_go_engineering_standard() -> None:
     """The ADR-121 gates stay in the canonical graph for each Go module."""
 
-    go = _load(CANONICAL_PATH)["jobs"]["go"]
+    jobs = _load(CANONICAL_PATH)["jobs"]
+    go = jobs["go"]
+    tests = jobs["go-test"]
     assert go["env"] == {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly"}
     assert [entry["path"] for entry in go["strategy"]["matrix"]["include"]] == [
         "implementations/go",
         "implementations/tooling/go",
     ]
-    scripts = "\n".join(step.get("run", "") for step in go["steps"])
+    scripts = "\n".join(step.get("run", "") for job in (go, tests) for step in job["steps"])
     for command in (
         "install-go public-ubuntu-24.04-x86_64",
         "go mod tidy -diff",
         "go mod verify",
         "golangci-lint run ./...",
         'go vet -vettool="$(command -v raesvet)" ./...',
-        "go test -v -race -covermode=atomic -coverprofile=cover.out ./...",
+        "go test -v",
+        "test_flags=(-race)",
+        "test_flags=(-covermode=atomic -coverpkg=./... -coverprofile=cover.out)",
+        "-p 1 -timeout 20m",
         "exit !(total >= 90)",
         "go test -list '^Fuzz' ./...",
         '-fuzztime 20s "${package}" || exit 1',
@@ -1845,15 +1852,131 @@ def test_go_lanes_enforce_each_go_engineering_standard() -> None:
     assert mutation["env"]["GIT_CONFIG_VALUE_0"] == "true"
     # The job runs pull request code, so it must not receive a secret.
     assert "secrets." not in json.dumps(go)
+    assert "secrets." not in json.dumps(tests)
     prepare = _named_step(go, "Prepare pinned product dependencies for offline consumer API tests")
     assert prepare["if"] == "matrix.name == 'tooling'"
     assert prepare["run"] == "go -C implementations/go mod download"
     assert go["steps"].index(prepare) < go["steps"].index(
-        _named_step(go, "Test with the race detector and the coverage floor")
+        _named_step(go, "Merge complete module coverage and enforce the floor")
     )
     # Gremlins ignores a threshold flag, so the thresholds are numbers in its configuration file.
     gremlins = yaml.safe_load((REPO_ROOT / "implementations" / ".gremlins.yaml").read_text(encoding="utf-8"))
     assert gremlins == {"unleash": {"threshold": {"efficacy": 99.99, "mutant-coverage": 99.99}}}
+
+
+def test_go_test_groups_collect_and_merge_complete_module_execution() -> None:
+    """Module coverage includes SDK calls, and missing or duplicate packages cannot pass."""
+
+    jobs = _load(CANONICAL_PATH)["jobs"]
+    tests = jobs["go-test"]
+    go = jobs["go"]
+    assert tests["needs"] == "trust-ref"
+    assert "go-test" in go["needs"]
+    assert tests["timeout-minutes"] == 25
+    assert go["timeout-minutes"] == "${{ inputs.exhaustive-mutations && 360 || 25 }}"
+    groups = tests["strategy"]["matrix"]["include"]
+    assert tests["strategy"]["matrix"]["mode"] == ["race", "coverage"]
+    assert set(tests["strategy"]["matrix"]["group"]) == {group["group"] for group in groups}
+    modules = go["strategy"]["matrix"]["include"]
+    assert len({(group["module"], group["group"]) for group in groups}) == len(groups)
+    for module in modules:
+        selected = [group for group in groups if group["module"] == module["name"]]
+        assert len(selected) == module["shards"]
+        assert {group["path"] for group in selected} == {module["path"]}
+        assert all(group["packages"].startswith("./") for group in selected)
+    collection = _named_step(tests, "Run the package group")
+    assert collection["env"]["TEST_MODE"] == "${{ matrix.mode }}"
+    collector = collection["run"]
+    assert "case" in collector
+    assert "test_flags=(-race)" in collector
+    assert "test_flags=(-covermode=atomic -coverpkg=./... -coverprofile=cover.out)" in collector
+    assert "-coverpkg=./..." in collector
+    assert "-test.gocoverdir=" in collector
+    assert 'go list "${test_packages[@]}"' in collector
+    assert 'cp cover.out "${coverage_dir}/package-profile.out"' in collector
+    carry = _named_step(tests, "Carry the complete package-group execution data")
+    assert carry["if"] == "matrix.mode == 'coverage'"
+    reducer = _named_step(go, "Merge complete module coverage and enforce the floor")["run"]
+    for command in (
+        "go list ./...",
+        "diff -u",
+        "go tool covdata merge",
+        "go tool covdata textfmt",
+        "exit !(total >= 90)",
+    ):
+        assert command in reducer
+    assert "covmeta.*" in reducer
+    assert "covcounters.*" in reducer
+    assert "expected-go-statements.txt" in reducer
+    assert "actual-go-statements.txt" in reducer
+    assert "go-test" in jobs["gate"]["needs"]
+    gate = _named_step(jobs["gate"], "Aggregate required job results")
+    assert gate["env"]["GO_TEST_RESULT"] == "${{ needs.go-test.result }}"
+    assert '"go-test:${GO_TEST_RESULT}"' in gate["run"]
+
+
+@pytest.mark.parametrize("layout", ["single-root", "single-named", "multiple-named"])
+@pytest.mark.parametrize(
+    "defect", ["none", "extra-group", "duplicate-package", "missing-counters", "missing-statement", "below-floor"]
+)
+def test_go_coverage_reducer_handles_download_layouts_and_refuses_incomplete_data(
+    tmp_path: Path, layout: str, defect: str
+) -> None:
+    """Exercise the real reducer shell; the Go stub supplies fixed native-tool outputs."""
+
+    reducer = _named_step(_load(CANONICAL_PATH)["jobs"]["go"], "Merge complete module coverage and enforce the floor")[
+        "run"
+    ]
+    groups = 2 if layout == "multiple-named" else 1
+    root = tmp_path / "go-shards"
+    profiles = []
+    packages = []
+    for index in range(groups):
+        directory = root if layout == "single-root" else root / f"group-{index}"
+        data = directory / "data"
+        data.mkdir(parents=True)
+        (data / "covmeta.test").write_text("metadata", encoding="utf-8")
+        if defect != "missing-counters":
+            (data / "covcounters.test").write_text("counters", encoding="utf-8")
+        package = f"example/package{index}"
+        packages.append(package)
+        inventory = [package, package] if defect == "duplicate-package" else [package]
+        (directory / "packages.txt").write_text("\n".join(inventory) + "\n", encoding="utf-8")
+        profile = f"{package}/source.go:1.1,2.2 1 1\n"
+        profiles.append(profile)
+        (directory / "package-profile.out").write_text("mode: atomic\n" + profile, encoding="utf-8")
+    if defect == "extra-group":
+        extra = root / "unexpected" / "data" if layout == "single-root" else root / "data"
+        extra.mkdir(parents=True)
+    merged = profiles[:-1] if defect == "missing-statement" else profiles
+    (tmp_path / "merged.out").write_text("mode: atomic\n" + "".join(merged), encoding="utf-8")
+    (tmp_path / "packages.list").write_text("\n".join(packages) + "\n", encoding="utf-8")
+    binary = tmp_path / "bin"
+    binary.mkdir()
+    go = binary / "go"
+    go.write_text(
+        '#!/bin/sh\nset -eu\ncase "$*" in\n'
+        '"list ./...") cat "$RUNNER_TEMP/packages.list" ;;\n'
+        '"tool covdata merge "*) : ;;\n'
+        '"tool covdata textfmt "*) cp "$RUNNER_TEMP/merged.out" cover.out ;;\n'
+        '"tool cover -func=cover.out") printf "total: (statements) %s%%\\n" "$TEST_COVERAGE" ;;\n'
+        "*) exit 99 ;;\nesac\n",
+        encoding="utf-8",
+    )
+    go.chmod(0o700)
+    environment = dict(
+        os.environ,
+        RUNNER_TEMP=str(tmp_path),
+        EXPECTED_GROUPS=str(groups),
+        TEST_COVERAGE="89.9" if defect == "below-floor" else "91.0",
+    )
+    environment["PATH"] = str(binary) + os.pathsep + environment["PATH"]
+    result = subprocess.run(
+        ["bash", "-c", reducer], cwd=tmp_path, env=environment, capture_output=True, text=True, check=False
+    )
+    assert (result.returncode == 0) == (defect == "none"), result.stdout + result.stderr
+    if defect == "none":
+        assert "Go module statement coverage 91.0%" in result.stdout
 
 
 def test_go_architecture_check_runs_once_from_the_repository_root() -> None:

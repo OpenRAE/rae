@@ -1,6 +1,7 @@
 package sdl
 
 import (
+ "context"
 	"github.com/OpenRAE/rae/implementations/go/contract/admission"
 	"github.com/OpenRAE/rae/implementations/go/contract/binding"
 	"github.com/OpenRAE/rae/implementations/go/contract/concept"
@@ -67,7 +68,58 @@ func Instantiate(scenario Scenario, parameters map[string]any) (InstantiatedScen
 func AdmitInstantiated(scenario Scenario) (InstantiatedScenario, error)
 func AdmitFamily(scenario Scenario) (Scenario, error)
 func CanonicalDigest(scenario Scenario) (string, error)
+// DocumentBytes copies the admitted native representation without changing declaration order.
+func DocumentBytes(scenario Scenario) ([]byte, error)
+// ModelBytes copies constructor defaults from the same admitted owner.
+func ModelBytes(scenario Scenario) ([]byte, error)
+func ReferenceBindings(input Scenario) (map[string][]string, error)
+func ReferenceBindingsFor(input Scenario, purpose string) (map[string][]string, error)
+func NormalizeConcernValue(descriptor, value admission.Fragment) (admission.Fragment, error)
 func ConceptSubjects(scenario Scenario) ([]concept.Subject, error)
 func ArtifactRequirements(scenario Scenario) ([]Requirement, error)
 func ResolveRealizationDesignation(scenario Scenario, fieldPointer string) (admission.Fragment, error)
 func ValidateExperimentSelectionAgainstFamily(spec binding.ExperimentAuthoringInputV1, family Scenario) (binding.ExperimentAuthoringInputV1, error)
+
+func NormalizeCapabilityValue(concern string, value admission.Fragment) (admission.Fragment, error)
+
+func ObservationScopes(scenario Scenario, pointers, references []string, profiles []admission.RealizationCollectionProfile) (map[string]string,error)
+
+func DescriptorProfiles(scenario Scenario) ([]binding.DomainProfileBindingV1, error)
+
+func ParameterDerivationImage(scenario Scenario, fieldPointer string) (admission.Fragment,bool,error)
+
+func CanonicalBytes(scenario Scenario) ([]byte,error)
+
+func ResolveRealizationDesignationForNamespace(scenario Scenario, fieldPointer string, namespace []string) (admission.Fragment,error)
+
+func ParseWithContext(ctx context.Context, source []byte, options ParseOptions) (Scenario, error)
+func ParseFileWithContext(ctx context.Context, source fs.FS, root string, options ParseOptions) (Scenario, error)
+func ParseSourceWithContext(ctx context.Context, source SourceContext, options ParseOptions) (Scenario, error)
+
+func ValidateNodeRealizationContext(input admission.Fragment)([]diagnostic.Diagnostic,error)
+
+func NormalizeNodeValue(node admission.Fragment)(admission.Fragment,map[string][]string,error)
+
+type ProspectiveContent interface {
+ JSON() []byte
+ ModelJSON() []byte
+ prospectiveContent()
+}
+func AdmitProspectiveContent(input admission.Fragment)(ProspectiveContent,error)
+
+type ComparisonSubject struct {
+ Family, Name, ModelType string
+ PresentFields []string
+ Semantic admission.Fragment
+}
+type ComparisonProjection struct {
+ Name, Version, CanonicalDigest string
+ Structural, Semantic admission.Fragment
+ Subjects []ComparisonSubject
+ Imports []admission.Fragment
+}
+func ProjectComparison(source Scenario, version string)(ComparisonProjection,error)
+
+func EvidenceScenario(input Scenario)(admission.EvidenceScenario,error)
+
+func EnvelopeMembershipDiagnostics(input InstantiatedScenario,envelope binding.RealizationEnvelopeV1)([]diagnostic.Diagnostic,error)

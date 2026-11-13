@@ -4,8 +4,10 @@ import (
 	"maps"
 	"slices"
 	"strconv"
+	"strings"
 
 	"github.com/OpenRAE/rae/implementations/go/internal/base/jsonpointer"
+	"github.com/OpenRAE/rae/implementations/go/internal/contract/sdlrules"
 )
 
 type materializationOperand struct {
@@ -110,10 +112,7 @@ func (d *materializationDiff) mapping(a, b materializationOperand) error {
 }
 
 func (d *materializationDiff) sequence(a, b materializationOperand, left, right []any) error {
-	fields := d.identities[jsonpointer.FromTokens(b.path)]
-	if len(b.path) == 3 && b.path[0] == termNodes && b.path[2] == "services" {
-		fields = []string{termName}
-	}
+	fields := materializationCollectionFields(b.path, d.identities)
 	if len(fields) > 0 {
 		return d.keyed(a, b, left, right, fields)
 	}
@@ -131,6 +130,30 @@ func (d *materializationDiff) sequence(a, b materializationOperand, left, right 
 		}
 	}
 	return nil
+}
+
+func materializationCollectionFields(path []string, profiles map[string][]string) []string {
+	if fields := profiles[jsonpointer.FromTokens(path)]; len(fields) > 0 {
+		return fields
+	}
+	if len(path) == 3 && path[0] == termNodes && path[2] == "services" {
+		return []string{termName}
+	}
+	var family string
+	var relative []string
+	switch {
+	case len(path) > 0 && path[0] == termForwardingAgents:
+		family, relative = termForwardingAgents, path[1:]
+	case len(path) >= 4 && path[0] == termNodes && path[2] == termRuntime:
+		family, relative = path[3], path[4:]
+	default:
+		return nil
+	}
+	identity := sdlrules.RuntimeCollectionIdentity(strings.ReplaceAll(family, "_", "-"), jsonpointer.FromTokens(relative))
+	if identity == "" {
+		return nil
+	}
+	return []string{identity}
 }
 
 func materializationIndexed(items []any, fields, path []string) (map[string]materializationOperand, error) {

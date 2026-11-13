@@ -16,6 +16,7 @@ import (
 // The semantic model contains ordered, typed facts, independent of transport
 // serialization. Schema construction has already checked their local shapes.
 type semanticModel struct {
+	derivations        map[string]concreteDerivation
 	intent             *semanticIntentVisitor
 	variationConsumers map[semanticOwner][]semanticConsumerSelector
 	root               map[string]any
@@ -100,7 +101,7 @@ func (p *Parser) newSemanticModel(document *Document) (*semanticModel, error) {
 	model.operating = operatingScopeIndex(object(value))
 	model.scopes = newScopeQueries(p, document.contract, object(value))
 	model.definitionsFromOrder()
-	for _, load := range []func() error{model.variationFacts, model.policyFacts, model.nodeFacts, model.infrastructureFacts, model.accountFacts, model.entityFacts, model.objectiveFacts, model.evidenceFacts, model.executionFacts, model.descriptorFacts, model.agentFacts, model.behaviorFacts, model.cadenceFacts, model.controlFacts, model.outcomeFacts, model.boundaryRuleFacts} {
+	for _, load := range []func() error{model.parameterDerivationFacts, model.variationFacts, model.policyFacts, model.nodeFacts, model.infrastructureFacts, model.accountFacts, model.entityFacts, model.objectiveFacts, model.evidenceFacts, model.executionFacts, model.descriptorFacts, model.agentFacts, model.behaviorFacts, model.cadenceFacts, model.controlFacts, model.outcomeFacts, model.boundaryRuleFacts} {
 		if loadErr := load(); loadErr != nil {
 			return nil, loadErr
 		}
@@ -228,27 +229,7 @@ func (m *semanticModel) check(c *semanticCollector) error {
 	}
 	m.checkNodes(c)
 	m.checkInfrastructure(c)
-	m.checkRuntimeNetwork(c)
-	m.checkRuntimeSensors(c)
-	m.checkRuntimeDetection(c)
-	m.checkRuntimeListeners(c)
-	m.checkRuntimeApplications(c)
-	m.checkRuntimeCapabilities(c)
-	m.checkRuntimeProcessLimits(c)
-	m.checkRuntimeDatabases(c)
-	m.checkRuntimeDNS(c)
-	m.checkRuntimeSSH(c)
-	m.checkRuntimeAuthorizations(c)
-	m.checkRuntimeServiceUnits(c)
-	m.checkRuntimeIdentityAuthorities(c)
-	m.checkRuntimeFiles(c)
-	m.checkRuntimeMonitoring(c)
-	m.checkRuntimeDatastores(c)
-	m.checkRuntimePlatforms(c)
-	m.checkRuntimeForwarding(c)
-	m.checkRuntimeOrchestration(c)
-	m.checkRuntimeMail(c)
-	m.checkCloudResources(c)
+	m.checkRuntimeConfiguration(c)
 	m.checkRuleSourceGenerators(c)
 	m.checkFeatures(c)
 	m.checkNarrative(c)
@@ -361,4 +342,28 @@ func (m *semanticModel) checkFeatures(c *semanticCollector) {
 	if graph.HasCycle(dependencies) {
 		c.report(semanticOwner{}, "Feature dependency graph contains a cycle")
 	}
+}
+
+func (m *semanticModel) checkRuntimeConfiguration(c *semanticCollector) {
+	m.checkRuntimeNetwork(c)
+	m.checkRuntimeSensors(c)
+	m.checkRuntimeDetection(c)
+	m.checkRuntimeListeners(c)
+	m.checkRuntimeApplications(c)
+	m.checkRuntimeCapabilities(c)
+	m.checkRuntimeProcessLimits(c)
+	m.checkRuntimeDatabases(c)
+	m.checkRuntimeDNS(c)
+	m.checkRuntimeSSH(c)
+	m.checkRuntimeAuthorizations(c)
+	m.checkRuntimeServiceUnits(c)
+	m.checkRuntimeIdentityAuthorities(c)
+	m.checkRuntimeFiles(c)
+	m.checkRuntimeMonitoring(c)
+	m.checkRuntimeDatastores(c)
+	m.checkRuntimePlatforms(c)
+	m.checkRuntimeForwarding(c)
+	m.checkRuntimeOrchestration(c)
+	m.checkRuntimeMail(c)
+	m.checkCloudResources(c)
 }

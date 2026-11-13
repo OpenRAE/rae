@@ -139,10 +139,7 @@ func intentSuppliedFields(presentation layout, data map[string]any) []string {
 }
 
 func (v *semanticIntentVisitor) childFrame(frame semanticIntentFrame, presentation layout, field string, data any) (semanticIntentFrame, error) {
-	name := field
-	if modelName, known := presentation.ModelNames[field]; known {
-		name = modelName
-	}
+	name := modelFieldName(presentation, field)
 	path := name
 	if frame.path != "" {
 		path = frame.path + "." + name

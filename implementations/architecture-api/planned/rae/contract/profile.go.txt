@@ -166,3 +166,5 @@ type ValidationCatalog struct {
 
 func (p *Profiles) ValidationCatalog() ValidationCatalog
 func (p *Profiles) SelectValidationProfile(id, version, subjectKind string) (ValidationProfile, error)
+
+func AdmitComparisonProfile(input ComparisonProfile)(ComparisonProfile,error)

@@ -13,9 +13,10 @@ import (
 // Queries own their copied containers. Defaults never alter semantic input or
 // formatter output, and unqueried subtrees retain their original storage.
 type scopeQueries struct {
-	w      normalizer
-	value  any
-	copied map[string]bool
+	w        normalizer
+	value    any
+	copied   map[string]bool
+	profiles []admission.RealizationCollectionProfile
 }
 
 func newScopeQueries(p *Parser, id string, value map[string]any) *scopeQueries {
@@ -39,12 +40,12 @@ func (q *scopeQueries) resolve(pointer string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		sourcePath, _, err = admission.ResolveSDLObservationScope(q.value, prefix)
+		sourcePath, _, err = admission.ResolveSDLObservationScopeWithProfiles(q.value, prefix, q.profiles)
 		if err != nil {
 			return "", err
 		}
 	}
-	_, canonical, err := admission.ResolveSDLObservationScope(q.value, pointer)
+	_, canonical, err := admission.ResolveSDLObservationScopeWithProfiles(q.value, pointer, q.profiles)
 	return canonical, err
 }
 
@@ -96,7 +97,7 @@ func (q *scopeQueries) step(current any, schema map[string]any, pointer, token, 
 		}
 		return value[token], child, pointer + "/properties/" + jsonpointer.EscapeToken(token), func(next any) { value[token] = next }, nil
 	case []any:
-		source, _, err := admission.ResolveSDLObservationScope(q.value, prefix)
+		source, _, err := admission.ResolveSDLObservationScopeWithProfiles(q.value, prefix, q.profiles)
 		if err != nil {
 			return nil, nil, "", nil, err
 		}

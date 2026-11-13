@@ -13,22 +13,17 @@ type materializationOfferLeaf struct {
 	overrideable bool
 }
 type materializationOffer struct {
-	domains   map[string]any
-	leaves    map[string]materializationOfferLeaf
-	closed    map[string]map[string]bool
-	remaining int
+	domains     map[string]any
+	leaves      map[string]materializationOfferLeaf
+	closed      map[string]map[string]bool
+	leafOrder   []string
+	recordOrder map[string][]string
+	remaining   int
 }
 
 func materializationOfferIn(node any, prefix string, presence map[string][]string, expression any) error {
-	offer := materializationOffer{domains: object(at(expression, termDomains)), leaves: map[string]materializationOfferLeaf{}, closed: map[string]map[string]bool{}, remaining: 100000}
-	bindings := slices.Clone(array(at(expression, "bindings")))
-	slices.SortStableFunc(bindings, materializationOfferOrder)
-	for _, binding := range bindings {
-		if err := offer.binding(binding); err != nil {
-			return err
-		}
-	}
-	if err := offer.closures(expression); err != nil {
+	offer, err := materializationOfferFor(expression)
+	if err != nil {
 		return err
 	}
 	for path, leaf := range offer.leaves {
@@ -51,6 +46,25 @@ func materializationOfferIn(node any, prefix string, presence map[string][]strin
 	}
 	return offer.checkClosed(node, prefix, presence)
 }
+
+func materializationOfferFor(expression any) (*materializationOffer, error) {
+	return materializationOfferForOrdered(expression, nil)
+}
+
+func materializationOfferForOrdered(expression any, recordOrder map[string][]string) (*materializationOffer, error) {
+	offer := &materializationOffer{domains: object(at(expression, termDomains)), leaves: map[string]materializationOfferLeaf{}, closed: map[string]map[string]bool{}, recordOrder: recordOrder, remaining: 100000}
+	bindings := slices.Clone(array(at(expression, "bindings")))
+	slices.SortStableFunc(bindings, materializationOfferOrder)
+	for _, binding := range bindings {
+		if err := offer.binding(binding); err != nil {
+			return nil, err
+		}
+	}
+	if err := offer.closures(expression); err != nil {
+		return nil, err
+	}
+	return offer, nil
+}
 func materializationOfferOrder(a, b any) int {
 	if order := len(materializationOfferTokens(stringAt(a, "path"))) - len(materializationOfferTokens(stringAt(b, "path"))); order != 0 {
 		return order
@@ -68,27 +82,47 @@ func (o *materializationOffer) binding(binding any) error {
 				delete(o.leaves, previous)
 			}
 		}
+		o.leafOrder = slices.DeleteFunc(o.leafOrder, func(path string) bool { _, retained := o.leaves[path]; return !retained })
 		return nil
 	}
-	return o.expand(path, o.domains[stringAt(binding, "domain")], boolean(at(binding, "overrideable")), 0)
+	name := stringAt(binding, "domain")
+	return o.expand(path, o.domains[name], name, boolean(at(binding, "overrideable")), 0)
 }
-func (o *materializationOffer) expand(path string, descriptor any, override bool, depth int) error {
+func (o *materializationOffer) expand(path string, descriptor any, name string, override bool, depth int) error {
 	o.remaining--
 	if o.remaining < 0 || depth > 64 || descriptor == nil {
 		return invalid()
 	}
 	if stringAt(descriptor, "kind") == termRecord {
-		for field, target := range object(at(descriptor, "fields")) {
-			if err := o.expand(path+"."+field, o.domains[text(target)], override, depth+1); err != nil {
-				return err
-			}
-		}
-		return nil
+		return o.expandRecord(path, descriptor, name, override, depth)
 	}
-	if prior, ok := o.leaves[path]; ok && !prior.overrideable && !materializationDomainSubset(descriptor, prior.descriptor) {
+	prior, exists := o.leaves[path]
+	if exists && !prior.overrideable && !materializationDomainSubset(descriptor, prior.descriptor) {
 		return invalid()
 	}
+	if !exists {
+		o.leafOrder = append(o.leafOrder, path)
+	}
 	o.leaves[path] = materializationOfferLeaf{descriptor, override}
+	return nil
+}
+
+func (o *materializationOffer) expandRecord(path string, descriptor any, name string, override bool, depth int) error {
+	fields := object(at(descriptor, "fields"))
+	order, supplied := o.recordOrder[name]
+	if !supplied {
+		order = mapKeys(fields)
+		slices.Sort(order)
+	}
+	if len(order) != len(fields) {
+		return invalid()
+	}
+	for _, field := range order {
+		target := text(fields[field])
+		if err := o.expand(path+"."+field, o.domains[target], target, override, depth+1); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 func (o *materializationOffer) checkClosed(node any, prefix string, presence map[string][]string) error {

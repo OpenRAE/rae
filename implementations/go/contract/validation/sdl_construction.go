@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
@@ -78,7 +79,7 @@ func compileSDLConstruction(id string, published contract) (contract, error) {
 
 // CheckSDLConstruction checks an authored or materialized SDL construction
 // view and its stock local rules, then visits owner model instances. Pointer
-// selects the root ("#") or a reachable object fragment. The published schema
+// selects the object root ("#") or a reachable value fragment. The published schema
 // checks remain unchanged. This operation grants no SDL semantic authority.
 func (v *Validator) CheckSDLConstruction(id, pointer string, data []byte, limits ingress.Limits, check func(SchemaInstance) error) error {
 	return v.checkSDLConstruction(id, pointer, data, limits, check, false)
@@ -104,11 +105,17 @@ func (v *Validator) checkSDLConstruction(id, pointer string, data []byte, limits
 	if rootRules {
 		entry.annotations = v.contracts[id].annotations
 	}
-	schema := findSchemaFragment(entry.schema, pointer)
+	schema := findSchemaFragment(entry, pointer)
 	if schema == nil {
 		return failure(fault.InvalidInput, codeContractFragmentUnknown)
 	}
-	root, err := ingress.Parse(data, limits, ingress.Object)
+	var root any
+	var err error
+	if pointer == "#" {
+		root, err = ingress.Parse(data, limits, ingress.Object)
+	} else {
+		root, err = parseConstructionValue(data, limits)
+	}
 	if err != nil {
 		return err
 	}
@@ -119,6 +126,49 @@ func (v *Validator) checkSDLConstruction(id, pointer string, data []byte, limits
 		return failure(fault.InvalidInput, codeContractSchemaMismatch)
 	}
 	return v.checkConstructionInstances(id, schema, entry, root, data, check)
+}
+
+func parseConstructionValue(data []byte, limits ingress.Limits) (any, error) {
+	if limits.MaxBytes < 1 || limits.MaxDepth < 0 {
+		return nil, ingress.ErrLimits
+	}
+	if len(data) > limits.MaxBytes {
+		return nil, &ingress.Error{Code: ingress.TooLarge}
+	}
+	trimmed := bytes.TrimSpace(data)
+	if len(trimmed) > 0 && trimmed[0] == '{' {
+		return ingress.Parse(data, limits, ingress.Object)
+	}
+	if len(trimmed) > 0 && trimmed[0] == '[' {
+		return ingress.Parse(data, limits, ingress.Array)
+	}
+	// Preserve the existing ingress support for encoded object fragments.
+	if len(trimmed) > 0 && trimmed[0] >= 0x80 {
+		if object, err := ingress.Parse(data, limits, ingress.Object); err == nil {
+			return object, nil
+		}
+	}
+	return parseConstructionScalar(data, limits)
+}
+
+func parseConstructionScalar(data []byte, limits ingress.Limits) (any, error) {
+	if len(data) > math.MaxInt-2 {
+		return nil, &ingress.Error{Code: ingress.TooLarge}
+	}
+	wrapped := limits
+	wrapped.MaxBytes = min(math.MaxInt-2, limits.MaxBytes) + 2
+	if wrapped.MaxDepth > 0 && wrapped.MaxDepth < math.MaxInt {
+		wrapped.MaxDepth++
+	}
+	root, err := ingress.Parse(append(append([]byte{'['}, data...), ']'), wrapped, ingress.Array)
+	if err != nil {
+		return nil, err
+	}
+	items, ok := root.([]any)
+	if !ok || len(items) != 1 {
+		return nil, &ingress.Error{Code: ingress.Invalid}
+	}
+	return items[0], nil
 }
 
 func (v *Validator) checkConstructionInstances(id string, schema *jsonschema.Schema, entry contract, root any, data []byte, check func(SchemaInstance) error) error {

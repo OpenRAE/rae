@@ -1,0 +1,1850 @@
+{
+  "issue": 1787,
+  "scope": "Pure planner behavior and called native semantic owners only. Importing planner does not establish scoped behavior. Native signature/phase boundaries are stated per case.",
+  "status": "Source-module pure-owner audit and named pure-invariant attribution complete. Companion compiler/realization maps and the primary issue acceptance mapping are recorded. Runtime wrapper assertions are not claimed.",
+  "case_counts": {
+    "covered-pure-invariant": 50,
+    "covered-native-boundary": 1,
+    "excluded-runtime": 5
+  },
+  "module_audit": [
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/core.py",
+      "top_level_functions": [
+        "_time_model_diagnostics",
+        "_participant_execution_diagnostics",
+        "_observation_owner",
+        "_resolved_realization",
+        "_envelope_diagnostics",
+        "_admission_diagnostics",
+        "_apply_regeneration_scope_bindings",
+        "_augment_provisioning",
+        "_attach_phase_policies",
+        "plan"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "planning.PlanWithManifest",
+        "planning/{admission,capabilities,capability_domains,time_capabilities}.go"
+      ],
+      "regression_tests": [
+        "TestManifestCapabilityChecksRetainResourceOrder",
+        "TestCoupledOperatingSystemRowsCannotBeCrossCombined",
+        "TestPlacementCapabilityChecksUseNativeResourceKinds",
+        "TestTimeModelRequiresDeclaredTargetCapability"
+      ],
+      "scope": "Native ordered target/static admission; finite272 CLI records are supplemental evidence."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/manifest_validation.py",
+      "top_level_functions": [
+        "_validate_acls",
+        "_validate_switch_support",
+        "_validate_node_kind_support",
+        "_validate_total_node_count",
+        "_validate_content_type_support",
+        "_validate_account_support",
+        "_validate_artifact_and_volume_support",
+        "_orchestrator_section_support",
+        "_orchestrator_workflow_support",
+        "_orchestrator_assertion_ref_support",
+        "_orchestrator_state_predicate_support",
+        "_orchestrator_inject_binding_support",
+        "_validate_orchestration_support",
+        "_evaluator_section_support",
+        "_proposition_evaluator_support",
+        "_evaluator_proposition_support",
+        "_validate_evaluation_support",
+        "_validate_manifest"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "planning.PlanWithManifest",
+        "planning/{admission,capabilities,capability_domains,time_capabilities}.go"
+      ],
+      "regression_tests": [
+        "TestManifestCapabilityChecksRetainResourceOrder",
+        "TestCoupledOperatingSystemRowsCannotBeCrossCombined",
+        "TestPlacementCapabilityChecksUseNativeResourceKinds",
+        "TestTimeModelRequiresDeclaredTargetCapability"
+      ],
+      "scope": "Native ordered target/static admission; finite272 CLI records are supplemental evidence."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/capability_domains.py",
+      "top_level_functions": [
+        "_capability_constraint",
+        "_error_diagnostic",
+        "_os_allowed_value",
+        "_validate_os_allowed_values",
+        "_node_os_without_constraint",
+        "_node_os_with_constraint",
+        "_validate_node_os_family",
+        "_node_os_domain",
+        "_architecture_allowed_value",
+        "_validate_architecture_allowed_values",
+        "_node_architecture_without_constraint",
+        "_node_architecture_with_constraint",
+        "_validate_node_architecture",
+        "_count_allowed_value",
+        "_validate_count_allowed_values",
+        "_count_without_constraint",
+        "_count_with_constraint",
+        "_resource_count_upper_bound",
+        "_account_features"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "planning.PlanWithManifest",
+        "planning/{admission,capabilities,capability_domains,time_capabilities}.go"
+      ],
+      "regression_tests": [
+        "TestManifestCapabilityChecksRetainResourceOrder",
+        "TestCoupledOperatingSystemRowsCannotBeCrossCombined",
+        "TestPlacementCapabilityChecksUseNativeResourceKinds",
+        "TestTimeModelRequiresDeclaredTargetCapability"
+      ],
+      "scope": "Native ordered target/static admission; finite272 CLI records are supplemental evidence."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/operating_system_capability_domains.py",
+      "top_level_functions": [
+        "_capability_constraint",
+        "_error_diagnostic",
+        "_family_domain",
+        "_validated_family_constraint",
+        "_parse_family_domain_value",
+        "_scalar_domain_or_open",
+        "_validated_scalar_domain",
+        "_normalize_scalar_domain_value",
+        "feasible_operating_system_domains",
+        "_authored_operating_system_domains",
+        "_intersect_operating_system_domains",
+        "_feasible_domains",
+        "operating_system_choice_supported",
+        "validate_node_operating_system"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "planning.PlanWithManifest",
+        "planning/{admission,capabilities,capability_domains,time_capabilities}.go"
+      ],
+      "regression_tests": [
+        "TestManifestCapabilityChecksRetainResourceOrder",
+        "TestCoupledOperatingSystemRowsCannotBeCrossCombined",
+        "TestPlacementCapabilityChecksUseNativeResourceKinds",
+        "TestTimeModelRequiresDeclaredTargetCapability"
+      ],
+      "scope": "Native ordered target/static admission; finite272 CLI records are supplemental evidence."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/resources.py",
+      "top_level_functions": [
+        "_planned_resource",
+        "_collect_resources"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "processor.Compile",
+        "planning/{operations,ordering,plan}.go"
+      ],
+      "regression_tests": [
+        "TestPlanOrdersDependenciesAndOwnsProjections",
+        "TestReconcileRefreshesDependentsAndDeletesInReverseOrder",
+        "TestPlannerRefusesForeignOwners"
+      ],
+      "scope": "Native typed resources, retained context, dependency refresh/order/delete and explicit RefreshEvaluation option; actual execution excluded."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/operations.py",
+      "top_level_functions": [
+        "_build_operations",
+        "_ordered_apply_ops",
+        "_ordered_delete_ops",
+        "_build_provisioning_plan",
+        "_build_orchestration_plan",
+        "_build_evaluation_plan"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "processor.Compile",
+        "planning/{operations,ordering,plan}.go"
+      ],
+      "regression_tests": [
+        "TestPlanOrdersDependenciesAndOwnsProjections",
+        "TestReconcileRefreshesDependentsAndDeletesInReverseOrder",
+        "TestPlannerRefusesForeignOwners"
+      ],
+      "scope": "Native typed resources, retained context, dependency refresh/order/delete and explicit RefreshEvaluation option; actual execution excluded."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/ordering.py",
+      "top_level_functions": [
+        "_ordering_cycles",
+        "_ordering_cycle_diagnostics",
+        "_topological_order",
+        "_entry_matches_resource",
+        "_delete_order",
+        "snapshot_delete_order"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "processor.Compile",
+        "planning/{operations,ordering,plan}.go"
+      ],
+      "regression_tests": [
+        "TestPlanOrdersDependenciesAndOwnsProjections",
+        "TestReconcileRefreshesDependentsAndDeletesInReverseOrder",
+        "TestPlannerRefusesForeignOwners"
+      ],
+      "scope": "Native typed resources, retained context, dependency refresh/order/delete and explicit RefreshEvaluation option; actual execution excluded."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/interaction_context.py",
+      "top_level_functions": [
+        "retained_planning_context",
+        "fresh_evaluation_actions"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "processor.Compile",
+        "planning/{operations,ordering,plan}.go"
+      ],
+      "regression_tests": [
+        "TestPlanOrdersDependenciesAndOwnsProjections",
+        "TestReconcileRefreshesDependentsAndDeletesInReverseOrder",
+        "TestPlannerRefusesForeignOwners"
+      ],
+      "scope": "Native typed resources, retained context, dependency refresh/order/delete and explicit RefreshEvaluation option; actual execution excluded."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/realization_preparation.py",
+      "top_level_functions": [
+        "preparation_authority",
+        "preparation_member_diagnostics",
+        "_value",
+        "_remove",
+        "_authority_index",
+        "_authority_value_valid",
+        "_authority_selection_violation",
+        "_residual_payload_violation",
+        "prepared_realization_violation",
+        "_unsupported_operating_system",
+        "_operating_system_offer_violation",
+        "_offered_dimension_violation",
+        "_prepared_offer_violation",
+        "_delivered_value",
+        "_delivery_violation",
+        "prepared_delivery_violation"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "planning.CheckPreparedSelection",
+        "planning.CheckPreparedDelivery",
+        "planning.SanitizePreparedSnapshot",
+        "admission.CheckPortableNodeInventory",
+        "processor.PreparedResourceContext",
+        "realization.CompilePreparedNode",
+        "realization.SanitizePreparedNodeSnapshot"
+      ],
+      "regression_tests": [
+        "TestPreparedSelectionOwnsTheOriginalPlanAndChosenProjection",
+        "TestPreparedNodeCannotSupplyItsOwnNormalizedMetadata",
+        "TestPreparedDeliveryAndSanitizationBoundTheReturnedSnapshot",
+        "TestPreparedSanitizerChecksUnexpectedRuntimeConcernsOnAddedNodes",
+        "TestPreparedOpaqueRuntimeFieldRemainsDataAndFailsClosedDelivery"
+      ],
+      "scope": "Exact raw candidate binding; native typed normalized values/presence and selected live context; bounds before copies/encoding. All registered concerns sanitized. Standalone opaque unknown keys retained per Python; closed delivery refuses additions."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/realization_collections.py",
+      "top_level_functions": [
+        "planned_node_collection",
+        "retain_open_collection_nodes",
+        "retain_reported_descendants",
+        "prepared_node_collection_binding_violation",
+        "_collection_membership_violation",
+        "prepared_node_collection_violation"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "planning.CheckPreparedSelection",
+        "planning.CheckPreparedDelivery",
+        "planning.SanitizePreparedSnapshot",
+        "admission.CheckPortableNodeInventory",
+        "processor.PreparedResourceContext",
+        "realization.CompilePreparedNode",
+        "realization.SanitizePreparedNodeSnapshot"
+      ],
+      "regression_tests": [
+        "TestPreparedSelectionOwnsTheOriginalPlanAndChosenProjection",
+        "TestPreparedNodeCannotSupplyItsOwnNormalizedMetadata",
+        "TestPreparedDeliveryAndSanitizationBoundTheReturnedSnapshot",
+        "TestPreparedSanitizerChecksUnexpectedRuntimeConcernsOnAddedNodes",
+        "TestPreparedOpaqueRuntimeFieldRemainsDataAndFailsClosedDelivery"
+      ],
+      "scope": "Exact raw candidate binding; native typed normalized values/presence and selected live context; bounds before copies/encoding. All registered concerns sanitized. Standalone opaque unknown keys retained per Python; closed delivery refuses additions."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/prepared_node_admission.py",
+      "top_level_functions": [
+        "_node_runtime",
+        "_canonical_node_address",
+        "_require_canonical_identity",
+        "_require_node_runtime_identity",
+        "_available_reference",
+        "_referenced_addresses",
+        "_namespace_target_address",
+        "_validate_added_node",
+        "_live_provisioning_entries",
+        "_require_admitted_additions",
+        "_prepared_runtime_model",
+        "prepared_node_capability_violation",
+        "validate_portable_node_inventory"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "planning.CheckPreparedSelection",
+        "planning.CheckPreparedDelivery",
+        "planning.SanitizePreparedSnapshot",
+        "admission.CheckPortableNodeInventory",
+        "processor.PreparedResourceContext",
+        "realization.CompilePreparedNode",
+        "realization.SanitizePreparedNodeSnapshot"
+      ],
+      "regression_tests": [
+        "TestPreparedSelectionOwnsTheOriginalPlanAndChosenProjection",
+        "TestPreparedNodeCannotSupplyItsOwnNormalizedMetadata",
+        "TestPreparedDeliveryAndSanitizationBoundTheReturnedSnapshot",
+        "TestPreparedSanitizerChecksUnexpectedRuntimeConcernsOnAddedNodes",
+        "TestPreparedOpaqueRuntimeFieldRemainsDataAndFailsClosedDelivery"
+      ],
+      "scope": "Exact raw candidate binding; native typed normalized values/presence and selected live context; bounds before copies/encoding. All registered concerns sanitized. Standalone opaque unknown keys retained per Python; closed delivery refuses additions."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/prepared_node_support.py",
+      "top_level_functions": [
+        "_authored_process_limits",
+        "_process_limit_demands",
+        "_prepared_node_requirements",
+        "_require_configured_offer",
+        "validate_prepared_node_support"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "planning.CheckPreparedSelection",
+        "planning.CheckPreparedDelivery",
+        "planning.SanitizePreparedSnapshot",
+        "admission.CheckPortableNodeInventory",
+        "processor.PreparedResourceContext",
+        "realization.CompilePreparedNode",
+        "realization.SanitizePreparedNodeSnapshot"
+      ],
+      "regression_tests": [
+        "TestPreparedSelectionOwnsTheOriginalPlanAndChosenProjection",
+        "TestPreparedNodeCannotSupplyItsOwnNormalizedMetadata",
+        "TestPreparedDeliveryAndSanitizationBoundTheReturnedSnapshot",
+        "TestPreparedSanitizerChecksUnexpectedRuntimeConcernsOnAddedNodes",
+        "TestPreparedOpaqueRuntimeFieldRemainsDataAndFailsClosedDelivery"
+      ],
+      "scope": "Exact raw candidate binding; native typed normalized values/presence and selected live context; bounds before copies/encoding. All registered concerns sanitized. Standalone opaque unknown keys retained per Python; closed delivery refuses additions."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/prepared_node_semantics.py",
+      "top_level_functions": [
+        "_closed_spec",
+        "_typed_context",
+        "validate_prepared_node_semantics"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "planning.CheckPreparedSelection",
+        "planning.CheckPreparedDelivery",
+        "planning.SanitizePreparedSnapshot",
+        "admission.CheckPortableNodeInventory",
+        "processor.PreparedResourceContext",
+        "realization.CompilePreparedNode",
+        "realization.SanitizePreparedNodeSnapshot"
+      ],
+      "regression_tests": [
+        "TestPreparedSelectionOwnsTheOriginalPlanAndChosenProjection",
+        "TestPreparedNodeCannotSupplyItsOwnNormalizedMetadata",
+        "TestPreparedDeliveryAndSanitizationBoundTheReturnedSnapshot",
+        "TestPreparedSanitizerChecksUnexpectedRuntimeConcernsOnAddedNodes",
+        "TestPreparedOpaqueRuntimeFieldRemainsDataAndFailsClosedDelivery"
+      ],
+      "scope": "Exact raw candidate binding; native typed normalized values/presence and selected live context; bounds before copies/encoding. All registered concerns sanitized. Standalone opaque unknown keys retained per Python; closed delivery refuses additions."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/prepared_node_projection.py",
+      "top_level_functions": [
+        "prepared_node_payload_projection",
+        "_origin_children",
+        "_backend_origins",
+        "prepared_node_document",
+        "prepared_additional_node_operations",
+        "prepared_node_delivery_violation",
+        "sanitize_prepared_node_snapshot"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "planning.CheckPreparedSelection",
+        "planning.CheckPreparedDelivery",
+        "planning.SanitizePreparedSnapshot",
+        "admission.CheckPortableNodeInventory",
+        "processor.PreparedResourceContext",
+        "realization.CompilePreparedNode",
+        "realization.SanitizePreparedNodeSnapshot"
+      ],
+      "regression_tests": [
+        "TestPreparedSelectionOwnsTheOriginalPlanAndChosenProjection",
+        "TestPreparedNodeCannotSupplyItsOwnNormalizedMetadata",
+        "TestPreparedDeliveryAndSanitizationBoundTheReturnedSnapshot",
+        "TestPreparedSanitizerChecksUnexpectedRuntimeConcernsOnAddedNodes",
+        "TestPreparedOpaqueRuntimeFieldRemainsDataAndFailsClosedDelivery"
+      ],
+      "scope": "Exact raw candidate binding; native typed normalized values/presence and selected live context; bounds before copies/encoding. All registered concerns sanitized. Standalone opaque unknown keys retained per Python; closed delivery refuses additions."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/augmentation_admission.py",
+      "top_level_functions": [
+        "validate_actual_augmentation",
+        "compose_augmentation_admission",
+        "admit_augmentation_preparation",
+        "_scope_resolver",
+        "_canonical_policy",
+        "_require_requirement_references",
+        "_scope_decision",
+        "_effect_diagnostics",
+        "_ordinary_selection"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "admission.CheckAugmentationPreparation",
+        "admission.ComposeMaterializationContent",
+        "admission.MaterializationContentMatches",
+        "sdl.AdmitProspectiveContent"
+      ],
+      "regression_tests": [
+        "TestAugmentationPreparationMatchesIndependentPureReference",
+        "TestAugmentationReportBoundsScopeResolutionBeforeEncoding",
+        "TestMaterializationCompositionKeepsNativeIdentityAndProducerOwnership",
+        "TestMaterializationContentMatchesNativeIdentitiesWithoutClaimingActualAuthority"
+      ],
+      "scope": "All pure report admission/composition/content equality reuses semantic diff and prospective native owner. Backend invocation/archive IO excluded."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/materialization.py",
+      "top_level_functions": [
+        "attach_materialization_sources",
+        "planned_materialization_source",
+        "_source_refusal_diagnostic",
+        "_build_materialization_source",
+        "_seal_materialization_source",
+        "_source_refusal"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "planning/{materialization,descendants}.go",
+        "admission materialization execution/inventory/lineage owners"
+      ],
+      "regression_tests": [
+        "TestMaterializationReportingKeepsFullNativeSourceAndScope",
+        "TestInventoryReportingRequiresSelectedTargetScope",
+        "TestAcceptedDescendantsRequireLifecycleDisposition",
+        "TestMaterializationInventoryBindsLineageAndLifecycleToProtectedPredecessor",
+        "TestMaterializationLifecycleCannotResurrectOrRewriteReceipt"
+      ],
+      "scope": "Pure source/target/protected-predecessor, membership, instance, permission and lineage predicates reuse1785 owners. Archive reads, snapshot/provenance publication and durable lifecycle calls excluded."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/materialization_admission.py",
+      "top_level_functions": [
+        "admit_materialization_submission",
+        "_validate_binding",
+        "_inventory_resources",
+        "_validate_inventory",
+        "_validate_current_scope",
+        "_resources_for_domain",
+        "_validate_other_scopes",
+        "_validate_binding_origin",
+        "_validate_node_bindings",
+        "_validate_instance_indices",
+        "_materialized_entry_matches",
+        "_defaulted_node_entry_matches",
+        "validate_materialization_archive_record"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "planning/{materialization,descendants}.go",
+        "admission materialization execution/inventory/lineage owners"
+      ],
+      "regression_tests": [
+        "TestMaterializationReportingKeepsFullNativeSourceAndScope",
+        "TestInventoryReportingRequiresSelectedTargetScope",
+        "TestAcceptedDescendantsRequireLifecycleDisposition",
+        "TestMaterializationInventoryBindsLineageAndLifecycleToProtectedPredecessor",
+        "TestMaterializationLifecycleCannotResurrectOrRewriteReceipt"
+      ],
+      "scope": "Pure source/target/protected-predecessor, membership, instance, permission and lineage predicates reuse1785 owners. Archive reads, snapshot/provenance publication and durable lifecycle calls excluded."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/materialization_inventory.py",
+      "top_level_functions": [
+        "admit_runtime_inventory",
+        "_inventory_document",
+        "_bound_inventory_report",
+        "_validate_collection_inventory",
+        "_provenance_key",
+        "_provenance_ledger",
+        "_unchanged_provenance",
+        "_admitted_choices",
+        "_apply_backend_selections",
+        "_validate_description_coverage",
+        "_project_entries",
+        "_live_descendant_entry",
+        "_validate_addition_permission",
+        "_descendant_provenance"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "planning/{materialization,descendants}.go",
+        "admission materialization execution/inventory/lineage owners"
+      ],
+      "regression_tests": [
+        "TestMaterializationReportingKeepsFullNativeSourceAndScope",
+        "TestInventoryReportingRequiresSelectedTargetScope",
+        "TestAcceptedDescendantsRequireLifecycleDisposition",
+        "TestMaterializationInventoryBindsLineageAndLifecycleToProtectedPredecessor",
+        "TestMaterializationLifecycleCannotResurrectOrRewriteReceipt"
+      ],
+      "scope": "Pure source/target/protected-predecessor, membership, instance, permission and lineage predicates reuse1785 owners. Archive reads, snapshot/provenance publication and durable lifecycle calls excluded."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/materialization_lineage.py",
+      "top_level_functions": [
+        "admitted_inventory_predecessor",
+        "_read_retained_submission",
+        "validate_inventory_lineage",
+        "_validate_report_progress",
+        "_validate_descendant_identity",
+        "_validate_lifecycle_binding",
+        "_validate_retained_identity",
+        "_validate_ancestry",
+        "_causal_parent",
+        "_validate_predecessor_binding"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "planning/{materialization,descendants}.go",
+        "admission materialization execution/inventory/lineage owners"
+      ],
+      "regression_tests": [
+        "TestMaterializationReportingKeepsFullNativeSourceAndScope",
+        "TestInventoryReportingRequiresSelectedTargetScope",
+        "TestAcceptedDescendantsRequireLifecycleDisposition",
+        "TestMaterializationInventoryBindsLineageAndLifecycleToProtectedPredecessor",
+        "TestMaterializationLifecycleCannotResurrectOrRewriteReceipt"
+      ],
+      "scope": "Pure source/target/protected-predecessor, membership, instance, permission and lineage predicates reuse1785 owners. Archive reads, snapshot/provenance publication and durable lifecycle calls excluded."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/realization_profiles.py",
+      "top_level_functions": [
+        "profile_resources",
+        "_owned_profile_address",
+        "_retained_profile_resources"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "planning/profiles.go",
+        "admission.CheckPlanProfileSelection",
+        "processor.CompileWithOptions"
+      ],
+      "regression_tests": [
+        "TestPlanProfilesNeedPinnedIndependentTargetContext"
+      ],
+      "scope": "Exact target/context/profile joins and retained selected binding. Compiler sibling owns multi-controller routing/author selection; shared profile owner owns replacement validation."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/descriptor_profiles.py",
+      "top_level_functions": [
+        "descriptor_profile_diagnostics"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "planning/profiles.go",
+        "admission.CheckPlanProfileSelection",
+        "processor.CompileWithOptions"
+      ],
+      "regression_tests": [
+        "TestPlanProfilesNeedPinnedIndependentTargetContext"
+      ],
+      "scope": "Exact target/context/profile joins and retained selected binding. Compiler sibling owns multi-controller routing/author selection; shared profile owner owns replacement validation."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/stateful_admission.py",
+      "top_level_functions": [
+        "_node_target_matches",
+        "_environment_projection_shape",
+        "_validate_environment_projection_source",
+        "_validate_environment_projection_target",
+        "_validate_environment_projection",
+        "_artifact_name_from_address",
+        "_source_matches_artifact",
+        "_projection_runtime",
+        "_environment_variable_projection_classification",
+        "_validate_environment_file_projection",
+        "_environment_projection_classification",
+        "_validate_content_projection",
+        "_delivery_modes_in_use",
+        "_canonical_consumer",
+        "_canonical_consumers",
+        "_rejoin_content_projection",
+        "_validated_generated_artifact_payload",
+        "_artifact_capability_diagnostic",
+        "generated_artifact_payload_diagnostic"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "processor/stateful.go",
+        "processor.PreparedResourceContext",
+        "admission/account_projection.go"
+      ],
+      "regression_tests": [
+        "TestPreparedResourceContextValidatesGrantsBeforeRemovingCompilerFields",
+        "TestPreparedResourceContextChecksLiveOutputAndClosedGrantSemantics",
+        "TestPreparedSelectionKeepsCredentialMaterialAndPurposeFrozen"
+      ],
+      "scope": "Closed native stateful/account specs before stripping compiler keys; selected live environment/content/mount/output grants reuse generatedConsumerIndex. Result.details egress is runtime."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/account_credentials.py",
+      "top_level_functions": [
+        "account_credential_spec_is_valid"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "processor/stateful.go",
+        "processor.PreparedResourceContext",
+        "admission/account_projection.go"
+      ],
+      "regression_tests": [
+        "TestPreparedResourceContextValidatesGrantsBeforeRemovingCompilerFields",
+        "TestPreparedResourceContextChecksLiveOutputAndClosedGrantSemantics",
+        "TestPreparedSelectionKeepsCredentialMaterialAndPurposeFrozen"
+      ],
+      "scope": "Closed native stateful/account specs before stripping compiler keys; selected live environment/content/mount/output grants reuse generatedConsumerIndex. Result.details egress is runtime."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/execution_policy.py",
+      "top_level_functions": [
+        "attach_execution_policies"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "planning/execution_policy.go"
+      ],
+      "regression_tests": [
+        "TestPlanRetainsExecutionPolicyAndRefusesMissingSupport"
+      ],
+      "scope": "Phase attachment and selected target support; runtime policy evaluation excluded."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/mixed_control_admission.py",
+      "top_level_functions": [
+        "mixed_control_policy_addresses",
+        "mixed_control_semantics_diagnostics"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "planning/admission.go",
+        "processor participant support owner"
+      ],
+      "regression_tests": [
+        "TestParticipantSupportUsesNativeCompiledToolFacts"
+      ],
+      "scope": "Native compiled mixed-control admission is joined in plan; compiler/primary map owns its full semantic case attribution."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/realization_authority.py",
+      "top_level_functions": [
+        "_nested_value",
+        "_applicable_descriptor",
+        "_expected_realization_authority",
+        "_authority_payload_pointer_diagnostic",
+        "_authority_inventory_diagnostic",
+        "_requires_realization_envelope",
+        "_manifest_authority_diagnostic",
+        "realization_authority_diagnostics",
+        "_recursive_binding_diagnostic",
+        "_explicitness",
+        "plan_realization_requirements",
+        "_compiled_runtime_view",
+        "_process_resource_limit_demands",
+        "_invalid_runtime_view_diagnostic",
+        "_closed_materialization_diagnostic",
+        "_pointer_value",
+        "_runtime_authority_diagnostic",
+        "_bound_value",
+        "_safe_process_limit_identity",
+        "_constraint_diagnostic",
+        "_evaluate_authority_disclosure",
+        "realization_authority_disclosure",
+        "sanitize_plan_realization_snapshot"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "processor/realization",
+        "planning/{prepared_delivery,envelope_membership}.go"
+      ],
+      "regression_tests": [
+        "TestPlannerKeepsOperationalReadbackSeparateFromObservationDemands",
+        "TestPlannerKeepsExactPhysicalSubstrateAuthority",
+        "TestPlannerThreadsAddressScopedArtifactAvailability",
+        "TestPreparedAdditionalNodeAcceptsProtectedPresenceWithoutRawBytes"
+      ],
+      "scope": "Pure authority, disclosure/cleanup comparison and value-free provenance descriptors reuse realization owner; see1787-realization-case-map.json. Runtime successful provenance publication excluded."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/realization_authority_materialization.py",
+      "top_level_functions": [
+        "_matching_requirement",
+        "_resolved_mode",
+        "_delegated_closure",
+        "_publication_safe_enum_domain",
+        "_authority_bounds",
+        "_process_limit_authority_bounds",
+        "_operating_system_authority_bounds",
+        "_capability_authority_bounds",
+        "_resolved_authority",
+        "_materialized_authority",
+        "materialize_realization_authority",
+        "_unresolved_authority_diagnostic",
+        "_unsafe_bound_diagnostic"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "processor/realization",
+        "planning/{prepared_delivery,envelope_membership}.go"
+      ],
+      "regression_tests": [
+        "TestPlannerKeepsOperationalReadbackSeparateFromObservationDemands",
+        "TestPlannerKeepsExactPhysicalSubstrateAuthority",
+        "TestPlannerThreadsAddressScopedArtifactAvailability",
+        "TestPreparedAdditionalNodeAcceptsProtectedPresenceWithoutRawBytes"
+      ],
+      "scope": "Pure authority, disclosure/cleanup comparison and value-free provenance descriptors reuse realization owner; see1787-realization-case-map.json. Runtime successful provenance publication excluded."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/realization_constraint_views.py",
+      "top_level_functions": [
+        "planned_constraint_requirements",
+        "planned_constraint_disclosure",
+        "planned_constraint_admission"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "processor/realization",
+        "planning/{prepared_delivery,envelope_membership}.go"
+      ],
+      "regression_tests": [
+        "TestPlannerKeepsOperationalReadbackSeparateFromObservationDemands",
+        "TestPlannerKeepsExactPhysicalSubstrateAuthority",
+        "TestPlannerThreadsAddressScopedArtifactAvailability",
+        "TestPreparedAdditionalNodeAcceptsProtectedPresenceWithoutRawBytes"
+      ],
+      "scope": "Pure authority, disclosure/cleanup comparison and value-free provenance descriptors reuse realization owner; see1787-realization-case-map.json. Runtime successful provenance publication excluded."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/realization_cleanup.py",
+      "top_level_functions": [
+        "_cleanup_requirement",
+        "realization_cleanup_diagnostics"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "processor/realization",
+        "planning/{prepared_delivery,envelope_membership}.go"
+      ],
+      "regression_tests": [
+        "TestPlannerKeepsOperationalReadbackSeparateFromObservationDemands",
+        "TestPlannerKeepsExactPhysicalSubstrateAuthority",
+        "TestPlannerThreadsAddressScopedArtifactAvailability",
+        "TestPreparedAdditionalNodeAcceptsProtectedPresenceWithoutRawBytes"
+      ],
+      "scope": "Pure authority, disclosure/cleanup comparison and value-free provenance descriptors reuse realization owner; see1787-realization-case-map.json. Runtime successful provenance publication excluded."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/backend_node_provenance.py",
+      "top_level_functions": [
+        "backend_node_concern_provenance"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "processor/realization",
+        "planning/{prepared_delivery,envelope_membership}.go"
+      ],
+      "regression_tests": [
+        "TestPlannerKeepsOperationalReadbackSeparateFromObservationDemands",
+        "TestPlannerKeepsExactPhysicalSubstrateAuthority",
+        "TestPlannerThreadsAddressScopedArtifactAvailability",
+        "TestPreparedAdditionalNodeAcceptsProtectedPresenceWithoutRawBytes"
+      ],
+      "scope": "Pure authority, disclosure/cleanup comparison and value-free provenance descriptors reuse realization owner; see1787-realization-case-map.json. Runtime successful provenance publication excluded."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_processor/planner/prepared_node_provenance.py",
+      "top_level_functions": [
+        "prepared_node_disclosure",
+        "_dedicated_requirements"
+      ],
+      "status": "audited-native-owner-or-explicit-runtime-boundary",
+      "go_owners": [
+        "processor/realization",
+        "planning/{prepared_delivery,envelope_membership}.go"
+      ],
+      "regression_tests": [
+        "TestPlannerKeepsOperationalReadbackSeparateFromObservationDemands",
+        "TestPlannerKeepsExactPhysicalSubstrateAuthority",
+        "TestPlannerThreadsAddressScopedArtifactAvailability",
+        "TestPreparedAdditionalNodeAcceptsProtectedPresenceWithoutRawBytes"
+      ],
+      "scope": "Pure authority, disclosure/cleanup comparison and value-free provenance descriptors reuse realization owner; see1787-realization-case-map.json. Runtime successful provenance publication excluded."
+    }
+  ],
+  "additional_reference_families": [
+    {
+      "path": "implementations/go/contract/admission/testdata/processor/backend-manifest-normalization.json",
+      "test": "TestBackendManifestNormalizationMatchesReference",
+      "scope": "Reference constructor normalization/digests; sets vs ordered fields and Python coordinate repr."
+    },
+    {
+      "path": "implementations/go/contract/admission/testdata/processor/envelope-member-order.json",
+      "test": "TestRealizationMemberKeepsIndependentBindingAndRecordOrder",
+      "scope": "4 independent cases: binding insertion, nested record field insertion, object/scalar mismatch and bool/int mismatch."
+    }
+  ],
+  "limits": [
+    "CheckPreparedSelection does not consume full preparation response or invoke callbacks.",
+    "Lower explicit MaterializationCompilation inputs do not authenticate normalized phase facts; sealed native planner derives them, lower primitive binds exact raw candidate.",
+    "272 CLI records compare finite projections/diagnostics, not complete scope.",
+    "Old1351 import-only index is discovery data; unscoped rows are not claimed defects or proof of coverage.",
+    "Compiler/realization source modules use their own maps and primary consolidation."
+  ],
+  "format_version": 1,
+  "sources": [
+    {
+      "path": "implementations/python/packages/raes/realization_envelope.py",
+      "sha256": "860054d17c8e9ec8be7803916fb8b414f1e5bf074ee996a2f448c05aa88b3cf4"
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/realization_preparation.py",
+      "sha256": "b8ed68e50a6c7742bc10099ec903de76420090606e573696b41559e2583dd95e"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/compiler/materialization_origins.py",
+      "sha256": "06871c5d2e1ddefecd5240d5b8edf884c49ffcc2d35eb283328ae19b791e96a3"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/account_credentials.py",
+      "sha256": "db8f649e87f6804373783c78151aebfebe60d85ca10bea3b4e7eec243ebe9133"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/augmentation_admission.py",
+      "sha256": "9dc5d213b8516818bfddd66ed7bbd7b9fc5271d9fa8b5097b367135e902e84a6"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/backend_node_provenance.py",
+      "sha256": "a85bf40cef4732f9c2b795239396f023f30e01fdd83c96f537118b1e57597ae2"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/capability_domains.py",
+      "sha256": "2371153463ef8ce8a94df691474f32902ea8f59265cff7ba2dcdaf28a28ad4bb"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/core.py",
+      "sha256": "9aa21436cfbbac0919b068d94b5bdde429c7a2b6f6700a9c4d41535e074f4796"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/descriptor_profiles.py",
+      "sha256": "9dd96022e78127998e16f10bc848eaf99e8098ad3ad3480dd3bc29255c974292"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/execution_policy.py",
+      "sha256": "1e8e1417993420cc3a4fa8e94de5434ded07f7ce3f84ed4a6b96c9b8130e5cfc"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/interaction_context.py",
+      "sha256": "17f7f60f300bec2794b848b561ca61fb68d7b00c655aa5ac2e9426ab91d24ccd"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/manifest_validation.py",
+      "sha256": "c81d4e6cd99c283e2e8b8aaa27bd5ff7c111f2d29991d221814c3d3c73f52879"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/materialization.py",
+      "sha256": "17afef17fe159d6ddeace6392102a381d2b0d06e2fb66b150bd7d833dc0877b6"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/materialization_admission.py",
+      "sha256": "30398ef4638668fa1deee313fb64f1d1af1a3531ecdfab05c066f9411b1663da"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/materialization_inventory.py",
+      "sha256": "e03762571e35cd98a03fd860fe8fb18f09ede8f10fff847d4ed25ba7936c1c96"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/materialization_lineage.py",
+      "sha256": "331aec969d71219ffea2b69fc5cfeada2c0c58ce4adfc0d41c7e43d4b34c921b"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/mixed_control_admission.py",
+      "sha256": "4d3ec3036c3fcdca2da57310dba14e02aa7610b3307dcd699c669f282d0fb44b"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/operating_system_capability_domains.py",
+      "sha256": "2ef35debfd74d100ecbdc9c855dda86bfebc6c26d503077cd2989c12417fce3c"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/operations.py",
+      "sha256": "62b277adec2569c3e6ab33db7e1ac1403a7a79799404c15b580cd2f8b338bba1"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/ordering.py",
+      "sha256": "fa902129d201689b0b66b838b621c556dd5fbd0340a57dda130b7f1db02ea419"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/prepared_node_admission.py",
+      "sha256": "8f848d09d794d3c0668d1820f39288eb13a8841f073ec791352052ad8b85fbcc"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/prepared_node_projection.py",
+      "sha256": "1985666bfd0bc1deb6ee9c51a3e39e8f2b1c35f8200f56fcb8b0263f1212fe22"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/prepared_node_provenance.py",
+      "sha256": "fcc211070cca57bd28e5fedda4d71a7aa422abec41d5ab9bdc7f82d38acd8fd6"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/prepared_node_semantics.py",
+      "sha256": "c3eb604473f9fad272cc636213e884c8c9c584cb7cb18b52a51514859449b5fd"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/prepared_node_support.py",
+      "sha256": "8888c52b48311d665ab5c18d3af4c9c1375d187ea088ab60bda370f17a6d24da"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/realization_authority.py",
+      "sha256": "d75cc48b89dc97a9bd79322a06ea64106e6d6107b700d425706e7a2b576ed367"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/realization_authority_materialization.py",
+      "sha256": "2db76c9c942dafdeeb01fea00c7257d5c129297ab35171a7d797eda50974af9d"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/realization_cleanup.py",
+      "sha256": "291b8716e9a66cb31105443331ef951e72a0e1b066d6e4ef26e4ea101662503f"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/realization_collections.py",
+      "sha256": "e08305a4baab9527ba4561f05e9eec38562c7e647fb67fb85e8f60787aad23db"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/realization_constraint_views.py",
+      "sha256": "89281f8643b6a4bd68ee6a413daa0f58c4812681d287ebe61c0c32326cb63662"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/realization_preparation.py",
+      "sha256": "d8399c68962281dd36e7b25283354ac9adea5eb0a768812f6db1c3b60bbf0480"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/realization_profiles.py",
+      "sha256": "148f9add2429a3283e40ad6251b1e1e6aef1ca44d09cecc8324ccd6f03089808"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/resources.py",
+      "sha256": "13edc812cec45bb6709910f13ad8c90c3a80d6cb757c64e13d9ff300b8e19df3"
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/planner/stateful_admission.py",
+      "sha256": "88512e4dfaa1a98a9a184ecee4ac058f081385f91dfa3c67c6c5529c60d29a0a"
+    },
+    {
+      "path": "implementations/python/tests/test_issue_1204_backend_preparation.py",
+      "sha256": "e6acc45ce9e50e5829b66578ba37f6454fb2a52197e5af59e29d775622baaf8d"
+    },
+    {
+      "path": "implementations/python/tests/test_issue_1204_prepared_credentials.py",
+      "sha256": "2688664d6cdfc3c1c259a6523799e2e2241fbb412f93c655281dec74d750e935"
+    },
+    {
+      "path": "implementations/python/tests/test_issue_1204_prepared_node_admission.py",
+      "sha256": "4176d6cd0b2519bfecadd1a79be86539d3e50ce37f3bcfc8912aba74455953c6"
+    },
+    {
+      "path": "implementations/python/tests/test_issue_1204_prepared_node_semantics.py",
+      "sha256": "93bbbfde1ba7abc15abea85d59a2033f533bb0ad50a0ff0c064673a211ae383a"
+    },
+    {
+      "path": "implementations/python/tests/test_issue_1204_prepared_sequence.py",
+      "sha256": "ed70428563f4681fdf2c1ad53872cbd870e15e50a418895bed3d979c39c04a03"
+    },
+    {
+      "path": "implementations/python/tests/test_issue_1204_resource_collections.py",
+      "sha256": "086bfde6520f5cfd3f39d38b3a9a49eb86bbf3de706a12d0743f28242f1bda06"
+    },
+    {
+      "path": "implementations/python/tests/test_issue_1241_materialization_context.py",
+      "sha256": "9e5713420ad93e35146b7afbbea274a2863d0002658c7ba500b457f6dba52d1f"
+    },
+    {
+      "path": "implementations/python/tests/test_issue_1241_materialization_inventory.py",
+      "sha256": "e611b3ddf1f5373dca7ea385f07ffd0b6942a2c8c10ecade8cc2a94ca4592788"
+    },
+    {
+      "path": "implementations/python/tests/test_issue_1241_materialization_origins.py",
+      "sha256": "06ed275589eadde59c6c245abcfafe7904f28c40ac42bece21eb347384a638d3"
+    },
+    {
+      "path": "implementations/python/tests/test_issue_1242_review_regressions.py",
+      "sha256": "e25b52c58afd3a60903b7494e0f9f0e1099400c036b0acdb8c7f6c1251abc793"
+    },
+    {
+      "path": "implementations/python/tests/test_issue_1242_scope_admission.py",
+      "sha256": "c329609f7bff638fbee8baa32512907cafc70426a16f7e95b32c31406060dc72"
+    },
+    {
+      "path": "implementations/python/tests/test_issue_1276_random_value_generation.py",
+      "sha256": "fc06a3c60a99415e248044125928440ff0769a1f80b490f6227325c784002e4a"
+    },
+    {
+      "path": "implementations/python/tests/test_issue_1299_partial_listeners.py",
+      "sha256": "887e911ad112e38373a21ce5858832b2f3b360e2710c93641c447c96adbf521b"
+    }
+  ],
+  "fixtures": [
+    {
+      "path": "implementations/go/contract/admission/testdata/processor/backend-manifest-normalization.json",
+      "sha256": "6fb06cab5c507d7e360b7b5780d98e93bc16f5b1a287c460c0a7cefe2004f488"
+    },
+    {
+      "path": "implementations/go/contract/admission/testdata/processor/augmentation-preparation.json",
+      "sha256": "68e51bd99d110e9c0057fcca99e3662934e419c7d8afb059a7035f94ede7bd90"
+    },
+    {
+      "path": "implementations/go/contract/admission/testdata/processor/envelope-member-order.json",
+      "sha256": "974787901b0eab17e2fde893e215aaeef1a765d425ed501c4887d2f2a903a4f8"
+    },
+    {
+      "path": "implementations/go/contract/admission/testdata/processor/exact-prepared-envelope.json",
+      "sha256": "33ee0500271c7cfcf7f72f7730067cb06afbd163702d973ea455e2ee960f5a22"
+    },
+    {
+      "path": "implementations/go/contract/admission/testdata/processor/closed-prepared-envelope.json",
+      "sha256": "dd6fad1828fedbb0f70369a165590d1aeb1189ee435d429a78fbfb39dd58863c"
+    },
+    {
+      "path": "implementations/go/contract/admission/testdata/materialization-algorithm-verdicts.json",
+      "sha256": "8799c423f6208cb04b436966a9789e9505d42a58ef4052cfad796fc5bad49877"
+    },
+    {
+      "path": "implementations/go/processor/testdata/autonomous-support.json",
+      "sha256": "89a85768f79658614638e101c7dbac7d96bf7240e6595d737dc1660e411a8be6"
+    },
+    {
+      "path": "implementations/go/processor/testdata/autonomous-v3-support.json",
+      "sha256": "4a1f3f6282ddb71a6431e279f259f67fd8662de6fcf3ca7364c011bdce0f01dd"
+    },
+    {
+      "path": "contracts/fixtures/realization-envelope/realization-envelope-v1/valid/generic.json",
+      "sha256": "e71b710d2ee25eb866b21492898899e1db1ae058ea69f0d803892b8ed756bcc3"
+    },
+    {
+      "path": "implementations/go/contract/admission/testdata/processor/augmentation-preparation-2.json",
+      "sha256": "7c81e88de6c7ff20e289354b2b57af1897739bc03b32baeee98a304e236bfaf7"
+    }
+  ],
+  "tests": [
+    {
+      "reference": "implementations/python/tests/test_issue_1204_prepared_sequence.py::test_prepared_delivery_preserves_sequence_order_with_overlapping_position_domains",
+      "line": 21,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedDeliveryPreservesAnAdmittedSequenceOrder"
+      ],
+      "behavior": "Selected recursive sequence order remains binding through delivery; reversed DNS cannot be sorted into agreement.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_prepared_node_admission.py::test_inadmissible_prepared_node_never_reaches_apply",
+      "line": 14,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedAdditionalNodeRefusesCapabilityIdentityAndReferenceDefects"
+      ],
+      "behavior": "All4 mutation labels: unsupported-runtime, unknown-count, self-dependency, missing-namespace-binding.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_prepared_node_admission.py::test_supported_runtime_choice_on_an_additional_node_is_delivered",
+      "line": 49,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_runtime_test.go::TestPreparedAdditionalNodeDeliversSupportedContainerPrivilege"
+      ],
+      "behavior": "Exact reference branch: additional portable node selects supported container privileged=true; selected delivery and safe snapshot preserve true.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_prepared_node_admission.py::test_retained_additions_are_rechecked_against_changed_capability_limits",
+      "line": 97,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedRetainedAdditionRechecksChangedCapacity"
+      ],
+      "behavior": "Retained additional node counts against changed target capacity.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_prepared_node_admission.py::test_invalid_collection_binding_is_rejected_before_preparation_callback",
+      "line": 137,
+      "status": "covered-native-boundary",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedSelectionOwnsTheOriginalPlanAndChosenProjection"
+      ],
+      "behavior": "Native original handle is sealed and copied; foreign original rejected before methods.",
+      "excluded_assertions": [
+        "Mutable detached request authentication before invoking prepare is runtime adapter scope. Go original cannot be reconstructed by changing collection authority fields."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_prepared_node_semantics.py::test_prepared_node_native_semantic_failure_precedes_apply",
+      "line": 17,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedAdditionalNodeRefusesCapabilityIdentityAndReferenceDefects",
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedAdditionalNodeDeliveryUsesTheSameSafeProjection"
+      ],
+      "behavior": "Native CPU variable, missing service/artifact/ACL network refusals and valid DB service positive.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_prepared_node_semantics.py::test_prepared_node_context_accepts_existing_compiler_owned_artifact_delivery",
+      "line": 85,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedNodeCannotInventGeneratedArtifactEnvironmentDelivery",
+        "implementations/go/processor/prepared_resource_context_test.go::TestPreparedResourceContextChecksLiveOutputAndClosedGrantSemantics"
+      ],
+      "behavior": "Unchanged generated-artifact environment accepted; another node cannot acquire its delivery grant. Exact live output, mode, classification and target joins remain independent.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_prepared_node_semantics.py::test_preparation_validates_original_node_references_not_only_additions",
+      "line": 102,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedOriginalNodeRechecksNativeReferences"
+      ],
+      "behavior": "Original DB service reference valid/missing matrix rechecked in selected live context.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_prepared_credentials.py::test_preparation_cannot_substitute_or_broaden_a_credential_operation",
+      "line": 96,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_credentials_test.go::TestPreparedSelectionKeepsCredentialMaterialAndPurposeFrozen"
+      ],
+      "behavior": "Unchanged account admitted; credential-material and credential-purpose substitutions refused.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_prepared_credentials.py::test_prepared_completion_is_sanitized_under_its_selected_values",
+      "line": 17,
+      "status": "excluded-runtime",
+      "go_tests": [],
+      "behavior": "ApplyResult.details credential egress and previous snapshot fallback.",
+      "excluded_assertions": [
+        "This is not covered by node environment sanitization. Runtime result.details egress/rollback is outside1787; canonical account projection retains its shared contract owner."
+      ]
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_backend_preparation.py::test_backend_selects_supported_completion_before_apply",
+      "line": 107,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedSelectionOwnsTheOriginalPlanAndChosenProjection",
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedDeliveryRequiresTheAdmittedCompletion"
+      ],
+      "behavior": "Admit selected supported choice using immutable native original; exact returned completion compared.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_backend_preparation.py::test_equal_detached_authority_still_applies_the_prepared_completion",
+      "line": 116,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedSelectionOwnsTheOriginalPlanAndChosenProjection",
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedDeliveryRequiresTheAdmittedCompletion"
+      ],
+      "behavior": "Admit selected supported choice using immutable native original; exact returned completion compared.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_backend_preparation.py::test_successful_delivery_must_match_the_admitted_completion",
+      "line": 153,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedSelectionOwnsTheOriginalPlanAndChosenProjection",
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedDeliveryRequiresTheAdmittedCompletion"
+      ],
+      "behavior": "Admit selected supported choice using immutable native original; exact returned completion compared.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_backend_preparation.py::test_prepared_choice_must_belong_to_the_configured_backend_offer",
+      "line": 200,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedOfferUsesNativeRuntimePresence",
+        "implementations/go/contract/admission/realization_offer_test.go::TestRealizationOfferUsesTheConfiguredDomain",
+        "implementations/go/contract/admission/realization_offer_test.go::TestRealizationOfferRetainsTypedPresenceAndClosedRecords",
+        "implementations/go/contract/admission/portable_node_inventory_test.go::TestPortableNodeOfferUsesSuppliedValuesWithoutConstructorSubstitution"
+      ],
+      "behavior": "Configured point offer, closure, independent native typed presence and raw selected values; constructor defaults cannot create offer authority.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_backend_preparation.py::test_preparation_honors_backend_record_closure_not_only_leaf_domains",
+      "line": 209,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedOfferUsesNativeRuntimePresence",
+        "implementations/go/contract/admission/realization_offer_test.go::TestRealizationOfferUsesTheConfiguredDomain",
+        "implementations/go/contract/admission/realization_offer_test.go::TestRealizationOfferRetainsTypedPresenceAndClosedRecords",
+        "implementations/go/contract/admission/portable_node_inventory_test.go::TestPortableNodeOfferUsesSuppliedValuesWithoutConstructorSubstitution"
+      ],
+      "behavior": "Configured point offer, closure, independent native typed presence and raw selected values; constructor defaults cannot create offer authority.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_backend_preparation.py::test_closed_offer_uses_typed_default_presence_for_prepared_values",
+      "line": 221,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedOfferUsesNativeRuntimePresence",
+        "implementations/go/contract/admission/realization_offer_test.go::TestRealizationOfferUsesTheConfiguredDomain",
+        "implementations/go/contract/admission/realization_offer_test.go::TestRealizationOfferRetainsTypedPresenceAndClosedRecords",
+        "implementations/go/contract/admission/portable_node_inventory_test.go::TestPortableNodeOfferUsesSuppliedValuesWithoutConstructorSubstitution"
+      ],
+      "behavior": "Configured point offer, closure, independent native typed presence and raw selected values; constructor defaults cannot create offer authority.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_backend_preparation.py::test_negotiated_preparation_does_not_claim_universal_linux_coverage",
+      "line": 270,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/observation_capabilities_test.go::TestPlannerDefersOnlyNegotiatedOpenOperatingSystemChoice",
+        "implementations/go/contract/admission/realization_offer_diagnostics_test.go::TestRealizationOpenOfferCannotClaimARestrictedDimensionIsUniversal"
+      ],
+      "behavior": "Ordinary universal open request refuses finite offer; negotiated preparation defers only the selected point.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_backend_preparation.py::test_selected_values_must_pass_the_backend_validation_before_apply",
+      "line": 162,
+      "status": "excluded-runtime",
+      "go_tests": [],
+      "behavior": "Full preparation response/request/predecessor receipt, validation callback order, diagnostics recovery.",
+      "excluded_assertions": [
+        "CheckPreparedSelection accepts a ProvisioningPlan and exact original; it does not consume RealizationPreparationResponse or invoke prepare/validate/apply. Pure selection subpredicates are mapped separately."
+      ]
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_backend_preparation.py::test_preparation_and_validation_warnings_survive_successful_apply",
+      "line": 177,
+      "status": "excluded-runtime",
+      "go_tests": [],
+      "behavior": "Full preparation response/request/predecessor receipt, validation callback order, diagnostics recovery.",
+      "excluded_assertions": [
+        "CheckPreparedSelection accepts a ProvisioningPlan and exact original; it does not consume RealizationPreparationResponse or invoke prepare/validate/apply. Pure selection subpredicates are mapped separately."
+      ]
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_backend_preparation.py::test_preparation_cannot_be_replayed_for_a_new_operation",
+      "line": 311,
+      "status": "excluded-runtime",
+      "go_tests": [],
+      "behavior": "Full preparation response/request/predecessor receipt, validation callback order, diagnostics recovery.",
+      "excluded_assertions": [
+        "CheckPreparedSelection accepts a ProvisioningPlan and exact original; it does not consume RealizationPreparationResponse or invoke prepare/validate/apply. Pure selection subpredicates are mapped separately."
+      ]
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_backend_preparation.py::test_mutated_preparation_carriers_fail_before_apply",
+      "line": 289,
+      "status": "excluded-runtime",
+      "go_tests": [],
+      "behavior": "Full preparation response/request/predecessor receipt, validation callback order, diagnostics recovery.",
+      "excluded_assertions": [
+        "CheckPreparedSelection accepts a ProvisioningPlan and exact original; it does not consume RealizationPreparationResponse or invoke prepare/validate/apply. Pure selection subpredicates are mapped separately."
+      ]
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_backend_preparation.py::test_invalid_preparation_never_reaches_apply",
+      "line": 141,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_runtime_test.go::TestPreparedOriginalNodeRefusesMalformedEngineAndRenamedDatabaseIdentity/engine",
+        "implementations/go/processor/planning/prepared_runtime_test.go::TestPreparedOriginalNodeRefusesMalformedEngineAndRenamedDatabaseIdentity/database_service_id"
+      ],
+      "behavior": "Exact pure parameters: supported sqlite/db original-node completion accepted; unqualified-private-engine and renamed database_service_id independently refused. Corrupt preparation response request_digest is runtime receipt admission.",
+      "excluded_assertions": [
+        "Runtime prepare/apply counts, rollback, response request_digest binding and result diagnostics are outside1787. Only the engine and identity parameters are claimed by these exact public planner tests."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_resource_collections.py::test_prepared_extra_node_delivery_cannot_change_the_admitted_completion",
+      "line": 148,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedAdditionalNodeDeliveryUsesTheSameSafeProjection",
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedAdditionalNodeDeliveryPreservesSelectedDNSOrder"
+      ],
+      "behavior": "Missing extra entry, changed engine and reversed selected DNS sequence refused.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_resource_collections.py::test_open_collection_retains_prepared_nodes_until_closure_is_revoked",
+      "line": 239,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/preparation_test.go::TestNegotiatedOpenNodeCollectionRetainsExistingMembers"
+      ],
+      "behavior": "Open collection retains previous member, closure emits delete; projected preparation carries complete collection authority plus manifest commitment. Detached runtime carrier authentication excluded.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_resource_collections.py::test_collection_authority_roundtrip_is_in_the_authenticated_plan_commitment",
+      "line": 58,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/preparation_test.go::TestNegotiatedOpenNodeCollectionRetainsExistingMembers"
+      ],
+      "behavior": "Open collection retains previous member, closure emits delete; projected preparation carries complete collection authority plus manifest commitment. Detached runtime carrier authentication excluded.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_resource_collections.py::test_only_enclosing_collection_openness_admits_a_sixth_member",
+      "line": 42,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedCollectionRejectsAnExtraNonportableResource",
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedOpenCollectionAdmitsACompletePortableNode",
+        "implementations/go/contract/admission/portable_node_inventory_test.go::TestPortableNodeInventoryReusesCanonicalIdentityAndReferences"
+      ],
+      "behavior": "Portable node collection/enclosing authority, canonical identities, target capabilities and reference joins.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1204_resource_collections.py::test_prepared_nodes_require_enclosing_membership_and_known_capability_before_apply",
+      "line": 121,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedCollectionRejectsAnExtraNonportableResource",
+        "implementations/go/processor/planning/prepared_selection_test.go::TestPreparedOpenCollectionAdmitsACompletePortableNode",
+        "implementations/go/contract/admission/portable_node_inventory_test.go::TestPortableNodeInventoryReusesCanonicalIdentityAndReferences"
+      ],
+      "behavior": "Portable node collection/enclosing authority, canonical identities, target capabilities and reference joins.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1241_materialization_context.py::test_negotiated_plan_retains_full_source_not_only_compiled_resources",
+      "line": 31,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/materialization_test.go::TestMaterializationReportingKeepsFullNativeSourceAndScope",
+        "implementations/go/contract/admission/materialization_execution_test.go::TestMaterializationExecutionBindsIndependentPlanOriginsAndInventory"
+      ],
+      "behavior": "Complete native source/target scope and protected source identity retained; altered source refuses.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1241_materialization_context.py::test_tampered_source_cannot_reuse_the_original_input_identity",
+      "line": 46,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/materialization_test.go::TestMaterializationReportingKeepsFullNativeSourceAndScope",
+        "implementations/go/contract/admission/materialization_execution_test.go::TestMaterializationExecutionBindsIndependentPlanOriginsAndInventory"
+      ],
+      "behavior": "Complete native source/target scope and protected source identity retained; altered source refuses.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1242_scope_admission.py::test_explicit_policy_requires_negotiated_enforcement",
+      "line": 39,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/materialization_test.go::TestExplicitAugmentationScopeRequiresNegotiatedReporting"
+      ],
+      "behavior": "Explicit open/closed policy requires scope negotiation; omission preserves prior negotiation.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1242_scope_admission.py::test_omitted_policy_preserves_previous_negotiation",
+      "line": 45,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/materialization_test.go::TestExplicitAugmentationScopeRequiresNegotiatedReporting"
+      ],
+      "behavior": "Explicit open/closed policy requires scope negotiation; omission preserves prior negotiation.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1242_scope_admission.py::test_closed_scope_refusal_names_the_needed_effect_and_requirement",
+      "line": 78,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/contract/admission/augmentation_preparation_test.go::TestAugmentationPreparationMatchesIndependentPureReference"
+      ],
+      "behavior": "15 independent Python vectors: request/target/predecessor binding, exact diff/effect coverage, policy preservation, canonical refs, all scopes, ordinary OS, keyed reorder and closed child erasure.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1242_scope_admission.py::test_open_scope_accepts_the_same_in_world_effect",
+      "line": 92,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/contract/admission/augmentation_preparation_test.go::TestAugmentationPreparationMatchesIndependentPureReference"
+      ],
+      "behavior": "15 independent Python vectors: request/target/predecessor binding, exact diff/effect coverage, policy preservation, canonical refs, all scopes, ordinary OS, keyed reorder and closed child erasure.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1242_scope_admission.py::test_unbound_incomplete_or_permission_changing_reports_are_refused",
+      "line": 102,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/contract/admission/augmentation_preparation_test.go::TestAugmentationPreparationMatchesIndependentPureReference"
+      ],
+      "behavior": "15 independent Python vectors: request/target/predecessor binding, exact diff/effect coverage, policy preservation, canonical refs, all scopes, ordinary OS, keyed reorder and closed child erasure.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1242_scope_admission.py::test_scope_checks_all_impacts_not_only_installation_location",
+      "line": 119,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/contract/admission/augmentation_preparation_test.go::TestAugmentationPreparationMatchesIndependentPureReference"
+      ],
+      "behavior": "15 independent Python vectors: request/target/predecessor binding, exact diff/effect coverage, policy preservation, canonical refs, all scopes, ordinary OS, keyed reorder and closed child erasure.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1242_scope_admission.py::test_ordinary_delegated_os_selection_does_not_need_addition_permission",
+      "line": 130,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/contract/admission/augmentation_preparation_test.go::TestAugmentationPreparationMatchesIndependentPureReference"
+      ],
+      "behavior": "15 independent Python vectors: request/target/predecessor binding, exact diff/effect coverage, policy preservation, canonical refs, all scopes, ordinary OS, keyed reorder and closed child erasure.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1242_scope_admission.py::test_closed_keyed_member_follows_its_identity_across_reordering",
+      "line": 156,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/contract/admission/augmentation_preparation_test.go::TestAugmentationPreparationMatchesIndependentPureReference"
+      ],
+      "behavior": "15 independent Python vectors: request/target/predecessor binding, exact diff/effect coverage, policy preservation, canonical refs, all scopes, ordinary OS, keyed reorder and closed child erasure.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1242_scope_admission.py::test_replacing_an_open_ancestor_cannot_erase_a_closed_child",
+      "line": 193,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/contract/admission/augmentation_preparation_test.go::TestAugmentationPreparationMatchesIndependentPureReference"
+      ],
+      "behavior": "15 independent Python vectors: request/target/predecessor binding, exact diff/effect coverage, policy preservation, canonical refs, all scopes, ordinary OS, keyed reorder and closed child erasure.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1242_scope_admission.py::test_preparation_bounds_aggregate_scope_resolution_work",
+      "line": 224,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/contract/admission/augmentation_preparation_test.go::TestAugmentationReportBoundsScopeResolutionBeforeEncoding"
+      ],
+      "behavior": "16384 ref/scope work accepted;16385 refused before encoding.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1242_review_regressions.py::test_composition_uses_native_member_identity_and_rejects_overlapping_ownership",
+      "line": 225,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/contract/admission/materialization_composition_test.go::TestMaterializationCompositionKeepsNativeIdentityAndProducerOwnership",
+        "implementations/go/contract/admission/materialization_composition_test.go::TestMaterializationCompositionRefusesMalformedAndUnboundedPhaseData"
+      ],
+      "behavior": "3-way composition uses existing native identities/order; overlapping producer leaf/member ownership, malformed/oversized inputs refuse.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1241_materialization_origins.py::test_new_environment_entry_is_not_an_authored_node_replacement",
+      "line": 30,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/contract/admission/materialization_reference_test.go::TestMaterializationAddressesAndDifferencesMatchPython",
+        "implementations/go/contract/admission/materialization_collection_projection_test.go::TestMaterializationDifferencesKeepNestedNativeInventoryIdentity"
+      ],
+      "behavior": "Existing248 independent address/diff vectors and nested database keyed reorder regression. Native source/import construction remains SDL ownership.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1241_materialization_origins.py::test_keyed_environment_reordering_preserves_authored_origins",
+      "line": 40,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/contract/admission/materialization_reference_test.go::TestMaterializationAddressesAndDifferencesMatchPython",
+        "implementations/go/contract/admission/materialization_collection_projection_test.go::TestMaterializationDifferencesKeepNestedNativeInventoryIdentity"
+      ],
+      "behavior": "Existing248 independent address/diff vectors and nested database keyed reorder regression. Native source/import construction remains SDL ownership.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1241_materialization_origins.py::test_changed_keyed_member_tracks_both_original_and_materialized_positions",
+      "line": 60,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/contract/admission/materialization_reference_test.go::TestMaterializationAddressesAndDifferencesMatchPython",
+        "implementations/go/contract/admission/materialization_collection_projection_test.go::TestMaterializationDifferencesKeepNestedNativeInventoryIdentity"
+      ],
+      "behavior": "Existing248 independent address/diff vectors and nested database keyed reorder regression. Native source/import construction remains SDL ownership.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1241_materialization_origins.py::test_ordered_commands_are_not_treated_as_an_unordered_inventory",
+      "line": 87,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/contract/admission/materialization_reference_test.go::TestMaterializationAddressesAndDifferencesMatchPython",
+        "implementations/go/contract/admission/materialization_collection_projection_test.go::TestMaterializationDifferencesKeepNestedNativeInventoryIdentity"
+      ],
+      "behavior": "Existing248 independent address/diff vectors and nested database keyed reorder regression. Native source/import construction remains SDL ownership.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1241_materialization_origins.py::test_origin_claims_must_exactly_account_for_actual_differences",
+      "line": 96,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/contract/admission/materialization_reference_test.go::TestMaterializationAddressesAndDifferencesMatchPython",
+        "implementations/go/contract/admission/materialization_collection_projection_test.go::TestMaterializationDifferencesKeepNestedNativeInventoryIdentity"
+      ],
+      "behavior": "Existing248 independent address/diff vectors and nested database keyed reorder regression. Native source/import construction remains SDL ownership.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1241_materialization_origins.py::test_replaced_keyed_member_has_distinct_removed_and_added_origins_at_same_index",
+      "line": 114,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/contract/admission/materialization_reference_test.go::TestMaterializationAddressesAndDifferencesMatchPython",
+        "implementations/go/contract/admission/materialization_collection_projection_test.go::TestMaterializationDifferencesKeepNestedNativeInventoryIdentity"
+      ],
+      "behavior": "Existing248 independent address/diff vectors and nested database keyed reorder regression. Native source/import construction remains SDL ownership.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1241_materialization_origins.py::test_login_wrapper_and_rewritten_rule_corpus_have_their_own_origins",
+      "line": 130,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/contract/admission/materialization_reference_test.go::TestMaterializationAddressesAndDifferencesMatchPython",
+        "implementations/go/contract/admission/materialization_collection_projection_test.go::TestMaterializationDifferencesKeepNestedNativeInventoryIdentity"
+      ],
+      "behavior": "Existing248 independent address/diff vectors and nested database keyed reorder regression. Native source/import construction remains SDL ownership.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1241_materialization_origins.py::test_imported_source_identity_survives_realization_diff",
+      "line": 181,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/contract/admission/materialization_reference_test.go::TestMaterializationAddressesAndDifferencesMatchPython",
+        "implementations/go/contract/admission/materialization_collection_projection_test.go::TestMaterializationDifferencesKeepNestedNativeInventoryIdentity"
+      ],
+      "behavior": "Existing248 independent address/diff vectors and nested database keyed reorder regression. Native source/import construction remains SDL ownership.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1241_materialization_inventory.py::test_replica_cardinality_is_bounded_before_enumerating_indices",
+      "line": 46,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/contract/admission/materialization_refusal_test.go::TestMaterializationExecutionRefusesChangedScopeOriginsAndReplicaGaps/replica-count"
+      ],
+      "behavior": "Shared materialization node-binding owner checks cardinality before constructing instance indices; named replica-count regression supplies count1000000 and refuses.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1276_random_value_generation.py::test_per_run_regenerates_on_new_run",
+      "line": 509,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/regeneration_test.go::TestRandomValuesReconcileAgainstAuthoritativeScope"
+      ],
+      "behavior": "Authoritative run identity absent/same/different: refusal, unchanged or update.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1276_random_value_generation.py::test_per_run_retained_within_same_run",
+      "line": 518,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/regeneration_test.go::TestRandomValuesReconcileAgainstAuthoritativeScope"
+      ],
+      "behavior": "Authoritative run identity absent/same/different: refusal, unchanged or update.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1276_random_value_generation.py::test_per_run_without_run_identity_fails_before_mutation",
+      "line": 539,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/regeneration_test.go::TestRandomValuesReconcileAgainstAuthoritativeScope"
+      ],
+      "behavior": "Authoritative run identity absent/same/different: refusal, unchanged or update.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1276_random_value_generation.py::test_per_instantiation_regenerates_on_new_instance",
+      "line": 525,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/regeneration_test.go::TestRandomValueOnceAndInstantiationScopesKeepTheirOwnIdentity"
+      ],
+      "behavior": "Instantiation identity absent/same/different; once stable across changing run/instantiation IDs.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1276_random_value_generation.py::test_once_is_stable_across_runs",
+      "line": 533,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/regeneration_test.go::TestRandomValueOnceAndInstantiationScopesKeepTheirOwnIdentity"
+      ],
+      "behavior": "Instantiation identity absent/same/different; once stable across changing run/instantiation IDs.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1276_random_value_generation.py::test_per_instantiation_without_identity_fails",
+      "line": 544,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/regeneration_test.go::TestRandomValueOnceAndInstantiationScopesKeepTheirOwnIdentity"
+      ],
+      "behavior": "Instantiation identity absent/same/different; once stable across changing run/instantiation IDs.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    },
+    {
+      "reference": "implementations/python/tests/test_issue_1299_partial_listeners.py::test_sparse_listener_preparation_cannot_satisfy_exact_protocol",
+      "line": 172,
+      "status": "covered-pure-invariant",
+      "go_tests": [
+        "implementations/go/processor/planning/prepared_listeners_test.go::TestPreparedSparseListenerCannotBorrowTheNativeDefaultProtocol"
+      ],
+      "behavior": "Authored exact TCP baseline accepted; candidate missing protocol cannot borrow native constructor default.",
+      "excluded_assertions": [
+        "Only the pure predicate/projection is mapped. Backend callbacks, apply results, rollback, persistence and runtime diagnostic transport in the Python wrapper are outside this row."
+      ],
+      "in_scope_status": "covered"
+    }
+  ],
+  "remaining_known_pure_implementation_gaps": [],
+  "evidence_policy": "Coverage describes the named pure invariant/native API boundary and exact finite inputs, not every runtime assertion in a mixed Python function. Source/fixture hashes pin this audit. Source-level owner audit covers all31 planner modules; separately owned compiler and realization maps are required for complete1787 scope.",
+  "verified_characterizations": [
+    {
+      "test": "TestPreparedSelectionKeepsCredentialMaterialAndPurposeFrozen",
+      "result": "pass",
+      "seconds": 7.009,
+      "red_first": false
+    },
+    {
+      "test": "TestRandomValueOnceAndInstantiationScopesKeepTheirOwnIdentity",
+      "result": "pass",
+      "seconds": 6.084,
+      "red_first": false
+    },
+    {
+      "test": "TestPreparedSparseListenerCannotBorrowTheNativeDefaultProtocol",
+      "result": "pass",
+      "seconds": 7.085,
+      "red_first": false
+    },
+    {
+      "test": "TestPreparedAdditionalNodeDeliversSupportedContainerPrivilege",
+      "result": "pass",
+      "seconds": 7.037,
+      "red_first": false
+    },
+    {
+      "test": "TestPreparedOriginalNodeRefusesMalformedEngineAndRenamedDatabaseIdentity",
+      "result": "pass",
+      "seconds": 6.693,
+      "red_first": false
+    }
+  ],
+  "remaining_known_pure_test_gaps": []
+}

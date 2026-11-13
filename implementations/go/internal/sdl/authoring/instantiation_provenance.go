@@ -3,13 +3,10 @@ package authoring
 import (
 	"bytes"
 	"encoding/json"
-	"maps"
 	"slices"
 	"strings"
 
 	"github.com/OpenRAE/rae/implementations/go/internal/base/domain"
-	"github.com/OpenRAE/rae/implementations/go/internal/base/jsonpointer"
-	"github.com/OpenRAE/rae/implementations/go/internal/sdl/source"
 )
 
 type concreteBinding struct {
@@ -234,30 +231,6 @@ func (p *Parser) concreteOutputMatches(root map[string]any, pointer string, valu
 	if domain.Equal(concrete, value) {
 		return true
 	}
-	tokens := jsonpointer.Tokens(pointer)
-	if len(tokens) < 2 {
-		return false
-	}
-	parentPointer := jsonpointer.FromTokens(tokens[:len(tokens)-1])
-	parent, present := provenancePointer(root, parentPointer)
-	owner := object(parent)
-	if !present || owner == nil {
-		return false
-	}
-	queries := newScopeQueries(p, instantiatedContract, root)
-	surface, err := queries.surface(parentPointer)
-	if err != nil || surface.definition == "#" {
-		return false
-	}
-	if _, model := p.lookupLayout(instantiatedContract, surface.definition); !model {
-		return false
-	}
-	candidate := maps.Clone(owner)
-	candidate[tokens[len(tokens)-1]] = value
-	walk := normalizer{parser: p, id: instantiatedContract, workingLimit: compositionJSONWork(p.limits)}
-	normalized, err := walk.walk(resolve(p.schemas[instantiatedContract], surface.definition), surface.definition, candidate, nil, scalarPolicy{}, source.View{})
-	if err != nil {
-		return false
-	}
-	return domain.Equal(concrete, object(modelValue(normalized))[tokens[len(tokens)-1]])
+	normalized, err := p.concreteOutputValue(root, pointer, value)
+	return err == nil && domain.Equal(concrete, normalized)
 }

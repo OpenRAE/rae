@@ -1,12 +1,107 @@
 package realization
 
-import "github.com/OpenRAE/rae/implementations/go/contract/admission"
+import (
+	"github.com/OpenRAE/rae/implementations/go/contract/admission"
+	"github.com/OpenRAE/rae/implementations/go/contract/binding"
+	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
+	"github.com/OpenRAE/rae/implementations/go/sdl"
+)
 
 type Descriptor struct {
 	Kind     string
 	Document admission.Fragment
+	Section string
+	AuthoredPath, PayloadPath, IdentityFields []string
 }
+
+type Requirement struct {
+ source any
+	Address, FieldPath, Kind, Domain, GoverningScope, Provenance string
+	Posture                                                   *string
+	ValueDomain, Constraint, Structure                         admission.Fragment
+	ArtifactRequirement                                       *binding.ArtifactRequirementV1
+	ObservationScope, ObservationStrength                      string
+	RecursivePending, Delegated                                bool
+	ConstraintProvenance, ConstraintBinding                     string
+	StructureError                                             bool
+	ValueConstraints                                           []ValueConstraint
+	ProcessResourceLimits                                      []ProcessResourceLimit
+}
+type ValueConstraint struct {
+	IdentityDigest, Leaf string
+	Parameter []string
+	AllowedValues admission.Fragment
+}
+type ProcessResourceLimit struct {
+	IdentityDigest, Resource, Scope string
+	Soft, Hard admission.Fragment
+}
+type Authority struct {
+	Address, FieldPath, Concern, Posture, Provenance string
+	Constraint                                      admission.Fragment
+	Domain, Source, GoverningScope                  string
+	PayloadPath                                    []string
+	ObservationScope, ObservationStrength           string
+	Delegated                                      bool
+}
+type Resolution struct {
+	Requirements []Requirement
+	Authority    []Authority
+	Diagnostics  []diagnostic.Diagnostic
+}
+type Decision struct{ Address, FieldPath, Kind, Closure string }
+type ResolveOptions struct {
+	Manifest binding.BackendManifestV2
+	Envelope *binding.RealizationEnvelopeV1
+	Decisions []Decision
+}
+
+func Compile(scenario sdl.InstantiatedScenario) (Resolution, error)
+func AdmitRequirement(requirement Requirement) (admission.Fragment, error)
+func Resolve(requirements []Requirement, authority []Authority, options ResolveOptions) (Resolution, error)
+func Equivalent(requirements []Requirement, address string, before, after admission.Fragment) (bool, error)
+func SanitizeSnapshot(requirements []Requirement, snapshot binding.RuntimeSnapshotV1) (binding.RuntimeSnapshotV1, error)
 
 func ProjectConcern(kind string, value admission.Fragment, observed, recursive bool) (admission.Fragment, error)
 func ConcernDescriptors() []Descriptor
 func HasRequiredObservationSupport(requirement admission.Fragment, declarations []admission.Fragment, observationKind string) (bool, error)
+
+func CompileSoftwareProfiles(scenario sdl.Scenario, existing *binding.PlanRealizationProfilesV1) (*binding.PlanRealizationProfilesV1,error)
+
+type NodeCollectionMember struct { Address, Kind, Name string }
+func CompileNodeCollection(scenario sdl.Scenario, members []NodeCollectionMember) (admission.Fragment,error)
+func NodeCollectionAdmits(authority admission.Fragment, members []NodeCollectionMember) (bool,error)
+
+type EvaluationOptions struct {
+ Manifest *binding.BackendManifestV2
+ Envelope *binding.RealizationEnvelopeV1
+ ArtifactAvailability []ArtifactAvailability
+}
+type Provenance struct {
+ Address, FieldPath, Domain, Kind, Posture, Provenance, GoverningScope string
+ ArtifactSatisfaction admission.Fragment
+}
+type Evaluation struct {
+ Diagnostics []diagnostic.Diagnostic
+ Provenance []Provenance
+}
+func Evaluate(requirements []Requirement,plan binding.ProvisioningPlanV1,snapshot binding.RuntimeSnapshotV1,options EvaluationOptions) (Evaluation,error)
+
+type ArtifactAvailability struct {
+ Address string
+ AvailableArtifactDigests, AvailableCandidateIDs, VerifiedLockedInputIDs, SatisfiedConstraintIDs []string
+ AvailableMaterializationSpecificationDigests []string
+ VerifiedIntegrityRefs, VerifiedAuthenticityRefs, VerifiedAdmissionRefs, VerifiedProvenanceRefs, VerifiedEvidenceRefs []string
+}
+func ArtifactSupport(requirements []Requirement,manifest binding.BackendManifestV2,availability []ArtifactAvailability)([]diagnostic.Diagnostic,error)
+
+func SelectionAdmits(requirement Requirement,expected,actual admission.Fragment)(bool,error)
+
+func CompilePreparedNode(node admission.Fragment,name,compiledAddress string)(admission.Fragment,[]Requirement,map[string][]string,error)
+
+func SanitizePreparedNodeSnapshot(addresses []string,snapshot binding.RuntimeSnapshotV1)(binding.RuntimeSnapshotV1,error)
+
+func PlannedAuthorityDiagnostics(plan binding.ProvisioningPlanV1,options EvaluationOptions)([]diagnostic.Diagnostic,error)
+func PlannedRequirements(plan binding.ProvisioningPlanV1)([]Requirement,error)
+func EvaluatePlanned(plan binding.ProvisioningPlanV1,snapshot binding.RuntimeSnapshotV1,options EvaluationOptions)(Evaluation,error)
+func CleanupPlannedDiagnostics(plan binding.ProvisioningPlanV1,snapshot binding.RuntimeSnapshotV1,requirements []Requirement,options EvaluationOptions)([]diagnostic.Diagnostic,error)

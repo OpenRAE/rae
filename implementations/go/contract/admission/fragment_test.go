@@ -118,3 +118,17 @@ func TestFragmentsRefuseUnboundedOrUnknownInput(t *testing.T) {
 		})
 	}
 }
+
+func TestScalarFragmentByteCeilingDoesNotOverflow(t *testing.T) {
+	owner, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	maximum := int(^uint(0) >> 1)
+	if _, err := AdmitFragment(owner, RealizationValue, "example", ingress.Limits{MaxBytes: maximum, MaxDepth: 8}); err != nil {
+		t.Fatalf("wide byte ceiling overflowed: %v", err)
+	}
+	if _, err := AdmitFragment(owner, RealizationValue, "example", ingress.Limits{MaxBytes: 3, MaxDepth: 8}); err == nil {
+		t.Fatal("encoded byte ceiling bypassed")
+	}
+}

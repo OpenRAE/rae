@@ -13,7 +13,7 @@ func (r *materializationInventory) capabilities() error {
 		return err
 	}
 	pin := at(r.execution.manifest, "realization_envelope")
-	if !matchingFields(pin, envelope, "contract_id", termSchemaVersion, "digest") || !equal(at(pin, "envelope_id"), at(envelope, "id")) || !equal(at(pin, "configuration_digest"), at(envelope, termConfiguration, "configuration_digest")) {
+	if !materializationEnvelopeMatches(pin, envelope) {
 		return invalid()
 	}
 	r.envelope = envelope

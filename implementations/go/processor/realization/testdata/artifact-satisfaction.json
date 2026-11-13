@@ -1,0 +1,37 @@
+{
+  "requirement_id": "web-image",
+  "artifact": {
+    "artifact_id": "ubuntu-server",
+    "version": "24.04.1",
+    "digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "media_type": "application/vnd.oci.image.manifest.v1+json"
+  },
+  "mechanism": {
+    "mechanism": "exact-artifact",
+    "profile": "raes-artifact-satisfaction",
+    "version": "1",
+    "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "acquisition": "pull",
+  "timing": "realization",
+  "backend": {
+    "name": "stub",
+    "version": "10.2.0"
+  },
+  "candidate_id": null,
+  "materialization_specification_id": null,
+  "materialization_specification_digest": null,
+  "satisfied_constraint_ids": [],
+  "locked_input_ids": [],
+  "integrity_refs": [
+    "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  ],
+  "authenticity_refs": [],
+  "admission_refs": [
+    "reusable-asset-trust-policy-v1#reusable_scenario"
+  ],
+  "provenance_refs": [
+    "provenance:stub"
+  ],
+  "evidence_refs": []
+}

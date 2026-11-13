@@ -1,10 +1,14 @@
 {
   "implemented": [
     "canonical encode",
+    "cli processor manifest",
+    "cli processor plan",
+    "cli processor reconcile",
     "cli sdl format",
     "cli sdl publish",
     "cli sdl resolve",
     "cli sdl verify-imports",
+    "cli semantic compile",
     "cli semantic normalize",
     "cli semantic resolve",
     "cli semantic transform",

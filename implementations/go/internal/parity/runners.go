@@ -18,6 +18,10 @@ import (
 // its runner. Each Go port adds the commands that it implements.
 func runners() map[string]Runner {
 	return map[string]Runner{
+		"cli processor manifest":      processorManifestRunner(),
+		"cli processor plan":          processorPlanRunner(),
+		"cli processor reconcile":     processorReconcileRunner(),
+		"cli semantic compile":        semanticOperationRunner(),
 		"cli sdl format":              formatRunner(),
 		"cli sdl resolve":             moduleOperationRunner(),
 		"cli sdl verify-imports":      moduleOperationRunner(),

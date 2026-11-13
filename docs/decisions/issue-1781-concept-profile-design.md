@@ -320,7 +320,7 @@ Each line below commits this design to that interface.
 
 <!-- go-api implementations/go/contract/concept 5b24a390561afe25669d9a5b1c4bfba93e374fe1f5c005e8c22c5e32fa2882a0 -->
 
-<!-- go-api implementations/go/contract/profile 50a25c6f86bb5a965fa3372cb8319bee0cd7e64d2861a8bdab3a1a6a77fa7d6a -->
+<!-- go-api implementations/go/contract/profile d8e3563239001963042a1a71465b832b0171cc1c81573d0ecc5f45559e4a1461 -->
 
 <!-- go-api implementations/go/internal/contract/domainprofile 1e611b77eb3507157548369c33197223032cef8639f34cc59147901f53624b9c -->
 
@@ -408,3 +408,5 @@ Each input limit, security check, error case and defect case in the Python tests
 - [ADR-072](adrs/adr-072-validation-and-admission-profiles.md)
 - [ADR-081](adrs/adr-081-behavioral-relation-taxonomy-and-claim-discipline.md)
 - [ADR-122](adrs/adr-122-go-architecture-model.md)
+
+Issue #1787 adds `AdmitComparisonProfile` to re-admit a copied profile through the same closed decoder and normalized digest owner before analysis.

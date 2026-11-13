@@ -24,3 +24,20 @@ func TestSDLObservationScopeUsesStableIdentity(t *testing.T) {
 		t.Fatal("duplicate identity accepted")
 	}
 }
+
+func TestSDLObservationScopeReusesRegisteredCollectionIdentity(t *testing.T) {
+	value := map[string]any{"nodes": map[string]any{"server": map[string]any{"runtime": map[string]any{"environment": []any{map[string]any{"name": "PUBLIC", "value": "example"}}}}}}
+	profiles := []RealizationCollectionProfile{{FieldPointer: "/nodes/server/runtime/environment", CollectionKind: "runtime-environment", IdentityFields: []string{"name"}, Closure: RealizationClosure{Posture: "closed", Universe: "sdl-collection-members/v1", Profile: "recursive-realization-constraint/v1"}}}
+	source, scope, err := ResolveSDLObservationScopeWithProfiles(value, "/nodes/server/runtime/environment/0/value", profiles)
+	if err != nil || source != "/nodes/server/runtime/environment/0/value" || !strings.Contains(scope, "/@sha256:") {
+		t.Fatalf("%s %s %v", source, scope, err)
+	}
+	again, canonical, err := ResolveSDLObservationScopeWithProfiles(value, scope, profiles)
+	if err != nil || again != source || canonical != scope {
+		t.Fatalf("unstable identity: %s %s %v", again, canonical, err)
+	}
+	profiles = append(profiles, profiles[0])
+	if _, _, err := ResolveSDLObservationScopeWithProfiles(value, source, profiles); err == nil {
+		t.Fatal("duplicate profile accepted")
+	}
+}
