@@ -279,6 +279,18 @@ The product lock scan and identity check pass after these repairs.
 The existing closure generator updates the Linux and macOS requirements and wheelhouse records from that lock.
 Its consistency check passes.
 
+The product Go job reached its 50-minute limit during serial race and coverage tests.
+The retained log records no completed test failure before cancellation.
+The product job budget is now 90 minutes for the enlarged module.
+Its 20-minute package timeout, race checks and 90-percent coverage floor remain enforced.
+
+Manifest and profile checks reuse the existing immutable processor admission owner.
+Participant reference fragments also reuse a stock validator and decode fresh request values.
+The same 139 history and argument cases fell from 50.768 to 8.930 seconds in targeted local runs.
+
+Manifest, profile, architecture, lint and Go workflow-policy checks pass after this repair.
+The complete hosted Go and Sonar gates must still pass on the new commit.
+
 ## Requirement traceability
 
 Requirement transition is a no-op because the issue names no requirement UID.

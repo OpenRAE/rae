@@ -212,7 +212,7 @@ func (state *compilerState) admitProfileAuthority(supplied *binding.PlanRealizat
 	if err := admission.CheckTransport(supplied, limits); err != nil {
 		return err
 	}
-	validator, err := admission.New()
+	validator, err := processorAdmissionOwner()
 	if err != nil {
 		return err
 	}

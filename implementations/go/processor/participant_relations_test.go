@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"os"
+	"sync"
 	"testing"
 
 	"github.com/OpenRAE/rae/implementations/go/base/fault"
@@ -46,9 +47,12 @@ func participantRelations(t *testing.T) participantRelationVectors {
 	}
 	return result
 }
+
+var participantReferenceOwner = sync.OnceValues(admission.New) //nolint:gochecknoglobals // The stock validator is immutable; each request still decodes fresh values.
+
 func participantFragment(t *testing.T, profile admission.FragmentProfile, raw []byte) (admission.Fragment, error) { //nolint:ireturn // The test exercises the sealed fragment owner.
 	t.Helper()
-	owner, err := admission.New()
+	owner, err := participantReferenceOwner()
 	if err != nil {
 		t.Fatal(err)
 	}

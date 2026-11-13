@@ -976,6 +976,16 @@ Its observation-demand output stays empty.
 Relations still require an explicit authored owner.
 Descriptive compilation cannot silently ignore that obligation.
 
+## Packaged validation and verification budget
+
+The processor reuses its existing immutable packaged admission owner for manifest and profile checks.
+Only stock schemas, catalogs and rules are shared.
+Each request still owns its input, context, findings and returned projections.
+Reference fragment tests also share an immutable validator while decoding fresh request values.
+
+The product CI job allows 90 minutes for serial race and coverage verification.
+Its package timeout remains 20 minutes and its statement coverage floor remains 90 percent.
+
 ## Retained import authority
 
 The native `authoring.Request.LocalTrust module.TrustPolicy` retains the caller policy through composition.

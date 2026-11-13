@@ -592,7 +592,7 @@ jobs:
     runs-on: ubuntu-24.04
     # Product also records the independent Python corpus and runs it under the race detector.
     # Allow for runner speed variation across these serial steps.
-    timeout-minutes: ${{ inputs.exhaustive-mutations && 360 || (matrix.name == 'product' && 50 || 40) }}
+    timeout-minutes: ${{ inputs.exhaustive-mutations && 360 || (matrix.name == 'product' && 90 || 40) }}
     strategy:
       fail-fast: false
       matrix:

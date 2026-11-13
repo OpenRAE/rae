@@ -7,7 +7,6 @@ import (
 
 	"github.com/OpenRAE/rae/implementations/go/base/fault"
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
-	"github.com/OpenRAE/rae/implementations/go/contract/admission"
 	"github.com/OpenRAE/rae/implementations/go/contract/binding"
 )
 
@@ -87,7 +86,7 @@ func Manifest(version string, compatibleBackends []string) (binding.ProcessorMan
 	if err != nil {
 		return invalid()
 	}
-	validator, err := admission.New()
+	validator, err := processorAdmissionOwner()
 	if err != nil {
 		return binding.ProcessorManifestV2{}, err
 	}
