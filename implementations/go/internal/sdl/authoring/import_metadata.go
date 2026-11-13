@@ -26,13 +26,7 @@ func newImportFacts(document *Document, value map[string]any) (*importFacts, err
 	}
 	captureEntityOrigins(result.origins, document.source.View().Child(entitiesField), "", []string{entitiesField}, document.sourceName)
 	if realization := object(value["realization"]); realization != nil {
-		posture := realization[defaultField]
-		if posture == nil {
-			posture = termUnspecified
-		}
-		root := map[string]any{namespaceField: []any{}, fieldPointerField: "", "posture": posture}
-		result.designation = append(result.designation, root)
-		result.designation = append(result.designation, array(realization[scopesField])...)
+		result.designation = authoredDesignations(value)
 		result.realization = append(result.realization, array(realization["constraints"])...)
 	}
 	return result, nil

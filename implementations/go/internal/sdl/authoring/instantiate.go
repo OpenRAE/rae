@@ -93,12 +93,34 @@ func (p *Parser) instantiate(document *Document, parameters map[string]any, prof
 		delete(provenance, termParameterDerivations)
 	}
 	payload["instantiation_provenance"] = provenance
-	encoded, err := encode(payload, compositionJSONWork(p.limits), false)
+	encoded, err := encode(instantiationOrder(payload, "", facts.order), compositionJSONWork(p.limits), false)
 	if err != nil {
 		return nil, err
 	}
 	result, err := p.admitInstantiated(encoded, input)
 	return result, instantiationFailure(err)
+}
+
+// Keep declaration order through binding. The payload is already bounded by
+// source admission and substitution; the JSON writer still enforces its byte
+// ceiling. Sorting a map here would change subsequent compiler finding order.
+func instantiationOrder(input any, pointer string, order map[string][]string) any {
+	switch v := input.(type) {
+	case map[string]any:
+		result := make(ordered, 0, len(v))
+		for _, name := range orderedKeys(v, order[pointer]) {
+			result = append(result, field{name: name, value: instantiationOrder(v[name], pointer+"/"+jsonpointer.EscapeToken(name), order)})
+		}
+		return result
+	case []any:
+		result := make([]any, len(v))
+		for i, item := range v {
+			result[i] = instantiationOrder(item, pointer+"/"+strconv.Itoa(i), order)
+		}
+		return result
+	default:
+		return input
+	}
 }
 
 func (p *Parser) boundInstantiation(input *Document, value, values map[string]any) (map[string]any, *importFacts, error) {
@@ -240,11 +262,11 @@ func pythonType(value any) string {
 		return "bool"
 	case json.Number:
 		if strings.ContainsAny(string(value), ".eE") {
-			return "float"
+			return termFloat
 		}
 		return "int"
 	case float64:
-		return "float"
+		return termFloat
 	case nil:
 		return "NoneType"
 	case []any:

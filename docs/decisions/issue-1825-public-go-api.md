@@ -4,9 +4,14 @@ This reference fixes the public import boundary for [#1825](https://github.com/O
 The [repository split](issue-1891-runtime-repository-boundary.md) fixes ownership.
 [The architecture model](../../implementations/architecture.json) records the public package map in `consumer_api`.
 It names each package's public identifiers, consumers and delivery issues.
-The Go declarations fix the planned interfaces.
-They do not claim that the packages exist.
-No product code moves in this PR.
+The Go declarations fix the interfaces for each delivery issue.
+Declarations alone do not establish implementation.
+The architecture model records implemented packages and their actual APIs.
+Issue #1787 implements the public SDL facade and its processor owners.
+
+`SourceContext.Trust` governs every workspace local import, including nested imports.
+Native composition checks integrity before applying the supplied policy.
+Realization designation queries use retained expansion metadata before instantiation.
 
 ## Module and import map
 
@@ -37,13 +42,14 @@ Before extraction, the `rae` product subset must already have that separation.
 | `contract/admission` | RAE | Existing complete `Validator`, semantic contexts and materialization compiler interfaces; narrow existing artifact and realization operations | #1892; typed participant configuration boundary in #1788 |
 | `contract/concept` | RAE | `AdmitBindings`, `SchemeSnapshot`, `ResolutionOutcome`, `Vocabulary` | #1781 |
 | `contract/diagnostic` | RAE | Shared `Diagnostic`, `Range`, structured `Error` and fault traversal | #1782, #1783 |
-| `sdl` | RAE | Bounded loading, scenario models, admission, instantiation, canonical digest, external concept subjects, artifact requirements and designation resolution | #1782–#1785 |
+| `sdl` | RAE | Bounded loading, scenario models, admission, instantiation, canonical digest, external concept subjects, artifact requirements and designation resolution | #1782–#1785; public facade #1787 |
 | `sdl/module` | RAE | `LockfileName`, `Lockfile`, `TrustPolicy`, `LoadLockfile`, `ResolveLock` | #1785 |
 | `sdl/language` | RAE | `ApplyEdit`, `Edit`, `EditResult`, `Completions`, `Diagnostics`, `Format` | #1786 |
 | `processor` | RAE | `Compile`, `CompileInstantiated`, `Compilation`, `RuntimeModel`, `TimeModelContract`, `ScenarioComponentOptions`, `ComponentOptions` | #1787 |
 | `processor/planning` | RAE | `Plan`, `PlanWithManifest`, `Result` | #1787 |
 | `processor/trial` | RAE | `Request`, `Compile`, `ScheduledEntry`, `BatchSchedule`, `PlanBatchSchedule` | #1788 |
 | `processor/realization` | RAE | `ProjectConcern`, `ConcernDescriptors`, `HasRequiredObservationSupport` | #1787 |
+| `processor/comparison` | RAE | Pure semantic comparison from sealed artifacts and explicit scopes | #1787 |
 | `processor/analysis` | RAE | `Analyze` and its existing analysis results | #1789 |
 | `contract/runtime` | RAE | Shared native `ApplyResult`, typed materialization submissions and participant action handles | #1790 |
 | `backend` | RAE | `Provisioner`, `Orchestrator`, `Evaluator`, `ParticipantRuntime`, `Manifest`, `LoadProfile` | #1790 |
@@ -68,6 +74,12 @@ They fix each new type, field, method set and function signature.
 The port issues must follow those contracts.
 They record matching actual API snapshots; they do not design replacement consumer APIs.
 
+The [processor design](issue-1787-processor-design.md) adds typed compiled-model access.
+It also adds explicit envelope and profile inputs.
+It also adds manifest construction and reconciliation helpers in their existing processor owners.
+Existing entry points retain their signatures and meanings.
+The declaration files include these additions before processor implementation.
+
 Existing packages retain their complete API.
 `existing_api_sha256` and the source layer bind that API.
 The `symbols` list is an entry-point index, not permission to trim that API.
@@ -76,7 +88,8 @@ Declarations use the public RAE imports and the explicit `RUNTIME` prefix.
 Only the runtime prefix changes when #1893 approves it.
 
 Go type checking verifies imports and type references without executing proposed code.
-The loader reads existing owners and all declared standard-library imports in one Go type universe.
+The loader reads existing owners and all declared standard-library imports.
+It keeps them in one Go type universe.
 It reuses those package objects for signatures and consumer examples.
 For example, an injected `func() time.Time` must retain the same `time.Time` identity as `base/clock.Clock`.
 Each declaration file has a SHA-256 commitment and a 64 KiB bound.
@@ -128,7 +141,8 @@ It also retains the existing domain, address and message fields.
 Ranges retain the existing line and column conventions.
 Errors preserve diagnostics through standard Go error traversal and the shared fault categories.
 Message text does not control consumer behavior.
-`ApplyEdit`, `Completions`, `Diagnostics` and `Format` return their existing structured results, including diagnostics and updated content where applicable.
+`ApplyEdit`, `Completions`, `Diagnostics` and `Format` return their existing structured results.
+These include diagnostics and updated content where applicable.
 
 `module.LoadLockfile` loads the supplied filesystem's lock.
 `module.ResolveLock` takes a context, filesystem, source path and explicit `TrustPolicy`.
@@ -186,7 +200,8 @@ Keep published schema bytes and generated transport behavior unchanged.
 `Validator.Defaulted` retains published defaults; `Field[T]` distinguishes absent, null and supplied values.
 
 The archive round trip uses `binding.MaterializationArchiveRecordV1`.
-Its generated `Inventory` field remains `Field[json.RawMessage]`; that existing binding does not change here.
+Its generated `Inventory` field remains `Field[json.RawMessage]`.
+That existing binding does not change here.
 `admission.MaterializationArchive` takes this record and an optional `*binding.BackendRuntimeDescendantsV1`.
 It owns insertion of the typed inventory, normalization, defaulting, serialization and admission.
 `RestoreMaterializationArchive` returns the archive DTO, optional typed inventory and admitted value.
@@ -199,7 +214,8 @@ It must also reject stale context, wrong parent bindings and corrupted inventory
 The inventory is admitted before inclusion in the archive.
 Decode, normalization, defaulting, serialization and restored-value checks remain RAES operations.
 A diagnostics-only adapter cannot replace these operations.
-All materialization, snapshot and runtime DTO identities remain in RAE, including types used by the runtime repository.
+All materialization, snapshot and runtime DTO identities remain in RAE.
+This includes types used by the runtime repository.
 
 The existing artifact owner supplies these narrow public operations through `contract/admission`:
 `DefaultAssociatedArtifactLimits`, `AssociatedArtifactLimits`, `LoadAssociatedManifest`, `ValidateAssociatedManifest` and `AssociatedArtifactSetDigest`.
@@ -215,7 +231,8 @@ It never opens a payload locator itself.
 
 `EvaluateRealizationConstraint` exposes the existing contract owner's constraint evaluation and published relation status.
 Its explicit `ConstraintLimits` preserve all bounds and defaults from `realization_structure/_models.py`.
-Invalid bounds are refused; exhausted work never becomes success.
+Invalid bounds are refused.
+Exhausted work never becomes success.
 `RealizeParticipantConfiguration` takes the selected manifest and participant address.
 It also takes the manifest reference/digest, overrides and owner hooks.
 The native input and output keep the implementation ID, manifest version and binding owner.
@@ -231,7 +248,8 @@ The result includes the canonical digest of the normalized configuration.
 `ValidateParticipantConfigurationSelection` checks the exact join to the selected implementation.
 #1788 preserves this typed callback boundary when it builds trial requests.
 Callbacks and adapter-owned handles cannot be reduced to JSON.
-They supply owner facts or the existing private-schema validation operation; they cannot grant whole-request admission.
+They supply owner facts or the existing private-schema validation operation.
+They cannot grant whole-request admission.
 
 `validation.Value` remains reserved for fully admitted published documents.
 Native submodels use concrete structs or `admission.Fragment`, an opaque handle created by `AdmitFragment`.
@@ -241,7 +259,8 @@ For example, trial input references, apparatus, execution authority and mixed bi
 The constructor copies and bounds the supplied document.
 It checks the profile's native shape and local rules.
 `Document` and construction accept native scalar, list and object roots.
-Only the `RealizationValue` profile permits all bounded JSON roots; object model profiles still require objects.
+Only the `RealizationValue` profile permits all bounded JSON roots.
+Object model profiles still require objects.
 Copying rejects cycles, unsupported carriers, invalid numbers and values outside the supplied limits.
 `ProjectConcern` consumes and returns `RealizationValue` handles with the original root kind.
 The result can be passed directly as the actual value to `EvaluateRealizationConstraint`.
@@ -271,8 +290,10 @@ Each delegated apparatus default is resolved once and sealed into the plan's dec
 `ExecutionPlan.Context` returns a copied record of the predecessor, scope and all selected owner facts.
 It does not rerun owner callbacks when the plan is registered or inspected.
 `NewMixedControlAdmission` copies an explicit host model without granting execution authority.
-`ControlPlane.MixedControlPlanningAdmission` supplies that RAE-owned handle from its exact installed runtime context.
-Planning consumes it without importing runtime; registration still checks the exact installed model.
+`ControlPlane.MixedControlPlanningAdmission` supplies that RAE-owned handle.
+It uses its exact installed runtime context.
+Planning uses it without importing runtime.
+Registration still checks the exact installed model.
 #1787 must test updates/deletes against a nonempty predecessor and mismatched mixed-control context.
 
 `trial.Request` carries the admitted family, task and experiment documents and pinned input references.
@@ -286,7 +307,8 @@ Apparatus keys instead retain component kind, component name/version and manifes
 Configuration-validator keys use only the implementation name/version pair.
 The trial limits retain all nine reference ceilings and their defaults from `contracts/trial_compilation.py`.
 Mixed-composition limits retain all ten ceilings and defaults from `contracts/mixed_composition.py`.
-Both limit types expose default constructors and positive-integer validation; compilation rejects invalid limits.
+Both limit types expose default constructors and positive-integer validation.
+Compilation rejects invalid limits.
 `PlanBatchSchedule` takes one complete admitted plan.
 It checks the plan's integrity before it exposes any entry.
 It returns the plan ID/digest, scheduling policy and entry/run IDs.
@@ -322,7 +344,8 @@ Its declarations preserve provisioner validation/apply, orchestration/evaluation
 `contract/runtime.ApplyResult` retains transient realization observations and typed materialization submissions as well as the published snapshot.
 They must reach runtime admission before serialization removes transient fields.
 `BindParticipantAction` constructs an opaque request from `ParticipantActionInput`, preserving its native selection, contexts, evidence and generation facts.
-The constructor checks the existing manifest/selection/action-result joins and execution-scope/generation pairing.
+The constructor checks the existing manifest/selection/action-result joins.
+It also checks execution-scope/generation pairing.
 `NativeActionExecution.Invoke` returns `NativeActionOutcome`: apply result, separate action result and optional post-state digest.
 `ParticipantActionApplyResult` also preserves that separate action result.
 `PreparingProvisioner` returns constructible native `RealizationPreparation`, including request/predecessor digests, operations, success and diagnostics.
@@ -333,8 +356,10 @@ Optional autonomous and controlled participant interfaces retain binding, lifecy
 Go uses the separate `AdmitAutonomousAction` method because interface methods cannot narrow their return types.
 Coordinated reset interfaces retain atomic participant/time reset behavior.
 `OperationProvider` retains capabilities, check, start, observe, cancel and reconcile methods for one admitted invocation.
-Runtime target composition negotiates these optional interfaces against the manifest; declarations alone establish no capability.
-`ConceptSubjects` retains complete subject records, including lifecycle, contract, address and digest; it does not return only names.
+Runtime target composition negotiates these optional interfaces against the manifest.
+Declarations alone establish no capability.
+`ConceptSubjects` keeps complete subject records, including lifecycle, contract, address and digest.
+It does not return only names.
 Concrete backends supply native handles and credentials through those existing interfaces.
 `backend/stub` supplies only portable inert doubles and the reference manifest.
 Runtime owns the live registry, invocation and target assembly.
@@ -395,7 +420,8 @@ Resolver inputs are detached copies, and callbacks retain the existing mutation/
 `SubmitInject` admits a typed trigger through the core and returns its operation receipt.
 It retains the trigger's request key, live revalidation, actor scope and installed execution owner.
 `SuperviseOperation` accepts observe, cancel or reconcile intent with stable operation/control IDs.
-The core creates the control binding and bounded budget; `SubmitOperationControl` also admits a prebuilt control after exact actor and parent checks.
+The core creates the control binding and bounded budget.
+`SubmitOperationControl` also admits a prebuilt control after exact actor and parent checks.
 `ControlResponse` returns the matching typed response, or nil when none is available.
 `StopAdmission` authorizes and persists the idempotent stop with its audit through the owner.
 `ResolveIndeterminateOperation` retains the distinct administrative receipt and idempotency key.
@@ -438,14 +464,16 @@ Runtime-sequence delivery starts at the owner, before the dispatcher.
 `AdmitExperiment` takes pure `trial.RealizationInputs`, native trial services and an explicit run-store factory where durability requires it.
 Replacement also requires the exact compilation request and archive owner.
 Trial requests, observations, results and archive callbacks retain their native fields and typed contract children.
-Services admit, configure, observe, capture, clean up, stop and verify; retry preparation remains a separately checked optional protocol.
+Services admit, configure, observe, capture, clean up, stop and verify.
+Retry preparation remains a separately checked optional protocol.
 They do not allocate runs, choose retries or drive phases.
 `trial.RealizeEntry` retains the pure single-entry realization and its planner-issued plan; it imports no runtime code.
 
 `BindSequence` accepts run/experiment kind, owned scope, execution ID, worker ID, state queue and bounded delivery timing.
 A run requires its exact valid planner artifact and matching target manifest.
 An experiment requires its prior admission and matching original actor/scopes.
-The core derives the engine/store digest and request commitment, claims the durable decision and retains the exact native artifacts.
+The core derives the engine/store digest and request commitment.
+It claims the durable decision and keeps the exact native artifacts.
 Only then does it return `RuntimeSequenceReference` for `Dispatcher.SubmitRuntime`.
 `AdvanceSequence` checks worker identity, target, engine digest and the exact registered binding.
 It advances under the original principal; constructing a reference grants no authority.
@@ -455,13 +483,19 @@ It receives no ledger credentials or mutable store.
 
 Provider `LoadRuntimeDecisions` and `ClaimRuntimeDecision` preserve the existing closed decision registry.
 `RuntimeDecision` exposes an owner-derived ID, schema version, copied canonical bytes and an optional typed sequence projection.
-`DecodeRuntimeDecision` rejects unknown variants and invalid native records; providers do not copy their private schemas.
-The atomic claim returns true only for a new decision, false for an identical replay and `ErrConflict` for a different value under the same ID.
+`DecodeRuntimeDecision` rejects unknown variants and invalid native records.
+Providers do not copy their private schemas.
+The atomic claim returns true only for a new decision.
+For an identical replay, it returns false.
+For a different value under the same ID, it returns `ErrConflict`.
 Sequence decision identity binds schema version, kind, scope and execution ID.
-Its committed value also binds actor/scopes, artifacts, worker, queues and timing; conflicting rebinding cannot overwrite it.
+Its committed value also binds actor/scopes, artifacts, worker, queues and timing.
+Conflicting rebinding cannot overwrite it.
 `ValidateIdenticalDecision` owns that complete comparison.
 `Store.Identity` supplies the existing non-secret ledger kind and coordinate tuple for `RuntimeStoreDigest`.
-Local coordinates retain the canonical database path; PostgreSQL retains host, integer port, database and user; memory identity stays process-local.
+Local coordinates keep the canonical database path.
+PostgreSQL keeps host, integer port, database and user.
+Memory identity stays process-local.
 Passwords and connection strings are excluded.
 Store admission and capability checks still determine which profile can use the provider.
 The #1791/#1793 consumer fixtures must use real public packages.
@@ -493,15 +527,18 @@ No provider needs to decode private record JSON to implement claims.
 `CommitInvocationTransition` compares the complete expected record with the stored record.
 It then commits the next record and audit event as one change.
 `ValidateInvocationTransition` retains the owner's supervision-cut checks; `RecordsEqual` supplies complete owner-defined equality.
-An exact committed record/audit retry is idempotent; a different incumbent returns `ErrConflict` without partial writes.
+An exact committed record/audit retry is idempotent.
+A different incumbent returns `ErrConflict` without partial writes.
 `AdmitExecutionGeneration` atomically advances a durable non-negative generation and refuses exhaustion.
-`StopEffectAdmission` persists the first stop and its audit atomically; the stop survives reopening.
+`StopEffectAdmission` persists the first stop and its audit atomically.
+The stop survives reopening.
 Claim insertion checks that persisted stop in the same transaction.
 The conflict, idempotency-conflict, admission-stop, indeterminate and stale-base errors retain distinct `errors.Is` identities and existing fault categories.
 These are #1792's existing guarantees, independent of any later P3 design.
 
 They do not copy its schema or validation.
-`Capabilities` describes actual provider guarantees; an interface declaration grants none.
+`Capabilities` describes actual provider guarantees.
+An interface declaration grants none.
 Store/provider implementations remain runtime-owned.
 `runtime/execution.Adapter` retains bounded calls, physical-slot retention, cancellation, drain and uncertain-effect semantics.
 Its deadline intervals use `time.Duration` and the existing monotonic budget, not the injected wall clock.
@@ -514,7 +551,8 @@ Validation rejects duplicate queues, invalid names and invalid budgets.
 `NewWorker` receives that client, configuration, backend operation provider and separately scoped effect/control `WorkerAuthority` interfaces.
 It starts the existing workflow/effect/control workers with separate bounded capacities.
 The worker receives no mutable store, snapshot publication method or ledger credential.
-`ControlPlane.WorkerAuthority` exposes the authenticated owner service for these grants; remote adapters preserve the same protocol.
+`ControlPlane.WorkerAuthority` exposes the authenticated owner service for these grants.
+Remote adapters preserve the same protocol.
 Each grant binds the exact request, worker, owner/execution generation and remaining budget, and can be consumed only once.
 Redelivery, transport retries and Temporal acknowledgement never create another effect permission.
 
@@ -647,3 +685,32 @@ The existing Go compiler and ARCH-001 through ARCH-014 still govern implemented 
 The immutable #1891 source baseline is unchanged.
 The final move inventory must bind this API map and the completed Go source.
 A transfer still needs separate approval.
+
+The shared admission API also exposes `ParticipantResourceMeasureSupported`.
+It checks a sealed resource-kind fragment and exact quantity semantics against a local profile context.
+It uses the existing offline profile owner and grants no execution authority.
+
+The SDL facade also offers `ParseWithContext`, `ParseFileWithContext`, and `ParseSourceWithContext`.
+These functions pass caller cancellation through the existing native source owners.
+They use the same limits and source authority as the corresponding legacy entry points.
+
+The processor implementation also adds pure prepared-selection and readback gates.
+Their declarations are in the planning and realization consumer files.
+The [processor design](issue-1787-processor-design.md) specifies their admission boundaries.
+These gates retain original target authority behind native handles.
+They perform no backend application or result publication.
+The shared admission owner provides `NormalizeBackendManifest` for canonical preparation commitments.
+
+Pure compiled participant-contract relations belong to `processor` in issue #1787.
+They cover argument normalization, action and outcome consistency, temporal transitions, and behavior history.
+Runtime result admission can consume these public checks.
+Runtime retains recording, execution, result publication, and ledger ownership.
+The [processor design](issue-1787-processor-design.md) specifies their native input boundaries.
+
+The pure `processor/comparison` owner derives semantic comparisons from sealed native artifacts and explicit scopes.
+Its SDL projections preserve model ownership and authored presence.
+Profile admission recomputes pins before analysis.
+
+The realization owner can also recover and evaluate published plan authority directly.
+It keeps failed-cleanup diagnostics separate.
+It does not rebuild the compiler model or cause runtime effects.

@@ -152,12 +152,7 @@ func (c *composition) edge(ctx context.Context, parent, decl map[string]any, imp
 	if err != nil {
 		return err
 	}
-	admissionDecl := decl
-	if remote {
-		admissionDecl = maps.Clone(decl)
-		delete(admissionDecl, "digest")
-	}
-	descriptor, err := admittedModule(child, value, admissionDecl, raw, !remote && c.localDenied[importer])
+	descriptor, err := admittedModule(child, value, resolvedImportDeclaration(decl, remote), raw, !remote && c.localDenied[importer])
 	if err != nil {
 		return err
 	}
@@ -177,6 +172,9 @@ func (c *composition) edge(ctx context.Context, parent, decl map[string]any, imp
 	if err = validateExports(expanded, descriptor); err != nil {
 		return err
 	}
+	if err = c.admitLocalTrust(ctx, importer, decl, descriptor, raw, remote); err != nil {
+		return err
+	}
 	expanded, err = c.bind(expanded, decl, descriptor, c.facts[name])
 	if err != nil {
 		return err
@@ -188,6 +186,18 @@ func (c *composition) edge(ctx context.Context, parent, decl map[string]any, imp
 	c.inheritImportFacts(importer, name, text(decl[namespaceField]), symbols)
 	return c.addImportRecords(importer, name, requestedDecl, descriptor, raw)
 }
+
+func resolvedImportDeclaration(decl map[string]any, remote bool) map[string]any {
+	if !remote {
+		return decl
+	}
+	// Registry admission already checked the bundle content identity. Its pin
+	// must not be compared with the different bytes of the root source file.
+	result := maps.Clone(decl)
+	delete(result, "digest")
+	return result
+}
+
 func (c *composition) importDocument(raw []byte, name string) (*Document, map[string]any, error) {
 	child, err := c.parser.decodeDocument(raw, name, "reject", true)
 	if err != nil {

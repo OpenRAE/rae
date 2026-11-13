@@ -17,10 +17,16 @@ import (
 
 func TestCompositionUsesVerifiedRegistrySources(t *testing.T) {
 	for _, fixture := range []string{"python-signed.json", "python-signed-graph.json"} {
-		t.Run(fixture, func(t *testing.T) { checkVerifiedRegistrySources(t, fixture) })
+		t.Run(fixture, func(t *testing.T) {
+			for _, allowLocal := range []bool{true, false} {
+				t.Run(map[bool]string{true: "unsigned-local-allowed", false: "unsigned-local-disabled"}[allowLocal], func(t *testing.T) {
+					checkVerifiedRegistrySources(t, fixture, allowLocal)
+				})
+			}
+		})
 	}
 }
-func checkVerifiedRegistrySources(t *testing.T, fixtureName string) {
+func checkVerifiedRegistrySources(t *testing.T, fixtureName string, allowLocal bool) {
 	t.Helper()
 	var fixture struct {
 		PublicKey string `json:"public_key"`
@@ -55,6 +61,7 @@ func checkVerifiedRegistrySources(t *testing.T, fixtureName string) {
 	defer server.Close()
 	host := strings.TrimPrefix(server.URL, "http://")
 	policy := module.DefaultPolicy()
+	policy.AllowUnsignedLocalSources = allowLocal
 	policy.Registries[host] = module.RegistryTrust{RequireSignatures: true, TrustedSigners: map[string]string{"test-signer": fixture.PublicKey}}
 	registry, err := module.NewRegistry(t.TempDir(), policy, nil)
 	if err != nil {
@@ -66,7 +73,10 @@ func checkVerifiedRegistrySources(t *testing.T, fixtureName string) {
 		t.Fatal(err)
 	}
 	input := []byte("name: root\nimports: [{source: 'oci:" + host + "/example/shared', namespace: lib}]\n")
-	document, err := parser.Decode(Request{Source: input, Name: "main.yaml", FS: fstest.MapFS{}, Registry: registry})
+	// The empty filesystem cannot supply bundled child modules. Their admitted
+	// bytes must come from the verified bundle's copied source map, including
+	// when the caller refuses unsigned workspace-local modules.
+	document, err := parser.Decode(Request{Source: input, Name: "main.yaml", FS: fstest.MapFS{}, Registry: registry, LocalTrust: registry})
 	if err != nil {
 		t.Fatal(err)
 	}

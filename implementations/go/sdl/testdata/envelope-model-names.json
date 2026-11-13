@@ -1,0 +1,342 @@
+[
+  {
+    "name": "execute",
+    "source": "name: workflow\nnodes: {server: {type: compute}}\nentities: {blue: {role: blue}}\npropositions:\n health:\n  description: declared runtime\n  subjects: [nodes.server]\n  basis: declared_state\n  predicate: {kind: presence, property: runtime, semantic_ref: urn:raes:declared-property:runtime, operator: exists}\nassertions:\n gate: {proposition: health, role: precondition}\n result: {proposition: health, role: postcondition}\nobjectives:\n first: {owner: blue, success: {assertions: [result]}}\nworkflows:\n flow:\n  start: branch\n  steps:\n   branch: {type: decision, when: {assertions: [gate]}, then: execute, else: finish}\n   execute: {type: objective, objective: first, on_success: finish}\n   finish: {type: end}\n",
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "libvirt-qemu.generic.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "workflow-model-names",
+        "scope": "scenario",
+        "domains": {
+          "target": {
+            "kind": "exact",
+            "value": "execute"
+          }
+        },
+        "bindings": [
+          {
+            "path": "workflows.flow.steps.branch.then_step",
+            "scope": "field",
+            "posture": "exact",
+            "domain": "target",
+            "overrideable": false
+          }
+        ],
+        "closure": [],
+        "witness_policy": null,
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "generic",
+        "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b",
+        "architecture": "x86_64",
+        "image_policy": "local-qcow2",
+        "network_policy": "libvirt-managed",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": true,
+        "memory_mib": {
+          "minimum": 128,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "daemon-observed",
+          "mechanism": "virtual-machine",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "libvirt-domain-network",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "qemu-x86_64-domain",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "qcow2-disk-attachment",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "transformed",
+          "observation_strength": "driver-reported",
+          "mechanism": "libvirt-domain-xml",
+          "transformations": [
+            "bounded-normalization",
+            "default-substitution"
+          ]
+        },
+        {
+          "concern": "network",
+          "disposition": "transformed",
+          "observation_strength": "driver-reported",
+          "mechanism": "libvirt-network-xml",
+          "transformations": [
+            "default-substitution"
+          ]
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "cloud-init-seed",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "transformed",
+          "observation_strength": "driver-reported",
+          "mechanism": "cloud-init-seed",
+          "transformations": [
+            "default-substitution"
+          ]
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "transformed",
+          "observation_strength": "driver-reported",
+          "mechanism": "cloud-init-seed",
+          "transformations": [
+            "descriptor-substitution"
+          ]
+        },
+        {
+          "concern": "service",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "libvirt-nwfilter",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:879a977bfa26565a6ea15183ebe3914d585a0c0783996527444acfebe95add91"
+    },
+    "diagnostics": []
+  },
+  {
+    "name": "wrong",
+    "source": "name: workflow\nnodes: {server: {type: compute}}\nentities: {blue: {role: blue}}\npropositions:\n health:\n  description: declared runtime\n  subjects: [nodes.server]\n  basis: declared_state\n  predicate: {kind: presence, property: runtime, semantic_ref: urn:raes:declared-property:runtime, operator: exists}\nassertions:\n gate: {proposition: health, role: precondition}\n result: {proposition: health, role: postcondition}\nobjectives:\n first: {owner: blue, success: {assertions: [result]}}\nworkflows:\n flow:\n  start: branch\n  steps:\n   branch: {type: decision, when: {assertions: [gate]}, then: execute, else: finish}\n   execute: {type: objective, objective: first, on_success: finish}\n   finish: {type: end}\n",
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "libvirt-qemu.generic.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "workflow-model-names",
+        "scope": "scenario",
+        "domains": {
+          "target": {
+            "kind": "exact",
+            "value": "wrong"
+          }
+        },
+        "bindings": [
+          {
+            "path": "workflows.flow.steps.branch.then_step",
+            "scope": "field",
+            "posture": "exact",
+            "domain": "target",
+            "overrideable": false
+          }
+        ],
+        "closure": [],
+        "witness_policy": null,
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "generic",
+        "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b",
+        "architecture": "x86_64",
+        "image_policy": "local-qcow2",
+        "network_policy": "libvirt-managed",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": true,
+        "memory_mib": {
+          "minimum": 128,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "daemon-observed",
+          "mechanism": "virtual-machine",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "libvirt-domain-network",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "qemu-x86_64-domain",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "qcow2-disk-attachment",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "transformed",
+          "observation_strength": "driver-reported",
+          "mechanism": "libvirt-domain-xml",
+          "transformations": [
+            "bounded-normalization",
+            "default-substitution"
+          ]
+        },
+        {
+          "concern": "network",
+          "disposition": "transformed",
+          "observation_strength": "driver-reported",
+          "mechanism": "libvirt-network-xml",
+          "transformations": [
+            "default-substitution"
+          ]
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "cloud-init-seed",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "transformed",
+          "observation_strength": "driver-reported",
+          "mechanism": "cloud-init-seed",
+          "transformations": [
+            "default-substitution"
+          ]
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "transformed",
+          "observation_strength": "driver-reported",
+          "mechanism": "cloud-init-seed",
+          "transformations": [
+            "descriptor-substitution"
+          ]
+        },
+        {
+          "concern": "service",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "libvirt-nwfilter",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:1c9a49a522f2f2f161cbfbef37e07b69a60dd921aa9c1036082beb76a6e3d3ed"
+    },
+    "diagnostics": [
+      {
+        "code": "realization-envelope.membership.domain-mismatch",
+        "address": "workflows.flow.steps.branch.then_step",
+        "message": "value is not in the exact domain"
+      }
+    ]
+  }
+]

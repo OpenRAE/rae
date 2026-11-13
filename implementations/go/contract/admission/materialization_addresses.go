@@ -20,7 +20,7 @@ func materializationSemanticAddress(content *materializationCompiled, path strin
 		if *remaining < 0 {
 			return "", nil, invalid()
 		}
-		next, sourceToken, semanticToken, err := materializationAddressStep(current, token, content.identities[jsonpointer.FromTokens(source)], remaining)
+		next, sourceToken, semanticToken, err := materializationAddressStep(current, token, materializationCollectionFields(source, content.identities), remaining)
 		if err != nil {
 			return "", nil, err
 		}

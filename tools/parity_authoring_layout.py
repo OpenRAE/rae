@@ -342,6 +342,8 @@ class Layout(GenerateJsonSchema):
             if (policy := omission_policy(field))
         }
         document["x-layout"] = {
+            "model_type": cls.__name__,
+            "native_sdl": cls.__module__.startswith("raes."),
             "fields": fields,
             "omit": omit,
             "scalar": conversion_fields(schema, cls),

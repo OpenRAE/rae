@@ -1,0 +1,14 @@
+[
+  {
+    "name": "objective_window_step_outside_window_workflows_fails_admission",
+    "source": "\nname: broken-window\nnodes:\n  vm:\n    type: compute\n    os: linux\n    resources: {ram: 1 gib, cpu: 1}\n    conditions: {health: ops}\n    roles: {ops: operator}\nconditions:\n  health: {command: /bin/true, interval: 15}\npropositions:\n  health:\n    description: The governed VM has declared runtime state.\n    subjects: [nodes.vm]\n    basis: declared_state\n    predicate: {kind: presence, property: runtime, semantic_ref: urn:raes:declared-property:runtime, operator: exists}\nassertions:\n  health: {proposition: health, role: postcondition, polarity: positive}\nentities:\n  blue: {role: blue}\nobjectives:\n  initial:\n    owner: blue\n    success: {assertions: [health]}\n    window:\n      workflows: [flow]\n      steps: [other.finish]\nworkflows:\n  flow:\n    start: finish\n    steps:\n      finish: {type: end}\n  other:\n    start: finish\n    steps:\n      finish: {type: end}\n"
+  },
+  {
+    "name": "missing_node_bindings_fail_compiler_admission",
+    "source": "\nname: broken-bindings\nnodes:\n  vm:\n    type: compute\n    os: linux\n    resources: {ram: 1 gib, cpu: 1}\n    features: {nginx: web}\n    conditions: {health: web}\n    injects: {phish: web}\n    roles: {web: appuser}\n"
+  },
+  {
+    "name": "missing_runtime_graph_refs_fail_compiler_admission",
+    "source": "\nname: broken-graph\nnodes:\n  vm:\n    type: compute\n    os: linux\n    resources: {ram: 1 gib, cpu: 1}\n    conditions: {health: ops}\n    roles: {ops: operator}\nconditions:\n  health: {command: /bin/true, interval: 15}\nobjectives:\n  initial:\n    owner: blue\n    success:\n      assertions: [missing-assertion]\n    window:\n      workflows: [missing-workflow]\n      steps: [missing-workflow.branch, badstep]\nentities:\n  blue: {role: blue}\nscripts:\n  timeline: {start_time: 0, end_time: 60, speed: 1, events: {missing-event: 10}}\nstories:\n  main: {scripts: [missing-script]}\nworkflows:\n  flow:\n    start: branch\n    steps:\n      branch:\n        type: decision\n        when: {assertions: [missing-assertion], objectives: [missing-objective]}\n        then: finish\n        else: finish\n      finish: {type: end}\n"
+  }
+]

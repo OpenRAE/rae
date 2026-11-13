@@ -58,14 +58,18 @@ func comparisonCoordinate(v any) error {
 }
 
 func comparisonScope(v any) error {
-	scope := at(v, "impact_scope")
-	if !sortedUnique(stringsOf(at(scope, "traversal_roots"))) {
-		return invalid()
-	}
 	for _, side := range []string{sideBefore, sideAfter} {
 		if err := comparisonCoordinate(at(v, side)); err != nil {
 			return err
 		}
+	}
+	return comparisonImpactScope(at(v, "impact_scope"))
+}
+func comparisonImpactScope(scope any) error {
+	if !sortedUnique(stringsOf(at(scope, "traversal_roots"))) {
+		return invalid()
+	}
+	for _, side := range []string{sideBefore, sideAfter} {
 		rows := at(scope, side+"_artifacts")
 		if !orderedRows(rows, "artifact_kind", "canonical_identity", "canonical_digest") {
 			return invalid()

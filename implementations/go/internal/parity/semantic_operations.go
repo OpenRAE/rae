@@ -18,41 +18,48 @@ func semanticOperationRunner() Runner {
 		if loadErr != nil {
 			return nil, loadErr
 		}
-		command, ok := semanticArguments(c.Args)
-		if !ok {
-			return formatEnvelope(2, nil)
-		}
-		result := semanticResult(command)
-		if command.contract != termSdlYamlV1 {
-			result["status"] = "unsupported"
-			result["diagnostics"] = []any{semanticDiagnostic("cli.operation-unsupported", "cli", "", "error")}
-			return semanticEnvelope(3, result)
-		}
-		raw, present := semanticCommandInput(c, command)
-		if !present || int64(len(raw)) > source.DefaultLimits().MaxInputBytes {
-			result["status"] = "operational"
-			result["diagnostics"] = []any{semanticDiagnostic("cli.input", "cli", "", "error")}
-			return semanticEnvelope(4, result)
-		}
-		document, advisories, err := admitSemanticCommand(ctx, parser, raw, command)
-		if err != nil {
-			return semanticRefusal(result, err)
-		}
-		result["diagnostics"] = advisories
-		result["validation_strength"] = "semantic"
-		payload, err := semanticPayload(ctx, parser, document, command, raw)
-		if err != nil {
-			result["status"] = "internal"
-			result["validation_strength"] = nil
-			result["diagnostics"] = []any{semanticDiagnostic("cli.internal", "cli", "", "error")}
-			return semanticEnvelope(70, result)
-		}
-		result["payload"] = payload
-		if command.operation == termTransform {
-			result["transform_profile"] = command.transform
-		}
-		return semanticEnvelope(0, result)
+		return semanticOperationCase(ctx, c, parser)
 	}
+}
+
+func semanticOperationCase(ctx context.Context, c Case, parser *authoring.Parser) (json.RawMessage, error) {
+	command, ok := semanticArguments(c.Args)
+	if !ok {
+		return formatEnvelope(2, nil)
+	}
+	result := semanticResult(command)
+	if command.contract != termSdlYamlV1 {
+		result["status"] = "unsupported"
+		result[termDiagnostics] = []any{semanticDiagnostic("cli.operation-unsupported", "cli", "", "error")}
+		return semanticEnvelope(3, result)
+	}
+	raw, present := semanticCommandInput(c, command)
+	if !present || int64(len(raw)) > source.DefaultLimits().MaxInputBytes {
+		result["status"] = "operational"
+		result[termDiagnostics] = []any{semanticDiagnostic("cli.input", "cli", "", "error")}
+		return semanticEnvelope(4, result)
+	}
+	document, advisories, err := admitSemanticCommand(ctx, parser, raw, command)
+	if err != nil {
+		return semanticRefusal(result, err)
+	}
+	result[termDiagnostics] = advisories
+	if command.operation == "compile" {
+		return semanticCompileEnvelope(ctx, raw, command, result)
+	}
+	result["validation_strength"] = termSemantic
+	payload, err := semanticPayload(ctx, parser, document, command, raw)
+	if err != nil {
+		result["status"] = "internal"
+		result["validation_strength"] = nil
+		result[termDiagnostics] = []any{semanticDiagnostic("cli.internal", "cli", "", "error")}
+		return semanticEnvelope(70, result)
+	}
+	result["payload"] = payload
+	if command.operation == termTransform {
+		result["transform_profile"] = command.transform
+	}
+	return semanticEnvelope(0, result)
 }
 func semanticPayload(ctx context.Context, parser *authoring.Parser, document *authoring.Document, command semanticCommand, raw []byte) (map[string]any, error) {
 	if command.operation == termResolve {
@@ -64,7 +71,7 @@ func semanticPayload(ctx context.Context, parser *authoring.Parser, document *au
 		if err = json.Unmarshal(document.JSON(), &fields); err != nil {
 			return nil, err
 		}
-		return map[string]any{termPhase: "resolved-references", termRootType: termObject, "scenario_name": fields["name"], "reference_binding_count": len(bindings), "reference_bindings": bindings}, nil
+		return map[string]any{termPhase: "resolved-references", termRootType: termObject, termScenarioName: fields["name"], "reference_binding_count": len(bindings), "reference_bindings": bindings}, nil
 	}
 	if command.operation == termTransform && command.transform == termCanonical {
 		canonical, err := document.CanonicalBytes()
@@ -88,7 +95,7 @@ func semanticPayload(ctx context.Context, parser *authoring.Parser, document *au
 		if err != nil {
 			return nil, err
 		}
-		payload[termPhase], payload["scenario_name"], payload["field_count"], payload["semantic_validated"], payload[termDigest] = "normalized-authoring", fields["name"], len(fields), true, semanticDigest(identity)
+		payload[termPhase], payload[termScenarioName], payload["field_count"], payload["semantic_validated"], payload[termDigest] = "normalized-authoring", fields["name"], len(fields), true, semanticDigest(identity)
 	}
 	return payload, nil
 }
@@ -96,7 +103,7 @@ func semanticDigest(identity string) map[string]any {
 	return map[string]any{"algorithm": "sha256", "profile": "raes-sdl-semantic/v2", "value": identity}
 }
 func semanticResult(command semanticCommand) map[string]any {
-	result := map[string]any{"operation": command.operation, "status": "success", "contract_id": command.contract, "source_format": nil, "migration_policy": nil, "normalization_profile": nil, "validation_strength": nil, "processor_profile": nil, "transform_profile": nil, "provenance": map[string]any{"network": "disabled", "filesystem": "read-only"}, "payload": map[string]any{}, "diagnostics": []any{}}
+	result := map[string]any{"operation": command.operation, "status": "success", "contract_id": command.contract, "source_format": nil, "migration_policy": nil, "normalization_profile": nil, "validation_strength": nil, "processor_profile": nil, "transform_profile": nil, "provenance": map[string]any{"network": "disabled", "filesystem": "read-only"}, "payload": map[string]any{}, termDiagnostics: []any{}}
 	if command.contract == termSdlYamlV1 {
 		result["source_format"] = termSdlYamlV1
 		result["migration_policy"] = command.policy
@@ -105,7 +112,7 @@ func semanticResult(command semanticCommand) map[string]any {
 	return result
 }
 func semanticDiagnostic(code, domain, address, severity string) map[string]any {
-	return map[string]any{"code": code, "domain": domain, "address": address, "severity": severity}
+	return map[string]any{"code": code, termDomain: domain, termAddress: address, "severity": severity}
 }
 func semanticEnvelope(code int, result map[string]any) (json.RawMessage, error) {
 	return formatEnvelope(code, result)
@@ -126,16 +133,16 @@ func semanticRefusal(result map[string]any, err error) (json.RawMessage, error) 
 			findings = append(findings, semanticDiagnostic("sdl.parse", termSDLParse, "", "error"))
 		}
 	}
-	result["diagnostics"] = findings
+	result[termDiagnostics] = findings
 	return semanticEnvelope(1, result)
 }
 func semanticArguments(args []string) (semanticCommand, bool) {
 	command := semanticCommand{contract: termSdlYamlV1, policy: "reject", transform: termCanonical}
-	if len(args) < 3 || args[0] != "semantic" {
+	if len(args) < 3 || args[0] != termSemantic {
 		return command, false
 	}
 	command.operation = args[1]
-	if command.operation != termResolve && command.operation != "normalize" && command.operation != termTransform {
+	if command.operation != termResolve && command.operation != "normalize" && command.operation != termTransform && command.operation != "compile" {
 		return command, false
 	}
 	name, arguments, ok := operationArguments(args[2:], true)
@@ -160,7 +167,7 @@ func (c *semanticCommand) option(option, value string) bool {
 		}
 		c.policy = value
 	case "--output":
-		return value == "json"
+		return value == termJSON
 	case "--transform":
 		if c.operation != termTransform || value != termCanonical && value != "format" {
 			return false

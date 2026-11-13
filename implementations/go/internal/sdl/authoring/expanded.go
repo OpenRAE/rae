@@ -218,14 +218,17 @@ func (w *importDefaultWalk) mapping(data, schema map[string]any, pointer string)
 	}
 	result := maps.Clone(data)
 	for field, raw := range object(schema["properties"]) {
-		if _, present := result[field]; present || pointer == "#/$defs/RuntimeServiceListener" && field == "protocol" {
+		if _, present := result[field]; present {
 			continue
 		}
 		fallback, found, err := w.queries.defaultValue(pointer, field, object(raw))
 		if err != nil {
 			return nil, err
 		}
-		if found {
+		// A constructor factory may return an empty value that its serializer
+		// excludes. Publishing that default can violate the field's schema
+		// (for example an optional, nonempty artifact output selection).
+		if found && !omitted(fallback, w.queries.w.parser.layoutFor(w.queries.w.id, pointer).Omit[field]) {
 			result[field] = fallback
 		}
 	}

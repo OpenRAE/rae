@@ -1,13 +1,17 @@
 package processor
 
 import (
+	"encoding/json"
+	"github.com/OpenRAE/rae/implementations/go/contract/admission"
 	"github.com/OpenRAE/rae/implementations/go/contract/binding"
 	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
+	"github.com/OpenRAE/rae/implementations/go/processor/realization"
 	"github.com/OpenRAE/rae/implementations/go/sdl"
 )
 
 type RuntimeModel interface {
 	Document() map[string]any
+	View() CompiledScenario
 	compiledModel()
 }
 type Compilation interface {
@@ -20,8 +24,177 @@ type Compilation interface {
 }
 type ComponentOptions struct{ WithOrchestrator, WithEvaluator, WithParticipantRuntime, WithTime, WithObservation bool }
 
+// ResourcePayload is an immutable projection for a published operation payload.
+// Compiler passes do not decode it or use it as their shared model.
+type ResourcePayload struct{ data []byte }
+
+func (payload ResourcePayload) JSON() []byte
+
+type NodeCapabilities struct {
+	Kind, OSFamily, OSDistribution, OSVersion, Architecture string
+	Count                                                 *json.Number
+	NetworkNamespaceTarget                                string
+}
+type Resource struct {
+ SelectedProfiles []binding.DomainProfileBindingV1
+	Address, Name, Domain, Kind               string
+	OrderingDependencies, RefreshDependencies []string
+	Payload                                  ResourcePayload
+	Node                                     *NodeCapabilities
+	RequiredFeatures                         []string
+	RegenerationScope                        string
+	Evaluation                               *EvaluationFacts
+	HasACLs, UsesAssertionRefs                bool
+	TargetAddress, ContentType                string
+	AccountFeatures                          []string
+	Topology                                 *DomainTopology
+	Artifact                                 *ArtifactFacts
+	ServiceMaterialization                   *ServiceMaterialization
+	WorkflowStatePredicateFeatures           []string
+}
+type DomainTopology struct {
+	DomainID, Profile, DNSName, NetBIOSName, AuthorityAccountAddress, Role string
+	ControllerAddresses []string
+	ProfileBinding *binding.DomainProfileBindingV1
+}
+type ArtifactConsumer struct {
+	Node, Content, TargetAddress, DeliveryMode, Output, EnvironmentVariable, EnvironmentFile string
+	Classification string
+}
+type ArtifactFacts struct {
+	Kind, RegenerationScope string
+	DeliveryModes, OutputNames []string
+	Consumers []ArtifactConsumer
+	GeneratorBinding *binding.DomainProfileBindingV1
+}
+type ServiceMaterialization struct {
+	TargetServiceAddress, InterfaceProfile, ProfileVersion string
+	ContentType, Operation, ConflictPolicy, Readback string
+	CanonicalContentDigest, SharedServiceRelationshipRef, ConsumerTenantRef string
+	MutableStateOwner, ResetGenerationOwner, CanonicalFieldSchemaDigest string
+	ReadbackAssertionAddresses, EvidenceRequirementRefs, ObservationBoundaryAddresses []string
+	FieldSemantics map[string]string
+	ProfileBinding *binding.DomainProfileBindingV1
+}
+type EvaluationFacts struct {
+	PredicateKind, Quantifier, EvaluationBasis, Role, RequiredTimeDomain string
+	DeferredExpected bool
+	EvidenceChannels, UnresolvedEvidenceChannelRefs         []string
+}
+type CapabilityConstraint struct {
+	Address, Concern string
+	Parameter        []string
+	AllowedValues    []Scalar
+}
+type Scalar struct{ kind string; value any }
+func (value Scalar) Kind() string
+func (value Scalar) Value() any
+func (value Scalar) MarshalJSON() ([]byte,error)
+type TimeDomain struct {
+	Address, Kind, Epoch, Visibility, Description string
+	TickNumerator, TickDenominator                json.Number
+}
+type Clock struct {
+	Address, TimeDomainAddress, AuthorityKind, AuthorityRef, Monotonicity, Description string
+	SupportsPause, SupportsReset, SupportsJump                                         bool
+}
+type TimeMapping struct {
+	Address, SourceDomainAddress, TargetDomainAddress, Kind, Description string
+	ScaleNumerator, ScaleDenominator, OffsetTicks                        json.Number
+}
+type TimePolicy struct {
+	Address, ClockAddress, AdvancementMode, SynchronizationMode, ResetBehavior, ReplayBehavior, Description string
+	PacingNumerator, PacingDenominator                                                                       json.Number
+	StepTicks, DriftBoundTicks                                                                              *json.Number
+}
+type TemporalConstraint struct {
+	Address, Kind, ClockAddress, Description string
+	SubjectAddresses                        []string
+	StartTick, StartMicrostep, EndTick, EndMicrostep, DurationTicks, CadenceTicks *json.Number
+}
+type CompiledTimeModel struct {
+	Domains             []TimeDomain
+	Clocks              []Clock
+	Mappings            []TimeMapping
+	ProgressionPolicies []TimePolicy
+	Constraints         []TemporalConstraint
+}
+type Definition struct {
+	Address, Name, Kind string
+	Payload             ResourcePayload
+}
+type CompiledScenario struct {
+ Descriptive, AugmentationScopeRequired bool
+	Name                   string
+	Original               sdl.Scenario
+	Resources              []Resource
+	Definitions            []Definition
+	ParticipantResources   []Resource
+	TimeModel              CompiledTimeModel
+	HasTimeModel           bool
+	CapabilityConstraints  []CapabilityConstraint
+	RealizationRequirements []realization.Requirement
+	RealizationAuthority   []realization.Authority
+	DescriptorProfiles     []binding.DomainProfileBindingV1
+	ProfileAuthority       *binding.PlanRealizationProfilesV1
+	ObservationDemands     []ObservationDemand
+	CaptureDemands         []CaptureDemand
+	ExecutionPolicies      []ExecutionPolicy
+	Diagnostics            []diagnostic.Diagnostic
+}
+type ObservationDemand struct {
+ Demand admission.Fragment
+	Address, RequirementID, ContractID string
+	Payload                           ResourcePayload
+}
+type CaptureDemand struct {
+ DemandID, CaptureRequirementRef, CaptureKind, Sensitivity, Disclosure, ExportPolicy string
+ FieldSelectors, ArtifactRoles, MediaTypes, SourceClasses, SourceRefs, Scopes, ScopeRefs []string
+ ChannelKinds, ChannelRefs, WindowKinds, IntegrityModes, RetentionPolicyRefs []string
+ RedactionPolicy *string
+	Address, CaptureSpecRef, BoundaryRef, OutputContract, MediaType string
+	Payload                                                      ResourcePayload
+}
+type ExecutionPolicy struct {
+	Address, Domain string
+	Policy         admission.Fragment
+}
+type CompileOptions struct {
+	Parameters       map[string]any
+	ProfileAuthority *binding.PlanRealizationProfilesV1
+ Capture CaptureInputs
+}
+
 func Compile(scenario sdl.Scenario, parameters map[string]any) (Compilation, error)
+func AdmitCompilation(input Compilation) (Compilation, error)
+func AdmitRuntimeModel(input RuntimeModel) (RuntimeModel, error)
+func ResolveRealization(model RuntimeModel, options realization.ResolveOptions) (RuntimeModel, realization.Resolution, error)
 func CompileInstantiated(scenario sdl.InstantiatedScenario) (Compilation, error)
-func TimeModelContract(compilation Compilation) (*binding.TimeModelV1, error)
+func CompileWithOptions(scenario sdl.Scenario, options CompileOptions) (Compilation, error)
+func CompileMaterialized(scenario sdl.Scenario, options CompileOptions) (Compilation, error)
+func Manifest(version string, compatibleBackends []string) (binding.ProcessorManifestV2, error)
+func TimeModelContract(input Compilation) (*binding.TimeModelV1, error)
 func ScenarioComponentOptions(scenario sdl.Scenario) (ComponentOptions, error)
-func CompiledComponentOptions(model RuntimeModel) (ComponentOptions, error)
+func CompiledComponentOptions(input RuntimeModel) (ComponentOptions, error)
+
+type ParticipantSupportDiagnostics struct { Tools, Execution, MixedControl []diagnostic.Diagnostic }
+func ParticipantSupport(input RuntimeModel, manifest binding.BackendManifestV2, processorManifest *binding.ProcessorManifestV2) (ParticipantSupportDiagnostics, error)
+
+func ResolveParticipantActionArguments(model RuntimeModel,actionContractAddress,argumentShapeRef,proposalRef string,proposed admission.Fragment)(admission.Fragment,error)
+func ParticipantFailureClass(model RuntimeModel,actionContractAddress,backendErrorCode string)(string,error)
+func ParticipantActionResultViolations(model RuntimeModel,actionContractAddress string,result admission.Fragment)([]diagnostic.Diagnostic,error)
+func ParticipantOutcomeInterpretationViolations(model RuntimeModel,ruleAddress string,record admission.Fragment)([]diagnostic.Diagnostic,error)
+func ParticipantTemporalStateMachineViolations(transitions admission.Fragment)([]diagnostic.Diagnostic,error)
+func ParticipantBehaviorHistoryViolations(model RuntimeModel,participantAddress string,history,episodeHistory admission.Fragment)([]diagnostic.Diagnostic,error)
+func ParticipantJointActionViolations(histories admission.Fragment)([]diagnostic.Diagnostic,error)
+
+func GeneratedArtifactConsumers(input admission.Fragment)(map[string][]ArtifactConsumer,error)
+
+type CaptureInputs struct {
+ CaptureSpecs []binding.ExperimentCaptureSpecV1
+ EvidenceRelations []admission.Fragment
+ RelationScenario sdl.Scenario
+}
+func CompileCaptureDemands(scenario sdl.Scenario, inputs CaptureInputs)([]CaptureDemand,error)
+
+func PreparedResourceContext(input admission.Fragment)(admission.Fragment,error)

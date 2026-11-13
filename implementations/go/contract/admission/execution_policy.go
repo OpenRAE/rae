@@ -1,7 +1,6 @@
 package admission
 
 import (
-	"encoding/json"
 	"math/big"
 	"slices"
 	"strings"
@@ -17,7 +16,7 @@ func (e *Validator) executionRules() map[string]definition {
 		"execution-policy-executionpolicy":         {check: func(i validation.Invocation) error { return executionPolicy(i.Instance) }},
 		"execution-policy-executionpolicydocument": {check: policyDocument},
 		"execution-policy-executionpolicycapabilities": {check: func(i validation.Invocation) error {
-			return require(fieldsUnique(i.Instance, "responses", "after_effect_policies") && !set(at(i.Instance, "responses"))["resume"])
+			return require(fieldsUnique(i.Instance, "responses", "after_effect_policies") && !set(at(i.Instance, "responses"))[termResume])
 		}},
 		"execution-policy-effectiveexecutionpolicy":  {check: func(i validation.Invocation) error { return effectivePolicy(i.Instance) }},
 		"execution-policy-planoperationmodel":        {check: func(i validation.Invocation) error { return operationPolicies(i.Instance) }},
@@ -41,7 +40,7 @@ func retryPolicy(v any) error {
 	if !fieldsUnique(v, "reset_obligation_refs", "compensation_refs") {
 		return invalid()
 	}
-	for field, term := range map[string]string{"reset_obligation_refs": retryReset, "compensation_refs": "compensate"} {
+	for field, term := range map[string]string{"reset_obligation_refs": retryReset, "compensation_refs": termCompensate} {
 		if (stringAt(v, "after_effect_policy") == term) != (len(array(at(v, field))) > 0) {
 			return invalid()
 		}
@@ -52,7 +51,7 @@ func executionPolicy(v any) error {
 	if !fieldsUnique(v, "failure_classes", "effect_classes", fieldEvidenceRefs) {
 		return invalid()
 	}
-	retry := defaultMember(v, termRetry, map[string]any{termMaxAttempts: json.Number("1"), "after_effect_policy": retryDisallow})
+	retry := defaultMember(v, termRetry, defaultOperationRetry())
 	if err := retryPolicy(retry); err != nil {
 		return err
 	}
@@ -111,13 +110,13 @@ func recoveryPolicy(v any, repeats bool) error {
 	if (stringAt(v, "clock_basis") == strengthSemantic) != (at(v, "clock_ref") != nil) {
 		return invalid()
 	}
-	exhausted := text(defaultMember(v, stepExhausted, "terminate"))
+	exhausted := text(defaultMember(v, stepExhausted, termTerminate))
 	fresh := stringAt(v, "response") == responseNewTrial || exhausted == responseNewTrial
-	if fresh != (at(v, "fresh_trial_limit") != nil) || (exhausted != "terminate" && !repeats) {
+	if fresh != (at(v, "fresh_trial_limit") != nil) || (exhausted != termTerminate && !repeats) {
 		return invalid()
 	}
 	switch stringAt(v, "response") {
-	case "resume", "continue", "hold", termReconcile, responseNewTrial:
+	case termResume, "continue", "hold", termReconcile, responseNewTrial:
 		return require(len(array(at(v, fieldEvidenceRefs))) > 0)
 	default:
 		return nil
@@ -135,14 +134,14 @@ func policyDocument(i validation.Invocation) error {
 		if err := executionPolicy(at(rule, termPolicy)); err != nil {
 			return err
 		}
-		if !canonicalPointer(stringAt(rule, "scope")) {
+		if !canonicalPointer(stringAt(rule, processLimitScopeField)) {
 			return invalid()
 		}
 		namespace := stringsOf(at(rule, termNamespace))
-		if at(v, termDefault) != nil && len(namespace) == 0 && stringAt(rule, "scope") == "" {
+		if at(v, termDefault) != nil && len(namespace) == 0 && stringAt(rule, processLimitScopeField) == "" {
 			return invalid()
 		}
-		identities = append(identities, join(append(namespace, stringAt(rule, "scope"))...))
+		identities = append(identities, join(append(namespace, stringAt(rule, processLimitScopeField))...))
 	}
 	return require(unique(identities))
 }
@@ -163,14 +162,14 @@ func effectivePolicy(v any) error {
 	if !sameKeys(at(v, "evidence_requirements"), set(at(v, termPolicy, fieldEvidenceRefs))) {
 		return invalid()
 	}
-	namespace, scope, found := strings.Cut(stringAt(v, "governing_scope"), "#")
+	namespace, scope, found := strings.Cut(stringAt(v, termGoverningScope), "#")
 	if !found || namespace != strings.Join(stringsOf(at(v, termNamespace)), ".") {
 		return invalid()
 	}
 	if scope == "/" {
 		scope = ""
 	}
-	application := stringAt(v, "scope")
+	application := stringAt(v, processLimitScopeField)
 	if !pointerContains(scope, application) {
 		return invalid()
 	}
@@ -185,7 +184,7 @@ func operationPolicies(v any) error {
 	if primary := at(v, "execution_policy"); primary != nil {
 		policies = append(policies, primary)
 	}
-	if !unique(rowIDs(policies, "scope")) {
+	if !unique(rowIDs(policies, processLimitScopeField)) {
 		return invalid()
 	}
 	for _, policy := range policies {

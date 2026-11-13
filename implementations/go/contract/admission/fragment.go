@@ -26,49 +26,61 @@ type FragmentProfile string
 // The closed fragment profiles. The owner model of each profile is recorded
 // in the concept and profile design for issue #1781.
 const (
-	TrialInputRefs                     FragmentProfile = "trial-input-refs"
-	TrialApparatus                     FragmentProfile = "trial-apparatus"
-	TrialExecutionAuthority            FragmentProfile = "trial-execution-authority"
-	AdmittedMixedCompositionBinding    FragmentProfile = "admitted-mixed-composition-binding"
-	RealizationRequirement             FragmentProfile = "realization-requirement"
-	RealizationDesignation             FragmentProfile = "realization-designation"
-	RealizationConcern                 FragmentProfile = "realization-concern"
-	RealizationValue                   FragmentProfile = "realization-value"
-	RealizationSupport                 FragmentProfile = "realization-support"
-	RealizationConstraint              FragmentProfile = "realization-constraint"
-	RealizationConstraintEvaluation    FragmentProfile = "realization-constraint-evaluation"
-	RealizationStructure               FragmentProfile = "realization-structure"
-	ValidatedActionSelection           FragmentProfile = "validated-action-selection"
-	ParticipantImplementationSelection FragmentProfile = "participant-implementation-selection"
-	ParticipantActionResult            FragmentProfile = "participant-action-result"
-	ParticipantTemporalContext         FragmentProfile = "participant-temporal-context"
-	ParticipantResourceMeasurement     FragmentProfile = "participant-resource-measurement"
-	ParticipantTemporalEvidence        FragmentProfile = "participant-temporal-evidence"
-	ParticipantExecutionState          FragmentProfile = "participant-execution-state"
-	OperationExecutionPolicy           FragmentProfile = "operation-execution-policy"
-	OperationPolicyScope               FragmentProfile = "operation-policy-scope"
-	StochasticControl                  FragmentProfile = "stochastic-control"
-	ParticipantControlRequest          FragmentProfile = "participant-control-request"
-	ParticipantControlResult           FragmentProfile = "participant-control-result"
-	ParticipantControlInvocation       FragmentProfile = "participant-control-invocation"
-	ParticipantControlStageResult      FragmentProfile = "participant-control-stage-result"
-	ParticipantControlSupport          FragmentProfile = "participant-control-support"
-	ControlArtifactReference           FragmentProfile = "control-artifact-reference"
-	ParticipantControlPolicy           FragmentProfile = "participant-control-policy"
-	ParticipantControlIntent           FragmentProfile = "participant-control-intent"
-	ParticipantControlDeclaration      FragmentProfile = "participant-control-declaration"
-	ParticipantInjectDelivery          FragmentProfile = "participant-inject-delivery"
-	ParticipantInjectContent           FragmentProfile = "participant-inject-content"
-	ParticipantCrossingEvidence        FragmentProfile = "participant-crossing-evidence"
-	CompiledRealizationRequirement     FragmentProfile = "compiled-realization-requirement"
-	CrossingSubject                    FragmentProfile = "crossing-subject"
-	CrossingPolicy                     FragmentProfile = "crossing-policy"
-	OpacityEnforcement                 FragmentProfile = "opacity-enforcement"
-	OpacitySupport                     FragmentProfile = "opacity-support"
-	ControlRealizationBinding          FragmentProfile = "control-realization-binding"
-	TrialProcessorPlanReference        FragmentProfile = "trial-processor-plan-reference"
-	CleanupObligationResult            FragmentProfile = "cleanup-obligation-result"
-	TrialExecutionControls             FragmentProfile = "trial-execution-controls"
+	ResolvedImportProvenance               FragmentProfile = "resolved-import-provenance"
+	ComparisonCoordinate                   FragmentProfile = "comparison-coordinate"
+	ComparisonImpactScope                  FragmentProfile = "comparison-impact-scope"
+	ExactRepresentation                    FragmentProfile = "exact-representation"
+	ArtifactSatisfaction                   FragmentProfile = "artifact-satisfaction"
+	ExperimentEvidenceRequirementRelation  FragmentProfile = "experiment-evidence-requirement-relation"
+	TrialInputRefs                         FragmentProfile = "trial-input-refs"
+	TrialApparatus                         FragmentProfile = "trial-apparatus"
+	TrialExecutionAuthority                FragmentProfile = "trial-execution-authority"
+	AdmittedMixedCompositionBinding        FragmentProfile = "admitted-mixed-composition-binding"
+	RealizationRequirement                 FragmentProfile = "realization-requirement"
+	RealizationDesignation                 FragmentProfile = "realization-designation"
+	RealizationConcern                     FragmentProfile = "realization-concern"
+	RealizationValue                       FragmentProfile = "realization-value"
+	EffectiveObservationDemand             FragmentProfile = "effective-observation-demand"
+	RealizationSupport                     FragmentProfile = "realization-support"
+	RealizationConstraint                  FragmentProfile = "realization-constraint"
+	RealizationConstraintEvaluation        FragmentProfile = "realization-constraint-evaluation"
+	RealizationStructure                   FragmentProfile = "realization-structure"
+	ValidatedActionSelection               FragmentProfile = "validated-action-selection"
+	ParticipantImplementationSelection     FragmentProfile = "participant-implementation-selection"
+	ParticipantActionResult                FragmentProfile = "participant-action-result"
+	ParticipantOutcomeInterpretationRecord FragmentProfile = "participant-outcome-interpretation-record"
+	ParticipantTemporalContext             FragmentProfile = "participant-temporal-context"
+	ParticipantResourceMeasurement         FragmentProfile = "participant-resource-measurement"
+	ParticipantTemporalEvidence            FragmentProfile = "participant-temporal-evidence"
+	ParticipantExecutionState              FragmentProfile = "participant-execution-state"
+	OperationExecutionPolicy               FragmentProfile = "operation-execution-policy"
+	OperationPolicyDocument                FragmentProfile = "operation-policy-document"
+	OperationPolicyCapabilities            FragmentProfile = "operation-policy-capabilities"
+	MaterializationSourceContext           FragmentProfile = "materialization-source-context"
+	PortableNodeCollectionAuthority        FragmentProfile = "portable-node-collection-authority"
+	OperationPolicyScope                   FragmentProfile = "operation-policy-scope"
+	StochasticControl                      FragmentProfile = "stochastic-control"
+	ParticipantControlRequest              FragmentProfile = "participant-control-request"
+	ParticipantControlResult               FragmentProfile = "participant-control-result"
+	ParticipantControlInvocation           FragmentProfile = "participant-control-invocation"
+	ParticipantControlStageResult          FragmentProfile = "participant-control-stage-result"
+	ParticipantControlSupport              FragmentProfile = "participant-control-support"
+	ControlArtifactReference               FragmentProfile = "control-artifact-reference"
+	ParticipantControlPolicy               FragmentProfile = "participant-control-policy"
+	ParticipantControlIntent               FragmentProfile = "participant-control-intent"
+	ParticipantControlDeclaration          FragmentProfile = "participant-control-declaration"
+	ParticipantInjectDelivery              FragmentProfile = "participant-inject-delivery"
+	ParticipantInjectContent               FragmentProfile = "participant-inject-content"
+	ParticipantCrossingEvidence            FragmentProfile = "participant-crossing-evidence"
+	CompiledRealizationRequirement         FragmentProfile = "compiled-realization-requirement"
+	CrossingSubject                        FragmentProfile = "crossing-subject"
+	CrossingPolicy                         FragmentProfile = "crossing-policy"
+	OpacityEnforcement                     FragmentProfile = "opacity-enforcement"
+	OpacitySupport                         FragmentProfile = "opacity-support"
+	ControlRealizationBinding              FragmentProfile = "control-realization-binding"
+	TrialProcessorPlanReference            FragmentProfile = "trial-processor-plan-reference"
+	CleanupObligationResult                FragmentProfile = "cleanup-obligation-result"
+	TrialExecutionControls                 FragmentProfile = "trial-execution-controls"
 )
 
 // fragment keeps the canonical bytes of an admitted native document.
@@ -96,6 +108,21 @@ func (fragment) admittedFragment() {
 }
 
 func fragmentInvalid() error { return fault.New(fault.InvalidInput, "fragment-invalid", nil) }
+
+// CheckFragment checks native ownership and the exact profile without invoking
+// caller methods. Embedding an admitted handle does not admit its replacement.
+func CheckFragment(input Fragment, profile FragmentProfile) error {
+	_, err := nativeFragment(input, profile)
+	return err
+}
+
+func nativeFragment(input Fragment, profile FragmentProfile) (fragment, error) {
+	owned, ok := input.(fragment)
+	if !ok || owned.profile != profile {
+		return fragment{}, fragmentInvalid()
+	}
+	return owned, nil
+}
 
 // AdmitFragment copies and bounds a native document, checks the native shape
 // and local rules of the profile and returns an opaque fragment. A fragment
@@ -132,14 +159,17 @@ func boundedDocument(profile FragmentProfile, data []byte, limits ingress.Limits
 // boundedRoot applies the byte and depth limits to a document of any JSON
 // root, by wrapping it in an array.
 func boundedRoot(data []byte, limits ingress.Limits) error {
-	wrapped := limits
-	wrapped.MaxBytes += 2
-	if wrapped.MaxDepth > 0 {
-		wrapped.MaxDepth++
-	}
-	if len(data) > limits.MaxBytes {
+	if limits.MaxBytes <= 0 || limits.MaxDepth < 0 || len(data) > limits.MaxBytes || len(data) > int(^uint(0)>>1)-2 {
 		return fragmentInvalid()
 	}
+	wrapped := limits
+	// The original byte bound has already been enforced. Bound the local
+	// wrapper by the actual encoded length, so a wide caller ceiling cannot wrap.
+	wrapped.MaxBytes = len(data) + 2
+	if wrapped.MaxDepth > 0 && wrapped.MaxDepth < int(^uint(0)>>1) {
+		wrapped.MaxDepth++
+	}
+
 	_, err := ingress.Parse(append(append([]byte{'['}, data...), ']'), wrapped, ingress.Array)
 	return err
 }
@@ -216,34 +246,46 @@ func fragmentChecks() map[FragmentProfile]fragmentCheck {
 		experiment = "experiment-run-v1"
 	)
 	checks := map[FragmentProfile]fragmentCheck{
-		TrialInputRefs:                     publishedModel(def(trialPlan, "AdmittedTrialPlanInputRefsModel")),
-		TrialApparatus:                     publishedModel(def(trialPlan, "AdmittedApparatusBindingModel")),
-		AdmittedMixedCompositionBinding:    publishedModel(def(trialPlan, "AdmittedMixedCompositionBindingModel")),
-		TrialExecutionControls:             publishedModel(def(trialPlan, "AdmittedExecutionControlModel")),
-		RealizationRequirement:             publishedModel(def(plan, "ResolvedRealizationAuthorityModel")),
-		RealizationSupport:                 publishedModel(def(termBackendManifestV2, "RealizationSupportDeclarationModel")),
-		RealizationConstraint:              publishedModel(def("plan-realization-profiles-v1", "RealizationConstraintDocument")),
-		ParticipantImplementationSelection: publishedModel(def(experiment, "ParticipantImplementationSelectionModel")),
-		ParticipantActionResult:            publishedModel(def(history, "ParticipantActionResultModel")),
-		ParticipantTemporalContext:         publishedModel(def(history, "ParticipantTemporalRuntimeContextModel")),
-		ParticipantTemporalEvidence:        publishedModel(def(history, "ParticipantTemporalEvidenceModel")),
-		ParticipantExecutionState:          publishedModel(def(termRuntimeSnapshotV1, "ParticipantAutonomousExecutionStateModel")),
-		OperationExecutionPolicy:           publishedModel(def(plan, "EffectiveExecutionPolicy")),
-		OperationPolicyScope:               publishedModel(def(plan, "EffectiveExecutionPolicy")),
-		StochasticControl:                  publishedModel(def("experiment-apparatus-context-v1", "ExperimentStochasticControlModel")),
-		ParticipantControlRequest:          publishedModel(def(controlV1, "ParticipantControlRequestModel"), def(controlV2, "ParticipantControlRequestV2Model")),
-		ParticipantControlResult:           publishedModel(def(controlV1, "ControlMechanismResultModel")),
-		ParticipantControlInvocation:       publishedModel(def(controlV2, "ControlInvocationV2Model")),
-		ParticipantControlStageResult:      publishedModel(def(controlV2, "ControlMechanismResultV2Model")),
-		ParticipantControlSupport:          publishedModel(def(controlV1, "ControlEffectiveSupportModel"), def(controlV2, "ControlSupportAssessmentV2Model")),
-		ControlArtifactReference:           publishedModel(def(controlV1, "ControlArtifactReferenceModel")),
-		ParticipantInjectContent:           publishedModel(def("participant-inject-delivery-receipt-v1", "ParticipantInjectContentModel")),
-		CrossingSubject:                    publishedModel(def(crossing, "ParticipantCrossingSubjectReferenceModel")),
-		CrossingPolicy:                     publishedModel(def(crossing, "ParticipantCrossingPolicyReferenceModel")),
-		OpacityEnforcement:                 publishedModel(def(crossing, "ParticipantOpacityRuntimeEnforcementBindingModel")),
-		ControlRealizationBinding:          publishedModel(def(controlV1, "ControlRealizationBindingModel")),
-		TrialProcessorPlanReference:        publishedModel(def(experiment, "TrialProcessorPlanReferenceModel")),
-		CleanupObligationResult:            publishedModel(def("trial-cleanup-receipt-v1", "CleanupObligationResultModel")),
+		ResolvedImportProvenance:               publishedModel(def(termInstantiatedScenarioV1, "ResolvedImportProvenance")),
+		ExactRepresentation:                    publishedModel(def("semantic-comparison-request-v1", "ExactRepresentationModel")),
+		ComparisonCoordinate:                   comparisonCoordinateFragment,
+		ComparisonImpactScope:                  comparisonImpactScopeFragment,
+		ArtifactSatisfaction:                   publishedModel(def(termRuntimeSnapshotV1, "ArtifactSatisfactionDisclosureModel")),
+		ExperimentEvidenceRequirementRelation:  publishedModel(def(experiment, "ExperimentEvidenceRequirementRelationModel")),
+		EffectiveObservationDemand:             publishedModel(def(plan, "EffectiveObservationDemand")),
+		TrialInputRefs:                         publishedModel(def(trialPlan, "AdmittedTrialPlanInputRefsModel")),
+		TrialApparatus:                         publishedModel(def(trialPlan, "AdmittedApparatusBindingModel")),
+		AdmittedMixedCompositionBinding:        publishedModel(def(trialPlan, "AdmittedMixedCompositionBindingModel")),
+		TrialExecutionControls:                 publishedModel(def(trialPlan, "AdmittedExecutionControlModel")),
+		RealizationRequirement:                 publishedModel(def(plan, "ResolvedRealizationAuthorityModel")),
+		RealizationSupport:                     publishedModel(def(termBackendManifestV2, "RealizationSupportDeclarationModel")),
+		RealizationConstraint:                  publishedModel(def("plan-realization-profiles-v1", "RealizationConstraintDocument")),
+		ParticipantImplementationSelection:     publishedModel(def(experiment, "ParticipantImplementationSelectionModel")),
+		ParticipantActionResult:                publishedModel(def(history, "ParticipantActionResultModel")),
+		ParticipantOutcomeInterpretationRecord: publishedModel(def(history, "ParticipantOutcomeInterpretationRecordModel")),
+		ParticipantTemporalContext:             publishedModel(def(history, "ParticipantTemporalRuntimeContextModel")),
+		ParticipantTemporalEvidence:            publishedModel(def(history, "ParticipantTemporalEvidenceModel")),
+		ParticipantExecutionState:              publishedModel(def(termRuntimeSnapshotV1, "ParticipantAutonomousExecutionStateModel")),
+		OperationExecutionPolicy:               publishedModel(def(plan, "EffectiveExecutionPolicy")),
+		OperationPolicyDocument:                publishedModel(def(termInstantiatedScenarioV1, "ExecutionPolicyDocument")),
+		OperationPolicyCapabilities:            publishedModel(def(termBackendManifestV2, "ExecutionPolicyCapabilities")),
+		MaterializationSourceContext:           publishedModel(def(plan, "MaterializationSource")),
+		PortableNodeCollectionAuthority:        publishedModel(def(plan, "PreparedNodeCollectionAuthority")),
+		OperationPolicyScope:                   publishedModel(def(plan, "EffectiveExecutionPolicy")),
+		StochasticControl:                      publishedModel(def("experiment-apparatus-context-v1", "ExperimentStochasticControlModel")),
+		ParticipantControlRequest:              publishedModel(def(controlV1, "ParticipantControlRequestModel"), def(controlV2, "ParticipantControlRequestV2Model")),
+		ParticipantControlResult:               publishedModel(def(controlV1, "ControlMechanismResultModel")),
+		ParticipantControlInvocation:           publishedModel(def(controlV2, "ControlInvocationV2Model")),
+		ParticipantControlStageResult:          publishedModel(def(controlV2, "ControlMechanismResultV2Model")),
+		ParticipantControlSupport:              publishedModel(def(controlV1, "ControlEffectiveSupportModel"), def(controlV2, "ControlSupportAssessmentV2Model")),
+		ControlArtifactReference:               publishedModel(def(controlV1, "ControlArtifactReferenceModel")),
+		ParticipantInjectContent:               publishedModel(def("participant-inject-delivery-receipt-v1", "ParticipantInjectContentModel")),
+		CrossingSubject:                        publishedModel(def(crossing, "ParticipantCrossingSubjectReferenceModel")),
+		CrossingPolicy:                         publishedModel(def(crossing, "ParticipantCrossingPolicyReferenceModel")),
+		OpacityEnforcement:                     publishedModel(def(crossing, "ParticipantOpacityRuntimeEnforcementBindingModel")),
+		ControlRealizationBinding:              publishedModel(def(controlV1, "ControlRealizationBindingModel")),
+		TrialProcessorPlanReference:            publishedModel(def(experiment, "TrialProcessorPlanReferenceModel")),
+		CleanupObligationResult:                publishedModel(def("trial-cleanup-receipt-v1", "CleanupObligationResultModel")),
 	}
 	maps.Copy(checks, portChecks())
 	return checks

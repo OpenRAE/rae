@@ -14,6 +14,8 @@
         "action",
         "description"
       ],
+      "model_type": "ACLRule",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "action": {
@@ -61,6 +63,8 @@
         "home",
         "disabled"
       ],
+      "model_type": "Account",
+      "native_sdl": true,
       "omit": {
         "materialization_profile": [
           "null"
@@ -107,6 +111,8 @@
         "auth_method",
         "material"
       ],
+      "model_type": "AccountCredentialBinding",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "auth_method": {
@@ -158,6 +164,8 @@
         "observation_boundaries",
         "interactive_access"
       ],
+      "model_type": "Agent",
+      "native_sdl": true,
       "omit": {
         "control_context": [
           "null",
@@ -187,6 +195,8 @@
         "candidate_id",
         "artifact"
       ],
+      "model_type": "ArtifactCandidate",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -197,6 +207,8 @@
         "kind",
         "allowed_values"
       ],
+      "model_type": "ArtifactConstraint",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -208,6 +220,8 @@
         "digest",
         "media_type"
       ],
+      "model_type": "ArtifactIdentity",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -219,6 +233,8 @@
         "associated_artifact_manifest_ref",
         "trust_policy_ref"
       ],
+      "model_type": "ArtifactLockedInput",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -232,6 +248,8 @@
         "digest",
         "locked_input_ids"
       ],
+      "model_type": "ArtifactMaterializationSpecification",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -243,6 +261,8 @@
         "version",
         "digest"
       ],
+      "model_type": "ArtifactMechanismProfile",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -267,6 +287,8 @@
         "trust_policy_refs",
         "associated_artifact_manifest_refs"
       ],
+      "model_type": "ArtifactRequirement",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -277,6 +299,8 @@
         "acquisition",
         "timing"
       ],
+      "model_type": "ArtifactSatisfactionRoute",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -288,6 +312,8 @@
         "role",
         "polarity"
       ],
+      "model_type": "Assertion",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -298,6 +324,8 @@
         "integrity",
         "availability"
       ],
+      "model_type": "AssetValue",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "availability": {
@@ -344,6 +372,8 @@
         "default",
         "scopes"
       ],
+      "model_type": "AugmentationScopePolicy",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "scopes": {
@@ -358,6 +388,8 @@
         "permission",
         "namespace"
       ],
+      "model_type": "AugmentationScopeRule",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "namespace": {
@@ -374,6 +406,8 @@
         "operator",
         "expected"
       ],
+      "model_type": "BooleanPredicate",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "expected": {
@@ -395,6 +429,8 @@
         "supports_jump",
         "description"
       ],
+      "model_type": "Clock",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "supports_jump": {
@@ -430,6 +466,8 @@
         "description",
         "environment"
       ],
+      "model_type": "Condition",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "interval": {
@@ -483,6 +521,8 @@
         "attestation",
         "description"
       ],
+      "model_type": "ContainerImageBuildProvenance",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -506,6 +546,8 @@
         "tags",
         "service_materialization"
       ],
+      "model_type": "Content",
+      "native_sdl": true,
       "omit": {
         "text_from": [
           "null"
@@ -538,6 +580,8 @@
         "tags",
         "description"
       ],
+      "model_type": "ContentItem",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -552,6 +596,8 @@
         "schemas",
         "description"
       ],
+      "model_type": "Database",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "origin": {
@@ -587,6 +633,8 @@
         "with_grant_option",
         "description"
       ],
+      "model_type": "DatabaseGrant",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "object_type": {
@@ -625,6 +673,8 @@
         "port",
         "description"
       ],
+      "model_type": "DatabaseListener",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "port": {
@@ -651,6 +701,8 @@
         "can_login",
         "description"
       ],
+      "model_type": "DatabaseRole",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "can_login": {
@@ -717,6 +769,8 @@
         "tables",
         "description"
       ],
+      "model_type": "DatabaseSchema",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "origin": {
@@ -750,6 +804,8 @@
         "provenance",
         "description"
       ],
+      "model_type": "DatabaseSetting",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "provenance": {
@@ -802,6 +858,8 @@
         "name",
         "description"
       ],
+      "model_type": "DatabaseTable",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -812,6 +870,8 @@
         "node_refs",
         "cross_tenant_isolation"
       ],
+      "model_type": "DeploymentCell",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "cross_tenant_isolation": {
@@ -829,6 +889,8 @@
       "fields": [
         "description"
       ],
+      "model_type": "DeploymentTenant",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -844,6 +906,8 @@
         "policy",
         "description"
       ],
+      "model_type": "DnsDynamicUpdatePolicy",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "allowed_clients": {
@@ -877,6 +941,8 @@
         "tls_server_name",
         "description"
       ],
+      "model_type": "DnsForwarder",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "port": {
@@ -918,6 +984,8 @@
         "preference",
         "exchange"
       ],
+      "model_type": "DnsMxRdata",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "preference": {
@@ -948,6 +1016,8 @@
         "default_logging",
         "description"
       ],
+      "model_type": "DnsResolverPolicy",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "allow_recursion": {
@@ -1043,6 +1113,8 @@
         "srv",
         "description"
       ],
+      "model_type": "DnsResourceRecord",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "text": {
@@ -1067,6 +1139,8 @@
         "provenance",
         "description"
       ],
+      "model_type": "DnsResourceRecordSet",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "provenance": {
@@ -1184,6 +1258,8 @@
         "provenance",
         "description"
       ],
+      "model_type": "DnsRuntimeSetting",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "provenance": {
@@ -1240,6 +1316,8 @@
         "expire",
         "minimum"
       ],
+      "model_type": "DnsSoaRdata",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "expire": {
@@ -1307,6 +1385,8 @@
         "port",
         "target"
       ],
+      "model_type": "DnsSrvRdata",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "port": {
@@ -1361,6 +1441,8 @@
         "rrsets",
         "description"
       ],
+      "model_type": "DnsZone",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "kind": {
@@ -1471,6 +1553,8 @@
         "secondary_servers",
         "description"
       ],
+      "model_type": "DnsZoneTransferPolicy",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "allowed_clients": {
@@ -1519,6 +1603,8 @@
         "arguments",
         "description"
       ],
+      "model_type": "DockerfileInstruction",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "arguments": {
@@ -1571,6 +1657,8 @@
         "provenance",
         "children"
       ],
+      "model_type": "DomainProfileBindingModel",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "children": {
@@ -1588,6 +1676,8 @@
         "context",
         "use"
       ],
+      "model_type": "DomainProfileBindingOwnerModel",
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -1598,6 +1688,8 @@
         "source_ref",
         "evidence_refs"
       ],
+      "model_type": "DomainProfileBindingProvenanceModel",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "evidence_refs": {
@@ -1614,6 +1706,8 @@
         "revision",
         "definition_digest"
       ],
+      "model_type": "DomainProfileCoordinateModel",
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -1626,6 +1720,8 @@
         "semantic_contract",
         "allowed_contexts"
       ],
+      "model_type": "DomainProfileDefinitionModel",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "allowed_contexts": {
@@ -1643,6 +1739,8 @@
         "required_vocabularies",
         "schema_document"
       ],
+      "model_type": "DomainProfileSchemaModel",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "required_vocabularies": {
@@ -1658,6 +1756,8 @@
         "revision",
         "digest"
       ],
+      "model_type": "DomainProfileSemanticContractModel",
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -1676,6 +1776,8 @@
         "events",
         "entities"
       ],
+      "model_type": "Entity",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "role": {
@@ -1703,6 +1805,8 @@
         "injects",
         "description"
       ],
+      "model_type": "Event",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -1742,6 +1846,8 @@
         "notes",
         "observation_demand"
       ],
+      "model_type": "EvidenceRequirement",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "channel": {
@@ -1903,6 +2009,8 @@
         "numerator",
         "denominator"
       ],
+      "model_type": "ExactRatio",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "denominator": {
@@ -1943,6 +2051,8 @@
         "on_exhausted",
         "fresh_trial_limit"
       ],
+      "model_type": "ExecutionPolicy",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "budget_ms": {
@@ -1979,6 +2089,8 @@
         "default",
         "scopes"
       ],
+      "model_type": "ExecutionPolicyDocument",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "scopes": {
@@ -1993,6 +2105,8 @@
         "scope",
         "policy"
       ],
+      "model_type": "ExecutionPolicyScope",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "namespace": {
@@ -2011,6 +2125,8 @@
         "reset_obligation_refs",
         "compensation_refs"
       ],
+      "model_type": "ExecutionRetryPolicyModel",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "max_attempts": {
@@ -2038,6 +2154,8 @@
         "sensitivity",
         "description"
       ],
+      "model_type": "ExperimentArtifactRefModel",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "size_bytes": {
@@ -2053,6 +2171,8 @@
         "algorithm",
         "value"
       ],
+      "model_type": "ExperimentChecksumModel",
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -2063,6 +2183,8 @@
         "ref_id",
         "ref_version"
       ],
+      "model_type": "ExperimentEvidenceSatisfactionReferenceModel",
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -2080,6 +2202,8 @@
         "description",
         "environment"
       ],
+      "model_type": "Feature",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "type": {
@@ -2106,6 +2230,8 @@
         "ordering_dependencies",
         "refresh_dependencies"
       ],
+      "model_type": "GeneratedArtifact",
+      "native_sdl": true,
       "omit": {
         "random_value": [
           "null"
@@ -2126,6 +2252,8 @@
         "access_mode",
         "selected_outputs"
       ],
+      "model_type": "GeneratedArtifactConsumer",
+      "native_sdl": true,
       "omit": {
         "selected_outputs": [
           "null",
@@ -2146,6 +2274,8 @@
         "sensitivity",
         "disposition"
       ],
+      "model_type": "GeneratedArtifactOutput",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -2155,6 +2285,8 @@
         "generated_artifact",
         "output"
       ],
+      "model_type": "GeneratedArtifactValueSource",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -2166,6 +2298,8 @@
         "netbios_name",
         "authority_account_ref"
       ],
+      "model_type": "IdentityDomain",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "profile": {
@@ -2184,6 +2318,8 @@
         "service_ref",
         "protocol"
       ],
+      "model_type": "IdentityFacade",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "protocol": {
@@ -2202,6 +2338,8 @@
         "root_domain_ref",
         "domain_refs"
       ],
+      "model_type": "IdentityForest",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -2215,6 +2353,8 @@
         "evidence_reference",
         "description"
       ],
+      "model_type": "ImageAttestation",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "attestation_type": {
@@ -2282,6 +2422,8 @@
         "value_classification",
         "description"
       ],
+      "model_type": "ImageBuildArg",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "value_classification": {
@@ -2323,6 +2465,8 @@
         "default_environment",
         "description"
       ],
+      "model_type": "ImageConfig",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "command": {
@@ -2350,6 +2494,8 @@
         "from_stage",
         "description"
       ],
+      "model_type": "ImageCopiedSource",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -2362,6 +2508,8 @@
         "value_classification",
         "description"
       ],
+      "model_type": "ImageEnvironmentDefault",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "value_classification": {
@@ -2395,6 +2543,8 @@
         "empty",
         "description"
       ],
+      "model_type": "ImageLayer",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "empty": {
@@ -2430,6 +2580,8 @@
         "checksum_algorithm",
         "description"
       ],
+      "model_type": "ImageSourceInput",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -2447,6 +2599,8 @@
         "acls",
         "description"
       ],
+      "model_type": "InfraNode",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "count": {
@@ -2474,6 +2628,8 @@
         "services",
         "accounts"
       ],
+      "model_type": "InitialKnowledge",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -2490,6 +2646,8 @@
         "description",
         "environment"
       ],
+      "model_type": "Inject",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -2500,6 +2658,8 @@
         "source_id",
         "effect_id"
       ],
+      "model_type": "LocalOutcomeCriterion",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -2514,6 +2674,8 @@
         "freshness_policy",
         "episode_policy"
       ],
+      "model_type": "LocalOutcomeDefinition",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -2529,6 +2691,8 @@
         "authority_status",
         "evidence_refs"
       ],
+      "model_type": "MixedControlControllerState",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "valid_from_order": {
@@ -2553,6 +2717,8 @@
         "concurrent",
         "conflict"
       ],
+      "model_type": "MixedControlDispositionRules",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -2567,6 +2733,8 @@
         "controller_states",
         "transitions"
       ],
+      "model_type": "MixedControlParticipantOperation",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -2582,6 +2750,8 @@
         "target_kinds",
         "completion_evidence_refs"
       ],
+      "model_type": "MixedControlPermittedTransition",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "valid_from_order": {
@@ -2610,6 +2780,8 @@
         "permitted_transitions",
         "script_steps"
       ],
+      "model_type": "MixedControlPolicy",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -2624,6 +2796,8 @@
         "target_kind",
         "target_step_ref"
       ],
+      "model_type": "MixedControlScriptStep",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "expected_state_revision": {
@@ -2665,6 +2839,8 @@
         "evidence_refs",
         "completion_evidence_refs"
       ],
+      "model_type": "MixedControlTransition",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "effective_order": {
@@ -2726,6 +2902,8 @@
         "endpoint_persona",
         "runtime"
       ],
+      "model_type": "Node",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "architecture": {
@@ -2792,6 +2970,8 @@
         "unit",
         "unit_semantic_ref"
       ],
+      "model_type": "NumericPredicate",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "expected": {
@@ -2819,6 +2999,8 @@
         "window",
         "depends_on"
       ],
+      "model_type": "Objective",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -2831,6 +3013,8 @@
         "assertions",
         "threshold"
       ],
+      "model_type": "ObjectiveSuccess",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "mode": {
@@ -2866,6 +3050,8 @@
         "workflows",
         "steps"
       ],
+      "model_type": "ObjectiveWindow",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -2887,6 +3073,8 @@
         "required",
         "authority_ref"
       ],
+      "model_type": "ObservationDemandRule",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "prohibited_stages": {
@@ -2911,6 +3099,8 @@
         "coverage_profile",
         "max_items"
       ],
+      "model_type": "ObservationSelector",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "component_refs": {
@@ -2940,6 +3130,8 @@
         "classification",
         "reference_id"
       ],
+      "model_type": "OperatorSecretCredentialMaterial",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -2959,6 +3151,8 @@
         "limitations",
         "diagnostics"
       ],
+      "model_type": "OutcomeInterpretationRule",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -2977,6 +3171,8 @@
         "provenance_refs",
         "diagnostics"
       ],
+      "model_type": "OutcomeInterpretationSourceBinding",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -2996,6 +3192,8 @@
         "limitations",
         "diagnostics"
       ],
+      "model_type": "OutcomeInterpretationTargetBinding",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -3022,6 +3220,8 @@
         "default_disclosure_ref",
         "loss_disclosure_ref"
       ],
+      "model_type": "ParticipantActionArgumentDefinition",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "allowed_values": {
@@ -3129,6 +3329,8 @@
         "temporal_contracts",
         "backend_timing_disclosures"
       ],
+      "model_type": "ParticipantActionContract",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "failure_classes": {
@@ -3152,6 +3354,8 @@
         "target_refs",
         "evidence_refs"
       ],
+      "model_type": "ParticipantActionEffect",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -3167,6 +3371,8 @@
         "support_refs",
         "evidence_refs"
       ],
+      "model_type": "ParticipantActionPrecondition",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -3183,6 +3389,8 @@
         "max_retries",
         "cooldown_ticks"
       ],
+      "model_type": "ParticipantActivityActionCandidate",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "cooldown_ticks": {
@@ -3227,6 +3435,8 @@
         "minimum_ticks",
         "maximum_ticks"
       ],
+      "model_type": "ParticipantActivityTiming",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "maximum_ticks": {
@@ -3265,6 +3475,8 @@
         "failure_policy",
         "evaluation_authority"
       ],
+      "model_type": "ParticipantAutonomousExecutionPolicyV1",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "max_action_attempts": {
@@ -3312,6 +3524,8 @@
         "failure_policy",
         "evaluation_authority"
       ],
+      "model_type": "ParticipantAutonomousExecutionPolicyV2",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "max_action_attempts": {
@@ -3378,6 +3592,8 @@
         "evaluation_authority",
         "resource_budget"
       ],
+      "model_type": "ParticipantAutonomousExecutionPolicyV3",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "max_action_attempts": {
@@ -3425,6 +3641,8 @@
         "failure_class",
         "diagnostic"
       ],
+      "model_type": "ParticipantBackendFailureMapping",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "failure_class": {
@@ -3446,6 +3664,8 @@
         "affected_temporal_ids",
         "limitations"
       ],
+      "model_type": "ParticipantBackendTimingDisclosure",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -3485,6 +3705,8 @@
         "extension_policy",
         "extensions"
       ],
+      "model_type": "ParticipantBehaviorSpecification",
+      "native_sdl": true,
       "omit": {
         "control_context": [
           "null",
@@ -3513,6 +3735,8 @@
         "retention_policy_ref",
         "provenance_refs"
       ],
+      "model_type": "ParticipantControlContextAssetModel",
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -3523,6 +3747,8 @@
         "asset_version",
         "asset_digest"
       ],
+      "model_type": "ParticipantControlContextAssetReferenceModel",
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -3533,6 +3759,8 @@
         "asset_ref",
         "disposition"
       ],
+      "model_type": "ParticipantControlContextReference",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -3550,6 +3778,8 @@
         "score_authority_refs",
         "receipt_authority_refs"
       ],
+      "model_type": "ParticipantEvaluationAuthority",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -3580,6 +3810,8 @@
         "control_evidence_refs",
         "control"
       ],
+      "model_type": "ParticipantInjectDelivery",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "control_effective_order": {
@@ -3612,6 +3844,8 @@
         "authority_scope_refs",
         "evidence_refs"
       ],
+      "model_type": "ParticipantInjectDeliveryControl",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -3625,6 +3859,8 @@
         "visibility_basis_ref",
         "disclosure_basis_ref"
       ],
+      "model_type": "ParticipantInjectDeliveryPolicy",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -3635,6 +3871,8 @@
         "script_ref",
         "story_ref"
       ],
+      "model_type": "ParticipantInjectOccurrenceAnchor",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -3652,6 +3890,8 @@
         "commutative",
         "merge_rule_ref"
       ],
+      "model_type": "ParticipantInteractionDeclaration",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "commutative": {
@@ -3668,6 +3908,8 @@
         "channel",
         "account_ref"
       ],
+      "model_type": "ParticipantInteractiveAccess",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "channel": {
@@ -3702,6 +3944,8 @@
         "view_transitions",
         "realized_view_disclosure"
       ],
+      "model_type": "ParticipantObservationBoundary",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -3726,6 +3970,8 @@
         "observation_boundary_refs",
         "control_specification_ref"
       ],
+      "model_type": "ParticipantRelationship",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -3747,6 +3993,8 @@
         "parent_budget_ref",
         "evidence_refs"
       ],
+      "model_type": "ParticipantResourceBudgetDimension",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "limit": {
@@ -3775,6 +4023,8 @@
         "fairness",
         "dimensions"
       ],
+      "model_type": "ParticipantResourceBudgetPolicy",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -3790,6 +4040,8 @@
         "max_queue_ticks",
         "starvation_bound_ticks"
       ],
+      "model_type": "ParticipantResourceFairness",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "max_queue_ticks": {
@@ -3820,6 +4072,8 @@
         "kind",
         "ref"
       ],
+      "model_type": "ParticipantResourceOwner",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -3834,6 +4088,8 @@
         "condition_precondition_id",
         "observation_boundary_ref"
       ],
+      "model_type": "ParticipantSharedTimeBinding",
+      "native_sdl": true,
       "omit": {
         "condition_precondition_id": [
           "null"
@@ -3864,6 +4120,8 @@
         "backend_disclosure_refs",
         "shared_time_binding"
       ],
+      "model_type": "ParticipantTemporalContract",
+      "native_sdl": true,
       "omit": {
         "shared_time_binding": [
           "null"
@@ -3883,6 +4141,8 @@
         "participant_refs",
         "participant_role_refs"
       ],
+      "model_type": "ParticipantToolAffordance",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -3902,6 +4162,8 @@
         "certainty",
         "latency_profile"
       ],
+      "model_type": "ParticipantViewRule",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -3926,6 +4188,8 @@
         "latency_profile",
         "realized_backend_disclosure"
       ],
+      "model_type": "ParticipantViewTransition",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "effective_order": {
@@ -3947,6 +4211,8 @@
         "ordering_dependencies",
         "refresh_dependencies"
       ],
+      "model_type": "PersistentVolume",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -3958,6 +4224,8 @@
         "semantic_ref",
         "operator"
       ],
+      "model_type": "PresencePredicate",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -3974,6 +4242,8 @@
         "threshold",
         "evidence_requirements"
       ],
+      "model_type": "Proposition",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "threshold": {
@@ -3990,6 +4260,8 @@
         "prefix",
         "suffix"
       ],
+      "model_type": "RandomValueFormat",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -4003,6 +4275,8 @@
         "format",
         "min_entropy_bits"
       ],
+      "model_type": "RandomValueRecipe",
+      "native_sdl": true,
       "omit": {
         "alphabet": [
           "null"
@@ -4067,6 +4341,8 @@
         "shared_service",
         "participant"
       ],
+      "model_type": "Relationship",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "type": {
@@ -4081,6 +4357,8 @@
       "fields": [
         "kernel_boundary"
       ],
+      "model_type": "RelationshipCarrierPlacement",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "kernel_boundary": {
@@ -4101,6 +4379,8 @@
         "auth_method",
         "description"
       ],
+      "model_type": "RelationshipDatabaseAccess",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "auth_method": {
@@ -4135,6 +4415,8 @@
     "#/$defs/RelationshipDomainController": {
       "factory_defaults": {},
       "fields": [],
+      "model_type": "RelationshipDomainController",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -4143,6 +4425,8 @@
       "fields": [
         "controller_refs"
       ],
+      "model_type": "RelationshipDomainJoin",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -4152,6 +4436,8 @@
         "trust_type",
         "direction"
       ],
+      "model_type": "RelationshipForestTrust",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "direction": {
@@ -4187,6 +4473,8 @@
         "parse_format",
         "description"
       ],
+      "model_type": "RelationshipForwardingEdge",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "enrollment_identity_classification": {
@@ -4261,6 +4549,8 @@
         "tenant_claim_name",
         "tenant_claim_owner"
       ],
+      "model_type": "RelationshipIdentityFederation",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "direction": {
@@ -4309,6 +4599,8 @@
         "domain_ref",
         "description"
       ],
+      "model_type": "RelationshipMailAccess",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "auth_mechanism": {
@@ -4397,6 +4689,8 @@
         "body_limit",
         "description"
       ],
+      "model_type": "RelationshipProxyUpstream",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "client_tls_terminated": {
@@ -4432,6 +4726,8 @@
         "direction",
         "description"
       ],
+      "model_type": "RelationshipServiceIntegration",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "direction": {
@@ -4491,6 +4787,8 @@
         "mutable_state_owner",
         "reset_generation_owner"
       ],
+      "model_type": "RelationshipSharedService",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "mutable_state_owner": {
@@ -4542,6 +4840,8 @@
         "ram",
         "cpu"
       ],
+      "model_type": "Resources",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "cpu": {
@@ -4573,6 +4873,8 @@
         "username",
         "entities"
       ],
+      "model_type": "Role",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -4596,6 +4898,8 @@
         "tenants",
         "description"
       ],
+      "model_type": "RuntimeAppAuthorization",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "auth_enabled": {
@@ -4644,6 +4948,8 @@
         "effect",
         "description"
       ],
+      "model_type": "RuntimeAppAuthorizationGrant",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "actions": {
@@ -4705,6 +5011,8 @@
         "backend_roles",
         "description"
       ],
+      "model_type": "RuntimeAppAuthorizationPrincipal",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "backend_roles": {
@@ -4774,6 +5082,8 @@
         "name",
         "description"
       ],
+      "model_type": "RuntimeAppAuthorizationRole",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -4791,6 +5101,8 @@
         "hosts",
         "description"
       ],
+      "model_type": "RuntimeAppAuthorizationRoleMapping",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "backend_roles": {
@@ -4817,6 +5129,8 @@
         "name",
         "description"
       ],
+      "model_type": "RuntimeAppAuthorizationTenant",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -4830,6 +5144,8 @@
         "sensitivity",
         "description"
       ],
+      "model_type": "RuntimeApplicationDisclosure",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "sensitivity": {
@@ -4875,6 +5191,8 @@
         "value",
         "description"
       ],
+      "model_type": "RuntimeApplicationExposedField",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "sensitivity": {
@@ -4908,6 +5226,8 @@
         "data_type",
         "description"
       ],
+      "model_type": "RuntimeApplicationParameter",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "location": {
@@ -4953,6 +5273,8 @@
         "condition",
         "description"
       ],
+      "model_type": "RuntimeApplicationRedirect",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "status_code": {
@@ -4976,6 +5298,8 @@
         "content_type",
         "description"
       ],
+      "model_type": "RuntimeApplicationResponse",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "status_code": {
@@ -5020,6 +5344,8 @@
         "exposed_fields",
         "upstream_target"
       ],
+      "model_type": "RuntimeApplicationRoute",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "auth_required": {
@@ -5083,6 +5409,8 @@
         "scheme",
         "tls_terminated_here"
       ],
+      "model_type": "RuntimeApplicationRouteUpstreamTarget",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "scheme": {
@@ -5123,6 +5451,8 @@
         "description",
         "routes"
       ],
+      "model_type": "RuntimeApplicationSurface",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "protocol": {
@@ -5157,6 +5487,8 @@
         "components",
         "signing_key"
       ],
+      "model_type": "RuntimeAptPackageRepository",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -5176,6 +5508,8 @@
         "process_overrides",
         "description"
       ],
+      "model_type": "RuntimeCapabilityPolicy",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "add": {
@@ -5214,6 +5548,8 @@
         "resource_scope_ref",
         "description"
       ],
+      "model_type": "RuntimeCloudServiceLimit",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "maximum": {
@@ -5288,6 +5624,8 @@
         "repository_state",
         "dependency_manifests"
       ],
+      "model_type": "RuntimeConfiguration",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -5334,6 +5672,8 @@
         "group_add",
         "description"
       ],
+      "model_type": "RuntimeContainerConfiguration",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "autoremove": {
@@ -5451,6 +5791,8 @@
         "access",
         "description"
       ],
+      "model_type": "RuntimeControlInterface",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "access": {
@@ -5534,6 +5876,8 @@
         "grants",
         "settings"
       ],
+      "model_type": "RuntimeDatabaseService",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "engine": {
@@ -5600,6 +5944,8 @@
         "store_size_bytes",
         "description"
       ],
+      "model_type": "RuntimeDatastoreCluster",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "doc_count": {
@@ -5667,6 +6013,8 @@
         "version",
         "description"
       ],
+      "model_type": "RuntimeDatastoreEnginePlugin",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -5689,6 +6037,8 @@
         "evidence_refs",
         "description"
       ],
+      "model_type": "RuntimeDatastoreMapping",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "date_detection": {
@@ -5774,6 +6124,8 @@
         "plugins",
         "description"
       ],
+      "model_type": "RuntimeDatastoreNode",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "heap_init_bytes": {
@@ -5871,6 +6223,8 @@
         "port",
         "description"
       ],
+      "model_type": "RuntimeDatastoreNodeEndpoint",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "port": {
@@ -5930,6 +6284,8 @@
         "health",
         "description"
       ],
+      "model_type": "RuntimeDatastorePartition",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "datatype_census": {
@@ -6084,6 +6440,8 @@
         "maxmemory",
         "description"
       ],
+      "model_type": "RuntimeDatastorePersistence",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "aof": {
@@ -6166,6 +6524,8 @@
         "authorization_ref",
         "description"
       ],
+      "model_type": "RuntimeDatastoreService",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "aliases": {
@@ -6255,6 +6615,8 @@
         "value",
         "description"
       ],
+      "model_type": "RuntimeDatastoreSetting",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "classification": {
@@ -6330,6 +6692,8 @@
         "evidence_refs",
         "description"
       ],
+      "model_type": "RuntimeDatastoreTemplate",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "evidence_refs": {
@@ -6362,6 +6726,8 @@
         "node_verification",
         "description"
       ],
+      "model_type": "RuntimeDatastoreTransportSecurity",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "client_verification": {
@@ -6408,6 +6774,8 @@
         "name",
         "version"
       ],
+      "model_type": "RuntimeDependencyManifest",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -6419,6 +6787,8 @@
         "permissions",
         "description"
       ],
+      "model_type": "RuntimeDeviceMapping",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -6445,6 +6815,8 @@
         "settings",
         "description"
       ],
+      "model_type": "RuntimeDnsService",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "configuration_file_refs": {
@@ -6516,6 +6888,8 @@
         "value_from",
         "description"
       ],
+      "model_type": "RuntimeEnvironmentFile",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -6531,6 +6905,8 @@
         "source",
         "description"
       ],
+      "model_type": "RuntimeEnvironmentVariable",
+      "native_sdl": true,
       "omit": {
         "value_from": [
           "null"
@@ -6587,6 +6963,8 @@
         "address",
         "description"
       ],
+      "model_type": "RuntimeExtraHost",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -6608,6 +6986,8 @@
         "access_rules",
         "access_observations"
       ],
+      "model_type": "RuntimeFileService",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "protocol": {
@@ -6649,6 +7029,8 @@
         "sensitivity",
         "description"
       ],
+      "model_type": "RuntimeFileServiceAccessObservation",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "action": {
@@ -6750,6 +7132,8 @@
         "basis",
         "description"
       ],
+      "model_type": "RuntimeFileServiceAccessRule",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "action": {
@@ -6834,6 +7218,8 @@
         "directory_subject_ref",
         "description"
       ],
+      "model_type": "RuntimeFileServicePrincipal",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "credential_classification": {
@@ -6945,6 +7331,8 @@
         "write_users",
         "description"
       ],
+      "model_type": "RuntimeFileServiceShare",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "browseable": {
@@ -7039,6 +7427,8 @@
         "sensitivity",
         "description"
       ],
+      "model_type": "RuntimeFilesystemEntry",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "entry_type": {
@@ -7182,6 +7572,8 @@
         "settings",
         "description"
       ],
+      "model_type": "RuntimeForwardingAgent",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "agent_kind": {
@@ -7252,6 +7644,8 @@
         "reconnect_seconds",
         "description"
       ],
+      "model_type": "RuntimeForwardingBufferPolicy",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "crypto": {
@@ -7316,6 +7710,8 @@
         "kind",
         "description"
       ],
+      "model_type": "RuntimeForwardingReloadChannel",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "kind": {
@@ -7352,6 +7748,8 @@
         "classification",
         "description"
       ],
+      "model_type": "RuntimeForwardingSetting",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "classification": {
@@ -7402,6 +7800,8 @@
         "enrollment_identity_classification",
         "description"
       ],
+      "model_type": "RuntimeForwardingShipTarget",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "enrollment_identity_classification": {
@@ -7478,6 +7878,8 @@
         "selector",
         "description"
       ],
+      "model_type": "RuntimeForwardingSource",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "kind": {
@@ -7534,6 +7936,8 @@
         "sid_namespace",
         "description"
       ],
+      "model_type": "RuntimeForwardingTransform",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "kind": {
@@ -7572,6 +7976,8 @@
         "context_refs",
         "description"
       ],
+      "model_type": "RuntimeIdentityAccessObservation",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -7588,6 +7994,8 @@
         "provenance",
         "description"
       ],
+      "model_type": "RuntimeIdentityAttribute",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "origin": {
@@ -7692,6 +8100,8 @@
         "identity_uses",
         "access_observations"
       ],
+      "model_type": "RuntimeIdentityAuthority",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "kind": {
@@ -7728,6 +8138,8 @@
         "port",
         "description"
       ],
+      "model_type": "RuntimeIdentityAuthorityService",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "port": {
@@ -7783,6 +8195,8 @@
         "condition",
         "description"
       ],
+      "model_type": "RuntimeIdentityPermissionBinding",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -7800,6 +8214,8 @@
         "resource_access",
         "description"
       ],
+      "model_type": "RuntimeIdentityPolicy",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "applies_to_refs": {
@@ -7839,6 +8255,8 @@
         "language",
         "expression"
       ],
+      "model_type": "RuntimeIdentityPolicyCondition",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -7852,6 +8270,8 @@
         "external_target",
         "description"
       ],
+      "model_type": "RuntimeIdentityRelationship",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "relationship_type": {
@@ -7890,6 +8310,8 @@
         "bindings",
         "inherited_from_ref"
       ],
+      "model_type": "RuntimeIdentityResourceAccess",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -7905,6 +8327,8 @@
         "parent_ref",
         "description"
       ],
+      "model_type": "RuntimeIdentityResourceScope",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -7928,6 +8352,8 @@
         "attributes",
         "description"
       ],
+      "model_type": "RuntimeIdentitySubject",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "enabled": {
@@ -8005,6 +8431,8 @@
         "source_principal_ref",
         "description"
       ],
+      "model_type": "RuntimeIdentityUse",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -8021,6 +8449,8 @@
         "argv_redacted",
         "description"
       ],
+      "model_type": "RuntimeInitProcess",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "argv": {
@@ -8069,6 +8499,8 @@
         "evidence_refs",
         "description"
       ],
+      "model_type": "RuntimeListenerReadiness",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "evidence_refs": {
@@ -8089,6 +8521,8 @@
         "provenance",
         "description"
       ],
+      "model_type": "RuntimeLocalGroup",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "gid": {
@@ -8141,6 +8575,8 @@
         "sudo_rules",
         "description"
       ],
+      "model_type": "RuntimeLocalIdentityInventory",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -8164,6 +8600,8 @@
         "stability",
         "description"
       ],
+      "model_type": "RuntimeLocalUser",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "disabled": {
@@ -8278,6 +8716,8 @@
         "external_targets",
         "description"
       ],
+      "model_type": "RuntimeMailAlias",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "external_targets": {
@@ -8301,6 +8741,8 @@
         "version",
         "description"
       ],
+      "model_type": "RuntimeMailComponent",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "kind": {
@@ -8340,6 +8782,8 @@
         "role",
         "description"
       ],
+      "model_type": "RuntimeMailDomain",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "role": {
@@ -8386,6 +8830,8 @@
         "tls_versions",
         "description"
       ],
+      "model_type": "RuntimeMailListener",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "auth_mechanisms": {
@@ -8524,6 +8970,8 @@
         "local_user_ref",
         "description"
       ],
+      "model_type": "RuntimeMailMailbox",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "auth_mechanisms": {
@@ -8632,6 +9080,8 @@
         "path",
         "description"
       ],
+      "model_type": "RuntimeMailMailboxStore",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "kind": {
@@ -8667,6 +9117,8 @@
         "stability",
         "description"
       ],
+      "model_type": "RuntimeMailQueue",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "kind": {
@@ -8736,6 +9188,8 @@
         "relay_host",
         "description"
       ],
+      "model_type": "RuntimeMailRoutingRule",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "kind": {
@@ -8792,6 +9246,8 @@
         "queues",
         "settings"
       ],
+      "model_type": "RuntimeMailService",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -8808,6 +9264,8 @@
         "source_path",
         "description"
       ],
+      "model_type": "RuntimeMailSetting",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "provenance": {
@@ -8873,6 +9331,8 @@
         "backend_generated",
         "description"
       ],
+      "model_type": "RuntimeMount",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "backend_generated": {
@@ -9011,6 +9471,8 @@
         "userns",
         "uts"
       ],
+      "model_type": "RuntimeNamespaceConfiguration",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -9026,6 +9488,8 @@
         "ipam_options",
         "description"
       ],
+      "model_type": "RuntimeNetworkBackendDetail",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "driver": {
@@ -9065,6 +9529,8 @@
         "auth_required",
         "description"
       ],
+      "model_type": "RuntimeNetworkDetectionControlChannel",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "auth_required": {
@@ -9174,6 +9640,8 @@
         "control_channels",
         "description"
       ],
+      "model_type": "RuntimeNetworkDetectionEngine",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "app_layer_protocols": {
@@ -9305,6 +9773,8 @@
         "network_refs",
         "description"
       ],
+      "model_type": "RuntimeNetworkDetectionNetworkSet",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "kind": {
@@ -9353,6 +9823,8 @@
         "enabled",
         "description"
       ],
+      "model_type": "RuntimeNetworkDetectionOutputStream",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "enabled": {
@@ -9460,6 +9932,8 @@
         "loaded",
         "description"
       ],
+      "model_type": "RuntimeNetworkDetectionRuleSource",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "file_refs": {
@@ -9554,6 +10028,8 @@
         "backend",
         "description"
       ],
+      "model_type": "RuntimeNetworkEndpoint",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "aliases": {
@@ -9585,6 +10061,8 @@
       "fields": [
         "target_node_ref"
       ],
+      "model_type": "RuntimeNetworkNamespace",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -9600,6 +10078,8 @@
         "published_ports",
         "description"
       ],
+      "model_type": "RuntimeNetworkRealization",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -9628,6 +10108,8 @@
         "evidence_refs",
         "description"
       ],
+      "model_type": "RuntimeNetworkSensor",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "capture_interfaces": {
@@ -9748,6 +10230,8 @@
         "resource_limits",
         "description"
       ],
+      "model_type": "RuntimeOperationalPolicy",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "restart": {
@@ -9790,6 +10274,8 @@
         "privilege_class",
         "description"
       ],
+      "model_type": "RuntimeOrchestrationAuthority",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "engine": {
@@ -9841,6 +10327,8 @@
         "execution_timeout",
         "description"
       ],
+      "model_type": "RuntimeOrchestrationLifecyclePolicy",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -9853,6 +10341,8 @@
         "evidence_ref",
         "description"
       ],
+      "model_type": "RuntimeOrchestrationRealizedChild",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "count": {
@@ -9875,6 +10365,8 @@
         "environment_name",
         "description"
       ],
+      "model_type": "RuntimeOrchestrationScope",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -9886,6 +10378,8 @@
         "purpose",
         "description"
       ],
+      "model_type": "RuntimeOrchestrationSpawnTemplate",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -9900,6 +10394,8 @@
         "purl",
         "repository"
       ],
+      "model_type": "RuntimePackage",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "architecture": {
@@ -9916,6 +10412,8 @@
         "format",
         "digest"
       ],
+      "model_type": "RuntimePackageRepositorySigningKey",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -9954,6 +10452,8 @@
         "cloud_limits",
         "description"
       ],
+      "model_type": "RuntimePlatformApplication",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "platform_kind": {
@@ -9989,6 +10489,8 @@
         "evidence_refs",
         "description"
       ],
+      "model_type": "RuntimePlatformApplicationCapability",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "evidence_refs": {
@@ -10031,6 +10533,8 @@
         "credential_classification",
         "description"
       ],
+      "model_type": "RuntimePlatformApplicationConnector",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "credential_classification": {
@@ -10096,6 +10600,8 @@
         "evidence_refs",
         "description"
       ],
+      "model_type": "RuntimePlatformApplicationContentObject",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "evidence_refs": {
@@ -10157,6 +10663,8 @@
         "rate_limit",
         "description"
       ],
+      "model_type": "RuntimePlatformApplicationExecutionPolicy",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "max_concurrent_jobs": {
@@ -10181,6 +10689,8 @@
         "value",
         "description"
       ],
+      "model_type": "RuntimePlatformApplicationMarking",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "scheme": {
@@ -10205,6 +10715,8 @@
         "name",
         "description"
       ],
+      "model_type": "RuntimePlatformApplicationOrganization",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -10220,6 +10732,8 @@
         "redaction",
         "description"
       ],
+      "model_type": "RuntimePlatformApplicationSetting",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "classification": {
@@ -10265,6 +10779,8 @@
         "name",
         "description"
       ],
+      "model_type": "RuntimePlatformApplicationTenant",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -10277,6 +10793,8 @@
         "target_service_ref",
         "description"
       ],
+      "model_type": "RuntimePlatformApplicationUpstreamBinding",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "role": {
@@ -10316,6 +10834,8 @@
         "drop",
         "description"
       ],
+      "model_type": "RuntimeProcessCapabilityOverride",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "add": {
@@ -10366,6 +10886,8 @@
         "working_directory",
         "description"
       ],
+      "model_type": "RuntimeProcessIdentity",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "command": {
@@ -10437,6 +10959,8 @@
         "scope",
         "description"
       ],
+      "model_type": "RuntimeProcessResourceLimit",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "hard": {
@@ -10470,6 +10994,8 @@
         "host_port",
         "description"
       ],
+      "model_type": "RuntimePublishedPort",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "container_port": {
@@ -10505,6 +11031,8 @@
         "host_ip",
         "host_port"
       ],
+      "model_type": "RuntimePublishedPortRef",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "container_port": {
@@ -10544,6 +11072,8 @@
         "process_limits",
         "description"
       ],
+      "model_type": "RuntimeResourceLimits",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "cpu": {
@@ -10601,6 +11131,8 @@
         "run_state",
         "description"
       ],
+      "model_type": "RuntimeScheduledJob",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "enabled": {
@@ -10622,6 +11154,8 @@
         "next_run",
         "last_result"
       ],
+      "model_type": "RuntimeScheduledJobRunState",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "last_result": {
@@ -10652,6 +11186,8 @@
         "spec",
         "enabled"
       ],
+      "model_type": "RuntimeScheduledJobSchedule",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "enabled": {
@@ -10693,6 +11229,8 @@
         "resolution_evidence_refs",
         "description"
       ],
+      "model_type": "RuntimeSecretConsumer",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -10702,6 +11240,8 @@
         "kind",
         "value"
       ],
+      "model_type": "RuntimeSecretSelector",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -10715,6 +11255,8 @@
         "payload_content_ref",
         "description"
       ],
+      "model_type": "RuntimeSecretVersion",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -10733,6 +11275,8 @@
         "group_refs",
         "description"
       ],
+      "model_type": "RuntimeSecurityMonitoringAgent",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "group_refs": {
@@ -10776,6 +11320,8 @@
         "configuration_file_refs",
         "description"
       ],
+      "model_type": "RuntimeSecurityMonitoringAgentGroup",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "configuration_file_refs": {
@@ -10801,6 +11347,8 @@
         "process_ref",
         "description"
       ],
+      "model_type": "RuntimeSecurityMonitoringComponent",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "enabled": {
@@ -10883,6 +11431,8 @@
         "loaded",
         "description"
       ],
+      "model_type": "RuntimeSecurityMonitoringContentSet",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "file_count": {
@@ -11023,6 +11573,8 @@
         "target_refs",
         "evidence_refs"
       ],
+      "model_type": "RuntimeSecurityMonitoringDetectionDefinition",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "compliance_tags": {
@@ -11255,6 +11807,8 @@
         "value",
         "description"
       ],
+      "model_type": "RuntimeSecurityMonitoringFieldPredicate",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "operator": {
@@ -11294,6 +11848,8 @@
         "tls_enabled",
         "description"
       ],
+      "model_type": "RuntimeSecurityMonitoringListener",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "auth_required": {
@@ -11374,6 +11930,8 @@
         "settings",
         "description"
       ],
+      "model_type": "RuntimeSecurityMonitoringManager",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "configuration_file_refs": {
@@ -11451,6 +12009,8 @@
         "source_path",
         "description"
       ],
+      "model_type": "RuntimeSecurityMonitoringSetting",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "provenance": {
@@ -11520,6 +12080,8 @@
         "evidence_refs",
         "description"
       ],
+      "model_type": "RuntimeServiceListener",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "address_family": {
@@ -11647,6 +12209,8 @@
         "deletion_owner_ref",
         "description"
       ],
+      "model_type": "RuntimeServiceSecret",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -11681,6 +12245,8 @@
         "hashes",
         "description"
       ],
+      "model_type": "RuntimeSoftwareComponent",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "component_type": {
@@ -11744,6 +12310,8 @@
         "algorithm",
         "value"
       ],
+      "model_type": "RuntimeSoftwareComponentHash",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -11755,6 +12323,8 @@
         "definition",
         "profile_value"
       ],
+      "model_type": "RuntimeSoftwareComponentRefinement",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -11765,6 +12335,8 @@
         "name",
         "architecture"
       ],
+      "model_type": "RuntimeSoftwarePackageReference",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "architecture": {
@@ -11784,6 +12356,8 @@
         "trust_ref",
         "refinements"
       ],
+      "model_type": "RuntimeSoftwareRepository",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -11795,6 +12369,8 @@
         "definition",
         "profile_value"
       ],
+      "model_type": "RuntimeSoftwareRepositoryRefinement",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -11807,6 +12383,8 @@
         "repositories",
         "trust_bindings"
       ],
+      "model_type": "RuntimeSoftwareRepositoryState",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -11819,6 +12397,8 @@
         "presence",
         "refinements"
       ],
+      "model_type": "RuntimeSoftwareTrustBinding",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -11830,6 +12410,8 @@
         "definition",
         "profile_value"
       ],
+      "model_type": "RuntimeSoftwareTrustRefinement",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -11861,6 +12443,8 @@
         "service",
         "match_rules"
       ],
+      "model_type": "RuntimeSshServer",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "accept_env": {
@@ -11943,6 +12527,8 @@
         "raw_entry",
         "description"
       ],
+      "model_type": "RuntimeSudoRule",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "command_redacted": {
@@ -12008,6 +12594,8 @@
         "events",
         "description"
       ],
+      "model_type": "Script",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "end_time": {
@@ -12058,6 +12646,8 @@
         "classification",
         "value"
       ],
+      "model_type": "SecretFixtureCredentialMaterial",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -12081,6 +12671,8 @@
         "service",
         "description"
       ],
+      "model_type": "ServiceManagerUnit",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "active_state": {
@@ -12263,6 +12855,8 @@
         "profile_version",
         "requirements"
       ],
+      "model_type": "ServiceMaterialization",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -12273,6 +12867,8 @@
         "conflict_policy",
         "readback"
       ],
+      "model_type": "ServiceMaterializationRequirements",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -12284,6 +12880,8 @@
         "name",
         "description"
       ],
+      "model_type": "ServicePort",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "port": {
@@ -12314,6 +12912,8 @@
         "profile_version",
         "requirements"
       ],
+      "model_type": "ServiceSearchIndexSchemaMaterialization",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -12325,6 +12925,8 @@
         "readback",
         "field_semantics"
       ],
+      "model_type": "ServiceSearchIndexSchemaRequirements",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -12336,6 +12938,8 @@
         "command_redacted",
         "description"
       ],
+      "model_type": "ServiceUnitExecStart",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "command_kind": {
@@ -12368,6 +12972,8 @@
         "gateway",
         "internal"
       ],
+      "model_type": "SimpleProperties",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "internal": {
@@ -12389,6 +12995,8 @@
         "build",
         "artifact_requirement"
       ],
+      "model_type": "Source",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -12400,6 +13008,8 @@
         "command_redacted",
         "description"
       ],
+      "model_type": "SshForcedCommand",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "command_kind": {
@@ -12432,6 +13042,8 @@
         "kind",
         "pattern"
       ],
+      "model_type": "SshMatchCriterion",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "kind": {
@@ -12481,6 +13093,8 @@
         "match_id",
         "criteria"
       ],
+      "model_type": "SshMatchRule",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "accept_env": {
@@ -12552,6 +13166,8 @@
         "mount_destination",
         "access_mode"
       ],
+      "model_type": "StatefulResourceConsumer",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -12563,6 +13179,8 @@
         "scripts",
         "description"
       ],
+      "model_type": "Story",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "speed": {
@@ -12587,6 +13205,8 @@
         "expected",
         "expected_from"
       ],
+      "model_type": "StringPredicate",
+      "native_sdl": true,
       "omit": {
         "expected_from": [
           "null"
@@ -12606,6 +13226,8 @@
         "cadence_ticks",
         "description"
       ],
+      "model_type": "TemporalConstraint",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "cadence_ticks": {
@@ -12628,6 +13250,8 @@
         "tick",
         "microstep"
       ],
+      "model_type": "TimeCoordinate",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "microstep": {
@@ -12651,6 +13275,8 @@
         "visibility",
         "description"
       ],
+      "model_type": "TimeDomain",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -12669,6 +13295,8 @@
         "offset_ticks",
         "description"
       ],
+      "model_type": "TimeDomainMapping",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "offset_ticks": {
@@ -12696,6 +13324,8 @@
         "replay_behavior",
         "description"
       ],
+      "model_type": "TimeProgressionPolicy",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "drift_bound_ticks": {
@@ -12722,6 +13352,8 @@
         "lower_closed",
         "upper_closed"
       ],
+      "model_type": "VersionDomain",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "lower_closed": {
@@ -12745,6 +13377,8 @@
         "compensation",
         "steps"
       ],
+      "model_type": "Workflow",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -12758,6 +13392,8 @@
         "failure_policy",
         "order"
       ],
+      "model_type": "WorkflowCompensationPolicy",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -12772,6 +13408,8 @@
         "objectives",
         "steps"
       ],
+      "model_type": "WorkflowPredicate",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -12816,6 +13454,8 @@
         "else": "else_step",
         "then": "then_step"
       },
+      "model_type": "WorkflowStep",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "max_attempts": {
@@ -12843,6 +13483,8 @@
         "outcomes",
         "min_attempts"
       ],
+      "model_type": "WorkflowStepStateRef",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "min_attempts": {
@@ -12868,6 +13510,8 @@
       "model_names": {
         "next": "next_step"
       },
+      "model_type": "WorkflowSwitchCase",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -12876,6 +13520,8 @@
       "fields": [
         "seconds"
       ],
+      "model_type": "WorkflowTimeoutPolicy",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "seconds": {
@@ -12975,6 +13621,8 @@
         "workflows",
         "instantiation_provenance"
       ],
+      "model_type": "InstantiatedScenario",
+      "native_sdl": true,
       "omit": {
         "augmentation_scope": [
           "null"
@@ -13002,6 +13650,8 @@
         "record_digest",
         "record"
       ],
+      "model_type": "AdmittedBindingProvenance",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -13012,6 +13662,8 @@
         "record_digest",
         "record"
       ],
+      "model_type": "AdmittedSelectionProvenance",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -13023,6 +13675,8 @@
         "parameter",
         "allowed_values"
       ],
+      "model_type": "CapabilityConstraint",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "allowed_values": {
@@ -13043,6 +13697,8 @@
         "reason",
         "parameters"
       ],
+      "model_type": "ExplicitnessProvenanceRecord",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "parameters": {
@@ -13064,6 +13720,8 @@
         "realization_constraints",
         "trial"
       ],
+      "model_type": "InstantiationProvenance",
+      "native_sdl": true,
       "omit": {
         "parameter_derivations": [
           "null",
@@ -13107,6 +13765,8 @@
         "origin",
         "value"
       ],
+      "model_type": "ParameterBinding",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "parameter": {
@@ -13128,6 +13788,8 @@
         "field_pointer",
         "segments"
       ],
+      "model_type": "ParameterDerivation",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "segments": {
@@ -13141,6 +13803,8 @@
         "kind",
         "value"
       ],
+      "model_type": "ParameterLiteralSegment",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -13152,6 +13816,8 @@
         "variable_type",
         "allowed_values"
       ],
+      "model_type": "ParameterReferenceSegment",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "allowed_values": {
@@ -13172,6 +13838,8 @@
         "domain",
         "provenance"
       ],
+      "model_type": "RealizationConstraintRecord",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "namespace": {
@@ -13186,6 +13854,8 @@
         "field_pointer",
         "posture"
       ],
+      "model_type": "RealizationDesignationRecord",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "namespace": {
@@ -13209,6 +13879,8 @@
         "signer_id",
         "bindings"
       ],
+      "model_type": "ResolvedImportProvenance",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "bindings": {
@@ -13226,6 +13898,8 @@
         "algorithm",
         "value"
       ],
+      "model_type": "SemanticDigest",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -13236,6 +13910,8 @@
         "block_id",
         "replicate_id"
       ],
+      "model_type": "TrialCoordinateProvenance",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -13253,6 +13929,8 @@
         "selections",
         "bindings"
       ],
+      "model_type": "TrialInstantiationProvenance",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "bindings": {
@@ -13349,6 +14027,8 @@
         "workflows",
         "materialization_provenance"
       ],
+      "model_type": "MaterializedScenario",
+      "native_sdl": true,
       "omit": {
         "augmentation_scope": [
           "null"
@@ -13376,6 +14056,8 @@
         "algorithm",
         "value"
       ],
+      "model_type": "InstantiatedMaterializationDigest",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -13387,6 +14069,8 @@
         "change",
         "origin"
       ],
+      "model_type": "MaterializationOrigin",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -13398,6 +14082,8 @@
         "configuration_digest",
         "manifest_digest"
       ],
+      "model_type": "MaterializationProducer",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -13420,6 +14106,8 @@
         "resource_bindings",
         "inventory"
       ],
+      "model_type": "MaterializationProvenance",
+      "native_sdl": true,
       "omit": {
         "inventory": [
           "null"
@@ -13442,6 +14130,8 @@
         "source_node",
         "instance_index"
       ],
+      "model_type": "MaterializedResourceBinding",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "instance_index": {
@@ -13459,6 +14149,8 @@
         "field_path",
         "requirement_kind"
       ],
+      "model_type": "RuntimeConcernSelection",
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -13474,6 +14166,8 @@
         "state",
         "lifecycle"
       ],
+      "model_type": "RuntimeDescendantBinding",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "parent_instance_index": {
@@ -13491,6 +14185,8 @@
         "attempt_id",
         "evidence_digest"
       ],
+      "model_type": "RuntimeInventoryEvidence",
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -13509,6 +14205,8 @@
         "descendants",
         "backend_selections"
       ],
+      "model_type": "RuntimeInventoryReport",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "backend_selections": {
@@ -13539,6 +14237,8 @@
         "algorithm",
         "value"
       ],
+      "model_type": "SemanticDigest",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     }
@@ -13635,6 +14335,8 @@
         "variables",
         "variation_points"
       ],
+      "model_type": "Scenario",
+      "native_sdl": true,
       "omit": {
         "augmentation_scope": [
           "null"
@@ -13663,6 +14365,8 @@
         "alternatives",
         "description"
       ],
+      "model_type": "AlternativeVariationPoint",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -13672,6 +14376,8 @@
         "kind",
         "value"
       ],
+      "model_type": "BooleanDomain",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "value": {
@@ -13689,6 +14395,8 @@
         "owner",
         "slot"
       ],
+      "model_type": "CollectionTarget",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -13698,6 +14406,8 @@
         "node",
         "mount_destination"
       ],
+      "model_type": "ConsumerSelector",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -13713,6 +14423,8 @@
         "kind",
         "present"
       ],
+      "model_type": "DeclarationPresenceAlternative",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "present": {
@@ -13728,6 +14440,8 @@
         "kind",
         "values"
       ],
+      "model_type": "EnumDomain",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "values": {
@@ -13748,6 +14462,8 @@
         "kind",
         "value"
       ],
+      "model_type": "ExactDomain",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "value": {
@@ -13767,6 +14483,8 @@
         "authority",
         "allowed_refs"
       ],
+      "model_type": "GovernedReferenceDomain",
+      "native_sdl": false,
       "omit": {},
       "scalar": {}
     },
@@ -13778,6 +14496,8 @@
         "domain",
         "description"
       ],
+      "model_type": "GovernedReferenceVariationPoint",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -13793,6 +14513,8 @@
         "parameters",
         "digest"
       ],
+      "model_type": "ImportDecl",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -13803,6 +14525,8 @@
         "owner",
         "slot"
       ],
+      "model_type": "LogicalTimingTarget",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -13815,6 +14539,8 @@
         "unit",
         "description"
       ],
+      "model_type": "LogicalTimingVariationPoint",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -13830,6 +14556,8 @@
         "exports",
         "description"
       ],
+      "model_type": "ModuleDescriptor",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -13847,6 +14575,8 @@
         "present",
         "inventory"
       ],
+      "model_type": "NodePresenceAlternative",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "present": {
@@ -13866,6 +14596,8 @@
         "lower_closed",
         "upper_closed"
       ],
+      "model_type": "NumericIntervalDomain",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "lower": {
@@ -13896,6 +14628,8 @@
         "before",
         "after"
       ],
+      "model_type": "OrderPrecedence",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -13912,6 +14646,8 @@
         "fixed_positions",
         "description"
       ],
+      "model_type": "OrderVariationPoint",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "fixed_positions": {
@@ -13931,6 +14667,8 @@
         "domain",
         "description"
       ],
+      "model_type": "ParameterVariationPoint",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -13944,6 +14682,8 @@
         "domain",
         "provenance"
       ],
+      "model_type": "RealizationConstraintDesignation",
+      "native_sdl": true,
       "omit": {
         "provenance": [
           "always"
@@ -13962,6 +14702,8 @@
         "scopes",
         "constraints"
       ],
+      "model_type": "RealizationDesignation",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "constraints": {
@@ -13979,6 +14721,8 @@
         "field_pointer",
         "posture"
       ],
+      "model_type": "RealizationScopeDesignation",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "namespace": {
@@ -13993,6 +14737,8 @@
         "fields",
         "extra"
       ],
+      "model_type": "RecordDomain",
+      "native_sdl": false,
       "omit": {},
       "scalar": {
         "extra": {
@@ -14009,6 +14755,8 @@
         "owner",
         "slot"
       ],
+      "model_type": "ReferenceTarget",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -14024,6 +14772,8 @@
         "kind",
         "consumers"
       ],
+      "model_type": "ResourceConsumersAlternative",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -14039,6 +14789,8 @@
         "kind",
         "references"
       ],
+      "model_type": "RuntimeInventoryAlternative",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -14048,6 +14800,8 @@
         "point",
         "members"
       ],
+      "model_type": "SelectionRelation",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -14058,6 +14812,8 @@
         "owner",
         "slot"
       ],
+      "model_type": "StructuralTarget",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -14071,6 +14827,8 @@
         "maximum",
         "description"
       ],
+      "model_type": "SubsetVariationPoint",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "maximum": {
@@ -14097,6 +14855,8 @@
         "allowed_values",
         "required"
       ],
+      "model_type": "Variable",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "allowed_values": {
@@ -14136,6 +14896,8 @@
         "kind",
         "variable"
       ],
+      "model_type": "VariableTarget",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -14150,6 +14912,8 @@
         "excludes",
         "reference"
       ],
+      "model_type": "VariationMember",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     }
@@ -14250,6 +15014,8 @@
         "variation_points",
         "expansion_provenance"
       ],
+      "model_type": "ExpandedScenario",
+      "native_sdl": true,
       "omit": {
         "augmentation_scope": [
           "null"
@@ -14278,6 +15044,8 @@
         "parameter",
         "allowed_values"
       ],
+      "model_type": "CapabilityConstraint",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "allowed_values": {
@@ -14298,6 +15066,8 @@
         "realization_designations",
         "realization_constraints"
       ],
+      "model_type": "ExpansionProvenance",
+      "native_sdl": true,
       "omit": {
         "parameter_derivations": [
           "null",
@@ -14338,6 +15108,8 @@
         "reason",
         "parameters"
       ],
+      "model_type": "ExplicitnessProvenanceRecord",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "parameters": {
@@ -14352,6 +15124,8 @@
         "origin",
         "value"
       ],
+      "model_type": "ParameterBinding",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "parameter": {
@@ -14373,6 +15147,8 @@
         "field_pointer",
         "segments"
       ],
+      "model_type": "ParameterDerivation",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "segments": {
@@ -14386,6 +15162,8 @@
         "kind",
         "value"
       ],
+      "model_type": "ParameterLiteralSegment",
+      "native_sdl": true,
       "omit": {},
       "scalar": {}
     },
@@ -14397,6 +15175,8 @@
         "variable_type",
         "allowed_values"
       ],
+      "model_type": "ParameterReferenceSegment",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "allowed_values": {
@@ -14417,6 +15197,8 @@
         "domain",
         "provenance"
       ],
+      "model_type": "RealizationConstraintRecord",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "namespace": {
@@ -14431,6 +15213,8 @@
         "field_pointer",
         "posture"
       ],
+      "model_type": "RealizationDesignationRecord",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "namespace": {
@@ -14454,6 +15238,8 @@
         "signer_id",
         "bindings"
       ],
+      "model_type": "ResolvedImportProvenance",
+      "native_sdl": true,
       "omit": {},
       "scalar": {
         "bindings": {

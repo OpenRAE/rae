@@ -270,6 +270,15 @@ func (e *Validator) localModelDetails(id string, root any) error {
 }
 func (e *Validator) instanceModelDetails(instance validation.SchemaInstance) error {
 	switch strings.TrimPrefix(instance.SchemaPointer, schemaDefinitionsPrefix) {
+	case "Source":
+		return sourceArtifactIdentity(instance.Value)
+	case "ArtifactRequirement":
+		return materializationRequirementInputs(instance.Value)
+	case "RealizationObservationDisclosureModel":
+		return e.realizationObservation(instance.Value)
+	case "ObservedOperatingSystemIdentityModel":
+		return e.observedOperatingSystemIdentity(instance.Value)
+
 	case "ParticipantImplementationProvenanceModel":
 		return participantProvenanceModel(instance.Value)
 	case "ParticipantImplementationManifestModel":
