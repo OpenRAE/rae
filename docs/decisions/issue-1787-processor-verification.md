@@ -276,6 +276,8 @@ Hosted checks also required a documentation dependency lock update and a shell-c
 The lock selects Soup Sieve 4.0 without other package changes.
 A small Sphinx/Furo HTML build passes with that selection.
 The product lock scan and identity check pass after these repairs.
+The existing closure generator updates the Linux and macOS requirements and wheelhouse records from that lock.
+Its consistency check passes.
 
 ## Requirement traceability
 
