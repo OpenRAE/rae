@@ -89,6 +89,21 @@ def _secret_scan_boundary(path: str, name: str, job: Mapping[str, Any]) -> bool:
     )
 
 
+def _download_holder(steps: Sequence[Mapping[str, Any]]) -> int | None:
+    """Return the index of the one run step that holds only the release token, before every checkout."""
+
+    holders = [index for index, step in enumerate(steps) if _secret_expressions(step)]
+    if len(holders) != 1:
+        return None
+    holder = steps[holders[0]]
+    valid = (
+        _secret_expressions(holder.get("env")) == {_PHASE_E_CREDENTIAL}
+        and set(holder) <= {"name", "env", "run"}
+        and "run" in holder
+    )
+    return holders[0] if valid else None
+
+
 def _release_download_boundary(path: str, name: str, job: Mapping[str, Any], triggers: object) -> bool:
     """Admit the Ground Control read token only in the merged finalizer's release download.
 
@@ -99,18 +114,13 @@ def _release_download_boundary(path: str, name: str, job: Mapping[str, Any], tri
     if (path, name) != (_PHASE_E_WORKFLOW, "finalize") or not _merged_issue_boundary(triggers, job):
         return False
     steps = [as_mapping(step) for step in as_list(job.get("steps"))]
-    holders = [index for index, step in enumerate(steps) if _secret_expressions(step)]
+    holder = _download_holder(steps)
     checkouts = [index for index, step in enumerate(steps) if str(step.get("uses", "")).startswith("actions/checkout@")]
-    if len(holders) != 1:
-        return False
-    holder = steps[holders[0]]
     return bool(
-        _secret_expressions(job) == {_PHASE_E_CREDENTIAL}
+        holder is not None
+        and _secret_expressions(job) == {_PHASE_E_CREDENTIAL}
         and not _secret_expressions({key: value for key, value in job.items() if key != "steps"})
-        and _secret_expressions(holder.get("env")) == {_PHASE_E_CREDENTIAL}
-        and set(holder) <= {"name", "env", "run"}
-        and "run" in holder
-        and all(index > holders[0] for index in checkouts)
+        and all(index > holder for index in checkouts)
     )
 
 
