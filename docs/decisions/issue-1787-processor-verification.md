@@ -313,6 +313,17 @@ The selected publication case from the timeout stack also passes with combined r
 Normal CI runs those checks separately to avoid their combined instrumentation cost.
 Both modes remain required for every package group.
 
+The next hosted run passed all ten race and coverage workers within their 25-minute budgets.
+The complete native product profile covered 45,226 of 51,394 statements, or 88.0 percent.
+That result required more semantic tests to meet the unchanged 90-percent floor.
+The tooling profile also omitted one statement from the command package without tests.
+A command test now checks the real analyzer flag protocol and includes that package in native coverage metadata.
+
+Targeted tests cover capability refusals, exact resource identity, profile commitments and prepared consumer grants.
+They also cover protected observation markers, recursive work limits, source copies and unsafe storage refusal.
+The selected-case coverage forecast combines their measured execution with the retained hosted profile.
+It exceeds 90 percent; this forecast does not replace the hosted module gate.
+
 Manifest and profile checks reuse the existing immutable processor admission owner.
 Participant reference fragments also reuse a stock validator and decode fresh request values.
 The same 139 history and argument cases fell from 50.768 to 8.930 seconds in targeted local runs.

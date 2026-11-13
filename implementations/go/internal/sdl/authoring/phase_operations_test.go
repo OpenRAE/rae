@@ -5,8 +5,39 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/OpenRAE/rae/implementations/go/base/digest"
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
+	"github.com/OpenRAE/rae/implementations/go/contract/admission"
 )
+
+func TestSnapshotPhaseAdmissionBindsExactBytesAndRejectsOtherEnvelopes(t *testing.T) {
+	p := operationParser(t)
+	d := operationDocument(t, p, "name: snapshot\n")
+	instance, err := p.Instantiate(d, nil, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, err := instance.Snapshot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := p.AdmitSDLPhase(admission.SDLPhaseRequest{ContractID: snapshotContract, Source: raw})
+	if err != nil || got.ContractID != snapshotContract || got.SourceSHA256 != digest.SHA256(raw) || !bytes.Equal(got.Document, raw) {
+		t.Fatalf("snapshot phase binding changed: %+v %v", got, err)
+	}
+	got.Document[0] = 'x'
+	if raw[0] != '{' {
+		t.Fatal("phase admission returned caller-owned bytes")
+	}
+	for _, bad := range []string{`{`, `[]`, `{"profile":"future","scenario":{}}`, `{"profile":"raes-sdl-instantiated-snapshot/v2","scenario":{},"extra":true}`, `{"profile":"raes-sdl-instantiated-snapshot/v2","scenario":{"name":"missing-provenance"}}`} {
+		if _, err := p.AdmitSDLPhase(admission.SDLPhaseRequest{ContractID: snapshotContract, Source: []byte(bad)}); err == nil {
+			t.Fatalf("invalid snapshot admitted: %s", bad)
+		}
+	}
+	if _, err := p.AdmitSDLPhase(admission.SDLPhaseRequest{ContractID: "future", Source: raw}); err == nil {
+		t.Fatal("unknown source phase admitted")
+	}
+}
 
 func TestConcretePhaseAdmissionPreservesSuppliedFields(t *testing.T) {
 	parser := operationParser(t)
