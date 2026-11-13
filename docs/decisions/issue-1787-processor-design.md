@@ -1007,6 +1007,10 @@ Only the authoring and parity groups need the independent SDL oracles.
 Each coverage job instruments the module with `-coverpkg=./...`.
 This records shared-owner calls made through SDK tests.
 The existing module jobs merge the data with `go tool covdata` and enforce 90-percent statement coverage.
+The download action extracts one artifact at the destination root and multiple artifacts in named child folders.
+The reducer enumerates native data directories in both layouts.
+It counts every directory, including unexpected extra groups, before it reads profiles.
+Package and statement inventories must still match the complete module exactly.
 They compare the supplied package inventory with `go list ./...` before merging.
 They also check that the merged source-block inventory matches the Go-generated group profiles.
 Missing groups, duplicate packages, test failures and incomplete inventories fail the gate.

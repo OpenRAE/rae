@@ -1915,6 +1915,70 @@ def test_go_test_groups_collect_and_merge_complete_module_execution() -> None:
     assert '"go-test:${GO_TEST_RESULT}"' in gate["run"]
 
 
+@pytest.mark.parametrize("layout", ["single-root", "single-named", "multiple-named"])
+@pytest.mark.parametrize(
+    "defect", ["none", "extra-group", "duplicate-package", "missing-counters", "missing-statement", "below-floor"]
+)
+def test_go_coverage_reducer_handles_download_layouts_and_refuses_incomplete_data(
+    tmp_path: Path, layout: str, defect: str
+) -> None:
+    """Exercise the real reducer shell; the Go stub supplies fixed native-tool outputs."""
+
+    reducer = _named_step(_load(CANONICAL_PATH)["jobs"]["go"], "Merge complete module coverage and enforce the floor")[
+        "run"
+    ]
+    groups = 2 if layout == "multiple-named" else 1
+    root = tmp_path / "go-shards"
+    profiles = []
+    packages = []
+    for index in range(groups):
+        directory = root if layout == "single-root" else root / f"group-{index}"
+        data = directory / "data"
+        data.mkdir(parents=True)
+        (data / "covmeta.test").write_text("metadata", encoding="utf-8")
+        if defect != "missing-counters":
+            (data / "covcounters.test").write_text("counters", encoding="utf-8")
+        package = f"example/package{index}"
+        packages.append(package)
+        inventory = [package, package] if defect == "duplicate-package" else [package]
+        (directory / "packages.txt").write_text("\n".join(inventory) + "\n", encoding="utf-8")
+        profile = f"{package}/source.go:1.1,2.2 1 1\n"
+        profiles.append(profile)
+        (directory / "package-profile.out").write_text("mode: atomic\n" + profile, encoding="utf-8")
+    if defect == "extra-group":
+        extra = root / "unexpected" / "data" if layout == "single-root" else root / "data"
+        extra.mkdir(parents=True)
+    merged = profiles[:-1] if defect == "missing-statement" else profiles
+    (tmp_path / "merged.out").write_text("mode: atomic\n" + "".join(merged), encoding="utf-8")
+    (tmp_path / "packages.list").write_text("\n".join(packages) + "\n", encoding="utf-8")
+    binary = tmp_path / "bin"
+    binary.mkdir()
+    go = binary / "go"
+    go.write_text(
+        '#!/bin/sh\nset -eu\ncase "$*" in\n'
+        '"list ./...") cat "$RUNNER_TEMP/packages.list" ;;\n'
+        '"tool covdata merge "*) : ;;\n'
+        '"tool covdata textfmt "*) cp "$RUNNER_TEMP/merged.out" cover.out ;;\n'
+        '"tool cover -func=cover.out") printf "total: (statements) %s%%\\n" "$TEST_COVERAGE" ;;\n'
+        "*) exit 99 ;;\nesac\n",
+        encoding="utf-8",
+    )
+    go.chmod(0o700)
+    environment = dict(
+        os.environ,
+        RUNNER_TEMP=str(tmp_path),
+        EXPECTED_GROUPS=str(groups),
+        TEST_COVERAGE="89.9" if defect == "below-floor" else "91.0",
+    )
+    environment["PATH"] = str(binary) + os.pathsep + environment["PATH"]
+    result = subprocess.run(
+        ["bash", "-c", reducer], cwd=tmp_path, env=environment, capture_output=True, text=True, check=False
+    )
+    assert (result.returncode == 0) == (defect == "none"), result.stdout + result.stderr
+    if defect == "none":
+        assert "Go module statement coverage 91.0%" in result.stdout
+
+
 def test_go_architecture_check_runs_once_from_the_repository_root() -> None:
     """The ADR-122 check runs in the canonical graph, and the gate requires it."""
 

@@ -830,10 +830,15 @@ jobs:
           set -euo pipefail
           shopt -s nullglob
           coverage_directories=("${RUNNER_TEMP}/go-shards/"*/data)
+          if [ -d "${RUNNER_TEMP}/go-shards/data" ]; then
+            coverage_directories+=("${RUNNER_TEMP}/go-shards/data")
+          fi
           if [ "${#coverage_directories[@]}" -ne "${EXPECTED_GROUPS}" ]; then
             echo "Missing or unexpected Go test-group artifacts" >&2
             exit 1
           fi
+          package_inventories=()
+          statement_profiles=()
           for coverage_directory in "${coverage_directories[@]}"; do
             group_directory="${coverage_directory%/data}"
             if [ ! -s "${group_directory}/packages.txt" ] ||
@@ -843,16 +848,18 @@ jobs:
               echo "Missing native Go coverage data for a test group" >&2
               exit 1
             fi
+            package_inventories+=("${group_directory}/packages.txt")
+            statement_profiles+=("${group_directory}/package-profile.out")
           done
           go list ./... | LC_ALL=C sort > "${RUNNER_TEMP}/expected-go-packages.txt"
-          cat "${RUNNER_TEMP}/go-shards/"*/packages.txt | LC_ALL=C sort > "${RUNNER_TEMP}/tested-go-packages.txt"
+          cat "${package_inventories[@]}" | LC_ALL=C sort > "${RUNNER_TEMP}/tested-go-packages.txt"
           diff -u "${RUNNER_TEMP}/expected-go-packages.txt" "${RUNNER_TEMP}/tested-go-packages.txt"
           coverage_inputs="$(printf '%s,' "${coverage_directories[@]}")"
           coverage_inputs="${coverage_inputs%,}"
           mkdir "${RUNNER_TEMP}/go-merged"
           go tool covdata merge -i="${coverage_inputs}" -o="${RUNNER_TEMP}/go-merged"
           go tool covdata textfmt -i="${RUNNER_TEMP}/go-merged" -o=cover.out
-          awk '$1 != "mode:" { print $1, $2 }' "${RUNNER_TEMP}/go-shards/"*/package-profile.out |
+          awk '$1 != "mode:" { print $1, $2 }' "${statement_profiles[@]}" |
             LC_ALL=C sort -u > "${RUNNER_TEMP}/expected-go-statements.txt"
           awk '$1 != "mode:" { print $1, $2 }' cover.out |
             LC_ALL=C sort -u > "${RUNNER_TEMP}/actual-go-statements.txt"

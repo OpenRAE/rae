@@ -324,6 +324,14 @@ They also cover protected observation markers, recursive work limits, source cop
 The selected-case coverage forecast combines their measured execution with the retained hosted profile.
 It exceeds 90 percent; this forecast does not replace the hosted module gate.
 
+All ten workers then passed on the coverage-repair commit.
+Its uploaded native data covers 90.02 percent of product statements and 91.28 percent of tooling statements.
+Both complete statement inventories match their package profiles.
+The tooling module job rejected the single artifact because the download action extracted it at the destination root.
+The reducer now accepts that root layout and named group folders, and still counts every data directory.
+Eighteen targeted shell cases check both layouts, multiple groups, extra groups, duplicate packages, missing counters, incomplete statements and the coverage floor.
+The actual reducer also passes with retained hosted native data in both single-artifact layouts and the four-group product layout.
+
 Manifest and profile checks reuse the existing immutable processor admission owner.
 Participant reference fragments also reuse a stock validator and decode fresh request values.
 The same 139 history and argument cases fell from 50.768 to 8.930 seconds in targeted local runs.
