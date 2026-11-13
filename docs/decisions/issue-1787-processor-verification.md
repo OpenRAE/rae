@@ -279,16 +279,32 @@ The product lock scan and identity check pass after these repairs.
 The existing closure generator updates the Linux and macOS requirements and wheelhouse records from that lock.
 Its consistency check passes.
 
-The product Go job reached its 50-minute limit during serial race and coverage tests.
-The retained log records no completed test failure before cancellation.
-The product job budget is now 90 minutes for the enlarged module.
-Its 20-minute package timeout, race checks and 90-percent coverage floor remain enforced.
+The first full Go job exceeded its serial wall-time budget.
+A later run passed every test and race check but reported 85.4-percent module coverage.
+The profile used Go's default collection for each package's own test binary.
+It did not record shared-owner calls from the SDK tests.
+
+Two named SDK probes used module instrumentation and native coverage data.
+They recorded 95 of 110 statements in `internal/sdl/authoring/comparison.go`.
+They also recorded 132 of 172 statements in `processor/realization/software_profiles.go`.
+The package-only CI profile reported both files at zero.
+Native `covdata merge` and `textfmt` retained those executed statements.
+These probes selected the comparison projection and software refinement tests only.
+
+ADR-121 requires 25-minute normal Go jobs and 90-percent coverage of each module.
+The workflow now uses four product test groups and one tooling group.
+An explicit inventory check proves that every module package occurs exactly once.
+The package timeout remains 20 minutes, with race detection and module instrumentation.
+Module jobs require all group results, complete native data and the same 90-percent floor.
+Existing module coverage artifact names still feed Sonar.
 
 Manifest and profile checks reuse the existing immutable processor admission owner.
 Participant reference fragments also reuse a stock validator and decode fresh request values.
 The same 139 history and argument cases fell from 50.768 to 8.930 seconds in targeted local runs.
 
-Manifest, profile, architecture, lint and Go workflow-policy checks pass after this repair.
+Manifest, profile, architecture, lint and targeted Go workflow-policy checks pass after these repairs.
+The four product groups cover all 36 packages exactly once; the tooling group covers all 11 packages.
+The Go job shell scripts parse and the tooling artifact policy passes.
 The complete hosted Go and Sonar gates must still pass on the new commit.
 
 ## Requirement traceability

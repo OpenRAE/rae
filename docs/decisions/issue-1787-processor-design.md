@@ -983,8 +983,32 @@ Only stock schemas, catalogs and rules are shared.
 Each request still owns its input, context, findings and returned projections.
 Reference fragment tests also share an immutable validator while decoding fresh request values.
 
-The product CI job allows 90 minutes for serial race and coverage verification.
-Its package timeout remains 20 minutes and its statement coverage floor remains 90 percent.
+Normal Go jobs have the 25-minute limit required by ADR-121.
+Product race tests use four package groups: shared contracts and primitives, native authoring, parity adapters, and processor with public SDL.
+The tooling module has one test group.
+Each package keeps its 20-minute test timeout.
+The groups must cover each module package exactly once.
+
+Each test instruments the module with `-coverpkg=./...` and records native binary coverage data.
+This records shared-owner calls made through SDK tests.
+The existing module jobs merge the data with `go tool covdata` and enforce 90-percent statement coverage.
+They compare the supplied package inventory with `go list ./...` before merging.
+They also check that the merged source-block inventory matches the Go-generated group profiles.
+Missing groups, duplicate packages, test failures and incomplete inventories fail the gate.
+Sonar keeps its existing module coverage artifact names.
+
+```mermaid
+flowchart LR
+  Ref[Trusted exact revision] --> Groups[Parallel Go test groups - 25 minutes each]
+  Groups -->|race results, package inventory and native counters| Module[Module checks and coverage merge - 25 minutes]
+  Module -->|complete inventory and 90 percent coverage| Gate[Required canonical gate]
+  Module -->|existing module profiles| Sonar[Sonar analysis]
+```
+
+All groups use the locked toolchain and the same exact revision.
+Their jobs have no secrets or repository write permissions.
+The module jobs retain lint, analyzers, contract checks, bounded fuzzing and regression checks.
+Exhaustive mutation diagnostics keep their separate explicit input and budget.
 
 ## Retained import authority
 
