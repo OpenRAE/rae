@@ -100,9 +100,7 @@ def _release_download_boundary(path: str, name: str, job: Mapping[str, Any], tri
         return False
     steps = [as_mapping(step) for step in as_list(job.get("steps"))]
     holders = [index for index, step in enumerate(steps) if _secret_expressions(step)]
-    checkouts = [
-        index for index, step in enumerate(steps) if str(step.get("uses", "")).startswith("actions/checkout@")
-    ]
+    checkouts = [index for index, step in enumerate(steps) if str(step.get("uses", "")).startswith("actions/checkout@")]
     if len(holders) != 1:
         return False
     holder = steps[holders[0]]
