@@ -52,6 +52,7 @@ def _require_plan(engine: RuntimeControlPlane, realized: TrialRealization) -> No
         RuntimeSnapshot(),
         durable_lifecycle_available=engine._store_commits.crash_atomic,
         delivery_actions=delivery_tool_driver_actions(engine, plan.model),
+        participant_episode=engine.participant_episode,
     )
     diagnostics.extend(_provisioning_submission_diagnostics(plan.provisioning, RuntimeSnapshot(), plan.manifest))
     if diagnostics:

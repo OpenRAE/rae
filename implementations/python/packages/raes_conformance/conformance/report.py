@@ -196,10 +196,18 @@ def _validate_case_outcomes(report: BackendConformanceReport) -> None:
     if report.native_conformance and (not report.passed or report.subject_kind != "backend"):
         raise ValueError("native conformance requires a passing backend report")
     for case in report.cases:
-        if case.passed != (case.outcome == "passed"):
-            raise ValueError(f"conformance case {case.name!r} has inconsistent outcome and pass fields")
-        if case.mixed_binding is not None:
-            _validate_mixed_case(case, native=report.native_conformance)
+        _validate_case_outcome(case, native=report.native_conformance)
+
+
+def _validate_case_outcome(case: ConformanceCaseResult, *, native: bool) -> None:
+    if case.passed != (case.outcome == "passed"):
+        raise ValueError(f"conformance case {case.name!r} has inconsistent outcome and pass fields")
+    if case.outcome == "not-applicable" and (
+        not case.finite_scope or not case.limitations or any(diag.is_error for diag in case.diagnostics)
+    ):
+        raise ValueError("not-applicable conformance cases require a reason and limitations without errors")
+    if case.mixed_binding is not None:
+        _validate_mixed_case(case, native=native)
 
 
 def _validate_required_coverage(report: BackendConformanceReport) -> None:
@@ -399,7 +407,7 @@ def _validate_case_evidence(report: BackendConformanceReport) -> None:
     )
     if missing:
         raise ValueError(f"backend conformance report claimed case evidence that is absent: {missing}")
-    if report.passed and any(not case.passed for case in report.cases):
+    if report.passed and any(not case.passed and case.outcome != "not-applicable" for case in report.cases):
         raise ValueError("backend conformance report is marked passed while carrying a non-passing case")
 
 

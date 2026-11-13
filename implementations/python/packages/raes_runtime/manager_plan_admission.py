@@ -8,6 +8,7 @@ from raes_processor.planner import descriptor_profile_diagnostics, participant_t
 from .diagnostics import _failure_diagnostic
 from .mixed_control_admission import reference_mixed_control_diagnostics
 from .observation_execution import observation_submission_diagnostic
+from .participant_episode_binding import ParticipantEpisodeRuntimeBinding
 from .registry import RuntimeTarget
 
 _RUNTIME_APPLY_ADDRESS = "runtime.apply"
@@ -20,9 +21,21 @@ def runtime_plan_precondition_diagnostics(
     *,
     durable_lifecycle_available: bool = False,
     delivery_actions: frozenset[str] = frozenset(),
+    participant_episode: ParticipantEpisodeRuntimeBinding | None = None,
 ) -> list[Diagnostic]:
-    """Return every deterministic plan-admission failure for a manager apply."""
+    """Return every deterministic plan-admission failure for a runtime apply."""
     diagnostics = _provenance_diagnostics(execution_plan, target, snapshot)
+    if execution_plan.model.participant_episode_policies and (
+        participant_episode is None or not participant_episode.admits_model(execution_plan.model)
+    ):
+        diagnostics.append(
+            Diagnostic(
+                code="runtime.participant-episode-binding-unavailable",
+                domain="participant",
+                address=_RUNTIME_APPLY_ADDRESS,
+                message="Authored episode policies require the exact installed episode runtime binding.",
+            )
+        )
     context = execution_plan.planning_context
     processor = None if context is None else context.processor_manifest
     diagnostics.extend(participant_tool_support_diagnostics(execution_plan.model, target.manifest, processor))

@@ -20,14 +20,18 @@ from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import ConflictError
 from raes_contracts.manifest_authority import PARTICIPANT_TOOL_FEATURES
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel
+from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
+from raes_processor.models import RuntimeModel
 from raes_processor.reference import ScenarioInput
+from raes_runtime.participant_episode_binding import ParticipantEpisodeRuntimeBinding
 from raes_runtime.registry import RuntimeTarget
 
 from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_failure_message
 from raes_conformance.conformance.fixture_suite import run_fixture_suite
 from raes_conformance.conformance.modular_control import run_modular_control_conformance
 from raes_conformance.conformance.modular_control_types import ModularControlHarness
+from raes_conformance.conformance.participant_episode_case import participant_episode_structure_case
 from raes_conformance.conformance.participant_opacity_probes import (
     ParticipantOpacityProbeHarness,
     participant_opacity_cases,
@@ -48,7 +52,7 @@ from raes_conformance.conformance.report import (
     ConformanceCaseResult,
     _bounded_conformance_claim,
 )
-from raes_conformance.conformance.target_probes import _target_adapter_cases
+from raes_conformance.conformance.target_probes import target_adapter_run
 from raes_conformance.realization import (
     ExecutionBasis,
     RealizationConformanceHarness,
@@ -160,6 +164,9 @@ class _TargetConformanceOptions:
     modular_control_harness: ModularControlHarness | None = None
     modular_control_obligations: tuple[str, ...] | None = None
     modular_control_effect_kinds: tuple[str, ...] = ()
+    participant_episode_model: RuntimeModel | None = None
+    participant_episode_snapshot: RuntimeSnapshot | None = None
+    participant_episode: ParticipantEpisodeRuntimeBinding | None = None
 
 
 def _unknown_profile_report(
@@ -329,7 +336,7 @@ def _target_passed(
         and (modular is None or modular.passed)
         and not contract_gaps
         and not capability_gaps
-        and all(case.passed for case in cases)
+        and all(case.passed or case.outcome == "not-applicable" for case in cases)
     )
 
 
@@ -351,11 +358,19 @@ def _known_profile_report(
         *fixture_report.diagnostics,
         *_gap_diagnostics(target, profile, contract_gaps, surface_gaps, claim_gaps),
     ]
-    adapter_cases = _target_adapter_cases(
+    adapter_run = target_adapter_run(
         target,
         profile,
         reference_scenario=options.reference_scenario,
+        participant_episode=options.participant_episode,
     )
+    adapter_cases = adapter_run.cases
+    # The probe planning above compiles the scenario once; the episode case reuses that model.
+    episode_model = options.participant_episode_model
+    if episode_model is None and options.participant_episode is not None:
+        episode_model = options.participant_episode.model
+    if episode_model is None:
+        episode_model = adapter_run.model
     participant_feature_cases = _participant_feature_cases(target, profile)
     policy_cases = participant_policy_cases(target, profile, options.participant_policy_harness)
     opacity_cases = participant_opacity_cases(
@@ -378,6 +393,7 @@ def _known_profile_report(
     )
     realization_cases = tuple(_realization_case_result(case) for case in realization_run.cases)
     additional_cases = (
+        participant_episode_structure_case(target, episode_model, options.participant_episode_snapshot),
         *participant_feature_cases,
         *policy_cases,
         *opacity_cases,
@@ -386,6 +402,12 @@ def _known_profile_report(
         *realization_cases,
     )
     cases = (*fixture_report.cases, *additional_cases)
+    diagnostics.extend(
+        diagnostic
+        for case in additional_cases
+        if case.name == "participant-episode-structure"
+        for diagnostic in case.diagnostics
+    )
     passed = _target_passed(fixture_report, modular_result, contract_gaps, capability_gaps, additional_cases)
     profile_id = _to_profile_id(profile)
     return BackendConformanceReport(

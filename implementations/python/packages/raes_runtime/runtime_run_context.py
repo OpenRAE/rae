@@ -89,6 +89,7 @@ _P0_SCOPE_BOUND_ERROR = "control-plane profile P0 missing capabilities: store.sc
 if TYPE_CHECKING:
     from raes_processor.models import ExecutionPlan
 
+    from .participant_episode_binding import ParticipantEpisodeRuntimeBinding
     from .runtime_run_driver import RunProgress
 
 
@@ -154,6 +155,9 @@ class RuntimeRunContext(
         self._initialize_runtime_lifecycle()
         self._flow_sink_resolver = compose_participant_boundary(target, config)
         self._target = target
+        self._participant_episode = config.participant_episode
+        if self._participant_episode is not None:
+            self._participant_episode.require_target(target)
         self._target_scope, self._run_scope = target_scope, config.run_scope
         self._mixed_runtime = config.mixed_runtime
         self._materialization_archive = config.materialization_archive
@@ -199,6 +203,8 @@ class RuntimeRunContext(
     def _restore_persisted_state(self, config: ControlPlaneConfiguration) -> None:
         self._participant_outcome_model = deepcopy(config.participant_outcome_model)
         self._snapshot_state = self._store.load_snapshot_state()
+        if self._participant_episode is not None:
+            self._participant_episode.require_snapshot(self._snapshot)
         self._operations: dict[str, ControlPlaneOperationRecord] = self._store.load_records()
         require_operation_record_scopes(self._operations, target_scope=self._target_scope, run_scope=self._run_scope)
         self._behavior_specifications = dict(config.behavior_specifications or {})
@@ -300,6 +306,13 @@ class RuntimeRunContext(
         with self._operation_lock:
             self._reload_derived_state_if_unpinned()
             return self._snapshot
+
+    @property
+    @runtime_owned
+    def participant_episode(self) -> ParticipantEpisodeRuntimeBinding | None:
+        """Return the explicitly installed episode policy binding, when present."""
+        self._assert_runtime_owner()
+        return self._participant_episode
 
     @property
     @runtime_owned
