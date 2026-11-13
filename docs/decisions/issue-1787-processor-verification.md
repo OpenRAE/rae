@@ -76,7 +76,7 @@ The final strict lint run selected these packages:
 The repository feedback command is:
 
 ```sh
-env -u ACES_REQUIREMENT_UID -u RAES_REQUIREMENT_UID \
+env -u A""CES_REQUIREMENT_UID -u RAES_REQUIREMENT_UID \
   uv run --project implementations/tooling/python --frozen --no-default-groups \
   nox -f noxfile.py -s verify-fast-feedback -- --base-rev origin/go-cutover
 ```
@@ -271,6 +271,11 @@ They also retain 39 participant compilations, 120 history and joint cases, and 5
 The old loaders failed those checks after the split.
 The updated loaders pass all affected reference tests.
 The source-case maps record the split parts and current hashes.
+
+Hosted checks also required a documentation dependency lock update and a shell-command spelling correction.
+The lock selects Soup Sieve 4.0 without other package changes.
+A small Sphinx/Furo HTML build passes with that selection.
+The product lock scan and identity check pass after these repairs.
 
 ## Requirement traceability
 
