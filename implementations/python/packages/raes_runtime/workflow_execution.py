@@ -300,22 +300,30 @@ def advance_workflows(ports: WorkflowPorts, root_id: str) -> None:
                 return
             cut, root, state = progress
             synchronize_stops(state, cut.snapshot, ports.now())
-            if state.outstanding is not None:
-                disposition = reconcile_outstanding(ports, state, cut)
-                if disposition == "settled":
-                    continue
-                if disposition == "waiting":
-                    return
-                dispatch = state.outstanding
-            else:
-                dispatch = next_dispatch(ports, state, cut)
-                if dispatch is None:
-                    finish_root(ports, root, state, cut)
-                    break
+            disposition, dispatch = dispatch_progress(ports, state, cut)
+            if disposition == "settled":
+                continue
+            if disposition == "waiting":
+                return
+            if dispatch is None:
+                finish_root(ports, root, state, cut)
+                break
             request = step_request(ports, dispatch)
         receipt = ports.execute(request)
         if not receipt.accepted and not checkpoint_refused_dispatch(ports, root_id, dispatch):
             return
+
+
+def dispatch_progress(
+    ports: WorkflowPorts, state: WorkflowContinuation, cut: WorkflowCut
+) -> tuple[Literal["settled", "waiting", "ready"], WorkflowStepDispatch | None]:
+    """Reconcile an incumbent operation before preparing any new dispatch."""
+    if state.outstanding is not None:
+        disposition = reconcile_outstanding(ports, state, cut)
+        if disposition != "dispatch":
+            return disposition, None
+        return "ready", state.outstanding
+    return "ready", next_dispatch(ports, state, cut)
 
 
 def workflow_progress_cut(

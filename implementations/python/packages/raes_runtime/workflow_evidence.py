@@ -10,6 +10,8 @@ from raes_contracts.runtime_state import RuntimeSnapshot, SnapshotEntry
 
 from .proposition_truth_contracts import proposition_truth_contract_diagnostics
 
+_UNRESOLVED_OBJECTIVE_TRUTH = "governed workflow success does not resolve accepted objective truth"
+
 
 def require_success_evidence(
     snapshot: RuntimeSnapshot, dispatch: WorkflowStepDispatch, response: WorkflowStepResponse
@@ -39,7 +41,7 @@ def require_selected_truths(
     ]
     selected = [item for item in truths if item.result_id in provenance.assertion_truth_refs]
     if len(selected) < threshold or any(item.assertion_outcome.value != "true" for item in selected):
-        raise ConflictError("governed workflow success does not resolve accepted objective truth")
+        raise ConflictError(_UNRESOLVED_OBJECTIVE_TRUTH)
     require_truth_references(selected, provenance)
 
 
@@ -49,7 +51,7 @@ def require_truth_references(
     if set(provenance.assertion_truth_refs) != {item.result_id for item in selected} or not set(
         provenance.evidence_refs
     ) <= {ref for item in selected for ref in item.evidence_refs}:
-        raise ConflictError("governed workflow success does not resolve accepted objective truth")
+        raise ConflictError(_UNRESOLVED_OBJECTIVE_TRUTH)
 
 
 def success_threshold(objective: SnapshotEntry, required_count: int) -> int:
@@ -62,5 +64,5 @@ def success_threshold(objective: SnapshotEntry, required_count: int) -> int:
     else:
         threshold = success.get("threshold")
     if mode not in {"all_of", "any_of", "at_least"} or type(threshold) is not int:
-        raise ConflictError("governed workflow success does not resolve accepted objective truth")
+        raise ConflictError(_UNRESOLVED_OBJECTIVE_TRUTH)
     return threshold
