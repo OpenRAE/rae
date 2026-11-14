@@ -6,8 +6,9 @@ from asyncio import CancelledError
 from collections.abc import Callable
 from typing import TYPE_CHECKING, cast
 
+from raes_contracts.contracts.workflow_dispatch import WorkflowStepDispatch, WorkflowStepResponse
 from raes_contracts.operational_logging import get_logger
-from raes_contracts.runtime_state import OperationState
+from raes_contracts.runtime_state import ApplyResult, OperationState
 
 if TYPE_CHECKING:
     from raes_contracts.diagnostics import Diagnostic
@@ -82,6 +83,17 @@ def invoke_plan_phase(
     snapshot: RuntimeSnapshot,
     remaining: Callable[[], int],
 ) -> tuple[ApplyResult, PreparedObservationExecution | None]:
+    adapter = plane._execution_adapter
+    authority = plane._mutation_authority
+    if isinstance(request.plan, WorkflowStepDispatch):
+        with authority.external_call():
+            reported = adapter.call(
+                "effect", request.method, request.plan.model_copy(deep=True), timeout_ms=remaining()
+            )
+        response = WorkflowStepResponse.model_validate(reported)
+        response.require_dispatch(request.plan)
+        return ApplyResult(True, snapshot, details={"workflow_step_response": response.model_dump(mode="json")}), None
+
     from raes_contracts.planning import ProvisioningPlan
 
     from .backend_calls import _BackendCallContext, _call_backend_apply, _RealizationApplyContext
@@ -92,9 +104,9 @@ def invoke_plan_phase(
         if isinstance(request.plan, ProvisioningPlan)
         else None
     )
-    with plane._mutation_authority.external_call():
+    with authority.external_call():
         if not request.execute_observation:
-            result = plane._execution_adapter.call(
+            result = adapter.call(
                 "effect",
                 _call_backend_apply,
                 request.method,
@@ -112,7 +124,7 @@ def invoke_plan_phase(
                 ),
             )
             return result, None
-        result, observation = plane._execution_adapter.call(
+        result, observation = adapter.call(
             "effect",
             _call_backend_apply_with_observation,
             request.method,

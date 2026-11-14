@@ -29,6 +29,7 @@ from .control_plane_store_transitions import (
     _require_terminal_operation_transition,
 )
 from .operation_invocation_ledger import InvocationLedger
+from .workflow_continuation import WorkflowOperationState
 from .operation_reconciliation_ledger import InvocationReconciliation
 from .control_plane_store_revision import (
     SnapshotRevisionConflict,
@@ -137,6 +138,7 @@ class ControlPlaneOperationRecord:
     result_history_heads: dict[str, str | None] = field(default_factory=dict)
     legacy_request_commitment: bool = False
     invocation: InvocationLedger | None = None
+    workflow: WorkflowOperationState | None = None
     reconciliation: InvocationReconciliation | None = None
     inject_occurrence: InjectOccurrenceModel | None = None
     inject_outcome: InjectOccurrenceOutcomeModel | None = None

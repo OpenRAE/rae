@@ -38,6 +38,25 @@ class WorkflowHistoryEvent:
     join_step: str | None = None
     outcome: WorkflowStepOutcome | None = None
     details: dict[str, Any] = field(default_factory=dict)
+    invocation_id: str | None = None
+    dispatch_id: str | None = None
+    attempt: int | None = None
+    origin: str | None = None
+
+    def __post_init__(self) -> None:
+        for value in (self.invocation_id, self.dispatch_id):
+            if value is not None:
+                require_non_empty_string(value, "workflow history correlation")
+        if self.attempt is not None and (type(self.attempt) is not int or self.attempt < 1):
+            raise ValueError("workflow history attempt must be a positive integer")
+        if self.origin not in {None, "runtime", "backend"}:
+            raise ValueError("workflow history origin is invalid")
+        if self.dispatch_id is not None and (self.invocation_id is None or self.attempt is None):
+            raise ValueError("dispatch history requires its invocation and attempt")
+        if self.event_type == WorkflowHistoryEventType.STEP_REPORTED and (
+            self.dispatch_id is None or self.origin != "backend"
+        ):
+            raise ValueError("step report requires backend dispatch correlation")
 
     @classmethod
     def from_payload(
@@ -63,10 +82,14 @@ class WorkflowHistoryEvent:
             join_step=(str(payload["join_step"]) if payload.get("join_step") is not None else None),
             outcome=optional_enum_value(WorkflowStepOutcome, outcome_raw),
             details=dict(payload.get("details", {})) if isinstance(payload.get("details", {}), Mapping) else {},
+            invocation_id=payload.get("invocation_id"),
+            dispatch_id=payload.get("dispatch_id"),
+            attempt=payload.get("attempt"),
+            origin=payload.get("origin"),
         )
 
     def to_payload(self) -> dict[str, Any]:
-        return {
+        payload = {
             "event_type": self.event_type.value,
             "timestamp": self.timestamp,
             "step_name": self.step_name,
@@ -75,6 +98,10 @@ class WorkflowHistoryEvent:
             "outcome": self.outcome.value if self.outcome is not None else None,
             "details": dict(self.details),
         }
+        for name in ("invocation_id", "dispatch_id", "attempt", "origin"):
+            if getattr(self, name) is not None:
+                payload[name] = getattr(self, name)
+        return payload
 
 
 def _require_step_result_keys(payload: Mapping[str, Any]) -> None:

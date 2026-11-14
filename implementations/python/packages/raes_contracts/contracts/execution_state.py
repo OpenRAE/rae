@@ -81,6 +81,18 @@ class WorkflowHistoryEventModel(ContractModel):
     join_step: str | None = None
     outcome: str | None = None
     details: dict[str, Any] = Field(default_factory=dict)
+    invocation_id: NonEmptyString | None = None
+    dispatch_id: NonEmptyString | None = None
+    attempt: Annotated[int, Field(strict=True, ge=1)] | None = None
+    origin: Literal["runtime", "backend"] | None = None
+
+    @model_validator(mode="after")
+    def _correlation(self) -> WorkflowHistoryEventModel:
+        if self.dispatch_id is not None and (self.invocation_id is None or self.attempt is None):
+            raise ValueError("dispatch history requires its invocation and attempt")
+        if self.event_type == "step_reported" and (self.dispatch_id is None or self.origin != "backend"):
+            raise ValueError("step report requires its backend dispatch correlation")
+        return self
 
 
 class WorkflowCancellationRequestModel(ContractModel):

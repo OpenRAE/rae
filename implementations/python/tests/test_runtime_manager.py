@@ -10,6 +10,7 @@ import pytest
 from raes import parse_sdl
 from raes_backend_stubs.manifest import load_stub_realization_envelope
 from raes_backend_stubs.stubs import (
+    StubOrchestrator,
     StubProvisioner,
     create_stub_target,
 )
@@ -27,6 +28,7 @@ from raes_processor.models import (
     SnapshotEntry,
 )
 from raes_processor.planner import plan
+from raes_runtime.backend_calls import _call_backend_apply, _RealizationApplyContext
 from raes_runtime.manager import RuntimeManager
 from raes_runtime.registry import RuntimeTarget
 
@@ -239,6 +241,8 @@ class FailingProvisioner(RecordingProvisioner):
 
 
 class RecordingOrchestrator:
+    dispatch_step = StubOrchestrator.dispatch_step
+
     def __init__(self, calls: list[str], name: str = "orchestrator") -> None:
         self.calls = calls
         self.name = name
@@ -1087,7 +1091,7 @@ class TestRuntimeManager:
         assert manager.snapshot.for_domain(RuntimeDomain.EVALUATION)
         assert manager.snapshot.for_domain(RuntimeDomain.PROVISIONING)
 
-    def test_apply_fails_on_invalid_workflow_result_contract(self):
+    def test_historical_workflow_results_reject_an_invalid_contract(self):
         calls: list[str] = []
         target = RuntimeTarget(
             name="recording",
@@ -1098,14 +1102,18 @@ class TestRuntimeManager:
         )
         manager = RuntimeManager(target)
 
-        result = manager.apply(manager.plan(_workflow_scenario()))
+        execution = manager.plan(_workflow_scenario())
+        result = _call_backend_apply(
+            target.orchestrator.start,
+            execution.orchestration,
+            execution.base_snapshot,
+            address="runtime.legacy-workflow-validation",
+            snapshot=execution.base_snapshot,
+            realization=_RealizationApplyContext(operation_plan=execution.orchestration, manifest=target.manifest),
+        )
 
         assert not result.success
-        assert calls == [
-            "provision-apply",
-            "evaluator-start",
-            "orchestrator-start",
-        ]
+        assert calls == ["orchestrator-start"]
         assert "runtime.backend-contract-invalid" in {diag.code for diag in result.diagnostics}
 
     @pytest.mark.parametrize(
@@ -1227,7 +1235,19 @@ class TestRuntimeManager:
         )
         manager = RuntimeManager(target)
 
-        result = manager.apply(manager.plan(scenario_factory()))
+        execution = manager.plan(scenario_factory())
+        if slot == "orchestrator":
+            # Historical result readers retain their contract checks. Live dispatch no longer accepts backend history.
+            result = _call_backend_apply(
+                orchestrator.start,
+                execution.orchestration,
+                execution.base_snapshot,
+                address="runtime.legacy-workflow-validation",
+                snapshot=execution.base_snapshot,
+                realization=_RealizationApplyContext(operation_plan=execution.orchestration, manifest=target.manifest),
+            )
+        else:
+            result = manager.apply(execution)
 
         assert not result.success
         assert expected_code in {diag.code for diag in result.diagnostics}
@@ -1268,7 +1288,7 @@ class TestRuntimeManager:
         assert isinstance(workflow_payload, dict)
         assert workflow_payload["state_schema_version"] == "workflow-step-state/v1"
         assert isinstance(workflow_payload["steps"], dict)
-        assert workflow_payload["steps"]["run"]["lifecycle"] == "pending"
+        assert workflow_payload["steps"]["run"]["lifecycle"] == "completed"
         json.dumps(workflow_results)
         assert isinstance(status["orchestration_history"], dict)
         json.dumps(status["orchestration_history"])

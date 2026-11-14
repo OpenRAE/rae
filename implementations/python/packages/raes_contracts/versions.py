@@ -33,6 +33,7 @@ FIPA_COMMUNICATIVE_ACTS_SOURCE_SCHEMA_VERSION = "fipa-communicative-acts-source/
 SEMANTIC_PROFILE_SCHEMA_VERSION = "semantic-profile/v1"
 BACKEND_PROFILE_SCHEMA_VERSION = "backend-profile/v1"
 WORKFLOW_STATE_SCHEMA_VERSION = "workflow-step-state/v1"
+WORKFLOW_DISPATCH_CONTRACTS = ("workflow-step-dispatch-v1", "workflow-step-response-v1")
 WORKFLOW_CANCELLATION_REQUEST_SCHEMA_VERSION = "workflow-cancellation-request/v1"
 RUNTIME_SNAPSHOT_SCHEMA_VERSION = "runtime-snapshot/v1"
 INJECT_TRIGGER_REQUEST_SCHEMA_VERSION = "inject-trigger-request/v1"

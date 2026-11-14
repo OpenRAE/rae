@@ -11,6 +11,7 @@ from uuid import uuid4
 
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import BackendOperationRequestModel, inject_occurrence_reference
+from raes_contracts.contracts.workflow_dispatch import WorkflowStepDispatch, WorkflowStepResponse
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import ConflictError, OperationalError, RaesError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
@@ -32,6 +33,7 @@ from .errors import RuntimeBudgetExhaustedError
 from .operation_command_commitment import native_command_commitment
 from .operation_invocation_ledger import InvocationLedger
 from .operation_policy_admission import execution_budget_ms
+from .workflow_continuation import WorkflowOperationState
 
 _LOGGER = get_logger(__name__)
 
@@ -49,6 +51,7 @@ def invocation_request(
 ) -> BackendOperationRequestModel:
     budget_ms = execution_budget_ms(request.plan, plane._supervision)
     return BackendOperationRequestModel(
+        workflow_step=request.plan if isinstance(request.plan, WorkflowStepDispatch) else None,
         binding={
             "operation_id": operation_id,
             "invocation_id": str(uuid4()),
@@ -66,8 +69,12 @@ def invocation_request(
         command=inject_occurrence_reference(request.inject_occurrence)
         if request.inject_occurrence is not None
         else {
-            "contract_id": f"{request.domain.value}-plan-v1",
-            "artifact_id": getattr(request.plan, "operation_id", None) or operation_id,
+            "contract_id": "workflow-step-dispatch-v1"
+            if isinstance(request.plan, WorkflowStepDispatch)
+            else f"{request.domain.value}-plan-v1",
+            "artifact_id": request.plan.dispatch_id
+            if isinstance(request.plan, WorkflowStepDispatch)
+            else getattr(request.plan, "operation_id", None) or operation_id,
             "digest": native_command_commitment(plane, request.plan),
         },
         requirement_refs=() if request.inject_occurrence is None else request.inject_occurrence.evidence_requirements,
@@ -213,7 +220,11 @@ def commit_settlement(
         raise ConflictError("stale execution owner cannot publish state")
     snapshot = plane._snapshot
     mode = TerminalCommitMode.OPERATION_ONLY
-    if result is not None:
+    if result is not None and current.invocation.request.workflow_step is not None:
+        # This closed response carries no resource-state write. A concurrent stop
+        # remains authoritative while the original native claim records cessation.
+        result = replace(result, snapshot=snapshot)
+    elif result is not None:
         if str(plane._snapshot_state.revision) != record.invocation.request.binding.baseline_revision:
             state, result, release_commitment = OperationState.INDETERMINATE, None, None
         elif result.success or result.snapshot != snapshot:
@@ -235,6 +246,17 @@ def commit_settlement(
             }
         ),
         result_payload=result_payload,
+        workflow=(
+            WorkflowOperationState(
+                root_operation_id=current.invocation.request.workflow_step.root_operation_id,
+                kind="response",
+                response=WorkflowStepResponse.model_validate(result_payload["workflow_step_response"]),
+            )
+            if current.invocation.request.workflow_step is not None
+            and result_payload is not None
+            and "workflow_step_response" in result_payload
+            else current.workflow
+        ),
         inject_outcome=inject_outcome,
         inject_evidence=inject_evidence,
     )
@@ -374,6 +396,10 @@ def _dispatch_native_invocation(
     if plane._effect_admission_stopped or plane._store.effect_admission_stopped():
         settle(plane, record, OperationState.CANCELLED)
         return None
+    diagnostics = [] if request.admission_diagnostics is None else request.admission_diagnostics()
+    if diagnostics:
+        settle(plane, record, OperationState.CANCELLED, diagnostics=diagnostics)
+        return None
     remaining()
     if current.invocation.request.command.digest != native_command_commitment(plane, request.plan):
         raise ValueError("admitted native command changed before dispatch")
@@ -432,7 +458,13 @@ def _complete_native_invocation(
             result=result,
             diagnostics=[*diagnostics, *result.diagnostics],
             release_commitment=canonical_json_digest(_snapshot_payload(result.snapshot)),
-            result_payload=None if observation is None else observation.result_payload,
+            result_payload=(
+                {"workflow_step_response": result.details["workflow_step_response"]}
+                if isinstance(request.plan, WorkflowStepDispatch)
+                else None
+                if observation is None
+                else observation.result_payload
+            ),
         )
     else:
         settle(

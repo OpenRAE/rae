@@ -395,4 +395,6 @@ def _require_claimable_invocation(
     if remaining <= 0:
         raise ConflictError("invocation budget exhausted")
     native_request, _predecessor = admitted
+    if native_request.admission_diagnostics is not None and native_request.admission_diagnostics():
+        raise ConflictError("invocation state no longer permits dispatch")
     return deadline, native_request

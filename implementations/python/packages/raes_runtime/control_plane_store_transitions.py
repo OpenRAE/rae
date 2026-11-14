@@ -19,6 +19,7 @@ from .participant_delivery_invocation_records import (
     require_delivery_tool_transition,
 )
 from .record_immutability import immutable_value_error, is_immutable_value_error
+from .workflow_continuation import WorkflowOperationState
 
 if TYPE_CHECKING:
     from .control_plane_store import ControlPlaneOperationRecord
@@ -40,6 +41,22 @@ def _require_operation_record_identity(record: ControlPlaneOperationRecord) -> N
     if not record.receipt.accepted:
         raise ValueError("denied operation receipts cannot be persisted")
     require_record_invocation(record)
+    if record.workflow is not None:
+        WorkflowOperationState.model_validate(record.workflow.model_dump(mode="json"))
+        if record.workflow.kind == "root" and record.workflow.root_operation_id != record.receipt.operation_id:
+            raise ValueError("workflow root identity does not match its operation")
+        if record.workflow.continuation is not None and (
+            record.workflow.continuation.root_operation_id != record.workflow.root_operation_id
+        ):
+            raise ValueError("workflow continuation belongs to another root")
+        if record.workflow.kind == "response":
+            if (
+                record.invocation is None
+                or record.invocation.request.workflow_step is None
+                or record.workflow.response is None
+            ):
+                raise ValueError("workflow response requires its original invocation")
+            record.workflow.response.require_dispatch(record.invocation.request.workflow_step)
     require_inject_record(record)
     require_delivery_record(record)
 
@@ -72,6 +89,11 @@ def _require_same_operation_identity(
     ):
         raise immutable_value_error("inject delivery binding is immutable")
     require_invocation_transition(existing.invocation, replacement.invocation)
+    if existing.workflow is not None and (
+        replacement.workflow is None
+        or existing.workflow.model_dump(mode="json") != replacement.workflow.model_dump(mode="json")
+    ):
+        raise immutable_value_error("workflow operation facts are immutable")
     if existing.reconciliation is not None and existing.reconciliation != replacement.reconciliation:
         raise immutable_value_error("reconciliation evidence is immutable")
     if existing.receipt != replacement.receipt:

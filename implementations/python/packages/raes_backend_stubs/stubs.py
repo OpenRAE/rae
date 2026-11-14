@@ -167,6 +167,33 @@ class StubOrchestrator:
         self._results: dict[str, dict[str, object]] = {}
         self._history: dict[str, list[dict[str, object]]] = {}
 
+    def dispatch_step(self, request):
+        """Simulate this dispatch only; the runtime owns all control transitions."""
+        executable = request.step_type in {"objective", "retry"}
+        governed = executable and request.execution_mode != "scripted"
+        provenance = (
+            None
+            if not governed
+            else {
+                "step_name": request.step_name,
+                "execution_mode": request.execution_mode,
+                "attempt_id": request.dispatch_id,
+                "objective_address": request.objective_address,
+                "procedure_ref": request.procedure_ref,
+                "exposed_scaffold_refs": list(request.scaffold_refs),
+                "allowed_action_families": list(request.allowed_action_families),
+                "outcome": "failed",
+            }
+        )
+        return {
+            "schema_version": "workflow-step-response/v1",
+            "dispatch_id": request.dispatch_id,
+            "dispatch_digest": request.digest,
+            "outcome": ("failed" if governed else "succeeded") if executable else None,
+            "observations": dict(request.observation_digests),
+            "attempt_provenance": provenance,
+        }
+
     def start(
         self,
         plan: OrchestrationPlan,
@@ -178,7 +205,8 @@ class StubOrchestrator:
             workflow_address: list(events) for workflow_address, events in snapshot.orchestration_history.items()
         }
         changed_addresses: list[str] = []
-        now = isoformat_z(self._wall_clock())
+        if any(op.resource_type == "workflow" for op in plan.operations):
+            raise ValueError("workflow steps require runtime dispatch")
         for op in plan.operations:
             if op.action == ChangeAction.UNCHANGED:
                 continue
@@ -198,45 +226,6 @@ class StubOrchestrator:
                 refresh_dependencies=op.refresh_dependencies,
                 status=status,
             )
-            if op.resource_type == "workflow":
-                result_contract = op.payload.get("result_contract", {})
-                observable_steps = result_contract.get("observable_steps", {})
-                observable_steps = {
-                    step_name: {
-                        "lifecycle": "pending",
-                        "outcome": None,
-                        "attempts": 0,
-                    }
-                    for step_name, step_payload in observable_steps.items()
-                    if isinstance(step_payload, dict)
-                }
-                results[op.address] = {
-                    "state_schema_version": result_contract.get(
-                        "state_schema_version",
-                        op.payload.get("state_schema_version", "workflow-step-state/v1"),
-                    ),
-                    "workflow_status": "running",
-                    "run_id": f"{op.address}-run",
-                    "started_at": now,
-                    "updated_at": now,
-                    "terminal_reason": None,
-                    "compensation_status": "not_required",
-                    "compensation_started_at": None,
-                    "compensation_updated_at": None,
-                    "compensation_failures": [],
-                    "steps": observable_steps,
-                }
-                history[op.address] = [
-                    {
-                        "event_type": "workflow_started",
-                        "timestamp": now,
-                        "step_name": op.payload.get("execution_contract", {}).get("start_step"),
-                        "branch_name": None,
-                        "join_step": None,
-                        "outcome": None,
-                        "details": {},
-                    }
-                ]
             if op.action != ChangeAction.UNCHANGED:
                 changed_addresses.append(op.address)
         self._running = bool(plan.resources)

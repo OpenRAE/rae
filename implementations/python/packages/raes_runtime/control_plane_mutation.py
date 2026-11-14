@@ -403,7 +403,13 @@ def control_plane_mutation(control_plane: object, kind: OperationKind) -> Iterat
 
     authority = getattr(control_plane, "_mutation_authority", None)
     mutation = getattr(authority, "mutation", None)
-    mutation_context = mutation(kind) if callable(mutation) else nullcontext()
+    supervisory = getattr(authority, "supervision", None)
+    if kind in {OperationKind.WORKFLOW_CANCELLATION, OperationKind.WORKFLOW_TIMEOUT_RECONCILIATION} and callable(
+        supervisory
+    ):
+        mutation_context = supervisory()
+    else:
+        mutation_context = mutation(kind) if callable(mutation) else nullcontext()
     with mutation_context:
         if callable(mutation):
             assert_owner = getattr(control_plane, "_assert_runtime_owner", None)

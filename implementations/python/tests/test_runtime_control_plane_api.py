@@ -44,6 +44,7 @@ from raes_contracts.runtime_state import (
     OperationKind,
     RealizationProvenanceEntry,
     RuntimeSnapshot,
+    SnapshotEntry,
 )
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.models import OperationReceipt, OperationState, OperationStatus, RuntimeDomain
@@ -108,6 +109,45 @@ def _admit_workflow_prerequisites(control_plane: RuntimeControlPlane, execution_
     evaluation = control_plane.submit_evaluation(execution_plan.evaluation)
     assert provisioning.accepted, provisioning.diagnostics
     assert evaluation.accepted, evaluation.diagnostics
+
+
+def _load_legacy_running_workflows(control_plane: RuntimeControlPlane, execution_plan: object) -> None:
+    """Load historical state without granting new dispatch authority."""
+    snapshot = control_plane.snapshot
+    entries, results, history = dict(snapshot.entries), {}, {}
+    timestamp = "2000-01-01T00:00:00Z"
+    for operation in execution_plan.orchestration.operations:
+        if operation.resource_type != "workflow":
+            continue
+        entries[operation.address] = SnapshotEntry(
+            address=operation.address,
+            domain=RuntimeDomain.ORCHESTRATION,
+            resource_type="workflow",
+            payload=operation.payload,
+            status="loaded",
+        )
+        results[operation.address] = {
+            "state_schema_version": "workflow-step-state/v1",
+            "workflow_status": "running",
+            "run_id": "legacy:" + operation.address,
+            "started_at": timestamp,
+            "updated_at": timestamp,
+            "terminal_reason": None,
+            "compensation_status": "not_required",
+            "compensation_started_at": None,
+            "compensation_updated_at": None,
+            "compensation_failures": [],
+            "steps": {
+                name: {"lifecycle": "pending", "attempts": 0, "outcome": None}
+                for name in operation.payload["result_contract"]["observable_steps"]
+            },
+        }
+        history[operation.address] = [{"event_type": "workflow_started", "timestamp": timestamp}]
+    control_plane._store.save_snapshot(
+        snapshot.with_entries(entries, orchestration_results=results, orchestration_history=history),
+        expected_revision=control_plane._store.load_snapshot_state().revision,
+    )
+    control_plane._reload_derived_state()
 
 
 def _participant_operation_record(operation_id: str, participant_address: str) -> ControlPlaneOperationRecord:
@@ -778,7 +818,14 @@ workflows:
         assert "snapshot_revision" not in snapshot
         assert "revision" not in snapshot["metadata"]
         assert snapshot["orchestration_results"]
-        assert snapshot["orchestration_results"]["orchestration.workflow.response"]["workflow_status"] == "running"
+        assert snapshot["orchestration_results"]["orchestration.workflow.response"]["workflow_status"] == "succeeded"
+        events = snapshot["orchestration_history"]["orchestration.workflow.response"]
+        assert [item["origin"] for item in events if item["event_type"] in {"step_started", "step_reported"}] == [
+            "runtime",
+            "backend",
+            "runtime",
+            "backend",
+        ]
 
 
 def test_control_plane_api_exposes_operational_apparatus_summary_to_auditors():
@@ -858,7 +905,8 @@ workflows:
     assert summary["target"] == target.name
     assert summary["resources"]["total"] >= 1
     assert summary["resources"]["by_domain"]["orchestration"] >= 1
-    assert summary["operations"]["by_state"]["succeeded"] == 3
+    # Includes the workflow root, two dispatched steps, and durable checkpoints.
+    assert summary["operations"]["by_state"]["succeeded"] == 11
     orchestration_record = next(
         record for record in summary["operations"]["recent"] if record["operation_id"] == receipt["operation_id"]
     )
@@ -2012,6 +2060,7 @@ workflows:
     execution_plan = plan(compile_runtime_model(scenario), target.manifest)
     control_plane = RuntimeControlPlane(target)
     _admit_workflow_prerequisites(control_plane, execution_plan)
+    _load_legacy_running_workflows(control_plane, execution_plan)
     app = create_control_plane_app(
         control_plane,
         security=_test_security(target.name),
@@ -2022,25 +2071,6 @@ workflows:
     }
 
     with TestClient(app) as client:
-        client.post(
-            "/operations/orchestration",
-            json={
-                "operations": [
-                    {
-                        "action": op.action.value,
-                        "address": op.address,
-                        "resource_type": op.resource_type,
-                        "payload": op.payload,
-                        "ordering_dependencies": list(op.ordering_dependencies),
-                        "refresh_dependencies": list(op.refresh_dependencies),
-                    }
-                    for op in execution_plan.orchestration.operations
-                ],
-                "startup_order": execution_plan.orchestration.startup_order,
-                "diagnostics": [],
-            },
-            headers=headers,
-        )
         cancel = client.post(
             "/workflows/orchestration.workflow.response/cancel",
             json={"reason": "operator requested stop"},
@@ -2094,6 +2124,7 @@ workflows:
     execution_plan = plan(compile_runtime_model(scenario), target.manifest)
     control_plane = RuntimeControlPlane(target)
     _admit_workflow_prerequisites(control_plane, execution_plan)
+    _load_legacy_running_workflows(control_plane, execution_plan)
     app = create_control_plane_app(
         control_plane,
         security=_test_security(target.name),
@@ -2104,25 +2135,6 @@ workflows:
     }
 
     with TestClient(app) as client:
-        client.post(
-            "/operations/orchestration",
-            json={
-                "operations": [
-                    {
-                        "action": op.action.value,
-                        "address": op.address,
-                        "resource_type": op.resource_type,
-                        "payload": op.payload,
-                        "ordering_dependencies": list(op.ordering_dependencies),
-                        "refresh_dependencies": list(op.refresh_dependencies),
-                    }
-                    for op in execution_plan.orchestration.operations
-                ],
-                "startup_order": execution_plan.orchestration.startup_order,
-                "diagnostics": [],
-            },
-            headers=headers,
-        )
         workflow_address = "orchestration.workflow.response"
         seeded = dict(control_plane._snapshot.orchestration_results[workflow_address])
         seeded["started_at"] = "2000-01-01T00:00:00Z"
@@ -2150,7 +2162,7 @@ workflows:
     assert result["terminal_reason"] == "workflow timed out"
 
 
-def test_control_plane_api_cancellation_triggers_compensation_history():
+def test_control_plane_api_legacy_cancellation_keeps_compensation_pending_without_dispatch_authority():
     scenario = _scenario("""
 name: workflow
 nodes:
@@ -2198,6 +2210,7 @@ workflows:
     execution_plan = plan(compile_runtime_model(scenario), target.manifest)
     control_plane = RuntimeControlPlane(target)
     _admit_workflow_prerequisites(control_plane, execution_plan)
+    _load_legacy_running_workflows(control_plane, execution_plan)
     app = create_control_plane_app(
         control_plane,
         security=_test_security(target.name),
@@ -2208,25 +2221,6 @@ workflows:
     }
 
     with TestClient(app) as client:
-        client.post(
-            "/operations/orchestration",
-            json={
-                "operations": [
-                    {
-                        "action": op.action.value,
-                        "address": op.address,
-                        "resource_type": op.resource_type,
-                        "payload": op.payload,
-                        "ordering_dependencies": list(op.ordering_dependencies),
-                        "refresh_dependencies": list(op.refresh_dependencies),
-                    }
-                    for op in execution_plan.orchestration.operations
-                ],
-                "startup_order": execution_plan.orchestration.startup_order,
-                "diagnostics": [],
-            },
-            headers=headers,
-        )
         workflow_address = "orchestration.workflow.response"
         seeded = dict(control_plane._snapshot.orchestration_results[workflow_address])
         seeded["steps"] = {
@@ -2270,16 +2264,16 @@ workflows:
     result = snapshot["orchestration_results"]["orchestration.workflow.response"]
     history = snapshot["orchestration_history"]["orchestration.workflow.response"]
     assert result["workflow_status"] == "cancelled"
-    assert result["compensation_status"] == "succeeded"
-    assert any(event["event_type"] == "compensation_started" for event in history)
-    assert any(
+    assert result["compensation_status"] == "pending"
+    assert not any(event["event_type"] == "compensation_started" for event in history)
+    assert not any(
         event["event_type"] == "compensation_workflow_completed"
         and event["details"].get("workflow_address") == "orchestration.workflow.rollback"
         for event in history
     )
 
 
-def test_control_plane_api_timeout_triggers_compensation_history():
+def test_control_plane_api_legacy_timeout_keeps_compensation_pending_without_dispatch_authority():
     scenario = _scenario("""
 name: workflow
 nodes:
@@ -2328,6 +2322,7 @@ workflows:
     execution_plan = plan(compile_runtime_model(scenario), target.manifest)
     control_plane = RuntimeControlPlane(target)
     _admit_workflow_prerequisites(control_plane, execution_plan)
+    _load_legacy_running_workflows(control_plane, execution_plan)
     app = create_control_plane_app(
         control_plane,
         security=_test_security(target.name),
@@ -2338,25 +2333,6 @@ workflows:
     }
 
     with TestClient(app) as client:
-        client.post(
-            "/operations/orchestration",
-            json={
-                "operations": [
-                    {
-                        "action": op.action.value,
-                        "address": op.address,
-                        "resource_type": op.resource_type,
-                        "payload": op.payload,
-                        "ordering_dependencies": list(op.ordering_dependencies),
-                        "refresh_dependencies": list(op.refresh_dependencies),
-                    }
-                    for op in execution_plan.orchestration.operations
-                ],
-                "startup_order": execution_plan.orchestration.startup_order,
-                "diagnostics": [],
-            },
-            headers=headers,
-        )
         workflow_address = "orchestration.workflow.response"
         seeded = dict(control_plane._snapshot.orchestration_results[workflow_address])
         seeded["started_at"] = "2000-01-01T00:00:00Z"
@@ -2397,8 +2373,8 @@ workflows:
     result = snapshot["orchestration_results"]["orchestration.workflow.response"]
     history = snapshot["orchestration_history"]["orchestration.workflow.response"]
     assert result["workflow_status"] == "timed_out"
-    assert result["compensation_status"] == "succeeded"
-    assert any(event["event_type"] == "compensation_completed" for event in history)
+    assert result["compensation_status"] == "pending"
+    assert not any(event["event_type"] == "compensation_completed" for event in history)
 
 
 class TestParticipantEpisodeHttpRoutes:

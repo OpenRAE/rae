@@ -165,6 +165,15 @@ def _advance_phase(
     run._store.claim_runtime_decision(started)
     key = run_phase_key(admission, phase)
     records = _phase_records(run, admission, key)
+    if records and APPLICATION_PHASES[phase] == "_apply_orchestration_phase":
+        for record in records:
+            if (
+                record.workflow is not None
+                and record.workflow.kind == "root"
+                and record.status.state in {OperationState.ACCEPTED, OperationState.RUNNING}
+            ):
+                run.advance_orchestration(record.receipt.operation_id, identity=identity)
+        records = _phase_records(run, admission, key)
     state = None
     if not records:
         state = _RuntimeApplyState(

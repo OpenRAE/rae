@@ -7,15 +7,18 @@ from copy import deepcopy
 from threading import RLock
 from typing import TYPE_CHECKING
 
+from raes_contracts.contracts.plan_projection import runtime_plan_digest
 from raes_contracts.errors import ConflictError
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
     OperationKind,
     OperationReceipt,
+    OperationState,
     OperationStatus,
     RuntimeSnapshot,
     RuntimeSnapshotEnvelope,
 )
+from raes_contracts.timestamps import isoformat_z
 
 from .control_plane_admission import RuntimeAdmissionMixin
 from .control_plane_composition import bind_execution_store, compose_operation_execution, compose_participant_boundary
@@ -61,6 +64,7 @@ from .control_plane_store import (
     InMemoryControlPlaneStore,
     RuntimeAdmittedControlPlaneStore,
     SnapshotState,
+    TerminalCommitMode,
     require_operation_record_scopes,
 )
 from .control_plane_store_compatibility import adapt_control_plane_store
@@ -82,6 +86,14 @@ from .participant_retrieval import ParticipantRetrievalMixin
 from .registry import RuntimeTarget as _RuntimeTarget
 from .runtime_decisions import bind_run_operation_guarantees
 from .runtime_operation_routing import run_operation
+from .workflow_execution import (
+    WorkflowCut,
+    WorkflowPorts,
+    advance_workflows,
+    has_workflow_program,
+    nonworkflow_projection,
+    submit_workflows,
+)
 
 _P0_SCOPE_BOUND_ERROR = "control-plane profile P0 missing capabilities: store.scope-bound"
 
@@ -409,6 +421,31 @@ class RuntimeRunContext(
             if operation_requires_ephemeral_retry_proof(request=plan, base_snapshot=base_snapshot)
             else None
         )
+        if has_workflow_program(plan):
+            incumbent = next(
+                (
+                    record
+                    for record in self._operations.values()
+                    if record.idempotency_key == idempotency_key
+                    and record.receipt.context == context
+                    and record.workflow is not None
+                    and record.workflow.kind == "root"
+                ),
+                None,
+            )
+            if incumbent is not None:
+                return submit_workflows(self._workflow_ports(identity), plan, context, idempotency_key)
+            self._require_observed_base_snapshot(base_snapshot)
+            diagnostics = control_plane_plan_diagnostics(self, plan, RuntimeDomain.ORCHESTRATION)
+            if diagnostics:
+                return self._reject_diagnostics(
+                    domain=RuntimeDomain.ORCHESTRATION,
+                    context=context,
+                    diagnostics=diagnostics,
+                    idempotency_key=idempotency_key,
+                    request_fingerprint=context.request_commitment,
+                )
+            return submit_workflows(self._workflow_ports(identity), plan, context, idempotency_key)
         orchestrator = self._target.orchestrator
         request = OperationExecutionRequest(
             domain=RuntimeDomain.ORCHESTRATION,
@@ -434,6 +471,59 @@ class RuntimeRunContext(
         )
         denied_or_replay = reject_new_operation_if_admission_fails(self, request)
         return denied_or_replay or execute_operation(self, request)
+
+    def _workflow_ports(self, identity: object | None) -> WorkflowPorts:
+        orchestrator = self._target.orchestrator
+        if orchestrator is None:
+            raise ConflictError("workflow execution requires an orchestrator")
+        return WorkflowPorts(
+            read=self._workflow_cut,
+            context=lambda kind, request, parent: operation_admission_context(
+                self, kind=kind, request=request, identity=identity, parent_operation_id=parent
+            ),
+            claim=self._claim_record,
+            commit=self._workflow_commit,
+            execute=lambda request: execute_operation(self, request),
+            mutation=lambda: control_plane_mutation(self, OperationKind.ORCHESTRATION),
+            now=lambda: isoformat_z(self.wall_clock()),
+            authorize_projection=self._authorize_workflow_projection,
+            start=orchestrator.start,
+            dispatch_step=orchestrator.dispatch_step,
+            contracts=self._target.manifest.supported_contract_versions,
+            record=ControlPlaneOperationRecord,
+            request=OperationExecutionRequest,
+        )
+
+    def _workflow_cut(self) -> WorkflowCut:
+        with self._operation_lock:
+            self._reload_derived_state()
+            return WorkflowCut(self._snapshot, self._snapshot_state.revision, dict(self._operations))
+
+    def _workflow_commit(self, snapshot: RuntimeSnapshot, record: ControlPlaneOperationRecord) -> None:
+        if record.workflow is not None and record.workflow.kind == "checkpoint":
+            if record.status.state is OperationState.CANCELLED:
+                self._commit_terminal_operation(snapshot, record, mode=TerminalCommitMode.OPERATION_ONLY)
+                return
+            if self._workflow_cut().revision != record.workflow.baseline_revision:
+                raise ConflictError("workflow checkpoint predecessor changed before commit")
+        self._commit_terminal_operation(snapshot, record)
+
+    def _authorize_workflow_projection(self, original: OrchestrationPlan, projection: OrchestrationPlan) -> None:
+        if not self.is_planner_authorized_plan(original) or projection != nonworkflow_projection(original):
+            raise ConflictError("workflow resource projection has no admitted source")
+        with self._trusted_runtime_plan_lock:
+            self._trusted_runtime_plan_digests.add(runtime_plan_digest(projection))
+
+    @runtime_owned
+    def advance_orchestration(self, operation_id: str, *, identity: object | None = None) -> None:
+        self._assert_runtime_owner()
+        record = self._operations.get(operation_id)
+        if record is None or record.workflow is None or record.workflow.kind != "root":
+            raise ConflictError("workflow operation is unavailable")
+        actor, scopes = operation_actor_scope(identity)
+        if (actor, scopes) != (record.receipt.context.actor_id, record.receipt.context.authorization_scope):
+            raise ConflictError("workflow progress requires its original admitted actor")
+        advance_workflows(self._workflow_ports(identity), operation_id)
 
     @runtime_owned
     @mutation_entry(OperationKind.EVALUATION)

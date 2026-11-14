@@ -1,0 +1,181 @@
+{
+  "$defs": {
+    "WorkflowStepAttemptProvenanceModel": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed_action_families": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Allowed Action Families",
+          "type": "array"
+        },
+        "assertion_truth_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Assertion Truth Refs",
+          "type": "array"
+        },
+        "attempt_id": {
+          "minLength": 1,
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "evidence_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "execution_mode": {
+          "enum": [
+            "scripted",
+            "objective",
+            "scaffolded"
+          ],
+          "title": "Execution Mode",
+          "type": "string"
+        },
+        "exposed_scaffold_refs": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Exposed Scaffold Refs",
+          "type": "array"
+        },
+        "fact_versions": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "title": "Fact Versions",
+          "type": "array"
+        },
+        "objective_address": {
+          "default": "",
+          "title": "Objective Address",
+          "type": "string"
+        },
+        "outcome": {
+          "default": "",
+          "enum": [
+            "",
+            "succeeded",
+            "failed",
+            "exhausted"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "participant_report": {
+          "default": "",
+          "title": "Participant Report",
+          "type": "string"
+        },
+        "procedure_ref": {
+          "default": "",
+          "title": "Procedure Ref",
+          "type": "string"
+        },
+        "selected_action_family": {
+          "default": "",
+          "title": "Selected Action Family",
+          "type": "string"
+        },
+        "selected_affordance_ref": {
+          "default": "",
+          "title": "Selected Affordance Ref",
+          "type": "string"
+        },
+        "selected_tool_ref": {
+          "default": "",
+          "title": "Selected Tool Ref",
+          "type": "string"
+        },
+        "step_name": {
+          "minLength": 1,
+          "title": "Step Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "step_name",
+        "execution_mode",
+        "attempt_id"
+      ],
+      "title": "WorkflowStepAttemptProvenanceModel",
+      "type": "object"
+    }
+  },
+  "$id": "https://openrae.github.io/rae/schemas/workflow-step-response-v1.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "attempt_provenance": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/WorkflowStepAttemptProvenanceModel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "dispatch_digest": {
+      "pattern": "^sha256:[a-f0-9]{64}$",
+      "title": "Dispatch Digest",
+      "type": "string"
+    },
+    "dispatch_id": {
+      "minLength": 1,
+      "title": "Dispatch Id",
+      "type": "string"
+    },
+    "observations": {
+      "additionalProperties": {
+        "pattern": "^sha256:[a-f0-9]{64}$",
+        "type": "string"
+      },
+      "propertyNames": {
+        "minLength": 1
+      },
+      "title": "Observations",
+      "type": "object"
+    },
+    "outcome": {
+      "anyOf": [
+        {
+          "enum": [
+            "succeeded",
+            "failed"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Outcome"
+    },
+    "schema_version": {
+      "const": "workflow-step-response/v1",
+      "default": "workflow-step-response/v1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "dispatch_id",
+    "dispatch_digest"
+  ],
+  "title": "WorkflowStepResponse",
+  "type": "object"
+}

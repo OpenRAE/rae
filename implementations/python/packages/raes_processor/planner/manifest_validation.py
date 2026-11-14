@@ -6,6 +6,7 @@ from raes_backend_protocols.capabilities import (
     OrchestratorCapabilities,
     ProvisionerCapabilities,
 )
+from raes_contracts.versions import WORKFLOW_DISPATCH_CONTRACTS
 
 from ..models import Diagnostic, PropositionRuntime, RuntimeModel
 from .capability_domains import (
@@ -313,6 +314,15 @@ def _validate_orchestration_support(model: RuntimeModel, manifest: BackendManife
 
     diagnostics: list[Diagnostic] = []
     diagnostics.extend(_orchestrator_section_support(orchestration_sections, orchestrator))
+    if model.workflows and not set(WORKFLOW_DISPATCH_CONTRACTS) <= set(manifest.supported_contract_versions):
+        diagnostics.append(
+            Diagnostic(
+                code="orchestrator.step-dispatch-unsupported",
+                domain="orchestration",
+                address=_ORCHESTRATION_WORKFLOWS_ADDRESS,
+                message="Backend does not declare runtime workflow step dispatch.",
+            )
+        )
     diagnostics.extend(_orchestrator_workflow_support(model, orchestrator))
     diagnostics.extend(_orchestrator_assertion_ref_support(model, orchestrator))
     diagnostics.extend(_orchestrator_state_predicate_support(model, orchestrator))

@@ -1,0 +1,40 @@
+"""Resolve governed step success through admitted objective and truth contracts."""
+
+from raes_contracts.contracts.execution_state import PropositionTruthResultModel
+from raes_contracts.contracts.workflow_dispatch import WorkflowStepDispatch, WorkflowStepResponse
+from raes_contracts.errors import ConflictError
+from raes_contracts.runtime_state import RuntimeSnapshot
+
+from .proposition_truth_contracts import proposition_truth_contract_diagnostics
+
+
+def require_success_evidence(
+    snapshot: RuntimeSnapshot, dispatch: WorkflowStepDispatch, response: WorkflowStepResponse
+) -> None:
+    if dispatch.execution_mode == "scripted" or response.outcome != "succeeded":
+        return
+    provenance = response.attempt_provenance
+    objective = snapshot.entries.get(dispatch.objective_address)
+    if provenance is None or objective is None or objective.resource_type != "objective":
+        raise ConflictError("governed workflow success has no admitted objective evidence")
+    required = objective.payload.get("success_addresses", objective.payload.get("success_refs", ()))
+    if not required or proposition_truth_contract_diagnostics(snapshot):
+        raise ConflictError("governed workflow success requires valid admitted assertion truth")
+    truths = [
+        PropositionTruthResultModel.model_validate(snapshot.proposition_truth_results[address])
+        for address in required
+        if address in snapshot.proposition_truth_results
+    ]
+    selected = [item for item in truths if item.result_id in provenance.assertion_truth_refs]
+    success = objective.payload.get("spec", {}).get("success", {})
+    mode = success.get("mode", "all_of")
+    threshold = len(required) if mode == "all_of" else 1 if mode == "any_of" else success.get("threshold")
+    if (
+        mode not in {"all_of", "any_of", "at_least"}
+        or type(threshold) is not int
+        or len(selected) < threshold
+        or any(item.assertion_outcome.value != "true" for item in selected)
+        or set(provenance.assertion_truth_refs) != {item.result_id for item in selected}
+        or not set(provenance.evidence_refs) <= {ref for item in selected for ref in item.evidence_refs}
+    ):
+        raise ConflictError("governed workflow success does not resolve accepted objective truth")

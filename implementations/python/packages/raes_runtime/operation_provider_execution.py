@@ -18,11 +18,12 @@ from raes_contracts.contracts import (
     require_inject_occurrence_invocation,
     validate_backend_operation_response,
 )
+from raes_contracts.contracts.workflow_dispatch import WorkflowStepDispatch, WorkflowStepResponse
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import ConflictError, EvidenceIntegrityError, InvalidInputError, OperationalError, RaesError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.planning import ProvisioningPlan
-from raes_contracts.runtime_state import OperationState
+from raes_contracts.runtime_state import ApplyResult, OperationState
 from raes_contracts.timestamps import isoformat_z
 
 from .backend_calls import _BackendCallContext, _RealizationApplyContext
@@ -59,7 +60,7 @@ def provider_call(
     lane: Lane = "effect",
 ) -> BackendOperationCapabilitiesModel | BackendOperationResponseModel:
     payload = request if control is None else control
-    arguments = () if allowed is None else (payload,)
+    arguments = () if allowed is None else (payload.model_copy(deep=True),)
     with plane._mutation_authority.external_call():
         value = plane._execution_adapter.call(lane, method, *arguments, timeout_ms=budget_ms)
         model = BackendOperationCapabilitiesModel if allowed is None else BackendOperationResponseModel
@@ -159,6 +160,19 @@ def _finalize_native_outcome(
         timeout_ms=remaining(),
     )
     reference = message.result or message.effects.residual_state
+    if isinstance(native_request.plan, WorkflowStepDispatch):
+        if reference is None or reference.contract_id != "workflow-step-response-v1":
+            raise InvalidInputError("workflow step response reference is missing or unsupported")
+        response_model = WorkflowStepResponse.model_validate(result)
+        response_model.require_dispatch(native_request.plan)
+        payload = response_model.model_dump(mode="json")
+        if canonical_json_digest(payload) != reference.digest:
+            raise EvidenceIntegrityError("workflow step response artifact commitment mismatch")
+        return (
+            ApplyResult(True, predecessor),
+            canonical_json_digest(message.effects.model_dump(mode="json")),
+            {"workflow_step_response": payload},
+        )
     if reference is None or reference.contract_id != "runtime-snapshot-v1":
         raise InvalidInputError("native result reference is missing or unsupported")
     bound_plan = inventory_operation_plan(

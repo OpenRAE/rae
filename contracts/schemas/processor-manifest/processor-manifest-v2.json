@@ -704,6 +704,8 @@
     "supported_contract_versions": {
       "items": {
         "enum": [
+          "workflow-step-dispatch-v1",
+          "workflow-step-response-v1",
           "processor-manifest-v2",
           "experiment-binding-descriptors-v1",
           "provisioning-plan-v1",
