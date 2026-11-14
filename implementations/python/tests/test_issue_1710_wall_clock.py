@@ -12,9 +12,8 @@ from pathlib import Path
 
 import pytest
 from raes_backend_stubs.manifest import create_stub_manifest
-from raes_backend_stubs.stubs import StubOrchestrator, create_stub_components, create_stub_target
+from raes_backend_stubs.stubs import create_stub_components, create_stub_target
 from raes_contracts.participant_episode import ParticipantEpisodeInitializeRequest
-from raes_contracts.planning import ChangeAction, OrchestrationOp, OrchestrationPlan
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_contracts.timestamps import utc_now
 from raes_runtime.control_plane import RuntimeControlPlane
@@ -107,17 +106,20 @@ def test_backend_participant_runtime_records_episode_time_from_its_clock():
     assert episode["initialized_at"] == episode["updated_at"] == "2031-02-03T04:05:06.789000Z"
 
 
-def test_stub_orchestrator_records_workflow_time_from_its_clock():
-    plan = OrchestrationPlan(
-        operations=[
-            OrchestrationOp(
-                action=ChangeAction.CREATE, address="orchestration.workflow.w", resource_type="workflow", payload={}
-            )
-        ]
-    )
-    result = StubOrchestrator(wall_clock=_fixed(SECOND)).start(plan, RuntimeSnapshot())
-    workflow = result.snapshot.orchestration_results["orchestration.workflow.w"]
-    assert workflow["started_at"] == workflow["updated_at"] == "2032-07-08T09:10:11Z"
+def test_runtime_dispatch_records_workflow_time_from_its_clock():
+    from raes import parse_sdl
+
+    source = parse_sdl("""name: workflow-clock
+workflows:
+  w:
+    start: finish
+    steps: {finish: {type: end}}
+""")
+    with RuntimeControlPlane(create_stub_target(wall_clock=_fixed(FIRST)), wall_clock=_fixed(SECOND)) as owner:
+        result = owner.apply(owner.plan(source))
+        assert result.success, result.diagnostics
+        workflow = result.snapshot.orchestration_results["orchestration.workflow.w"]
+        assert workflow["started_at"] == workflow["updated_at"] == "2032-07-08T09:10:11Z"
 
 
 def test_restore_names_the_retained_copy_from_the_maintenance_clock(tmp_path: Path):

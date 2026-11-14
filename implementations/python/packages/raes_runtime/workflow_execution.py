@@ -33,7 +33,13 @@ from raes_contracts.versions import WORKFLOW_DISPATCH_CONTRACTS
 
 from .control_plane_timeouts import workflow_timeout_update
 from .operation_reconciliation_ledger import valid_reconciliation_child
-from .workflow_checkpoints import checkpoint, installation_snapshot, latest_continuation, recover_checkpoints
+from .workflow_checkpoints import (
+    changed_workflow_addresses,
+    checkpoint,
+    installation_snapshot,
+    latest_continuation,
+    recover_checkpoints,
+)
 from .workflow_compensation import advance_compensation
 from .workflow_continuation import WorkflowContinuation, WorkflowInvocation, WorkflowOperationState
 from .workflow_evidence import require_success_evidence
@@ -495,7 +501,7 @@ def finish_root(
                 root.status,
                 state=outcome,
                 updated_at=ports.now(),
-                changed_addresses=list(state.programs),
+                changed_addresses=changed_workflow_addresses(state),
                 diagnostics=diagnostics,
             ),
         ),

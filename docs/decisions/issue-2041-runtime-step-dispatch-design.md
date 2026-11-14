@@ -265,3 +265,12 @@ The original operation keeps its diagnostics and effect evidence.
 Readiness also observes compensation callees that finish during result reuse.
 The root cannot complete with unobserved compensation outcomes.
 A terminal root replay returns its original receipt before resource admission.
+
+HTTP workflow stop controls use the existing bounded control lane.
+They keep the same state writer and original operation kind.
+Native effects still retain their original reservation until cessation is established.
+
+Workflow installation normalizes dependency collections to the snapshot's tuple form.
+A partial refresh retains unchanged workflow results and history.
+Changed-address accounting includes changed definitions and invoked workflow state.
+It excludes untouched definitions.

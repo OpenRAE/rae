@@ -810,3 +810,45 @@ def test_unhandled_nested_call_failure_finishes_compensation(runtime):
     state = manager.snapshot.orchestration_results["orchestration.workflow.response"]
     assert state["compensation_status"] == "failed"
     assert [item.step_name for item in backend.dispatches] == ["run", "fail", "cleanup_call", "cleanup_action"]
+
+
+def test_http_workflow_cancellation_records_stop_while_native_work_is_in_flight(runtime):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+
+    from raes_runtime.control_plane_api import create_control_plane_app
+    from starlette.testclient import TestClient
+    from test_runtime_control_plane_api import _test_security
+
+    entered, release = Event(), Event()
+
+    class Paused(StepBackend):
+        def dispatch_step(self, request):
+            response = super().dispatch_step(request)
+            entered.set()
+            assert release.wait(5)
+            return response
+
+    backend = Paused()
+    owner = runtime(backend)
+    plan = owner.plan(
+        scenario("      run: {type: objective, objective: check, on_success: finish}\n      finish: {type: end}\n")
+    )
+    app = create_control_plane_app(owner, security=_test_security(owner.target_name))
+    with ThreadPoolExecutor(max_workers=1) as executor, TestClient(app) as client:
+        pending = executor.submit(owner.apply, plan)
+        try:
+            assert entered.wait(5)
+            response = client.post(
+                "/workflows/orchestration.workflow.response/cancel",
+                headers={"x-raes-client-verified": "true", "x-raes-client-identity": "backend-service"},
+                json={"reason": "stop during native work"},
+            )
+            assert response.status_code == 200
+            assert response.json()["accepted"]
+            assert not release.is_set()
+        finally:
+            release.set()
+            pending.result(timeout=10)
+        assert not pending.result(timeout=10).success
+    assert [item.step_name for item in backend.dispatches] == ["run"]

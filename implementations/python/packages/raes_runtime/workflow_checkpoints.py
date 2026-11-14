@@ -86,7 +86,7 @@ def checkpoint(ports: WorkflowPorts, state: WorkflowContinuation, snapshot: Runt
     claimed = ports.claim(running)
     if claimed.status.state is OperationState.SUCCEEDED:
         return
-    changed = list(state.programs)
+    changed = changed_workflow_addresses(state)
     terminal = replace(
         claimed, status=replace(claimed.status, state=OperationState.SUCCEEDED, changed_addresses=changed)
     )
@@ -133,8 +133,9 @@ def installation_snapshot(state: WorkflowContinuation, snapshot: RuntimeSnapshot
                 domain=RuntimeDomain.ORCHESTRATION,
                 resource_type="workflow",
                 payload=operation.payload,
-                ordering_dependencies=operation.ordering_dependencies,
-                refresh_dependencies=operation.refresh_dependencies,
+                ordering_dependencies=tuple(operation.ordering_dependencies),
+                refresh_dependencies=tuple(operation.refresh_dependencies),
+                profile_bindings=operation.profile_bindings,
                 status="loaded",
             )
     return snapshot.with_entries(entries, orchestration_results=results, orchestration_history=histories)
@@ -167,13 +168,27 @@ def recover_checkpoints(ports: WorkflowPorts, root: str) -> None:
             render_snapshot(state, snapshot),
             replace(
                 record,
-                status=replace(record.status, state=OperationState.SUCCEEDED, changed_addresses=list(state.programs)),
+                status=replace(
+                    record.status, state=OperationState.SUCCEEDED, changed_addresses=changed_workflow_addresses(state)
+                ),
             ),
         )
     cut = ports.read()
     state = latest_continuation(cut, root)
     if state.sequence == 0:
         checkpoint(ports, state, installation_snapshot(state, cut.snapshot), revision=cut.revision)
+
+
+def changed_workflow_addresses(state: WorkflowContinuation) -> list[str]:
+    """Account for definition changes and invoked workflow state, in stable order."""
+    return list(
+        dict.fromkeys(
+            [
+                *(operation.address for operation in state.installation if operation.action != "unchanged"),
+                *(invocation.workflow_address for invocation in state.invocations.values()),
+            ]
+        )
+    )
 
 
 def invocation_result(invocation: WorkflowInvocation) -> dict[str, object]:
