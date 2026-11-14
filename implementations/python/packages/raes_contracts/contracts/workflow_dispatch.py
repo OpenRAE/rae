@@ -145,30 +145,31 @@ class WorkflowStepResponse(ContractModel):
         if self.observations != dispatch.observation_digests:
             raise ValueError("workflow response changed its admitted observation digests")
         if self.attempt_provenance is not None:
-            provenance = self.attempt_provenance
-            if (
-                provenance.attempt_id != dispatch.dispatch_id
-                or provenance.procedure_ref != dispatch.procedure_ref
-                or tuple(provenance.exposed_scaffold_refs) != dispatch.scaffold_refs
-                or tuple(provenance.allowed_action_families) != dispatch.allowed_action_families
-                or (
-                    dispatch.allowed_action_families
-                    and (provenance.selected_action_family or self.outcome == "succeeded")
-                    and provenance.selected_action_family not in dispatch.allowed_action_families
-                )
-                or (
-                    dispatch.tool_affordance_refs
-                    and (provenance.selected_affordance_ref or self.outcome == "succeeded")
-                    and provenance.selected_affordance_ref not in dispatch.tool_affordance_refs
-                )
-            ):
-                raise ValueError("workflow attempt realization exceeds its dispatch")
-            if (provenance.step_name, provenance.execution_mode, provenance.objective_address, provenance.outcome) != (
-                dispatch.step_name,
-                dispatch.execution_mode,
-                dispatch.objective_address,
-                self.outcome,
-            ):
-                raise ValueError("workflow attempt provenance does not match its dispatch")
+            self._require_provenance(dispatch, self.attempt_provenance)
         elif executable and dispatch.execution_mode != "scripted":
             raise ValueError("governed workflow execution requires attempt provenance")
+
+    def _require_provenance(
+        self, dispatch: WorkflowStepDispatch, provenance: WorkflowStepAttemptProvenanceModel
+    ) -> None:
+        if (
+            provenance.attempt_id != dispatch.dispatch_id
+            or provenance.procedure_ref != dispatch.procedure_ref
+            or tuple(provenance.exposed_scaffold_refs) != dispatch.scaffold_refs
+            or tuple(provenance.allowed_action_families) != dispatch.allowed_action_families
+        ):
+            raise ValueError("workflow attempt realization exceeds its dispatch")
+        _require_selection(dispatch.allowed_action_families, provenance.selected_action_family, self.outcome)
+        _require_selection(dispatch.tool_affordance_refs, provenance.selected_affordance_ref, self.outcome)
+        if (provenance.step_name, provenance.execution_mode, provenance.objective_address, provenance.outcome) != (
+            dispatch.step_name,
+            dispatch.execution_mode,
+            dispatch.objective_address,
+            self.outcome,
+        ):
+            raise ValueError("workflow attempt provenance does not match its dispatch")
+
+
+def _require_selection(allowed: tuple[str, ...], selected: str | None, outcome: str | None) -> None:
+    if allowed and (selected or outcome == "succeeded") and selected not in allowed:
+        raise ValueError("workflow attempt realization exceeds its dispatch")

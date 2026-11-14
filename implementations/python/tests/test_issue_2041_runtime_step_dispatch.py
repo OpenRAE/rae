@@ -597,8 +597,9 @@ def test_governed_success_requires_current_admitted_assertion_truth(runtime, for
     if forged:
         from raes_contracts.errors import ConflictError
 
+        plan = manager.plan(source)
         with pytest.raises(ConflictError, match="accepted objective truth"):
-            manager.apply(manager.plan(source))
+            manager.apply(plan)
         assert [request.step_name for request in backend.dispatches] == ["run"]
     else:
         assert manager.apply(manager.plan(source)).success

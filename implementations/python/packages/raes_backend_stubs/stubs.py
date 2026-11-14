@@ -2,6 +2,7 @@
 
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_protocols.participant_runtime_base import BaseParticipantRuntime
+from raes_contracts.contracts.workflow_dispatch import WorkflowStepDispatch
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.planning import ChangeAction, EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.realization_envelope import (
@@ -167,7 +168,8 @@ class StubOrchestrator:
         self._results: dict[str, dict[str, object]] = {}
         self._history: dict[str, list[dict[str, object]]] = {}
 
-    def dispatch_step(self, request):
+    @staticmethod
+    def dispatch_step(request: WorkflowStepDispatch) -> dict[str, object]:
         """Simulate this dispatch only; the runtime owns all control transitions."""
         executable = request.step_type in {"objective", "retry"}
         governed = executable and request.execution_mode != "scripted"
@@ -185,11 +187,14 @@ class StubOrchestrator:
                 "outcome": "failed",
             }
         )
+        outcome = None
+        if executable:
+            outcome = "failed" if governed else "succeeded"
         return {
             "schema_version": "workflow-step-response/v1",
             "dispatch_id": request.dispatch_id,
             "dispatch_digest": request.digest,
-            "outcome": ("failed" if governed else "succeeded") if executable else None,
+            "outcome": outcome,
             "observations": dict(request.observation_digests),
             "attempt_provenance": provenance,
         }

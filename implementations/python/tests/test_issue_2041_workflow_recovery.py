@@ -140,8 +140,9 @@ def test_checkpoint_cannot_overwrite_cancellation_at_a_new_revision(monkeypatch)
         source = scenario(
             "      run: {type: objective, objective: check, on_success: finish}\n      finish: {type: end}\n"
         )
+        plan = owner.plan(source)
         with pytest.raises(ConflictError, match="predecessor changed"):
-            owner.apply(owner.plan(source))
+            owner.apply(plan)
         assert backend.dispatches == []
         assert owner.snapshot.orchestration_results["orchestration.workflow.response"]["workflow_status"] == "cancelled"
         root = next(

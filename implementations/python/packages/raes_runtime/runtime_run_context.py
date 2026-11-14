@@ -11,6 +11,7 @@ from raes_contracts.contracts.plan_projection import runtime_plan_digest
 from raes_contracts.errors import ConflictError
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import (
+    OperationAdmissionContext,
     OperationKind,
     OperationReceipt,
     OperationState,
@@ -422,30 +423,7 @@ class RuntimeRunContext(
             else None
         )
         if has_workflow_program(plan):
-            incumbent = next(
-                (
-                    record
-                    for record in self._operations.values()
-                    if record.idempotency_key == idempotency_key
-                    and record.receipt.context == context
-                    and record.workflow is not None
-                    and record.workflow.kind == "root"
-                ),
-                None,
-            )
-            if incumbent is not None:
-                return submit_workflows(self._workflow_ports(identity), plan, context, idempotency_key)
-            self._require_observed_base_snapshot(base_snapshot)
-            diagnostics = control_plane_plan_diagnostics(self, plan, RuntimeDomain.ORCHESTRATION)
-            if diagnostics:
-                return self._reject_diagnostics(
-                    domain=RuntimeDomain.ORCHESTRATION,
-                    context=context,
-                    diagnostics=diagnostics,
-                    idempotency_key=idempotency_key,
-                    request_fingerprint=context.request_commitment,
-                )
-            return submit_workflows(self._workflow_ports(identity), plan, context, idempotency_key)
+            return self._submit_workflow_plan(plan, context, idempotency_key, base_snapshot, identity)
         orchestrator = self._target.orchestrator
         request = OperationExecutionRequest(
             domain=RuntimeDomain.ORCHESTRATION,
@@ -471,6 +449,39 @@ class RuntimeRunContext(
         )
         denied_or_replay = reject_new_operation_if_admission_fails(self, request)
         return denied_or_replay or execute_operation(self, request)
+
+    def _submit_workflow_plan(
+        self,
+        plan: OrchestrationPlan,
+        context: OperationAdmissionContext,
+        idempotency_key: str,
+        base_snapshot: RuntimeSnapshot | None,
+        identity: object | None,
+    ) -> OperationReceipt:
+        incumbent = next(
+            (
+                record
+                for record in self._operations.values()
+                if record.idempotency_key == idempotency_key
+                and record.receipt.context == context
+                and record.workflow is not None
+                and record.workflow.kind == "root"
+            ),
+            None,
+        )
+        if incumbent is not None:
+            return submit_workflows(self._workflow_ports(identity), plan, context, idempotency_key)
+        self._require_observed_base_snapshot(base_snapshot)
+        diagnostics = control_plane_plan_diagnostics(self, plan, RuntimeDomain.ORCHESTRATION)
+        if diagnostics:
+            return self._reject_diagnostics(
+                domain=RuntimeDomain.ORCHESTRATION,
+                context=context,
+                diagnostics=diagnostics,
+                idempotency_key=idempotency_key,
+                request_fingerprint=context.request_commitment,
+            )
+        return submit_workflows(self._workflow_ports(identity), plan, context, idempotency_key)
 
     def _workflow_ports(self, identity: object | None) -> WorkflowPorts:
         orchestrator = self._target.orchestrator

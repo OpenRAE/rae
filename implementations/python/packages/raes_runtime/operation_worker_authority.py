@@ -381,12 +381,7 @@ class RuntimeWorkerAuthorityMixin:
 def _require_claimable_invocation(
     plane: RuntimeControlPlane, record: ControlPlaneOperationRecord, binding: BackendOperationBindingModel
 ) -> tuple[float, OperationExecutionRequest]:
-    if record.invocation.request.binding != binding:
-        raise ConflictError("invocation binding mismatch")
-    if record.status.state is not OperationState.ACCEPTED or record.invocation.consumed:
-        raise ConflictError("invocation grant is unavailable or already consumed")
-    if plane._effect_admission_stopped or plane._store.effect_admission_stopped():
-        raise ConflictError("effect admission is stopped")
+    _require_available_invocation(plane, record, binding)
     deadline = plane._execution_deadlines.get(binding.operation_id)
     admitted = plane._admitted_backend_requests.get(binding.operation_id)
     if deadline is None or admitted is None:
@@ -398,3 +393,14 @@ def _require_claimable_invocation(
     if native_request.admission_diagnostics is not None and native_request.admission_diagnostics():
         raise ConflictError("invocation state no longer permits dispatch")
     return deadline, native_request
+
+
+def _require_available_invocation(
+    plane: RuntimeControlPlane, record: ControlPlaneOperationRecord, binding: BackendOperationBindingModel
+) -> None:
+    if record.invocation.request.binding != binding:
+        raise ConflictError("invocation binding mismatch")
+    if record.status.state is not OperationState.ACCEPTED or record.invocation.consumed:
+        raise ConflictError("invocation grant is unavailable or already consumed")
+    if plane._effect_admission_stopped or plane._store.effect_admission_stopped():
+        raise ConflictError("effect admission is stopped")

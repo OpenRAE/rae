@@ -11,6 +11,7 @@ from raes_contracts.contracts.workflow_dispatch import (
     WorkflowStepResponse,
 )
 from raes_contracts.errors import ConflictError
+from raes_contracts.execution_policy import EffectiveExecutionPolicy
 from raes_contracts.json_pointer import escape_token
 
 from .workflow_continuation import WorkflowBarrier, WorkflowContinuation, WorkflowInvocation, WorkflowLocation
@@ -152,25 +153,32 @@ def predicate_truth(predicate: WorkflowPredicate, invocation: WorkflowInvocation
 def ready_location(state: WorkflowContinuation, now: str) -> tuple[WorkflowInvocation, WorkflowLocation] | None:
     """Consume result reuse without allocating another execution or attempt."""
     for invocation in sorted(state.invocations.values(), key=lambda item: not bool(item.compensation_for)):
-        if invocation.status != "running":
-            continue
-        for location in list(invocation.locations):
-            if location.waiting:
-                continue
-            while invocation.status == "running" and location in invocation.locations and not location.waiting:
-                observed = invocation.steps.get(location.step_name)
-                if observed is None or observed.lifecycle != "completed":
-                    definition = state.programs[invocation.workflow_address].steps[location.step_name]
-                    if (
-                        observed is not None
-                        and observed.lifecycle == "running"
-                        and definition.step_type in {"parallel", "call"}
-                    ):
-                        location.waiting = True
-                        break
-                    return invocation, location
-                reuse_completed(state, invocation, location, now)
+        if invocation.status == "running":
+            location = ready_in_invocation(state, invocation, now)
+            if location is not None:
+                return invocation, location
     return None
+
+
+def ready_in_invocation(
+    state: WorkflowContinuation, invocation: WorkflowInvocation, now: str
+) -> WorkflowLocation | None:
+    for location in invocation.locations:
+        while invocation.status == "running" and location in invocation.locations and not location.waiting:
+            observed = invocation.steps.get(location.step_name)
+            if observed is not None and observed.lifecycle == "completed":
+                reuse_completed(state, invocation, location, now)
+            elif waiting_for_child(state, invocation, location):
+                location.waiting = True
+            else:
+                return location
+    return None
+
+
+def waiting_for_child(state: WorkflowContinuation, invocation: WorkflowInvocation, location: WorkflowLocation) -> bool:
+    observed = invocation.steps.get(location.step_name)
+    definition = state.programs[invocation.workflow_address].steps[location.step_name]
+    return observed is not None and observed.lifecycle == "running" and definition.step_type in {"parallel", "call"}
 
 
 def observation_addresses(program: WorkflowProgram, step_name: str) -> tuple[str, ...]:
@@ -199,15 +207,7 @@ def prepare_dispatch(
     definition = state.programs[invocation.workflow_address].steps[location.step_name]
     observed = invocation.steps.get(location.step_name)
     attempt = 1 if observed is None else observed.attempts + 1
-    policies = state.programs[invocation.workflow_address].execution_policies
-    selected_policy = next(
-        (
-            policy
-            for policy in policies
-            if policy.retry_unit == "workflow-step" and policy.scope.endswith("/steps/" + escape_token(definition.name))
-        ),
-        next((policy for policy in policies if policy.retry_unit == "native-operation"), None),
-    )
+    selected_policy = dispatch_policy(state.programs[invocation.workflow_address], definition.name)
     inputs = {
         key: getattr(definition, key)
         for key in WorkflowStepDispatch.model_fields
@@ -247,6 +247,18 @@ def prepare_dispatch(
     return dispatch
 
 
+def dispatch_policy(program: WorkflowProgram, step_name: str) -> EffectiveExecutionPolicy | None:
+    policies = program.execution_policies
+    return next(
+        (
+            policy
+            for policy in policies
+            if policy.retry_unit == "workflow-step" and policy.scope.endswith("/steps/" + escape_token(step_name))
+        ),
+        next((policy for policy in policies if policy.retry_unit == "native-operation"), None),
+    )
+
+
 def accept_response(state: WorkflowContinuation, response: WorkflowStepResponse, now: str) -> None:
     dispatch = state.outstanding
     if dispatch is None:
@@ -258,7 +270,6 @@ def accept_response(state: WorkflowContinuation, response: WorkflowStepResponse,
     if invocation.status != "running":
         raise ConflictError("terminated workflow cannot accept a normal step response")
     location = next(item for item in invocation.locations if item.branch_id == dispatch.branch_id)
-    definition = state.programs[invocation.workflow_address].steps[dispatch.step_name]
     event(
         state,
         invocation,
@@ -271,18 +282,39 @@ def accept_response(state: WorkflowContinuation, response: WorkflowStepResponse,
         origin="backend",
     )
     state.outstanding = None
-    if definition.step_type in {"objective", "retry"}:
-        if response.attempt_provenance is not None:
-            invocation.steps[dispatch.step_name].attempt_provenance.append(response.attempt_provenance)
-        if definition.step_type == "retry" and response.outcome == "failed":
-            if dispatch.attempt < definition.max_attempts:
-                return
-            outcome = "exhausted"
-        else:
-            outcome = response.outcome
-        complete_step(state, invocation, dispatch.step_name, outcome, now)
-        reuse_completed(state, invocation, location, now)
-    elif definition.step_type == "decision":
+    if dispatch.step_type in {"objective", "retry"}:
+        accept_attempt(state, invocation, location, response, dispatch, now)
+    else:
+        accept_control_step(state, invocation, location, now)
+    return_from_calls(state, now)
+
+
+def accept_attempt(
+    state: WorkflowContinuation,
+    invocation: WorkflowInvocation,
+    location: WorkflowLocation,
+    response: WorkflowStepResponse,
+    dispatch: WorkflowStepDispatch,
+    now: str,
+) -> None:
+    definition = state.programs[invocation.workflow_address].steps[dispatch.step_name]
+    if response.attempt_provenance is not None:
+        invocation.steps[dispatch.step_name].attempt_provenance.append(response.attempt_provenance)
+    if definition.step_type == "retry" and response.outcome == "failed":
+        if dispatch.attempt < definition.max_attempts:
+            return
+        outcome = "exhausted"
+    else:
+        outcome = response.outcome
+    complete_step(state, invocation, dispatch.step_name, outcome, now)
+    reuse_completed(state, invocation, location, now)
+
+
+def accept_control_step(
+    state: WorkflowContinuation, invocation: WorkflowInvocation, location: WorkflowLocation, now: str
+) -> None:
+    definition = state.programs[invocation.workflow_address].steps[location.step_name]
+    if definition.step_type == "decision":
         location.step_name = (
             definition.then_step
             if predicate_truth(definition.predicate, invocation, state.observation_truths)
@@ -297,7 +329,7 @@ def accept_response(state: WorkflowContinuation, response: WorkflowStepResponse,
             ),
             definition.default_step,
         )
-        event(state, invocation, "switch_case_selected", now, step_name=dispatch.step_name, origin="runtime")
+        event(state, invocation, "switch_case_selected", now, step_name=definition.name, origin="runtime")
     elif definition.step_type == "parallel":
         enter_parallel(state, invocation, location)
     elif definition.step_type == "join":
@@ -308,7 +340,6 @@ def accept_response(state: WorkflowContinuation, response: WorkflowStepResponse,
         invocation.locations.remove(location)
         if not invocation.locations:
             finish_invocation(state, invocation, "succeeded", now)
-    return_from_calls(state, now)
 
 
 def enter_parallel(state: WorkflowContinuation, invocation: WorkflowInvocation, location: WorkflowLocation) -> None:

@@ -41,6 +41,22 @@ def _require_operation_record_identity(record: ControlPlaneOperationRecord) -> N
     if not record.receipt.accepted:
         raise ValueError("denied operation receipts cannot be persisted")
     require_record_invocation(record)
+    _require_workflow_record(record)
+    require_inject_record(record)
+    require_delivery_record(record)
+
+    delivery_invocation_binding(record)
+    delivery_tool_binding(record)
+    from .participant_control_effect_evidence import require_effect_claim_payload
+
+    require_effect_claim_payload(record)
+    if record.reconciliation is not None:
+        InvocationReconciliation.model_validate(record.reconciliation.model_dump(mode="json"))
+        if record.status.context.parent_operation_id != record.reconciliation.request.binding.operation_id:
+            raise ValueError("reconciliation parent binding mismatch")
+
+
+def _require_workflow_record(record: ControlPlaneOperationRecord) -> None:
     if record.workflow is not None:
         WorkflowOperationState.model_validate(record.workflow.model_dump(mode="json"))
         if record.workflow.kind == "root" and record.workflow.root_operation_id != record.receipt.operation_id:
@@ -57,18 +73,6 @@ def _require_operation_record_identity(record: ControlPlaneOperationRecord) -> N
             ):
                 raise ValueError("workflow response requires its original invocation")
             record.workflow.response.require_dispatch(record.invocation.request.workflow_step)
-    require_inject_record(record)
-    require_delivery_record(record)
-
-    delivery_invocation_binding(record)
-    delivery_tool_binding(record)
-    from .participant_control_effect_evidence import require_effect_claim_payload
-
-    require_effect_claim_payload(record)
-    if record.reconciliation is not None:
-        InvocationReconciliation.model_validate(record.reconciliation.model_dump(mode="json"))
-        if record.status.context.parent_operation_id != record.reconciliation.request.binding.operation_id:
-            raise ValueError("reconciliation parent binding mismatch")
 
 
 def _require_same_operation_identity(

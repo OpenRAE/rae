@@ -73,7 +73,8 @@ def test_conclusive_child_operation_without_result_terminates_workflow(role, out
         children = [item for item in owner._store.load_records().values() if item.invocation is not None]
         assert len(children) == 1
         assert children[0].status.state.value == outcome
-        assert children[0].invocation.consumed and not children[0].invocation.reserved
+        assert children[0].invocation.consumed
+        assert not children[0].invocation.reserved
         assert children[0].workflow is None
         assert owner.get_operation(receipt.operation_id).diagnostics
         assert provider.starts == 1

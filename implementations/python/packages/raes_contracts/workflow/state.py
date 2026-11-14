@@ -44,6 +44,13 @@ class WorkflowHistoryEvent:
     origin: str | None = None
 
     def __post_init__(self) -> None:
+        self._require_correlation()
+        if self.event_type == WorkflowHistoryEventType.STEP_REPORTED and (
+            self.dispatch_id is None or self.origin != "backend"
+        ):
+            raise ValueError("step report requires backend dispatch correlation")
+
+    def _require_correlation(self) -> None:
         for value in (self.invocation_id, self.dispatch_id):
             if value is not None:
                 require_non_empty_string(value, "workflow history correlation")
@@ -53,10 +60,6 @@ class WorkflowHistoryEvent:
             raise ValueError("workflow history origin is invalid")
         if self.dispatch_id is not None and (self.invocation_id is None or self.attempt is None):
             raise ValueError("dispatch history requires its invocation and attempt")
-        if self.event_type == WorkflowHistoryEventType.STEP_REPORTED and (
-            self.dispatch_id is None or self.origin != "backend"
-        ):
-            raise ValueError("step report requires backend dispatch correlation")
 
     @classmethod
     def from_payload(

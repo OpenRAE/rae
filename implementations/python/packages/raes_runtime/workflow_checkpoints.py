@@ -21,6 +21,7 @@ from .workflow_continuation import WorkflowContinuation, WorkflowInvocation, Wor
 from .workflow_result_contracts import workflow_result_contract_diagnostics
 
 if TYPE_CHECKING:
+    from .control_plane_store import ControlPlaneOperationRecord
     from .workflow_execution import WorkflowCut, WorkflowPorts
 
 
@@ -207,7 +208,9 @@ def invocation_result(invocation: WorkflowInvocation) -> dict[str, object]:
     }
 
 
-def retained_invocation_result(records, workflow_address: str, invocation_id: str):
+def retained_invocation_result(
+    records: dict[str, ControlPlaneOperationRecord], workflow_address: str, invocation_id: str
+) -> dict[str, object] | None:
     checkpoints = [
         record.workflow.continuation
         for record in records.values()

@@ -146,17 +146,7 @@ def _validate_native_plan_commitment(
     resolved_commitment: str | None = None,
 ) -> None:
     if isinstance(native_plan, WorkflowStepDispatch):
-        if (
-            request.workflow_step != native_plan
-            or request.command.contract_id != "workflow-step-dispatch-v1"
-            or request.command.artifact_id != native_plan.dispatch_id
-            or request.binding.context.operation_kind.value != "orchestration"
-            or request.binding.context.parent_operation_id != native_plan.root_operation_id
-        ):
-            raise ValueError("workflow dispatch command identity mismatch")
-        expected = runtime_plan_digest(native_plan) if resolved_commitment is None else resolved_commitment
-        if request.command.digest != expected:
-            raise ValueError("workflow dispatch command commitment mismatch")
+        _validate_workflow_dispatch_commitment(request, native_plan, resolved_commitment)
         return
     kinds = {ProvisioningPlan: "provisioning", OrchestrationPlan: "orchestration", EvaluationPlan: "evaluation"}
     kind = kinds.get(type(native_plan))
@@ -171,6 +161,24 @@ def _validate_native_plan_commitment(
     _validate_native_plan_identity(request, native_plan)
     if native_plan.purpose != "execution" or any(diagnostic.is_error for diagnostic in native_plan.diagnostics):
         raise ValueError("execution policy native plan is not executable")
+
+
+def _validate_workflow_dispatch_commitment(
+    request: BackendOperationRequestModel,
+    dispatch: WorkflowStepDispatch,
+    resolved_commitment: str | None,
+) -> None:
+    if (
+        request.workflow_step != dispatch
+        or request.command.contract_id != "workflow-step-dispatch-v1"
+        or request.command.artifact_id != dispatch.dispatch_id
+        or request.binding.context.operation_kind.value != "orchestration"
+        or request.binding.context.parent_operation_id != dispatch.root_operation_id
+    ):
+        raise ValueError("workflow dispatch command identity mismatch")
+    expected = runtime_plan_digest(dispatch) if resolved_commitment is None else resolved_commitment
+    if request.command.digest != expected:
+        raise ValueError("workflow dispatch command commitment mismatch")
 
 
 def _validate_native_plan_identity(

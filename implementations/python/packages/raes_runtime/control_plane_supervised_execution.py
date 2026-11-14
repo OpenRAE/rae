@@ -10,7 +10,11 @@ from typing import TYPE_CHECKING, cast
 from uuid import uuid4
 
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts import BackendOperationRequestModel, inject_occurrence_reference
+from raes_contracts.contracts import (
+    BackendOperationRequestModel,
+    OperationArtifactReferenceModel,
+    inject_occurrence_reference,
+)
 from raes_contracts.contracts.workflow_dispatch import WorkflowStepDispatch, WorkflowStepResponse
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import ConflictError, OperationalError, RaesError
@@ -66,17 +70,7 @@ def invocation_request(
             "baseline_revision": str(plane._snapshot_state.revision),
             "context": request.context,
         },
-        command=inject_occurrence_reference(request.inject_occurrence)
-        if request.inject_occurrence is not None
-        else {
-            "contract_id": "workflow-step-dispatch-v1"
-            if isinstance(request.plan, WorkflowStepDispatch)
-            else f"{request.domain.value}-plan-v1",
-            "artifact_id": request.plan.dispatch_id
-            if isinstance(request.plan, WorkflowStepDispatch)
-            else getattr(request.plan, "operation_id", None) or operation_id,
-            "digest": native_command_commitment(plane, request.plan),
-        },
+        command=invocation_command(plane, request, operation_id),
         requirement_refs=() if request.inject_occurrence is None else request.inject_occurrence.evidence_requirements,
         required_guarantees=required_guarantees(
             plane, *(("effect-observation", "cessation-evidence") if request.inject_occurrence is not None else ())
@@ -87,6 +81,20 @@ def invocation_request(
             "limit_ms": budget_ms,
             "remaining_ms": budget_ms,
         },
+    )
+
+
+def invocation_command(
+    plane: RuntimeControlPlane, request: OperationExecutionRequest, operation_id: str
+) -> OperationArtifactReferenceModel:
+    if request.inject_occurrence is not None:
+        return inject_occurrence_reference(request.inject_occurrence)
+    contract_id = f"{request.domain.value}-plan-v1"
+    artifact_id = getattr(request.plan, "operation_id", None) or operation_id
+    if isinstance(request.plan, WorkflowStepDispatch):
+        contract_id, artifact_id = "workflow-step-dispatch-v1", request.plan.dispatch_id
+    return OperationArtifactReferenceModel(
+        contract_id=contract_id, artifact_id=artifact_id, digest=native_command_commitment(plane, request.plan)
     )
 
 
@@ -203,12 +211,6 @@ def settle(
 def commit_settlement(
     plane: RuntimeControlPlane, record: ControlPlaneOperationRecord, outcome: OperationSettlement
 ) -> None:
-    state, result = outcome.state, outcome.result
-    diagnostics, release_commitment = outcome.diagnostics, outcome.release_commitment
-    result_payload, inject_resolution = outcome.result_payload, outcome.inject_resolution
-    inject_outcome, inject_evidence = (
-        (None, None) if inject_resolution is None else (inject_resolution.outcome, inject_resolution.evidence)
-    )
     plane._require_state_writer()
     plane._reload_derived_state()
     current = plane._operations[record.receipt.operation_id]
@@ -218,17 +220,13 @@ def commit_settlement(
         raise ConflictError("invocation binding changed before settlement")
     if current.invocation.request.binding.owner_generation != plane._execution_generation:
         raise ConflictError("stale execution owner cannot publish state")
-    snapshot = plane._snapshot
-    mode = TerminalCommitMode.OPERATION_ONLY
-    if result is not None and current.invocation.request.workflow_step is not None:
-        # This closed response carries no resource-state write. A concurrent stop
-        # remains authoritative while the original native claim records cessation.
-        result = replace(result, snapshot=snapshot)
-    elif result is not None:
-        if str(plane._snapshot_state.revision) != record.invocation.request.binding.baseline_revision:
-            state, result, release_commitment = OperationState.INDETERMINATE, None, None
-        elif result.success or result.snapshot != snapshot:
-            snapshot, mode = result.snapshot, TerminalCommitMode.SNAPSHOT_BEARING
+    outcome, snapshot, mode = settlement_snapshot(plane, current, outcome)
+    state, result = outcome.state, outcome.result
+    diagnostics, release_commitment = outcome.diagnostics, outcome.release_commitment
+    result_payload, inject_resolution = outcome.result_payload, outcome.inject_resolution
+    inject_outcome, inject_evidence = (
+        (None, None) if inject_resolution is None else (inject_resolution.outcome, inject_resolution.evidence)
+    )
     released = not current.invocation.consumed or release_commitment is not None
     final = replace(
         current,
@@ -246,17 +244,7 @@ def commit_settlement(
             }
         ),
         result_payload=result_payload,
-        workflow=(
-            WorkflowOperationState(
-                root_operation_id=current.invocation.request.workflow_step.root_operation_id,
-                kind="response",
-                response=WorkflowStepResponse.model_validate(result_payload["workflow_step_response"]),
-            )
-            if current.invocation.request.workflow_step is not None
-            and result_payload is not None
-            and "workflow_step_response" in result_payload
-            else current.workflow
-        ),
+        workflow=settlement_workflow(current, result_payload),
         inject_outcome=inject_outcome,
         inject_evidence=inject_evidence,
     )
@@ -264,6 +252,37 @@ def commit_settlement(
     plane._execution_adapter.cancel_deadline(record.receipt.operation_id)
     plane._admitted_backend_requests.pop(record.receipt.operation_id, None)
     plane._execution_deadlines.pop(record.receipt.operation_id, None)
+
+
+def settlement_snapshot(
+    plane: RuntimeControlPlane, record: ControlPlaneOperationRecord, outcome: OperationSettlement
+) -> tuple[OperationSettlement, RuntimeSnapshot, TerminalCommitMode]:
+    snapshot = plane._snapshot
+    mode = TerminalCommitMode.OPERATION_ONLY
+    result = outcome.result
+    if result is not None and record.invocation.request.workflow_step is not None:
+        # Step responses carry no resource write; preserve a concurrent stop.
+        outcome = replace(outcome, result=replace(result, snapshot=snapshot))
+    elif result is not None:
+        if str(plane._snapshot_state.revision) != record.invocation.request.binding.baseline_revision:
+            outcome = replace(outcome, state=OperationState.INDETERMINATE, result=None, release_commitment=None)
+        elif result.success or result.snapshot != snapshot:
+            snapshot, mode = result.snapshot, TerminalCommitMode.SNAPSHOT_BEARING
+    return outcome, snapshot, mode
+
+
+def settlement_workflow(
+    record: ControlPlaneOperationRecord, result_payload: dict[str, object] | None
+) -> WorkflowOperationState | None:
+    dispatch = record.invocation.request.workflow_step
+    workflow = record.workflow
+    if dispatch is not None and result_payload is not None and "workflow_step_response" in result_payload:
+        workflow = WorkflowOperationState(
+            root_operation_id=dispatch.root_operation_id,
+            kind="response",
+            response=WorkflowStepResponse.model_validate(result_payload["workflow_step_response"]),
+        )
+    return workflow
 
 
 def execute_supervised_operation(plane: RuntimeControlPlane, request: OperationExecutionRequest) -> OperationReceipt:
@@ -393,12 +412,7 @@ def _dispatch_native_invocation(
     current = plane._operations[record.receipt.operation_id]
     if current.status.state is not OperationState.ACCEPTED:
         return None
-    if plane._effect_admission_stopped or plane._store.effect_admission_stopped():
-        settle(plane, record, OperationState.CANCELLED)
-        return None
-    diagnostics = [] if request.admission_diagnostics is None else request.admission_diagnostics()
-    if diagnostics:
-        settle(plane, record, OperationState.CANCELLED, diagnostics=diagnostics)
+    if _native_dispatch_refused(plane, request, record):
         return None
     remaining()
     if current.invocation.request.command.digest != native_command_commitment(plane, request.plan):
@@ -419,6 +433,19 @@ def _dispatch_native_invocation(
         plane._poison_runtime_durability()
         raise
     return running
+
+
+def _native_dispatch_refused(
+    plane: RuntimeControlPlane, request: OperationExecutionRequest, record: ControlPlaneOperationRecord
+) -> bool:
+    if plane._effect_admission_stopped or plane._store.effect_admission_stopped():
+        settle(plane, record, OperationState.CANCELLED)
+        return True
+    diagnostics = [] if request.admission_diagnostics is None else request.admission_diagnostics()
+    if diagnostics:
+        settle(plane, record, OperationState.CANCELLED, diagnostics=diagnostics)
+        return True
+    return False
 
 
 def _run_native_invocation(
@@ -450,6 +477,9 @@ def _complete_native_invocation(
         result, observation = invoke_plan_phase(plane, request, record, snapshot, remaining)
     if record.invocation.request.command.digest != native_command_commitment(plane, request.plan):
         raise ValueError("admitted native command changed before finalization")
+    result_payload = None if observation is None else observation.result_payload
+    if result.success and isinstance(request.plan, WorkflowStepDispatch):
+        result_payload = {"workflow_step_response": result.details["workflow_step_response"]}
     if result.success:
         settle(
             plane,
@@ -458,13 +488,7 @@ def _complete_native_invocation(
             result=result,
             diagnostics=[*diagnostics, *result.diagnostics],
             release_commitment=canonical_json_digest(_snapshot_payload(result.snapshot)),
-            result_payload=(
-                {"workflow_step_response": result.details["workflow_step_response"]}
-                if isinstance(request.plan, WorkflowStepDispatch)
-                else None
-                if observation is None
-                else observation.result_payload
-            ),
+            result_payload=result_payload,
         )
     else:
         settle(
