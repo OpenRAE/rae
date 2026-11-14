@@ -68,7 +68,7 @@ docs = [
 ]
 distributed = [
     "psycopg[binary]==3.3.8",
-    "temporalio==1.35.0",
+    "temporalio==1.36.0",
 ]
 
 [project.scripts]
