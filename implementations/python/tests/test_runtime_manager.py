@@ -241,7 +241,7 @@ class FailingProvisioner(RecordingProvisioner):
 
 
 class RecordingOrchestrator:
-    dispatch_step = StubOrchestrator.dispatch_step
+    dispatch_step = staticmethod(StubOrchestrator.dispatch_step)
 
     def __init__(self, calls: list[str], name: str = "orchestrator") -> None:
         self.calls = calls
