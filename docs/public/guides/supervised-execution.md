@@ -199,6 +199,8 @@ The maximum length is 63 characters.
 `public`, `information_schema`, and names starting with `pg_` are reserved.
 The host selects names; run requests cannot change them.
 
+<!-- example-skip: Requires approved PostgreSQL connection settings and an operator-owned database. -->
+
 ```python
 from dataclasses import replace
 from raes_runtime.control_plane_store_postgresql import PostgreSQLControlPlaneStore
