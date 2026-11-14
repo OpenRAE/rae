@@ -192,9 +192,10 @@ def test_bootstrap_refuses_a_live_owner_before_ddl(monkeypatch):
     cluster = database(monkeypatch)
     store = PostgreSQLControlPlaneStore(configuration(namespace="trial_one"))
     lease = store.admit_runtime(target_scope="target:test", run_scope="run:one")
+    bootstrap = PostgreSQLControlPlaneStore(configuration(namespace="trial_one"))
     try:
         with pytest.raises(ConflictError, match="runtime owner|bootstrap"):
-            PostgreSQLControlPlaneStore(configuration(namespace="trial_one")).initialize_schema()
+            bootstrap.initialize_schema()
         assert not any(sql.startswith("CREATE") for conn in cluster.connections for sql, _ in conn.statements)
     finally:
         lease.close()

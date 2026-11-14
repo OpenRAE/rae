@@ -55,13 +55,7 @@ class PostgreSQLStoreConfiguration:
     namespace: str | None = None
 
     def __post_init__(self) -> None:
-        if self.namespace is not None and (
-            not isinstance(self.namespace, str)
-            or not _NAMESPACE.fullmatch(self.namespace)
-            or self.namespace in {"public", "information_schema"}
-            or self.namespace.startswith("pg_")
-        ):
-            raise ValueError("PostgreSQL namespace must be a bounded non-system lowercase identifier")
+        self._require_namespace()
         if (
             not isinstance(self.host, str)
             or not self.host
@@ -70,6 +64,15 @@ class PostgreSQLStoreConfiguration:
         ):
             raise ValueError("PostgreSQL host is invalid")
         self._require_connection_configuration()
+
+    def _require_namespace(self) -> None:
+        if self.namespace is not None and (
+            not isinstance(self.namespace, str)
+            or not _NAMESPACE.fullmatch(self.namespace)
+            or self.namespace in {"public", "information_schema"}
+            or self.namespace.startswith("pg_")
+        ):
+            raise ValueError("PostgreSQL namespace must be a bounded non-system lowercase identifier")
 
     def _require_connection_configuration(self) -> None:
         if any(not isinstance(value, str) or not _IDENTIFIER.fullmatch(value) for value in (self.database, self.user)):
