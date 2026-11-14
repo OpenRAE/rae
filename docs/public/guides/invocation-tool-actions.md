@@ -35,15 +35,17 @@ its boundary. The compiler joins the specification's participants and each
 action's authored targets.
 
 Declare positive `tool_affordances` support, an exact execution-binding offer
-for each action and implementation, and finite invocation limits:
+for each action and implementation, and the concurrent-call limit:
 
 ```json
 "invocation_tool_actions": {
   "semantic_versions": ["participant-invocation-tool-actions/v2"],
-  "max_tool_actions_per_invocation": 16,
+  "max_tool_actions_per_invocation": null,
   "max_concurrent_tool_actions_per_invocation": 4
 }
 ```
+
+An absent or null call count leaves the number of calls unrestricted.
 
 Each offer must cover all shared-time contract digests for its action.
 RAES checks that the claimed method exists. V1 also needs support for
