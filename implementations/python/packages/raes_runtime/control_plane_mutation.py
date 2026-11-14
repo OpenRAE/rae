@@ -215,12 +215,12 @@ class RuntimeMutationAuthority:
             self._grant_next_waiter_locked()
 
     @contextmanager
-    def supervision(self) -> Iterator[None]:
+    def supervision(self, kind: OperationKind = OperationKind.INDETERMINATE_RESOLUTION) -> Iterator[None]:
         """Acquire the same state writer without claiming another external effect."""
 
         token = _SUPERVISORY_CUT.set(True)
         try:
-            with self.mutation(OperationKind.INDETERMINATE_RESOLUTION):
+            with self.mutation(kind):
                 yield
         finally:
             _SUPERVISORY_CUT.reset(token)
@@ -403,7 +403,13 @@ def control_plane_mutation(control_plane: object, kind: OperationKind) -> Iterat
 
     authority = getattr(control_plane, "_mutation_authority", None)
     mutation = getattr(authority, "mutation", None)
-    mutation_context = mutation(kind) if callable(mutation) else nullcontext()
+    supervisory = getattr(authority, "supervision", None)
+    if kind in {OperationKind.WORKFLOW_CANCELLATION, OperationKind.WORKFLOW_TIMEOUT_RECONCILIATION} and callable(
+        supervisory
+    ):
+        mutation_context = supervisory(kind)
+    else:
+        mutation_context = mutation(kind) if callable(mutation) else nullcontext()
     with mutation_context:
         if callable(mutation):
             assert_owner = getattr(control_plane, "_assert_runtime_owner", None)

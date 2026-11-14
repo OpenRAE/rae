@@ -48,6 +48,7 @@ class WorkflowHistoryEventType(str, Enum):
     WORKFLOW_STARTED = "workflow_started"
     STEP_STARTED = "step_started"
     STEP_COMPLETED = "step_completed"
+    STEP_REPORTED = "step_reported"
     SWITCH_CASE_SELECTED = "switch_case_selected"
     CALL_STARTED = "call_started"
     CALL_COMPLETED = "call_completed"

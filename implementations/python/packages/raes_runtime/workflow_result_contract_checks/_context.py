@@ -144,6 +144,11 @@ def _normalized_workflow_history(
         ]
     normalized_history, diagnostics = _normalize_workflow_history_payload(workflow_address, history_payload)
     diagnostics.extend(_timestamp_diagnostics(workflow_address, normalized_history))
+    if any(event.invocation_id is not None for event in normalized_history):
+        current_run = snapshot.orchestration_results[workflow_address].get("run_id")
+        normalized_history = [event for event in normalized_history if event.invocation_id == current_run]
+        if not normalized_history:
+            diagnostics.append(_contract_diagnostic(workflow_address, "Workflow history has no current invocation."))
     return normalized_history, diagnostics
 
 

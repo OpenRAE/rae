@@ -4,6 +4,7 @@ from dataclasses import dataclass, fields
 from typing import Protocol
 
 from raes_contracts.contracts import BackendOperationRequestModel, BackendOperationResponseModel
+from raes_contracts.contracts.workflow_dispatch import WorkflowStepResponse
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 from .operation_execution_adapter import require_budget_ms
@@ -26,7 +27,7 @@ class OperationEvidenceResolver(Protocol):
         request: BackendOperationRequestModel,
         response: BackendOperationResponseModel,
         predecessor: RuntimeSnapshot,
-    ) -> ApplyResult: ...
+    ) -> ApplyResult | WorkflowStepResponse: ...
 
 
 @dataclass(frozen=True, kw_only=True)

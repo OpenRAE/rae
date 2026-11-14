@@ -20,6 +20,7 @@ from raes_contracts.behavioral_relations import BehavioralRelationCatalogModel
 from raes_contracts.contracts.participant_information_reconstruction_profiles import (
     ParticipantInformationReconstructionProfileModel,
 )
+from raes_contracts.contracts.workflow_dispatch import WorkflowStepDispatch, WorkflowStepResponse
 from raes_contracts.controlled_vocabularies import ControlledVocabularyCatalogModel
 from raes_contracts.domain_profiles import (
     DomainProfileAdmissionPolicyModel,
@@ -153,6 +154,8 @@ def _experiment_schema_bundle() -> dict[str, dict[str, Any]]:
         "evaluation-plan-v1": EvaluationPlanModel.model_json_schema(),
         "runtime-snapshot-v1": RuntimeSnapshotEnvelopeModel.model_json_schema(),
         "workflow-result-envelope-v1": WorkflowExecutionStateModel.model_json_schema(),
+        "workflow-step-dispatch-v1": WorkflowStepDispatch.model_json_schema(),
+        "workflow-step-response-v1": WorkflowStepResponse.model_json_schema(),
         "workflow-history-event-stream-v1": event_stream_schema(
             "WorkflowHistoryEventStream",
             WorkflowHistoryEventModel.model_json_schema(),

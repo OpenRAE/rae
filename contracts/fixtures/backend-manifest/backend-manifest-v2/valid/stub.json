@@ -514,6 +514,8 @@
   ],
   "schema_version": "backend-manifest/v2",
   "supported_contract_versions": [
+    "workflow-step-dispatch-v1",
+    "workflow-step-response-v1",
     "backend-manifest-v2",
     "artifact-requirement-v1",
     "provisioning-plan-v1",
