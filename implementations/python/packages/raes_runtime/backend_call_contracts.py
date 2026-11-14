@@ -17,7 +17,7 @@ from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 from .backend_snapshot_contracts import snapshot_shape_violation
 
 _MAX_DIAGNOSTICS = 1024
-_MAX_DETAILS_BYTES = 65536
+_MAX_DETAILS_BYTES = 64 * 1024 * 1024
 _TOO_MANY_DIAGNOSTICS = "Backend returned too many diagnostics."
 _LOGGER = get_logger(__name__)
 
@@ -148,8 +148,12 @@ def _details_payload_violation(details: dict[str, object]) -> str | None:
 
     if not validate_realization_value(details).conformant:
         return "Backend returned invalid or excessive apply-result details."
-    oversized = len(json.dumps(details, allow_nan=False).encode("utf-8")) > _MAX_DETAILS_BYTES
-    return "Backend returned excessive apply-result details." if oversized else None
+    encoded_bytes = 0
+    for chunk in json.JSONEncoder(allow_nan=False).iterencode(details):
+        encoded_bytes += len(chunk.encode("utf-8"))
+        if encoded_bytes > _MAX_DETAILS_BYTES:
+            return "Backend returned excessive apply-result details."
+    return None
 
 
 def _apply_result_details_violation(result: ApplyResult, address: str) -> str | None:
