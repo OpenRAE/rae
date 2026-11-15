@@ -1,0 +1,72 @@
+name: Merge Queue Removed
+
+# Marks a pull request that the `dev` merge queue removed without a merge (issue #2052).
+# The authoring agent ends its run when its pull request enters the queue, so this label is
+# the signal that the pull request needs work. The label goes away when the pull request
+# enters the queue again or closes. The job reads and writes only the GitHub API and checks
+# out no code. The action policy admits its `issues` write token only in this exact shape.
+on:
+  pull_request:
+    types: [enqueued, dequeued, closed]
+    branches: [dev]
+
+permissions:
+  pull-requests: read
+
+# One run at a time for each pull request, so the label always follows the latest event.
+concurrency:
+  group: merge-queue-removed-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # The job writes the label through the issue labels API, so it needs only `issues` write.
+    permissions:
+      issues: write
+      pull-requests: read
+    steps:
+      # Event values reach the shell through the environment, never through expression
+      # text in the script.
+      - name: Set the merge-queue-removed label
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LABEL: merge-queue-removed
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          ACTION: ${{ github.event.action }}
+        run: |
+          set -euo pipefail
+          remove_label() {
+            # A pull request without the label is already in the wanted state.
+            if ! output="$(gh api -X DELETE "repos/$REPOSITORY/issues/$PR_NUMBER/labels/$LABEL" 2>&1)"; then
+              if grep -q "HTTP 404" <<<"$output"; then
+                echo "PR #$PR_NUMBER has no $LABEL label."
+                return 0
+              fi
+              echo "$output" >&2
+              return 1
+            fi
+            echo "Removed $LABEL from PR #$PR_NUMBER."
+          }
+          case "$ACTION" in
+            enqueued | closed)
+              remove_label
+              ;;
+            dequeued)
+              # A merge also removes the pull request from the queue. Read the live state, so a
+              # merged or closed pull request gets no label.
+              state="$(gh api "repos/$REPOSITORY/pulls/$PR_NUMBER" --jq '.state')"
+              if [ "$state" != "open" ]; then
+                echo "PR #$PR_NUMBER is $state; no label."
+                exit 0
+              fi
+              gh api -X POST "repos/$REPOSITORY/issues/$PR_NUMBER/labels" -f "labels[]=$LABEL" --silent
+              echo "Added $LABEL to PR #$PR_NUMBER."
+              ;;
+            *)
+              echo "Unexpected action: $ACTION" >&2
+              exit 1
+              ;;
+          esac

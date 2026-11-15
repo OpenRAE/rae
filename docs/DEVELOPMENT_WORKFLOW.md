@@ -145,6 +145,9 @@ Until that step is available, add the pull request to the queue after readiness.
 The queue builds a merge group from `dev`, the queued pull requests in front, and the pull request.
 Every required check runs again on the merge group commit, and the queue merges the pull request only when all of them pass.
 A failed check removes the pull request from the queue.
+The `Merge Queue Removed` workflow then adds the `merge-queue-removed` label to the open pull request.
+The label shows that the pull request needs work.
+The workflow removes the label when the pull request enters the queue again or closes.
 `dev` does not require strict status checks, because the queue tests each pull request against the latest `dev`.
 Merges into `main` do not use a queue.
 
