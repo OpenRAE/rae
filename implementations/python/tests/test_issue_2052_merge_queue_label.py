@@ -32,7 +32,7 @@ def test_label_workflow_runs_on_dev_queue_events_without_code() -> None:
     }
     assert workflow["permissions"] == {"pull-requests": "read"}
     job = workflow["jobs"]["label"]
-    assert job["permissions"] == {"issues": "write", "pull-requests": "read"}
+    assert job["permissions"] == {"pull-requests": "write"}
     assert all("uses" not in step for step in job["steps"])
     assert "${{" not in job["steps"][0]["run"]
 
@@ -49,8 +49,8 @@ def _expand(workflow: dict[Any, Any], change: str) -> None:
     job = workflow["jobs"]["label"]
     if change == "extra-write":
         job["permissions"]["contents"] = "write"
-    elif change == "pull-request-write":
-        job["permissions"]["pull-requests"] = "write"
+    elif change == "issues-write":
+        job["permissions"]["issues"] = "write"
     elif change == "checkout":
         job["steps"].insert(0, {"uses": "actions/checkout@" + "a" * 40, "with": {"persist-credentials": False}})
     elif change == "synchronize":
@@ -67,7 +67,7 @@ def _expand(workflow: dict[Any, Any], change: str) -> None:
 
 @pytest.mark.parametrize(
     "change",
-    ["extra-write", "pull-request-write", "checkout", "synchronize", "target", "secret", "runner", "container"],
+    ["extra-write", "issues-write", "checkout", "synchronize", "target", "secret", "runner", "container"],
 )
 def test_label_boundary_cannot_expand_its_privilege(tmp_path: Path, change: str) -> None:
     workflow = copy.deepcopy(_workflow())

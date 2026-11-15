@@ -4,7 +4,7 @@ name: Merge Queue Removed
 # The authoring agent ends its run when its pull request enters the queue, so this label is
 # the signal that the pull request needs work. The label goes away when the pull request
 # enters the queue again or closes. The job reads and writes only the GitHub API and checks
-# out no code. The action policy admits its `issues` write token only in this exact shape.
+# out no code. The action policy admits its `pull-requests` write token only in this exact shape.
 on:
   pull_request:
     types: [enqueued, dequeued, closed]
@@ -22,10 +22,9 @@ jobs:
   label:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    # The job writes the label through the issue labels API, so it needs only `issues` write.
+    # A pull request label needs `pull-requests` write. The `issues` scope gets HTTP 403.
     permissions:
-      issues: write
-      pull-requests: read
+      pull-requests: write
     steps:
       # Event values reach the shell through the environment, never through expression
       # text in the script.

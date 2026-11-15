@@ -1100,7 +1100,7 @@ _REVIEWED_JOB_WRITE_SCOPES = {
     ("codeql.yml", "analyze"): {"security-events"},
     ("docs.yml", "deploy"): {"pages", "id-token"},
     ("ground-control-phase-e.yml", "finalize"): {"issues"},
-    ("merge-queue-removed.yml", "label"): {"issues"},
+    ("merge-queue-removed.yml", "label"): {"pull-requests"},
     ("release-please.yml", "release-please"): {"contents", "pull-requests"},
     ("release-please.yml", "resolve-release"): {"contents"},
     # Signing holds an OIDC and attestation identity only. It has no `contents`

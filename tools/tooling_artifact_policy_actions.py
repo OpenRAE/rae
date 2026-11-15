@@ -203,7 +203,7 @@ def _queue_label_job(job: Mapping[str, Any]) -> bool:
 
     steps = as_list(job.get("steps"))
     return bool(
-        job.get("permissions") == {"issues": "write", "pull-requests": "read"}
+        job.get("permissions") == {"pull-requests": "write"}
         and set(job) <= {"name", "runs-on", "timeout-minutes", "permissions", "steps"}
         and job.get("runs-on") == "ubuntu-latest"
         and steps
@@ -213,11 +213,11 @@ def _queue_label_job(job: Mapping[str, Any]) -> bool:
 
 
 def _queue_label_boundary(path: str, name: str, job: Mapping[str, Any], triggers: object) -> bool:
-    """Admit the issue-label write token only in the reviewed merge-queue label job (#2052).
+    """Admit the pull-request write token only in the reviewed merge-queue label job (#2052).
 
     The job runs on merge-queue entry, removal, and close events only. It has no
     ``uses`` step, so it checks out no code and runs no action. It receives no
-    secret and writes only labels through the issue labels API.
+    secret and writes only pull request labels.
     """
 
     return (path, name) == (_QUEUE_LABEL_WORKFLOW, "label") and _queue_label_events(triggers) and _queue_label_job(job)
@@ -259,7 +259,9 @@ def _permission_failures(
     codeql_boundary: bool = False,
 ) -> list[PolicyFailure]:
     failures = []
-    allowed_writes = {"issues"} if merged_issue_boundary or queue_label_boundary else set()
+    allowed_writes = {"issues"} if merged_issue_boundary else set()
+    if queue_label_boundary:
+        allowed_writes.add("pull-requests")
     if codeql_boundary:
         allowed_writes.add("security-events")
     # Tuple membership compares without hashing, so a level that is a list or a mapping is not scoped.
