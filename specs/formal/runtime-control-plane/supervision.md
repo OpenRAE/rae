@@ -20,12 +20,12 @@ effect observation and contextual willingness. Embedders own process deployment.
 
 <!-- vale RAES.HeadingCase = YES -->
 
-For an operation, let `R` be its exact admitted requirements, `C` the effective
-capabilities of the installed backend for that operation kind and context, and
-`W` its current willingness. Admission requires `C satisfies R` and `W`.
+For an operation, let `R` be its exact admitted requirements and `W` its current willingness.
+Let `C` be the effective capabilities of the installed backend for that operation kind and context. Admission requires `C satisfies R` and `W`.
 Manifest declarations, installed protocol support, willingness and evidence of
-satisfaction are independent facts. Recheck context after queueing and before
-dispatch; prior willingness is not an irrevocable promise. Missing, unsupported,
+satisfaction are independent facts.
+
+Recheck context after queueing and before dispatch; prior willingness is not an irrevocable promise. Missing, unsupported,
 contradictory or refused required guarantees prevent invocation. Never silently
 shorten a required duration, weaken a requirement, substitute another backend,
 or interpret absence of support as best effort. An authored alternative needs
@@ -35,7 +35,8 @@ Admission and supervision use existing authentication, role/subject checks,
 bounded request admission, closed value/config/manifest validators and safe
 diagnostics. The original actor, target/run, kind and request commitment remain
 immutable. Every supervisor is independently authorized for the exact operation
-and records its own actor and request identity; it cannot replace the original
+and records its own actor and request identity.
+It cannot replace the original
 actor or widen scope. Operational audit, participant observation and archival
 evidence retain their existing authorities. No credentials, raw input, native
 exception text, process arguments or environment dumps enter these records.
@@ -60,8 +61,8 @@ against current state, never blind snapshot merge or backend re-invocation.
 Use target/run-wide exclusion unless narrower independence is established by
 the admitted contract. Reads and bounded supervisory requests remain serviceable
 while an external invocation is blocked. Reserve bounded control capacity across
-HTTP admission, workers and audit queues, as well as the core authority; putting
-a cancel request behind a saturated effect queue does not satisfy supervision.
+HTTP admission, workers and audit queues, as well as the core authority.
+Putting a cancel request behind a saturated effect queue does not satisfy supervision.
 Control overload has a bounded, explicit rejection and cannot silently discard
 an acknowledged request. No callback gains authority to mutate the store.
 
@@ -130,8 +131,8 @@ budget is positive, finite, validated and bound to its stage and origin:
 | Drain/close | Stop-admission boundary | Escalate to the embedder with unresolved operations and retained exclusion; never report successful shutdown solely because the budget expired. |
 
 Nested calls consume the remaining enclosing budget; bounded retries or fan-out
-cannot renew it. Store waits and audit publication are covered too: if the
-single state authority itself cannot make progress, supervision reports inability
+cannot renew it. Store waits and audit publication are covered too.
+If the single state authority itself cannot make progress, supervision reports inability
 to establish settlement rather than claiming a persisted terminal outcome.
 Liveness is conditional on the admitted store/control/backend capabilities;
 there is no universal hard real-time claim.
@@ -151,7 +152,8 @@ Keep existing strict workflow timestamp validation and inclusive expiry rules.
 Shutdown stops admission, requests supported cessation, settles or quarantines
 operations, closes the store provider, then releases the owner lease. If store
 close is unconfirmed, retain the lease while the process lives. If the embedder
-must end the process, that is a declared loss boundary: a restart acquires
+must end the process, that is a declared loss boundary.
+A restart acquires
 the store lease but remains unready until external work is reconciled. Local
 lease release or process death is never an external fence. Restore obeys the
 same rule because the database can be older than backend effects.
@@ -221,8 +223,8 @@ willingness are required whenever subsequent work can produce effects.
 | New trial | Authorized allocation under EXP-706/SCE-002, distinct admitted trial coordinate/run identity, clean or declared reusable initial state and SCE-006/007 isolation/cleanup evidence. Preserve the failed/interrupted trial and its invalidation evidence. |
 
 No resumed or repeated effects enter a quarantined scope. An independently
-isolated new trial may be admitted only with evidence that old work cannot reach
-its resources; changing an operation id, run id, backend name or store path is
+isolated new trial may be admitted only with evidence that old work cannot reach its resources.
+Changing an operation id, run id, backend name or store path is
 not isolation. If required cleanup fails, deny reuse and preserve its independent
 failed/partial/unverified result. Failure requiring a new trial cannot be
 converted into continuation, and permission for a new trial does not allocate it
@@ -272,6 +274,7 @@ admission refusal, cancellation/completion order, 64 effect-evidence
 combinations, late/stale completion, atomic publication uncertainty, monotonic
 expiry and continuation counterexamples. Evidence booleans are assumptions
 supplied by the modeled boundary; they do not implement or prove those witnesses.
+
 The model covers one operation and one conflicting-effect scope. It is not a
 thread scheduler, storage implementation, wire codec, unbounded proof or runtime
 refinement. Existing lifecycle/profile and cleanup contract tests retain their

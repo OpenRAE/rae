@@ -18,9 +18,8 @@ experiment provenance. It fixes identity, phase ordering, selection,
 random-stream, secrecy, admission, backend, scheduling, and late-binding
 properties.
 
-The formal model in this file is not itself executable. Its SCE-002 delivered
-slices include the bounded SDL family and experiment-selection contracts,
-admitted-trial-plan and trial-compilation contracts, deterministic compilation
+The formal model in this file is not itself executable. Its SCE-002 delivered slices include the bounded SDL family and experiment-selection contracts and admitted-trial-plan and trial-compilation contracts.
+They also include deterministic compilation
 and sealed-entry realization, and focused compiler/realization tests. The work
 previously tracked by #274 and #788 through #791 is therefore implementation
 evidence, not pending coverage. It remains distinct from backend behavioral
@@ -265,8 +264,8 @@ order, pre-seal retry, and supported cross-process/hash-seed variation.
 <!-- vale RAES.HeadingCase = NO -->
 ### SVR-015 — stream non-interference
 
-If input `E'` retains `N(E)` and the root seed while adding or changing a draw
-or unrelated metadata outside concern `c`, then every draw and selection at
+Input `E'` can retain `N(E)` and the root seed while it adds or changes a draw or unrelated metadata outside concern `c`.
+Then every draw and selection at
 addresses in unaffected concern `c` is unchanged. No mutable global stream is
 shared across points, policies, or coordinates. This does not require plan
 digests or run ids to survive an experiment-spec revision.
@@ -334,8 +333,8 @@ No `experiment-trial-v1` or second archival trial identity is introduced.
 ### SVR-021 — retry and re-execution differ
 
 An idempotent pre-execution transport retry reuses `P[q].run_id`. A genuine
-re-execution uses a new explicit replicate/execution ordinal, is admitted
-again, receives a distinct run id, and may cite the source run by lineage.
+re-execution uses a new explicit replicate/execution ordinal and is admitted again.
+It receives a distinct run id and may cite the source run by lineage.
 
 <!-- vale RAES.HeadingCase = YES -->
 
@@ -351,9 +350,8 @@ ids cannot be used as archival run ids.
 <!-- vale RAES.HeadingCase = NO -->
 ### SVR-023 — complete plan provenance
 
-The plan commits to exact task/family/spec/artifact refs and digests, all
-compiler/identity/RNG/canonicalization profiles, logical coordinates,
-selections, factor assignments, non-secret bindings, selected apparatus
+The plan commits to exact task/family/spec/artifact refs and digests, and all compiler/identity/RNG/canonicalization profiles.
+It also commits to logical coordinates, selections, factor assignments, non-secret bindings, selected apparatus
 claims, and bounded admission evidence.
 
 <!-- vale RAES.HeadingCase = YES -->
@@ -393,9 +391,11 @@ compiler profiles with factorial binding selection and/or recorded allocation.
 Replacement variants are `trial-compiler-replacement-designed-v1` and
 `trial-compiler-replacement-designed-mixed-composition-v1`. Legacy profile
 outputs and `trial-coordinate-canonical-v1` order retain their meanings.
+
 Coordinate identities remain `trial-coordinate-v1`; randomization never
 changes a coordinate. Complete experiment intent and exact input digests
-remain in the plan identity projection, so changes to design, seed, namespace,
+remain in the plan identity projection.
+Thus changes to design, seed, namespace,
 or allocation policy produce new plan/entry/run identities. Allocation slots
 are separate from those logical coordinates.
 
@@ -403,12 +403,14 @@ For `factorial-bindings-v1` designs, every coordinate selects the scalar scenari
 from its exact generated condition through the public SDL selection and
 whole-scenario admission path. All family points must be covered exactly once;
 additional selection policies and nonliteral scenario binding outcomes fail
-closed. Participant bindings never become SDL points. Selected manifest
+closed.
+
+Participant bindings never become SDL points. Selected manifest
 registries resolve their targets; complete configurations apply defaults,
 require missing values, and invoke a supplied trusted owner validator. The
 entry records each normalized configuration with its manifest and digest.
-Normalization must preserve declared binding values. Retry and replacement
-lineage retain their incumbent authorities; a replacement child contains one
+Normalization must preserve declared binding values. Retry and replacement lineage retain their incumbent authorities.
+A replacement child contains one
 new entry for the original slot's condition and no reshuffle of original slots.
 
 The contract profile `factorial-treatments-v1` adds typed scenario selections.
@@ -417,12 +419,15 @@ Its normative rules are in
 `AdmittedSelectionRecordModel.treatment` retains the exact source descriptor.
 The optional `profiles.treatment_profile` field selects the new record semantics.
 Legacy plans omit this field.
+
 The existing coordinate and identity profiles remain unchanged.
 New content remains covered by authoring, entry, and plan commitments.
+
 The reference compiler supports typed treatments through the existing public SDL APIs.
 It verifies complete point coverage, owner admission, effective distinctness, and atomic failure.
 Comparison retains operative capability bounds, parameter derivations, and realization constraints.
 Prompt comparison uses pinned content and operative slot and scope, excluding provenance-only descriptor differences.
+
 `readmit_admitted_trial_plan()` compares a candidate with deterministic reconstruction from separately trusted original inputs.
 The public realizer checks authoring coordinates, bindings, typed records, and fixed selections without rerunning participant normalization.
 Plan-only reload establishes internal consistency, not agreement with unavailable original authority.
@@ -451,8 +456,8 @@ The accepted executable allocation procedure is `fisher-yates-allocation-v1`:
 5. Seal the policy, ordered entry permutation, and plan-scope draws in
    `AdmittedTrialPlanModel.allocation`. The profile set records
    `allocation_profile: fisher-yates-allocation-v1`; presence must agree with
-   the allocation record. Plan reconstruction replays the procedure against
-   the complete entry domain and controls and requires exact equality, including
+   the allocation record. Plan reconstruction replays the procedure against the complete entry domain and controls.
+   It requires exact equality, including
    bijection, draw sequence, and order. The plan digest commits to all of it.
 
 Both dispatch and batch-receipt validation use the contract-owned order
@@ -465,7 +470,8 @@ Parallelism ceilings, deadlines, and cleanup remain separate requirements.
 Random order mitigates systematic condition/time confounding. It does not
 certify stable external APIs, model revisions, host load, caches, or carryover.
 Retain pinned manifests/configurations, actual apparatus and clock evidence,
-cleanup results, and validity deviations; allocation grants no reselection or
+cleanup results, and validity deviations.
+Allocation grants no reselection or
 claim of controlled equivalence when drift is undisclosed.
 
 ### Canonical domain and policy order in `trial-compiler-v1`
@@ -486,12 +492,15 @@ A fixed root broadcasts its one outcome to every coordinate. There may be at
 most one non-fixed policy root. An enumerate or product root must emit exactly
 the coordinate count. Product child ids sort by portable identifier and use
 ordinary left-to-right Cartesian order; fixed, enumerate, and nested product
-children are supported. Equal strata join by exact `condition_id` and must
+children are supported.
+
+Equal strata join by exact `condition_id` and must
 match the declared per-condition counts. Sample-with-replacement uses only the
 exact pair `blake3-xof-v1` and `random-stream-profile/v1`,
 `sampling-selection`, local coordinate zero, the exact trial coordinate, and
-the profile's `bounded-integer` transform. Multiple non-fixed roots, an
-overlapping point writer, an uncovered point, orphan/ambiguous
+the profile's `bounded-integer` transform.
+
+Multiple non-fixed roots, an overlapping point writer, an uncovered point, orphan/ambiguous
 meaning, a cardinality disagreement, unsupported product child, collision, or
 bounded-draw exhaustion fails atomically. There is no implicit zip, cycle,
 padding, truncation, permutation, resampling, or backend-selected value.
@@ -512,12 +521,12 @@ using SHA-256 and renders `<kind>-<64 lowercase hex digits>`.
 
 `trial-plan` projects, in this exact field set, the complete admitted plan
 profile object, input references, admitted apparatus binding, typed execution
-authority, and the ordered coordinate projections. The apparatus binding
-includes the accepted realization-envelope content/configuration digests,
-processor/backend manifest digests, and every participant implementation
+authority, and the ordered coordinate projections. The apparatus binding includes the accepted realization-envelope content/configuration digests and processor/backend manifest digests.
+It also includes every participant implementation
 manifest identity/version/content digest used for binding admission. The
 authoring-input digest inside the references binds all selection policies and
 stochastic controls.
+
 `trial-entry` and `archival-run` each project
 `{"plan_id": plan_id, "coordinate": coordinate}` and are separated by their
 distinct kind. `trial-cleanup` projects `plan_entry_id`, `run_id`, and the
@@ -539,15 +548,20 @@ and canonical plan bytes. Coordinate, finite-domain, and Cartesian-product
 cardinalities are computed and rejected against those limits before their
 collections are materialized. The compiler returns either one sealed plan
 with no error-severity diagnostics or one canonically ordered error set with
-no plan. Issue #789 emits at most one error record, which is therefore within
+no plan.
+
+Issue #789 emits at most one error record, which is therefore within
 every admitted positive diagnostic limit. Error records use the fixed
 `trial-compiler` domain, a safe JSON-pointer address, a governed code, and
 fixed text containing ids/count classes only. Raw values, complete domains,
 secret or entropy references, validator payloads, host paths, environments,
-and tracebacks are never rendered. Caller-supplied partition traversal drives
+and tracebacks are never rendered.
+
+Caller-supplied partition traversal drives
 coordinate-local admission and entry construction. The compiler visits every
 bounded coordinate and reduces coordinate-local failures by address, code,
-then fixed text before returning its one diagnostic; successful keyed maps are
+then fixed text before returning its one diagnostic.
+Successful keyed maps are
 JCS-normalized. Therefore partition order changes execution order without
 changing plan bytes or failure diagnostics.
 
@@ -556,8 +570,9 @@ changing plan bytes or failure diagnostics.
 <!-- vale RAES.HeadingCase = NO -->
 ### SVR-024 — public SDL instantiation only
 
-`I(F, P[q])` applies only plan-recorded selections/bindings, performs no new
-draw/import/query/secret read/backend callback, uses the public SDL
+`I(F, P[q])` applies only plan-recorded selections/bindings.
+It performs no new draw/import/query/secret read/backend callback.
+It uses the public SDL
 instantiation and admission path, and reruns whole-scenario semantic validation.
 A private binder cannot mint an admitted `S_q`.
 
@@ -584,8 +599,8 @@ does not mutate `F`, `E`, `P`, `S_q`, or their identities.
 <!-- vale RAES.HeadingCase = NO -->
 ### SVR-027 — runtime facts are not selectors
 
-No fact or observation may choose an alternative/subset/order/timing point,
-change a scalar factor, alter topology, change a logical coordinate/run id,
+No fact or observation may choose an alternative/subset/order/timing point, change a scalar factor, or alter topology.
+No fact or observation may change a logical coordinate/run id,
 select apparatus, or advance a random stream. Missing/invalid facts cause an
 explicit runtime disposition, not fallback selection.
 
@@ -594,8 +609,8 @@ explicit runtime disposition, not fallback selection.
 <!-- vale RAES.HeadingCase = NO -->
 ### SVR-028 — secret non-disclosure and non-identity
 
-Raw credentials and secret values are not factors, condition assignments,
-random seeds, stream-address inputs, canonical ids/digests, portable plan
+Raw credentials and secret values are not factors, condition assignments, random seeds, or stream-address inputs.
+They are also not canonical ids/digests, portable plan
 bindings, diagnostics, fixtures, argv, logs, or telemetry. Secret references
 are resolved only at authorized run-local sinks, and secondary provenance is
 redacted.
@@ -659,7 +674,9 @@ Omission retains the existing allocator choice and serial default.
 The trial compiler copies this intent into the sealed admitted plan. It is an
 author-set cap on concurrent trials and needs no other proof. The admitted
 ceiling is the exact count, the maximum, or the entry count (at most 4096) when
-the intent is open or has no maximum. Without the intent, the ceiling is one. A minimum above
+the intent is open or has no maximum.
+
+Without the intent, the ceiling is one. A minimum above
 the entry count fails before dispatch. Assignment and receipt boundaries
 enforce both ends of the admitted interval. A minimum or exact count describes
 configured capacity, not a promise that all slots remain occupied during startup,
@@ -698,9 +715,8 @@ composition, semantic validation, experiment binding, and trial admission.
 ## Executable SCE-003 v1 profile
 
 Adaptive difficulty is declared in the experiment run plan as a bounded
-`DifficultyPolicyRegistryModel`. The registry contains named variants that
-reference existing selection/scaffold/action carriers, policy-local ordered
-dimensions, immutable fixed/adaptive/scaffolded policies, and one default
+`DifficultyPolicyRegistryModel`. The registry contains named variants that reference existing selection/scaffold/action carriers.
+It also contains policy-local ordered dimensions, immutable fixed/adaptive/scaffolded policies, and one default
 policy that is always fixed.
 
 <!-- vale RAES.HeadingCase = YES -->
@@ -713,8 +729,8 @@ selection policies. A difficulty variant is therefore an admitted experiment
 coordinate, not an unvalidated patch or runtime preset.
 
 The supported reference evaluator is the digest-bound
-`adaptive-threshold-v1@1.0.0` profile. Resolution is pure over the policy,
-exact state cut, versioned and digest-bound observation-source definitions,
+`adaptive-threshold-v1@1.0.0` profile. Resolution is pure over the policy, exact state cut, and versioned and digest-bound observation-source definitions.
+It is also pure over
 evidence-bearing observation-instance references, expected decision history
 head, intervention count, and idempotency identity. It enforces
 freshness, run/episode/order scope, threshold priority, cadence, cooldown, and
@@ -724,9 +740,8 @@ returns `unsupported`; it never falls back to the reference profile.
 `ADAPTIVE_THRESHOLD_PROFILE_DIGEST` publishes the exact supported profile
 digest, and resolver support matches the complete id/version/digest tuple.
 
-Decision history is append-only. Each `DifficultyDecisionRecordModel` binds
-the policy id/version/digest, request fingerprint, prior and resulting history
-heads, exact cut, source-definition and evidence-instance references, trigger,
+Decision history is append-only. Each `DifficultyDecisionRecordModel` binds the policy id/version/digest, request fingerprint, prior and resulting history heads, and exact cut.
+It also binds source-definition and evidence-instance references, trigger,
 selected action, typed affected references, disposition, time, and validity
 effect. The source-definition reference must exactly match the admitted
 policy; a different measure cannot be submitted under the same local
@@ -737,9 +752,9 @@ Selected effects are separate `DifficultyInterventionRecordModel` records.
 The closed affected-reference kinds are scaffold, participant inject,
 participant control, workflow action, and scenario variant, and each must
 match its action carrier. Effect-capable records require occurrence, evidence,
-or follow-up-run provenance. A scenario-variant action is only a follow-up
-trial proposal: its run reference differs from the source, and ordinary
-selection, plan admission, instantiation, and realization still allocate its
+or follow-up-run provenance. A scenario-variant action is only a follow-up trial proposal.
+Its run reference differs from the source.
+Ordinary selection, plan admission, instantiation, and realization still allocate its
 coordinate and identity.
 
 `ExperimentRunModel.difficulty_provenance` archives the exact policy snapshot,
@@ -836,11 +851,12 @@ the exact root plan/digest/entry, ordinal, immediate parent plan/entry/run/versi
 and digest, terminal cleanup receipt, and original policy. It emits one separate
 sealed child; no old entry or plan is re-sealed with a different identity.
 
-Let `i` be the original coordinate's zero-based index in the compiler's canonical
-coordinate list, `M` its maximum original replicate ordinal, `L` the authored
+Let `i` be the original coordinate's zero-based index in the compiler's canonical coordinate list.
+Let `M` be its maximum original replicate ordinal, `L` the authored
 limit and `k` the one-based replacement ordinal. The new replicate is
-`replicate_id(M + i*L + k)`, with unchanged condition/block. Ordinal overflow is
-refusal. Disjoint slot intervals prevent coordinate collision. Deterministic
+`replicate_id(M + i*L + k)`, with unchanged condition/block.
+
+Ordinal overflow is refusal. Disjoint slot intervals prevent coordinate collision. Deterministic
 selection uses the original row index; sample selection is addressed to the new
 coordinate. Only that entry is emitted; other entries and streams are unchanged.
 
@@ -850,7 +866,8 @@ the projection contains `profile="trial-compiler-replacement-v1"`,
 cleanup ids then use the existing acyclic algorithms with this new plan id.
 Parent/evidence linkage is sealed in the child digest without a child-to-parent
 digest cycle. Tests in `implementations/python/tests/test_issue_1396_trial_replacement.py`
-show that the same inputs give the same identities, that the child digest binds
+show that the same inputs give the same identities.
+They show that the child digest binds
 the parent run, and that a different root plan gives different identities.
 
 Complete contiguous lineage, exact original inputs and positive scope-complete
@@ -873,8 +890,8 @@ independent failure evidence. See the
 
 For identical invalid inputs, diagnostic records are byte-equivalent after
 canonical serialization. Diagnostics are ordered by stage, safe canonical
-address/id, and code. They are bounded by explicit count/size budgets and never
-render supplied values, complete domains, secret/fact refs, raw artifacts,
+address/id, and code. They are bounded by explicit count/size budgets.
+They never render supplied values, complete domains, secret/fact refs, raw artifacts,
 backend-private objects, environment data, or tracebacks.
 
 At minimum, `T` is undefined for:
@@ -903,14 +920,15 @@ They do not establish:
 ## Assurance fulfillment
 
 The invariant list is delivered by this file. Issue #786 supplies the bounded
-family declaration contract and tests. Issue #787 supplies the closed
-experiment selection-policy registry, exact allocation/factor joins,
-family-context admission validator, canonical parser hardening, published
+family declaration contract and tests. Issue #787 supplies the closed experiment selection-policy registry, exact allocation/factor joins, and family-context admission validator.
+It also supplies canonical parser hardening, published
 schema, positive/negative fixtures, and unit tests. It deliberately does not
 compile logical trial coordinates or instantiate selected scenarios. Issue
 #789 supplies the exact v1 profiles above, SDL-owned selected-scenario
 construction/admission, deterministic plan compilation, and unit/property/
-thread/process determinism evidence. #274, #788, #790, and #791 complete the
+thread/process determinism evidence.
+
+#274, #788, #790, and #791 complete the
 associated typed contract, trial-realization, provenance, and focused-test
 surfaces. The current authoritative SCE-002 requirement is ACTIVE; the dated
 allocation record in `specs/formal/assurance-fulfillment.yaml` is historical

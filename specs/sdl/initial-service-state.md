@@ -130,8 +130,8 @@ I/O. Direct plan submission MUST repeat these checks.
 ## 4. Backend conformance and equivalence
 
 RAES standardizes the portable profile without selecting a product or backend.
-A backend MAY claim either standardized profile only when its own conformance
-evidence demonstrates native materialization through the RAES control path,
+A backend MAY claim either standardized profile only when its own conformance evidence supports the claim.
+The evidence must demonstrate native materialization through the RAES control path,
 fresh independent readback, reset ownership, and the declared participant
 projection. For the search-index profile, native readback projects exactly the
 declared field names back to the portable semantic set before digest comparison.

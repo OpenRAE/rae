@@ -9,8 +9,8 @@ Let a step realization be
 
 `mode` belongs to the closed set `{scripted, objective, scaffolded}`. Existing
 steps project to `scripted`, preserving their historical interpretation.
-`objective` and `scaffolded` are admitted only for `objective` and `retry`
-control nodes, which already bind an actor, targets, dependencies, a time
+`objective` and `scaffolded` are admitted only for `objective` and `retry` control nodes.
+These nodes already bind an actor, targets, dependencies, a time
 window, and evidence-bearing success assertions through the referenced
 objective.
 
@@ -26,9 +26,9 @@ objective.
 - Objective and scaffolded fields are references only. They do not admit
   commands, private planners, scoring rules, prompts, credentials, or backend
   native payloads.
-- Procedure references resolve to `procedure`-granularity participant action
-  contracts, allowed action families resolve to `aggregate`-granularity action
-  contracts, and scaffold references resolve to observation boundaries carrying
+- Procedure references resolve to `procedure`-granularity participant action contracts.
+  Allowed action families resolve to `aggregate`-granularity action contracts.
+  Scaffold references resolve to observation boundaries carrying
   instruction/scaffold view rules. Capability references use the incumbent
   participant-runtime feature vocabularies; runtime-fact binding references use
   the authority-qualified `workflows.steps.fact_binding_refs` vocabulary.
