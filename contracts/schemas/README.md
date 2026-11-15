@@ -34,9 +34,8 @@ Current published schemas cover:
 canonical-field recognition, shorthand expansion, enum normalization, and typed
 construction. Its title and `x-raes-document-phase` annotation state that
 boundary. Raw YAML properties such as duplicate keys, tags, directives,
-anchors, aliases, Core scalar resolution, and resource limits are specified in
-`specs/sdl/document-model.md` and tested by
-`contracts/fixtures/sdl/sdl-yaml-v1/`; JSON Schema cannot express them.
+anchors, aliases, Core scalar resolution, and resource limits are specified in `specs/sdl/document-model.md`.
+`contracts/fixtures/sdl/sdl-yaml-v1/` tests them, and JSON Schema cannot express them.
 
 `sdl/instantiated-scenario-v1.json` is a distinct closed derived-artifact
 contract. It requires `instantiation_provenance`, forbids `variables`,
@@ -52,8 +51,8 @@ corresponding valid and invalid fixtures live under
 `instantiated-scenario-snapshot-v1/`.
 
 These schemas enforce portable structure and scalar constraints. Cross-field
-provenance relations, reference resolution, and graph semantics remain the
-normative model/semantic-admission layer; schema validity alone does not assert
+provenance relations, reference resolution, and graph semantics remain the normative model/semantic-admission layer.
+Schema validity alone does not assert
 that provenance is truthful or that an artifact is compiler-admitted.
 
 ## Participant execution control
@@ -141,17 +140,17 @@ Finite evidence cannot be bound to a universal quantifier.
 ## UCO alignment evidence
 
 The `uco-alignment-v1` schema publishes the machine-readable UCO alignment
-evidence catalog. It pins the reviewed UCO version and maps each adopted and
-adapted cyber-domain concept family (from `concept-families-v1`) to the UCO
-object types it aligns to, enumerating adapted-family divergences explicitly.
+evidence catalog. It pins the reviewed UCO version.
+It maps each adopted and adapted cyber-domain concept family (from `concept-families-v1`) to the UCO object types it aligns to.
+It enumerates adapted-family divergences explicitly.
 
 <!-- vale RAES.HeadingCase = YES -->
 
 The catalog lives at `contracts/concept-authority/uco-alignment-v1.json`.
 Coverage is catalog-derived: every adopted or adapted family whose authority is
 UCO must have exactly one alignment entry. Validation uses local evidence only
-and does not fetch the UCO ontology; semantic checks beyond JSON Schema enforce
-coverage, provenance agreement with `concept-families-v1`, canonical UCO IRIs,
+and does not fetch the UCO ontology.
+Semantic checks beyond JSON Schema enforce coverage, provenance agreement with `concept-families-v1`, canonical UCO IRIs,
 and the adapted-family divergence rule.
 
 ## Semantic profiles
@@ -285,10 +284,8 @@ The `experiment-core` schema family publishes:
 - `experiment-evidence-record-v1`
 - `experiment-derived-measure-v1`
 
-These schemas keep SDL scenario authoring, experiment task protocol, execution
-apparatus context, archival run provenance, study/collection analysis,
-declarative capture requirements, raw evidence records, and derived
-measure/evaluation outputs separate. The normative invariant set lives in
+These schemas keep SDL scenario authoring, experiment task protocol, execution apparatus context, and archival run provenance separate.
+They also keep study/collection analysis, declarative capture requirements, raw evidence records, and derived measure/evaluation outputs separate. The normative invariant set lives in
 `specs/formal/experiment-core/`. ADR-055 records the original task/run/study
 boundary, and ADR-064 records the evidence/measure and backend observation
 capability extension. ADR-065 records `experiment-run-v1` as the canonical run

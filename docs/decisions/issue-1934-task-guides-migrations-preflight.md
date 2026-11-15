@@ -46,6 +46,7 @@ rg --files docs/public/guides docs/public/sdl docs/migration
 
 The count also includes `docs/public/backends.md` and `docs/public/participant-control.md`.
 The implementation PR must account for every page. This includes migration prose that stays in the repository.
+
 Record splits, retained history, current routes, redirects, and exclusions with their reasons.
 The JSON artifacts under `docs/migration/classification-examples/` are also part of the review boundary.
 Their README distinguishes illustrative bindings from the pinned historical inventory.
@@ -76,6 +77,7 @@ Do not relabel that evidence as #1554 or claim that the requested evidence reuse
 Use the existing writing checks on explicit changed paths and targeted behavioral tests locally.
 Full suites remain in CI/CD. Mutation checks belong with executable examples where useful.
 This preflight adds no executable behavior that needs a new mutation suite.
+
 The PR evidence must name each section's purpose, source paths, revision, commands, versions, results, and corrections.
 For unavailable external systems, state the unverified boundary and exact missing evidence:
 owner, backend release and RAES pairing, installed capabilities, command, readback, and cleanup result.
@@ -174,9 +176,11 @@ flowchart LR
 This issue changes maintained prose and its existing execution checks where needed.
 It creates no new component or runtime data flow.
 `tools/nox_support/config.py` and `test_lanes.py` own source roots and check selection.
+
 `docs-prose`, `.vale.ini`, `styles/RAES/`, and the locked `tools/vale_tool.py` own writing checks.
 `docs-local` owns warning-strict HTML and output containment; `docs-links` owns external link checks.
 The link checker ignores this repository's GitHub URLs; verify their paths and fragments explicitly.
+
 Render repository-only prose too. Check heading order, descriptive links, and diagram text alternatives.
 Check keyboard access when navigation changes. Vale and link success do not establish meaning or accessibility.
 
@@ -184,6 +188,7 @@ Check keyboard access when navigation changes. Vale and link success do not esta
 Use the existing requirement-free route in `tools/nox_support/runner.py`; invent no requirement UID.
 The issue calls for one implementation PR and its complete evidence inventory.
 `.github/workflows/ci.yml`, `.github/workflows/docs.yml`, `.readthedocs.yaml`, and `docs/Makefile` retain build and release ownership.
+
 This preflight performs no publication. No new hosting, upload, external processor, dependency, skill, or checker is authorized.
 Preserve legal text, quotations, generated outputs, pinned evidence, and ADR freezes under their existing policies.
 No runtime, API, schema, auth, logging, persistence, release metadata, or build migration is in scope.

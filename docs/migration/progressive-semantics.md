@@ -50,6 +50,7 @@ migration or author correction before target admission succeeds.
 
 Add a `sentinel_decisions` item for each explicitly authored typed `other` or `unknown`.
 Include `pointer`, `interpretation`, and `rationale`.
+
 For example, `/nodes/host/runtime/database_services/0/engine` may use
 `knowledge` to retain `other`, or `exact-identity` with an author-confirmed
 `identity: x-owner:private-db`. Exact identities cannot be sentinel aliases such
@@ -80,7 +81,9 @@ Omitted or inherited demand is distinct from explicit no-data and operational-on
 modes. Inspection reports authored policy without asserting backend capability.
 
 For semantic diff, load `contracts/profiles/semantic-comparison/reference-v2.json`.
-Pass `scenario_projection_version="2"` when building impact scopes and coordinates. The request binds that profile's exact digest. This preserves
+Pass `scenario_projection_version="2"` when building impact scopes and coordinates. The request binds that profile's exact digest.
+
+This preserves
 omitted-versus-empty collections and private `description` values. Task projection
 version 2 also compares observation demand. Current scenarios reject owner projection v1, including untagged sources.
 Current tasks reject it too. Scenario coordinates and
@@ -95,6 +98,7 @@ Relabeling an old digest is invalid.
 
 Follow [external classification migration](external-classifications.md) first
 when the source contains removed built-in classifications. Render and review that result.
+
 Bind the progressive context to those exact intermediate bytes.
 Pass the returned `binding_documents` and the same pinned `scheme_snapshots` to
 `migrate_sdl_semantics`. The operation retargets exact subject digests and checks binding admission.
@@ -109,6 +113,7 @@ It cannot enable unsupported collection/export behavior.
 
 Success provides current SDL, linked binding documents, and an adoption report.
 Keep them together under new content identities. Validate the rendered result before later admission.
+
 Missing decisions, stale source digests, or unsupported input refuse without partial output.
 Correct the source-bound decision and repeat conversion; do not relabel an old digest.
 No native cleanup is needed for conversion.

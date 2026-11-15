@@ -52,8 +52,8 @@ concept assertion to an ordinary SDL node only when exactly one explicit
 decision provides the canonical `nodes.<id>` target and native node type. Its
 digest covers every output-affecting rule id, default id, supported type,
 limit, refusal posture, rendering profile, and canonicalization profile.
-Dispatch is keyed by the artifact's exact id, version, and complete-content
-digest; source authority, scheme id, query text, URI, module path, class name,
+Dispatch is keyed by the artifact's exact id, version, and complete-content digest.
+Source authority, scheme id, query text, URI, module path, class name,
 callback, or plugin name cannot select code.
 
 The profile does not guess relations, ordering, preconditions,
@@ -101,8 +101,8 @@ profile artifact.
 
 ## Validation and admission
 
-The engine builds a closed authoring value, renders deterministic YAML through
-the shared SDL formatting seam, and reparses the emitted bytes with production
+The engine builds a closed authoring value and renders deterministic YAML through the shared SDL formatting seam.
+It reparses the emitted bytes with production
 `parse_sdl()` and semantic validation. It does not use
 `skip_semantic_validation` and does not add generated-content syntax or a
 validated bypass flag.
@@ -117,9 +117,9 @@ changes between candidates use the existing governed semantic-comparison
 profile and owner adapter. Derivation change and SDL semantic change are
 reported as separate axes.
 
-Where a generated candidate creates an exact RAES subject for an external
-concept, integrations may emit the ordinary `external-concept-bindings/v1`
-document after that subject exists and must use
+A generated candidate can create an exact RAES subject for an external concept.
+Then integrations may emit the ordinary `external-concept-bindings/v1` document after that subject exists.
+They must use
 `admit_external_concept_bindings()` with pinned local snapshots. The synthesis
 record does not duplicate or weaken that binding contract.
 
@@ -139,8 +139,8 @@ locators, exception payloads, or environment state.
 
 ## Non-goals
 
-This contract does not promise automatic semantic equivalence, make an
-external assertion executable, add source-specific syntax or retrieval, create
-a pack workflow, or automatically admit, instantiate, compile, realize, or
+This contract does not promise automatic semantic equivalence or make an external assertion executable.
+It does not add source-specific syntax or retrieval, or create a pack workflow.
+It does not automatically admit, instantiate, compile, realize, or
 execute a candidate. It adds no database, cache, mutable registry, API,
 controller, or parallel conformance workflow.
