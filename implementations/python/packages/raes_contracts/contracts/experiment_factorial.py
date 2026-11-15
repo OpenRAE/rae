@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from itertools import product
 from typing import Annotated, Any, Literal
 
@@ -74,6 +75,9 @@ class ExperimentFactorialDesignModel(ContractModel):
     ] = Field(min_length=1, max_length=16)
     target_runs_per_condition: Annotated[StrictInt, Field(ge=1, le=999999)]
     condition_bound: Annotated[StrictInt, Field(ge=1, le=10000)]
+    excluded_combinations: list[dict[PortableIdentifier, PortableIdentifier]] = Field(
+        default_factory=list, max_length=64
+    )
 
     @model_validator(mode="after")
     def _validate_dimensions(self) -> ExperimentFactorialDesignModel:
@@ -86,13 +90,13 @@ class ExperimentFactorialDesignModel(ContractModel):
 class ExperimentFactorLevelEffectsModel(ContractModel):
     """A bounded level contribution across existing owner planes."""
 
-    bindings: list[ExperimentFactorLevelBindingModel] = Field(default_factory=list, max_length=16)
-    selections: list[ExperimentFactorLevelSelectionModel] = Field(default_factory=list, max_length=16)
+    bindings: list[ExperimentFactorLevelBindingModel] = Field(default_factory=list, max_length=32)
+    selections: list[ExperimentFactorLevelSelectionModel] = Field(default_factory=list, max_length=32)
 
     @model_validator(mode="after")
     def _validate_effect_count(self) -> ExperimentFactorLevelEffectsModel:
-        if not 1 <= len(self.bindings) + len(self.selections) <= 16:
-            raise ValueError("a factorial level requires between one and sixteen combined effects")
+        if not 1 <= len(self.bindings) + len(self.selections) <= 32:
+            raise ValueError("a factorial level requires between one and thirty-two combined effects")
         return self
 
 
@@ -107,6 +111,9 @@ class ExperimentFactorialTreatmentDesignModel(ContractModel):
     ] = Field(min_length=1, max_length=16)
     target_runs_per_condition: Annotated[StrictInt, Field(ge=1, le=999999)]
     condition_bound: Annotated[StrictInt, Field(ge=1, le=10000)]
+    excluded_combinations: list[dict[PortableIdentifier, PortableIdentifier]] = Field(
+        default_factory=list, max_length=64
+    )
 
     @model_validator(mode="after")
     def _validate_dimensions(self) -> ExperimentFactorialTreatmentDesignModel:
@@ -133,10 +140,29 @@ def _factorial_condition_count(
         levels = design.level_bindings if isinstance(design, ExperimentFactorialDesignModel) else design.level_effects
         if set(levels[factor_id]) != set(factor.levels):
             raise ValueError("factorial level bindings must cover exactly the declared levels")
-        if len(factor.levels) > design.condition_bound // count:
-            raise ValueError("factorial condition bound exceeded before expansion")
         count *= len(factor.levels)
+    excluded = {tuple(sorted(combination.items())) for combination in design.excluded_combinations}
+    if len(excluded) != len(design.excluded_combinations):
+        raise ValueError("factorial excluded combinations must be unique")
+    for combination in design.excluded_combinations:
+        if set(combination) != set(design.factor_ids) or any(
+            level not in factors[factor_id].levels for factor_id, level in combination.items()
+        ):
+            raise ValueError("factorial excluded combinations must name one declared level for every factor")
+    count -= len(excluded)
+    if not 1 <= count <= design.condition_bound:
+        raise ValueError("factorial condition bound exceeded before expansion")
     return count
+
+
+def _included_factor_levels(
+    design: FactorialDesign, factors: dict[str, ExperimentStudyFactorModel]
+) -> Iterator[dict[str, str]]:
+    excluded = {tuple(sorted(combination.items())) for combination in design.excluded_combinations}
+    for levels in product(*(sorted(factors[factor].levels) for factor in design.factor_ids)):
+        factor_levels = dict(zip(design.factor_ids, levels, strict=True))
+        if tuple(sorted(factor_levels.items())) not in excluded:
+            yield factor_levels
 
 
 def _validate_factorial_bounds(
@@ -183,8 +209,7 @@ def generate_factorial_conditions(
     _validate_factorial_bounds(design, factors)
     assignments = {}
     descriptors = []
-    for levels in product(*(sorted(factors[f].levels) for f in design.factor_ids)):
-        factor_levels = dict(zip(design.factor_ids, levels, strict=True))
+    for factor_levels in _included_factor_levels(design, factors):
         condition_id = "condition-" + canonical_json_digest(factor_levels).split(":", 1)[1][:48]
         if condition_id in assignments:
             raise ValueError("factorial condition identity collision")
@@ -261,7 +286,8 @@ def _validate_supplied_materializations(
         raise ValueError("supplied bindings conflict with generated factorial bindings")
 
 
-MAX_EXPANDED_TREATMENT_BYTES = 8 * 1024 * 1024
+MAX_EXPANDED_TREATMENT_BYTES = 256 * 1024 * 1024
+MAX_FACTORIAL_EFFECT_WORK = 1_000_000
 
 
 def _outcome_cost(outcome: object) -> int:
@@ -296,7 +322,7 @@ def _validate_work(
         )
         for factor in design.factor_ids
     )
-    if runs * work > 10000:
+    if runs * work > MAX_FACTORIAL_EFFECT_WORK:
         raise ValueError("factorial combined effect work bound exceeded before expansion")
 
 
@@ -339,8 +365,7 @@ def expand_treatment_input(payload: dict[str, Any], design: ExperimentFactorialT
     assignments = {}
     descriptors = []
     point_sets = set()
-    for levels in product(*(sorted(factors[factor].levels) for factor in design.factor_ids)):
-        factor_levels = dict(zip(design.factor_ids, levels, strict=True))
+    for factor_levels in _included_factor_levels(design, factors):
         condition_id = "condition-" + canonical_json_digest(factor_levels).split(":", 1)[1][:48]
         if condition_id in assignments:
             raise ValueError("factorial condition identity collision")

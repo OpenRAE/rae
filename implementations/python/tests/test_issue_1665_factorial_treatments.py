@@ -67,6 +67,20 @@ def test_mixed_treatments_materialize_typed_source_criteria_and_roundtrip() -> N
     assert ExperimentSpecModel.model_validate_json(spec.model_dump_json()) == spec
 
 
+def test_factorial_exclusion_omits_one_exact_combination() -> None:
+    payload = _typed_payload()
+    payload["factorial_design"]["condition_bound"] = 3
+    payload["factorial_design"]["excluded_combinations"] = [{"agent": "cold", "path": "a"}]
+    spec = ExperimentSpecModel.model_validate(payload)
+    assignments = spec.run_plan.allocation.condition_assignments.values()
+    assert len(spec.run_plan.allocation.compared_conditions) == 3
+    assert {tuple(sorted(item.factor_levels.items())) for item in assignments} == {
+        (("agent", "cold"), ("path", "b")),
+        (("agent", "warm"), ("path", "a")),
+        (("agent", "warm"), ("path", "b")),
+    }
+
+
 def test_selection_only_design_needs_no_dummy_binding_and_accepts_fixed_configuration() -> None:
     payload = _typed_payload()
     payload["factors"].pop("agent")
