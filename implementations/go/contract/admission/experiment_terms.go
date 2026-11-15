@@ -59,3 +59,8 @@ const (
 const (
 	termRefVersionPath = "/ref_version"
 )
+
+const (
+	modelExperimentRunPlan      = "ExperimentRunPlanModel"
+	experimentTermRandomization = "randomization"
+)

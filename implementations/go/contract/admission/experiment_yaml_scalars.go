@@ -99,7 +99,7 @@ func experimentInteger(text string) (any, error) {
 		clean = strings.TrimPrefix(clean, "+")
 	}
 	result := new(big.Int)
-	if strings.Contains(clean, ":") {
+	if strings.Contains(clean, ":") && !strings.HasPrefix(clean, "0") {
 		if err := experimentSexagesimal(result, clean); err != nil {
 			return nil, err
 		}
@@ -148,22 +148,18 @@ func experimentBasedInteger(result *big.Int, clean string) error {
 }
 func experimentFloat(text string) (any, error) {
 	clean := strings.ReplaceAll(text, "_", "")
-	lower := strings.ToLower(clean)
-	if strings.TrimLeft(lower, "+-") == ".inf" {
-		if strings.HasPrefix(lower, "-") {
-			return math.Inf(-1), nil
-		}
-		return math.Inf(1), nil
-	}
-	if lower == ".nan" {
-		return math.NaN(), nil
-	}
 	sign := 1.0
 	if strings.HasPrefix(clean, "-") {
 		sign = -1
 		clean = clean[1:]
 	} else {
 		clean = strings.TrimPrefix(clean, "+")
+	}
+	switch strings.ToLower(clean) {
+	case ".inf":
+		return math.Inf(int(sign)), nil
+	case ".nan":
+		return math.NaN(), nil
 	}
 	var result float64
 	for part := range strings.SplitSeq(clean, ":") {

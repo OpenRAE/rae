@@ -86,4 +86,31 @@ Shared plaintext API fragments retain each package's complete canonical closure.
 changed declarations, and duplicates. Exact comparison and existing snapshot
 bounds remain in force.
 
-The PR records the final commands, required review, CI results, and readiness.
+The new source cases cover these groups:
+
+- 42 experiment documents and 1,862 semantic refusals.
+- 16 private records and 481 field refusals.
+- 58 sets of factory defaults.
+- The 62 models that coerce binary text.
+- 73 YAML scalar and container refusals.
+
+One source case raises a Python constructor error. Its Go case checks for a
+safe refusal. It does not assert the same exception.
+
+The tests found gaps in allocation control checks. They found gaps in capture
+field selectors too. They also found YAML tag differences. The Go code now
+matches the source cases. No published schemas or Python code changed.
+
+The journal loads native decision handles only. It rejects a foreign handle
+before it calls a method. Tests cover changed raw JSON bytes and evidence
+conflicts. They check exact version and manifest pins. They force journal and
+archive faults.
+
+Recovery keeps frozen records and the full replacement chain. Slot restore
+either succeeds or keeps the prior set.
+
+The user chose manual work without the Ground Control workflow. Both automated
+pre-push review attempts timed out. Neither returned a verdict. This record
+makes no completed-review attestation. The PR records the final commands and
+CI results. CI keeps the 90% Go statement coverage requirement. It runs the
+full test and race groups.

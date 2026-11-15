@@ -312,7 +312,11 @@ func (c *coordinator) load(ctx context.Context) ([]Decision, error) {
 		if missing(record) {
 			return nil, integrity()
 		}
-		d, decodeErr := DecodeDecision(record.JSON())
+		native, owned := record.(*decision)
+		if !owned {
+			return nil, integrity()
+		}
+		d, decodeErr := DecodeDecision(native.JSON())
 		if decodeErr != nil || d.ID() != record.ID() || d.SchemaVersion() != record.SchemaVersion() {
 			return nil, integrity()
 		}

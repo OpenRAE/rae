@@ -125,7 +125,7 @@ func experimentConstructorOmissions(model string, document map[string]any) {
 
 	case modelExperimentSpec:
 		omitExperimentNull(document, "factorial_design")
-	case "ExperimentRunPlanModel":
+	case modelExperimentRunPlan:
 		omitExperimentNull(document, "replacement_policy", "allocation_policy")
 	case termExperimentConditionAssignmentModel:
 		omitExperimentEmpty(document, "required_bindings", "required_selections")

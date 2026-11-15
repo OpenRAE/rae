@@ -215,6 +215,9 @@ func (s *experimentYAMLState) node(node *yaml.Node, depth int) (any, error) {
 
 func (s *experimentYAMLState) sequence(node *yaml.Node, depth int) (any, error) {
 	if node.Tag != "!!seq" {
+		if node.Tag != "!!omap" && node.Tag != "!!pairs" {
+			return nil, experimentError("invalid-yaml")
+		}
 		s.unsupported = true
 		return experimentUnsupported{}, nil
 	}
@@ -243,6 +246,9 @@ func (s *experimentYAMLState) scalar(node *yaml.Node) (any, error) {
 }
 func (s *experimentYAMLState) mapping(node *yaml.Node, depth int) (any, error) {
 	if node.Tag != "!!map" {
+		if node.Tag != "!!set" {
+			return nil, experimentError("invalid-yaml")
+		}
 		s.unsupported = true
 		return experimentUnsupported{}, nil
 	}

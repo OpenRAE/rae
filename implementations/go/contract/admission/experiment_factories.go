@@ -73,7 +73,7 @@ func experimentFactoryValues(model string) map[string]any {
 		raw = `{"blocking_factors":[]}`
 	case modelExperimentRun:
 		raw = `{"augmentation_disclosures":[],"derived_from_refs":[],"deviations":[],"evidence_artifacts":[],"evidence_requirement_relations":[],"generated_refs":[],"materialization_attestations":[],"parameter_set":[],"realized_bindings":[],"realized_form_disclosures":[],"realized_selections":[],"result_summaries":{},"stochastic_controls":[],"stochastic_draws":[],"used_refs":[],"validation_basis_disclosures":[]}`
-	case "ExperimentRunPlanModel":
+	case modelExperimentRunPlan:
 		raw = `{"evidence_requirement_relations":[],"red_variant_selections":{},"selection_policies":{},"stochastic_controls":[]}`
 	case "ExperimentRunTraceabilityModel":
 		raw = `{"claim_refs":[],"derived_measure_refs":[],"notes":[]}`

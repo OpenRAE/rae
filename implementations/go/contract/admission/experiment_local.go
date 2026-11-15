@@ -3,6 +3,7 @@ package admission
 import (
 	"encoding/json"
 	"maps"
+	"slices"
 	"strings"
 
 	"github.com/OpenRAE/rae/implementations/go/base/canonjson"
@@ -10,6 +11,35 @@ import (
 	"github.com/OpenRAE/rae/implementations/go/contract/validation"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/timestamp"
 )
+
+func experimentCaptureSelectors(v any) error {
+	for _, selector := range stringsOf(at(v, "field_selectors")) {
+		if !canonicalPointer(selector) {
+			return invalid()
+		}
+	}
+	return nil
+}
+
+func experimentAllocationControl(plan any) error {
+	policy := at(plan, "allocation_policy")
+	if policy == nil {
+		return nil
+	}
+	controls := array(at(plan, "stochastic_controls"))
+	index := slices.IndexFunc(controls, func(control any) bool {
+		return stringAt(control, "control_id") == stringAt(policy, "stochastic_control_ref")
+	})
+	if index < 0 {
+		return invalid()
+	}
+	control := controls[index]
+	binding := at(control, "executable_binding")
+	return require(stringAt(control, "role") == experimentTermRandomization &&
+		stringAt(binding, "profile_ref", "ref_id") == termBlake3XofV1 &&
+		stringAt(binding, "profile_ref", "ref_version") == "random-stream-profile/v1" &&
+		stringAt(binding, "root_entropy", termKind) == "public-seed")
+}
 
 func (e *Validator) experimentLocalRules() map[string]definition {
 	return map[string]definition{
