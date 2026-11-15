@@ -49,7 +49,9 @@ Send a strict `inject-trigger-request-v1` body using the exact plan, inject,
 bindings, target/run, placement, fresh occurrence and retry key. The trusted
 permit binds that exact request and its predecessor/order position. The first
 head is `inject-order:genesis`. Get later heads through
-`raes_runtime.inject_claims.inject_order_head`. Arrival order does not issue a
+`raes_runtime.inject_claims.inject_order_head`.
+
+Arrival order does not issue a
 permit or repair a stale head. An exact retry returns the original receipt.
 It grants no dispatch or new budget. A fresh repeat needs a fresh occurrence
 and key. It also needs a new permit and a valid world precondition.
@@ -82,15 +84,19 @@ This realization does not accept secret inputs or store secret outputs.
 Admission refusal creates no accepted occurrence or dispatch. A refusal after
 the atomic claim cancels the operation and keeps that claim. An entrypoint that
 exits with an error may still change the world. Such an operation fails and
-yields no success correlation. Unknown bindings, unproven cessation, readback
+yields no success correlation.
+
+Unknown bindings, unproven cessation, readback
 failure and crashes cannot become success. Unknown effects keep their invocation
 reservation. They never restore consumed dispatch authority.
 
 P0 holds process-lifetime state. P1 and served P2 retain claims, ordering,
 evidence and startup state in the existing store. Local records migrate to
 schema 12. PostgreSQL records use schema 5 with one owner.
+
 The earlier inject migration introduced schemas 10 and 3. Older records gain no
 invented occurrence or readback. Reopening never reruns an effect on its own.
+
 Reconciliation can append checked, linked facts. It cannot rewrite an immutable
 indeterminate outcome or grant another dispatch. An accepted control request or
 local timeout does not prove that native effects stopped.
@@ -122,11 +128,13 @@ World execution and participant delivery use separate operations. Install
 `ParticipantInjectRuntimeBinding(model=compiled_model, resolver=owner)` as the
 control plane's `inject_delivery` option, alongside its crossing-policy owner
 and `behavior_specifications=compiled_model.behavior_specifications`.
+
 The model must retain the original instantiated compiler context. The projection
 owner implements `resolve_delivery(delivery, application, correlation, snapshot)`
 and returns `ParticipantInjectResolution`: a governed content carrier, crossing
-evidence and the trusted logical-order cut. The carrier pins the declared result
-item, observation boundary and disclosure basis. It supports bounded UTF-8 or
+evidence and the trusted logical-order cut.
+
+The carrier pins the declared result item, observation boundary and disclosure basis. It supports bounded UTF-8 or
 base64 content with an explicit media type. The owner approves the entire carrier,
 including correlation references; world read authorization alone grants no
 participant disclosure.
@@ -147,8 +155,9 @@ v2 event ID, occurrence revision and digest. Install the matching
 `MixedControlRuntimeBinding`; its owner implements `resolve_delivery_cut(policy,
 application, snapshot)` using the same admitted logical order as the projection
 owner. The runtime checks the original episode policy, exact edge/kind/controller,
-state and target history, live grants, evidence and validity. Audience authority
-and source-controller authority remain separate. Delivery and control policy
+state and target history, live grants, evidence and validity.
+
+Audience authority and source-controller authority remain separate. Delivery and control policy
 revisions can differ. To plan this opt-in composition, pass
 `mixed_control_admission=plane.mixed_control_planning_admission()` to `plan`.
 Plan registration independently checks the installed compiler context. Planning
@@ -166,8 +175,9 @@ rules. A successful world operation does not satisfy that delivery obligation.
 Each control-event/binding pair authorizes at most one logical delivery across
 actors, world operations and retry keys. The existing stores claim that pair
 before returning content. An exact authorized retry reads its original operation;
-it cannot execute the world again. An unsettled claim remains withheld after
-restart. Delivery failure preserves accepted control and the settled world
+it cannot execute the world again.
+
+An unsettled claim remains withheld after restart. Delivery failure preserves accepted control and the settled world
 outcome. The recorded delivery boundary is the governed local return of the
 carrier. It proves no external transport acknowledgement, consumption or
 participant observation; no observed occurrence is synthesized for this path.
@@ -179,7 +189,9 @@ schedule support. The exact compiled event/script/story chain must resolve, no
 assertion may remain unevaluated, and one shared clock must give an unambiguous
 event cut. The supported mapping uses
 a `scenario_start` epoch, unit script/story speed, the initial clock segment and the authored event time
-inside its script window. It revalidates before dispatch. Missing clocks,
+inside its script window.
+
+It revalidates before dispatch. Missing clocks,
 ambiguous mappings, reset segments, changed membership and expired cuts refuse.
 Existing schedule-slot claims still prevent replay. This support adds no scheduler
 or automatic world repetition.
@@ -187,10 +199,11 @@ or automatic world repetition.
 When a plan has authored observation demands, install a target observation runtime
 with the required capture offers, selector capabilities, protection and retention
 policies. The runtime admits required capture before dispatch and executes capture
-through the existing observation lifecycle after world readback. It preserves
-authored mandatory and optional selectors. World effects and capture are separate
-facts: required capture failure retains the actual world outcome and withholds
-dependent delivery; optional unavailability or failure does not veto execution
+through the existing observation lifecycle after world readback. It preserves authored mandatory and optional selectors.
+
+World effects and capture are separate facts.
+Required capture failure retains the actual world outcome and withholds dependent delivery.
+Optional unavailability or failure does not veto execution
 or delivery. `get_inject_capture` or
 `GET /operations/{world_id}/inject-capture` reads the retained capture result.
 Capture, emission and participant observation have distinct evidence. This does
@@ -208,6 +221,7 @@ schema 12 and PostgreSQL ledgers use schema 5; older readers refuse the new reco
 
 Read the retained occurrence, outcome, result, and correlation independently.
 A successful world operation does not prove participant delivery or observation.
+
 Use the original key for a transport retry. A new effect needs separately admitted authority.
 Preserve failed and unknown outcomes. Reconcile uncertain effects before native cleanup.
 The backend distribution owns cleanup of its resources.
