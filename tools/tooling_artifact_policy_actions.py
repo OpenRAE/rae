@@ -220,11 +220,7 @@ def _queue_label_boundary(path: str, name: str, job: Mapping[str, Any], triggers
     secret and writes only labels through the issue labels API.
     """
 
-    return (
-        (path, name) == (_QUEUE_LABEL_WORKFLOW, "label")
-        and _queue_label_events(triggers)
-        and _queue_label_job(job)
-    )
+    return (path, name) == (_QUEUE_LABEL_WORKFLOW, "label") and _queue_label_events(triggers) and _queue_label_job(job)
 
 
 def _codeql_step(step: Mapping[str, Any], expected: tuple[str, Mapping[str, Any]]) -> bool:

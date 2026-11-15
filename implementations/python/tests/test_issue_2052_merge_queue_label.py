@@ -58,7 +58,7 @@ def _expand(workflow: dict[Any, Any], change: str) -> None:
     elif change == "target":
         workflow[True]["pull_request_target"] = {}
     elif change == "secret":
-        job["steps"][0]["env"]["TOKEN"] = "${{ secrets.TOKEN }}"
+        job["steps"][0]["env"] |= {"TOKEN": "${{ secrets.TOKEN }}"}
     elif change == "runner":
         job["runs-on"] = "self-hosted"
     else:
