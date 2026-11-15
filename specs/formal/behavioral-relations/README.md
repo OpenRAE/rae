@@ -24,16 +24,19 @@ participant-crossing claim surface. Revision `rev5` added one-sided possibilisti
 `participant-predicate-opacity`, mandatory revisioned relation-parameter
 profiles for that relation, and independent checker, model-check, runtime,
 backend-declaration, backend-realization, and backend-conformance assurance
-states. Revision `rev4` added `bounded-but-for-necessity` for finite, matched,
+states.
+
+Revision `rev4` added `bounded-but-for-necessity` for finite, matched,
 intervention-backed counterfactual comparison. Revision `rev3` made SEM-230
 `policy-noninterference` reactive over adaptive low participant strategies and
 exact state cuts, and added `io-alternating-refinement` for actionable backend
 participant semantics. The JSON contract remains `behavioral-relations/v1`
 because the revisioned catalog identity governs the additive vocabulary.
-Revision `rev7` added the closed participant-opacity profile and bounded
-checker. Revision `rev8` adds exact finite-state participant-opacity
+
+Revision `rev7` added the closed participant-opacity profile and bounded checker. Revision `rev8` adds exact finite-state participant-opacity
 model-check evidence. Revision `rev14` records the reproduced finite
 model-check result for `divergence-preserving-branching-bisimulation`.
+
 Revisions `rev1` through `rev13` are historical taxonomy identities. Consumers
 bind the exact taxonomy revision selected by their profile and load its
 retained catalog; the crossing profiles below bind `rev8`.
@@ -203,8 +206,9 @@ Future axes and deliberately unproved proof axes are structural records, not pos
 
 The legacy implementation aggregate must agree with explicit checker,
 runtime-enforcement, and backend-realization states. The legacy proof aggregate
-must agree with model checking; positive backend conformance requires a
-realized or partially realized backend; and a future definition cannot carry a
+must agree with model checking.
+Positive backend conformance requires a realized or partially realized backend.
+A future definition cannot carry a
 positive assurance result. Catalog and claim validators reject contradictory
 combinations.
 
@@ -290,8 +294,9 @@ profile exposes them.
 Under matching profiles, `policy-noninterference` implies opacity for every
 eligible predicate. Opacity of one predicate does not imply noninterference.
 One equal projected-history pair may witness one alternative but does not
-discharge the opacity quantifier. Revision `rev5` introduced and bounded-tests
-this relation. Revision `rev7` adds a closed baseline profile and a
+discharge the opacity quantifier.
+
+Revision `rev5` introduced and bounded-tests this relation. Revision `rev7` adds a closed baseline profile and a
 deterministic in-process checker for exact declared finite carriers. Revision
 `rev8` adds a distinct explicit-state checker and one exact finite-model
 result. The relation remains mathematically unproved and supplies no runtime
@@ -364,9 +369,8 @@ classes. Neither relation is implemented or proved in revision `rev6`.
 
 ### Counterfactual necessity validation
 
-The ASR-513 claim surface uses `bounded-but-for-necessity` only for one exact
-candidate and outcome, one immutable baseline/intervention-world pair, one
-typed and verified intervention, one revisioned binary criterion, and one
+The ASR-513 claim surface uses `bounded-but-for-necessity` only for one exact candidate and outcome and one immutable baseline/intervention-world pair.
+It also requires one typed and verified intervention, one revisioned binary criterion, and one
 declared matching policy. A supported comparison requires baseline truth,
 counterfactual falsehood, admitted per-world evidence, no undeclared semantic
 difference, and independently verified reset and cleanup. Both-worlds-true
@@ -375,7 +379,8 @@ unverified or collateral intervention, incomparable worlds, and residual state
 cannot support it.
 
 The comparison is finite empirical evidence. It does not establish actual,
-sufficient, probabilistic, or universal causation; replay, temporal order,
+sufficient, probabilistic, or universal causation.
+Replay, temporal order,
 correlation, shared seeds, or a failed execution are not substitutes for its
 gates.
 
@@ -440,8 +445,8 @@ catalog and checked by `implementations/python/tests/test_behavioral_relations.p
 
 Let an abstract decision-epoch-zero state accept participant input
 `select:scan`, while a concrete backend refuses every input. The concrete
-projected trace set containing only the empty trace is included in the
-abstract empty-trace prefix, yet the abstract input is unavailable in the
+projected trace set containing only the empty trace is included in the abstract empty-trace prefix.
+But the abstract input is unavailable in the
 concrete state. Trace inclusion therefore cannot establish actionable
 participant realization. The executable finite counterexample also checks a
 hidden concrete projection step followed by `deliver:decision-epoch-0`: the

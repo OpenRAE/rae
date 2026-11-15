@@ -81,8 +81,9 @@ Schema descriptions were traced through the existing source owners:
 Model fields and annotations supply generated descriptions.
 `add_raes_invariant` supplies invariant text to the bundle.
 These descriptions are part of published schema bytes. They were reviewed
-with their reference links and retained. Editing them independently would
-break the byte-equality contract. This delivery does not change schema meaning
+with their reference links and retained.
+
+Editing them independently would break the byte-equality contract. This delivery does not change schema meaning
 or bypass schema governance.
 The publication, profile, concept, provenance, and realization catalogs retain
 their typed records and identifiers. They are not substitute prose registries.
@@ -101,6 +102,7 @@ remain unchanged. A clean Vale result does not certify full STE conformance.
 Vale 3.15.2 still gave 93 whole-page reading grades above 11 after prose edits.
 The table below records those scores before the exceptions.
 These pages contain required domain terms, catalogs, and formal rule names.
+
 Changing those terms to lower a whole-page metric would damage exact reference.
 The existing `.vale.ini` therefore disables only `RAES.ReadingLevel` for
 each listed path. It does not disable any other rule.
@@ -158,6 +160,7 @@ The runtime selection used `test_sem_218_runtime_realization.py` and these nodes
 Use `uv run --project implementations/python --frozen` for Python checks.
 Use `uv run --project implementations/tooling/python --frozen --no-default-groups`
 for tooling commands. The check guide gives runnable examples.
+
 An initial partial Sphinx build lacked its full search index. The complete
 local HTML render above passed. An initial tooling environment lacked the
 model dependencies; the frozen Python environment passed the model checks.
@@ -170,7 +173,9 @@ native backend effects, deployed behavior, or independent formal reproduction.
 The pre-push review found one class of defect across 18 invariant headings.
 Their case no longer matched the exact text in the executable oracle catalog.
 The existing `test_oracle_and_spec_headings_map_both_directions` failed before
-the repair. All 18 headings were restored to their baseline spelling.
+the repair.
+
+All 18 headings were restored to their baseline spelling.
 The oracle and its synchronization assertion remain unchanged.
 The complete invariant-oracle module and semantic-coverage module then passed.
 This is a prose repair with an existing executable check.
@@ -179,6 +184,7 @@ The I15 table excerpt still matches its source clause after punctuation cleanup.
 The first CI fast-feedback run rejected six direct ADR-012 links in four pages.
 Its immutable filename contains the retired project name.
 These pages now reach ADR-012 through the existing decision index.
+
 The historical file, index, and identity check remain unchanged.
 No policy exception was added.
 The identity check and the five-file Vale check pass after this repair.
@@ -201,7 +207,9 @@ No published page URL changed.
 Actual Tab key input reached links on both root indexes, the new check guide,
 and the four changed public pages. This included the new reference links.
 The review inspected screenshots of the two root indexes, check guide,
-SDL guide, and shared-contract API page. Link text names its destination.
+SDL guide, and shared-contract API page.
+
+Link text names its destination.
 Text and structure carry meaning without color. Existing Mermaid source
 remains readable text in the local reference render; this check does not
 claim to exercise GitHub's diagram renderer. No diagram image was added.

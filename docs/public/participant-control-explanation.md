@@ -10,6 +10,7 @@ For backend authors, the
 [modular provider contract reference](https://github.com/OpenRAE/rae/blob/dev/docs/explain/reference/modular-participant-control-contracts.md)
 describes closed profile selections, typed results and requested effects, and
 how the reference runtime orchestrates them. Publishing these contracts does not install a provider.
+
 It does not execute the provider's requests. The runtime invokes only
 providers an operator constructed and bound to the admitted selection. It
 commits the composed decision before any backend effect or delivery. It
@@ -22,15 +23,19 @@ API-424 now also publishes v2 selection/evaluation contracts and
 dependency inputs. The admitted apparatus stays complete.
 Applicable slots form a separate set at one state cut.
 They require profile-owned coverage and explicit input support.
+
 They keep parent decisions separate from effect prerequisites. They require exact protocol/schema negotiation and a
 trusted operator resolver. The reference runtime can explicitly admit a v2 binding.
 It evaluates applicable slots in dependency order. Required inputs must be satisfied.
 Required support must be satisfied too.
+
 Optional failure is recorded without blocking an otherwise permitted crossing. Scoped state and the evaluation join the
-existing atomic crossing commit. Retained v1 records keep their original
-interpretation. V2 admits only effects with an installed, exactly bound owner.
+existing atomic crossing commit.
+
+Retained v1 records keep their original interpretation. V2 admits only effects with an installed, exactly bound owner.
 Its drain supports fresh world injects, compiled handoffs and evidenced
 cancellation of execution attempts. Parent denial applies before execution.
+
 Independent consequences need their own authority. Evaluation eligibility
 supplies no effect permission. See the
 [migration rules](https://github.com/OpenRAE/rae/blob/dev/docs/migration/control-applicability-and-evaluation.md).
@@ -126,6 +131,7 @@ They are explanatory illustrations, not new API payloads.
 
 An egress request names participant `red-1`. It also names audience
 `red-primary`. A policy or audience gate returns deny at the exact state cut.
+
 The runtime records the request. It also records the deny result. It releases
 no value and makes no backend call. Safe audit proof may retain the refusal.
 It does not reveal the rejected value or a hidden participant.
@@ -246,13 +252,16 @@ The result compares two formal models.
 Both describe one participant crossing.
 The abstract model follows SEM-230.
 The concrete model follows the API-423 and RUN-319 crossing kernel.
+
 Separate transition authorities construct the two models.
 Both models are complete for profile `participant-crossing-dpbb-finite-v1@rev2`.
 The profile has one participant and one audience.
+
 It has one controller, one episode, and one request.
 It has the exact policy cuts `p0` and `p1`.
 Projection `participant-crossing-projection@rev1` hides only five mediation classes.
 Denial, unsupported outcomes, delivery, observation, replay rejection, and cut advance stay visible.
+
 Deadlock, termination, and divergence stay explicit.
 
 The mCRL2 `202607.0` `dpbranching-bisim` decision relates the declared initial states.
@@ -265,6 +274,7 @@ This is a finite model-check result.
 It is not an unbounded proof, a proof certificate, or a checked relation witness.
 It does not establish live-runtime realization.
 It does not establish backend conformance.
+
 It does not establish policy noninterference or predicate opacity.
 It makes no timed, probabilistic, concurrent, fair, partial-order, handoff, or multi-operation claim.
 The separate multi-operation profile has no result.
@@ -339,9 +349,9 @@ serialized or delivered. A monitor score is evidence or advice, never
 authorization. Missing labels, provenance, profile support, or a stable state
 cut fail closed.
 
-The companion evaluation profile distinguishes honest and attack modes
-and makes objectives, policy/monitor knowledge, adaptation, collusion, audit
-budgets, monitor correlation, interventions, memory, safety, usefulness, cost,
+The companion evaluation profile distinguishes honest and attack modes.
+It makes objectives, policy/monitor knowledge, adaptation, collusion, and audit budgets explicit.
+It also makes monitor correlation, interventions, memory, safety, usefulness, cost,
 uncertainty, and limitations explicit.
 
 RAE now has a backend-neutral harness for seven finite cases.
