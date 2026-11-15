@@ -326,7 +326,7 @@ def test_invalid_treatment_designs_fail_atomically(change) -> None:
     elif change == "unknown-level":
         design["level_effects"]["path"]["unknown"] = effects
     else:
-        design["target_runs_per_condition"] = 2000
+        design["target_runs_per_condition"] = 999_999
     with pytest.raises(ValidationError):
         ExperimentSpecModel.model_validate(payload)
 
@@ -335,6 +335,7 @@ def test_expanded_byte_budget_is_checked_before_building_conditions(monkeypatch)
     import raes_contracts.contracts.experiment_factorial as materialization
 
     payload = _typed_payload()
+    monkeypatch.setattr(materialization, "MAX_EXPANDED_TREATMENT_BYTES", 8 * 1024 * 1024)
     for effects in payload["factorial_design"]["level_effects"]["agent"].values():
         effects["bindings"][0].update(value_type="string", value={"kind": "literal", "value": "x" * 3_000_000})
 
