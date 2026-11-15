@@ -595,13 +595,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        group: [shared, authoring, parity, processor, tooling]
+        group: [shared, authoring, parity, processor, runtime, tooling]
         mode: [race, coverage]
         include:
           - {module: product, group: shared, path: implementations/go, packages: './base/... ./contract/... ./internal/base/... ./internal/contract/... ./internal/sdl/source/...'}
           - {module: product, group: authoring, path: implementations/go, packages: './internal/sdl/authoring/...'}
           - {module: product, group: parity, path: implementations/go, packages: './internal/parity/...'}
-          - {module: product, group: processor, path: implementations/go, packages: './processor/... ./sdl/... ./runtime/...'}
+          - {module: product, group: processor, path: implementations/go, packages: './processor/... ./sdl/...'}
+          - {module: product, group: runtime, path: implementations/go, packages: './runtime/...'}
           - {module: tooling, group: tooling, path: implementations/tooling/go, packages: './...'}
     env:
       GOTOOLCHAIN: local
@@ -702,7 +703,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {name: product, path: implementations/go, shards: 4}
+          - {name: product, path: implementations/go, shards: 5}
           - {name: tooling, path: implementations/tooling/go, shards: 1}
     env:
       GOTOOLCHAIN: local
