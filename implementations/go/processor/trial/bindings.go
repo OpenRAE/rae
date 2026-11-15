@@ -293,16 +293,20 @@ type configurationRegistryOwner struct {
 	Version string `json:"validator_version"`
 }
 
+type configurationControlTarget struct {
+	Context json.RawMessage `json:"control_context"`
+}
+
+type configurationRegistryMetadata struct {
+	Owner   configurationRegistryOwner            `json:"owner"`
+	Targets map[string]configurationControlTarget `json:"targets"`
+}
+
 //nolint:ireturn // Return the installed control-context interface without granting authority.
 func entryConfigurationContext(ctx context.Context, request Request, selected sdl.InstantiatedScenario, raw []byte) (ConfigurationValidatorKey, admission.ParticipantControlContextValidator, error) {
 	var err error
 	var metadata struct {
-		Registry struct {
-			Owner   configurationRegistryOwner `json:"owner"`
-			Targets map[string]struct {
-				Context json.RawMessage `json:"control_context"`
-			} `json:"targets"`
-		} `json:"configuration_registry"`
+		Registry configurationRegistryMetadata `json:"configuration_registry"`
 	}
 	if decode(raw, &metadata) != nil {
 		return ConfigurationValidatorKey{}, nil, trialInvalid()

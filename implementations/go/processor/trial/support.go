@@ -99,16 +99,18 @@ type operationSupervision struct {
 	Guarantees []string `json:"guarantees"`
 }
 
+type backendTrialCapabilities struct {
+	Cleanup     *cleanupSupport       `json:"cleanup"`
+	Supervision *operationSupervision `json:"operation_supervision"`
+}
+
 func admitTrialControls(backend binding.BackendManifestV2, controls executionControls, template cleanupTemplate) error {
 	raw, err := encoded(backend)
 	if err != nil {
 		return err
 	}
 	var manifest struct {
-		Capabilities struct {
-			Cleanup     *cleanupSupport       `json:"cleanup"`
-			Supervision *operationSupervision `json:"operation_supervision"`
-		} `json:"capabilities"`
+		Capabilities backendTrialCapabilities `json:"capabilities"`
 	}
 	if decode(raw, &manifest) != nil {
 		return trialInvalid()
