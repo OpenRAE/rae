@@ -64,3 +64,10 @@ const (
 	modelExperimentRunPlan      = "ExperimentRunPlanModel"
 	experimentTermRandomization = "randomization"
 )
+
+const (
+	codeExperimentYAML     = "invalid-yaml"
+	codeExperimentContract = "contract-invalid"
+	codeExperimentRoot     = "invalid-root"
+	pathTrialEntries       = "/entries"
+)

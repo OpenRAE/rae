@@ -50,7 +50,7 @@ func participantAuthorities(request Request, input compilationInputs) (map[Parti
 		key := ParticipantManifestKey{ParticipantAddress: ref.Address, ImplementationName: ref.Name, ImplementationVersion: ref.Version, ManifestVersion: ref.ManifestVersion}
 		manifest, present := request.ParticipantManifests[key]
 		if !present {
-			return nil, refuse("participant-manifest-payload-missing", "/apparatus/participant_manifest_refs", "selected participant manifest reference has no exact concrete payload")
+			return nil, refuse("participant-manifest-payload-missing", pathParticipantManifests, "selected participant manifest reference has no exact concrete payload")
 		}
 		constructed, err := admitParticipantManifest(input.owner, manifest, ref)
 		if err != nil {
@@ -77,14 +77,14 @@ func admitParticipantManifest(owner *admission.Validator, manifest binding.Parti
 		return binding.ParticipantImplementationManifestV1{}, trialInvalid()
 	}
 	if metadata.Identity.Name != ref.Name || metadata.Identity.Version != ref.Version || metadata.SchemaVersion != ref.ManifestVersion {
-		return binding.ParticipantImplementationManifestV1{}, refuse("participant-manifest-identity-mismatch", "/apparatus/participant_manifest_refs", "selected participant manifest identity does not match its concrete payload")
+		return binding.ParticipantImplementationManifestV1{}, refuse("participant-manifest-identity-mismatch", pathParticipantManifests, "selected participant manifest identity does not match its concrete payload")
 	}
 	d, err := hash(json.RawMessage(raw))
 	if err != nil {
 		return binding.ParticipantImplementationManifestV1{}, err
 	}
 	if ref.ManifestDigest != d {
-		return binding.ParticipantImplementationManifestV1{}, refuse("participant-manifest-digest-mismatch", "/apparatus/participant_manifest_refs", "selected participant manifest digest does not match its concrete payload")
+		return binding.ParticipantImplementationManifestV1{}, refuse("participant-manifest-digest-mismatch", pathParticipantManifests, "selected participant manifest digest does not match its concrete payload")
 	}
 	var constructed binding.ParticipantImplementationManifestV1
 	if decode(raw, &constructed) != nil {
@@ -103,7 +103,7 @@ func admittedDescriptors(request Request, input compilationInputs) ([]admittedDe
 	selected := input.manifests
 	admitted, err := admission.ValidateExperimentBindingTargets(input.owner, original, familyResolver{request.Family}, input.participants, selected)
 	if err != nil {
-		return nil, refuse("binding-target-rejected", "/binding_descriptors", "a binding descriptor target failed authoritative admission")
+		return nil, refuse("binding-target-rejected", pathBindingDescriptors, "a binding descriptor target failed authoritative admission")
 	}
 	raw, err := encoded(admitted)
 	if err != nil {
@@ -181,7 +181,7 @@ type entryBindingCollector struct {
 
 func (b *entryBindingCollector) append(item admittedDescriptor) error {
 	if b.seen[item.wire.ID] {
-		return refuse("binding-duplicate", "/binding_descriptors", "an admitted binding descriptor is selected more than once")
+		return refuse("binding-duplicate", pathBindingDescriptors, "an admitted binding descriptor is selected more than once")
 	}
 	raw, err := encoded(struct {
 		Descriptor json.RawMessage `json:"descriptor"`
@@ -232,7 +232,7 @@ func entryBindings(request Request, input compilationInputs, c coordinate, row s
 		}
 	}
 	if len(collector.records) > request.Limits.MaxBindingsPerEntry {
-		return nil, nil, refuse("binding-limit-exceeded", "/binding_descriptors", "entry bindings exceed the compilation limit")
+		return nil, nil, refuse("binding-limit-exceeded", pathBindingDescriptors, "entry bindings exceed the compilation limit")
 	}
 	return collector.records, collector.selected, nil
 }
@@ -242,7 +242,7 @@ func entryConfigurations(ctx context.Context, request Request, input compilation
 		return nil, err
 	}
 	if len(grouped) > request.Limits.MaxBindingsPerEntry {
-		return nil, refuse("participant-configuration-limit-exceeded", "/binding_descriptors", "participant configuration count exceeds the compilation limit")
+		return nil, refuse("participant-configuration-limit-exceeded", pathBindingDescriptors, "participant configuration count exceeds the compilation limit")
 	}
 	result := []json.RawMessage{}
 	keys := slices.SortedFunc(maps.Keys(grouped), func(a, b ParticipantManifestKey) int {
@@ -277,7 +277,7 @@ func realizeEntryConfiguration(ctx context.Context, request Request, input compi
 	configuration, err := admission.RealizeParticipantConfiguration(ctx, admission.ParticipantConfigurationRequest{ParticipantAddress: key.ParticipantAddress, Manifest: manifest, ManifestRef: key.ImplementationName, ManifestDigest: digest, Overrides: overrides, Validator: request.ParticipantConfigurationValidators[validatorKey], ControlContext: contextValidator})
 	if err != nil {
 		if category, known := fault.CategoryOf(err); known && category == fault.InvalidInput {
-			return nil, refuse("participant-configuration-rejected", "/binding_descriptors", "participant complete configuration failed owner validation")
+			return nil, refuse("participant-configuration-rejected", pathBindingDescriptors, "participant complete configuration failed owner validation")
 		}
 		return nil, err
 	}
@@ -288,15 +288,17 @@ func realizeEntryConfiguration(ctx context.Context, request Request, input compi
 	return raw, nil
 }
 
+type configurationRegistryOwner struct {
+	ID      string `json:"validator_id"`
+	Version string `json:"validator_version"`
+}
+
 //nolint:ireturn // Return the installed control-context interface without granting authority.
 func entryConfigurationContext(ctx context.Context, request Request, selected sdl.InstantiatedScenario, raw []byte) (ConfigurationValidatorKey, admission.ParticipantControlContextValidator, error) {
 	var err error
 	var metadata struct {
 		Registry struct {
-			Owner struct {
-				ID      string `json:"validator_id"`
-				Version string `json:"validator_version"`
-			} `json:"owner"`
+			Owner   configurationRegistryOwner `json:"owner"`
 			Targets map[string]struct {
 				Context json.RawMessage `json:"control_context"`
 			} `json:"targets"`
@@ -311,7 +313,7 @@ func entryConfigurationContext(ctx context.Context, request Request, selected sd
 		if !isNull(target.Context) {
 			factory := request.ParticipantControlContextFactories[validatorKey]
 			if factory == nil {
-				return ConfigurationValidatorKey{}, nil, refuse("participant-configuration-rejected", "/binding_descriptors", "participant complete configuration failed owner validation")
+				return ConfigurationValidatorKey{}, nil, refuse("participant-configuration-rejected", pathBindingDescriptors, "participant complete configuration failed owner validation")
 			}
 			contextValidator, err = configurationContextForScenario(ctx, factory, selected)
 			if err != nil {

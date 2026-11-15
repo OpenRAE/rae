@@ -50,3 +50,9 @@ const (
 const (
 	termStartedAt = "started_at"
 )
+
+const (
+	contractTrialCleanupReceipt = "trial-cleanup-receipt-v1"
+	contractExperimentRun       = "experiment-run-v1"
+	contractExperimentStudy     = "experiment-study-v1"
+)

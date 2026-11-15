@@ -85,8 +85,8 @@ type Journal interface {
 	Claim(ctx context.Context, decision Decision) (bool, error)
 }
 
-// OwnerCalls supplies the shared bounded adapter and retains workers until they drain.
-type OwnerCalls interface {
+// OwnerCaller supplies the shared bounded adapter and retains workers until they drain.
+type OwnerCaller interface {
 	Call(ctx context.Context, lane string, budget time.Duration, work func(context.Context) (any, error)) (any, error)
 }
 
@@ -96,7 +96,7 @@ type Options struct {
 	Identity                                      Identity
 	Host                                          Host
 	Journal                                       Journal
-	Calls                                         OwnerCalls
+	Calls                                         OwnerCaller
 	Clock                                         clock.Clock
 	AdmissionBudget, ExecutionBudget, StoreBudget time.Duration
 	Replacement                                   *trial.Request

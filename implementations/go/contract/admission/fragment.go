@@ -137,10 +137,10 @@ func AdmitFragment(v *Validator, profile FragmentProfile, document any, limits i
 	if err != nil {
 		return nil, fragmentInvalid()
 	}
-	if checkErr := boundedDocument(profile, data, limits); checkErr != nil {
+	if boundedDocument(profile, data, limits) != nil {
 		return nil, fragmentInvalid()
 	}
-	if checkErr := check(v, data, limits); checkErr != nil {
+	if check(v, data, limits) != nil {
 		return nil, fragmentInvalid()
 	}
 	data, err = v.trialFragmentProjection(profile, data, limits)

@@ -21,7 +21,7 @@ type apparatusReference struct {
 
 func apparatusReferenceKey(ref reference) (ApparatusManifestKey, error) {
 	if ref.Subject == nil || ref.Subject.Version == nil || ref.Version == nil || (ref.Subject.Kind != componentBackend && ref.Subject.Kind != componentProcessor) {
-		return ApparatusManifestKey{}, refuse("apparatus-manifest-reference-invalid", "/apparatus/manifest_refs", "selected apparatus manifest references require an exact processor or backend subject identity")
+		return ApparatusManifestKey{}, refuse("apparatus-manifest-reference-invalid", pathApparatusManifests, "selected apparatus manifest references require an exact processor or backend subject identity")
 	}
 	return ApparatusManifestKey{ComponentKind: ref.Subject.Kind, ComponentName: ref.Subject.ID, ComponentVersion: text(ref.Subject.Version), ManifestVersion: text(ref.Version)}, nil
 }
@@ -29,21 +29,21 @@ func resolveApparatusReference(request Request, input compilationInputs, key App
 	var result apparatusReference
 	manifest, present := request.ApparatusManifests[key]
 	if !present {
-		return result, refuse("apparatus-manifest-payload-missing", "/apparatus/manifest_refs", missingMessage)
+		return result, refuse("apparatus-manifest-payload-missing", pathApparatusManifests, missingMessage)
 	}
 	raw, metadata, backend, err := admitApparatusManifest(input.owner, key, manifest)
 	if err != nil {
 		return result, err
 	}
 	if metadata.Identity.Name != ref.ID || metadata.Identity.Name != key.ComponentName || metadata.Identity.Version != key.ComponentVersion || metadata.SchemaVersion != key.ManifestVersion {
-		return result, refuse("apparatus-manifest-identity-mismatch", "/apparatus/manifest_refs", "selected apparatus manifest identity does not match its concrete payload")
+		return result, refuse("apparatus-manifest-identity-mismatch", pathApparatusManifests, "selected apparatus manifest identity does not match its concrete payload")
 	}
 	digest, err := hash(json.RawMessage(raw))
 	if err != nil {
 		return result, err
 	}
 	if text(ref.Digest) != digest {
-		return result, refuse("apparatus-manifest-digest-mismatch", "/apparatus/manifest_refs", "selected apparatus manifest digest does not match its concrete payload")
+		return result, refuse("apparatus-manifest-digest-mismatch", pathApparatusManifests, "selected apparatus manifest digest does not match its concrete payload")
 	}
 	constructed := admission.ApparatusManifest{Backend: backend}
 	if backend == nil {
@@ -63,7 +63,7 @@ func loadApparatusSelection(request Request, input compilationInputs, refs []ref
 			return result, err
 		}
 		if _, exists := result.metadata[key]; exists {
-			return result, refuse("apparatus-manifest-duplicate", "/apparatus/manifest_refs", "selected apparatus contains duplicate concrete manifest identities")
+			return result, refuse("apparatus-manifest-duplicate", pathApparatusManifests, "selected apparatus contains duplicate concrete manifest identities")
 		}
 		admitted, err := resolveApparatusReference(request, input, key, ref, "selected apparatus manifest reference has no exact concrete payload")
 		if err != nil {
@@ -104,7 +104,7 @@ func selectedApparatus(request Request, input compilationInputs) (apparatusSelec
 }
 func admitApparatusEnvelope(request Request, apparatus apparatusBinding, selected apparatusSelection) error {
 	if len(selected.backends) == 0 {
-		return refuse("apparatus-envelope-unsupported", "/apparatus/realization_envelope", "selected backend manifests do not bind the admitted realization envelope")
+		return refuse("apparatus-envelope-unsupported", pathRealizationEnvelope, "selected backend manifests do not bind the admitted realization envelope")
 	}
 	identity, _, err := envelopeIdentity(request.RealizationEnvelope)
 	if err != nil {
@@ -112,11 +112,11 @@ func admitApparatusEnvelope(request Request, apparatus apparatusBinding, selecte
 	}
 	for key, manifest := range selected.metadata {
 		if key.ComponentKind == componentBackend && !sameJSON(manifest.Envelope, identity) {
-			return refuse("apparatus-envelope-unsupported", "/apparatus/realization_envelope", "selected backend manifests do not bind the admitted realization envelope")
+			return refuse("apparatus-envelope-unsupported", pathRealizationEnvelope, "selected backend manifests do not bind the admitted realization envelope")
 		}
 	}
 	if !sameJSON(apparatus.Envelope, identity) {
-		return refuse("realization-envelope-ref-mismatch", "/apparatus/realization_envelope", "apparatus realization-envelope identity does not match the supplied carrier")
+		return refuse("realization-envelope-ref-mismatch", pathRealizationEnvelope, "apparatus realization-envelope identity does not match the supplied carrier")
 	}
 	return nil
 }

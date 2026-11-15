@@ -6307,7 +6307,7 @@
     "docs/decisions/issue-1787-processor-design.md": "130857b7a810e0f58fd694156b7b661e613caf9d0188fa5aea8ba37ced187219",
     "docs/decisions/issue-1787-processor-semantics-preflight.md": "110613485f30ee8bd618c04b1433ce7666d8dc73182c23ed45ea0cfbb031468a",
     "docs/decisions/issue-1781-concept-profile-design.md": "a0ab2a728136f7b20f504a29701eafd8a2b540d8b190939111297381dd39a6ad",
-    "docs/decisions/issue-1788-experiments-design.md": "1505ebb7c573d692a009bc5622250d2440cdb1cafa5f85937fc317474c6b70ff",
+    "docs/decisions/issue-1788-experiments-design.md": "34c9528aeca909001591de017321570b9df0d5f88776a0c83eb96bdcfb3ee173",
     "docs/decisions/issue-1788-experiments-trials-preflight.md": "72e13a31965e84f102c3a90c810467a34cfbaa3a19755769d9695a608cbc7cd6",
     "docs/decisions/issue-1788-validator-key-decision.md": "c781e3ca480df4429459b7ef51fc932ddbf14ee500b8ed8e5cae5b4c15f271af"
   },
@@ -7049,7 +7049,7 @@
           "RealizationOptions",
           "InstantiateEntry",
           "RealizeEntry",
-          "ControlContextFactory",
+          "ControlContextProvider",
           "ReplacementRequest",
           "ReplacementResult",
           "CompileContext",
@@ -7075,7 +7075,7 @@
           "runtime"
         ],
         "declarations": "implementations/architecture-api/planned/rae/processor/trial.go.txt",
-        "declarations_sha256": "1244f9e24721469d99fde21e8bb56eb7ac0e500fe99aebf731cb56ea8d7df71a"
+        "declarations_sha256": "2dbfdcf00f1c8b80f3d212ae09a9c10af28303aa8e0a1d7cad01af37c1efddb1"
       },
       {
         "owner": "rae",
@@ -7643,7 +7643,7 @@
           "Host",
           "Decision",
           "Journal",
-          "OwnerCalls",
+          "OwnerCaller",
           "Options",
           "Progress",
           "Coordinator",
@@ -7674,7 +7674,7 @@
           "coldlight"
         ],
         "declarations": "implementations/architecture-api/planned/runtime/runtime/experiment.go.txt",
-        "declarations_sha256": "d9f699a86d5c55b6e0bfd40dc08032185135b28c008787c30067e63996b43b14"
+        "declarations_sha256": "c2dc1e742535e2997318ee92660e8236e43e1186d6ff2fda52eebafe2c66b4a8"
       }
     ],
     "commands": [

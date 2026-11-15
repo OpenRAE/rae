@@ -231,7 +231,14 @@ func replacementRoot(ctx context.Context, request ReplacementRequest) (trialPlan
 	}
 	return root, policy, nil
 }
-func contextForReplacement(request Request, root, parent trialPlan, rootEntry string, policy replacementPolicy, run replacementArchive, receipts []replacementReceipt, ordinal int) (replacementContext, error) {
+
+type replacementEvidence struct {
+	run      replacementArchive
+	receipts []replacementReceipt
+}
+
+func contextForReplacement(request Request, root, parent trialPlan, rootEntry string, policy replacementPolicy, evidence replacementEvidence, ordinal int) (replacementContext, error) {
+	run := evidence.run
 	var result replacementContext
 	if !slices.Contains(policy.Triggers, run.status) {
 		return result, replacementRefusal("not-authorized", "the authored policy does not replace this trial disposition")
@@ -241,9 +248,9 @@ func contextForReplacement(request Request, root, parent trialPlan, rootEntry st
 		return result, err
 	}
 	if !isNull(parent.ReplacementOrigin) && run.version != "1" {
-		return result, replacementRefusal("parent-invalid", "replacement parent must resolve its reserved first archival version")
+		return result, replacementRefusal(codeReplacementParentInvalid, "replacement parent must resolve its reserved first archival version")
 	}
-	receipt, err := cleanReplacementParent(parent, run, receipts)
+	receipt, err := cleanReplacementParent(parent, run, evidence.receipts)
 	if err != nil {
 		return result, err
 	}
@@ -254,7 +261,7 @@ func contextForReplacement(request Request, root, parent trialPlan, rootEntry st
 		}
 	}
 	if run.entry != expected {
-		return result, replacementRefusal("parent-invalid", "replacement parent does not match the original allocation slot")
+		return result, replacementRefusal(codeReplacementParentInvalid, "replacement parent does not match the original allocation slot")
 	}
 	originalCoordinates, err := coordinates(experiment, request.Limits)
 	if err != nil {
@@ -300,7 +307,7 @@ func replacementTask(request Request, run replacementArchive) (experimentSpec, e
 		return experimentSpec{}, err
 	}
 	if !sameJSON(a, b) {
-		return experimentSpec{}, replacementRefusal("parent-invalid", "replacement parent does not belong to the admitted experiment task")
+		return experimentSpec{}, replacementRefusal(codeReplacementParentInvalid, "replacement parent does not belong to the admitted experiment task")
 	}
 	return experiment, nil
 }

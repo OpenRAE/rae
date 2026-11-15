@@ -36,7 +36,9 @@ type trialSlot struct {
 	commitment  string
 }
 
-func (*coordinator) experimentCoordinator() {}
+func (*coordinator) experimentCoordinator() {
+	// Seals the public coordinator interface to this native owner.
+}
 func missing(v any) bool {
 	if v == nil {
 		return true

@@ -15,7 +15,7 @@ func factorialRows(request Request, spec experimentSpec, coordinates []coordinat
 		return nil, trialInvalid()
 	}
 	if design.Profile == "factorial-bindings-v1" && len(spec.RunPlan.Policies) > 0 {
-		return nil, refuse("factorial-selection-conflict", "/run_plan/selection_policies", "factorial binding selection cannot also declare selection policies")
+		return nil, refuse("factorial-selection-conflict", pathSelectionPolicies, "factorial binding selection cannot also declare selection policies")
 	}
 	var descriptors struct {
 		Descriptors []descriptor `json:"descriptors"`
@@ -53,7 +53,7 @@ func factorialRow(request Request, spec experimentSpec, c coordinate, descriptor
 		return selectionRow{}, err
 	}
 	if len(merged) != len(points) {
-		return selectionRow{}, refuse("variation-points-uncovered", "/factorial_design", "factorial bindings must cover every scenario variation point exactly once")
+		return selectionRow{}, refuse("variation-points-uncovered", pathFactorialDesign, "factorial bindings must cover every scenario variation point exactly once")
 	}
 	for _, selection := range merged {
 		if _, present := points[selection.Point]; !present {
@@ -69,7 +69,7 @@ func factorialScalarSelections(c coordinate, descriptors []descriptor, profile s
 			continue
 		}
 		if d.Value.Kind != "literal" {
-			return nil, refuse("factorial-scenario-value-unsupported", "/factorial_design", "factorial scenario bindings require literal scalar outcomes")
+			return nil, refuse("factorial-scenario-value-unsupported", pathFactorialDesign, "factorial scenario bindings require literal scalar outcomes")
 		}
 		selections = append(selections, selectionRecord{Point: d.Target.Point, Policy: profile, Kind: policyStratified, Outcome: d.Value})
 	}
@@ -102,7 +102,7 @@ func factorialTreatment(request Request, raw json.RawMessage) (selectionRecord, 
 		return selectionRecord{}, err
 	}
 	if sdl.ValidateTreatment(request.Family, fragment) != nil {
-		return selectionRecord{}, refuse("selection-treatment-rejected", "/factorial_design", "a typed selection failed authoritative scenario-family admission")
+		return selectionRecord{}, refuse("selection-treatment-rejected", pathFactorialDesign, "a typed selection failed authoritative scenario-family admission")
 	}
 	var treatment struct {
 		Target  descriptorTarget `json:"target"`
@@ -141,7 +141,7 @@ func factorialEntryBindings(request Request, input compilationInputs, c coordina
 		}
 	}
 	if work > request.Limits.MaxBindingsPerEntry {
-		return nil, nil, refuse("binding-limit-exceeded", "/binding_descriptors", "entry bindings exceed the compilation limit")
+		return nil, nil, refuse("binding-limit-exceeded", pathBindingDescriptors, "entry bindings exceed the compilation limit")
 	}
 	return result, selected, nil
 }
@@ -154,7 +154,7 @@ func factorialBindingSelection(request Request, d descriptor, row selectionRow) 
 			return nil
 		}
 	}
-	return refuse("binding-selection-mismatch", "/binding_descriptors", "factorial binding differs from the selected scenario outcome")
+	return refuse("binding-selection-mismatch", pathBindingDescriptors, "factorial binding differs from the selected scenario outcome")
 }
 
 func factorialSignature(entry trialEntry, scenario sdl.InstantiatedScenario, typed bool) (string, error) {
@@ -177,7 +177,7 @@ func validateDistinctSignatures(entries map[string]trialEntry, signatures map[st
 	for id, signature := range signatures {
 		condition := text(entries[id].Coordinate.ConditionID)
 		if prior, present := conditions[signature]; present && prior != condition {
-			return refuse("factorial-conditions-indistinguishable", "/factorial_design", "distinct factorial conditions must remain operationally distinguishable after owner resolution")
+			return refuse("factorial-conditions-indistinguishable", pathFactorialDesign, "distinct factorial conditions must remain operationally distinguishable after owner resolution")
 		}
 		conditions[signature] = condition
 	}

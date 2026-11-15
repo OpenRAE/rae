@@ -43,10 +43,10 @@ The shared runtime packages currently have declarations but no Go implementation
 #1791 adds the shared control plane after this port.
 #1792 adds the stores.
 `runtime/experiment` owns the experiment transitions and record rules.
-Its typed `Host`, `Journal`, and `OwnerCalls` interfaces form the join to the shared runtime.
+Its typed `Host`, `Journal`, and `OwnerCaller` interfaces form the join to the shared runtime.
 All three are required injected owners.
 There is no default engine or store.
-`OwnerCalls` delegates to the shared runtime's bounded call adapter.
+`OwnerCaller` delegates to the shared runtime's bounded call adapter.
 It keeps the adapter's lane capacity, retained physical slots, cancellation, and drain rules.
 The experiment package does not create a worker pool.
 Each foreign host, store, archive, and evidence call crosses this boundary.
@@ -69,6 +69,14 @@ The declaration files under `implementations/architecture-api/planned/` specify 
 Keep their existing entry points.
 The accepted validator key correction changes only the unreleased field names.
 
+The Sonar findings require small structural changes to this design.
+Constructor defaults and binary text paths use private lookup tables.
+The tables hold fixed strings and no caller data.
+Each lookup still returns fresh mutable values.
+Private record types name nested wire shapes and pair parent evidence with its receipts.
+Single-method interfaces use the names `ControlContextProvider` and `OwnerCaller`.
+Their method sets and required owners stay the same.
+
 | Package | Added interfaces and operations | Purpose |
 | --- | --- | --- |
 | `contract/admission` | `ParseExperiment`, `LoadExperiment`, `DiscoverExperiments` | Bounded experiment YAML, optional task binding, and contained file discovery. |
@@ -78,16 +86,16 @@ The accepted validator key correction changes only the unreleased field names.
 | `contract/admission` | `TrialRunInputs`, `ValidateTrialRun`, `ExperimentEvidenceInputs`, `ValidateExperimentRun`, `TrialStudyInputs`, `ValidateTrialStudy` | Reconcile plans, cleanup, runs, study membership, replacement history, and content-backed evidence. |
 | `sdl` | `Select`, `VariationOutcomes` | Delegate recorded selection and finite-domain queries to the native SDL owner. Both return native admitted values. |
 | `internal/sdl/authoring` | `Parser.FiniteVariationOutcomes` | Query the existing native domain without a compiler-local SDL model. |
-| `processor/trial` | `CompileContext`, `Readmit`, `CompileReplacement`, `ReplacementRequest`, `ReplacementResult`, `RealizationAssignmentKey`, `ControlContextFactory` | Add explicit cancellation, original-input checks, and bounded replacement history. Bind control checks to each selected scenario. |
+| `processor/trial` | `CompileContext`, `Readmit`, `CompileReplacement`, `ReplacementRequest`, `ReplacementResult`, `RealizationAssignmentKey`, `ControlContextProvider` | Add explicit cancellation, original-input checks, and bounded replacement history. Bind control checks to each selected scenario. |
 | `processor/trial` | `PlanBatchScheduleValue` | Preserve input member order for equal coordinate sort keys. The DTO wrapper uses the DTO's serialized order. |
-| `runtime/experiment` | `New`, `Coordinator`, `Options`, `Host`, `Journal`, `OwnerCalls`, `Decision`, `DecodeDecision`, `Trial`, `Observation`, `Identity`, `Progress` | Bind experiment progress to the actor, original plan, retained decisions, installed host, and bounded calls. |
+| `runtime/experiment` | `New`, `Coordinator`, `Options`, `Host`, `Journal`, `OwnerCaller`, `Decision`, `DecodeDecision`, `Trial`, `Observation`, `Identity`, `Progress` | Bind experiment progress to the actor, original plan, retained decisions, installed host, and bounded calls. |
 | `runtime/experiment` | `RunMetadata`, `RecordSource`, `Accounting`, `RecordBundle`, `EvidenceInputs`, `EvidenceReader`, `Archive`, `RecordOptions` | Keep every started run, immutable versions, protected source facts, evidence reader ownership, and archive readback. |
 
 `Compile` retains its signature and delegates to `CompileContext` with a background context.
 The context-aware operation passes cancellation to installed pure hooks.
 It does not claim forced cancellation of a hook that ignores its context.
 Live runtime calls retain the separate shared adapter boundary.
-`ControlContextFactory.ForScenario` receives the concrete selected scenario before its hook is called.
+`ControlContextProvider.ForScenario` receives the concrete selected scenario before its hook is called.
 Registry lookup uses the exact `ValidatorID` and `ValidatorVersion` pair.
 There is no implementation-name fallback.
 
@@ -246,8 +254,8 @@ A clean prose checker does not establish complete STE dictionary conformance.
 <!-- go-api implementations/go/contract/admission 33d39ab9fcfb753d5c0ecd1c8bfcccb7a061f49cf40a7a76d2a4e3cab812f2e0 -->
 <!-- go-api implementations/go/internal/sdl/authoring ba0f5f4f6335ee49bb621fdce01c3a5bcaf857cf7e1db4747cabfcca7a26a67e -->
 <!-- go-api implementations/go/sdl dfdf640c6761c5bd33b5b0d7bf013175749d5605eca6c0aeabbc12ebff4ac9a9 -->
-<!-- go-api implementations/go/processor/trial 39c9b9967a8b283a0aed9920563f269d7e401ed7fb1368a868a91af93fbd1174 -->
-<!-- go-api implementations/go/runtime/experiment 4abd2709589afddb1398b86a2ad0bdce1ad6365199f2533dbcfd19b69b3ce016 -->
+<!-- go-api implementations/go/processor/trial a5cc41ce59ae7ce0fdf342588dcf957b14dc94355fc1e69a529d00c0596881b4 -->
+<!-- go-api implementations/go/runtime/experiment f1c5fe270c3495789980c160969d1dc29973d718dad4192b44c680d7f1d4afca -->
 
 ### Archival model construction
 

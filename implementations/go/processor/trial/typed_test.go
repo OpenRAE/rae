@@ -114,7 +114,7 @@ func (v typedContextValidator) ValidateControlContextReference(_ context.Context
 func typedCompilerRequest(t *testing.T, ref referenceCompilation) Request {
 	t.Helper()
 	request := compilerRequest(t, ref.Request)
-	request.ParticipantControlContextFactories = map[ConfigurationValidatorKey]ControlContextFactory{{"participant-config", "1"}: typedContextFactory{}}
+	request.ParticipantControlContextFactories = map[ConfigurationValidatorKey]ControlContextProvider{{"participant-config", "1"}: typedContextFactory{}}
 	return request
 }
 func TestTypedCompilerMatchesIndependentConfigurationsAndStructure(t *testing.T) {

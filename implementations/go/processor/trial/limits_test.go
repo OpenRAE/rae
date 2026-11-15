@@ -73,7 +73,7 @@ func drawLimitedEntryFixture(t *testing.T, calls *int) entryCompilation {
 	t.Helper()
 	request := typedCompilerRequest(t, typedReferences(t).Cases[1])
 	request.Limits.MaxDrawsPerEntry = 1
-	request.ParticipantControlContextFactories = map[ConfigurationValidatorKey]ControlContextFactory{{"participant-config", "1"}: countingTypedFactory{calls}}
+	request.ParticipantControlContextFactories = map[ConfigurationValidatorKey]ControlContextProvider{{"participant-config", "1"}: countingTypedFactory{calls}}
 	input, err := prepareInputs(request)
 	if err != nil {
 		t.Fatal(err)

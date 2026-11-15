@@ -30,7 +30,7 @@ func coordinates(spec experimentSpec, limits Limits) ([]coordinate, error) {
 		return nil, refuse("coordinate-limit-exceeded", "/run_plan", "logical trial coordinates exceed the compilation limit")
 	}
 	if !isNull(spec.Factorial) && len(conditions) > limits.MaxProductOutputs {
-		return nil, refuse("product-limit-exceeded", "/factorial_design", "factorial conditions exceed the compilation limit")
+		return nil, refuse("product-limit-exceeded", pathFactorialDesign, "factorial conditions exceed the compilation limit")
 	}
 	result := make([]coordinate, 0, count*len(conditions))
 	for _, condition := range conditions {
@@ -61,7 +61,7 @@ func mergeSelections(a, b []selectionRecord) ([]selectionRecord, error) {
 	}
 	for _, selection := range b {
 		if seen[selection.Point] {
-			return nil, refuse("selection-point-duplicate", "/run_plan/selection_policies", "selection policies select one variation point more than once")
+			return nil, refuse("selection-point-duplicate", pathSelectionPolicies, "selection policies select one variation point more than once")
 		}
 		seen[selection.Point] = true
 		result = append(result, selection)
@@ -135,7 +135,7 @@ func staticRows(request Request, spec experimentSpec, id string, active map[stri
 	case "product":
 		return productRows(request, spec, policy, active)
 	default:
-		return nil, refuse("product-child-unsupported", "/run_plan/selection_policies/"+id, "product dimensions admit only fixed, enumerate, or nested product policies in v1")
+		return nil, refuse("product-child-unsupported", pathSelectionPolicyPrefix+id, "product dimensions admit only fixed, enumerate, or nested product policies in v1")
 	}
 }
 func productRows(request Request, spec experimentSpec, policy selectionPolicy, active map[string]bool) ([][]selectionRecord, error) {
@@ -148,7 +148,7 @@ func productRows(request Request, spec experimentSpec, policy selectionPolicy, a
 			return nil, err
 		}
 		if len(rows) > request.Limits.MaxProductOutputs/len(result) {
-			return nil, refuse("product-limit-exceeded", "/run_plan/selection_policies/"+policy.ID, "selection product exceeds the compilation limit")
+			return nil, refuse("product-limit-exceeded", pathSelectionPolicyPrefix+policy.ID, "selection product exceeds the compilation limit")
 		}
 		next, err := crossSelectionRows(result, rows)
 		if err != nil {
@@ -157,7 +157,7 @@ func productRows(request Request, spec experimentSpec, policy selectionPolicy, a
 		result = next
 	}
 	if len(result) != policy.Bound {
-		return nil, refuse("policy-cardinality-mismatch", "/run_plan/selection_policies/"+policy.ID, "selection policy output cardinality does not match its declared bound")
+		return nil, refuse("policy-cardinality-mismatch", pathSelectionPolicyPrefix+policy.ID, "selection policy output cardinality does not match its declared bound")
 	}
 	return result, nil
 }
@@ -206,7 +206,7 @@ func selectionRows(request Request, spec experimentSpec, coordinates []coordinat
 }
 func selectionPointsCovered(merged []selectionRecord, points map[string]json.RawMessage) error {
 	if len(merged) != len(points) {
-		return refuse("variation-points-uncovered", "/run_plan/selection_policies", "every family variation point must be selected exactly once")
+		return refuse("variation-points-uncovered", pathSelectionPolicies, "every family variation point must be selected exactly once")
 	}
 	for _, selection := range merged {
 		if _, present := points[selection.Point]; !present {
@@ -231,7 +231,7 @@ func coordinatePolicyRows(request Request, spec experimentSpec, id string, coord
 		var static [][]selectionRecord
 		static, err = staticRows(request, spec, policy.ID, map[string]bool{})
 		if err == nil && len(static) != len(rows) {
-			err = refuse("policy-cardinality-mismatch", "/run_plan/selection_policies/"+policy.ID, "selection policy output does not exactly cover the logical coordinates")
+			err = refuse("policy-cardinality-mismatch", pathSelectionPolicyPrefix+policy.ID, "selection policy output does not exactly cover the logical coordinates")
 		}
 		if err == nil {
 			for index := range rows {
@@ -264,7 +264,7 @@ func selectionPolicyRoots(spec experimentSpec) ([]selectionRecord, []string, err
 		}
 	}
 	if len(nonfixed) > 1 {
-		return nil, nil, refuse("policy-roots-ambiguous", "/run_plan/selection_policies", "multiple non-fixed selection policy roots are ambiguous")
+		return nil, nil, refuse("policy-roots-ambiguous", pathSelectionPolicies, "multiple non-fixed selection policy roots are ambiguous")
 	}
 	return fixed, nonfixed, nil
 }
@@ -274,14 +274,14 @@ func stratifiedRows(policy selectionPolicy, coordinates []coordinate) ([]selecti
 	for index, c := range coordinates {
 		stratum, exists := policy.Strata[text(c.ConditionID)]
 		if !exists {
-			return nil, refuse("stratum-coordinate-missing", "/run_plan/selection_policies/"+policy.ID, "a stratified policy does not cover a logical trial coordinate")
+			return nil, refuse("stratum-coordinate-missing", pathSelectionPolicyPrefix+policy.ID, "a stratified policy does not cover a logical trial coordinate")
 		}
 		counts[stratum.ID]++
 		rows[index] = selectionRow{selections: []selectionRecord{policySelection(policy, policy.Outcomes[stratum.Outcome])}, draws: []json.RawMessage{}}
 	}
 	for id, stratum := range policy.Strata {
 		if counts[id] != stratum.Count {
-			return nil, refuse("stratum-cardinality-mismatch", "/run_plan/selection_policies/"+policy.ID, "stratified output counts do not match the logical coordinate allocation")
+			return nil, refuse("stratum-cardinality-mismatch", pathSelectionPolicyPrefix+policy.ID, "stratified output counts do not match the logical coordinate allocation")
 		}
 	}
 	return rows, nil
@@ -322,7 +322,7 @@ func sampleKey(spec experimentSpec, policy selectionPolicy) (stochasticControl, 
 		}
 	}
 	if control.Executable == nil {
-		return control, randstream.Key{}, refuse("sample-control-unresolved", "/run_plan/selection_policies/"+policy.ID, "sample policy control is not executable")
+		return control, randstream.Key{}, refuse("sample-control-unresolved", pathSelectionPolicyPrefix+policy.ID, "sample policy control is not executable")
 	}
 	binding := control.Executable
 	if binding.Profile.ID != "blake3-xof-v1" || text(binding.Profile.Version) != "random-stream-profile/v1" {
@@ -365,7 +365,7 @@ func sampleRows(request Request, spec experimentSpec, policy selectionPolicy, co
 			return nil, err
 		}
 		if seen[string(raw)] {
-			return nil, refuse("sample-address-collision", "/run_plan/selection_policies/"+policy.ID, "sample policy draw addresses are not unique")
+			return nil, refuse("sample-address-collision", pathSelectionPolicyPrefix+policy.ID, "sample policy draw addresses are not unique")
 		}
 		seen[string(raw)] = true
 		draw, err := randstream.BoundedInt(key, raw, 0, big.NewInt(0), big.NewInt(int64(len(outcomes)-1)), 32)
@@ -373,7 +373,7 @@ func sampleRows(request Request, spec experimentSpec, policy selectionPolicy, co
 			return nil, err
 		}
 		if draw.Exhausted {
-			return nil, refuse("sample-rejection-exhausted", "/run_plan/selection_policies/"+policy.ID, "sample policy exhausted its bounded transform")
+			return nil, refuse("sample-rejection-exhausted", pathSelectionPolicyPrefix+policy.ID, "sample policy exhausted its bounded transform")
 		}
 		record := drawRecord{Control: control.ID, Address: address, Transform: "bounded-integer", Version: "1", Attempts: draw.Attempts}
 		record.Outcome.Kind = "public-value"

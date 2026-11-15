@@ -64,7 +64,7 @@ func admitMixedComponents(request Request, input compilationInputs, profile mixe
 			return err
 		}
 		if backend != nil && !sameJSON(metadata.Envelope, identity) {
-			return refuse("apparatus-envelope-unsupported", "/apparatus/realization_envelope", "composition backend manifest does not bind its selected realization envelope")
+			return refuse("apparatus-envelope-unsupported", pathRealizationEnvelope, "composition backend manifest does not bind its selected realization envelope")
 		}
 		selected[key] = metadata
 		refs = append(refs, ref)
@@ -89,14 +89,14 @@ func mixedComponentEnvelope(request Request, reference json.RawMessage) (json.Ra
 	}
 	envelope, ok := request.MixedRealizationEnvelopes[coordinate.ID]
 	if !ok {
-		return nil, binding.RealizationEnvelopeV1{}, refuse("apparatus-envelope-identity-mismatch", "/apparatus/realization_envelope", "composition component realization envelope is unresolved or stale")
+		return nil, binding.RealizationEnvelopeV1{}, refuse("apparatus-envelope-identity-mismatch", pathRealizationEnvelope, "composition component realization envelope is unresolved or stale")
 	}
 	identity, carrier, err := envelopeIdentity(envelope)
 	if err != nil {
 		return nil, binding.RealizationEnvelopeV1{}, err
 	}
 	if !sameJSON(identity, reference) {
-		return nil, binding.RealizationEnvelopeV1{}, refuse("apparatus-envelope-identity-mismatch", "/apparatus/realization_envelope", "composition component realization envelope is unresolved or stale")
+		return nil, binding.RealizationEnvelopeV1{}, refuse("apparatus-envelope-identity-mismatch", pathRealizationEnvelope, "composition component realization envelope is unresolved or stale")
 	}
 	return identity, carrier, nil
 }
@@ -142,11 +142,11 @@ func processorCompatibility(processor manifestMetadata, backends []manifestMetad
 		compatible := slices.Contains(processor.Compatibility.Backends, backend.Identity.Name) && slices.Contains(backend.Compatibility.Processors, processor.Identity.Name)
 		matched = matched || compatible
 		if !mixed && !compatible {
-			return refuse("apparatus-compatibility-rejected", "/apparatus/manifest_refs", "selected processor and backend manifests are not mutually compatible")
+			return refuse("apparatus-compatibility-rejected", pathApparatusManifests, "selected processor and backend manifests are not mutually compatible")
 		}
 	}
 	if !matched {
-		return refuse("apparatus-compatibility-rejected", "/apparatus/manifest_refs", "composition processor has no mutually compatible selected backend")
+		return refuse("apparatus-compatibility-rejected", pathApparatusManifests, "composition processor has no mutually compatible selected backend")
 	}
 	return nil
 }
@@ -224,7 +224,7 @@ func apparatusKindAllowlist(kind string, selected map[ApparatusManifestKey]manif
 	return nil
 }
 func apparatusAllowlistRefusal() error {
-	return refuse("apparatus-identity-not-allowed", "/apparatus/manifest_refs", "selected apparatus identity is outside its admitted kind-specific allowlist")
+	return refuse("apparatus-identity-not-allowed", pathApparatusManifests, "selected apparatus identity is outside its admitted kind-specific allowlist")
 }
 func apparatusIdentityAllowed(kind string, manifest manifestMetadata, allowed []reference) bool {
 	for _, ref := range allowed {
@@ -241,7 +241,7 @@ func requiredApparatusManifests(selected, required []reference, mixed bool) erro
 			if mixed {
 				message = "composition apparatus omits a required manifest"
 			}
-			return refuse("apparatus-manifest-missing", "/apparatus/manifest_refs", message)
+			return refuse("apparatus-manifest-missing", pathApparatusManifests, message)
 		}
 	}
 	return nil

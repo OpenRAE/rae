@@ -60,7 +60,7 @@ type Journal interface {
 	Load(ctx context.Context) ([]Decision, error)
 	Claim(ctx context.Context, decision Decision) (bool, error)
 }
-type OwnerCalls interface {
+type OwnerCaller interface {
 	Call(ctx context.Context, lane string, budget time.Duration, work func(context.Context) (any, error)) (any, error)
 }
 type Options struct {
@@ -68,7 +68,7 @@ type Options struct {
 	Identity Identity
 	Host Host
 	Journal Journal
-	Calls OwnerCalls
+	Calls OwnerCaller
 	Clock clock.Clock
 	AdmissionBudget, ExecutionBudget, StoreBudget time.Duration
 	Replacement *trial.Request

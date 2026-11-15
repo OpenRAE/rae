@@ -162,10 +162,10 @@ func TestTrialPublicBoundariesRefuseUnownedAndMalformedArtifacts(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if checkErr := ValidateTrialRunJSON(owner, plan, []byte(`{`), nil); checkErr == nil {
+	if ValidateTrialRunJSON(owner, plan, []byte(`{`), nil) == nil {
 		t.Fatal("malformed archival bytes admitted")
 	}
-	if checkErr := ValidateTrialRunJSON(owner, plan, reference.Cases[0].Run, [][]byte{[]byte(`{`)}); checkErr == nil {
+	if ValidateTrialRunJSON(owner, plan, reference.Cases[0].Run, [][]byte{[]byte(`{`)}) == nil {
 		t.Fatal("malformed cleanup bytes admitted")
 	}
 	structural := schemaOnlyTestOwner(t, owner)

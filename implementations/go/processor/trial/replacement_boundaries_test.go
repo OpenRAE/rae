@@ -115,7 +115,7 @@ func checkUncommittedReplacementBoundary(t *testing.T, first ReplacementResult, 
 		ctx = cancelled
 	}
 	state := replacementHistoryState{}
-	err := state.observe(ctx, ReplacementRequest{Compilation: compilation}, trialPlan{}, replacementPolicy{}, prior, 0, replacementArchive{}, nil)
+	err := state.observe(ctx, ReplacementRequest{Compilation: compilation}, trialPlan{}, replacementPolicy{}, prior, 0, replacementEvidence{})
 	if err == nil {
 		t.Fatal("uncommitted or unbounded history admitted")
 	}

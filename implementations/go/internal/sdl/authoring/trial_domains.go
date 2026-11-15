@@ -50,10 +50,10 @@ func finiteTrialOutcomes(point semanticVariation, maximum int) ([]json.RawMessag
 
 func namedTrialOutcomes(names []string, maximum int, kind, field string) ([]json.RawMessage, error) {
 	if len(names) == 0 {
-		return nil, trialDomainError("trial-domain-empty")
+		return nil, trialDomainError(codeTrialDomainEmpty)
 	}
 	if len(names) > maximum {
-		return nil, trialDomainError("trial-domain-limit-exceeded")
+		return nil, trialDomainError(codeTrialDomainLimit)
 	}
 	ordered := slices.Clone(names)
 	slices.Sort(ordered)
@@ -82,10 +82,10 @@ func finiteScalarTrialOutcomes(domain semanticVariationDomain, maximum int) ([]j
 		return integerTrialOutcomes(domain, maximum)
 	}
 	if len(values) == 0 {
-		return nil, trialDomainError("trial-domain-empty")
+		return nil, trialDomainError(codeTrialDomainEmpty)
 	}
 	if len(values) > maximum {
-		return nil, trialDomainError("trial-domain-limit-exceeded")
+		return nil, trialDomainError(codeTrialDomainLimit)
 	}
 	rows := make([]trialScalarOutcome, 0, len(values))
 	for _, value := range values {
@@ -132,10 +132,10 @@ func integerTrialOutcomes(domain semanticVariationDomain, maximum int) ([]json.R
 	lo, hi := domain.integers()
 	count := new(big.Int).Add(new(big.Int).Sub(hi, lo), big.NewInt(1))
 	if count.Sign() <= 0 {
-		return nil, trialDomainError("trial-domain-empty")
+		return nil, trialDomainError(codeTrialDomainEmpty)
 	}
 	if !count.IsInt64() || count.Cmp(big.NewInt(int64(maximum))) > 0 {
-		return nil, trialDomainError("trial-domain-limit-exceeded")
+		return nil, trialDomainError(codeTrialDomainLimit)
 	}
 	output := make([]json.RawMessage, 0, int(count.Int64()))
 	for current := new(big.Int).Set(lo); current.Cmp(hi) <= 0; current.Add(current, big.NewInt(1)) {
@@ -147,3 +147,8 @@ func integerTrialOutcomes(domain semanticVariationDomain, maximum int) ([]json.R
 	}
 	return output, nil
 }
+
+const (
+	codeTrialDomainEmpty = "trial-domain-empty"
+	codeTrialDomainLimit = "trial-domain-limit-exceeded"
+)

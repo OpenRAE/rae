@@ -71,19 +71,27 @@ type selectionPolicy struct {
 	Control        string   `json:"stochastic_control_ref"`
 	DescriptorRefs []string `json:"binding_descriptor_refs"`
 }
+type randomStreamEntropy struct {
+	Kind     string `json:"kind"`
+	Encoding string `json:"encoding"`
+	Value    string `json:"value"`
+}
+
 type stochasticControl struct {
 	ID         string `json:"control_id"`
 	Role       string `json:"role"`
 	Executable *struct {
-		Profile   reference `json:"profile_ref"`
-		Namespace string    `json:"namespace"`
-		Entropy   struct {
-			Kind     string `json:"kind"`
-			Encoding string `json:"encoding"`
-			Value    string `json:"value"`
-		} `json:"root_entropy"`
+		Profile   reference           `json:"profile_ref"`
+		Namespace string              `json:"namespace"`
+		Entropy   randomStreamEntropy `json:"root_entropy"`
 	} `json:"executable_binding"`
 }
+type runAllocation struct {
+	Conditions   []string                   `json:"compared_conditions"`
+	PerCondition int                        `json:"target_runs_per_condition"`
+	Assignments  map[string]json.RawMessage `json:"condition_assignments"`
+}
+
 type experimentSpec struct {
 	ID              string          `json:"spec_id"`
 	Version         string          `json:"spec_version"`
@@ -93,17 +101,13 @@ type experimentSpec struct {
 	Factorial       json.RawMessage `json:"factorial_design"`
 	ApparatusIntent json.RawMessage `json:"apparatus_intent"`
 	RunPlan         struct {
-		Count      int                        `json:"target_run_count"`
-		Policies   map[string]selectionPolicy `json:"selection_policies"`
-		Controls   []json.RawMessage          `json:"stochastic_controls"`
-		Allocation *struct {
-			Conditions   []string                   `json:"compared_conditions"`
-			PerCondition int                        `json:"target_runs_per_condition"`
-			Assignments  map[string]json.RawMessage `json:"condition_assignments"`
-		} `json:"allocation"`
-		AllocationPolicy  json.RawMessage   `json:"allocation_policy"`
-		ReplacementPolicy json.RawMessage   `json:"replacement_policy"`
-		EvidenceRelations []json.RawMessage `json:"evidence_requirement_relations"`
+		Count             int                        `json:"target_run_count"`
+		Policies          map[string]selectionPolicy `json:"selection_policies"`
+		Controls          []json.RawMessage          `json:"stochastic_controls"`
+		Allocation        *runAllocation             `json:"allocation"`
+		AllocationPolicy  json.RawMessage            `json:"allocation_policy"`
+		ReplacementPolicy json.RawMessage            `json:"replacement_policy"`
+		EvidenceRelations []json.RawMessage          `json:"evidence_requirement_relations"`
 	} `json:"run_plan"`
 }
 type executionAuthority struct {

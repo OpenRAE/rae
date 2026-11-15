@@ -14,7 +14,7 @@ those modules. A source hash identifies the reference; it does not prove coverag
 | Entry and plan identities, canonical content, and digests remain exact. | `contract/admission/trial_sealing.go`, `trial_plan.go`, and `processor/trial/plan_compile.go`. | `TestTrialSealingMatchesIndependentConstructors`, `TestCompilerMatchesIndependentPlansAndDraws`, and `TestTrialSealingKeepsExplicitByteAllowanceAboveDefault`. |
 | Selection and realization preserve recorded random draws. | Public SDL phase owners, existing random-stream owner, and `processor/trial`. | `TestInstantiationMatchesIndependentSnapshotsAndLineage`, `TestTrialRealizationUsesExistingProcessorPlans`, `TestTypedRealizationReplaysIndependentAuthoringSelections`, and mixed reference cases. |
 | Runtime records preserve starts, facts, scientific results, and histories. | `runtime/experiment/records.go`, `lineage.go`, `studies.go`, and `publication.go`. | Independent record, scientific accounting, study, replacement, and publication tests. Execution completion alone does not establish scientific validity. |
-| Runtime ownership remains identifiable for extraction. | The `runtime/experiment` package in the declared runtime layer. | Actual architecture check; required `Host`, `Journal`, and `OwnerCalls` composition. |
+| Runtime ownership remains identifiable for extraction. | The `runtime/experiment` package in the declared runtime layer. | Actual architecture check; required `Host`, `Journal`, and `OwnerCaller` composition. |
 | Engineering and architecture standards apply. | Existing Go policy, lint, architecture, and CI commands. | Changed-package lint, actual architecture check, targeted tests, documentation checks, mandatory review, and PR checks. |
 
 ## Limits and security boundaries

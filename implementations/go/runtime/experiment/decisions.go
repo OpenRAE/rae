@@ -42,7 +42,9 @@ type decision struct {
 func (d *decision) ID() string            { return d.id }
 func (d *decision) SchemaVersion() string { return d.schema }
 func (d *decision) JSON() []byte          { return bytes.Clone(d.raw) }
-func (*decision) experimentDecision()     {}
+func (*decision) experimentDecision() {
+	// Seals the public decision interface to this native owner.
+}
 func invalidDecision() error {
 	return fault.New(fault.InvalidInput, "experiment-decision-invalid", nil)
 }
@@ -164,7 +166,7 @@ func localModel(id string, v any) error {
 	if err != nil {
 		return invalidDecision()
 	}
-	if strings.HasPrefix(id, "experiment-") || id == "participant-configuration-result-v1" || id == "trial-cleanup-plan-v1" || id == "trial-cleanup-receipt-v1" {
+	if strings.HasPrefix(id, "experiment-") || id == "participant-configuration-result-v1" || id == "trial-cleanup-plan-v1" || id == contractTrialCleanupReceipt {
 		projected, projectionErr := admission.ExperimentModelProjection(owner, id, raw)
 		if projectionErr != nil {
 			return projectionErr
@@ -235,9 +237,9 @@ func validateDecision(m map[string]any, schema string) error {
 			return invalidDecision()
 		}
 	case candidateSchema, archiveSchema, studySchema:
-		field, id := termRun, "experiment-run-v1"
+		field, id := termRun, contractExperimentRun
 		if schema == studySchema {
-			field, id = termStudy, "experiment-study-v1"
+			field, id = termStudy, contractExperimentStudy
 		}
 		if !fields(m, "schema_version experiment_id "+field, "") {
 			return invalidDecision()
@@ -319,7 +321,7 @@ func validateObservationMap(m map[string]any) error {
 		return invalidDecision()
 	}
 	if v, ok := m["receipt"]; ok {
-		return localModel("trial-cleanup-receipt-v1", v)
+		return localModel(contractTrialCleanupReceipt, v)
 	}
 	return observationObligations(m)
 }
@@ -429,9 +431,9 @@ func validatePublicationDecision(m map[string]any) error {
 		return invalidDecision()
 	}
 	if m[termRun] != nil {
-		return localModel("experiment-run-v1", m[termRun])
+		return localModel(contractExperimentRun, m[termRun])
 	}
-	return localModel("experiment-study-v1", m[termStudy])
+	return localModel(contractExperimentStudy, m[termStudy])
 }
 func validateReplacementDecision(m map[string]any) error {
 	if !fields(m, "schema_version experiment_id root_entry_id ordinal plan superseded_run parent_run cleanup_receipts", "") || !identityString(m["root_entry_id"]) || integer(m["ordinal"]) < 1 || integer(m["ordinal"]) > 1000 {
@@ -449,7 +451,7 @@ func validateReplacementDecision(m map[string]any) error {
 		return err
 	}
 	for _, key := range []string{"superseded_run", "parent_run"} {
-		if err = localModel("experiment-run-v1", m[key]); err != nil {
+		if err = localModel(contractExperimentRun, m[key]); err != nil {
 			return err
 		}
 	}
@@ -458,7 +460,7 @@ func validateReplacementDecision(m map[string]any) error {
 		return invalidDecision()
 	}
 	for _, receipt := range receipts {
-		if err = localModel("trial-cleanup-receipt-v1", receipt); err != nil {
+		if err = localModel(contractTrialCleanupReceipt, receipt); err != nil {
 			return err
 		}
 	}

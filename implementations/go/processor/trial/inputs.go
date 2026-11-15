@@ -99,14 +99,14 @@ func validateCapturePins(request Request, input compilationInputs, requirements 
 	Requirements []reference `json:"evidence_requirements"`
 }) error {
 	if len(request.CaptureSpecs) != len(input.spec.Capture) {
-		return refuse("capture-spec-payload-mismatch", "/input_refs/capture_spec_refs", "capture specification references do not resolve exactly to the supplied payloads")
+		return refuse("capture-spec-payload-mismatch", pathCaptureSpecRefs, "capture specification references do not resolve exactly to the supplied payloads")
 	}
 	pins := map[string]reference{}
 	for _, ref := range input.refs.Capture {
 		pins[ref.ID] = ref
 	}
 	if len(pins) != len(request.CaptureSpecs) {
-		return refuse("capture-spec-ref-mismatch", "/input_refs/capture_spec_refs", "capture specification digests do not match the admitted payloads")
+		return refuse("capture-spec-ref-mismatch", pathCaptureSpecRefs, "capture specification digests do not match the admitted payloads")
 	}
 	wanted := map[string]reference{}
 	for _, ref := range input.spec.Capture {
@@ -160,14 +160,14 @@ func admitCapturePin(owner *admission.Validator, id string, spec binding.Experim
 		return capture, trialInvalid()
 	}
 	if ref.ID != id || capture.ID != id || text(ref.Version) != capture.Version {
-		return capture, refuse("capture-spec-payload-mismatch", "/input_refs/capture_spec_refs", "capture specification references do not resolve exactly to the supplied payloads")
+		return capture, refuse("capture-spec-payload-mismatch", pathCaptureSpecRefs, "capture specification references do not resolve exactly to the supplied payloads")
 	}
 	d, err := hash(json.RawMessage(raw))
 	if err != nil {
 		return capture, err
 	}
 	if text(pin.Version) != capture.Version || text(pin.Digest) != d {
-		return capture, refuse("capture-spec-ref-mismatch", "/input_refs/capture_spec_refs", "capture specification digests do not match the admitted payloads")
+		return capture, refuse("capture-spec-ref-mismatch", pathCaptureSpecRefs, "capture specification digests do not match the admitted payloads")
 	}
 	return capture, nil
 }
@@ -256,7 +256,7 @@ func admitApparatusManifest(owner *admission.Validator, key ApparatusManifestKey
 func retainCaptureRequirements(capture captureInputPins, known map[string]bool) error {
 	for requirement := range capture.Requirements {
 		if known[requirement] {
-			return refuse("capture-requirement-ambiguous", "/input_refs/capture_spec_refs", "capture requirement identities must be unique across admitted capture specifications")
+			return refuse("capture-requirement-ambiguous", pathCaptureSpecRefs, "capture requirement identities must be unique across admitted capture specifications")
 		}
 		known[requirement] = true
 	}

@@ -21,8 +21,8 @@ type ApparatusManifestKey = admission.ApparatusManifestKey
 // ConfigurationValidatorKey names the validator declared by a configuration registry owner.
 type ConfigurationValidatorKey struct{ ValidatorID, ValidatorVersion string }
 
-// ControlContextFactory binds an installed control-context validator to the selected scenario.
-type ControlContextFactory interface {
+// ControlContextProvider binds an installed control-context validator to the selected scenario.
+type ControlContextProvider interface {
 	ForScenario(ctx context.Context, family sdl.Scenario) (admission.ParticipantControlContextValidator, error)
 }
 
@@ -57,7 +57,7 @@ type Request struct {
 	MixedCompositionLimits                   MixedCompositionLimits
 	ParticipantConfigurationValidators       map[ConfigurationValidatorKey]admission.ParticipantConfigurationValidator
 	ParticipantControlContextValidators      map[ConfigurationValidatorKey]admission.ParticipantControlContextValidator
-	ParticipantControlContextFactories       map[ConfigurationValidatorKey]ControlContextFactory
+	ParticipantControlContextFactories       map[ConfigurationValidatorKey]ControlContextProvider
 }
 
 // Result contains a complete sealed plan or safe domain diagnostics.

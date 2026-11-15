@@ -54,7 +54,7 @@ func (c *coordinator) assembleStudy(ctx context.Context, bundle *RecordBundle, d
 	if err != nil {
 		return err
 	}
-	snapshotRaw, err = admission.ExperimentModelProjection(owner, "experiment-study-v1", snapshotRaw)
+	snapshotRaw, err = admission.ExperimentModelProjection(owner, contractExperimentStudy, snapshotRaw)
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func (c *coordinator) authoredStudy(definition binding.ExperimentStudyV1) (map[s
 	if err != nil {
 		return nil, err
 	}
-	raw, err = admission.ExperimentModelProjection(owner, "experiment-study-v1", raw)
+	raw, err = admission.ExperimentModelProjection(owner, contractExperimentStudy, raw)
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +241,7 @@ func (s *studyValidation) addRun(view map[string]any) error {
 		if err != nil {
 			return err
 		}
-		value, err := s.owner.Validate("experiment-run-v1", raw, runtimeIngress(), authority)
+		value, err := s.owner.Validate(contractExperimentRun, raw, runtimeIngress(), authority)
 		if err != nil {
 			return err
 		}
@@ -319,7 +319,7 @@ func (s *studyValidation) cleanupReceipts() error {
 			if err != nil {
 				return err
 			}
-			value, err := s.owner.Validate("trial-cleanup-receipt-v1", raw, runtimeIngress(), cleanupContext{plan})
+			value, err := s.owner.Validate(contractTrialCleanupReceipt, raw, runtimeIngress(), cleanupContext{plan})
 			if err != nil {
 				return err
 			}
@@ -350,7 +350,7 @@ func (s *studyValidation) studyModels(definition any) error {
 	if err != nil {
 		return err
 	}
-	s.inputs.Study, err = s.owner.Validate("experiment-study-v1", raw, runtimeIngress(), s.authority)
+	s.inputs.Study, err = s.owner.Validate(contractExperimentStudy, raw, runtimeIngress(), s.authority)
 	if err != nil {
 		return err
 	}
@@ -358,6 +358,6 @@ func (s *studyValidation) studyModels(definition any) error {
 	if err != nil {
 		return err
 	}
-	s.inputs.Definition, err = s.owner.Validate("experiment-study-v1", raw, runtimeIngress(), s.authority)
+	s.inputs.Definition, err = s.owner.Validate(contractExperimentStudy, raw, runtimeIngress(), s.authority)
 	return err
 }

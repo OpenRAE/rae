@@ -23,7 +23,7 @@ func allocateReplacement(ctx context.Context, request ReplacementRequest) (Repla
 	}
 	history := replacementHistoryState{parent: root}
 	for index, prior := range request.PreviousAllocations {
-		if err = history.observe(ctx, request, root, policy, prior, index, run, receipts); err != nil {
+		if err = history.observe(ctx, request, root, policy, prior, index, replacementEvidence{run, receipts}); err != nil {
 			return ReplacementResult{}, err
 		}
 	}
@@ -33,7 +33,7 @@ func allocateReplacement(ctx context.Context, request ReplacementRequest) (Repla
 	if len(request.PreviousAllocations) >= policy.Maximum {
 		return ReplacementResult{}, replacementRefusal("limit-exhausted", "the original allocation slot has exhausted its replacement limit")
 	}
-	compilation, err := contextForReplacement(request.Compilation, root, history.parent, request.RootEntryID, policy, run, receipts, len(request.PreviousAllocations)+1)
+	compilation, err := contextForReplacement(request.Compilation, root, history.parent, request.RootEntryID, policy, replacementEvidence{run, receipts}, len(request.PreviousAllocations)+1)
 	if err != nil {
 		return ReplacementResult{}, err
 	}
@@ -56,7 +56,7 @@ func validatePreviousReplacement(ctx context.Context, request ReplacementRequest
 	if err != nil {
 		return binding.AdmittedTrialPlanV1{}, oldRun, nil, err
 	}
-	compilation, err := contextForReplacement(request.Compilation, root, parent, request.RootEntryID, policy, oldRun, oldReceipts, ordinal)
+	compilation, err := contextForReplacement(request.Compilation, root, parent, request.RootEntryID, policy, replacementEvidence{oldRun, oldReceipts}, ordinal)
 	if err != nil {
 		return binding.AdmittedTrialPlanV1{}, oldRun, nil, err
 	}
@@ -139,7 +139,7 @@ type replacementHistoryState struct {
 	replay *ReplacementResult
 }
 
-func (history *replacementHistoryState) observe(ctx context.Context, request ReplacementRequest, root trialPlan, policy replacementPolicy, prior ReplacementResult, index int, run replacementArchive, receipts []replacementReceipt) error {
+func (history *replacementHistoryState) observe(ctx context.Context, request ReplacementRequest, root trialPlan, policy replacementPolicy, prior ReplacementResult, index int, evidence replacementEvidence) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -158,8 +158,8 @@ func (history *replacementHistoryState) observe(ctx context.Context, request Rep
 	if checkErr != nil {
 		return checkErr
 	}
-	if run.id == oldRun.id {
-		if !sameJSON(run.raw, oldRun.raw) || !sameReplacementReceipts(receipts, oldReceipts) {
+	if evidence.run.id == oldRun.id {
+		if !sameJSON(evidence.run.raw, oldRun.raw) || !sameReplacementReceipts(evidence.receipts, oldReceipts) {
 			return replacementRefusal("decision-conflict", "a committed replacement has different parent evidence")
 		}
 		decision, checkErr2 := replacementDecision(child, oldRun, oldReceipts)

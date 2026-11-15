@@ -19,7 +19,7 @@ func experimentBinaryDecode(text string) ([]byte, error) {
 	padding := 0
 	for _, char := range text {
 		if char > 127 {
-			return nil, experimentError("invalid-yaml")
+			return nil, experimentError(codeExperimentYAML)
 		}
 	}
 	for index := range len(text) {
@@ -37,16 +37,16 @@ func experimentBinaryDecode(text string) ([]byte, error) {
 	switch len(cleaned) % 4 {
 	case 2:
 		if padding < 2 {
-			return nil, experimentError("invalid-yaml")
+			return nil, experimentError(codeExperimentYAML)
 		}
 		cleaned = append(cleaned, '=', '=')
 	case 3:
 		if padding < 1 {
-			return nil, experimentError("invalid-yaml")
+			return nil, experimentError(codeExperimentYAML)
 		}
 		cleaned = append(cleaned, '=')
 	case 1:
-		return nil, experimentError("invalid-yaml")
+		return nil, experimentError(codeExperimentYAML)
 	default:
 	}
 
@@ -55,7 +55,7 @@ func experimentBinaryDecode(text string) ([]byte, error) {
 func decodeExperimentBase64(text []byte) ([]byte, error) {
 	decoded, err := base64.StdEncoding.DecodeString(string(text))
 	if err != nil {
-		return nil, experimentError("invalid-yaml")
+		return nil, experimentError(codeExperimentYAML)
 	}
 	return decoded, nil
 }
@@ -69,11 +69,11 @@ func (e *Validator) coerceExperimentBinary(document map[string]any) error {
 	}
 	raw, err := json.Marshal(document)
 	if err != nil {
-		return experimentError("contract-invalid")
+		return experimentError(codeExperimentContract)
 	}
 	projection, normalized, err := e.experimentConstructed(termExperimentAuthoringInputV1, raw, experimentProjectionLimits())
 	if err != nil {
-		return experimentError("contract-invalid")
+		return experimentError(codeExperimentContract)
 	}
 	allowed := map[string]bool{}
 	err = e.low.CheckInstances(termExperimentAuthoringInputV1, normalized, experimentProjectionLimits(), func(instance validation.SchemaInstance) error {
@@ -91,7 +91,7 @@ func (e *Validator) coerceExperimentBinary(document map[string]any) error {
 		return nil
 	})
 	if err != nil || len(allowed) != len(positions) {
-		return experimentError("contract-invalid")
+		return experimentError(codeExperimentContract)
 	}
 	return nil
 }
@@ -122,7 +122,7 @@ func replaceExperimentBinary(node any, path string, positions map[string]bool) e
 func replaceExperimentBinaryValue(node any, path string, positions map[string]bool) (any, error) {
 	if binary, ok := node.(experimentBinary); ok {
 		if !utf8.Valid(binary.data) {
-			return nil, experimentError("contract-invalid")
+			return nil, experimentError(codeExperimentContract)
 		}
 		positions[path] = true
 		return string(binary.data), nil

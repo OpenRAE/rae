@@ -34,7 +34,7 @@ func installedTrialOwner[T any](ctx context.Context, work func() (T, error)) (re
 	slog.ErrorContext(ctx, "installed trial owner failed", slog.String("failure_class", "foreign"))
 	return result, fault.New(fault.Operational, "trial-owner-failed", nil)
 }
-func configurationContextForScenario(ctx context.Context, factory ControlContextFactory, selected sdl.Scenario) (admission.ParticipantControlContextValidator, error) { //nolint:ireturn // Installed hook returns the public admitted context interface.
+func configurationContextForScenario(ctx context.Context, factory ControlContextProvider, selected sdl.Scenario) (admission.ParticipantControlContextValidator, error) { //nolint:ireturn // Installed hook returns the public admitted context interface.
 	return installedTrialOwner(ctx, func() (admission.ParticipantControlContextValidator, error) {
 		return factory.ForScenario(ctx, selected)
 	})

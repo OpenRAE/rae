@@ -356,7 +356,7 @@ flowchart BT
 | `github.com/OpenRAE/rae/implementations/go/sdl/language` | rae | Edit, EditResult, ApplyEdit, Completions, Diagnostics, Format | rae:contract/diagnostic, rae:sdl | environment-packs, lilrae | #1786 |
 | `github.com/OpenRAE/rae/implementations/go/processor` | rae | Compilation, Compile, CompileInstantiated, RuntimeModel, TimeModelContract, ScenarioComponentOptions, ComponentOptions, CompiledComponentOptions, CompileOptions, CompileWithOptions, CompileMaterialized, Manifest, CompiledScenario, Resource, ResourcePayload, NodeCapabilities, Definition, ObservationDemand, CaptureDemand, ExecutionPolicy, AdmitCompilation, AdmitRuntimeModel, EvaluationFacts, CapabilityConstraint, TimeDomain, Clock, TimeMapping, TimePolicy, TemporalConstraint, CompiledTimeModel, DomainTopology, ArtifactConsumer, ArtifactFacts, ServiceMaterialization, Scalar, ResolveRealization, ResolveParticipantActionArguments, ParticipantFailureClass, ParticipantActionResultViolations, ParticipantOutcomeInterpretationViolations, ParticipantTemporalStateMachineViolations, ParticipantBehaviorHistoryViolations, ParticipantJointActionViolations, GeneratedArtifactConsumers, CaptureInputs, CompileCaptureDemands, PreparedResourceContext | rae:contract/binding, rae:contract/diagnostic, rae:sdl, rae:contract/admission, rae:processor/realization | environment-packs, lilrae, runtime | #1787 |
 | `github.com/OpenRAE/rae/implementations/go/processor/planning` | rae | Plan, Result, PlanWithManifest, ExecutionPlan, Scope, Closure, ApparatusDefaultResolver, ArtifactAvailability, MixedControlAdmission, Options, RequirementKey, PlanningContext, NewMixedControlAdmission, Actions, Reconciliation, Reconcile, AssumedSnapshot, PreparedSelection, CheckPreparedSelection, CheckPreparedDelivery, SanitizePreparedSnapshot | rae:contract/admission, rae:contract/binding, rae:contract/diagnostic, rae:contract/validation, rae:processor, rae:processor/realization | environment-packs, lilrae, runtime | #1787 |
-| `github.com/OpenRAE/rae/implementations/go/processor/trial` | rae | Request, Compile, PlanBatchSchedule, ScheduledEntry, BatchSchedule, ParticipantManifestKey, ApparatusManifestKey, ConfigurationValidatorKey, Limits, MixedCompositionLimits, Result, DefaultLimits, DefaultMixedCompositionLimits, Limits.Validate, MixedCompositionLimits.Validate, RealizationInputs, Realization, RealizationOptions, InstantiateEntry, RealizeEntry, ControlContextFactory, ReplacementRequest, ReplacementResult, CompileContext, Readmit, CompileReplacement, RealizationAssignmentKey, PlanBatchScheduleValue | rae:contract/admission, rae:contract/binding, rae:contract/diagnostic, rae:contract/validation, rae:processor/planning, rae:sdl | environment-packs, lilrae, runtime | #1788 |
+| `github.com/OpenRAE/rae/implementations/go/processor/trial` | rae | Request, Compile, PlanBatchSchedule, ScheduledEntry, BatchSchedule, ParticipantManifestKey, ApparatusManifestKey, ConfigurationValidatorKey, Limits, MixedCompositionLimits, Result, DefaultLimits, DefaultMixedCompositionLimits, Limits.Validate, MixedCompositionLimits.Validate, RealizationInputs, Realization, RealizationOptions, InstantiateEntry, RealizeEntry, ControlContextProvider, ReplacementRequest, ReplacementResult, CompileContext, Readmit, CompileReplacement, RealizationAssignmentKey, PlanBatchScheduleValue | rae:contract/admission, rae:contract/binding, rae:contract/diagnostic, rae:contract/validation, rae:processor/planning, rae:sdl | environment-packs, lilrae, runtime | #1788 |
 | `github.com/OpenRAE/rae/implementations/go/processor/realization` | rae | ProjectConcern, ConcernDescriptors, HasRequiredObservationSupport, Descriptor, Requirement, Authority, Resolution, Compile, Resolve, Equivalent, SanitizeSnapshot, Decision, ResolveOptions, ValueConstraint, ProcessResourceLimit, AdmitRequirement, EvaluationOptions, Provenance, Evaluation, Evaluate, ArtifactAvailability, ArtifactSupport, SelectionAdmits, CompilePreparedNode, SanitizePreparedNodeSnapshot, PlannedAuthorityDiagnostics, PlannedRequirements, EvaluatePlanned, CleanupPlannedDiagnostics | rae:contract/admission, rae:contract/binding, rae:contract/diagnostic, rae:sdl | environment-packs, lilrae, runtime | #1787 |
 | `github.com/OpenRAE/rae/implementations/go/processor/analysis` | rae | Analyze, Request, Result | rae:contract/diagnostic, rae:processor | lilrae, runtime | #1789 |
 | `github.com/OpenRAE/rae/implementations/go/backend` | rae | Provisioner, Orchestrator, Evaluator, ParticipantRuntime, Manifest, LoadProfile, PreparingProvisioner, TimeRuntime, AutonomousActionBinding, AutonomousParticipantRuntime, ControlledAutonomousParticipantRuntime, CoordinatedParticipantResetRuntime, CoordinatedParticipantTimeRuntime, OperationProvider, ParticipantControlProvider, ParticipantControlProviderV2, ProfilePreparingProvisioner | rae:contract/admission, rae:contract/binding, rae:contract/diagnostic, rae:contract/runtime | environment-packs, lilrae, runtime | #1790 |
@@ -371,14 +371,14 @@ flowchart BT
 | `RUNTIME/runtime/profile` | runtime | ID, P0, P1, P2, P3, Capability, Claim, Declaration, StoreCapabilities, DeclarationFor, Select, RequireCapabilities, CoreCapabilities, ErrProfileUnavailable, NewStoreCapabilities, StoreCapabilities.Values, ActorBoundary, RecoveryObservationRequirement |  | coldlight, lilrae | #1791, #1792 |
 | `github.com/OpenRAE/rae/implementations/go/contract/runtime` | rae | ApplyResult, MaterializationSubmission, NewMaterializationSubmission, ParticipantActionRequest, NativeActionExecution, RealizationObservationDisclosure, ObservedOperatingSystemIdentity, ProvisionOperation, RealizationPreparation, EpisodeInitializeRequest, EpisodeResetRequest, EpisodeRestartRequest, EpisodeTerminateRequest, ParticipantActionInput, ParticipantActionApplyResult, NativeActionOutcome, PrepareForRequest, BindParticipantAction | rae:contract/admission, rae:contract/binding, rae:contract/diagnostic | lilrae, runtime | #1790 |
 | `github.com/OpenRAE/rae/implementations/go/processor/comparison` | rae | Artifact, Options, FromScenario, FromDocument, FromModule, Coordinate, BuildImpactScope, Analyze | rae:contract/admission, rae:contract/profile, rae:contract/validation, rae:sdl | environment-packs, lilrae, runtime | #1787 |
-| `RUNTIME/runtime/experiment` | runtime | Identity, Trial, Observation, Host, Decision, Journal, OwnerCalls, Options, Progress, Coordinator, RunMetadata, RecordSource, Accounting, RecordBundle, EvidenceInputs, EvidenceReader, Archive, RecordOptions, DecodeDecision, New, Phase | rae:base/clock, rae:contract/admission, rae:contract/binding, rae:processor/trial | lilrae, coldlight | #1788, #1791 |
+| `RUNTIME/runtime/experiment` | runtime | Identity, Trial, Observation, Host, Decision, Journal, OwnerCaller, Options, Progress, Coordinator, RunMetadata, RecordSource, Accounting, RecordBundle, EvidenceInputs, EvidenceReader, Archive, RecordOptions, DecodeDecision, New, Phase | rae:base/clock, rae:contract/admission, rae:contract/binding, rae:processor/trial | lilrae, coldlight | #1788, #1791 |
 
 | Executable | Publisher | Entry point | Public composition dependencies |
 | --- | --- | --- | --- |
 | `raes` | runtime | `RUNTIME/cmd/raes` | rae:command/authoring, runtime:runtime/control |
 | `raes-mcp` | rae | `github.com/OpenRAE/rae/implementations/go/cmd/raes-mcp` | rae:sdl/language, rae:processor, rae:contract/admission |
 
-<!-- go-consumer 6f34183e24bb7b8ee9acc33aaa7383aecebd90e738ac36fe6b2f04c5f4c53c34 -->
+<!-- go-consumer d0ad23ca96173a0bc07d833839956ceb26899cfdb9bf051a256fc6ca5777d1c0 -->
 
 | Trust-view evidence | SHA-256 |
 | --- | --- |
@@ -404,7 +404,7 @@ flowchart BT
 | `docs/decisions/issue-1785-sdl-operations-design.md` | `5dda1cdd8572b3c839dc28b5a4b8bb7201c8c6441cc5df4ea09b67b02d1674ba` |
 | `docs/decisions/issue-1787-processor-design.md` | `130857b7a810e0f58fd694156b7b661e613caf9d0188fa5aea8ba37ced187219` |
 | `docs/decisions/issue-1787-processor-semantics-preflight.md` | `110613485f30ee8bd618c04b1433ce7666d8dc73182c23ed45ea0cfbb031468a` |
-| `docs/decisions/issue-1788-experiments-design.md` | `1505ebb7c573d692a009bc5622250d2440cdb1cafa5f85937fc317474c6b70ff` |
+| `docs/decisions/issue-1788-experiments-design.md` | `34c9528aeca909001591de017321570b9df0d5f88776a0c83eb96bdcfb3ee173` |
 | `docs/decisions/issue-1788-experiments-trials-preflight.md` | `72e13a31965e84f102c3a90c810467a34cfbaa3a19755769d9695a608cbc7cd6` |
 | `docs/decisions/issue-1788-validator-key-decision.md` | `c781e3ca480df4429459b7ef51fc932ddbf14ee500b8ed8e5cae5b4c15f271af` |
 | `docs/decisions/issue-1799-go-governance-design.md` | `abcc366a9fba4afcd8a9e0e42af3907f5cd858249152b8eacad25b85fb91e6e7` |
@@ -415,17 +415,17 @@ flowchart BT
 | `docs/decisions/issue-2008-sdl-semantic-fixtures-design.md` | `93ee0f27747f5adce6296d00f5190a7f5b7a917d9a6ad1afaa7d1ca2554c53b6` |
 | `specs/sdl/diagnostics.md` | `422c46a1080f4dced095729967658f300520fa59b16c1923d113a758422a231e` |
 | `specs/sdl/document-model.md` | `496290792659c189242ab93923f6f50e305e383d50588a4d75269d9ade2e2970` |
-<!-- go-component base 2f91a3e394b9d31b01f85ea244d2dd98ed1958b42fdbfd71058ba7f1939a055f -->
-<!-- go-component contract 1687251498d5525a33183fbb4d55db88a60703421370189f48dfde809dbe09ff -->
-<!-- go-component sdl 2d078bb86fdc9fe85ef315fe33c3d5d749a948700a850428ca4dd88bcdcf8b2b -->
-<!-- go-component processor 7b965a4358356060d0de7b32b19941af0e958d2f302bee1d7c90d72840de241a -->
-<!-- go-component backend 62656efd2fe31c65f1bfcef9c315288ec8409b873c200ab9802b1be3fcc11b13 -->
-<!-- go-component runtime 0c2f071810fcbf17f672268b7444000f19df526cceacfdd1908cb2f30519486f -->
-<!-- go-component conformance 9cf90c247da504963d8be0e56767237bb689e8e76c04ea8425042c9c3b58052b -->
-<!-- go-component app dec619cb61459979e4306a04dd5ab488fd8267694e32cc66d493bec9d941687a -->
-<!-- go-component adapter f4ac53d2e2e5da4271b5071723a7e73f4a9ddae60461fd97ce34c22e6f0fd7a1 -->
-<!-- go-component command 0e50a286d0535bdd278d3ee0db6e58e7c332e5d412946b9aeaa7c4c3f9dd0188 -->
-<!-- go-component parity 52c35038eeec62d9241434d00380f9d0bf729ec2fd5db8054c6cdfe0b2c1e422 -->
-<!-- go-component tooling 7ce93723b5e6d47d98f757b7a8ba62d9512511de92afaf9164e3fab35edbb454 -->
+<!-- go-component base 387a122f8babcd5fc5cfd0f0d765ad6b7cd7381a0279751cbfbef408530b728c -->
+<!-- go-component contract 4b23e37b9909f56f570f5cddf9f61470fc9425f0cbfcd732b64ca675365a1b1b -->
+<!-- go-component sdl a2218cb49ca5e20b58a565884769080b0c7dd07d803359502aa1ee2d32c7d52e -->
+<!-- go-component processor 17f0ca1725e50918e26f4c901f23d4fe272fd475b4c698e56b1e2910fa815fb6 -->
+<!-- go-component backend ebdb3e34b86eb39869e7723e4e93c13c299807075e01b35420841472a0843623 -->
+<!-- go-component runtime 61ba45bea58586d331e55812b9d295acddce18c31238d12a062e78fd05ede307 -->
+<!-- go-component conformance 07cccc9987b283a96bb9b824df4297dc689dc02e85b2701423b2ba02e066e956 -->
+<!-- go-component app 8b0534765a8b6c39f3b39f8bdca3520b1e78fcf8a63df429b010455fef87b97a -->
+<!-- go-component adapter 21c5b551ff4b65880305710bd8783da2b34f0cf1135b83be548193bd604b5de4 -->
+<!-- go-component command 76f01e69e07fec0d418d0bbac474c858ccaee5caaad3aad85517873113896018 -->
+<!-- go-component parity 90d5c09eafe935985bd69be6d857d2d76a06fddd269c3f63b563a39be379ba21 -->
+<!-- go-component tooling 9cfd6696b2d341125b20140bd0058d245958cba474bc62887620bd3cd3e5a3a3 -->
 
 <!-- /go-view -->

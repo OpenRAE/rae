@@ -36,7 +36,7 @@ func ParseExperiment(data []byte, task *validation.Value) (validation.Value, err
 		return validation.Value{}, experimentError("empty-input")
 	}
 	if !utf8.Valid(data) {
-		return validation.Value{}, experimentError("invalid-yaml")
+		return validation.Value{}, experimentError(codeExperimentYAML)
 	}
 	document, err := parseExperimentYAML(data)
 	if err != nil {
@@ -51,22 +51,22 @@ func ParseExperiment(data []byte, task *validation.Value) (validation.Value, err
 	}
 	raw, err := json.Marshal(document)
 	if err != nil {
-		return validation.Value{}, experimentError("contract-invalid")
+		return validation.Value{}, experimentError(codeExperimentContract)
 	}
 	raw, err = owner.experimentProjection(termExperimentAuthoringInputV1, raw)
 	if err != nil {
-		return validation.Value{}, experimentError("contract-invalid")
+		return validation.Value{}, experimentError(codeExperimentContract)
 	}
 	var canonical any
 	if decodeExact(raw, &canonical) != nil {
-		return validation.Value{}, experimentError("contract-invalid")
+		return validation.Value{}, experimentError(codeExperimentContract)
 	}
 	if task != nil && !experimentTaskMatches(canonical, *task) {
 		return validation.Value{}, experimentError("task-reference-mismatch")
 	}
 	admitted, err := owner.low.Validate(termExperimentAuthoringInputV1, raw, ingress.Limits{MaxBytes: 32 << 20, MaxDepth: 64}, nil)
 	if err != nil {
-		return validation.Value{}, experimentError("contract-invalid")
+		return validation.Value{}, experimentError(codeExperimentContract)
 	}
 	return admitted, nil
 }
@@ -150,19 +150,19 @@ func parseExperimentYAML(data []byte) (map[string]any, error) {
 	var document yaml.Node
 	if err := decoder.Decode(&document); err != nil {
 		if errors.Is(err, io.EOF) {
-			return nil, experimentError("invalid-root")
+			return nil, experimentError(codeExperimentRoot)
 		}
-		return nil, experimentError("invalid-yaml")
+		return nil, experimentError(codeExperimentYAML)
 	}
 	var extra yaml.Node
 	if !errors.Is(decoder.Decode(&extra), io.EOF) {
-		return nil, experimentError("invalid-yaml")
+		return nil, experimentError(codeExperimentYAML)
 	}
 	if len(document.Content) == 0 {
-		return nil, experimentError("invalid-root")
+		return nil, experimentError(codeExperimentRoot)
 	}
 	if experimentHasAlias(&document) {
-		return nil, experimentError("invalid-yaml")
+		return nil, experimentError(codeExperimentYAML)
 	}
 	state := experimentYAMLState{}
 	value, err := state.node(document.Content[0], 0)
@@ -171,13 +171,13 @@ func parseExperimentYAML(data []byte) (map[string]any, error) {
 	}
 	root, ok := value.(map[string]any)
 	if !ok {
-		return nil, experimentError("invalid-root")
+		return nil, experimentError(codeExperimentRoot)
 	}
 	if state.invalidJSON {
 		return nil, experimentError("invalid-json-value")
 	}
 	if state.unsupported {
-		return nil, experimentError("contract-invalid")
+		return nil, experimentError(codeExperimentContract)
 	}
 	return root, nil
 }
@@ -197,7 +197,7 @@ func experimentHasAlias(node *yaml.Node) bool {
 
 func (s *experimentYAMLState) node(node *yaml.Node, depth int) (any, error) {
 	if depth > 512 {
-		return nil, experimentError("invalid-yaml")
+		return nil, experimentError(codeExperimentYAML)
 	}
 	switch node.Kind {
 	case yaml.MappingNode:
@@ -207,16 +207,16 @@ func (s *experimentYAMLState) node(node *yaml.Node, depth int) (any, error) {
 	case yaml.ScalarNode:
 		return s.scalar(node)
 	case yaml.DocumentNode, yaml.AliasNode:
-		return nil, experimentError("invalid-yaml")
+		return nil, experimentError(codeExperimentYAML)
 	default:
-		return nil, experimentError("invalid-yaml")
+		return nil, experimentError(codeExperimentYAML)
 	}
 }
 
 func (s *experimentYAMLState) sequence(node *yaml.Node, depth int) (any, error) {
 	if node.Tag != "!!seq" {
 		if node.Tag != "!!omap" && node.Tag != "!!pairs" {
-			return nil, experimentError("invalid-yaml")
+			return nil, experimentError(codeExperimentYAML)
 		}
 		s.unsupported = true
 		return experimentUnsupported{}, nil
@@ -247,7 +247,7 @@ func (s *experimentYAMLState) scalar(node *yaml.Node) (any, error) {
 func (s *experimentYAMLState) mapping(node *yaml.Node, depth int) (any, error) {
 	if node.Tag != "!!map" {
 		if node.Tag != "!!set" {
-			return nil, experimentError("invalid-yaml")
+			return nil, experimentError(codeExperimentYAML)
 		}
 		s.unsupported = true
 		return experimentUnsupported{}, nil
@@ -256,7 +256,7 @@ func (s *experimentYAMLState) mapping(node *yaml.Node, depth int) (any, error) {
 	seen := map[string]bool{}
 	for i := 0; i < len(node.Content); i += 2 {
 		if node.Content[i].Kind != yaml.ScalarNode {
-			return nil, experimentError("invalid-yaml")
+			return nil, experimentError(codeExperimentYAML)
 		}
 		key, err := s.node(node.Content[i], depth+1)
 		if err != nil {

@@ -95,6 +95,10 @@ type cleanupSupport struct {
 	Residual bool     `json:"supports_residual_state_disclosure"`
 }
 
+type operationSupervision struct {
+	Guarantees []string `json:"guarantees"`
+}
+
 func admitTrialControls(backend binding.BackendManifestV2, controls executionControls, template cleanupTemplate) error {
 	raw, err := encoded(backend)
 	if err != nil {
@@ -102,10 +106,8 @@ func admitTrialControls(backend binding.BackendManifestV2, controls executionCon
 	}
 	var manifest struct {
 		Capabilities struct {
-			Cleanup     *cleanupSupport `json:"cleanup"`
-			Supervision *struct {
-				Guarantees []string `json:"guarantees"`
-			} `json:"operation_supervision"`
+			Cleanup     *cleanupSupport       `json:"cleanup"`
+			Supervision *operationSupervision `json:"operation_supervision"`
 		} `json:"capabilities"`
 	}
 	if decode(raw, &manifest) != nil {

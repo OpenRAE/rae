@@ -13,6 +13,8 @@ import (
 	"github.com/OpenRAE/rae/implementations/go/sdl"
 )
 
+type mixedSourceBoundaryCase struct{ name, code string }
+
 func TestLinkedMixedSourceBindsSealedTupleInputsAndSelection(t *testing.T) {
 	ref := referenceCompilations(t)[0]
 	request := compilerRequest(t, ref.Request)
@@ -39,10 +41,7 @@ func TestLinkedMixedSourceBindsSealedTupleInputsAndSelection(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, test := range []struct {
-		name string
-		code string
-	}{
+	for _, test := range []mixedSourceBoundaryCase{
 		{"exact", ""}, {"missing-plan", "composition-source-plan-unresolved"},
 		{"unsealed-plan", "composition-source-plan-invalid"},
 		{"entry-id", "composition-source-trial-mismatch"}, {"plan-digest", "composition-source-trial-mismatch"},
@@ -51,7 +50,7 @@ func TestLinkedMixedSourceBindsSealedTupleInputsAndSelection(t *testing.T) {
 		{"task-digest", "composition-source-input-mismatch"}, {"family-input", "composition-source-input-mismatch"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			checkLinkedMixedSourceBoundary(t, request, input, pin, carrier, selected, test.name, test.code)
+			checkLinkedMixedSourceBoundary(t, request, input, pin, carrier, selected, test)
 		})
 	}
 }
@@ -365,12 +364,12 @@ func TestAuthoringReplayRejectsContradictoryProfilesCoordinatesAndBindings(t *te
 	}
 }
 
-func checkLinkedMixedSourceBoundary(t *testing.T, request Request, input compilationInputs, pin mixedSource, carrier binding.AdmittedTrialPlanV1, selected sdl.InstantiatedScenario, name, code string) {
+func checkLinkedMixedSourceBoundary(t *testing.T, request Request, input compilationInputs, pin mixedSource, carrier binding.AdmittedTrialPlanV1, selected sdl.InstantiatedScenario, test mixedSourceBoundaryCase) {
 	t.Helper()
 
 	r, in, source := request, input, pin
 	r.SourcePlans = map[string]binding.AdmittedTrialPlanV1{pin.PlanID: carrier}
-	switch name {
+	switch test.name {
 	case "missing-plan":
 		r.SourcePlans = nil
 	case "unsealed-plan":
@@ -393,14 +392,14 @@ func checkLinkedMixedSourceBoundary(t *testing.T, request Request, input compila
 		in.refs.Family.ID = "foreign-family"
 	}
 	err := validateMixedSource(r, in, source, selected)
-	if code == "" {
+	if test.code == "" {
 		if err != nil {
 			t.Fatal(err)
 		}
 		return
 	}
 	var refusal *compilationRefusalError
-	if !errors.As(err, &refusal) || refusal.code != code {
-		t.Fatalf("linked source refusal = %v, want %s", err, code)
+	if !errors.As(err, &refusal) || refusal.code != test.code {
+		t.Fatalf("linked source refusal = %v, want %s", err, test.code)
 	}
 }

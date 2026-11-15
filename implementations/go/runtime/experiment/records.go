@@ -128,7 +128,7 @@ func (r *recordCollection) slot(ctx context.Context, slot trialSlot) error {
 		return err
 	}
 	status := termPassed
-	if checkErr := r.coordinator.validateRun(ctx, source, checked, r.options.Evidence); checkErr != nil {
+	if r.coordinator.validateRun(ctx, source, checked, r.options.Evidence) != nil {
 		status = termFailed
 		r.bundle.ValidationFailures[slot.entry.RunID] = []string{"task-evidence-validation-failed"}
 	}

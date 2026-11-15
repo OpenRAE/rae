@@ -45,7 +45,7 @@ func experimentScalar(node *yaml.Node) (any, error) {
 		case "no", "false", "off":
 			return false, nil
 		default:
-			return nil, experimentError("invalid-yaml")
+			return nil, experimentError(codeExperimentYAML)
 		}
 	case "!!int":
 		return experimentInteger(node.Value)
@@ -53,7 +53,7 @@ func experimentScalar(node *yaml.Node) (any, error) {
 		return experimentFloat(node.Value)
 	case "!!timestamp":
 		if !experimentTimestamp(node.Value) {
-			return nil, experimentError("invalid-yaml")
+			return nil, experimentError(codeExperimentYAML)
 		}
 		return experimentUnsupported{key: node.Value}, nil
 	case "!!binary":
@@ -63,7 +63,7 @@ func experimentScalar(node *yaml.Node) (any, error) {
 		}
 		return experimentBinary{data: decoded}, nil
 	default:
-		return nil, experimentError("invalid-yaml")
+		return nil, experimentError(codeExperimentYAML)
 	}
 }
 
@@ -118,7 +118,7 @@ func experimentSexagesimal(result *big.Int, clean string) error {
 	for part := range strings.SplitSeq(clean, ":") {
 		n, ok := new(big.Int).SetString(part, 10)
 		if !ok {
-			return experimentError("invalid-yaml")
+			return experimentError(codeExperimentYAML)
 		}
 		result.Mul(result, big.NewInt(60))
 		result.Add(result, n)
@@ -139,10 +139,10 @@ func experimentBasedInteger(result *big.Int, clean string) error {
 		clean = clean[1:]
 	}
 	if base == 10 && len(clean) > 4300 {
-		return experimentError("invalid-yaml")
+		return experimentError(codeExperimentYAML)
 	}
 	if _, ok := result.SetString(clean, base); !ok {
-		return experimentError("invalid-yaml")
+		return experimentError(codeExperimentYAML)
 	}
 	return nil
 }
@@ -165,7 +165,7 @@ func experimentFloat(text string) (any, error) {
 	for part := range strings.SplitSeq(clean, ":") {
 		n, err := strconv.ParseFloat(part, 64)
 		if err != nil && !errors.Is(err, strconv.ErrRange) {
-			return nil, experimentError("invalid-yaml")
+			return nil, experimentError(codeExperimentYAML)
 		}
 		result = result*60 + n
 	}

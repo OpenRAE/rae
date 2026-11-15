@@ -5,7 +5,7 @@ import (
 )
 
 // ResolveBindingTarget uses the admitted variation and declaration indexes.
-func (d *Document) ResolveBindingTarget(scenarioFamilyID string, pointID string, suppliedTargetID string) (admission.ScenarioBindingResolution, error) {
+func (d *Document) ResolveBindingTarget(scenarioFamilyID, pointID, suppliedTargetID string) (admission.ScenarioBindingResolution, error) {
 	if d == nil || !d.Validated() || d.contract != expandedContract || scenarioFamilyID != text(d.semantic.root[nameField]) {
 		return admission.ScenarioBindingResolution{}, selectionInvalid()
 	}

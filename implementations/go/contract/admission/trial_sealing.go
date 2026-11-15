@@ -23,7 +23,7 @@ func SealTrialPlan(v *Validator, data []byte, limits ingress.Limits) (validation
 		return validation.Value{}, err
 	}
 	root := object(parsed)
-	order, err := trialSourceMemberOrder(string(data), "/entries")
+	order, err := trialSourceMemberOrder(string(data), pathTrialEntries)
 	if err != nil {
 		return validation.Value{}, err
 	}
@@ -78,7 +78,7 @@ func TrialPlanProjection(v *Validator, plan validation.Value, limits ingress.Lim
 	if err != nil {
 		return nil, err
 	}
-	order, err := trialSourceMemberOrder(string(plan.JSON()), "/entries")
+	order, err := trialSourceMemberOrder(string(plan.JSON()), pathTrialEntries)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func TrialEntryOrder(v *Validator, plan validation.Value) ([]string, error) {
 	if allocation := at(parsed, "allocation"); allocation != nil {
 		return stringsOf(at(allocation, "entry_order")), nil
 	}
-	order, err := trialSourceMemberOrder(string(data), "/entries")
+	order, err := trialSourceMemberOrder(string(data), pathTrialEntries)
 	if err != nil {
 		return nil, err
 	}
