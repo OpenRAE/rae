@@ -184,6 +184,34 @@ def _merged_issue_boundary(triggers: object, job: Mapping[str, Any]) -> bool:
     )
 
 
+def _queue_label_events(triggers: object) -> bool:
+    """Return whether the workflow runs only on merge-queue entry, removal, and close events."""
+
+    events = as_mapping(triggers)
+    pull_request = as_mapping(events.get("pull_request"))
+    types = pull_request.get("types")
+    return bool(
+        set(events) == {"pull_request"}
+        and set(pull_request) <= {"types", "branches"}
+        and isinstance(types, list)
+        and set(types) <= _QUEUE_LABEL_TYPES
+    )
+
+
+def _queue_label_job(job: Mapping[str, Any]) -> bool:
+    """Return whether the job runs only shell steps, with no action, container, or secret."""
+
+    steps = as_list(job.get("steps"))
+    return bool(
+        job.get("permissions") == {"issues": "write", "pull-requests": "read"}
+        and set(job) <= {"name", "runs-on", "timeout-minutes", "permissions", "steps"}
+        and job.get("runs-on") == "ubuntu-latest"
+        and steps
+        and all(set(as_mapping(step)) <= {"name", "env", "run"} for step in steps)
+        and not _secret_expressions(job)
+    )
+
+
 def _queue_label_boundary(path: str, name: str, job: Mapping[str, Any], triggers: object) -> bool:
     """Admit the issue-label write token only in the reviewed merge-queue label job (#2052).
 
@@ -192,23 +220,10 @@ def _queue_label_boundary(path: str, name: str, job: Mapping[str, Any], triggers
     secret and writes only labels through the issue labels API.
     """
 
-    if (path, name) != (_QUEUE_LABEL_WORKFLOW, "label"):
-        return False
-    events = as_mapping(triggers)
-    pull_request = as_mapping(events.get("pull_request"))
-    types = pull_request.get("types")
-    steps = as_list(job.get("steps"))
-    return bool(
-        set(events) == {"pull_request"}
-        and set(pull_request) <= {"types", "branches"}
-        and isinstance(types, list)
-        and set(types) <= _QUEUE_LABEL_TYPES
-        and job.get("permissions") == {"issues": "write", "pull-requests": "read"}
-        and set(job) <= {"name", "runs-on", "timeout-minutes", "permissions", "steps"}
-        and job.get("runs-on") == "ubuntu-latest"
-        and steps
-        and all(set(as_mapping(step)) <= {"name", "env", "run"} for step in steps)
-        and not _secret_expressions(job)
+    return (
+        (path, name) == (_QUEUE_LABEL_WORKFLOW, "label")
+        and _queue_label_events(triggers)
+        and _queue_label_job(job)
     )
 
 
