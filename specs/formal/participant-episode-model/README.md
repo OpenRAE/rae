@@ -11,12 +11,11 @@ This document is the issue #122 formal design artifact for:
 
 It is governed by **ADR-013** (participant episode lifecycle boundaries) and
 **ADR-097** (scoped participant resource budgets and shared-service fairness).
-It composes the participant behavior model (ADR-067), participant semantics
-(ADR-022), decision-epoch/state-cut semantics (ADR-095), the shared time model
+It composes the participant behavior model (ADR-067), participant semantics (ADR-022), and decision-epoch/state-cut semantics (ADR-095).
+It also composes the shared time model
 (ADR-090/091), and autonomous execution (ADR-092) into one authored, portable
-episode + budget surface. **It is a design artifact, not an implementation
-artifact**: executable SDL syntax, published schemas, validators, runtime
-carriers, and tests are owned by the spawned child issues #305-#310. All six
+episode + budget surface. **It is a design artifact, not an implementation artifact**.
+The spawned child issues #305-#310 own the executable SDL syntax, published schemas, validators, runtime carriers, and tests. All six
 requirements remain `DRAFT`; this design unblocks them.
 
 ## Why episode and budget are one design
@@ -98,12 +97,12 @@ interchangeable (mirroring the ADR-067 behavior model):
    declarations expressing participant *intent* (initialization conditions,
    turn/interaction structure, terminal and truncation conditions, reset policy,
    and interaction-budget allowances).
-2. **Realization layer** - compilation to the existing `ParticipantEpisode*`
-   contract addresses and projection of authored interaction budgets into the
-   ADR-097 canonical `ParticipantResourceBudgetPolicy` demand, plus backend
+2. **Realization layer** - compilation to the existing `ParticipantEpisode*` contract addresses.
+      It also projects authored interaction budgets into the ADR-097 canonical `ParticipantResourceBudgetPolicy` demand.
+      It also includes backend
    capability/support claims.
-3. **Evidence layer** - the ADR-013 episode state/history stream, the ADR-097
-   budget state/event/pool records in `RuntimeSnapshot`, terminal-reason events,
+3. **Evidence layer** - the ADR-013 episode state/history stream and the ADR-097 budget state/event/pool records in `RuntimeSnapshot`.
+      It also includes terminal-reason events,
    consumption events, exhaustion dispositions, and evidence refs.
 
 ## Episode domain
@@ -129,8 +128,8 @@ Design commitments:
   completion, cancellation, or teardown.
 - **Authored terminal/truncation condition vs realized reason.** The *condition*
   that should end or truncate an episode is authored intent evaluated over
-  declared conditions, propositions, temporal contracts, and evidence; the
-  realized terminal *reason* is an ADR-013 runtime fact. A condition maps to a
+  declared conditions, propositions, temporal contracts, and evidence.
+  The realized terminal *reason* is an ADR-013 runtime fact. A condition maps to a
   terminal reason only through an explicit, evidence-bearing transition.
 - **Episode terminal reason vs participant/objective/scenario outcome.** Per
   ADR-022 these remain distinct: a participant may complete its episode while
@@ -138,16 +137,15 @@ Design commitments:
   exists only through a named outcome-interpretation rule (SEM-215), never by
   equating the coordinates.
 - **RL termination/truncation closure record (fills ADR-054 I28).** When a
-  backend reports an RL/game `termination` or `truncation` signal, its relation
-  to the ADR-013 episode terminal reason is expressed as an explicit closure
-  record carrying the source signal, the mapped terminal reason, the deriving
+  backend reports an RL/game `termination` or `truncation` signal, an explicit closure record expresses its relation to the ADR-013 episode terminal reason.
+  The record carries the source signal, the mapped terminal reason, the deriving
   authority, and evidence refs. Absent that record the two remain unrelated
   coordinates.
 - **Reset/replay boundary and memory scope.** Reset/restart create a new episode
   generation and never rewrite prior history (ADR-013 §4). Every reset-scoped
   claim declares a participant-memory scope of `episode_local_reset` or
-  `persistent_across_episodes` (ADR-095 §10); decision epoch and episode-local
-  progress reset to zero, while already-delivered observations and evidence are
+  `persistent_across_episodes` (ADR-095 §10).
+  Decision epoch and episode-local progress reset to zero, while already-delivered observations and evidence are
   not retroactively erased.
 
 <!-- vale RAES.HeadingCase = NO -->
@@ -164,10 +162,9 @@ Design commitments:
   reset-related policy. It is *intent*, never an execution record: it cannot
   assert that an episode initialized, a turn was observed, a reset occurred, or a
   terminal condition was realized.
-- **Reuse of closed authoring surfaces.** Conditions, propositions/assertions,
-  temporal contracts, evidence requirements, and participant/deployment identity
-  are the existing closed refs (`SDLModel(extra="forbid")`, `parse_sdl`,
-  `SemanticValidator`) - not a new workflow language, scheduler, generic state
+- **Reuse of closed authoring surfaces.** Conditions, propositions/assertions, temporal contracts, evidence requirements, and participant/deployment identity are the existing closed refs.
+    These are `SDLModel(extra="forbid")`, `parse_sdl`, and `SemanticValidator`.
+    They are not a new workflow language, scheduler, generic state
   machine, timeout engine, or free-form policy blob. Authored conditions are
   never backend expressions, callables, or shell/env fragments.
 - **Compilation target is ADR-013.** The authored policy compiles to stable
@@ -222,7 +219,8 @@ Design commitments:
   limit produces a typed disposition (deny the action, throttle, truncate the
   episode, interrupt, or emit a `resource_exhausted` failure class). Exhaustion
   maps to an episode terminal reason (`truncated`/`interrupted`) *only* through
-  the explicit SEM-222 terminal-condition transition - it never silently becomes
+  the explicit SEM-222 terminal-condition transition.
+    It never silently becomes
   a terminal reason, backend error, or workflow state.
 - **Reuse of SEM-211.** The `resource` precondition class, the
   `resource_exhausted` failure class, and the `exhausted` constraint state are
@@ -230,8 +228,8 @@ Design commitments:
   meaning, not a new failure taxonomy.
 - **Reset scope.** An episode/segment reset resets only episode-generation-owned
   budget state. Tenant, shared-service, fleet, persistent-growth, and
-  unreconciled-reservation state follow ADR-097's typed reset/reconciliation
-  owner; an episode reset never zeroes aggregate use or releases active leases
+  unreconciled-reservation state follow ADR-097's typed reset/reconciliation owner.
+  An episode reset never zeroes aggregate use or releases active leases
   without that owner's rule.
 
 <!-- vale RAES.HeadingCase = NO -->
@@ -242,8 +240,9 @@ Design commitments:
 <!-- vale RAES.HeadingCase = YES -->
 
 - **Interaction budgets are authored allowances that project into the ADR-097
-  canonical demand**, mirroring how V1/V2 autonomous limits project with
-  `legacy_maximum` provenance - not a second interaction-budget root, generic
+  canonical demand**.
+    This mirrors how V1/V2 autonomous limits project with `legacy_maximum` provenance.
+    It is not a second interaction-budget root, generic
   `dict[str, number]` quota map, or free `max_*` field.
 - **step / turn / time / token / tool-use are distinct governed dimensions**,
   never silently substituted:
@@ -256,11 +255,10 @@ Design commitments:
   - a *tool-use* budget binds exact action-contract/execution-binding identity -
     a tool invocation is not implicitly an action unless the authoring contract
     defines that equivalence.
-- **New dimensions extend the catalog, not the schema shape.** A dimension the
-  initial catalog lacks (e.g. turn count, tool-invocation count, logical-scenario
-  time) is added through the governed `resource_kind` + `meter_profile` seam with
-  a compatible accounting mode and reset/clock basis, together with the SDL,
-  contract, compiler, schema-publication, fixture, and conformance updates ADR-097
+- **New dimensions extend the catalog, not the schema shape.** A dimension the initial catalog lacks is added through the governed `resource_kind` + `meter_profile` seam.
+    Examples are turn count, tool-invocation count, and logical-scenario time.
+    The addition uses a compatible accounting mode and reset/clock basis.
+  It also needs the SDL, contract, compiler, schema-publication, fixture, and conformance updates ADR-097
   requires - not an optional side field.
 
 <!-- vale RAES.HeadingCase = NO -->
@@ -340,7 +338,7 @@ The following fail-closed obligations apply:
 | --- | --- | --- |
 | EBM-01 | An authored episode/budget declaration is intent; runtime episode state, history, and budget accounting remain the ADR-013 / ADR-097 contract surfaces. | SEM-222, SEM-223, DSL-120, DSL-121 |
 | EBM-02 | `completed`, `timed_out`, `truncated`, `interrupted` are distinct terminal reasons; truncation is not timeout, budget exhaustion, cancellation, backend failure, or workflow completion. | SEM-222 |
-| EBM-03 | Reset/restart create a new episode generation and never rewrite history; an episode reset never zeroes tenant/shared-service/fleet/persistent budget or releases active leases without ADR-097's reset owner. | SEM-222, SEM-223, ACT-623, ACT-624 |
+| EBM-03 | Reset/restart create a new episode generation and never rewrite history. An episode reset never zeroes tenant/shared-service/fleet/persistent budget or releases active leases without ADR-097's reset owner. | SEM-222, SEM-223, ACT-623, ACT-624 |
 | EBM-04 | Authored interaction budgets project into the ADR-097 canonical demand; there is no second budget root, generic quota map, or free `max_*` field. | DSL-121, ACT-624 |
 | EBM-05 | step, turn, time, token, and tool-use are distinct governed dimensions; none is silently substituted, and host watchdog time is not a portable scenario-time quota. | DSL-121, SEM-223, ACT-624 |
 | EBM-06 | Budget exhaustion maps to an episode terminal reason only through an explicit, evidence-bearing terminal-condition transition. | SEM-222, SEM-223 |
@@ -419,16 +417,17 @@ from counters or timeout fields:
   in `specs/concept-authority/reference-models.md`) separate *termination* (a
   terminal state reached by the task's own dynamics) from *truncation* (an
   externally imposed early stop such as a time/step limit). SEM-222 preserves that
-  distinction as separate terminal reasons rather than a single "done" flag, and
-  keeps reset/replay a new-episode boundary rather than an in-place mutation.
-- **Budget / quota lineage.** Agent and participant benchmarks routinely impose
-  explicit interaction budgets - step, turn, wall/scenario time, token, and
-  tool-use limits - that materially shape behavior and how outcomes are compared.
+  distinction as separate terminal reasons rather than a single "done" flag.
+  It keeps reset/replay a new-episode boundary rather than an in-place mutation.
+- **Budget / quota lineage.** Agent and participant benchmarks routinely impose explicit interaction budgets.
+    These are step, turn, wall/scenario time, token, and tool-use limits.
+    They materially shape behavior and how outcomes are compared.
   SEM-223/DSL-121 treat those as first-class authored allowances with defined
-  exhaustion effects rather than backend-local conventions, projecting them into
-  the ADR-097 resource-budget authority so consumption, capacity, availability,
+  exhaustion effects rather than backend-local conventions.
+    They project them into the ADR-097 resource-budget authority, so consumption, capacity, availability,
   and measured use stay distinct.
 
 Both lineages are pinned through the existing concept-authority reference-model
-and lineage-ledger surfaces; child issues that add a governed dimension or term
+and lineage-ledger surfaces.
+Child issues that add a governed dimension or term
 update the matching pinned source artifact in the same change.
