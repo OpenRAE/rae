@@ -327,11 +327,37 @@ Checks that need a participant selection or a reference still written as a
 
 Compilation emits one `participant.episode-policy.<name>` record beside the
 selected participants' `participant.behavior.<agent>` episode addresses. It
-never initializes, resets, or ends an episode, and it claims no executable or
-runtime adoption.
+never initializes, resets, or ends an episode. Compilation alone claims no
+executable or runtime adoption.
 
 The [episode policy reference](../../docs/explain/sdl/participant-episode-policies.md)
 gives an authoring example, reset rules, and lineage sources.
+
+Episode structure is a first-class member of the behavior specification aggregate (ACT-623).
+A policy attaches to participants of every behavior mode, and to a specification without a behavior mode.
+The autonomous execution profile cannot contain a policy.
+The compiled aggregate names its policy through `episode_policy_address`.
+The address is empty when the specification has no policy.
+
+The decision epoch orders turns. The episode `sequence_number` orders only episode instances.
+
+Runtime adoption requires an explicit `ParticipantEpisodeRuntimeBinding` on the control plane.
+The binding holds the compiled model and one implementation selection for each governed participant.
+Each selection must agree with its manifest identity, digest, decision mode, and episode contract support.
+A plan with episode policies is applied, authorized, or admitted only under a binding that holds the exact compiled model of that plan.
+
+The runtime admits only the reset actions of the reset policy, and only terminal reasons that an authored condition produces.
+An `interrupted` stop is always admitted. A policy without a `reset_policy` admits all resets and restarts.
+These bounds apply to operator and participant requests, mixed-control lifecycle requests, and autonomous clock resets.
+The runtime refuses returned or restored episode history that violates the policy.
+It preserves ADR-013 participant identity, generation, and append-only history.
+
+Target conformance compares recorded episode history with the compiled policy.
+A missing history for a governed participant fails the check.
+A target without episode capability, or a scenario without a policy, gives `not-applicable`.
+This inspection does not show condition evaluation, memory-reset realization, or native execution.
+The [episode runtime binding guide](../../docs/explain/sdl/participant-episode-runtime-binding.md)
+explains how to install the binding and read the conformance result.
 
 ## Extending the section set
 

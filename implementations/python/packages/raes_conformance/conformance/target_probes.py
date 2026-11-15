@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from types import SimpleNamespace
 
 from raes_contracts.diagnostics import Diagnostic
@@ -13,9 +14,10 @@ from raes_contracts.participant_episode_snapshot import iter_participant_episode
 from raes_contracts.planning import PlanScope, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
-from raes_processor.models import ExecutionPlan
+from raes_processor.models import ExecutionPlan, RuntimeModel
 from raes_processor.reference import ScenarioInput
 from raes_runtime.control_plane import RuntimeControlPlane
+from raes_runtime.participant_episode_binding import ParticipantEpisodeRuntimeBinding
 from raes_runtime.registry import RuntimeTarget
 from raes_runtime.snapshot_contract import runtime_snapshot_contract_payload
 
@@ -345,12 +347,38 @@ def _hermetic_snapshot_case(
     )
 
 
+@dataclass(frozen=True)
+class TargetAdapterRun:
+    """Target-adapter probe cases and the compiled model of the probe scenario, when one was planned."""
+
+    cases: tuple[ConformanceCaseResult, ...]
+    model: RuntimeModel | None = None
+
+
 def _target_adapter_cases(
     target: RuntimeTarget,
     profile: BackendProfileSelector,
     *,
     reference_scenario: ScenarioInput | None = None,
+    participant_episode: ParticipantEpisodeRuntimeBinding | None = None,
 ) -> tuple[ConformanceCaseResult, ...]:
+    """Return only the target-adapter probe cases."""
+
+    return target_adapter_run(
+        target,
+        profile,
+        reference_scenario=reference_scenario,
+        participant_episode=participant_episode,
+    ).cases
+
+
+def target_adapter_run(
+    target: RuntimeTarget,
+    profile: BackendProfileSelector,
+    *,
+    reference_scenario: ScenarioInput | None = None,
+    participant_episode: ParticipantEpisodeRuntimeBinding | None = None,
+) -> TargetAdapterRun:
     """Run target-adapter probes appropriate for known runtime surfaces only.
 
     Every known profile requires a provisioner, so target conformance always
@@ -372,7 +400,7 @@ def _target_adapter_cases(
     cases = [target_manifest_case(target)]
     known = _to_known_profile(profile)
     if not cases[0].valid or known is None:
-        return tuple(cases)
+        return TargetAdapterRun(tuple(cases))
 
     scenario = DEFAULT_TARGET_CONFORMANCE_SCENARIO if reference_scenario is None else reference_scenario
     scope = materialization_probe_scope(target)
@@ -400,9 +428,28 @@ def _target_adapter_cases(
                 ),
             )
         )
+    elif execution_plan.model.participant_episode_policies and (
+        participant_episode is None or not participant_episode.admits_model(execution_plan.model)
+    ):
+        cases.append(
+            ConformanceCaseResult(
+                name="target-episode-binding",
+                contract_name="participant-episode-state-envelope-v1",
+                valid=False,
+                passed=False,
+                outcome="unsupported",
+                diagnostics=(
+                    _diagnostic(
+                        "conformance.participant-episode-binding-missing",
+                        "target",
+                        "The probe scenario requires its exact installed episode binding.",
+                    ),
+                ),
+            )
+        )
     else:
-        cases.extend(_target_runtime_cases(target, known, execution_plan, scope))
-    return tuple(cases)
+        cases.extend(_target_runtime_cases(target, known, execution_plan, scope, participant_episode))
+    return TargetAdapterRun(tuple(cases), execution_plan.model)
 
 
 def _target_runtime_cases(
@@ -410,12 +457,13 @@ def _target_runtime_cases(
     known: BackendCapabilityProfile,
     execution_plan: ExecutionPlan,
     scope: PlanScope | None = None,
+    participant_episode: ParticipantEpisodeRuntimeBinding | None = None,
 ) -> tuple[ConformanceCaseResult, ...]:
     """Drive the runtime surfaces that are valid for one known backend profile."""
 
     owner = ProbeRuntimeOwner(scope)
     try:
-        return _target_runtime_probe_cases(target, known, execution_plan, owner)
+        return _target_runtime_probe_cases(target, known, execution_plan, owner, participant_episode)
     finally:
         owner.close()
 
@@ -425,6 +473,7 @@ def _target_runtime_probe_cases(
     known: BackendCapabilityProfile,
     execution_plan: ExecutionPlan,
     owner: ProbeRuntimeOwner,
+    participant_episode: ParticipantEpisodeRuntimeBinding | None = None,
 ) -> tuple[ConformanceCaseResult, ...]:
     cases: list[ConformanceCaseResult] = []
     materialization_required = owner.materialization_required
@@ -435,6 +484,7 @@ def _target_runtime_probe_cases(
         initial_snapshot=_participant_execution_probe_snapshot(target),
         crossing_policy_resolver=_conformance_crossing_policy_resolver(target),
         enforce_final_sink_flow_control=False,
+        participant_episode=participant_episode,
     )
     controls = frozenset()
     with control_plane:
