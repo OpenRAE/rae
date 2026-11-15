@@ -93,12 +93,12 @@ check budget:
 B = 1 + max(|C|, sum(|D(s)| for s in S))
 ```
 
-The initial decision consumes one check. Only witness selection or core
-reduction then runs, so the former consumes at most one check per domain member
+The initial decision consumes one check. Only witness selection or core reduction then runs.
+The former consumes at most one check per domain member
 and the latter at most one per clause. Exhausting this derived budget is an
 operational failure. The reference implementation SHALL preserve phase, check
-count, check budget, 5000 ms operation timeout, and bounded solver reason on its
-operational-error boundary; it SHALL NOT emit partial evidence.
+count, check budget, 5000 ms operation timeout, and bounded solver reason on its operational-error boundary.
+It SHALL NOT emit partial evidence.
 
 For a satisfiable model, the witness SHALL select the first feasible value for
 each symbol in canonical symbol and domain order while preserving previous
@@ -137,8 +137,8 @@ The executable corpus contains satisfiable, unsatisfiable, and unsupported
 controls. Passing replay demonstrates the implementation's result for this
 finite profile and the pinned artifacts only.
 
-It does not demonstrate arbitrary-SDL satisfiability, translation completeness
-outside the table, backend realizability, execution success, exploit-path
+It does not demonstrate arbitrary-SDL satisfiability, translation completeness outside the table, backend realizability, or execution success.
+It does not demonstrate exploit-path
 validity, temporal properties, uniqueness, optimality, independent Z3 proof
 verification, or universal soundness/completeness. New sorts, targets, theories,
 encodings, solver versions, witness orders, core algorithms, or evidence meaning

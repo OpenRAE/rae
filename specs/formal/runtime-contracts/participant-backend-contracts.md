@@ -47,19 +47,19 @@ semantics. All models are closed-world: unknown fields are rejected.
 
 | Contract id | Carries | Spec basis |
 | --- | --- | --- |
-| `participant-lifecycle-event-v1` | Action attempts and lifecycle boundary records: phase, phase realization, admission disposition, action/contract/command refs, actor provenance, action-validity basis, shared-state read/write refs, attribution-edge refs, outcome-interpretation refs, mapping loss (+ detail) | ADR-054 `LifecycleEnvelope`; SEM-208/211/212/215 |
+| `participant-lifecycle-event-v1` | Action attempts and lifecycle boundary records: phase, phase realization, admission disposition, action/contract/command refs, and actor provenance. Also action-validity basis, shared-state read/write refs, attribution-edge refs, outcome-interpretation refs, mapping loss (+ detail) | ADR-054 `LifecycleEnvelope`; SEM-208/211/212/215 |
 | `participant-observation-envelope-v1` | Participant-visible observations: visibility projection, information guarantee, declared delivery point (`delivery_basis`, `delivery_point_ref`, `delivered_at`), evidence-scoped hidden/centralized state refs, loss descriptor, stochastic context, reconstruction refs | ADR-054 `ObservationEnvelope`; SEM-210 |
 | `participant-shared-state-record-v1` | State-change reports: state address/scope/kind, revision, digest, predecessor revisions, conflict policy, visibility projection basis, provenance, value ref, embedded access records | ADR-054 `SharedStateRecord` + `SharedStateAccess`; RUN-307 |
 
 <!-- vale RAES.HeadingCase = YES -->
 
 State snapshots and histories are already carried by `runtime-snapshot-v1`,
-`participant-episode-state-envelope-v1`, and the participant episode/behavior
-history event streams; those carriers are ratified as the `API-406` snapshot
+`participant-episode-state-envelope-v1`, and the participant episode/behavior history event streams.
+Those carriers are ratified as the `API-406` snapshot
 and history surface and are unchanged by this design. Operation records, step
 signals, interaction contexts, joint actions, and time-management contexts
-remain ADR-054 surfaces owned by the `RUN-30x` implementation issues; the
-carriers above reference them and do not absorb them.
+remain ADR-054 surfaces owned by the `RUN-30x` implementation issues.
+The carriers above reference them and do not absorb them.
 
 All enumerated fields use the closed vocabularies of the participant-runtime
 spec exactly: `LifecyclePhase`, `PhaseRealization`, `AdmissionDisposition`,
@@ -83,9 +83,9 @@ be expressible as valid data:
 ## API-405 - capability declaration (ratified)
 
 The `backend-manifest/v2` `capabilities.participant_runtime` block shipped by
-PR #405 is the participant capability declaration surface: governed
-participant roles, behavior features, and interaction features from
-`controlled-vocabularies-v1`, the `x-<owner>:<term>` governed extension rule,
+PR #405 is the participant capability declaration surface.
+It has governed participant roles, behavior features, and interaction features from `controlled-vocabularies-v1`.
+It also has the `x-<owner>:<term>` governed extension rule,
 and the term-level evidence criteria in
 `raes_backend_protocols.capabilities.PARTICIPANT_RUNTIME_CAPABILITY_REQUIRED_CONTRACTS`.
 This design ratifies that surface without amendment. See the API-405 section
@@ -112,8 +112,9 @@ is embedded in `runtime-snapshot-v1.participant_execution_services`. These
 carriers do not merge participant episode lifecycle, scheduler continuation,
 or shared-clock state. Conditional live conformance is required because
 schema-valid declarations cannot establish native action behavior. The shared
-runtime does not manufacture lifecycle transitions: a backend-owned control
-operation must coordinate those incumbent surfaces, and changed typed
+runtime does not manufacture lifecycle transitions.
+A backend-owned control operation must coordinate those incumbent surfaces.
+Changed typed
 readback plus new evidence must validate each successful operation.
 
 <!-- vale RAES.HeadingCase = NO -->
@@ -177,8 +178,8 @@ Missing post-effect readback leaves the operation indeterminate, without a claim
 
 The existing four support levels and separate constraint, limitation,
 disclosure, and evidence references retain their meanings. A weaker admitted
-mapping records its authorized loss and evidence only after correlated
-execution; unknown or partial effects use the shared operation lifecycle,
+mapping records its authorized loss and evidence only after correlated execution.
+Unknown or partial effects use the shared operation lifecycle,
 not a new manifest support level. Shared time capabilities govern the named
 clock mapping and comparison without requiring one physical clock or a
 physical-OT timing guarantee. Installed bindings are trusted runtime inputs
@@ -211,13 +212,13 @@ observation, handoff, or owner-readback fact for one invocation of the
   leaving and joining components and their native ownership references, and
   its clocks and mapping resolve in the trusted time model.
 - Each role in one binding has its own service. No two of the bridge or
-  transfer service, the coordinator, and the readers share a service reference
-  or a digest, so a binding that pins one service to two roles is invalid.
+  transfer service, the coordinator, and the readers share a service reference or a digest.
+  Thus a binding that pins one service to two roles is invalid.
 - A shared request commits to one binding through its content-bound `command`,
   is addressed to the pinned bridge or transfer service, and uses the
   binding's operation kind. The binding reference digest and each stage-report
-  citation digest are SHA-256 over RFC 8785 canonical JSON of the complete
-  validated model, including materialized defaults and null values.
+  citation digest are SHA-256 over RFC 8785 canonical JSON of the complete validated model.
+  The model includes materialized defaults and null values.
 - Stage reports repeat the invocation binding and request digest and report
   each stage at most once. A report's `sequence` is its stage's fixed chain
   position: time grant 1, execution or handoff 2, delivery or owner readback
@@ -273,10 +274,9 @@ A declaration is never proof of realization, isolation, monitor independence,
 non-collusion, flow propagation, or sink enforcement. Missing, contradictory,
 or evidence-free declarations are deny-equivalent; a weakened claim never
 retains the stronger effective level without an explicitly authorized downgrade
-(policy plus provenance references). Distinct model or process identities are
-not independence evidence, and a quarantine, gateway, sanitizer, or monitor is
-never the sole enforcement point — the RUN-319 final-sink boundary must still
-permit the exact effect. Backend realization of these terms remains
+(policy plus provenance references). Distinct model or process identities are not independence evidence.
+A quarantine, gateway, sanitizer, or monitor is never the sole enforcement point.
+The RUN-319 final-sink boundary must still permit the exact effect. Backend realization of these terms remains
 `not-established` in the ASR-536 evaluation program until conformance evidence
 is bound to the exact `sem-233/rev1` profile.
 
@@ -303,12 +303,12 @@ A nested record for another participant or episode is therefore unrepresentable 
 Projected record shapes must match their recorded source contracts field-for-field, apart from the removed scope fields.
 A divergence is a defect (PRT-19).
 
-The scope binding is recursive. Behavior events cite recorded semantic
-records — action results and their precondition results, attribution edges,
-outcome interpretations — that legitimately carry their own
+The scope binding is recursive. Behavior events cite recorded semantic records: action results and their precondition results, attribution edges, and outcome interpretations.
+These records legitimately carry their own
 `participant_address`/`episode_id` because they are recorded contracts, not
 view projections. A valid history view requires every such nested scope field
-to equal the view scope; a one-participant view cannot smuggle another
+to equal the view scope.
+A one-participant view cannot smuggle another
 participant's or episode's records through nested semantic payloads. This is
 a semantic-gate obligation (model-level validation with negative tests), not
 a schema-shape rule.
@@ -323,9 +323,8 @@ Rules:
   contracts;
 - `participant-context-view-v1` carries the governed `view_ref`, the
   `derived_from_refs` provenance, an optional `payload_ref`, and the SEM-214
-  meaning/comparability envelope. A context view must declare its
-  `meaning_ref`, participant-local scope, audience scope, observation point,
-  consumed source layers, transformation rule, evidence/provenance basis,
+  meaning/comparability envelope. A context view must declare its `meaning_ref`, participant-local scope, audience scope, and observation point.
+  It must also declare consumed source layers, transformation rule, evidence/provenance basis,
   semantic limitations, and comparability class/basis. Hidden/global source
   layers, future-state sources, participant-local state presented as
   audience-neutral, and weakened backend comparability claims without a

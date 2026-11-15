@@ -38,13 +38,12 @@ The manifest is closed and contains:
 Scenario scope permits only `scenario` and `scenario-snapshot`. A generic
 scenario reference is id-only. A snapshot may bind version and the incumbent
 canonical SDL digest. Experiment scope permits only `task`, `authoring-input`,
-`apparatus-context`, `run`, and `study`. Experiment parent references may bind
-id and version but MUST NOT carry a digest or path until that parent family has
+`apparatus-context`, `run`, and `study`. Experiment parent references may bind id and version.
+They MUST NOT carry a digest or path until that parent family has
 a normative canonical payload profile and concrete-payload validator.
 
-Every artifact entry reuses the `ExperimentArtifactRefModel` shape: stable
-`artifact_id`, closed role, media type, absolute non-secret URI, checksum, byte
-size, creation time, source assertion, applicable evidence/provenance links,
+Every artifact entry reuses the `ExperimentArtifactRefModel` shape: stable `artifact_id`, closed role, media type, absolute non-secret URI, and checksum.
+It also has byte size, creation time, source assertion, applicable evidence/provenance links,
 sensitivity, and optional description. URI is a locator, not integrity
 evidence. It MUST NOT contain userinfo or secret-bearing query fields.
 
@@ -59,9 +58,9 @@ Within one manifest:
 - the same checksum under distinct ids is permitted only when the remaining
   descriptors deliberately express distinct roles or locators.
 
-No attachment is inherited. Scenario attachment does not imply task
-attachment; task attachment does not imply authoring-input, apparatus, run, or
-study attachment; and study membership does not import member attachments.
+No attachment is inherited. Scenario attachment does not imply task attachment.
+Task attachment does not imply authoring-input, apparatus, run, or study attachment.
+Study membership does not import member attachments.
 Another attachment requires another conforming manifest naming that parent.
 
 ## 3. Set canonicalization
@@ -108,8 +107,8 @@ The validator MUST:
 2. recompute and compare the set digest;
 3. reject missing, extra, digest-only, path-only, URI-only, or boolean bindings;
 4. stream each reader, recompute checksum and byte size, and compare both; and
-5. enforce caller-supplied artifact-count, per-artifact-byte, and total-byte
-   limits, rejecting declared excess before reading and reading at most the
+5. enforce caller-supplied artifact-count, per-artifact-byte, and total-byte limits.
+   Reject declared excess before reading, and read at most the
    declared size plus one byte for mismatch detection.
 
 The validator MUST NOT acquire URIs, traverse directories, extract archives,

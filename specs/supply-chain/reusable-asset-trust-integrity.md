@@ -85,8 +85,8 @@ Its shape per family:
   source-module signatures (recommended). Scenario *identity* stays distinct
   from scenario-snapshot *integrity*.
 - **associated_artifact_set** — integrity via the derived
-  `associated-artifact-set/v1` parent-plus-reference-set digest (required) and
-  concrete payload checksums (required); an optional downstream signature over
+  `associated-artifact-set/v1` parent-plus-reference-set digest (required) and concrete payload checksums (required).
+  An optional downstream signature over
   the derived set digest is independent authenticity evidence. Associated
   payloads do not change parent integrity.
 - **sdl_module** — integrity via lockfile digest pin (required), provenance via
