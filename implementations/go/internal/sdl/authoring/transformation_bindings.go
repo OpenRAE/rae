@@ -17,8 +17,8 @@ func conceptSubjects(document *Document, digest string) []concept.Subject {
 	}
 	result := []concept.Subject{}
 	for _, address := range slices.Sorted(maps.Keys(document.semantic.index.declarations)) {
-		declaration := document.semantic.index.declarations[address]
-		result = append(result, concept.Subject{SubjectKind: declaration.collisionKind, OwningContractID: authoringContract, LifecyclePhase: phase, CanonicalRef: address, ArtifactDigest: digest})
+		ownerDeclaration := document.semantic.index.declarations[address]
+		result = append(result, concept.Subject{SubjectKind: ownerDeclaration.collisionKind, OwningContractID: authoringContract, LifecyclePhase: phase, CanonicalRef: address, ArtifactDigest: digest})
 	}
 	for node, raw := range object(document.semantic.root[nodesSection]) {
 		for _, rawApplication := range array(object(object(raw)["runtime"])["applications"]) {

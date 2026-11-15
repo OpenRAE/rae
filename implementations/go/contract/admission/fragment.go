@@ -137,10 +137,14 @@ func AdmitFragment(v *Validator, profile FragmentProfile, document any, limits i
 	if err != nil {
 		return nil, fragmentInvalid()
 	}
-	if err := boundedDocument(profile, data, limits); err != nil {
+	if checkErr := boundedDocument(profile, data, limits); checkErr != nil {
 		return nil, fragmentInvalid()
 	}
-	if err := check(v, data, limits); err != nil {
+	if checkErr := check(v, data, limits); checkErr != nil {
+		return nil, fragmentInvalid()
+	}
+	data, err = v.trialFragmentProjection(profile, data, limits)
+	if err != nil {
 		return nil, fragmentInvalid()
 	}
 	return fragment{profile: profile, data: data}, nil
@@ -243,7 +247,7 @@ func fragmentChecks() map[FragmentProfile]fragmentCheck {
 		controlV2  = "participant-control-evaluation-v2"
 		crossing   = "participant-crossing-occurrence-v1"
 		plan       = "provisioning-plan-v1"
-		experiment = "experiment-run-v1"
+		experiment = termExperimentRunV1
 	)
 	checks := map[FragmentProfile]fragmentCheck{
 		ResolvedImportProvenance:               publishedModel(def(termInstantiatedScenarioV1, "ResolvedImportProvenance")),
@@ -251,11 +255,11 @@ func fragmentChecks() map[FragmentProfile]fragmentCheck {
 		ComparisonCoordinate:                   comparisonCoordinateFragment,
 		ComparisonImpactScope:                  comparisonImpactScopeFragment,
 		ArtifactSatisfaction:                   publishedModel(def(termRuntimeSnapshotV1, "ArtifactSatisfactionDisclosureModel")),
-		ExperimentEvidenceRequirementRelation:  publishedModel(def(experiment, "ExperimentEvidenceRequirementRelationModel")),
+		ExperimentEvidenceRequirementRelation:  publishedModel(def(experiment, termExperimentEvidenceRequirementRelationModel)),
 		EffectiveObservationDemand:             publishedModel(def(plan, "EffectiveObservationDemand")),
-		TrialInputRefs:                         publishedModel(def(trialPlan, "AdmittedTrialPlanInputRefsModel")),
-		TrialApparatus:                         publishedModel(def(trialPlan, "AdmittedApparatusBindingModel")),
-		AdmittedMixedCompositionBinding:        publishedModel(def(trialPlan, "AdmittedMixedCompositionBindingModel")),
+		TrialInputRefs:                         publishedModel(def(trialPlan, modelTrialInputRefs)),
+		TrialApparatus:                         publishedModel(def(trialPlan, modelTrialApparatus)),
+		AdmittedMixedCompositionBinding:        publishedModel(def(trialPlan, modelTrialMixedApparatus)),
 		TrialExecutionControls:                 publishedModel(def(trialPlan, "AdmittedExecutionControlModel")),
 		RealizationRequirement:                 publishedModel(def(plan, "ResolvedRealizationAuthorityModel")),
 		RealizationSupport:                     publishedModel(def(termBackendManifestV2, "RealizationSupportDeclarationModel")),
@@ -285,7 +289,7 @@ func fragmentChecks() map[FragmentProfile]fragmentCheck {
 		OpacityEnforcement:                     publishedModel(def(crossing, "ParticipantOpacityRuntimeEnforcementBindingModel")),
 		ControlRealizationBinding:              publishedModel(def(controlV1, "ControlRealizationBindingModel")),
 		TrialProcessorPlanReference:            publishedModel(def(experiment, "TrialProcessorPlanReferenceModel")),
-		CleanupObligationResult:                publishedModel(def("trial-cleanup-receipt-v1", "CleanupObligationResultModel")),
+		CleanupObligationResult:                publishedModel(def(termTrialCleanupReceiptV1, termCleanupObligationResultModel)),
 	}
 	maps.Copy(checks, portChecks())
 	return checks

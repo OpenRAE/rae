@@ -61,7 +61,7 @@ func (n *literalNormalizer) admitCollectionProfiles(budget *constraintAdmission)
 			n.fail("invalid", "", "Collection profile metadata is invalid.")
 			break
 		}
-		owner, err := normalizationOwner()
+		owner, err := packagedAdmission()
 		if err != nil {
 			return err
 		}

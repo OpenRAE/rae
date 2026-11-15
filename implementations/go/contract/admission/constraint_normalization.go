@@ -7,7 +7,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
 	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
@@ -48,8 +47,6 @@ type RealizationConstraintBuildResult struct {
 	Document    Fragment
 	Diagnostics []diagnostic.Diagnostic
 }
-
-var normalizationOwner = sync.OnceValues(New) //nolint:gochecknoglobals // The packaged validator has no request state.
 
 func normalizationFailure(status, pointer, message string) RealizationConstraintBuildResult {
 	return RealizationConstraintBuildResult{Status: status, Diagnostics: []diagnostic.Diagnostic{{Code: "realization." + status, Domain: "realization", Address: pointer, Message: message, Severity: termError}}}
@@ -119,7 +116,7 @@ func NormalizeRealizationLiteral(input Fragment, semanticProfile string, default
 		return *n.failure, nil
 	}
 	document := map[string]any{termContractID: termRecursiveRealizationConstraintV1, termSemanticProfile: semanticProfile, termDefaultClosure: normalizationClosure(defaultClosure), "scopes": scopes, "root": root, "definitions": map[string]any{}}
-	owner, err := normalizationOwner()
+	owner, err := packagedAdmission()
 	if err != nil {
 		return RealizationConstraintBuildResult{}, err
 	}
@@ -206,7 +203,7 @@ func (n *literalNormalizer) contentNode(input any, semanticPointer, sourcePointe
 		}
 		return n.sequenceNode(source, semanticPointer, sourcePointer, depth)
 	default:
-		return map[string]any{termKind: kindLiteral, "value": input}
+		return map[string]any{termKind: kindLiteral, termValue: input}
 	}
 }
 

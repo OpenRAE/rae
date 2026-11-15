@@ -1,0 +1,1990 @@
+{
+  "cases": [
+    {
+      "name": "canonical-alias-collapse",
+      "request": {
+        "family": {
+          "name": "compiler-family",
+          "variables": {
+            "payload_path": {
+              "type": "string",
+              "default": "/opt/a",
+              "allowed_values": [
+                "/opt/a",
+                "/opt/b"
+              ]
+            }
+          },
+          "nodes": {
+            "primary": {
+              "type": "compute",
+              "os": "linux",
+              "resources": {
+                "ram": "1 gib",
+                "cpu": 1
+              }
+            }
+          },
+          "content": {
+            "payload": {
+              "type": "file",
+              "target": "primary",
+              "path": "${payload_path}"
+            }
+          },
+          "variation_points": {
+            "payload-path": {
+              "kind": "parameter",
+              "target": {
+                "kind": "variable",
+                "variable": "payload_path"
+              },
+              "domain": {
+                "kind": "enum",
+                "values": [
+                  "/opt/b",
+                  "/opt/a"
+                ]
+              }
+            }
+          }
+        },
+        "experiment": {
+          "schema_version": "experiment-authoring-input/v1",
+          "spec_id": "spec-techvault-red-tactic-sweep-v1",
+          "spec_version": "1.0.0",
+          "title": "TechVault red-tactic sweep",
+          "description": "Pre-run design comparing aggressive vs stealthy red tactics over the fixed TechVault task, with seeded replication.",
+          "task_ref": {
+            "ref_kind": "task",
+            "ref_id": "task-techvault-red-team-v1",
+            "ref_version": "1.0.0"
+          },
+          "run_plan": {
+            "stochastic_controls": [],
+            "episode_control": {
+              "turn_order": "sequential",
+              "termination_rule": "Terminate each episode after 100 logical steps (fixed horizon).",
+              "max_steps": 100,
+              "termination_condition_refs": [],
+              "description": "Fixed-horizon episode with sequential turns."
+            },
+            "allocation": {
+              "allocation_unit": "run",
+              "allocation_method": "factorial-bindings-v1",
+              "compared_conditions": [
+                "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+                "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+                "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+                "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56"
+              ],
+              "condition_assignments": {
+                "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80": {
+                  "condition_id": "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+                  "factor_levels": {
+                    "agent": "cold",
+                    "path": "a"
+                  },
+                  "difficulty_condition": "fixed",
+                  "difficulty_policy_id": null,
+                  "required_refs": [],
+                  "required_parameters": [],
+                  "required_bindings": [
+                    {
+                      "binding_id": "binding-3cc5400aac1e72da2a61e43916d5512a8c5af81b1dc77caf799a6790d20731b0",
+                      "source_factor_id": "agent",
+                      "source_factor_level_id": "cold",
+                      "source_condition_id": "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+                      "target": {
+                        "plane": "participant-implementation",
+                        "participant_address": "participants.red",
+                        "implementation_name": "reference-red-agent",
+                        "implementation_version": "1.0.0",
+                        "manifest_version": "participant-implementation-manifest/v1",
+                        "target_id": "policy.temperature"
+                      },
+                      "value_type": "number",
+                      "value": {
+                        "kind": "literal",
+                        "value": 0.0
+                      },
+                      "owner": {
+                        "contract_id": "participant-configuration-result-v1",
+                        "contract_version": "1",
+                        "validator_id": "participant-config",
+                        "validator_version": "1"
+                      }
+                    },
+                    {
+                      "binding_id": "binding-b09237d4433d30b821d4e5178a0e17e57df9acd512bceee7b121ba7ed680476a",
+                      "source_factor_id": "path",
+                      "source_factor_level_id": "a",
+                      "source_condition_id": "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+                      "target": {
+                        "plane": "scenario",
+                        "scenario_family_id": "compiler-family",
+                        "variation_point_id": "payload-path",
+                        "target_id": "variables.payload_path"
+                      },
+                      "value_type": "string",
+                      "value": {
+                        "kind": "literal",
+                        "value": "/opt/a"
+                      },
+                      "owner": {
+                        "contract_id": "sdl-authoring-input-v1",
+                        "contract_version": "1",
+                        "validator_id": "raes-selected-scenario",
+                        "validator_version": "1"
+                      }
+                    }
+                  ],
+                  "description": null
+                },
+                "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6": {
+                  "condition_id": "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+                  "factor_levels": {
+                    "agent": "cold",
+                    "path": "b"
+                  },
+                  "difficulty_condition": "fixed",
+                  "difficulty_policy_id": null,
+                  "required_refs": [],
+                  "required_parameters": [],
+                  "required_bindings": [
+                    {
+                      "binding_id": "binding-1ae8076c35e4d43de9f939d5f23637ed9e40977952f2d4362b7ddb39c5bff5e6",
+                      "source_factor_id": "agent",
+                      "source_factor_level_id": "cold",
+                      "source_condition_id": "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+                      "target": {
+                        "plane": "participant-implementation",
+                        "participant_address": "participants.red",
+                        "implementation_name": "reference-red-agent",
+                        "implementation_version": "1.0.0",
+                        "manifest_version": "participant-implementation-manifest/v1",
+                        "target_id": "policy.temperature"
+                      },
+                      "value_type": "number",
+                      "value": {
+                        "kind": "literal",
+                        "value": 0.0
+                      },
+                      "owner": {
+                        "contract_id": "participant-configuration-result-v1",
+                        "contract_version": "1",
+                        "validator_id": "participant-config",
+                        "validator_version": "1"
+                      }
+                    },
+                    {
+                      "binding_id": "binding-3f3310012decab257fd52f4a88463f2f4d1304a9acec90803b333391befe541f",
+                      "source_factor_id": "path",
+                      "source_factor_level_id": "b",
+                      "source_condition_id": "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+                      "target": {
+                        "plane": "scenario",
+                        "scenario_family_id": "compiler-family",
+                        "variation_point_id": "payload-path",
+                        "target_id": "variables.payload_path"
+                      },
+                      "value_type": "string",
+                      "value": {
+                        "kind": "literal",
+                        "value": "/opt/b"
+                      },
+                      "owner": {
+                        "contract_id": "sdl-authoring-input-v1",
+                        "contract_version": "1",
+                        "validator_id": "raes-selected-scenario",
+                        "validator_version": "1"
+                      }
+                    }
+                  ],
+                  "description": null
+                },
+                "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c": {
+                  "condition_id": "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+                  "factor_levels": {
+                    "agent": "warm",
+                    "path": "a"
+                  },
+                  "difficulty_condition": "fixed",
+                  "difficulty_policy_id": null,
+                  "required_refs": [],
+                  "required_parameters": [],
+                  "required_bindings": [
+                    {
+                      "binding_id": "binding-876830e2029e72ccde4a1b553a0c884ed353cdaa7ff365164b4a3491091cd596",
+                      "source_factor_id": "agent",
+                      "source_factor_level_id": "warm",
+                      "source_condition_id": "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+                      "target": {
+                        "plane": "participant-implementation",
+                        "participant_address": "participants.red",
+                        "implementation_name": "reference-red-agent",
+                        "implementation_version": "1.0.0",
+                        "manifest_version": "participant-implementation-manifest/v1",
+                        "target_id": "temperature"
+                      },
+                      "value_type": "number",
+                      "value": {
+                        "kind": "literal",
+                        "value": 0.0
+                      },
+                      "owner": {
+                        "contract_id": "participant-configuration-result-v1",
+                        "contract_version": "1",
+                        "validator_id": "participant-config",
+                        "validator_version": "1"
+                      }
+                    },
+                    {
+                      "binding_id": "binding-d3968a1637002d4553c812130331952931e4c6ecc0cf46cf2278200204bf8b47",
+                      "source_factor_id": "path",
+                      "source_factor_level_id": "a",
+                      "source_condition_id": "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+                      "target": {
+                        "plane": "scenario",
+                        "scenario_family_id": "compiler-family",
+                        "variation_point_id": "payload-path",
+                        "target_id": "variables.payload_path"
+                      },
+                      "value_type": "string",
+                      "value": {
+                        "kind": "literal",
+                        "value": "/opt/a"
+                      },
+                      "owner": {
+                        "contract_id": "sdl-authoring-input-v1",
+                        "contract_version": "1",
+                        "validator_id": "raes-selected-scenario",
+                        "validator_version": "1"
+                      }
+                    }
+                  ],
+                  "description": null
+                },
+                "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56": {
+                  "condition_id": "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56",
+                  "factor_levels": {
+                    "agent": "warm",
+                    "path": "b"
+                  },
+                  "difficulty_condition": "fixed",
+                  "difficulty_policy_id": null,
+                  "required_refs": [],
+                  "required_parameters": [],
+                  "required_bindings": [
+                    {
+                      "binding_id": "binding-48f44d53c635474f0274b145f6c1c3e0cbd1c3c907730a189a975b35c509f0d0",
+                      "source_factor_id": "path",
+                      "source_factor_level_id": "b",
+                      "source_condition_id": "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56",
+                      "target": {
+                        "plane": "scenario",
+                        "scenario_family_id": "compiler-family",
+                        "variation_point_id": "payload-path",
+                        "target_id": "variables.payload_path"
+                      },
+                      "value_type": "string",
+                      "value": {
+                        "kind": "literal",
+                        "value": "/opt/b"
+                      },
+                      "owner": {
+                        "contract_id": "sdl-authoring-input-v1",
+                        "contract_version": "1",
+                        "validator_id": "raes-selected-scenario",
+                        "validator_version": "1"
+                      }
+                    },
+                    {
+                      "binding_id": "binding-a098707b744bfb1352725cf960598b395b4b0585b49d8c7eab2dbc1efd628031",
+                      "source_factor_id": "agent",
+                      "source_factor_level_id": "warm",
+                      "source_condition_id": "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56",
+                      "target": {
+                        "plane": "participant-implementation",
+                        "participant_address": "participants.red",
+                        "implementation_name": "reference-red-agent",
+                        "implementation_version": "1.0.0",
+                        "manifest_version": "participant-implementation-manifest/v1",
+                        "target_id": "temperature"
+                      },
+                      "value_type": "number",
+                      "value": {
+                        "kind": "literal",
+                        "value": 0.0
+                      },
+                      "owner": {
+                        "contract_id": "participant-configuration-result-v1",
+                        "contract_version": "1",
+                        "validator_id": "participant-config",
+                        "validator_version": "1"
+                      }
+                    }
+                  ],
+                  "description": null
+                }
+              },
+              "target_runs_per_condition": 2,
+              "randomization_unit": null,
+              "blocking_factors": [],
+              "replication_policy": "equal independent runs",
+              "stopping_rule": null
+            },
+            "target_run_count": null,
+            "selection_policies": {},
+            "difficulty_policy_registry": null,
+            "red_variant_selections": {},
+            "clock_intent": {
+              "clock_id": "sim-clock",
+              "authority": "reference-backend",
+              "time_domain": "simulated",
+              "synchronization": null
+            },
+            "observation_demands": null,
+            "evidence_requirement_relations": []
+          },
+          "intended_scenario_ref": {
+            "ref_kind": "scenario",
+            "ref_id": "compiler-family",
+            "ref_version": null,
+            "ref_digest": null,
+            "ref_path": null
+          },
+          "apparatus_intent": {
+            "allowed_processor_refs": [],
+            "allowed_backend_refs": [],
+            "required_manifest_refs": [],
+            "required_capabilities": [
+              "workflow-results",
+              "evaluation-results"
+            ],
+            "notes": [
+              "Any backend that realizes evaluation-results may execute this design."
+            ]
+          },
+          "factors": {
+            "path": {
+              "name": "Payload path",
+              "factor_kind": "treatment",
+              "levels": [
+                "a",
+                "b"
+              ]
+            },
+            "agent": {
+              "name": "Agent temperature",
+              "factor_kind": "treatment",
+              "levels": [
+                "cold",
+                "warm"
+              ]
+            }
+          },
+          "binding_semantics": "explicit-required",
+          "binding_descriptors": {
+            "schema_version": "experiment-binding-descriptors/v1",
+            "descriptors": [
+              {
+                "binding_id": "binding-1ae8076c35e4d43de9f939d5f23637ed9e40977952f2d4362b7ddb39c5bff5e6",
+                "source_factor_id": "agent",
+                "source_factor_level_id": "cold",
+                "source_condition_id": "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+                "target": {
+                  "plane": "participant-implementation",
+                  "participant_address": "participants.red",
+                  "implementation_name": "reference-red-agent",
+                  "implementation_version": "1.0.0",
+                  "manifest_version": "participant-implementation-manifest/v1",
+                  "target_id": "policy.temperature"
+                },
+                "value_type": "number",
+                "value": {
+                  "kind": "literal",
+                  "value": 0.0
+                },
+                "owner": {
+                  "contract_id": "participant-configuration-result-v1",
+                  "contract_version": "1",
+                  "validator_id": "participant-config",
+                  "validator_version": "1"
+                }
+              },
+              {
+                "binding_id": "binding-3cc5400aac1e72da2a61e43916d5512a8c5af81b1dc77caf799a6790d20731b0",
+                "source_factor_id": "agent",
+                "source_factor_level_id": "cold",
+                "source_condition_id": "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+                "target": {
+                  "plane": "participant-implementation",
+                  "participant_address": "participants.red",
+                  "implementation_name": "reference-red-agent",
+                  "implementation_version": "1.0.0",
+                  "manifest_version": "participant-implementation-manifest/v1",
+                  "target_id": "policy.temperature"
+                },
+                "value_type": "number",
+                "value": {
+                  "kind": "literal",
+                  "value": 0.0
+                },
+                "owner": {
+                  "contract_id": "participant-configuration-result-v1",
+                  "contract_version": "1",
+                  "validator_id": "participant-config",
+                  "validator_version": "1"
+                }
+              },
+              {
+                "binding_id": "binding-3f3310012decab257fd52f4a88463f2f4d1304a9acec90803b333391befe541f",
+                "source_factor_id": "path",
+                "source_factor_level_id": "b",
+                "source_condition_id": "condition-c3055179d337be3f28c76ca10d1a1e92dba80b4bb9aeb0c6",
+                "target": {
+                  "plane": "scenario",
+                  "scenario_family_id": "compiler-family",
+                  "variation_point_id": "payload-path",
+                  "target_id": "variables.payload_path"
+                },
+                "value_type": "string",
+                "value": {
+                  "kind": "literal",
+                  "value": "/opt/b"
+                },
+                "owner": {
+                  "contract_id": "sdl-authoring-input-v1",
+                  "contract_version": "1",
+                  "validator_id": "raes-selected-scenario",
+                  "validator_version": "1"
+                }
+              },
+              {
+                "binding_id": "binding-48f44d53c635474f0274b145f6c1c3e0cbd1c3c907730a189a975b35c509f0d0",
+                "source_factor_id": "path",
+                "source_factor_level_id": "b",
+                "source_condition_id": "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56",
+                "target": {
+                  "plane": "scenario",
+                  "scenario_family_id": "compiler-family",
+                  "variation_point_id": "payload-path",
+                  "target_id": "variables.payload_path"
+                },
+                "value_type": "string",
+                "value": {
+                  "kind": "literal",
+                  "value": "/opt/b"
+                },
+                "owner": {
+                  "contract_id": "sdl-authoring-input-v1",
+                  "contract_version": "1",
+                  "validator_id": "raes-selected-scenario",
+                  "validator_version": "1"
+                }
+              },
+              {
+                "binding_id": "binding-876830e2029e72ccde4a1b553a0c884ed353cdaa7ff365164b4a3491091cd596",
+                "source_factor_id": "agent",
+                "source_factor_level_id": "warm",
+                "source_condition_id": "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+                "target": {
+                  "plane": "participant-implementation",
+                  "participant_address": "participants.red",
+                  "implementation_name": "reference-red-agent",
+                  "implementation_version": "1.0.0",
+                  "manifest_version": "participant-implementation-manifest/v1",
+                  "target_id": "temperature"
+                },
+                "value_type": "number",
+                "value": {
+                  "kind": "literal",
+                  "value": 0.0
+                },
+                "owner": {
+                  "contract_id": "participant-configuration-result-v1",
+                  "contract_version": "1",
+                  "validator_id": "participant-config",
+                  "validator_version": "1"
+                }
+              },
+              {
+                "binding_id": "binding-a098707b744bfb1352725cf960598b395b4b0585b49d8c7eab2dbc1efd628031",
+                "source_factor_id": "agent",
+                "source_factor_level_id": "warm",
+                "source_condition_id": "condition-f67a5958c2765c1a752462f9959c9ae082a63d7e918f0c56",
+                "target": {
+                  "plane": "participant-implementation",
+                  "participant_address": "participants.red",
+                  "implementation_name": "reference-red-agent",
+                  "implementation_version": "1.0.0",
+                  "manifest_version": "participant-implementation-manifest/v1",
+                  "target_id": "temperature"
+                },
+                "value_type": "number",
+                "value": {
+                  "kind": "literal",
+                  "value": 0.0
+                },
+                "owner": {
+                  "contract_id": "participant-configuration-result-v1",
+                  "contract_version": "1",
+                  "validator_id": "participant-config",
+                  "validator_version": "1"
+                }
+              },
+              {
+                "binding_id": "binding-b09237d4433d30b821d4e5178a0e17e57df9acd512bceee7b121ba7ed680476a",
+                "source_factor_id": "path",
+                "source_factor_level_id": "a",
+                "source_condition_id": "condition-939a34e0cfdc434bf68faedd22843c9af6aa925900d18e80",
+                "target": {
+                  "plane": "scenario",
+                  "scenario_family_id": "compiler-family",
+                  "variation_point_id": "payload-path",
+                  "target_id": "variables.payload_path"
+                },
+                "value_type": "string",
+                "value": {
+                  "kind": "literal",
+                  "value": "/opt/a"
+                },
+                "owner": {
+                  "contract_id": "sdl-authoring-input-v1",
+                  "contract_version": "1",
+                  "validator_id": "raes-selected-scenario",
+                  "validator_version": "1"
+                }
+              },
+              {
+                "binding_id": "binding-d3968a1637002d4553c812130331952931e4c6ecc0cf46cf2278200204bf8b47",
+                "source_factor_id": "path",
+                "source_factor_level_id": "a",
+                "source_condition_id": "condition-6d1b302a3ac970aaab05559b8edd7843e308ec62c074197c",
+                "target": {
+                  "plane": "scenario",
+                  "scenario_family_id": "compiler-family",
+                  "variation_point_id": "payload-path",
+                  "target_id": "variables.payload_path"
+                },
+                "value_type": "string",
+                "value": {
+                  "kind": "literal",
+                  "value": "/opt/a"
+                },
+                "owner": {
+                  "contract_id": "sdl-authoring-input-v1",
+                  "contract_version": "1",
+                  "validator_id": "raes-selected-scenario",
+                  "validator_version": "1"
+                }
+              }
+            ]
+          },
+          "capture_spec_refs": [
+            {
+              "ref_kind": "capture-spec",
+              "ref_id": "capture-techvault-evidence-v1",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "validity_notes": [
+            {
+              "category": "internal",
+              "note": "Per-run seeds derive deterministically from the base seed.",
+              "mitigation": "Record derived seeds in each run's stochastic controls."
+            }
+          ],
+          "artifact_refs": [],
+          "factorial_design": {
+            "profile": "factorial-bindings-v1",
+            "factor_ids": [
+              "agent",
+              "path"
+            ],
+            "level_bindings": {
+              "path": {
+                "a": [
+                  {
+                    "target": {
+                      "plane": "scenario",
+                      "scenario_family_id": "compiler-family",
+                      "variation_point_id": "payload-path",
+                      "target_id": "variables.payload_path"
+                    },
+                    "value_type": "string",
+                    "value": {
+                      "kind": "literal",
+                      "value": "/opt/a"
+                    },
+                    "owner": {
+                      "contract_id": "sdl-authoring-input-v1",
+                      "contract_version": "1",
+                      "validator_id": "raes-selected-scenario",
+                      "validator_version": "1"
+                    }
+                  }
+                ],
+                "b": [
+                  {
+                    "target": {
+                      "plane": "scenario",
+                      "scenario_family_id": "compiler-family",
+                      "variation_point_id": "payload-path",
+                      "target_id": "variables.payload_path"
+                    },
+                    "value_type": "string",
+                    "value": {
+                      "kind": "literal",
+                      "value": "/opt/b"
+                    },
+                    "owner": {
+                      "contract_id": "sdl-authoring-input-v1",
+                      "contract_version": "1",
+                      "validator_id": "raes-selected-scenario",
+                      "validator_version": "1"
+                    }
+                  }
+                ]
+              },
+              "agent": {
+                "cold": [
+                  {
+                    "target": {
+                      "plane": "participant-implementation",
+                      "participant_address": "participants.red",
+                      "implementation_name": "reference-red-agent",
+                      "implementation_version": "1.0.0",
+                      "manifest_version": "participant-implementation-manifest/v1",
+                      "target_id": "policy.temperature"
+                    },
+                    "value_type": "number",
+                    "value": {
+                      "kind": "literal",
+                      "value": 0.0
+                    },
+                    "owner": {
+                      "contract_id": "participant-configuration-result-v1",
+                      "contract_version": "1",
+                      "validator_id": "participant-config",
+                      "validator_version": "1"
+                    }
+                  }
+                ],
+                "warm": [
+                  {
+                    "target": {
+                      "plane": "participant-implementation",
+                      "participant_address": "participants.red",
+                      "implementation_name": "reference-red-agent",
+                      "implementation_version": "1.0.0",
+                      "manifest_version": "participant-implementation-manifest/v1",
+                      "target_id": "temperature"
+                    },
+                    "value_type": "number",
+                    "value": {
+                      "kind": "literal",
+                      "value": 0.0
+                    },
+                    "owner": {
+                      "contract_id": "participant-configuration-result-v1",
+                      "contract_version": "1",
+                      "validator_id": "participant-config",
+                      "validator_version": "1"
+                    }
+                  }
+                ]
+              }
+            },
+            "target_runs_per_condition": 2,
+            "condition_bound": 4
+          }
+        },
+        "task": {
+          "schema_version": "experiment-task/v1",
+          "task_id": "task-techvault-red-team-v1",
+          "task_version": "1.0.0",
+          "title": "TechVault red-team evaluation",
+          "description": "Evaluate initial access and exfiltration outcomes for a fixed TechVault scenario snapshot.",
+          "scenario_ref": {
+            "ref_kind": "scenario-snapshot",
+            "ref_id": "scenario-techvault",
+            "ref_version": "2026-05-26",
+            "ref_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "ref_path": null
+          },
+          "evaluation_protocol": {
+            "protocol_id": "protocol-red-team-success",
+            "protocol_version": "1.0.0",
+            "intent": "Measure whether the participant obtains foothold and exfiltrates the target evidence within the task window.",
+            "unit_of_analysis": "run",
+            "metric_definitions": {
+              "foothold-achieved": {
+                "metric_id": "foothold-achieved",
+                "metric_version": "1.0.0",
+                "name": "Foothold achieved",
+                "measured_construct": "Initial access success",
+                "unit_of_analysis": "run",
+                "value_kind": "boolean",
+                "direction": "higher-is-better",
+                "aggregation": null,
+                "missingness_policy": null,
+                "uncertainty_policy": null,
+                "evidence_requirements": [
+                  {
+                    "ref_kind": "evidence",
+                    "ref_id": "auth-log-evidence",
+                    "ref_version": null,
+                    "ref_digest": null,
+                    "ref_path": null
+                  }
+                ]
+              }
+            },
+            "observation_requirements": [
+              {
+                "ref_kind": "evidence",
+                "ref_id": "auth-log-evidence",
+                "ref_version": null,
+                "ref_digest": null,
+                "ref_path": null
+              }
+            ],
+            "aggregation_policy": "Report per-run outcome and aggregate with binomial uncertainty across repeated runs.",
+            "acceptance_policy": null
+          },
+          "intended_use": "Benchmark red-team participant performance under a fixed scenario snapshot.",
+          "non_use": [
+            "Do not use as evidence of production-system risk without external validation."
+          ],
+          "population_or_construct": "Automated red-team agent behavior in a controlled enterprise scenario.",
+          "split_and_leakage_controls": {
+            "partitioning_strategy": "Hold out final scenario snapshot until evaluation.",
+            "grouping_constraints": [],
+            "temporal_availability": null,
+            "hidden_material_policy": "Answer keys and scoring artifacts are not participant-visible.",
+            "leakage_checks": [
+              "Verify participant input excludes scoring artifacts and solution traces."
+            ],
+            "unresolved_risks": []
+          },
+          "apparatus_constraints": {
+            "allowed_processor_refs": [
+              {
+                "ref_kind": "processor",
+                "ref_id": "raes-reference-processor",
+                "ref_version": "0.1.0"
+              }
+            ],
+            "allowed_backend_refs": [
+              {
+                "ref_kind": "backend",
+                "ref_id": "stub-backend",
+                "ref_version": "0.1.0"
+              }
+            ],
+            "required_manifest_refs": [
+              {
+                "ref_kind": "manifest",
+                "ref_id": "raes-reference-processor",
+                "ref_version": "processor-manifest/v2",
+                "ref_digest": null,
+                "ref_path": null,
+                "subject_ref": {
+                  "ref_kind": "processor",
+                  "ref_id": "raes-reference-processor",
+                  "ref_version": "0.1.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              },
+              {
+                "ref_kind": "manifest",
+                "ref_id": "stub-backend",
+                "ref_version": "backend-manifest/v2",
+                "ref_digest": null,
+                "ref_path": null,
+                "subject_ref": {
+                  "ref_kind": "backend",
+                  "ref_id": "stub-backend",
+                  "ref_version": "0.1.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              }
+            ],
+            "required_capabilities": [
+              "workflow-results",
+              "evaluation-results"
+            ],
+            "notes": []
+          },
+          "validity_notes": [
+            {
+              "category": "external",
+              "note": "The scenario is a controlled range and does not claim direct production generalization.",
+              "mitigation": null
+            }
+          ],
+          "artifact_refs": [
+            {
+              "artifact_id": "protocol-red-team-success-doc",
+              "role": "protocol",
+              "media_type": "text/markdown",
+              "uri": "docs/protocols/red-team-success.md",
+              "checksum": {
+                "algorithm": "sha256",
+                "value": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+              },
+              "size_bytes": 8192,
+              "created_at": "2026-05-26T00:00:00Z",
+              "source": "experiment protocol repository document",
+              "satisfies_refs": [],
+              "sensitivity": "internal",
+              "description": null
+            }
+          ],
+          "validation_basis_disclosures": [],
+          "observation_demands": null,
+          "evidence_requirement_relations": []
+        },
+        "input_refs": {
+          "authoring_input_ref": {
+            "ref_kind": "authoring-input",
+            "ref_id": "spec-techvault-red-tactic-sweep-v1",
+            "ref_version": "1.0.0",
+            "ref_digest": "sha256:c107f1334b08933b4d7358b73b61fdb47236b8f33628d27dd972d923d5db7f98",
+            "ref_path": null
+          },
+          "task_ref": {
+            "ref_kind": "task",
+            "ref_id": "task-techvault-red-team-v1",
+            "ref_version": "1.0.0"
+          },
+          "task_digest": "sha256:81b6eb789e575ce0e09bedd5ad3430a92f8404328edb715c25b3d0fab24adffc",
+          "scenario_family_ref": {
+            "ref_kind": "scenario-family",
+            "ref_id": "compiler-family",
+            "ref_version": "expanded-scenario-family/v1",
+            "ref_digest": "sha256:7c4fb8b018851aadf8cfdd66be8f8ec30bdfd85a0c8da60c800fa8c142886ff5"
+          },
+          "capture_spec_refs": [
+            {
+              "ref_kind": "capture-spec",
+              "ref_id": "capture-techvault-evidence-v1",
+              "ref_version": "1.0.0",
+              "ref_digest": "sha256:23209f366685c7f6a0885dc2b0a01fb94cdf004294c245fabbf4cd436534f2be",
+              "ref_path": null
+            }
+          ],
+          "binding_descriptor_set_ref": {
+            "ref_kind": "other",
+            "ref_id": "factorial-bindings",
+            "ref_version": null,
+            "ref_digest": "sha256:55ada4d65ce223ddc7d96a311b7decc3ae0980503813c96d55541e3a3511d283",
+            "ref_path": null
+          },
+          "study_ref": null,
+          "associated_artifact_set_ref": null
+        },
+        "apparatus": {
+          "manifest_refs": [
+            {
+              "ref_kind": "manifest",
+              "ref_id": "backend-a",
+              "ref_version": "backend-manifest/v2",
+              "ref_digest": "sha256:008eb08b684941aa5ca6769f522a7c3cf01d9b290a3a9813f3af3063ea4de2e7",
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "backend",
+                "ref_id": "backend-a",
+                "ref_version": "1",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            }
+          ],
+          "participant_manifest_refs": [
+            {
+              "participant_address": "participants.red",
+              "implementation_name": "reference-red-agent",
+              "implementation_version": "1.0.0",
+              "manifest_version": "participant-implementation-manifest/v1",
+              "manifest_digest": "sha256:b0ee3db7c96604339c72747ea379f99277986a2bfce1f112346f857e8e9fb9f6"
+            }
+          ],
+          "realization_envelope": {
+            "contract_id": "realization-envelope-v1",
+            "envelope_id": "libvirt-qemu.generic.v1",
+            "schema_version": "realization-envelope/v1",
+            "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
+            "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
+          },
+          "capability_refs": [
+            "evaluation-results",
+            "workflow-results"
+          ]
+        },
+        "realization_envelope": {
+          "schema_version": "realization-envelope/v1",
+          "contract_id": "realization-envelope-v1",
+          "id": "libvirt-qemu.generic.v1",
+          "expression": {
+            "schema_version": "realization-envelope/v1",
+            "id": "libvirt-qemu.generic.expression.v1",
+            "scope": "scenario",
+            "domains": {},
+            "bindings": [],
+            "closure": [],
+            "witness_policy": null,
+            "source_ref": null,
+            "contract_id": null,
+            "digest": null
+          },
+          "configuration": {
+            "mode": "generic",
+            "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b",
+            "architecture": "x86_64",
+            "image_policy": "local-qcow2",
+            "network_policy": "libvirt-managed",
+            "supported_node_types": [
+              "switch",
+              "compute"
+            ],
+            "supported_os_families": [
+              "linux"
+            ],
+            "operating_systems": [],
+            "supported_content_types": [
+              "file"
+            ],
+            "supported_account_features": [
+              "auth_method",
+              "disabled",
+              "groups",
+              "home",
+              "shell"
+            ],
+            "supported_domain_profiles": [],
+            "process_resource_limits": [],
+            "supports_acls": true,
+            "memory_mib": {
+              "minimum": 128,
+              "maximum": null
+            },
+            "vcpus": {
+              "minimum": 1,
+              "maximum": null
+            }
+          },
+          "concerns": [
+            {
+              "concern": "compute-substrate",
+              "disposition": "realized",
+              "observation_strength": "daemon-observed",
+              "mechanism": "virtual-machine",
+              "transformations": []
+            },
+            {
+              "concern": "operating-system",
+              "disposition": "unsupported",
+              "observation_strength": "none",
+              "mechanism": null,
+              "transformations": []
+            },
+            {
+              "concern": "topology",
+              "disposition": "realized",
+              "observation_strength": "driver-reported",
+              "mechanism": "libvirt-domain-network",
+              "transformations": []
+            },
+            {
+              "concern": "architecture",
+              "disposition": "realized",
+              "observation_strength": "driver-reported",
+              "mechanism": "qemu-x86_64-domain",
+              "transformations": []
+            },
+            {
+              "concern": "image",
+              "disposition": "realized",
+              "observation_strength": "driver-reported",
+              "mechanism": "qcow2-disk-attachment",
+              "transformations": []
+            },
+            {
+              "concern": "resource-allocation",
+              "disposition": "transformed",
+              "observation_strength": "driver-reported",
+              "mechanism": "libvirt-domain-xml",
+              "transformations": [
+                "bounded-normalization",
+                "default-substitution"
+              ]
+            },
+            {
+              "concern": "network",
+              "disposition": "transformed",
+              "observation_strength": "driver-reported",
+              "mechanism": "libvirt-network-xml",
+              "transformations": [
+                "default-substitution"
+              ]
+            },
+            {
+              "concern": "content-placement",
+              "disposition": "realized",
+              "observation_strength": "driver-reported",
+              "mechanism": "cloud-init-seed",
+              "transformations": []
+            },
+            {
+              "concern": "account-placement",
+              "disposition": "transformed",
+              "observation_strength": "driver-reported",
+              "mechanism": "cloud-init-seed",
+              "transformations": [
+                "default-substitution"
+              ]
+            },
+            {
+              "concern": "feature-binding",
+              "disposition": "transformed",
+              "observation_strength": "driver-reported",
+              "mechanism": "cloud-init-seed",
+              "transformations": [
+                "descriptor-substitution"
+              ]
+            },
+            {
+              "concern": "service",
+              "disposition": "unsupported",
+              "observation_strength": "none",
+              "mechanism": null,
+              "transformations": []
+            },
+            {
+              "concern": "acl",
+              "disposition": "realized",
+              "observation_strength": "driver-reported",
+              "mechanism": "libvirt-nwfilter",
+              "transformations": []
+            }
+          ],
+          "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0"
+        },
+        "execution_authority": {
+          "attempt_timeout_seconds": 600,
+          "on_timeout": "cleanup-and-fail",
+          "on_cancellation": "cleanup-and-fail",
+          "cleanup": {
+            "clean_state": {
+              "mode": "fresh",
+              "boundary_refs": [
+                "range"
+              ],
+              "verification_probe_refs": [
+                "probe:fresh"
+              ],
+              "reusable_state_claim_ref": null
+            },
+            "resource_boundaries": {
+              "range": {
+                "boundary_id": "range",
+                "resource_kind": "range-instance",
+                "owner_ref": "apparatus:range",
+                "resource_refs": [
+                  "range:compiler-fixture"
+                ]
+              }
+            },
+            "cleanup_obligations": {
+              "destroy": {
+                "obligation_id": "destroy",
+                "boundary_refs": [
+                  "range"
+                ],
+                "action_kind": "destroy",
+                "action_profile_ref": null,
+                "triggers": [
+                  "success",
+                  "failure",
+                  "cancellation",
+                  "timeout",
+                  "abort"
+                ],
+                "requirement": "required",
+                "depends_on": [],
+                "idempotency": "idempotent",
+                "compensation_refs": [],
+                "verification_probe_refs": [
+                  "probe:absent"
+                ],
+                "timeout_seconds": 120
+              }
+            },
+            "retry_policy": {
+              "max_attempts": 1,
+              "after_effect_policy": "disallow",
+              "reset_obligation_refs": [],
+              "compensation_refs": []
+            }
+          }
+        },
+        "apparatus_manifests": [
+          {
+            "key": [
+              "backend",
+              "backend-a",
+              "1",
+              "backend-manifest/v2"
+            ],
+            "manifest": {
+              "schema_version": "backend-manifest/v2",
+              "identity": {
+                "name": "backend-a",
+                "version": "1"
+              },
+              "supported_contract_versions": [
+                "backend-manifest-v2",
+                "artifact-requirement-v1",
+                "provisioning-plan-v1",
+                "orchestration-plan-v1",
+                "evaluation-plan-v1",
+                "operation-receipt-v1",
+                "operation-status-v1",
+                "runtime-snapshot-v1",
+                "workflow-result-envelope-v1",
+                "workflow-history-event-stream-v1",
+                "evaluation-result-envelope-v1",
+                "proposition-truth-result-v1",
+                "evaluation-history-event-stream-v1",
+                "participant-episode-state-envelope-v1",
+                "participant-episode-history-event-stream-v1",
+                "participant-behavior-history-event-stream-v1",
+                "participant-execution-binding-v1",
+                "participant-execution-control-v1",
+                "participant-execution-service-state-v1",
+                "participant-resource-budget-policy-v1",
+                "participant-resource-pool-capacity-v1",
+                "participant-resource-budget-state-v1",
+                "participant-resource-budget-event-v1",
+                "participant-control-occurrence-v1",
+                "participant-control-selection-v1",
+                "participant-control-evaluation-v1",
+                "participant-control-selection-v2",
+                "participant-control-evaluation-v2",
+                "participant-crossing-occurrence-v1",
+                "participant-flow-control-relation-v1",
+                "participant-lifecycle-event-v1",
+                "participant-observation-envelope-v1",
+                "participant-shared-state-record-v1",
+                "participant-joint-action-record-v1",
+                "participant-time-management-context-v1",
+                "participant-outcome-report-v1",
+                "experiment-capture-spec-v1",
+                "experiment-evidence-record-v1",
+                "experiment-derived-measure-v1",
+                "experiment-run-v1",
+                "trial-cleanup-plan-v1",
+                "trial-cleanup-receipt-v1",
+                "realization-envelope-v1"
+              ],
+              "compatibility": {
+                "processors": [
+                  "raes-reference-processor"
+                ]
+              },
+              "realization_support": [
+                {
+                  "domain": "runtime-realization",
+                  "support_mode": "constrained",
+                  "supported_constraint_kinds": [
+                    "account-feature",
+                    "content-type",
+                    "node-architecture",
+                    "node-type",
+                    "os-family",
+                    "workflow-feature",
+                    "workflow-state-predicate"
+                  ],
+                  "supported_exact_requirement_kinds": [
+                    "declared-capability-match"
+                  ],
+                  "disclosure_kinds": [
+                    "backend-manifest-v2",
+                    "operation-status-v1",
+                    "runtime-snapshot-v1"
+                  ],
+                  "observation_capabilities": {
+                    "operating-system": {
+                      "verification_scope": "presence",
+                      "observation_strength": "guest-observed"
+                    }
+                  },
+                  "process_resource_limits": [],
+                  "artifact_mechanisms": [],
+                  "constraints": {}
+                }
+              ],
+              "realization_envelope": {
+                "contract_id": "realization-envelope-v1",
+                "envelope_id": "libvirt-qemu.generic.v1",
+                "schema_version": "realization-envelope/v1",
+                "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
+                "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
+              },
+              "concept_bindings": [
+                {
+                  "scope": "capabilities.provisioner.supported_node_types",
+                  "family": "assets"
+                },
+                {
+                  "scope": "capabilities.provisioner.supported_os_families",
+                  "family": "assets"
+                },
+                {
+                  "scope": "capabilities.provisioner.supported_node_architectures",
+                  "family": "assets"
+                },
+                {
+                  "scope": "capabilities.provisioner.supported_content_types",
+                  "family": "tools-and-artifacts"
+                },
+                {
+                  "scope": "capabilities.provisioner.supported_account_features",
+                  "family": "identities"
+                },
+                {
+                  "scope": "capabilities.provisioner.supported_domain_profiles",
+                  "family": "identities"
+                },
+                {
+                  "scope": "capabilities.provisioner.supported_service_materialization_profiles",
+                  "family": "tools-and-artifacts"
+                },
+                {
+                  "scope": "capabilities.orchestrator.supported_sections",
+                  "family": "actions-and-events"
+                },
+                {
+                  "scope": "capabilities.evaluator.supported_sections",
+                  "family": "observables"
+                },
+                {
+                  "scope": "capabilities.participant_runtime.supported_participant_roles",
+                  "family": "identities"
+                },
+                {
+                  "scope": "capabilities.participant_runtime.supported_behavior_features",
+                  "family": "actions-and-events"
+                },
+                {
+                  "scope": "capabilities.participant_runtime.supported_interaction_features",
+                  "family": "relationships"
+                },
+                {
+                  "scope": "capabilities.observation.supported_capture_kinds",
+                  "family": "provenance-and-evidence"
+                },
+                {
+                  "scope": "capabilities.observation.supported_channel_kinds",
+                  "family": "apparatus-declarations"
+                },
+                {
+                  "scope": "capabilities.observation.supported_sealing_modes",
+                  "family": "provenance-and-evidence"
+                }
+              ],
+              "constraints": {},
+              "capabilities": {
+                "provisioner": {
+                  "name": "stub-provisioner",
+                  "supported_node_types": [
+                    "compute",
+                    "switch"
+                  ],
+                  "supported_os_families": [
+                    "freebsd",
+                    "linux",
+                    "macos",
+                    "other",
+                    "windows"
+                  ],
+                  "operating_systems": [
+                    {
+                      "family": "linux",
+                      "distribution": "ubuntu",
+                      "versions": [
+                        "22.04"
+                      ]
+                    }
+                  ],
+                  "supported_node_architectures": [
+                    "aarch64",
+                    "x86_64"
+                  ],
+                  "supported_content_types": [
+                    "dataset",
+                    "directory",
+                    "file"
+                  ],
+                  "supported_account_features": [
+                    "auth_method",
+                    "disabled",
+                    "groups",
+                    "home",
+                    "mail",
+                    "shell",
+                    "spn"
+                  ],
+                  "supported_domain_profiles": [
+                    "active_directory"
+                  ],
+                  "supported_service_materialization_profiles": [],
+                  "max_total_nodes": null,
+                  "supports_acls": true,
+                  "supports_accounts": true,
+                  "supports_generated_artifacts": true,
+                  "supported_generated_artifact_kinds": [
+                    "certificate_bundle",
+                    "rendered_config",
+                    "ssh_key_bundle"
+                  ],
+                  "supported_generated_artifact_delivery_modes": [
+                    "env_file",
+                    "environment",
+                    "mount"
+                  ],
+                  "supported_regeneration_scopes": [],
+                  "supports_persistent_volumes": true,
+                  "constraints": {}
+                },
+                "orchestrator": {
+                  "name": "stub-orchestrator",
+                  "supported_sections": [
+                    "events",
+                    "injects",
+                    "scripts",
+                    "stories",
+                    "workflows"
+                  ],
+                  "supports_workflows": true,
+                  "supports_assertion_refs": true,
+                  "supports_inject_bindings": true,
+                  "supported_workflow_features": [
+                    "call",
+                    "cancellation",
+                    "compensation",
+                    "decision",
+                    "failure-transitions",
+                    "parallel-barrier",
+                    "retry",
+                    "switch",
+                    "timeouts"
+                  ],
+                  "supported_workflow_state_predicates": [
+                    "attempt-counts",
+                    "outcome-matching"
+                  ],
+                  "constraints": {}
+                },
+                "evaluator": {
+                  "name": "stub-evaluator",
+                  "supported_sections": [
+                    "assertions",
+                    "conditions",
+                    "objectives",
+                    "propositions"
+                  ],
+                  "supports_scoring": true,
+                  "supports_objectives": true,
+                  "supported_predicate_families": [
+                    "boolean",
+                    "number",
+                    "presence",
+                    "string"
+                  ],
+                  "supported_quantifiers": [
+                    "all",
+                    "any",
+                    "at_least"
+                  ],
+                  "supported_truth_outcomes": [
+                    "false",
+                    "true",
+                    "unknown",
+                    "unsupported"
+                  ],
+                  "supported_evidence_channels": [
+                    "api_response",
+                    "file_artifact",
+                    "log"
+                  ],
+                  "supported_time_domains": [
+                    "scenario_time"
+                  ],
+                  "preserves_binding_provenance": true,
+                  "supports_deferred_expected_comparison": false,
+                  "constraints": {}
+                },
+                "participant_runtime": {
+                  "name": "stub-participant-runtime",
+                  "supported_participant_roles": [
+                    "blue",
+                    "green",
+                    "red",
+                    "white"
+                  ],
+                  "supported_behavior_features": [
+                    "action_contracts",
+                    "attribution_support",
+                    "behavior_history",
+                    "effects",
+                    "failure_classes",
+                    "observation_boundaries",
+                    "outcome_interpretation",
+                    "preconditions",
+                    "state_transitions",
+                    "temporal_contracts"
+                  ],
+                  "supported_interaction_features": [
+                    "contention",
+                    "coordination",
+                    "interference",
+                    "shared_state_change"
+                  ],
+                  "feature_support": [
+                    {
+                      "feature": "participant_boundary_flow_resolution",
+                      "support_level": "unsupported",
+                      "constraint_refs": [],
+                      "limitation_refs": [
+                        "limitation:participant_boundary_flow_resolution:not-realized"
+                      ],
+                      "disclosure_refs": [
+                        "disclosure:participant_boundary_flow_resolution:unsupported"
+                      ],
+                      "evidence_refs": []
+                    },
+                    {
+                      "feature": "participant_declassification",
+                      "support_level": "unsupported",
+                      "constraint_refs": [],
+                      "limitation_refs": [
+                        "limitation:participant_declassification:not-realized"
+                      ],
+                      "disclosure_refs": [
+                        "disclosure:participant_declassification:unsupported"
+                      ],
+                      "evidence_refs": []
+                    },
+                    {
+                      "feature": "participant_directed_inject_delivery",
+                      "support_level": "unsupported",
+                      "constraint_refs": [],
+                      "limitation_refs": [
+                        "limitation:participant_directed_inject_delivery:not-realized"
+                      ],
+                      "disclosure_refs": [
+                        "disclosure:participant_directed_inject_delivery:unsupported"
+                      ],
+                      "evidence_refs": []
+                    },
+                    {
+                      "feature": "participant_egress_projection",
+                      "support_level": "unsupported",
+                      "constraint_refs": [],
+                      "limitation_refs": [
+                        "limitation:participant_egress_projection:not-realized"
+                      ],
+                      "disclosure_refs": [
+                        "disclosure:participant_egress_projection:unsupported"
+                      ],
+                      "evidence_refs": []
+                    },
+                    {
+                      "feature": "participant_final_sink_mediation",
+                      "support_level": "unsupported",
+                      "constraint_refs": [],
+                      "limitation_refs": [
+                        "limitation:participant_final_sink_mediation:not-realized"
+                      ],
+                      "disclosure_refs": [
+                        "disclosure:participant_final_sink_mediation:unsupported"
+                      ],
+                      "evidence_refs": []
+                    },
+                    {
+                      "feature": "participant_ingress_admission",
+                      "support_level": "unsupported",
+                      "constraint_refs": [],
+                      "limitation_refs": [
+                        "limitation:participant_ingress_admission:not-realized"
+                      ],
+                      "disclosure_refs": [
+                        "disclosure:participant_ingress_admission:unsupported"
+                      ],
+                      "evidence_refs": []
+                    },
+                    {
+                      "feature": "participant_intervention",
+                      "support_level": "unsupported",
+                      "constraint_refs": [],
+                      "limitation_refs": [
+                        "limitation:participant_intervention:not-realized"
+                      ],
+                      "disclosure_refs": [
+                        "disclosure:participant_intervention:unsupported"
+                      ],
+                      "evidence_refs": []
+                    },
+                    {
+                      "feature": "participant_modular_control",
+                      "support_level": "unsupported",
+                      "constraint_refs": [],
+                      "limitation_refs": [
+                        "limitation:participant_modular_control:not-realized"
+                      ],
+                      "disclosure_refs": [
+                        "disclosure:participant_modular_control:unsupported"
+                      ],
+                      "evidence_refs": []
+                    },
+                    {
+                      "feature": "participant_monitor_topology",
+                      "support_level": "unsupported",
+                      "constraint_refs": [],
+                      "limitation_refs": [
+                        "limitation:participant_monitor_topology:not-realized"
+                      ],
+                      "disclosure_refs": [
+                        "disclosure:participant_monitor_topology:unsupported"
+                      ],
+                      "evidence_refs": []
+                    },
+                    {
+                      "feature": "participant_predicate_opacity",
+                      "support_level": "unsupported",
+                      "constraint_refs": [],
+                      "limitation_refs": [
+                        "limitation:participant_predicate_opacity:not-realized"
+                      ],
+                      "disclosure_refs": [
+                        "disclosure:participant_predicate_opacity:unsupported"
+                      ],
+                      "evidence_refs": []
+                    },
+                    {
+                      "feature": "participant_processing_role_trust",
+                      "support_level": "unsupported",
+                      "constraint_refs": [],
+                      "limitation_refs": [
+                        "limitation:participant_processing_role_trust:not-realized"
+                      ],
+                      "disclosure_refs": [
+                        "disclosure:participant_processing_role_trust:unsupported"
+                      ],
+                      "evidence_refs": []
+                    },
+                    {
+                      "feature": "participant_quarantined_processing",
+                      "support_level": "unsupported",
+                      "constraint_refs": [],
+                      "limitation_refs": [
+                        "limitation:participant_quarantined_processing:not-realized"
+                      ],
+                      "disclosure_refs": [
+                        "disclosure:participant_quarantined_processing:unsupported"
+                      ],
+                      "evidence_refs": []
+                    },
+                    {
+                      "feature": "participant_transformation",
+                      "support_level": "unsupported",
+                      "constraint_refs": [],
+                      "limitation_refs": [
+                        "limitation:participant_transformation:not-realized"
+                      ],
+                      "disclosure_refs": [
+                        "disclosure:participant_transformation:unsupported"
+                      ],
+                      "evidence_refs": []
+                    },
+                    {
+                      "feature": "scoped_tool_affordances",
+                      "support_level": "unsupported",
+                      "constraint_refs": [],
+                      "limitation_refs": [
+                        "limitation:scoped_tool_affordances:not-realized"
+                      ],
+                      "disclosure_refs": [
+                        "disclosure:scoped_tool_affordances:unsupported"
+                      ],
+                      "evidence_refs": []
+                    },
+                    {
+                      "feature": "tool_affordances",
+                      "support_level": "unsupported",
+                      "constraint_refs": [],
+                      "limitation_refs": [
+                        "limitation:tool_affordances:not-realized"
+                      ],
+                      "disclosure_refs": [
+                        "disclosure:tool_affordances:unsupported"
+                      ],
+                      "evidence_refs": []
+                    }
+                  ],
+                  "supports_autonomous_execution": false,
+                  "supported_autonomous_selection_strategies": [],
+                  "supported_autonomous_action_contracts": [],
+                  "supported_autonomous_observation_boundaries": [],
+                  "supported_autonomous_target_addresses": [],
+                  "supported_autonomous_policy_profiles": [],
+                  "supported_autonomous_activity_features": [],
+                  "supported_autonomous_random_stream_profiles": [],
+                  "max_autonomous_participants": null,
+                  "max_autonomous_action_attempts": null,
+                  "max_autonomous_in_flight": null,
+                  "max_autonomous_occurrences": null,
+                  "max_autonomous_retries_per_occurrence": null,
+                  "max_autonomous_burst_size": null,
+                  "execution_bindings": [],
+                  "supports_execution_control": false,
+                  "supported_execution_control_actions": [],
+                  "supports_bounded_concurrency": false,
+                  "max_execution_services": null,
+                  "max_concurrent_actions": null,
+                  "resource_budgets": null,
+                  "constraints": {}
+                },
+                "observation": {
+                  "name": "stub-observation",
+                  "supported_capture_kinds": [
+                    "artifact",
+                    "log",
+                    "observation",
+                    "packet-capture",
+                    "telemetry",
+                    "trace"
+                  ],
+                  "supported_channel_kinds": [
+                    "backend-log",
+                    "evaluation-history",
+                    "file-artifact",
+                    "packet-capture",
+                    "participant-observation",
+                    "runtime-snapshot",
+                    "workflow-history"
+                  ],
+                  "supported_evidence_contracts": [
+                    "experiment-capture-spec-v1",
+                    "experiment-derived-measure-v1",
+                    "experiment-evidence-record-v1",
+                    "experiment-run-v1"
+                  ],
+                  "supported_media_types": [
+                    "application/json",
+                    "text/plain"
+                  ],
+                  "supported_sealing_modes": [
+                    "digest",
+                    "immutable-store"
+                  ],
+                  "supports_redaction": true,
+                  "supports_loss_disclosure": true,
+                  "supports_chain_of_custody": false,
+                  "capture_offers": [
+                    {
+                      "offer_id": "compiler-fixture-auth-log-evidence",
+                      "offer_version": "1.0.0",
+                      "output_contract": "participant-behavior-history-event-stream-v1",
+                      "field_selectors": [
+                        "/0/action_contract_address"
+                      ],
+                      "artifact_roles": [
+                        "observation"
+                      ],
+                      "media_types": [
+                        "application/json"
+                      ],
+                      "capture_kind": "trace",
+                      "source_classes": [
+                        "experiment-capture-spec"
+                      ],
+                      "source_refs": [],
+                      "scopes": [
+                        "network"
+                      ],
+                      "scope_refs": [],
+                      "channel_kinds": [],
+                      "channel_refs": [
+                        "evaluation-history-channel"
+                      ],
+                      "window_kinds": [
+                        "run"
+                      ],
+                      "integrity_modes": [
+                        "sha256-digest"
+                      ],
+                      "sensitivity": "internal",
+                      "availability": "available",
+                      "fidelity": "complete",
+                      "disclosure": "full",
+                      "retention_policy_refs": [
+                        "Retain raw evidence for the experiment review window."
+                      ],
+                      "export_policy": "not-required",
+                      "redaction_policy": null
+                    }
+                  ],
+                  "constraints": {}
+                },
+                "cleanup": {
+                  "name": "stub-cleanup",
+                  "supported_contract_versions": [
+                    "trial-cleanup-plan-v1",
+                    "trial-cleanup-receipt-v1"
+                  ],
+                  "supported_action_kinds": [
+                    "compensate",
+                    "destroy",
+                    "reset",
+                    "restore",
+                    "verify"
+                  ],
+                  "supported_verification_methods": [
+                    "probe",
+                    "receipt"
+                  ],
+                  "supports_reusable_state": true,
+                  "supports_residual_state_disclosure": true
+                },
+                "time": null
+              }
+            }
+          }
+        ],
+        "participant_manifests": [
+          {
+            "key": [
+              "participants.red",
+              "reference-red-agent",
+              "1.0.0",
+              "participant-implementation-manifest/v1"
+            ],
+            "manifest": {
+              "schema_version": "participant-implementation-manifest/v1",
+              "identity": {
+                "name": "reference-red-agent",
+                "version": "1.0.0"
+              },
+              "implementation_kind": "agent",
+              "supported_contract_versions": [
+                "experiment-binding-descriptors-v1",
+                "participant-behavior-history-event-stream-v1",
+                "participant-configuration-result-v1",
+                "participant-decision-surface-v2",
+                "participant-episode-history-event-stream-v1",
+                "participant-episode-state-envelope-v1",
+                "participant-implementation-manifest-v1",
+                "participant-implementation-provenance-v1"
+              ],
+              "compatibility": {
+                "participant_runtimes": [
+                  "stub-participant-runtime"
+                ],
+                "processors": [
+                  "raes-reference-processor"
+                ],
+                "backends": [
+                  "stub"
+                ]
+              },
+              "concept_bindings": [
+                {
+                  "scope": "implementation_kind",
+                  "family": "apparatus-declarations"
+                },
+                {
+                  "scope": "capabilities.supported_participant_contracts",
+                  "family": "apparatus-declarations"
+                },
+                {
+                  "scope": "capabilities.supported_decision_surface_modes",
+                  "family": "apparatus-declarations"
+                },
+                {
+                  "scope": "capabilities.tool_affordance_expectations",
+                  "family": "tools-and-artifacts"
+                },
+                {
+                  "scope": "capabilities.exposure_policy_kinds",
+                  "family": "provenance-and-evidence"
+                }
+              ],
+              "constraints": {
+                "max_parallel_episodes": "1"
+              },
+              "capabilities": {
+                "supported_participant_contracts": [
+                  "participant-episode-state-envelope-v1",
+                  "participant-episode-history-event-stream-v1",
+                  "participant-behavior-history-event-stream-v1",
+                  "participant-decision-surface-v2"
+                ],
+                "supported_decision_surface_modes": [
+                  "autonomous",
+                  "policy-directed"
+                ],
+                "tool_affordance_expectations": [
+                  "shell",
+                  "http-api"
+                ],
+                "exposure_policy_kinds": [
+                  "task-statement",
+                  "observation-stream"
+                ]
+              },
+              "configuration_registry": {
+                "owner": {
+                  "contract_id": "participant-configuration-result-v1",
+                  "contract_version": "1",
+                  "validator_id": "participant-config",
+                  "validator_version": "1"
+                },
+                "targets": {
+                  "policy.temperature": {
+                    "target_id": "policy.temperature",
+                    "value_type": "number",
+                    "aliases": [
+                      "temperature"
+                    ],
+                    "allowed_value_kinds": [
+                      "literal"
+                    ],
+                    "sensitivity": "public"
+                  },
+                  "policy.mode": {
+                    "target_id": "policy.mode",
+                    "value_type": "string",
+                    "aliases": [],
+                    "allowed_value_kinds": [
+                      "literal"
+                    ],
+                    "sensitivity": "public",
+                    "default": {
+                      "kind": "literal",
+                      "value": "safe"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "capture_specs": {
+          "capture-techvault-evidence-v1": {
+            "schema_version": "experiment-capture-spec/v1",
+            "capture_spec_id": "capture-techvault-evidence-v1",
+            "spec_version": "1.0.0",
+            "title": "TechVault evidence capture specification",
+            "description": "Declarative capture requirements for the TechVault red-team evaluation task.",
+            "scope_refs": [
+              {
+                "ref_kind": "task",
+                "ref_id": "task-techvault-red-team-v1",
+                "ref_version": "1.0.0",
+                "ref_digest": null,
+                "ref_path": null
+              },
+              {
+                "ref_kind": "run",
+                "ref_id": "run-techvault-001",
+                "ref_version": "1.0.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            ],
+            "capture_windows": [
+              {
+                "window_id": "run-window",
+                "window_kind": "run",
+                "starts_at": "2026-05-26T00:10:00Z",
+                "ends_at": "2026-05-26T00:40:00Z",
+                "trigger_ref": null,
+                "description": "Capture evidence for the active run interval."
+              }
+            ],
+            "capture_requirements": {
+              "auth-log-evidence": {
+                "requirement_id": "auth-log-evidence",
+                "title": "Network trace evidence",
+                "capture_kind": "trace",
+                "capture_scope": "network",
+                "channel_ref": {
+                  "ref_kind": "measurement-channel",
+                  "ref_id": "evaluation-history-channel",
+                  "ref_version": "1.0.0"
+                },
+                "window_refs": [
+                  "run-window"
+                ],
+                "expected_media_types": [
+                  "application/json"
+                ],
+                "required_artifact_roles": [
+                  "observation"
+                ],
+                "output_contract": "participant-behavior-history-event-stream-v1",
+                "field_selectors": [
+                  "/0/action_contract_address"
+                ],
+                "sensitivity": "internal",
+                "redaction_policy": null,
+                "integrity_requirements": [
+                  "sha256-digest"
+                ],
+                "retention_policy": "Retain raw evidence for the experiment review window.",
+                "loss_disclosure_required": true,
+                "notes": [],
+                "observation_demand": null
+              }
+            },
+            "validity_notes": [
+              {
+                "category": "apparatus",
+                "note": "The capture specification defines evidence intent only; it does not imply runtime collection.",
+                "mitigation": null
+              }
+            ],
+            "artifact_refs": [
+              {
+                "artifact_id": "capture-spec-review",
+                "role": "protocol",
+                "media_type": "text/markdown",
+                "uri": "docs/protocols/techvault-capture-spec.md",
+                "checksum": {
+                  "algorithm": "sha256",
+                  "value": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+                },
+                "size_bytes": 2048,
+                "created_at": "2026-05-26T00:00:00Z",
+                "source": "experiment evidence design review",
+                "satisfies_refs": [],
+                "sensitivity": "internal",
+                "description": null
+              }
+            ]
+          }
+        }
+      },
+      "codes": [
+        "trial-compiler.factorial-conditions-indistinguishable"
+      ]
+    }
+  ]
+}

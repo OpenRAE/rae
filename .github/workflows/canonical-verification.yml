@@ -601,7 +601,7 @@ jobs:
           - {module: product, group: shared, path: implementations/go, packages: './base/... ./contract/... ./internal/base/... ./internal/contract/... ./internal/sdl/source/...'}
           - {module: product, group: authoring, path: implementations/go, packages: './internal/sdl/authoring/...'}
           - {module: product, group: parity, path: implementations/go, packages: './internal/parity/...'}
-          - {module: product, group: processor, path: implementations/go, packages: './processor/... ./sdl/...'}
+          - {module: product, group: processor, path: implementations/go, packages: './processor/... ./sdl/... ./runtime/...'}
           - {module: tooling, group: tooling, path: implementations/tooling/go, packages: './...'}
     env:
       GOTOOLCHAIN: local

@@ -140,3 +140,11 @@ Review each interface change before changing its digest.
 
 Contract bindings use the bounded API snapshot storage described in the [contract design](issue-1780-contract-validation-design.md).
 The complete expanded declarations remain the comparison and commitment input.
+
+### Shared snapshot fragments
+
+Packages can refer to shared plaintext API fragments. The loader sorts merged
+rows before exact typed comparison. It keeps duplicate rows so a repeated
+contract declaration still fails comparison. Sharing changes storage only;
+each package retains its complete reachable declarations and design digest.
+The existing snapshot path, file, count, and aggregate bounds apply.

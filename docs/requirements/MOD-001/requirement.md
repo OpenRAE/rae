@@ -79,3 +79,6 @@ Layering and size invariants across the codebase prevent the architectural drift
 - TESTS → TEST `implementations/tooling/go/arch/documents_test.go` (Stale API design and system-view tests)
 - DOCUMENTS → DOCUMENTATION `docs/develop/go-architecture.md` (Current Go system and trust boundaries)
 - TESTS → TEST `implementations/python/tests/test_release_workflows.py` (Offline API dependency preparation in the architecture CI job)
+
+- IMPLEMENTS → CODE_FILE `implementations/tooling/go/arch/api_files.go` (Bounded shared snapshot fragments and exact canonical declaration comparison)
+- TESTS → TEST `implementations/tooling/go/arch/api_files_test.go` (Shared fragment order, complete closures, duplicate declarations and unchanged snapshot bounds)

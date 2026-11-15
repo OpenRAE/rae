@@ -1,0 +1,60 @@
+{
+  "cases": [
+    {
+      "name": "assignments",
+      "code": "trial-compiler.realization-assignment-incomplete"
+    },
+    {
+      "name": "profiles",
+      "code": "trial-compiler.mixed-profile-input-mismatch"
+    },
+    {
+      "name": "context",
+      "code": "trial-compiler.composition-context-missing"
+    },
+    {
+      "name": "envelopes",
+      "code": "trial-compiler.apparatus-envelope-identity-mismatch"
+    },
+    {
+      "name": "components",
+      "code": "trial-compiler.composition-context-rejected"
+    },
+    {
+      "name": "allocations",
+      "code": "trial-compiler.composition-context-rejected"
+    },
+    {
+      "name": "evidence",
+      "code": "trial-compiler.composition-context-rejected"
+    },
+    {
+      "name": "time",
+      "code": "trial-compiler.composition-context-rejected"
+    },
+    {
+      "name": "resources",
+      "code": "trial-compiler.composition-resource-coverage-missing"
+    },
+    {
+      "name": "projection",
+      "code": "trial-compiler.composition-context-rejected"
+    },
+    {
+      "name": "effects",
+      "code": "trial-compiler.composition-context-rejected"
+    },
+    {
+      "name": "profile-limit",
+      "code": "trial-compiler.mixed-profile-limit-exceeded"
+    },
+    {
+      "name": "work-limit",
+      "code": "trial-compiler.mixed-context-work-limit-exceeded"
+    },
+    {
+      "name": "component-limit",
+      "code": "trial-compiler.composition-context-rejected"
+    }
+  ]
+}

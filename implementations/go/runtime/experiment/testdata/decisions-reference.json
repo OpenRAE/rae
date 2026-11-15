@@ -1,0 +1,110 @@
+{
+  "sources": [
+    "implementations/python/packages/raes_runtime/runtime_trial_decisions.py",
+    "implementations/python/packages/raes_runtime/runtime_trial_services.py"
+  ],
+  "cases": [
+    {
+      "document": {
+        "schema_version": "runtime-experiment/v1",
+        "experiment_id": "experiment:test",
+        "plan_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "realization_digests": [
+          "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+        ],
+        "actor_id": "actor:1",
+        "authorization_scope": [
+          "run",
+          "read"
+        ]
+      },
+      "id": "sha256:9fb7dfa1e443c6923ebb432f90808c1692931e11da62b55159fd8f397714ef15"
+    },
+    {
+      "document": {
+        "schema_version": "runtime-trial-attempt/v1",
+        "experiment_id": "experiment:test",
+        "plan_entry_id": "entry:1",
+        "run_id": "run:1",
+        "attempt": 1,
+        "execution_attempt_id": "attempt:b22bba08-b742-5725-8147-4cc804f0c187",
+        "started_at": "2026-11-15T10:00:00Z",
+        "deadline": "2026-11-15T10:10:00Z"
+      },
+      "id": "sha256:94fa35e5db3e776e32fba886ac74d16a2da6f5619181c6759631b39f965b2050"
+    },
+    {
+      "document": {
+        "schema_version": "runtime-experiment-cancel/v1",
+        "experiment_id": "experiment:test",
+        "actor_id": "actor:1"
+      },
+      "id": "sha256:8a845ae44182998164142b61ec8a8b3b78aa682a86df29650d2436d70f087165"
+    },
+    {
+      "document": {
+        "schema_version": "runtime-trial-interruption/v1",
+        "execution_attempt_id": "attempt:1",
+        "cause": "timeout",
+        "disposition": "cancel"
+      },
+      "id": "sha256:9a76aaedecefd367f6446cb5c1271490d05342f8ed4bac0f3e77ff04eb80a47e"
+    },
+    {
+      "document": {
+        "schema_version": "runtime-trial-observation/v1",
+        "execution_attempt_id": "attempt:1",
+        "observation": {
+          "kind": "configuration",
+          "configurations": [],
+          "evidence": []
+        },
+        "snapshot_json": null
+      },
+      "id": "sha256:c38bfbe80c0d36f403b64496df0e27a316f3fb015e04c10a84b298bec6bc06d7"
+    },
+    {
+      "document": {
+        "schema_version": "runtime-trial-observation/v1",
+        "execution_attempt_id": "attempt:1",
+        "observation": {
+          "kind": "execution",
+          "state": "failed",
+          "ceased": true,
+          "effects_absent": false,
+          "evidence": []
+        },
+        "snapshot_json": null
+      },
+      "id": "sha256:7c50cc695c92b02d7098788872832f2958181d72d6ad10655152ec72b76daade"
+    },
+    {
+      "document": {
+        "schema_version": "runtime-trial-observation/v1",
+        "execution_attempt_id": "attempt:1",
+        "observation": {
+          "kind": "capture",
+          "complete": false,
+          "evidence": []
+        },
+        "snapshot_json": null
+      },
+      "id": "sha256:25008e9b962811680e8dd89b302d375cfd3193d40a33b3a75976e3d1156391e4"
+    },
+    {
+      "document": {
+        "schema_version": "runtime-trial-observation/v1",
+        "execution_attempt_id": "attempt:1",
+        "observation": {
+          "kind": "retry",
+          "ready": false,
+          "obligation_results": {},
+          "verified_compensations": [],
+          "evidence": []
+        },
+        "snapshot_json": null
+      },
+      "id": "sha256:b1ace043140c847dbb12c145d4bf5c5629042592ef42ef851335c65ed93e5d07"
+    }
+  ]
+}

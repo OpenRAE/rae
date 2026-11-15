@@ -144,7 +144,7 @@ func (v *Validator) CheckLocalFragment(id, pointer string, data []byte, limits i
 	if check == nil {
 		return failure(fault.Operational, "contract-model-check-required")
 	}
-	if !strings.HasPrefix(pointer, "#/") {
+	if pointer != "#" && !strings.HasPrefix(pointer, "#/") {
 		return failure(fault.InvalidInput, codeContractFragmentUnknown)
 	}
 	schema := findSchemaFragment(v.contracts[id], pointer)

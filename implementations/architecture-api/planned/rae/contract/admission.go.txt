@@ -7,9 +7,11 @@ import (
 	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
 	"github.com/OpenRAE/rae/implementations/go/contract/validation"
 	"io"
+	"io/fs"
 )
 
 func CheckTransport(document any, limits ingress.Limits) error
+func CheckTransportTree(document any, limits ingress.Limits) error
 func ProjectProcessIdentity(v *Validator, input Fragment) (Fragment, error)
 func ProjectProcessResourceLimit(v *Validator, input Fragment) (Fragment, error)
 func ProcessResourceLimitCapabilityAdmits(v *Validator, capability Fragment, resource, scope string, soft, hard Fragment) (bool, error)
@@ -146,10 +148,10 @@ type ParticipantConfiguration struct {
 	Values                 []RealizedConfigurationValue
 }
 type ParticipantConfigurationValidator interface {
-	ValidateAndNormalize(context.Context, ParticipantConfiguration) (ParticipantConfiguration, error)
+	ValidateAndNormalize(ctx context.Context, configuration ParticipantConfiguration) (ParticipantConfiguration, error)
 }
 type ParticipantControlContextValidator interface {
-	ValidateControlContextReference(context.Context, string, ControlContextSelection) error
+	ValidateControlContextReference(ctx context.Context, participantAddress string, selection ControlContextSelection) error
 }
 type ParticipantConfigurationRequest struct {
 	ParticipantAddress, ManifestRef, ManifestDigest string
@@ -159,8 +161,31 @@ type ParticipantConfigurationRequest struct {
 	ControlContext                                  ParticipantControlContextValidator
 }
 
-func RealizeParticipantConfiguration(context.Context, ParticipantConfigurationRequest) (binding.ParticipantConfigurationResultV1, error)
-func ValidateParticipantConfigurationSelection(Fragment, binding.ParticipantConfigurationResultV1) error
+func RealizeParticipantConfiguration(ctx context.Context, request ParticipantConfigurationRequest) (binding.ParticipantConfigurationResultV1, error)
+func ValidateParticipantConfigurationSelection(selection Fragment, result binding.ParticipantConfigurationResultV1) error
+func ParseExperiment(data []byte, task *validation.Value) (validation.Value, error)
+func LoadExperiment(source fs.FS, path string, task *validation.Value) (validation.Value, error)
+func DiscoverExperiments(source fs.FS, directory string) ([]string, error)
+func SealTrialPlan(v *Validator, data []byte, limits ingress.Limits) (validation.Value, error)
+func TrialPlanProjection(v *Validator, plan validation.Value, limits ingress.Limits) ([]byte, error)
+func TrialEntryOrder(v *Validator, plan validation.Value) ([]string, error)
+type TrialRunInputs struct {
+	Plan, Run, Task validation.Value
+	CleanupReceipts []validation.Value
+}
+func ValidateTrialRun(v *Validator, inputs TrialRunInputs) error
+type ExperimentEvidenceInputs struct {
+	CaptureSpecs, EvidenceRecords map[string]validation.Value
+	ArtifactReaders map[string]io.Reader
+	Scenarios []EvidenceScenario
+}
+func ValidateExperimentRun(v *Validator, task, run validation.Value, inputs *ExperimentEvidenceInputs) error
+type TrialStudyInputs struct {
+	Plan, Study, Definition validation.Value
+	Tasks, Runs, ReplacementPlans, CleanupReceipts []validation.Value
+	EvidenceByRun map[string]ExperimentEvidenceInputs
+}
+func ValidateTrialStudy(v *Validator, inputs TrialStudyInputs) error
 
 type ParticipantManifestKey struct{ ParticipantAddress, ImplementationName, ImplementationVersion, ManifestVersion string }
 type ApparatusManifestKey struct{ ComponentKind, ComponentName, ComponentVersion, ManifestVersion string }
@@ -239,3 +264,10 @@ func RealizationOpenOfferDiagnostics(v *Validator,envelope binding.RealizationEn
 func RealizationMemberDiagnostics(v *Validator,envelope binding.RealizationEnvelopeV1,projection Fragment,presence map[string][]string)([]diagnostic.Diagnostic,error)
 
 func CheckPreparedSnapshot(snapshot binding.RuntimeSnapshotV1) error
+
+func ExperimentProjection(v *Validator, document validation.Value) ([]byte, error)
+
+func ExperimentModelProjection(v *Validator, contractID string, data []byte) ([]byte, error)
+func ValidateTrialRunJSON(v *Validator, plan validation.Value, run []byte, cleanupReceipts [][]byte) error
+func SupersedeTrialRunJSON(v *Validator, run []byte, child validation.Value) ([]byte, error)
+func ManifestModelProjection(v *Validator, contractID string, data []byte) ([]byte, error)

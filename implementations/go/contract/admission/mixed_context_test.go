@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
@@ -124,5 +125,29 @@ func mixedContextMutation(c *mixedTestContext, name string) {
 		c.snapshot.EvidenceSatisfaction = nil
 	case "feature":
 		c.refuse = true
+	}
+}
+
+func TestMixedRootModelChecksLocalIntegrityWithoutContextAuthority(t *testing.T) {
+	owner := boundTestOwner(t)
+	raw, _ := mixedContextFixture(t, owner, "alternative")
+	limits := ingress.Limits{MaxBytes: 8 << 20, MaxDepth: 64}
+	if err := owner.CheckModelFragment("mixed-participant-composition-profile-v1", "#", raw, limits); err != nil {
+		t.Fatal("published root model refused", err)
+	}
+	var document map[string]any
+	if json.Unmarshal(raw, &document) != nil {
+		t.Fatal("invalid fixture")
+	}
+	document["profile_digest"] = "sha256:" + strings.Repeat("0", 64)
+	corrupt, err := json.Marshal(document)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if owner.CheckModelFragment("mixed-participant-composition-profile-v1", "#", corrupt, limits) == nil {
+		t.Fatal("corrupt model digest admitted")
+	}
+	if _, err := owner.Validate("mixed-participant-composition-profile-v1", raw, limits, nil); err == nil {
+		t.Fatal("local checking granted contextual admission")
 	}
 }

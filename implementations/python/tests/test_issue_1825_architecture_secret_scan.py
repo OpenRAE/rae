@@ -15,7 +15,11 @@ def test_architecture_checksum_exception_preserves_secret_detection(tmp_path: Pa
     model = source / "implementations/architecture.json"
     model.parent.mkdir(parents=True)
     checksum = "0123456789abcdef" * 4
-    allowed = f'"existing_api_sha256": "{checksum}"\n"docs/decisions/issue-1825-public-go-api.md": "{checksum}"\n'
+    allowed = (
+        f'"existing_api_sha256": "{checksum}"\n'
+        f'"docs/decisions/issue-1825-public-go-api.md": "{checksum}"\n'
+        f'"docs/decisions/issue-1788-validator-key-decision.md": "{checksum}"\n'
+    )
     # Synthetic scanner canaries, never usable credentials. Construct them so
     # this regression source contains no credential-shaped literal.
     generic_canary = "Ab9x" + "Q7mR" + "4vN2" + "kL8p" + "W6zT"
@@ -84,11 +88,11 @@ def test_architecture_checksum_exception_preserves_secret_detection(tmp_path: Pa
         for item in json.loads(report.read_text(encoding="utf-8"))
     }
     expected = {
-        ("implementations/architecture.json", 3, "generic-api-key"),
         ("implementations/architecture.json", 4, "generic-api-key"),
-        ("implementations/architecture.json", 5, "aws-access-token"),
+        ("implementations/architecture.json", 5, "generic-api-key"),
+        ("implementations/architecture.json", 6, "aws-access-token"),
     }
     for relative in ("other.json", "not-implementations/architecture.json", "implementations/architecture.json.bak"):
-        expected.update((relative, line, "generic-api-key") for line in (1, 2))
+        expected.update((relative, line, "generic-api-key") for line in (1, 2, 3))
     assert expected <= observed
-    assert not any(path == "implementations/architecture.json" and line in (1, 2) for path, line, _ in observed)
+    assert not any(path == "implementations/architecture.json" and line in (1, 2, 3) for path, line, _ in observed)

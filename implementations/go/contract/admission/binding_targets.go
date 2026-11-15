@@ -98,11 +98,13 @@ type descriptorWire struct {
 }
 
 type declarationWire struct {
-	TargetID          string   `json:"target_id"`
-	ValueType         string   `json:"value_type"`
-	Aliases           []string `json:"aliases"`
-	AllowedValueKinds []string `json:"allowed_value_kinds"`
+	TargetID          string          `json:"target_id"`
+	ValueType         string          `json:"value_type"`
+	Aliases           []string        `json:"aliases"`
+	AllowedValueKinds []string        `json:"allowed_value_kinds"`
+	Default           json.RawMessage `json:"default"`
 	ControlContext    *struct {
+		SlotID     string                     `json:"slot_id"`
 		References map[string]json.RawMessage `json:"references"`
 	} `json:"control_context"`
 }

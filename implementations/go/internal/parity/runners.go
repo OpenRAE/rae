@@ -18,6 +18,7 @@ import (
 // its runner. Each Go port adds the commands that it implements.
 func runners() map[string]Runner {
 	return map[string]Runner{
+		"mcp experiment_validate":     experimentValidateRunner(),
 		"cli processor manifest":      processorManifestRunner(),
 		"cli processor plan":          processorPlanRunner(),
 		"cli processor reconcile":     processorReconcileRunner(),
@@ -154,7 +155,7 @@ func canonicalStreamAddress(address json.RawMessage) ([]byte, error) {
 			return nil, err
 		}
 		for name, value := range dimensions {
-			if bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
+			if bytes.Equal(bytes.TrimSpace(value), []byte(termNull)) {
 				delete(dimensions, name)
 			}
 		}

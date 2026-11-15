@@ -299,7 +299,11 @@ func compileDocument(id string, root map[string]any, annotations map[string][]an
 		return contract{}, failure(fault.Operational, codeContractSchemaInvalid)
 	}
 	fragments := sync.OnceValue(func() map[string]*jsonschema.Schema { return indexSchemaFragments(compiled) })
-	return contract{schema: compiled, fragments: fragments, annotations: annotations, raw: root}, nil
+	entry := contract{schema: compiled, fragments: fragments, annotations: annotations, raw: root}
+	if id == "admitted-trial-plan-v1" {
+		entry.constructionWork = constructionGraphWork(compiled)
+	}
+	return entry, nil
 }
 
 // CheckSchema validates bounded JSON bytes against the published schema only.

@@ -80,6 +80,18 @@ It also adds manifest construction and reconciliation helpers in their existing 
 Existing entry points retain their signatures and meanings.
 The declaration files include these additions before processor implementation.
 
+The [trial validator key decision](issue-1788-validator-key-decision.md) corrects the unreleased `ConfigurationValidatorKey` fields.
+`ValidatorID` and `ValidatorVersion` select the manifest registry owner's validator.
+The participant implementation's identity remains a separate manifest fact.
+The user approved this correction before the trial port.
+
+The [experiment design](issue-1788-experiments-design.md) adds original-input readmission and replacement compilation to `processor/trial`.
+It also exposes the existing SDL selection owner and contract-layer experiment loading and reconciliation.
+The runtime-owned `runtime/experiment` package defines the experiment coordinator and complete run/study record producer.
+It receives the shared runtime host, atomic decision journal, and bounded call adapter through explicit interfaces.
+It supplies no second operation engine or concrete store.
+The control-plane port composes these owners; #1894 moves the runtime-owned code with its tests.
+
 Existing packages retain their complete API.
 `existing_api_sha256` and the source layer bind that API.
 The `symbols` list is an entry-point index, not permission to trim that API.

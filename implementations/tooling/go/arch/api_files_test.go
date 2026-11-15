@@ -98,3 +98,43 @@ func TestAPIFileSnapshotInclusiveBounds(t *testing.T) {
 		t.Fatal("a second file escaped the shared budget")
 	}
 }
+
+func TestSharedAPIFragmentsPreserveExactClosuresAndDuplicates(t *testing.T) {
+	const sharedPath = "implementations/architecture-api/shared.json"
+	const firstPath = "implementations/architecture-api/first.json"
+	const secondPath = "implementations/architecture-api/second.json"
+	repo := fstest.MapFS{
+		sharedPath: {Data: []byte(`["type common.Value constraints[] string"]`)},
+		firstPath:  {Data: []byte(`["package first"]`)},
+		secondPath: {Data: []byte(`["package second"]`)},
+	}
+	model := &Model{Packages: []Package{
+		{Dir: "first", APIFiles: map[string][]string{"linux": {sharedPath, firstPath}}},
+		{Dir: "second", APIFiles: map[string][]string{"linux": {secondPath, sharedPath}}},
+	}}
+	actual := API{
+		"first":  {"linux": {"package first", "type common.Value constraints[] string"}},
+		"second": {"linux": {"package second", "type common.Value constraints[] string"}},
+	}
+	if err := model.loadAPIFiles(repo); err != nil {
+		t.Fatal(err)
+	}
+	if findings := model.CheckAPI(actual); len(findings) != 0 {
+		t.Fatal("shared fragments changed the exact API", findings)
+	}
+	actual["first"]["linux"][1] = "type common.Value constraints[] int"
+	if len(model.CheckAPI(actual)) != 1 {
+		t.Fatal("shared storage hid a declaration change")
+	}
+	actual["first"]["linux"][1] = "type common.Value constraints[] string"
+	for index := range model.Packages {
+		model.Packages[index].API = nil
+	}
+	model.Packages[0].APIFiles["linux"] = append(model.Packages[0].APIFiles["linux"], sharedPath)
+	if err := model.loadAPIFiles(repo); err != nil {
+		t.Fatal(err)
+	}
+	if len(model.CheckAPI(actual)) != 1 {
+		t.Fatal("shared storage erased a duplicate declaration")
+	}
+}

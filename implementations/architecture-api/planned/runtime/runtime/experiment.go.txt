@@ -1,0 +1,143 @@
+package experiment
+
+import (
+	"context"
+	"encoding/json"
+	"io"
+	"time"
+	"github.com/OpenRAE/rae/implementations/go/base/clock"
+	"github.com/OpenRAE/rae/implementations/go/contract/admission"
+	"github.com/OpenRAE/rae/implementations/go/contract/binding"
+	"github.com/OpenRAE/rae/implementations/go/processor/trial"
+)
+
+type Identity struct { ActorID string; AuthorizationScope []string }
+type Trial struct {
+ Identity Identity
+	Plan binding.AdmittedTrialPlanV1
+	PlanEntryID, RunID, ExecutionAttemptID string
+	Attempt int
+	StartedAt, Deadline string
+	Realization trial.Realization
+}
+type Observation struct {
+	Kind, State string
+	Ceased, EffectsAbsent, Complete, Reusable, IdempotentEffects bool
+	Configurations []binding.ParticipantConfigurationResultV1
+	Evidence []binding.ExperimentEvidenceRecordV1
+ CleanupEvidence []binding.ExperimentEvidenceRecordV1
+	CleanupReceipt *binding.TrialCleanupReceiptV1
+	VerifiedCompensations []string
+	ObligationResults map[string]admission.Fragment
+	Snapshot binding.RuntimeSnapshotV1
+	OperationReceipts []binding.OperationReceiptV1
+}
+type Phase struct { State string; Observation *Observation }
+type Host interface {
+ Records(ctx context.Context, trial Trial) (RecordSource, error)
+	Authorize(ctx context.Context, identity Identity, experimentID string) error
+	Admit(ctx context.Context, trial Trial) (string, error)
+	Configure(ctx context.Context, trial Trial) (Phase, error)
+	Advance(ctx context.Context, trial Trial) (Phase, error)
+	Observe(ctx context.Context, trial Trial) (Observation, error)
+	Capture(ctx context.Context, trial Trial) (Phase, error)
+	Cleanup(ctx context.Context, trial Trial, reason string) (Phase, error)
+	Stop(ctx context.Context, trial Trial, reason string) (Phase, error)
+	Cancel(ctx context.Context, trial Trial) error
+	Retire(ctx context.Context, trial Trial) error
+	IsRetired(ctx context.Context, trial Trial) (bool, error)
+	PrepareRetry(ctx context.Context, trial Trial) (Phase, error)
+	Verify(ctx context.Context, trial Trial, observation Observation) error
+}
+type Decision interface {
+	ID() string
+	SchemaVersion() string
+	JSON() []byte
+	experimentDecision()
+}
+func DecodeDecision(data []byte) (Decision, error)
+type Journal interface {
+	Load(ctx context.Context) ([]Decision, error)
+	Claim(ctx context.Context, decision Decision) (bool, error)
+}
+type OwnerCalls interface {
+	Call(ctx context.Context, lane string, budget time.Duration, work func(context.Context) (any, error)) (any, error)
+}
+type Options struct {
+	Inputs trial.RealizationInputs
+	Identity Identity
+	Host Host
+	Journal Journal
+	Calls OwnerCalls
+	Clock clock.Clock
+	AdmissionBudget, ExecutionBudget, StoreBudget time.Duration
+	Replacement *trial.Request
+	Archive Archive
+}
+type Progress struct {
+	ExperimentID, State string
+	PlanEntryID, ExecutionAttemptID *string
+}
+type Coordinator interface {
+	Advance(ctx context.Context, identity Identity) (Progress, error)
+	Cancel(ctx context.Context, identity Identity) error
+	Results(ctx context.Context, identity Identity) ([]Observation, error)
+	Records(ctx context.Context, identity Identity, options RecordOptions) (RecordBundle, error)
+	experimentCoordinator()
+}
+func New(ctx context.Context, options Options) (Coordinator, error)
+type RunMetadata struct {
+	RunVersion, OutcomeStatus string
+	ApparatusContext *binding.ExperimentApparatusContextV1
+	ParticipantImplementationProvenance, Traceability, Invalidation json.RawMessage
+	RealizedBindings, ParameterSet, EvidenceArtifacts, RealizedFormDisclosures []json.RawMessage
+	ResultSummaries map[string]json.RawMessage
+}
+type RecordSource struct {
+	RunID string
+	Plan binding.AdmittedTrialPlanV1
+	Realization trial.Realization
+	Attempts, Observations []Decision
+	ExecutionSnapshots map[string]binding.RuntimeSnapshotV1
+	PhaseStates, OperationStates map[string]string
+	OperationRefs map[string][]string
+	OperationReceipts []binding.OperationReceiptV1
+}
+type Accounting struct {
+	PlannedRuns, StartedRuns, UnstartedRuns, ResolvedRuns, UnresolvedRuns int
+	Attempts, RetryAttempts, ReplacementRuns int
+	RunOutcomes, ScientificOutcomes, ExecutionOutcomes, CaptureOutcomes map[string]int
+	CleanupOutcomes, ValidationOutcomes map[string]int
+	MetricPopulations map[string]map[string]int
+}
+type RecordBundle struct {
+	Runs, RetainedHistory, ValidationRecords []binding.ExperimentRunV1
+	Sources []RecordSource
+	Accounting Accounting
+	ValidationByRun map[string]string
+	ValidationFailures map[string][]string
+	EligibleRunIDs []string
+	Study *binding.ExperimentStudyV1
+	StudyValidation string
+}
+type EvidenceInputs struct {
+	Inputs admission.ExperimentEvidenceInputs
+	Readers []io.Closer
+}
+type EvidenceReader interface {
+	Open(ctx context.Context, run binding.ExperimentRunV1) (EvidenceInputs, error)
+}
+type Archive interface {
+ BuildRun(ctx context.Context, source RecordSource) (binding.ExperimentRunV1, error)
+	WriteSources(ctx context.Context, source RecordSource) error
+	WriteRun(ctx context.Context, run binding.ExperimentRunV1) error
+	ReadRun(ctx context.Context, runID, version string) (binding.ExperimentRunV1, error)
+	WriteStudy(ctx context.Context, study binding.ExperimentStudyV1) error
+	ReadStudy(ctx context.Context, studyID, version string) (binding.ExperimentStudyV1, error)
+}
+type RecordOptions struct {
+	Metadata map[string]RunMetadata
+	Study *binding.ExperimentStudyV1
+	Evidence EvidenceReader
+	Archive Archive
+}
