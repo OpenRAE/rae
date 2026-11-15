@@ -29,10 +29,9 @@ and evidence scope; historical evaluations are not reinterpreted by this link.
 ## MPC-01 — selection and identity
 
 An admitted composition B is a finite set of profile-instance bindings and a
-finite set S of typed result slots. A binding pins profile id, revision and
-content digest; mechanism instance and revision; protocol revision; installed
-implementation artifact/version/digest; configuration digest; authority;
-applicability; state/memory scope; limitations; evidence; and finite bounds.
+finite set S of typed result slots. A binding pins profile id, revision and content digest, mechanism instance and revision, and protocol revision.
+It also pins installed implementation artifact/version/digest, configuration digest, authority, and applicability.
+It also pins state/memory scope, limitations, evidence, and finite bounds.
 A profile selects mechanisms; a mechanism resolves results; an IFC domain
 defines labels; a policy relates results to a sink. These identities MUST NOT
 substitute for one another.
@@ -88,28 +87,33 @@ A timestamp or participant id alone is insufficient.
 
 Each slot s has an instance, kind, mandatory/advisory role and typed dependency
 references. Kinds are IFC fact, deterministic decision, advisory assessment
-and typed effect request. Resolution status is independently one of resolved,
+and typed effect request.
+
+Resolution status is independently one of resolved,
 missing, unknown, unsupported, stale, failed or weakened. A resolved decision
 is permit, deny, withhold or abstain. Invalid bindings are rejected, never
 coerced to resolved. Conflict belongs to composition/commit; applied belongs
 to realization. Neither is a label or provider permission.
 
-Define valid(s,r,K) iff r names s's exact instance/profile/input bindings,
-kind and K, has resolved status, carries the required safe provenance/evidence,
-and satisfies its owning payload relation. Fact validity is not permission.
+Define valid(s,r,K) iff r meets three conditions.
+It names K and the exact instance/profile/input bindings and kind of s.
+It has resolved status and carries the required safe provenance/evidence.
+It satisfies its owning payload relation. Fact validity is not permission.
 Decision satisfaction additionally requires permit. Request validity does not
 mean that its operation has been authorized or applied.
 
 <!-- vale RAES.HeadingCase = NO -->
 ## MPC-04 — dynamic IFC and the first non-security domain
 
-A domain D publishes a closed carrier L, canonical encoding, partial order
-≤, total conservative join ⊔, source/default relation, propagation relation,
+A domain D publishes a closed carrier L, canonical encoding, partial order ≤, and total conservative join ⊔.
+It also publishes a source/default relation, propagation relation,
 sink policy, memory/reset scope, permitted release relations and limitations.
-For a,b,c in L, ⊔ is closed, associative, commutative, idempotent and monotone,
-and a ≤ a⊔b and b ≤ a⊔b. The general contract requires an upper bound, not
-an additional least-upper-bound theorem. A failure is outside L. An unknown
-token or revision cannot extend L; comparison across domains/revisions is
+
+For a,b,c in L, ⊔ is closed, associative, commutative, idempotent and monotone.
+For all such values, a ≤ a⊔b and b ≤ a⊔b hold. The general contract requires an upper bound, not
+an additional least-upper-bound theorem. L does not contain a failure.
+L does not grow through an unknown token or revision.
+Comparison across domains/revisions is
 unsupported without a published mapping carrying authority, provenance and loss.
 
 <!-- vale RAES.HeadingCase = YES -->
@@ -127,8 +131,8 @@ identity(v) is fresh; historical input identities and labels are immutable
 Missing input coverage is not an empty known set and cannot yield bottom.
 Opaque computation carries all possible inputs. Parsing, editing, masking,
 handoff, routing and episode reset do not establish non-influence. A reset may
-change the governed memory scope only with its owning reset authority and
-evidence that the retained dependencies are absent; prior delivery remains
+change the governed memory scope only with its owning reset authority and evidence that the retained dependencies are absent.
+Prior delivery remains
 historical knowledge under SEM-230's selected memory relation.
 
 ### Published semantic profile: teaching-influence/rev1
@@ -142,7 +146,9 @@ These are semantic encodings, not a newly published JSON contract.
 The admitted source relation assigns coached-hint to a governed hint source,
 worked-example to a governed example source, and {} only to an explicitly
 known uninfluenced source. Missing/unresolved source classification is unknown.
-No source resolver may infer {} from absent data. Derivation unions all known
+No source resolver may infer {} from absent data.
+
+Derivation unions all known
 input, memory and control influence. Unknown input makes the result unknown.
 The profile retains participant memory across episodes unless the above reset
 relation establishes no retained influence. Revision 1 permits no influence
@@ -153,10 +159,11 @@ For a known label, the practice-action and teaching-observation sinks impose
 no additional IFC refusal. Mandatory propagation remains required and ordinary
 authority, projection, resource and action gates still apply. Other sinks
 require their own admitted policy; unknown labels never satisfy propagation.
+
 The admitted hint-followup/1 rule consumes the propagation fact and requests
 a subsequent inject from a pinned reflection-prompt artifact when coached-hint
-is present. The rule has teaching authority, explicit addressee/visibility,
-one firing per root, two total effects, depth two, finite fan-out, finite
+is present. The rule has teaching authority, explicit addressee/visibility, one firing per root, and two total effects.
+It has depth two, finite fan-out, finite
 resolution/retry limits and a governed expiry. The inject retains source and
 trigger-control influence. This profile makes no confidentiality, integrity,
 learning-outcome or noninterference claim.
@@ -242,10 +249,10 @@ A transform chain must declare finite dependency edges through fresh subjects;
 ordering two incompatible replacements of the same original does not repair
 the conflict. The replaced proposal is withheld and never also dispatched.
 
-Delay constraints in one admitted clock intersect: [a,b] ∩ [c,d] =
-[max(a,c),min(b,d)], admissible only when the lower endpoint is no greater
-than the upper. An unresolved cross-clock relation or empty intersection
+Delay constraints in one admitted clock intersect: [a,b] ∩ [c,d] = [max(a,c),min(b,d)].
+The intersection is admissible only when the lower endpoint is no greater than the upper. An unresolved cross-clock relation or empty intersection
 conflicts. Authority/resource expiry still applies at the eventual release.
+
 Effects sharing subject, authority, lifecycle, time, resource or sink state
 require explicit compatible ordering and fresh validation. Disjoint effects
 may be unordered only with declared and evidenced independence. Shutdown
@@ -308,8 +315,7 @@ Failed commit produces no prohibited backend call or participant disclosure.
 
 <!-- vale RAES.HeadingCase = YES -->
 
-Immediately before invocation, authority, capability, policy, target and history
-still bind the current admitted K. A commit-bound generation fence or exclusive
+Immediately before invocation, authority, capability, policy, target and history still bind the K that is currently admitted. A commit-bound generation fence or exclusive
 dispatch lease covers final invocation; asynchronous delivery unable to retain
 it re-enters final admission. Check-then-unfenced-call is not complete mediation.
 Unsupported fencing cannot be claimed as implemented. Serialization, streams,
@@ -329,8 +335,7 @@ Complete changed canonical intent under a claimed key conflicts.
 <!-- vale RAES.HeadingCase = YES -->
 
 Required predecessors cause a committed parent withhold and separately admitted
-operations. Realization/approval satisfies only that obligation; the parent
-reevaluates all gates at a fresh K. Subsequent operations have independent
+operations. Realization/approval satisfies only that obligation; the parent reevaluates all gates against a K that is fresh. Subsequent operations have independent
 admission and outcome; failure does not undo an applied parent. All-or-nothing
 plans require exact backend transaction support or are unsupported.
 
@@ -364,8 +369,8 @@ unbounded liveness.
 <!-- vale RAES.HeadingCase = NO -->
 ## MPC-13 — evidence and claim boundary
 
-Evidence pins requested/effective profiles, mechanism/protocol/implementation
-revisions and digests, configuration, authority, domain/policy/rule revisions,
+Evidence pins requested/effective profiles, mechanism/protocol/implementation revisions and digests, configuration, and authority.
+It also pins domain/policy/rule revisions,
 world coverage, memory, clock/order, backend artifact, support strength, loss,
 provenance and limitations. Reuse existing apparatus, claim and evidence refs.
 Private mechanism state is not portable evidence.

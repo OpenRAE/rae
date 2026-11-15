@@ -5,6 +5,7 @@
 Source: RAES 7.0.0 with bundled reference/libvirt backends.
 Target: the post-7.0.0 portable boundary, retained in RAES 11.0.2.
 The LilRAE 8.1.0 pairing below is historical; it does not establish support for RAES 11.0.2.
+
 Keep original archives and use the old deployment owner's cleanup procedure before upgrading.
 Native stop and removal operations change infrastructure and require that owner's authority.
 Do not run them as documentation checks.

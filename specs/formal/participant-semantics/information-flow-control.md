@@ -28,9 +28,8 @@ This document is definition authority. The executable cases in
 bounded falsification evidence. Neither artifact is production enforcement or
 a universal proof.
 
-Revision `sem-230/rev2`, adopted by ADR-095, makes decision-surface output a
-first-class low observation, binds policy decisions to exact state cuts, and
-quantifies the baseline over adaptive participant strategies. Revision
+Revision `sem-230/rev2`, adopted by ADR-095, makes decision-surface output a first-class low observation.
+It binds policy decisions to exact state cuts and quantifies the baseline over adaptive participant strategies. Revision
 `sem-230/rev1` remains the historical open-loop formulation; its
 `observation/order` scalar must not be reused as a v2 decision epoch or
 state-cut identity.
@@ -50,7 +49,8 @@ It adds an RAES-specific coordinate only when the prior formulation lacks inform
 | visible history and knowledge persistence | interpreted systems and the existing ADR-054 constructive visible-history/perfect-recall treatment | disclosure appends a stable visible occurrence to `H`; later concealment or revocation changes future projection | RAES preserves evidence/provenance and visible-order identity across rollback and supersession |
 | causal and partial ordering | Lamport happened-before plus the Winskel event-structure and Mazurkiewicz trace-theory lineage already adopted by ADR-054 | SEM-230 reuses the existing `R_c`, visible partial order, and simultaneity groups | policy decisions and declassification events are located at exact cuts; no new clock or concurrency formalism is introduced |
 
-The indirect derivations in the final two rows are intentional: SEM-230 reuses
+The indirect derivations in the final two rows are intentional.
+SEM-230 reuses
 the accepted participant-runtime authority and its formal sources instead of
 copying or forking those definitions. Timed, probabilistic, divergence-sensitive,
 or proof-bearing variants must extend the catalog with the corresponding prior
@@ -260,9 +260,8 @@ purge[p,e,a,rho](alpha) =
 
 Purge is dynamic: each occurrence is evaluated against the authoritative
 policy decision at its exact state cut. A later or incomparable policy decision
-cannot cause an earlier high input to be retained. A permitted declassification
-event records at least the released dimensions, participant/audience,
-actor/controller/authority basis, policy identity/revision/decision, exact
+cannot cause an earlier high input to be retained. A permitted declassification event records at least the released dimensions, participant/audience, and actor/controller/authority basis.
+It also records policy identity/revision/decision, exact
 state-cut ref, markings, evidence, and provenance.
 
 Two declassification schedules are equal only when those governed coordinates

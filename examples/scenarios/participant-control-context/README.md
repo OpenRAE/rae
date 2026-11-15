@@ -21,10 +21,12 @@ Each import gives local names and participant addresses its own namespace.
 These descriptors apply by role.
 That scope stays valid across imports.
 A descriptor scoped by address must name its final canonical participants.
+
 Declaring or selecting an asset places no content.
 It creates no item for a participant to see.
 `withheld` states the author's intent.
 It records no runtime withholding or delivery.
+
 Slots impose no order or precedence.
 They do not compose instructions.
 Consumers must still check lifecycle, authority, content, audience, and delivery under ACT-620.

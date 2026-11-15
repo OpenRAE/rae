@@ -58,13 +58,16 @@ flowchart LR
 The diagram shows the package download and local file checks.
 The file stays local during validation, inspection, and formatting.
 No backend, runtime store, remote import, private content, or credential is needed.
+
 Strict source checks and semantic validation protect the parser boundary.
 The planned error uses a synthetic missing reference.
 The CLI keeps its sanitized diagnostic.
+
 A clean install check verifies the released package.
 It uses no checkout imports or cached packages.
 Formatting writes a separate file.
 This prevents shell redirection from emptying the source.
+
 Package trust remains the existing PyPI installation trust boundary.
 This documentation change introduces no additional service or transfer destination.
 
@@ -73,9 +76,11 @@ This documentation change introduces no additional service or transfer destinati
 The data flow diagram also shows the components for this local exercise.
 The exercise creates no deployment or runtime state.
 Those diagrams need no changes.
+
 Existing source guards, Sphinx, Vale styles, and the catalogue checker remain the controls.
 Focused example tests check the lesson.
 No policy-as-code or architecture-as-code change is needed.
+
 Component roles and executable behavior stay the same.
 No ADR changes are needed. ADR-115 already assigns native backend ownership.
 The preflight note records the remaining binding architecture constraints.

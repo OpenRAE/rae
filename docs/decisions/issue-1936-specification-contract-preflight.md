@@ -19,6 +19,7 @@ No new ADR, schema, registry, or tool is needed.
 Reader purpose and normative authority are different properties.
 Exact language rules are reference, even when their filenames contain “guide”.
 Keep their obligations and exceptions. Keep conditions, units, identifiers, and notation.
+
 Move separable rationale to explanation and reproduction steps to how-to guides
 under the existing `docs/` structure. Keep links at the original locations.
 Do not move binding clauses into a non-normative explanation.
@@ -27,6 +28,7 @@ Do not create four directory trees merely to represent the four reader purposes.
 
 Code establishes observed usage behavior at the stated revision.
 Specs and contracts give required meaning. Their authority does not depend on code.
+
 For a discrepancy, retain the rule and identify the affected implementation,
 evidence, and unsupported behavior. Do not weaken the rule to match a defect.
 An ambiguous clause needs a recorded interpretation question, not a silent wording choice.
@@ -86,10 +88,12 @@ An equivalent description correction must remain limited to reviewed prose.
 Keep contract IDs, filenames, `$id`, and references unchanged.
 Keep defaults, constraints, and enum terms unchanged.
 Keep invariant IDs, validator locators, and profile coordinates unchanged.
+
 Review the published correction and owning source together under existing
 governance. Do not overwrite authority with unreviewed generator output.
 A published annotation edit is still a schema-file change.
 Name its explicit scope and governance review. A prose label is not an exemption.
+
 Descriptions affect output bytes and can affect shared-schema factoring.
 Inspect every resulting bundle difference, including indirect model descriptions.
 Unrelated generated data and formal proof artifacts remain unchanged.
@@ -101,6 +105,7 @@ The publication checker reads the v2 manifest and per-contract records.
 Records contain `contract_id`, `schema_path`, and `stability`.
 They do not contain `content_hash` or `last_change`.
 The amendment to ADR-061 records this change; its original body is historical.
+
 `contracts/README.md` still claims hashes and a change ledger are required.
 Correct that maintained guidance against the current checker and amendment.
 Do not restore retired fields to satisfy stale prose.
@@ -158,18 +163,20 @@ These results give a baseline. They do not prove unchanged meaning or full confo
 invariant headings, family rows, and code blocks.
 When prose changes, its crosswalk excerpts can need the same change.
 Keep the source clause and evidence relation; do not delete coverage assertions.
+
 The assurance checker registers formal subdirectories by their README files.
 Do not create or move domain READMEs as an incidental navigation change.
+
 Proof manifests, research captures, historical catalogs, ADR pins, and lineage
 records can bind paths or bytes. Check their owners before changing adjacent prose.
 Use the research-capture procedure if the work records new source-bound research
 evidence. This rewrite does not require a new capture.
 
-Use existing targeted checks for changed families: authority and catalog parity,
-publication and generated equality, explicit JSON-artifact paths, and relevant
-parser, contract, seal, or semantic-coverage test modules/cases.
+Use existing targeted checks for changed families: authority and catalog parity, and publication and generated equality.
+Also use explicit JSON-artifact paths, and relevant parser, contract, seal, or semantic-coverage test modules/cases.
 Use `docs-prose` on explicit changed Markdown/reStructuredText paths.
 Review YAML/JSON descriptions, source docstrings, and other unsupported prose manually.
+
 The style guide supplies the existing Vale stdin route for maintained passages
 inside protected files. A clean lint result proves neither accuracy nor STE conformance.
 Full test, integration, fuzz, proof, and completion suites remain CI/CD work.
@@ -177,10 +184,12 @@ No behavior changes are proposed here, so mutation testing adds no evidence for 
 
 Record each page's purpose, source paths, and revision in the delivery PR.
 Record the review of unchanged meaning. Give commands, results, gaps, and exclusions.
+
 Review each changed section, not only representative pages.
 Follow exact reference links from relevant SDL, backend, API, and contributor pages.
 Keep useful heading anchors; a page redirect does not preserve a removed fragment.
 Sphinx link checks ignore some repository URLs, so verify paths and fragments explicitly.
+
 Use `docs-local` and `docs-links` for affected public links and rendered pages.
 Repository-only prose needs a local rendered view as well.
 Check heading order, descriptive links, diagram text alternatives, and keyboard
@@ -191,6 +200,7 @@ access for changed navigation. Record unverified rendering separately.
 Stable reference URLs and existing indexes are the reader-facing extension seam.
 A later explanation or procedure can link to the same rule without copying it.
 The authority manifest owns classification; existing catalogs own terms and profiles.
+
 The schema contribution functions own descriptions.
 `write_schema_bundle(destination)` selects output paths. Corpus loaders accept explicit roots.
 `PUBLIC_DOCS_ROOT` sets the published source root. Keep these parameters.
@@ -209,8 +219,8 @@ Keep supported-release instructions separate from development-only references;
 do not link unreleased rules as if the supported package implements them.
 Issue #1803 owns Go build and instruction migration; #1804 owns publication.
 
-Non-goals are runtime or parser repairs, schema semantics or identity changes,
-new schemas or validators, formal proof changes, fixture-data rewrites, backend
+Non-goals are runtime or parser repairs, schema semantics or identity changes, and new schemas or validators.
+Other non-goals are formal proof changes, fixture-data rewrites, backend
 integration, release metadata edits, publication, and build migration.
 Do not rewrite frozen history, duplicate normative text, promote finite evidence
 to universal claims, suppress failing checks, or add a custom documentation tool.
@@ -232,6 +242,7 @@ implementations/python/.venv/bin/python tools/check_repo_policy.py --check-set f
 The `docs-prose` session stopped at environment setup: it could not fetch pinned
 `hatchling==1.33.0` from PyPI. No prose stage ran in that session.
 A direct check through `tools.vale_tool.ensure_vale` passed with `.vale.ini`.
+
 The existing MyST HTML5 renderer produced local HTML with file insertion and
 raw content disabled. Its heading order, two tables, and four link targets were
 reviewed. No diagrams or controls were added. Browser visual and keyboard

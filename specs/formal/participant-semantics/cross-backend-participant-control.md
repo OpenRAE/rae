@@ -150,8 +150,8 @@ that is not permitted by \(S\). Here \(S\) includes the authored constraints
 and their selected abstraction, not an exhaustive concrete inventory. A
 delegated internal materialization choice does not become a portable allocation
 unit. Additional portable membership, where allowed, must first pass the
-owning prepared-membership authority and resolve stable compiled identities
-before composition sealing; a backend report cannot grant it.
+owning prepared-membership authority and resolve stable compiled identities before composition sealing.
+A backend report cannot grant it.
 
 <!-- vale RAES.HeadingCase = YES -->
 
@@ -197,8 +197,10 @@ negotiation nor a nonempty intersection alone proves delivery.
 
 If two providers cover the same unit, an accepted revisioned arbitration or
 failover profile must define selection and failure. Revision 1 supplies no such
-profile, so unexplained overlap is invalid. This is phase-relative and checks
-resolved effect coverage across allocation kinds: a participant-runtime scope
+profile, so unexplained overlap is invalid.
+
+This is phase-relative and checks resolved effect coverage across allocation kinds.
+A participant-runtime scope
 and an action-family scope cannot assign the same effect to different
 providers. Repeated consistent coverage by the same provider is not competing
 ownership. Disjointness requires the owning scope interpretation, not address
@@ -316,8 +318,8 @@ controller state. Only an atomic revision-fenced `committed` occurrence does.
 <!-- vale RAES.HeadingCase = NO -->
 ### MCB-014 — pull/push provenance
 
-Acquisition initiated by the candidate and transfer initiated by the current
-provider retain different initiator/negotiation evidence even when both
+Acquisition initiated by the candidate and transfer initiated by the current provider retain different initiator/negotiation evidence.
+This is true even when both
 converge on the same commit relation.
 
 <!-- vale RAES.HeadingCase = YES -->
@@ -756,8 +758,8 @@ Eligible(phi)   iff each allocation resolves to an active admitted component
 An edge is the directed relation `(source, destination, crossing-scope)` plus
 the bindings in section 5. A declared required exchange needs exactly one
 resolving edge. No reverse or transitive authority follows from another edge.
-Multiple edges with conflicting interpretations of the same exchange refuse
-admission. Endpoint clocks must match the named mapping's source/destination
+
+Multiple edges with conflicting interpretations of the same exchange refuse admission. Endpoint clocks must match the named mapping's source/destination
 domains. A common adapter identity does not supply a missing mapping. Mapping
 loss must be explicit, compatible with exact constraints, and accepted by the
 selected policy before sealing.
@@ -784,14 +786,17 @@ Admit(P,S,D,O) iff
 Alternative realization relates separately admitted plans holding instantiated
 scenario and participant-policy identity fixed, with distinct plan-entry/run
 identities and their own apparatus provenance. It is an OR choice, not a
-concurrent fallback pool. Simultaneous mixed realization has at least one
-active phase with two or more providers whose declared realized dimensions
+concurrent fallback pool.
+
+Simultaneous mixed realization has at least one active phase with two or more providers whose declared realized dimensions
 include distinct forms. `federated-composition` describes a composition
 boundary; its nested profile must disclose the relevant leaf forms. Several
 same-form components, names or adapter classes alone do not establish mixed
-simulation/emulation. Simulation realizes declared transition/interaction
-semantics; emulation/operation realizes the selected operational behavior;
-hardware/native names a physical/native realization dimension. These labels
+simulation/emulation.
+
+Simulation realizes declared transition/interaction semantics.
+Emulation/operation realizes the selected operational behavior.
+Hardware/native names a physical/native realization dimension. These labels
 are bounded declarations supported by the selected basis, not equivalence.
 
 Admission does not imply current execution permission. For exchange `x` at
@@ -813,8 +818,10 @@ The authorized projection includes declared metadata observations as well as
 payload. `BridgeOutput(x,K)` must be a narrowing of that projection before
 serialization. Metadata outside the modeled observer surface is an explicit
 claim limitation, not proven absence of a channel. Audit uses its own audience.
-An edge does not wrap every internal exchange in a participant carrier:
-API-423 applies only at the participant boundary and keeps its existing typed
+
+An edge does not wrap every internal exchange in a participant carrier.
+API-423 applies only at the participant boundary.
+It keeps its existing typed
 subjects, predecessor joins and stage dispositions.
 
 Refusal versus weakening is precise. Missing/revoked/stale authority,
@@ -822,6 +829,7 @@ unresolved required mappings, unmet exact constraints and failed commit always
 refuse the affected effect. A weaker *claim* can be admitted only where its
 owning policy explicitly permits that strength and records the omitted relation,
 loss and limitations. It does not satisfy an unchanged stronger obligation.
+
 Timestamp-only disclosure cannot be promoted to causal or backend-serialized
 order. Optional unsupported observation has an explicit unavailable outcome;
 required unsupported observation refuses. Weakening never invents permission.
@@ -898,8 +906,8 @@ Missing binding, capability, current policy, or evidence causes refusal before a
 Before bridge invocation, the executable edge must join the exact governed crossing coordinates.
 These are subject, audience, policy cut, controller, action and disclosure authority, and permitted final sink decision.
 
-Let (A) be the durable decision/attempt, (X) the correlated provider result,
-(D) a destination receipt from independent readback, and (O) an authorized
+Let (A) be the durable decision/attempt, and (X) the correlated provider result.
+Let (D) be a destination receipt from independent readback, and (O) an authorized
 participant/audience readback. The executable ordering is:
 
 ```text
@@ -910,40 +918,45 @@ record O    only after D and a matching participant/audience observation
 ```
 
 The time grant cites the named source and destination clocks, mapping,
-comparable order, and evidence; typed pre/post runtime readback must match the
+comparable order, and evidence.
+Typed pre/post runtime readback must match the
 admitted time model. A mapping declaration or pair of timestamps does not
-provide the grant. The bounded implementation supports proved comparisons
-within one segment. Incomparable or unsupported comparisons refuse; neither a
+provide the grant.
+
+The bounded implementation supports proved comparisons within one segment. Incomparable or unsupported comparisons refuse; neither a
 shared physical clock nor physical-OT timing is inferred.
 At equal mapped ticks, source microstep must not exceed destination microstep.
+
 Successful execution, delivery, observation, and weakening facts require the
 incumbent backend result gate to accept the returned provider result. If a
 later readback interrupts the call, already confirmed stages remain tied to
 their original operation and the operation stays `INDETERMINATE`.
 
 For a staged transition that changes active components, the admitted evaluator
-and an installed transfer service are separate. The service must obtain its
-time grant, execute the exact native handoff under the operation id, and read
-back the destination owner at the next phase revision. Only then may the new
-phase and handoff fact commit. A failed or stale handoff with old-owner readback
-retains the prior phase. Pending, contradictory, or unknown transfer is
+and an installed transfer service are separate. The service must obtain its time grant and execute the exact native handoff under the operation id.
+It must then read back the destination owner at the next phase revision. Only then may the new
+phase and handoff fact commit.
+
+A failed or stale handoff with old-owner readback retains the prior phase. Pending, contradictory, or unknown transfer is
 `INDETERMINATE` and blocks dependent work. The store atomically excludes a
 competing phase or mixed-effect claim for that run while the transfer is active.
 Native ownership does not alter RUN-310 controller authority.
 
-The governed request and provider snapshot are fixed before a mapper runs;
-mapping, time, and bridge callbacks cannot mutate either carrier and still
-invoke the provider on an altered cut. Handoff
+The governed request and provider snapshot are fixed before a mapper runs.
+Mapping, time, and bridge callbacks cannot mutate either carrier and still invoke the provider on an altered cut. Handoff
 time readbacks join the committed snapshot before the grant and after the
 transfer. On restart, an interrupted edge or native transfer has only its
-durable pre-effect cut. Provider-only recovery cannot establish the bridge,
+durable pre-effect cut.
+
+Provider-only recovery cannot establish the bridge,
 clock, delivery, audience, or native-owner stages. Such an operation remains
 `INDETERMINATE` and blocks dependent work until those stages are reconciled.
+
 Generic acceptance of the current snapshot cannot discharge an interrupted
 mixed edge or native handoff, even when its crossing history is valid. A
 stage-specific reconciliation must prove the missing external facts first.
-Startup still validates typed crossing records and every unaffected history;
-only the suffix of the interrupted crossing is withheld from contextual
+Startup still validates typed crossing records and every unaffected history.
+Only the suffix of the interrupted crossing is withheld from contextual
 validation while its operation is quarantined.
 
 Historical `sem-234/rev1` edge references and success values retain their old

@@ -9,6 +9,7 @@ They need no backend installation, daemon, credential, or external service.
 Use the [frozen development environment](../../CONTRIBUTING.md#set-up-the-repository).
 Run each command from the repository root.
 Exit code `0` means the selected assertions passed; failures exit nonzero.
+
 The support requirements are the same for all four groups below.
 The results below describe what each test checks.
 They are not native deployment logs.
@@ -48,6 +49,7 @@ The successful case writes and reads the fixture's actual file content.
 The operation succeeds with outcome `effect-applied`.
 Its correlation names the exact occurrence.
 Participant results remain empty.
+
 An exact retry leaves the provider start count at one.
 Unverified readback cannot establish success.
 Crash recovery cannot redispatch consumed work.

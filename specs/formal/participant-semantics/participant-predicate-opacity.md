@@ -140,14 +140,13 @@ these postures:
    supervisor and policy realization;
 2. **public contract, hidden realization** — alternatives may vary over
    hidden implementations satisfying the same public contract;
-3. **online learned** — declared approvals, denials, edits, choices,
-   handoffs, deferrals, or omissions enter the observer history under the
-   profile's issuance rule; or
+3. **online learned** — declared approvals, denials, edits, and choices enter the observer history under the profile's issuance rule.
+   Declared handoffs, deferrals, or omissions also enter it; or
 4. **selectively disclosed** — decision content, occurrence, timing, order, or
    delivery is projected under an explicit SEM-226/SEM-230 decision.
 
-Filtering a payload does not remove the information in decision occurrence,
-absence, ordering, latency, delivery, retry, surface refresh, action
+Filtering a payload does not remove the information in decision occurrence, absence, ordering, latency, delivery, and retry.
+It also does not remove the information in surface refresh, action
 availability, rejection detail, or changed external behavior. If the
 participant can observe any such fact, `Obs_P` includes it. A hidden policy
 revision can still be learned from its effects.
@@ -262,8 +261,8 @@ The `Participant_Opacity` Isabelle/HOL session under
 `participant-opacity-theorem-v1@sem-231-proof/rev1`:
 
 1. the one-sided active-strategy SEM-231 opacity kernel;
-2. the equivalence between opacity and absence of knowledge that the selected
-   predicate is true, using the exact reflexive and factive information cell;
+2. the equivalence between opacity and absence of knowledge that the selected predicate is true.
+   It uses the exact reflexive and factive information cell;
    and
 3. the conditional implication from SEM-230 policy noninterference to SEM-231
    opacity for an eligible predicate under exactly matching profiles.
@@ -283,8 +282,8 @@ promotion, declassification, retained memory after revocation, relation
 substitution without preservation, stronger observations, and probabilistic
 promotion. The closed
 [`participant-opacity-proof-evidence.json`](participant-opacity-proof-evidence.json)
-binds theorem ids, assumptions, proof-axis claims, source and dependency
-digests, the pinned Isabelle distribution, offline replay, resource limits,
+binds theorem ids, assumptions, proof-axis claims, and source and dependency digests.
+It also binds the pinned Isabelle distribution, offline replay, resource limits,
 and the independently reproduced kernel result. It does not instantiate RAES,
 a runtime, a deployment, or a backend, and it establishes no correspondence
 theorem for the Python finite-analysis implementation.
@@ -343,12 +342,15 @@ A future definition cannot carry a positive assurance axis.
 
 Issue #810 defines this architecture. Issue #961 delivers the closed baseline
 profile and bounded finite falsifier. Issue #962 delivers exact finite-state
-model checking for the historical baseline fixture profile. Issue #963
-delivers the abstract conditional mathematical proof. Issue #964 delivers one
+model checking for the historical baseline fixture profile.
+
+Issue #963 delivers the abstract conditional mathematical proof. Issue #964 delivers one
 finite reference-runtime uniform-denial enforcement profile through RUN-319;
 it releases no protected payload or participant state and records each withheld
 egress opportunity. Issue #965 added a reference-backend declaration,
-realization, and conformance lane. Issue #1374 withdraws that lane. Its
+realization, and conformance lane.
+
+Issue #1374 withdraws that lane. Its
 evidence was a fixed transcript, and the reference backend is no longer part of
 RAES. The generic runner now derives each transcript from runtime execution and
 backend readback. Under the runtime profile, RUN-319 produces the normal form
@@ -360,8 +362,8 @@ evidence only.
 `participant-opacity-baseline-v1@sem-231/rev2` closes the observer, secret,
 carrier, projection, cut, memory, strategy, supervisor, release, scheduler,
 environment, order, time, and finite-bound coordinates. The canonical loader
-resolves that profile from the governed corpus and the shared behavioral-claim
-validator requires exact agreement among the claim, catalog, profile, and
+resolves that profile from the governed corpus.
+The shared behavioral-claim validator requires exact agreement among the claim, catalog, profile, and
 observation projection.
 
 The normalized analysis input declares the complete finite possible-point
@@ -380,18 +382,20 @@ input; they are not copied into the evidence envelope or authenticated by the
 checker. The evidence therefore declares `normalized-input-only` provenance
 and explicitly disclaims source or materializer authenticity. Its positive
 outcome is
-`no-counterexample-within-declared-finite-bounds`. That result applies only to
-the exact admitted artifact; it is not named or represented as opacity,
+`no-counterexample-within-declared-finite-bounds`. That result applies only to the exact admitted artifact.
+It is not named or represented as opacity,
 verification, model checking, proof, runtime enforcement, or backend
 conformance.
 
 ## Finite-state model-check contract
 
 `participant-opacity-baseline-v1@sem-231/rev2` also admits a distinct
-transition-model artifact. The artifact binds the exact catalog and profile
-digests; complete state, transition, initial-state, evaluation-point, run,
-cut, strategy, scheduler/environment, and order counts; the full initial set;
-and a canonical labelled transition relation. Reachability is not an input
+transition-model artifact. The artifact binds the exact catalog and profile digests.
+It binds complete state, transition, initial-state, evaluation-point, run, and cut counts.
+It binds strategy, scheduler/environment, and order counts.
+It also binds the full initial set and a canonical labelled transition relation.
+
+Reachability is not an input
 assertion. The checker derives the complete reachable fixed point from the
 initial set and transition relation.
 
@@ -402,8 +406,8 @@ point. An active profile quantifies over every allowed strategy and requires
 the actual and alternative points to use the same strategy. The checker does
 not stop exploration when it finds a counterexample.
 
-Evidence binds the source assertion, catalog, profile, normalized transition
-model, assumptions, checker and package versions, derived reachable carrier,
+Evidence binds the source assertion, catalog, profile, normalized transition model, and assumptions.
+It binds checker and package versions, derived reachable carrier,
 declared and explored coverage, per-strategy coverage, result, and safe
 counterexample path when present. The positive result is
 `holds-on-exact-complete-finite-model`. It applies only to the exact

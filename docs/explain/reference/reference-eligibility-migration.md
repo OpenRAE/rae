@@ -18,7 +18,7 @@ before.
 | --- | --- | --- |
 | `objectives.*.targets[]` and `objectives.targets` variation candidates | `conditions`, `injects`, `events`, `scripts`, `stories`, `action_contracts`, `observation_boundaries`, `behavior_specifications`, participant inject deliveries, `variation_points` | Name the proposition that a condition probes, or the participant, organization, resource, or relationship the objective concerns. Use `actions` for action constraints and `window` for narrative scope. |
 | `action_contracts.*.interactions.*.target` | `propositions`, `assertions`, `conditions`, narrative entries, behavior surfaces, `variation_points` | Name the participant, organization, resource, or relationship the action acts on. A truth claim belongs in a proposition or objective, not an action target. |
-| `action_contracts.*.effects.*.target_refs[]`, which were not checked before | an entry that names any declaration other than a participant, organization, resource, or relationship: the kinds in the row above, plus `objectives`, `workflows`, `variables`, `evidence_requirements`, `time_domains`, `clocks`, `time_domain_mappings`, `time_progression_policies`, `temporal_constraints`, tool affordances, and variation alternatives and members | Name the participant, organization, resource, or relationship the effect changes, or keep a token that names no declaration. |
+| `action_contracts.*.effects.*.target_refs[]`, which were not checked before | an entry that names any declaration other than a participant, organization, resource, or relationship. These are the kinds in the row above, plus `objectives`, `workflows`, `variables`, `evidence_requirements`, `time_domains`, `clocks`, `time_domain_mappings`, `time_progression_policies`, `temporal_constraints`, tool affordances, and variation alternatives and members | Name the participant, organization, resource, or relationship the effect changes, or keep a token that names no declaration. |
 | `action_contracts.*.interactions.*.shared_state_refs[]` | the kinds refused as interaction targets, plus `agents` and `entities` | Name the resource or relationship whose state the interacting actions read or write. |
 | `behavior_specifications.*.authority_scope_refs[]`, mixed-control state `scope_refs[]`, and inject-delivery `control_authority_scope_refs[]` | `propositions`, `assertions`, `conditions`, narrative entries, `variation_points` | Name the participant, organization, resource, relationship, or behavior surface the authority covers. |
 
@@ -40,6 +40,7 @@ Narrowing only refuses references.
 It does not make a previously unresolved bare name resolve.
 These fields resolve bare names among all targetable declarations.
 The single match must then be eligible.
+
 A name shared with a refused declaration remains ambiguous.
 For a node and condition both named `web`, use `nodes.web`.
 The same rule applies to participant relationship endpoints.
@@ -57,6 +58,7 @@ Other reference fields keep their existing diagnostic wording.
 These include relationship endpoints, proposition subjects, evidence refs, authority anchors, and general declared/targetable fields.
 Their wording is `any defined element` or `any defined targetable element`.
 They gain `; it names` details when a reference names a declaration.
+
 Ambiguous bare-name diagnostics list eligible choices first, then refused declarations.
 For example:
 `'web' is ambiguous; use one of: nodes.web; not eligible as an authority scope: conditions.web`.
@@ -113,9 +115,8 @@ a mapping with a top-level `name` key, on each repository's integration branch:
 
 All 200 documents kept the same full validation outcomes, including error text.
 This held both as authored and with legacy spellings accepted. As authored, 148 are accepted and 52 are rejected for unchanged
-reasons. The rejected files include intentionally invalid fixtures, pack
-manifests and Compose files that are not SDL, and documents that need a
-migration first, such as all the adapters SDL files.
+reasons. The rejected files include intentionally invalid fixtures, and pack manifests and Compose files that are not SDL.
+They also include documents that need a migration first, such as all the adapters SDL files.
 
 The 162 documents that parse structurally with legacy spellings accepted name
 these declaration kinds, by reference purpose. A reference counts when it resolves to one declaration in its purpose's resolution domain.
@@ -214,6 +215,7 @@ Suggestions also meet the owning subtype's known attribute and context rules.
 Participant relationships and forest trusts exclude self-links.
 Topology sources must be compute nodes.
 Placement targets must be carriers in the compatible cell.
+
 In a valid context, the semantic validator checks candidates.
 Those checks include controller direction and selected policy bounds.
 Known attributes still apply to incomplete documents.
@@ -238,6 +240,7 @@ These Python helpers accept an optional `path`:
 `language_diagnostics`, `language_completions`, `language_references`, `language_format`, and `apply_structured_edit`.
 With it, local imports compose as in `parse_sdl_file()`.
 Imported declarations complete, navigate, and validate under their namespaces.
+
 Importing a namespace twice reports the same collision.
 Registry imports are refused, not fetched.
 See [language-service tools](../sdl/language-service.md#python-helpers).
@@ -247,6 +250,7 @@ MCP tool behavior is unchanged too.
 Nested local declarations have definitions at their authored key or identifier range.
 With `path`, imported definitions include the actual module file and original path/range.
 They include composed path, namespace, module identity, and fragment digest too.
+
 An imported declaration's semantic diagnostic reports its original file and range.
 It also gives the canonical composed address.
 Loading and composition capture this metadata.
@@ -262,20 +266,18 @@ Authority scopes compile through the declaration identities selected by validati
 Bare node names stay node scopes beside same-named services.
 Participants, entities, relationships, and other catalogued semantic-only surfaces keep authored scope references without a runtime address.
 This grants no runtime enforcement.
+
 Runtime-addressable scopes keep their actual compiled addresses.
 These include generated artifacts and persistent volumes.
 See the [projection table](../../../specs/sdl/references.md#runtime-projection-of-authority-and-operating-scopes).
 
 ## Unchanged
 
-Generic relationship endpoints, proposition subjects, evidence source, scope,
-channel, trigger, and boundary refs, observation-demand component refs, agent
-authority anchors, and agent operating scope accept the same declarations as
-before. The inspection payload keeps `referenceable` and `targetable`;
+Generic relationship endpoints, proposition subjects, and evidence source, scope, channel, trigger, and boundary refs accept the same declarations as before.
+Observation-demand component refs, agent authority anchors, and agent operating scope also accept the same declarations. The inspection payload keeps `referenceable` and `targetable`;
 `targetable` now reports the general target purpose. The only published
-schema change is the `Relationship` description in five schemas, which now
-states endpoint eligibility and typed narrowing; it is a description-only
-change on the same contract versions. Historical evidence, compiled snapshots,
+schema change is the `Relationship` description in five schemas, which now states endpoint eligibility and typed narrowing.
+It is a description-only change on the same contract versions. Historical evidence, compiled snapshots,
 and stored records are not rewritten.
 
 Eligibility only decides what a reference may name. Targeting a participant or

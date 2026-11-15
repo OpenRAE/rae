@@ -92,9 +92,9 @@ Dependency roles (which references propagate through the planner):
 - success and `depends_on` references carry both ordering and refresh roles
 - window references carry only refresh
 - owner, assignment, action-constraint, and target references are normalized for fail-closed validation but
-  carry no runtime dependency role today: the compiler does not propagate
-  ordering or refresh through actor or target identity, so the analyzer must
-  not advertise a role that the planner will never see. A future change that
+  carry no runtime dependency role today.
+    The compiler does not propagate ordering or refresh through actor or target identity.
+    Thus the analyzer must not advertise a role that the planner will never see. A future change that
   compiles actor or target into runtime addresses lifts the role constant in
   lockstep
 - the derived per-objective `ordering_names` / `refresh_names` tuples are

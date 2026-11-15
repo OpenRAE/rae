@@ -41,9 +41,8 @@ SDL authoring and instantiated subjects use canonical declaration addresses
 from the collision-preserving declaration index and the canonical digest for
 their lifecycle phase.
 
-The lifecycle phase is explicit because a normalized authoring declaration,
-an expanded declaration, an instantiated declaration, a compiled object, and
-a realized or observed object are not interchangeable subjects.
+The lifecycle phase is explicit because these subjects are not interchangeable.
+The subjects are a normalized authoring declaration, an expanded declaration, and an instantiated declaration, a compiled object, and a realized or observed object.
 
 ## External scheme coordinate
 
@@ -129,9 +128,8 @@ Structural validation is independent of contextual resolution. A structurally
 valid assertion remains parseable when its external scheme is unavailable, but
 it is inactive until resolved against explicit local inputs.
 
-The canonical conformance registry admits the document structurally through
-`external-concept-bindings-v1` and reports
-`conformance.semantic-context-required` when the generic fixture boundary has
+The canonical conformance registry admits the document structurally through `external-concept-bindings-v1`.
+It reports `conformance.semantic-context-required` when the generic fixture boundary has
 not been supplied the exact subjects and pinned snapshots needed below. This
 prevents the model and resolver from becoming a parallel validation path.
 The normative schema expresses local conditions with Draft 2020-12 keywords
@@ -192,8 +190,8 @@ lifecycle-specific digest coordinate are independently available.
 
 ### Evidence records
 
-Typed evidence references support review of an assertion, but the binding is
-not an evidence record and does not prove that referenced evidence exists,
+Typed evidence references support review of an assertion.
+But the binding is not an evidence record and does not prove that referenced evidence exists,
 was captured, or satisfies an experiment requirement. Evidence identity,
 capture, integrity, access, and interpretation remain governed by the existing
 evidence contracts.
@@ -222,13 +220,12 @@ at admission time.
 ## Semantic projection reports
 
 `semantic-projection-report/v1` derives evidence-bounded concept views from
-this contract without widening binding authority. It reruns the exact offline
-admission path, uses an explicit pinned-snapshot inclusion set as its sole
-denominator, and preserves binding resolution, approximation, loss,
+this contract without widening binding authority. It reruns the exact offline admission path and uses an explicit pinned-snapshot inclusion set as its sole denominator.
+It preserves binding resolution, approximation, loss,
 limitations, and review as independent facts.
 
 The reporting contract is specified in
-[Semantic Projection Reports](./semantic-projection-reports.md). A report
-selects one governed native predicate and may classify a concept as a witness,
+[Semantic Projection Reports](./semantic-projection-reports.md). A report selects one governed native predicate.
+It may classify a concept as a witness,
 gap, unknown, ambiguous, or excluded only within its complete digest-bound
 frame. A binding never supplies native predicate truth by itself.

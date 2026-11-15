@@ -37,8 +37,9 @@ Policy advancement is enabled only at idle or terminal and changes p0 to p1
 once. At terminal the only request is a retry of the retained input. A retry
 at the recorded cut repeats the outcome observations without another logical
 commit. After policy advancement it emits request then replay rejection and
-preserves the recorded result. These labels describe the formal outcome
-protocol, not repeated backend execution. Mapping receipt replay and actual
+preserves the recorded result.
+
+These labels describe the formal outcome protocol, not repeated backend execution. Mapping receipt replay and actual
 delivery to that protocol requires #972 evidence. History advancement caused by
 other operations is absent here and must not be equated with policy advancement.
 
@@ -49,9 +50,8 @@ result. Intent is absent or `(request-0, input-class, requested-cut, replay)`;
 last is absent or `(request-0, recorded-cut, decision)`. Initial coordinates
 are `(idle, p0, none, none, none, none)`.
 
-The independent abstract authority is `abstract.py`. Its total policy table
-selects permit for plain, transform for transform, unsupported for unsupported,
-deny for forbidden, and deny/declassify for declassify at p0/p1 respectively.
+The independent abstract authority is `abstract.py`. Its total policy table selects permit for plain, transform for transform, and unsupported for unsupported.
+It selects deny for forbidden, and deny/declassify for declassify at p0/p1 respectively.
 
 1. A request enters offered, clears decision/delivery, and preserves last.
 2. A stale retry emits `crossing.replay.reject` and returns to terminal,
@@ -117,9 +117,9 @@ predicate is inferred from AUT or a sidecar. A missing outgoing edge is a
 structural deadlock and is not treated as success. The baseline graphs have no
 dead ends; faults introducing them remain observable in subsequent comparison.
 
-State numbers follow deterministic breadth-first discovery from ordinal zero;
-successors sort by label and the synthetic dataclass state representation,
-edges are unique and sorted by source, label, target. AUT is ASCII with LF and
+State numbers follow deterministic breadth-first discovery from ordinal zero.
+Successors sort by label and the synthetic dataclass state representation.
+Edges are unique and sorted by source, label, target. AUT is ASCII with LF and
 a final newline. Counts describe exactly the emitted graph. JSON identity uses
 the incumbent RFC 8785 canonicalizer; byte digests separately bind AUT and sources.
 

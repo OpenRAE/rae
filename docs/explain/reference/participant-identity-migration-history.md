@@ -17,6 +17,7 @@ All seven `Objective.entity` objectives had no action constraints.
 Their explicit disposition was **owner-only**.
 This kept the organization's intent.
 It did not infer a participant.
+
 These objectives occurred in the formal-semantic-validation valid/invalid corpus.
 They also occurred in the hospital, port-authority, reconciliation v1/v2, and satcom scenarios.
 The hospital's two `ransom-crew` participants remained distinct.
@@ -38,6 +39,7 @@ Inline tests changed with those documents.
 Historical audit specimens stayed unchanged.
 They remain evidence of the model that was audited.
 The two original formal-validation fixtures also stayed byte-for-byte unchanged.
+
 The current corpus uses separately versioned `participant-identity-v2` successors.
 Those successors declare ownership explicitly.
 The positive fixture also uses canonical `compute` spelling.
@@ -48,6 +50,7 @@ The hospital, port, and satcom examples kept their existing action intent.
 They now express it as portable abstract action contracts.
 Each contract has explicit independent-authorization preconditions.
 It also has intended-effect subjects.
+
 Authors made these example edits explicitly.
 The migration rules do not make those choices automatically.
 The migrator still refuses actions that are not declared.

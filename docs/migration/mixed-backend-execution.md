@@ -49,9 +49,10 @@ A binding names its sealed profile by `profile_id`, `profile_revision` and
   the leaving and joining components, their native ownership references, the
   pinned transfer service and the native owner reader.
 
-Both kinds carry a time requirement: the time model reference and digest, the
-source and destination clocks, the clock mapping, a governed ordering basis and
+Both kinds carry a time requirement.
+It has the time model reference and digest, the source and destination clocks, the clock mapping, a governed ordering basis and
 the pinned coordinator. The required comparison is always `ordered`.
+
 `wall_clock_only`, `unknown` and `unsupported` bases cannot be expressed. An
 edge's time requirement also carries the admitted edge's `temporal_coupling`:
 `tight`, `bounded-asynchronous` or `asynchronous`. A transition declares no
@@ -61,7 +62,8 @@ evidence references.
 
 Services are pinned by `service_ref`, `version` and `digest`. A service
 reference is an identity, never a module, path, URL, command or credential.
-Each role has its own service: within one binding, no two of the bridge or
+Each role has its own service.
+Within one binding, no two of the bridge or
 transfer service, the coordinator and the readers share a `service_ref` or a
 `digest`. A binding that pins one service to two roles is invalid. Decoding a
 binding installs nothing, selects no provider and grants no authority.
@@ -94,9 +96,8 @@ and terminal outcomes.
 
 ## Digests
 
-The binding reference digest and each stage-report citation digest are SHA-256
-over RFC 8785 canonical JSON of the complete validated model, including
-materialized defaults and null values, with array order preserved. A digest is
+The binding reference digest and each stage-report citation digest are SHA-256 over RFC 8785 canonical JSON of the complete validated model.
+The model includes materialized defaults and null values, and array order is preserved. A digest is
 written as `sha256:` followed by 64 lowercase hexadecimal digits. The reference
 encoders are `mixed_backend_binding_reference()` and
 `canonical_json_digest(report.model_dump(mode="json"))`. The request digest
@@ -196,9 +197,9 @@ belongs to the request's run and its profile, and it activates the bound edge or
 handoff as described above.
 
 **Transitions.** Reports are accepted in ascending `sequence`, which is chain
-order, whatever order they are supplied in. A report is accepted only when its
-`sequence` is its stage's position from the stage report table, its
-prerequisite was accepted before it and its joins hold:
+order, whatever order they are supplied in. A report is accepted only when three conditions hold.
+Its `sequence` is its stage's position from the stage report table.
+Its prerequisite was accepted before it and its joins hold:
 
 | Stage | Prerequisite | Joins |
 | --- | --- | --- |
@@ -309,6 +310,7 @@ Staged phases use the same invocation machinery. A one-to-one transfer commits
 only after independent destination-owner readback at the next phase revision and
 confirmed time. Stale transfer with source-owner readback fails; missing or
 contradictory owner evidence retains the old phase and unresolved reservation.
+
 Quiescence includes lifecycle work and retained reservations. Generic snapshot
 acceptance cannot manufacture completed mixed stages.
 Separately authorized absence/cessation proof is verified through the original
@@ -360,8 +362,8 @@ Runtime witnesses live in
 The validators perform no I/O, dispatch or state mutation. Passing them proves
 neither backend truth nor installation, conformance or runtime authority. They
 compare the producer that each report names with the binding. The caller must
-authenticate that a report came from that service. The binding model refuses
-one service reference or digest in two roles, but whether two distinct
+authenticate that a report came from that service. The binding model refuses one service reference or digest in two roles.
+But whether two distinct
 services are operationally independent is a deployment property that no
 validator can prove.
 

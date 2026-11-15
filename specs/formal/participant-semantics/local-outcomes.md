@@ -74,6 +74,7 @@ event makes the projection stale; the old report stays valid at its recorded cut
 Stable identity is `(run/snapshot scope, participant_address, episode_id,
 outcome_id)`. `event_id` and positive `revision` identify an update, distinct from
 the outcome and action attempts. Multiple outcomes per participant are supported.
+
 Revision 1 has no predecessor. Later revisions name the exact preceding report
 and increment by one. Rule reference and canonical rule digest are immutable for
 that identity; a changed definition needs a new outcome identity. Every report
@@ -94,8 +95,8 @@ remains with ACT-616/#217; this contract adds no holdings owner.
 
 `RuntimeControlPlane.record_participant_outcome` uses the embedder-admitted
 compiled model. Participant and rule must exist. A compiled behavior specification
-must declare the rule and select the participant explicitly or by its entity role;
-rule action sources must also be among the participant's declared actions. Callers supply references, never a
+must declare the rule and select the participant explicitly or by its entity role.
+Rule action sources must also be among the participant's declared actions. Callers supply references, never a
 replacement rule or claimed attainment. An authenticated operator requires the
 existing target and participant subject binding.
 

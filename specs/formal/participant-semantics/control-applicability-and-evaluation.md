@@ -15,8 +15,8 @@ separate admission/authority/realization boundaries remain binding.
 <!-- vale RAES.HeadingCase = NO -->
 ## CA-01 — apparatus and obligation coverage
 
-Let B be the immutable admitted apparatus: exact profile and mechanism
-instances, implementations, configurations, protocol and semantic revisions,
+Let B be the immutable admitted apparatus.
+It has exact profile and mechanism instances, implementations, configurations, protocol and semantic revisions,
 authorities, support requirements, state scopes and finite bounds. Let K be the
 complete MPC-03 context, including B's identity, subject/crossing/sink/phase,
 participant/episode, policies, input identities, expected history heads and
@@ -44,8 +44,8 @@ such zero-result discharge. Coverage maps preserve all selecting profiles and
 all conjunctions: one shared result cannot erase another owner's conditions.
 
 The applicable invocation subset A(B,K) consists of admitted slots relevant to
-this crossing plus their declared input dependencies. It refers into B; it is
-not a replacement selection whose digest must equal B. Record both identities
+this crossing plus their declared input dependencies. It refers into B.
+It is not a replacement selection that must have the same digest as B does. Record both identities
 and the derivation of A. A dependency outside its admitted input applicability
 is unsatisfied, not permission to invoke elsewhere. Providers absent from A
 are not failures merely because they serve a different sink. An empty A is
@@ -74,8 +74,7 @@ Before invoking a stage, resolve every required predecessor and validate its
 typed content, originating invocation, instance/configuration, B, K, state
 version, status and evidence. The dependent invocation carries detached,
 immutable predecessor results or content-bound references that resolve to
-those exact results. Its output binds the invocation identity, requested slots
-and complete predecessor-input identity as well as K. Sharing K alone does
+those exact results. Its output binds K, the invocation identity, requested slots and complete predecessor-input identity. Sharing K alone does
 not prove that the provider consumed the required result.
 
 Only the declared disclosure-authorized projection is provided. An edge does
@@ -107,7 +106,9 @@ upgrade an optional dependency to required or drop it to preserve success.
 
 Availability and decision authority are distinct. A mandatory fact must be a
 valid fact. Required advice must be a valid assessment, even if its opinion is
-negative. A mandatory decision must permit. Only an admitted decision rule
+negative.
+
+A mandatory decision must permit. Only an admitted decision rule
 interprets advice into a parent decision. Deny/withhold cannot be supplied by
 an optional advisory score itself. Mandatory abstention remains unsatisfied.
 
@@ -138,15 +139,15 @@ remains an admission failure, regardless of claimed optionality.
 Each obligation and required input pins its required semantic coverage,
 strength, admissible loss/constraints and evidence basis. Reuse API-407's
 effective-support resolution and API-424's support bindings. The satisfaction
-relation is evaluated at K over those dimensions; a name such as exact or
-bounded, a manifest declaration or a numeric rank alone is insufficient.
+relation is evaluated at K over those dimensions.
+A name such as exact or bounded, a manifest declaration or a numeric rank alone is insufficient.
 
 <!-- vale RAES.HeadingCase = YES -->
 
 Bounded support is usable when its independently resolved coverage and bounds
 satisfy the already admitted requirement. For example, a published requirement
-allowing an evidenced error bound of at most two units can accept a compatible
-one-unit realization, while an exact requirement cannot. This example defines
+allowing an evidenced error bound of at most two units can accept a compatible one-unit realization.
+An exact requirement cannot accept it. This example defines
 no universal loss unit or strength ordering. Unknown, incomparable or
 insufficient evidence leaves the obligation unsatisfied.
 
@@ -183,9 +184,8 @@ mutate either their own committed state or mandatory state.
 The admitted transition rule distinguishes evaluation-state updates (for
 example, recording an observation) from updates conditional on parent release.
 A refused parent may commit the former only when explicitly authorized. It
-cannot commit action-success state or discarded candidate state. All accepted
-updates, the complete decision/reasons, coverage and result bindings, authorized
-effect intents, logical claims and consumed budgets commit in one expected-head
+cannot commit action-success state or discarded candidate state. All accepted updates, the complete decision/reasons, and coverage and result bindings commit in one transaction.
+Authorized effect intents, logical claims and consumed budgets also commit in one expected-head
 and state-version transaction under the incumbent ADR-104 store authority.
 Every shared scope must participate; unsupported cross-store atomicity is
 unsupported support, never best-effort success.
@@ -247,8 +247,8 @@ unsupported and indeterminate outcomes authorize no dependent dispatch.
 MPC-07's target compatibility still applies: order cannot repair conflicting
 replacements, routes, handoffs or lifecycle outcomes. A shutdown cannot precede
 an operation requiring that target live. A transform withholds/supersedes the
-old candidate and creates a fresh candidate with lineage and ordinary gates;
-it cannot both release the original and replace it. Disjoint operations may
+old candidate and creates a fresh candidate with lineage and ordinary gates.
+It cannot both release the original and replace it. Disjoint operations may
 remain unordered only with admitted independence. All-or-nothing external
 plans require evidenced backend transaction support.
 

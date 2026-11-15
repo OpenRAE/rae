@@ -11,6 +11,7 @@ It changes at the coordinated Go cutover.
 Keep exact language rules in `specs/` and contract artifacts in `contracts/`.
 Use the existing directory indexes to help readers select a reference.
 Keep each existing page address and useful heading target.
+
 Reference pages describe required meaning, inputs, outputs, invariants, and limits.
 Link reasons to existing explanations and decisions.
 Put local check steps under `docs/develop/`.
@@ -21,6 +22,7 @@ ADR-009 and ADR-019 own the authority boundary.
 ADR-061 and its issue 1929 amendment own schema publication and compatibility.
 Publication records contain identity, schema path, and stability.
 Git records schema history.
+
 ADR-079 owns proposition and assertion truth semantics.
 ADR-109 owns objective ownership and participant assignment.
 Use those decisions to correct old summaries.
@@ -61,6 +63,7 @@ Published rules, generated files, and local review output remain separate.
 The equality checker writes generated schemas to a temporary directory.
 It does not replace published schemas.
 These steps need no native backend.
+
 They deploy nothing.
 They write no remote archive.
 Local checks use checked-in synthetic fixtures.
@@ -69,6 +72,7 @@ No private instructions, credentials, runtime payloads, or hidden state enter do
 Protect required meaning and published identity.
 Keep proof sources and evidence pins.
 Keep private runtime data private.
+
 Accidental schema regeneration can change published identity.
 Use the existing equality checker and compare protected files with the source baseline.
 Misreported evidence can suggest support that a backend does not have.
@@ -97,15 +101,18 @@ The existing `.vale.ini` supplies exact-file exceptions for the document reading
 Vale 3.15.2 does not apply inline rule controls to that metric.
 Required schema terms, mathematical terms, and reference tables remain unchanged.
 Other prose rules stay enabled on each listed file.
+
 Unlisted pages retain the metric.
 The existing documentation-tools test module checks these settings.
 Its `prose_check.run` interface exercises the real pinned Vale.
 No analyzer, validator, or new module is added.
 Other policy code stays the same.
+
 Architecture code stays the same.
 The authority manifest and assurance policy continue to describe those boundaries.
 Existing decisions cover authority and documentation organization.
 No new ADR is needed.
+
 The data-flow diagram above covers local documentation and verification flows.
 Runtime behavior stays the same.
 Existing state, deployment, and protocol diagrams still apply.

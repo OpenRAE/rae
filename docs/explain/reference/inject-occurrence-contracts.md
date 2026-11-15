@@ -55,18 +55,17 @@ Module namespaces put dots inside both names. When a scenario imports a module u
 `orchestration.inject-binding.mod.host.mod.release` binds node `mod.host` to
 inject `mod.release`.
 Yet it also ends in `.release`. The end of an address
-therefore doesn't show which inject it binds.
+therefore does not show which inject it binds.
 
 Local validation requires each binding address to equal the rendering of its
 `node` and the requested inject. Carrying node `provision.node.mod.host`, that
-binding can't serve a request for `release`. Local validation can't see the
-plan.
-It doesn't show that the node exists or that the plan records this node for the binding. A consumer resolves both against the pinned plan's
+binding cannot serve a request for `release`. Local validation cannot see the plan.
+It does not show that the node exists or that the plan records this node for the binding. A consumer resolves both against the pinned plan's
 `inject-binding` operations.
 
 This revision selects only `Node.injects` bindings. Under EI-01, a top-level
 inject without `Node.injects` runs only through its realization's explicit target
-contract, which this revision doesn't carry.
+contract, which this revision does not carry.
 
 ## Occurrence
 
@@ -99,7 +98,7 @@ store and recovery agreement.
 Two claims that follow the same head would fork the run's order.
 Thus each predecessor is claimed once.
 Head tokens are opaque.
-The claim set can't check that a predecessor is the head that the preceding claim produced. That
+The claim set cannot check that a predecessor is the head that the preceding claim produced. That
 chain belongs to the ordering authority (EI-03).
 
 `inject_trigger_request_digest` and `inject_occurrence_digest` return RFC 8785
@@ -141,8 +140,8 @@ per-binding facts (EI-04):
 An applied or partial binding needs a `readback` reference, and every known
 effect needs evidence. Only a backend `outcome` or a refused start settles an
 occurrence. Acceptance, willingness, progress, control dispositions and
-reconciliation records do not. Under EI-04, reconciliation appends linked
-evidence and never refires the inject or rewrites the outcome.
+reconciliation records do not. Under EI-04, reconciliation appends linked evidence and never refires the inject or rewrites the outcome.
+
 A refused start is the `acknowledgement` refusal from `start_operation`, which
 proves that the invocation never began. It settles only as `effect-absent`,
 with no-effect evidence for every binding. A backend outcome's own effect must
@@ -172,8 +171,9 @@ It must also commit the terminal operation, snapshot and audit records.
 That outcome's backend proposal must be `succeeded` with a produced result.
 The correlation names the occurrence, the outcome digest and the result.
 `inject_occurrence_outcome_digest` returns that RFC 8785 outcome digest.
-A participant-directed consumer, such as a DSL-142 delivery or an API-424
-inject effect, joins those exact identities instead of an inject declaration
+
+A participant-directed consumer is, for example, a DSL-142 delivery or an API-424 inject effect.
+It joins those exact identities instead of an inject declaration
 or the latest narrative event (EI-05). A refused, failed, partial or
 indeterminate outcome yields no join.
 
@@ -228,8 +228,8 @@ execution machinery. The following owners apply to consumers of these carriers.
 Python paths are relative to `implementations/python/packages/`.
 
 The [#1367 execution preflight](../../decisions/issue-1367-external-inject-execution-preflight.md)
-identifies the current native-plan/policy and typed-result assumptions,
-missing durable occurrence/order claims, operation-only settlement, API-404
+identifies the current native-plan/policy and typed-result assumptions and missing durable occurrence/order claims.
+It also identifies operation-only settlement, API-404
 profile limits, restart/ingress trust boundaries, and configuration-bound
 executing-adapter evidence requirements.
 It records the constraints applied by the implementation. The operator guide
@@ -262,13 +262,14 @@ Two existing execution boundaries require deliberate integration:
 `Inject.environment` remains a string list, with no assignment or shell grammar.
 Runtime environment bindings use `RuntimeEnvironmentVariable` and
 `runtime_generated_value.py`, retaining name validation, literal/`value_from`
-exclusivity and `redacted`/`operator_secret` omission. ADR-057 separates scenario
-fixture values from operator secrets. Backend owners retain native execution
+exclusivity and `redacted`/`operator_secret` omission.
+
+ADR-057 separates scenario fixture values from operator secrets. Backend owners retain native execution
 and secret resolution; portable IDs never become paths or callbacks. Keep
 operator credentials out of argv, URLs, shell strings, dumps and artifacts.
 P2 adoption preserves the existing [host/service boundary](../../public/guides/control-plane.md),
-including TLS/proxy and connection limits, counted request bytes, bounded
-offload, worker/profile checks, private storage and service credentials.
+including TLS/proxy and connection limits, counted request bytes, and bounded offload.
+The boundary also includes worker/profile checks, private storage and service credentials.
 
 Extensions belong in versioned realization/input/target contracts and admitted
 backend guarantees.
@@ -333,8 +334,8 @@ The `scheduled-fan-out` occurrence selects two workstation instances of one
 compiled binding. Its `inject-handover` invocation narrows the effect scope to
 that binding address. The `known-partial` and `indeterminate` outcome fixtures
 show a fully known mixture and an unknown binding. On the participant-free
-occurrence, the `refused` fixture shows a refused start with proven absence,
-and the `unceased-effect` fixture shows an applied effect whose cessation is not
+occurrence, the `refused` fixture shows a refused start with proven absence.
+The `unceased-effect` fixture shows an applied effect whose cessation is not
 established, which stays indeterminate.
 `test_issue_1366_inject_occurrence_outcomes.py` validates each outcome against
 its occurrence and invocation.
@@ -343,9 +344,8 @@ its occurrence and invocation.
 
 Fixture digests, scopes and evidence references are synthetic. Structural and
 local validation grant no trigger authority and prove no effect, delivery or
-observation. Authentication, admission, binding resolution against the pinned
-plan, ordering, claims, dispatch, outcome validation and terminal commits
-belong to the runtime and backend adoption that the
+observation. Authentication, admission, binding resolution against the pinned plan, and ordering belong to the runtime and backend adoption.
+Claims, dispatch, outcome validation and terminal commits also belong to the runtime and backend adoption that the
 [compatibility contract](../sdl/external-inject-compatibility.md) describes.
 
 ## Installed participant delivery
@@ -372,8 +372,9 @@ Retries retrieve the retained result without executing the world again.
 Authored capture obligations use the existing observation lifecycle after world
 readback. Capture failure does not reverse an applied effect and withholds
 participant delivery. Actor-authorized `inject-capture` readback exposes that
-separate result. Audience-authorized `inject-delivery` readback exposes the
-retained governed carrier. The receipt proves the admitted local return boundary,
+separate result. Audience-authorized `inject-delivery` readback exposes the retained governed carrier.
+
+The receipt proves the admitted local return boundary,
 without asserting external acknowledgement or participant observation. Local
 record schema 10 and PostgreSQL ledger schema 3 retain these typed joins and
 migrate predecessor records without manufacturing them. See the

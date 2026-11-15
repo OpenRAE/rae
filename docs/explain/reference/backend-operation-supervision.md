@@ -118,6 +118,7 @@ Changing operation IDs, restoring a database or restarting a timer is not a migr
 The four new contracts are draft v1 publications under ADR-009/061.
 Incompatible future changes follow the existing evolution policy.
 The reference bundle must match each normative schema.
+
 Publication records give contract identity, schema path, and stability.
 They contain no hash or change summary. Git records schema history.
 Required runtime content pins still bind exact schema artifacts.

@@ -148,6 +148,7 @@ The participant factor selects the literal `control_context_assets.alpha.shared`
 The participant and slot must have no competing SDL selection.
 The selected manifest owns the target and pins this domain.
 The existing owner-validator hook accepts a trusted `SDLControlContextConfigurationValidator`.
+
 The compiler binds it to each concrete trial scenario before sealing the configuration.
 The result retains a typed selection and exact asset pin for the run producer.
 ACT-620 consumer checks still apply.
@@ -172,6 +173,7 @@ A reference absent from the module resolves against the complete composed scenar
 Stateful-resource `ordering_dependencies` and `refresh_dependencies` have separate checks.
 A name shared by a generated artifact and persistent volume is ambiguous.
 The diagnostic contains `dependency reference ... is ambiguous; use one of`.
+
 Behavior `authority_scope_refs` also reject ambiguous local names before rewriting, with the standalone diagnostic.
 Use a qualified name such as `nodes.web` when another declaration shares the bare name.
 Other reference families are tracked in [issue #1575](https://github.com/OpenRAE/rae/issues/1575).
@@ -214,9 +216,11 @@ The conformance probe is
 It accepts a parsed scenario on a disposable reference target.
 For dwell, pass `clock_advances=(("time.clock.scenario-clock", 10),)`.
 The probe checks admission, execution, assessments, and durable-history consistency.
+
 It stops its local clock driver before returning.
 Unconfirmed shutdown fails the case.
 The caller owns native setup and cleanup.
 Do not clean up native resources while the report identifies residual work.
+
 Generic registration probes cannot reconstruct a scenario from manifest digests.
 See the [temporal-profile examples](../../../examples/scenarios/temporal-profiles/README.md) for evidence limits.

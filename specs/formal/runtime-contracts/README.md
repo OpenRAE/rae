@@ -27,8 +27,8 @@ surface supports. The declaration lives on `backend-manifest/v2`
 `capabilities.participant_runtime`, because the support claim belongs to the
 backend apparatus, not to authored participant assignments, control-plane
 caller roles, or mutable episode state. If `participant_runtime` is absent or
-`null`, the manifest is declaring that it has no participant-runtime surface;
-the API-405 role/feature fields are mandatory once that block is present.
+`null`, the manifest is declaring that it has no participant-runtime surface.
+The API-405 role/feature fields are mandatory once that block is present.
 
 <!-- vale RAES.HeadingCase = YES -->
 

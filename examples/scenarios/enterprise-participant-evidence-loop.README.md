@@ -42,6 +42,7 @@ The runner itself is outside SDL.
 It declares authority, target, and realization preconditions.
 It names effect classes, failure classes, diagnostic mappings, and a shared-state interaction.
 It also declares Wazuh evidence for the evaluator.
+
 Policy provenance and negative boundary evidence have separate declarations.
 It contains no commands, prompts, or runner configuration.
 It includes no backend-native action labels, credentials, Wazuh rules, or model-defense internals.
@@ -52,6 +53,7 @@ It includes no backend-native action labels, credentials, Wazuh rules, or model-
 It also separates hidden resources, evaluator evidence, and adjudication material.
 The portal service becomes discovered after the participant reports its terminal observation.
 The database service and Wazuh internals stay outside that view.
+
 The policy gate and evaluator notes also stay hidden.
 The operating scope names only the DMZ portal and task brief.
 The topology and view express separate boundaries.
@@ -117,9 +119,11 @@ The [focused scenario test](../../implementations/python/tests/test_scenarios.py
 It also compiles the participant handoff declarations.
 The example proves no TechVault coverage.
 It proves no purple-team benchmark coverage.
+
 It proves no autonomous-agent capability.
 It does not test Wazuh detection quality.
 It does not test model-defense robustness.
+
 It includes no private runner, prompt, sandbox policy, or credential.
 It includes no backend log, Wazuh ruleset, policy body, or hidden answer key.
 It remains a corpus example for bounded backend proof work.

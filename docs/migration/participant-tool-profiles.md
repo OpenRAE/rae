@@ -70,13 +70,16 @@ New compilation resolves authored visibility references to canonical runtime add
 Use declared action names in observation boundaries.
 Use qualified binding references there too.
 Remove duplicate runtime-address classifications for those same declarations.
+
 Equal classifications combine into one item.
 Conflicting classifications and ambiguous references are rejected.
 Unknown information references retain their authored values.
+
 Apply the same names to visibility transitions.
 Prefer compiled addresses for known items in new runtime history.
 Authored aliases receive the same visibility and evidence checks.
 This includes action results, attribution, and outcome provenance.
+
 Ambiguous aliases are rejected.
 Stored historical evidence remains unchanged.
 

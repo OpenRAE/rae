@@ -24,12 +24,14 @@ It need not implement native lifecycle controls.
 
 For autonomous execution, publish exact `execution_bindings` and finite limits.
 Bind each action, target, and implementation combination. Independent action and target lists
-do not establish support for every combination. Declare only implemented
-`start`, `pause`, `resume`, `drain`, `reset` and `teardown` controls. Each claimed control needs native execution, readback, and evidence.
+do not establish support for every combination.
+
+Declare only implemented `start`, `pause`, `resume`, `drain`, `reset` and `teardown` controls. Each claimed control needs native execution, readback, and evidence.
 Unclaimed operations are rejected before invocation. Conformance probes only claimed controls.
 It requests concurrent work only when concurrency is declared.
 
 Action requests are generation-bound. Reset and shared-clock reset increment the generation.
+
 Stale native completions cannot commit. Pause stops new admission.
 Drain requires zero reserved/in-flight work.
 Teardown releases resources. These rules govern claimed operations, not a required backend
@@ -38,6 +40,7 @@ feature baseline.
 Issue #216 adds opt-in `participant-shared-time/v1` action bindings for bounded
 deadline and dwell guarantees. Existing v1/v2/v3 policies keep their meanings.
 One manifest offer must include all compiled `temporal_contract_digests` to admit a bound action.
+
 That offer must also bind the action, targets, implementation, and limits. A matching claim permits admission.
 Event or continuous-coverage evidence establishes the runtime result. No cancellation or rollback is
 implied by a missed guarantee.
