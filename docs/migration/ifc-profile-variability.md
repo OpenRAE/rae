@@ -94,6 +94,7 @@ Do not recompute old permits, mutate labels, or replay effects to claim new conf
 A future published mapping must pin source and target profile, semantics, and schema.
 It must name exact source/result identities and transformation authority.
 It must name affected coordinates, scope, losses, and evidence.
+
 It must establish sound order and conservative propagation.
 It must establish soundness for every required sink and independent release.
 Keep author-required functional distinctions as well as prohibition safety.
@@ -122,6 +123,7 @@ Never change profile meaning inside a live evaluation.
 Revalidate required coverage and guarantees before effects and disclosure.
 A migration flag cannot bypass current v1's rejection of non-exact support.
 Retained participant memory and shared/provider state keep every possible input obligation.
+
 Migration needs exact old/new state scopes and versions.
 It also needs configuration/authority bindings and supported atomicity.
 Episode/controller changes and provider replacement do not erase dependencies.
@@ -141,6 +143,7 @@ SEM-233 owns the security invariant and owner-specific release meaning.
 SEM-235 owns governed domain publication and composition.
 API-424 and incumbent flow-contract owners must coordinate closed carriers and protocol consumers.
 They must use API-407 support evidence.
+
 RUN-320 owns modular orchestration adoption.
 Concrete backend instrumentation and assurance need separate evidence.
 This amendment does not change those runtime fulfillment statuses.

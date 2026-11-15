@@ -198,9 +198,9 @@ schemas:
    `crossing.observation` and reach `terminal` with delivery `delivered`.
 5. **Refusal.** Decisions `deny` and `unsupported` reach `terminal` after their
    visible decision with delivery `withheld`.
-6. **Same-cut replay.** Repeating the recorded request at the same current cut
-   emits `crossing.request`, then the same visible decision/change/delivery
-   sequence and does not create a second logical result.
+6. **Same-cut replay.** Repeating the recorded request at the same current cut emits `crossing.request`.
+   Then it emits the same visible decision/change/delivery sequence.
+   It does not create a second logical result.
 7. **Cut advance.** A state with cut `p0` and no in-flight request may emit
    `policy.cut.advance` and change to `p1`.
 8. **Later-cut replay.** Repeating a request recorded at `p0` after the cut is
@@ -274,8 +274,8 @@ then `q` admits a nonempty `tau` continuation to a state related to some `pi`;
 the symmetric condition also applies. The downstream check uses the semantics
 of mCRL2 `dpbranching-bisim`, pinned by tool version.
 
-The initial relation contains `(a0, c0)`. Its witness family is induced by the
-abstraction map below; the downstream model child must enumerate and validate
+The initial relation contains `(a0, c0)`. Its witness family is induced by the abstraction map below.
+The downstream model child must enumerate and validate
 the greatest fixed point rather than assuming every mapped pair belongs to it.
 
 ## Abstraction and runtime mapping
@@ -300,9 +300,8 @@ B0 = { (alpha(c), c) | c is reachable } plus its converse.
 
 This is a witness proposal, not a checked result.
 
-Live-runtime realization is separate. It must map
-`ParticipantCrossingIntent`, policy-resolution and gate results, API-407
-effective support, API-423 typed occurrences and predecessor order,
+Live-runtime realization is separate. It must map `ParticipantCrossingIntent`, policy-resolution and gate results, and API-407 effective support into `S_C`.
+It must also map API-423 typed occurrences and predecessor order,
 `RuntimeSnapshot` histories, expected heads, idempotency fingerprints, audit
 facts, and unchanged-state refusal into `S_C`. UUIDs, wall-clock timestamps,
 host paths, and audit-only details may be projected away only after the

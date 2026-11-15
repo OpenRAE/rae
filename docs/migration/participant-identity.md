@@ -13,6 +13,7 @@ Use RAES 11.0.2 and retain the exact legacy source bytes.
 Inventory every organizational objective before creating its source-bound decisions.
 Obtain the author's decision about ownership and assignment.
 Affiliation cannot supply that decision.
+
 Convert source modules separately. Imported and materialized artifacts are not supported inputs.
 The helper returns a new in-memory artifact.
 It does not change source files or runtime state.
@@ -59,8 +60,9 @@ else:
 
 Decision keys are JSON pointers.
 Escape `~` as `~0` and `/` as `~1`. Every legacy
-entity objective needs exactly one decision. Deterministic-only sources need no
-context. The report binds source bytes and decision policy.
+entity objective needs exactly one decision.
+
+Deterministic-only sources need no context. The report binds source bytes and decision policy.
 It also binds canonical target digests. Preserve that report with the new published artifact.
 The function does not overwrite source files. Publish under a new artifact/version binding.
 
@@ -116,6 +118,7 @@ Success returns a validated artifact and a report binding the source, decisions,
 On refusal, read the bounded diagnostic and pointer.
 Correct the source or decisions.
 Create a fresh context.
+
 Keep the original source and linked evidence. Rebind sidecars through their owning admission workflow.
 Save successful output under a new artifact/version binding.
 No backend cleanup is needed for the helper.
