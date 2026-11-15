@@ -12,6 +12,7 @@ Target: `Current sdl-authoring-input-v1 plus external-concept-bindings/v1 sideca
 Use RAES 11.0.2 and retain exact source bytes and existing sidecars.
 Supply independently pinned scheme snapshots.
 Supply explicit assertion dimensions.
+
 Obtain authority for each declaration removal.
 Obtain authority for each semantic omission too.
 The converter fetches no catalogues.
@@ -59,11 +60,14 @@ It does not claim backward structural compatibility for the canonical reader.
 `context-required` means the source lacks complete authored assertions.
 `context-invalid` reports a bad source pointer or subject.
 It can be missing, duplicated, stale, or inconsistent. `loss-not-authorized` names a required loss decision.
+
 `target-invalid` requires a separate native migration.
 The remaining configuration or a reference to a removed declaration needs correction. `source-invalid` includes unsupported lifecycle/import input.
 It also includes noncanonical historical values.
+
 Routes resolve exactly as `nodes.<node>.runtime.applications.<application_id>.routes.<route_id>`.
 Ambiguous coordinates refuse. They do not expand to the owning node.
+
 `binding-admission-failed` requires current unambiguous
 local scheme context. These codes use the `classification-migration.` prefix.
 Their bounded messages omit source values.
@@ -92,11 +96,14 @@ Failed conversion leaves the original artifacts intact.
 The versioned snapshot reader removes only exact empty classification defaults from the old serializer.
 This rule applies whether or not the snapshot also needs historical `vm` node conversion. This includes empty,
 switch-only and compute-only snapshots. Its joined snapshot migration authenticates the original digest.
+
 Only then does it produce a new digest. Nonempty retired fields still fail with classification migration guidance.
 This is not implicit assertion conversion. It does not relax the canonical schema.
 
 Frozen research evidence is not rewritten. Changed replay outputs require versioned evidence.
-It must record explicit deviations or independently verified, field-specific equivalence. An old/current hash pair alone does not establish
+It must record explicit deviations or independently verified, field-specific equivalence.
+
+An old/current hash pair alone does not establish
 that equivalence. The SDL lineage checker projects the retired vulnerability subject to the removal authority.
 It preserves the historical ledger.
 The Port Authority example's former unreferenced declarations remain in the
@@ -112,6 +119,7 @@ Success returns validated native SDL and the source-bound report.
 Keep every returned sidecar with them.
 On refusal, read its diagnostic code.
 Correct the context, source, or explicit loss policy.
+
 Recompute changed content identities and rebind consumers before publication.
 No native resources are created, so no backend cleanup is needed.
 Read the [classification migration contract](../../specs/concept-authority/classification-migration.md)

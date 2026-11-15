@@ -85,6 +85,7 @@ Preserve that stronger coverage; do not equate exit zero with no advisories.
 
 `raes sdl format --check` can fail on valid, noncanonical text.
 That is not the deliberate invalid-SDL exercise.
+
 The semantic CLI has its own status taxonomy and sanitized diagnostics.
 Use observed output from the selected command, not Python exception text or
 another CLI's exit codes. Do not expose raw values to make an error more detailed.
@@ -102,6 +103,7 @@ Review maintained prose across all six Markdown files in `examples/`, library
 summaries, pattern instructions, YAML comments, and `docs/examples/revised-control.md`.
 Do not assume a YAML extension excludes prose. Preserve scenario bodies and
 literal commands unless a verified correction is necessary.
+
 Detailed API facts and theory belong in existing API, SDL, backend, and explanation
 owners. Link them instead of repeating normative tables in introductions.
 Keep legal text, quotations, generated output, and
@@ -126,6 +128,7 @@ require a product-name switch, new workflow engine, or generated route registry.
 Reuse `test_public_docs_policy.py`, `test_issue_938_landing_page.py`,
 `test_public_guide_examples.py`, `test_semantic_cli.py`, and `test_sdl_format_cli.py`.
 They live under `implementations/python/tests/`.
+
 The current tutorial test assumes a heading, `uv` commands, repository-relative
 paths, and format output. The quickstart test assumes a POSIX Python heredoc.
 Change obsolete presentation assumptions without deleting execution assertions.
@@ -138,8 +141,10 @@ paths, system site packages, caches, or undeclared tools.
 Record the tested OS/architecture, shell, Python and artifact versions, source
 revision, exact commands, exit codes, stdout, stderr, and meaningful results.
 Follow only the published steps, including the change and error recovery.
-If artifacts or a platform cannot be checked, report the gap; do not substitute
-a locally built wheel or call a checkout run clean release evidence.
+
+If artifacts or a platform cannot be checked, report the gap.
+Do not substitute a locally built wheel or call a checkout run clean release evidence.
+
 Label illustrative output separately from observed output.
 An author or agent walkthrough is not first-time-user research.
 Record confusing assumptions and fixes without claiming independent participants.
@@ -149,6 +154,7 @@ Full verification, integration, fuzz, and completion suites belong in CI/CD.
 Review STE meaning and page purpose manually; Vale does not prove either.
 Vale selects Markdown and reStructuredText, so examine other maintained prose
 directly. No custom documentation tool is needed.
+
 Render public pages with the existing build and repository prose in a Markdown view.
 Check heading order, descriptive links, text alternatives, and changed keyboard
 navigation. Meaning must not depend on color.
