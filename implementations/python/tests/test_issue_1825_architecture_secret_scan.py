@@ -1,10 +1,33 @@
 """Architecture checksum exceptions must preserve credential detection."""
 
 import json
+import re
 import subprocess
+import tomllib
 from pathlib import Path
 
 import pytest
+
+
+def test_validator_decision_checksum_exception_is_narrow() -> None:
+    repo = Path(__file__).resolve().parents[3]
+    config = tomllib.loads((repo / ".gitleaks.toml").read_text(encoding="utf-8"))
+    field = '"docs/decisions/issue-1788-validator-key-decision.md": '
+    checksum = "0123456789abcdef" * 4
+    entry = field + f'"{checksum}"'
+    matches = [item for item in config["allowlists"] if any(re.search(pattern, entry) for pattern in item["regexes"])]
+    assert len(matches) == 1
+    exception = matches[0]
+    assert exception["targetRules"] == ["generic-api-key"]
+    assert exception["condition"] == "AND"
+    assert exception["regexTarget"] == "match"
+    patterns = exception["regexes"]
+    for invalid in (field + '"not-a-checksum"', field + f'"{checksum}0"', f'"api_key": "{checksum}"'):
+        assert not any(re.search(pattern, invalid) for pattern in patterns)
+    for path in ("implementations/architecture.json", "/work/implementations/architecture.json"):
+        assert any(re.search(pattern, path) for pattern in exception["paths"])
+    for path in ("other.json", "not-implementations/architecture.json", "implementations/architecture.json.bak"):
+        assert not any(re.search(pattern, path) for pattern in exception["paths"])
 
 
 @pytest.mark.integration
