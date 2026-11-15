@@ -128,6 +128,21 @@ FactorialDesign = Annotated[
 ]
 
 
+def _excluded_factor_levels(
+    design: FactorialDesign,
+    factors: dict[str, ExperimentStudyFactorModel],
+) -> set[tuple[tuple[str, str], ...]]:
+    excluded = {tuple(sorted(combination.items())) for combination in design.excluded_combinations}
+    if len(excluded) != len(design.excluded_combinations):
+        raise ValueError("factorial excluded combinations must be unique")
+    for combination in design.excluded_combinations:
+        if set(combination) != set(design.factor_ids) or any(
+            level not in factors[factor_id].levels for factor_id, level in combination.items()
+        ):
+            raise ValueError("factorial excluded combinations must name one declared level for every factor")
+    return excluded
+
+
 def _factorial_condition_count(
     design: FactorialDesign,
     factors: dict[str, ExperimentStudyFactorModel],
@@ -141,14 +156,7 @@ def _factorial_condition_count(
         if set(levels[factor_id]) != set(factor.levels):
             raise ValueError("factorial level bindings must cover exactly the declared levels")
         count *= len(factor.levels)
-    excluded = {tuple(sorted(combination.items())) for combination in design.excluded_combinations}
-    if len(excluded) != len(design.excluded_combinations):
-        raise ValueError("factorial excluded combinations must be unique")
-    for combination in design.excluded_combinations:
-        if set(combination) != set(design.factor_ids) or any(
-            level not in factors[factor_id].levels for factor_id, level in combination.items()
-        ):
-            raise ValueError("factorial excluded combinations must name one declared level for every factor")
+    excluded = _excluded_factor_levels(design, factors)
     count -= len(excluded)
     if not 1 <= count <= design.condition_bound:
         raise ValueError("factorial condition bound exceeded before expansion")

@@ -20,6 +20,15 @@ class _ToolBindingScope:
     max_in_flight: int
 
 
+def _validate_limits(max_actions: int | None, max_in_flight: int) -> None:
+    if (
+        type(max_in_flight) is not int
+        or max_in_flight < 1
+        or (max_actions is not None and (type(max_actions) is not int or max_actions < max_in_flight))
+    ):
+        raise InvalidInputError("invocation tool limits must be positive and bounded")
+
+
 def compile_participant_invocation_tools(
     model: RuntimeModel,
     specification_address: str,
@@ -38,12 +47,7 @@ def compile_participant_invocation_tools(
     specification = model.behavior_specifications.get(specification_address)
     if specification is None or model.realization_instance is None:
         raise InvalidInputError("invocation tools require retained compiler context")
-    if (
-        type(max_in_flight) is not int
-        or max_in_flight < 1
-        or (max_actions is not None and (type(max_actions) is not int or max_actions < max_in_flight))
-    ):
-        raise InvalidInputError("invocation tool limits must be positive and bounded")
+    _validate_limits(max_actions, max_in_flight)
     if not isinstance(participant_implementation_ref, str) or not participant_implementation_ref:
         raise InvalidInputError("invocation tools require an implementation selection")
     scope = _ToolBindingScope(
