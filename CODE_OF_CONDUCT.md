@@ -1,5 +1,9 @@
 # Code of conduct
 
+Use this page for participation rules and [conduct reporting](#report-a-concern).
+For vulnerabilities, use [SECURITY.md](SECURITY.md).
+For ordinary support, use [SUPPORT.md](SUPPORT.md).
+
 ## Expected behavior
 
 Keep project discussions clear, kind, and focused on the work. Good-faith

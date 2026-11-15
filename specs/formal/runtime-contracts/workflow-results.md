@@ -1,4 +1,4 @@
-# Workflow Result Contract
+# Workflow result contract
 
 ## Envelope
 
@@ -18,7 +18,7 @@ Each workflow result is a plain-data portable envelope with:
 
 `state_schema_version` is fixed to `workflow-step-state/v1` in this rollout.
 
-## Step State
+## Step state
 
 Each observable step result contains:
 
@@ -26,7 +26,7 @@ Each observable step result contains:
 - `outcome`: optional until completion, then required
 - `attempts`: non-negative integer
 
-## Semantic Constraints
+## Semantic constraints
 
 - only observable step kinds may appear in `steps`
 - all observable steps from the compiled workflow contract must appear in `steps`
@@ -47,8 +47,7 @@ Workflow observation is split into:
 - a separate ordered workflow history stream
 
 History events are validated against the compiled workflow `execution_contract`
-so the manager can reject impossible global causality, not just illegal
-step-local states.
+so the manager can reject impossible global causality as well as illegal step-local states.
 
 When workflow compensation is configured, the history stream may also include:
 
@@ -60,12 +59,25 @@ When workflow compensation is configured, the history stream may also include:
 - `compensation_completed`
 - `compensation_failed`
 
-## Validation Boundary
+## Validation boundary
 
-Backends may hold richer internal state, but the manager only accepts the
-portable envelope defined here. Validation is performed against the compiled
-workflow `result_contract` and `execution_contract`, not against incidental
-planner payload fields such as `control_steps`.
+The runtime produces the portable workflow result and history envelopes.
+It validates them against the compiled workflow `result_contract` and
+`execution_contract` before commit.
+The admitted compiled `control_steps` determine executable transitions.
+Backend step responses cannot replace the graph or workflow history.
 
-Python typed models may normalize valid payloads after validation, but they are
-not the backend-facing contract.
+
+Runtime-owned history correlates each invocation with `invocation_id`.
+A dispatch event is `step_started`, with `origin: runtime`.
+Its accepted response is `step_reported`, with `origin: backend`.
+Both events carry `dispatch_id` and a positive `attempt`.
+
+Control steps appear in history without becoming observable step results.
+The latest workflow-address result identifies its invocation through `run_id`.
+History validation uses that invocation's events and checks the ordered stream's timestamps.
+Legacy streams without invocation correlation remain readable.
+
+
+Python typed models normalize these payloads.
+Published JSON Schemas remain the wire-shape authority.

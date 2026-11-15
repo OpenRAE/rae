@@ -7,10 +7,11 @@ from typing import Any
 
 from pydantic import TypeAdapter
 from raes.runtime_configuration import RuntimeConfiguration
-from raes.runtime_generated_value import GeneratedArtifactValueSource, resolve_consumable_generated_artifact_output
+from raes.runtime_generated_value import resolve_consumable_generated_artifact_output
 from raes.stateful_resources import GeneratedArtifact
 from raes_backend_protocols.capabilities import ProvisionerCapabilities
 from raes_contracts.addressing import render_compiled_address
+from raes_contracts.generated_artifact_value import GeneratedArtifactValueSource
 from raes_contracts.identifiers import PortableIdentifier
 from raes_contracts.vocabulary import GeneratedArtifactDeliveryMode, GeneratedArtifactKind
 

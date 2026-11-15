@@ -9,12 +9,12 @@ created_at: 2026-05-18T04:25:47.598518Z
 updated_at: 2026-11-06T00:00:00Z
 ---
 
-# ASR-532 — Runtime Backend Result Integrity
+# `ASR-532` runtime backend result integrity
 
 ## Statement
 
-The runtime shall validate backend results at the execution boundary and reject
-or sanitize results that violate RAE-owned portable contracts, plan authority,
+The runtime shall validate backend results at the execution boundary.
+It shall reject or sanitize results that violate RAE-owned portable contracts, plan authority,
 runtime-domain ownership, or snapshot-transition invariants. Rejections shall
 preserve the trusted predecessor state and identify the violated invariant with
 structured diagnostics.
@@ -23,12 +23,15 @@ structured diagnostics.
 
 ADR-004 and ADR-036 assign backend invocation and result validation to the RAE
 runtime. Issue #158 characterizes that boundary with controlled result
-perturbations. Certification of external backend implementations, verification
-of backend manifest truthfulness, infrastructure observation, malicious-backend
-containment, and comprehensive backend acceptance testing remain outside this
-requirement.
+perturbations. Certification of external backend implementations and verification of backend manifest truthfulness remain outside this requirement.
+Infrastructure observation and malicious-backend containment also remain outside it.
+Backend acceptance tests for every supported capability also remain outside this requirement.
 
 ## Traceability
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/workflow_dispatch.py` (Bind each report to its exact dispatch.)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/workflow_evidence.py` (Resolve governed success against accepted truth.)
+- TESTS → TEST `implementations/python/tests/test_issue_2041_runtime_step_dispatch.py` (Reject foreign reports and forged truth references.)
 
 - IMPLEMENTS → GITHUB_ISSUE `1958` (Finite recursive verification work for unchanged large secret plans)
 - TESTS → TEST `implementations/python/tests/test_issue_1885_cloud_authority_budget.py` (2,048-secret completion, changed selections, and planning-time evaluation exhaustion)

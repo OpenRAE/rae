@@ -46,7 +46,6 @@ from .runtime_container import (
     RuntimeNetworkNamespace,
 )
 from .runtime_environment import (
-    GeneratedArtifactValueSource,
     RuntimeEnvironmentFile,
     RuntimeEnvironmentValueClassification,
     RuntimeEnvironmentVariable,
@@ -124,7 +123,6 @@ __all__ = [
     "RuntimeControlInterfaceKind",
     "RuntimeDependencyManifest",
     "RuntimeDeviceMapping",
-    "GeneratedArtifactValueSource",
     "RuntimeEnvironmentFile",
     "RuntimeEnvironmentValueClassification",
     "RuntimeEnvironmentVariable",

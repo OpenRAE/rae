@@ -3964,6 +3964,8 @@
     "supported_contract_versions": {
       "items": {
         "enum": [
+          "workflow-step-dispatch-v1",
+          "workflow-step-response-v1",
           "backend-operation-request-v1",
           "backend-operation-capabilities-v1",
           "backend-operation-control-v1",

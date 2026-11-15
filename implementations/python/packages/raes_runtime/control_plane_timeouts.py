@@ -142,6 +142,9 @@ def _timed_out_workflow_update(
             event_type=WorkflowHistoryEventType.WORKFLOW_TIMED_OUT,
             timestamp=submitted_at,
             details={"timeout_seconds": timeout_seconds},
+            invocation_id=normalized.run_id
+            if any(event.get("invocation_id") == normalized.run_id for event in history)
+            else None,
         ).to_payload()
     )
     return maybe_apply_compensation(

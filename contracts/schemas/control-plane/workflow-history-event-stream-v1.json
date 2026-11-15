@@ -4,6 +4,19 @@
   "items": {
     "additionalProperties": false,
     "properties": {
+      "attempt": {
+        "anyOf": [
+          {
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Attempt"
+      },
       "branch_name": {
         "anyOf": [
           {
@@ -21,9 +34,35 @@
         "title": "Details",
         "type": "object"
       },
+      "dispatch_id": {
+        "anyOf": [
+          {
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Dispatch Id"
+      },
       "event_type": {
         "title": "Event Type",
         "type": "string"
+      },
+      "invocation_id": {
+        "anyOf": [
+          {
+            "minLength": 1,
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Invocation Id"
       },
       "join_step": {
         "anyOf": [
@@ -36,6 +75,22 @@
         ],
         "default": null,
         "title": "Join Step"
+      },
+      "origin": {
+        "anyOf": [
+          {
+            "enum": [
+              "runtime",
+              "backend"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Origin"
       },
       "outcome": {
         "anyOf": [

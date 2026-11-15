@@ -232,46 +232,35 @@ def test_evaluator_partial_refresh_preserves_unchanged_results():
     assert second.snapshot.evaluation_history[addresses[0]] == first.snapshot.evaluation_history[addresses[0]]
 
 
-def test_orchestrator_partial_refresh_preserves_unchanged_results():
-    from raes_backend_stubs.stubs import StubOrchestrator
+def test_runtime_workflow_partial_refresh_preserves_unchanged_results():
+    from raes import parse_sdl
+    from raes_backend_stubs.stubs import create_stub_target
+    from raes_runtime.manager import RuntimeManager
 
-    orchestrator = StubOrchestrator()
+    source = parse_sdl("""name: partial
+workflows:
+  first:
+    start: finish
+    steps: {finish: {type: end}}
+  second:
+    start: finish
+    steps: {finish: {type: end}}
+""")
     addresses = ("orchestration.workflow.first", "orchestration.workflow.second")
-    operations = [
-        OrchestrationOp(
-            ChangeAction.CREATE,
-            address,
-            "workflow",
-            {
-                "name": address.rsplit(".", 1)[-1],
-                "result_contract": {},
-                "execution_contract": {},
-            },
-        )
-        for address in addresses
-    ]
-    previous = RuntimeSnapshot()
-    first = _call_backend_apply(
-        orchestrator.start,
-        OrchestrationPlan(operations=operations),
-        previous,
-        address="runtime.orchestrator",
-        snapshot=previous,
-    )
-    assert first.success, first.diagnostics
-    second_plan = OrchestrationPlan(
-        operations=[
-            replace(operations[0], action=ChangeAction.UNCHANGED),
-            replace(operations[1], action=ChangeAction.UPDATE),
-        ]
-    )
-    second = _call_backend_apply(
-        orchestrator.start, second_plan, first.snapshot, address="runtime.orchestrator", snapshot=first.snapshot
-    )
-    assert second.success, second.diagnostics
-    assert second.changed_addresses == [addresses[1]]
-    assert second.snapshot.orchestration_results[addresses[0]] == first.snapshot.orchestration_results[addresses[0]]
-    assert second.snapshot.orchestration_history[addresses[0]] == first.snapshot.orchestration_history[addresses[0]]
+    with RuntimeManager(create_stub_target()) as owner:
+        first = owner.apply(owner.plan(source))
+        assert first.success, first.diagnostics
+        source.workflows["second"].description = "Updated workflow definition."
+        updated = owner.plan(source)
+        assert {op.address: op.action for op in updated.orchestration.operations} == {
+            addresses[0]: ChangeAction.UNCHANGED,
+            addresses[1]: ChangeAction.UPDATE,
+        }
+        second = owner.apply(updated)
+        assert second.success, second.diagnostics
+        assert second.changed_addresses == [addresses[1]]
+        assert second.snapshot.orchestration_results[addresses[0]] == first.snapshot.orchestration_results[addresses[0]]
+        assert second.snapshot.orchestration_history[addresses[0]] == first.snapshot.orchestration_history[addresses[0]]
 
 
 @pytest.mark.parametrize("carrier", ["realization_envelope", "realization_observations"])

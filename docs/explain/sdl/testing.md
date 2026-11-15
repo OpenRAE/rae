@@ -1,168 +1,97 @@
-# SDL Testing
+# SDL testing
 
-The SDL and runtime stack use a layered testing strategy. Under the repository's
-[coding standards](../reference/coding-standards.md), not every change needs
-formal methods, but semantic and stateful changes should add the smallest
-adequate artifacts for their classification level.
+Use this guide to select tests for an SDL change.
+Complete [contributor setup](../../../CONTRIBUTING.md#set-up-the-repository) first.
+Run the commands below from the repository root.
+Full suites run in CI/CD only.
 
-## Testing Ladder
+## Testing ladder
 
-Use the smallest level that matches the change:
+Select the smallest test that can detect a wrong result.
+Use the [coding standards](../reference/coding-standards.md) to classify the change.
 
-1. **Unit tests** — parser/model/validator/compiler/planner behavior
-2. **Property-based tests** — generated inputs and invariant preservation
-3. **Semantic invariant tests** — explicit valid/invalid behavior for
-   cross-reference, graph, visibility, or portability rules
-4. **Abstract models for FM3 work** — optional state-machine/TLA+/Alloy support
-   for especially risky control or contract semantics
+1. Use unit tests for parser, model, validator, compiler, and planner behavior.
+2. Use property tests for generated inputs and invariants.
+3. Use named invariant tests for references, graphs, visibility, and portability.
+4. Use the required formal artifacts for the applicable FM level.
 
-Formal tools are not part of the default developer loop. CI runs one formal
-proof: the `proof` job in `.github/workflows/canonical-verification.yml`
-replays the pinned Isabelle proof in `specs/formal/participant-semantics/isabelle/`
-through `nox -s participant-opacity-proof`, and the required `verify` check
-fails when that job fails. Other formal models remain optional artifacts for
-selected `FM3` changes rather than a blanket requirement for SDL work.
+Formal tools are outside the ordinary local loop.
+The canonical CI graph owns proof replay and its required gate.
+See `.github/workflows/canonical-verification.yml` for its current jobs.
 
-## Test Suites
+## Test suites
 
-### Unit Tests (standard run)
+### Unit tests (standard run)
 
-```bash
-cd implementations/python && \
-uv run --extra dev pytest tests/test_sdl_models.py tests/test_sdl_validator.py \
-  tests/test_sdl_parser.py -v
+For parser or validator changes, select the relevant modules:
+
+```shell
+uv run --project implementations/python --frozen pytest implementations/python/tests/test_sdl_models.py implementations/python/tests/test_sdl_validator.py implementations/python/tests/test_sdl_parser.py -q
 ```
 
-Tests `sdl-yaml/v1` decoding and migration diagnostics, structural validation
-(Pydantic models), semantic validation (cross-reference checks), shorthand
-expansion, and the SDL-only format boundary.
-The unit suites also cover OCR-derived duration grammar, workflow graphs, direct service/ACL target refs, and `${var}` placeholder handling across supported scalar/reference fields including selected leaf enums.
+These modules check source decoding, models, references, shorthand, and source-format limits.
+Add a pytest node id after the module path to select one case.
+Exit `0` means the selected cases passed.
+It does not qualify a backend or establish complete requirement coverage.
 
-### Stress Tests (standard run)
+### Stress tests (standard run)
 
-```bash
-cd implementations/python && \
-uv run --extra dev pytest tests/test_sdl_stress.py tests/test_sdl_realworld.py -v
+For a change that affects combined SDL structures, select the relevant module:
+
+```shell
+uv run --project implementations/python --frozen pytest implementations/python/tests/test_sdl_stress.py implementations/python/tests/test_sdl_realworld.py -q
 ```
 
-19 scenarios from 8 platforms testing expressiveness boundaries:
+These fixtures combine infrastructure, objectives, workflows, agents, and teams.
+They test the authored structures supported by the current code.
+They do not prove production execution or coverage of absent contracts.
+Use the case names and fixture definitions as the current scenario inventory.
 
-- **test_sdl_stress.py** — Scenarios 1-13: OCR, CybORG, CALDERA, Atomic Red Team, CyRIS, KYPO, HTB, Enterprise AD, Cloud Hybrid, Exchange+data, CybORG+agents, AD+trust+federation
-- **test_sdl_realworld.py** — Scenarios 14-19: Incalmo Equifax, NICE Challenge 17, CCDC Burnsodyne, HTB Offshore-style, Metasploitable 2, Locked Shields IT/OT/SCADA
+### Fuzz tests (manual trigger only)
 
-Objective coverage is exercised in the stress suites as well: the agent-heavy CybORG-derived scenarios and exercise-heavy scenarios include declarative `objectives` so the section is tested against realistic combinations of agents, scoring, orchestration, and team structure rather than only unit tests.
+CI runs the `fuzz` nox session with Hypothesis.
+The default pytest marker expression excludes fuzz and integration tests.
+Do not run fuzz or integration suites locally.
+For a regression, select a relevant deterministic case from the owning module.
+The parser must return a valid `Scenario` or its documented parse or validation error.
 
-Those suites cover the SDL/runtime surfaces that are currently materialized in
-syntax and code. They do not imply full executable coverage for every
-participant-, benchmark-, evidence-, or participant-implementation requirement
-listed in the requirements architecture. A surface without published syntax,
-contracts, named invariant tests, or conformance fixtures is not covered by
-these suites.
+### Full suite
 
-Each scenario is tested for:
-1. Parse + validate success
-2. Infrastructure cross-reference integrity
-3. Non-trivial content (at least 1 compute node)
+The canonical verification workflow owns full test selection and coverage reduction.
+Use the [development workflow](../../DEVELOPMENT_WORKFLOW.md#run-verification) for targeted local commands.
+A passing local module does not establish full-suite coverage.
 
-### Fuzz Tests (manual trigger only)
+### Example scenarios
 
-```bash
-cd implementations/python && \
-uv run --extra dev pytest tests/test_sdl_fuzz.py -m fuzz -v
+Reusable SDL files live in `examples/scenarios/`.
+The disk-backed example check is:
+
+```shell
+uv run --project implementations/python --frozen pytest implementations/python/tests/test_example_schema_conformance.py -q
 ```
 
-Property-based testing using [Hypothesis](https://hypothesis.readthedocs.io/).
-The dedicated mapping-key property tests run in the standard suite; the fuzz
-session adds mutation coverage and generates about 1,150 inputs per run across
-8 strategies:
+This module checks strict source decoding and direct validation against the published authoring schema.
+It also checks parser serialization against that schema.
+`test_scenarios.py` covers loader failures and selected example properties.
+The source-profile corpus lives in `contracts/fixtures/sdl/sdl-yaml-v1/`.
+The [complex scenario briefs](complex-scenarios.md) explain example design.
 
-| Test | Strategy | Examples |
-|------|----------|----------|
-| `test_valid_sdl_never_crashes` | Structurally plausible SDL scenarios | 200 |
-| `test_arbitrary_text_never_crashes` | Completely random text | 500 |
-| `test_extra_fields_rejected_cleanly` | Scenarios with unknown fields | 50 |
-| `test_fuzz_service_ports` | Random port/protocol/name combos | 100 |
-| `test_fuzz_vulnerability_class_validation` | Random CWE class strings | 100 |
-| `test_fuzz_feature_dependency_cycles` | Random dependency graphs | 100 |
-| `test_fuzz_structural_key_alias_mutations_fail_closed` | Normalized field-alias collisions | 50 |
-| `test_fuzz_exact_identifier_duplicate_mutations_fail_closed` | Exact symbol-key duplicates | 50 |
+A valid example is an authoring input.
+It does not prove native deployment or experiment validity.
+Exposure, evidence, and participant claims need their own named checks.
 
-The invariant: the parser **never** raises an unhandled exception. Every input either produces a valid `Scenario` or raises `SDLParseError`/`SDLValidationError`.
+## Adding new scenarios
 
-Fuzz tests are excluded from the standard `pytest` run via the `fuzz` marker. They take ~70 seconds.
+Use the corpus that matches the artifact:
 
-### Full Suite
+- Put reusable positive examples in `examples/scenarios/*.sdl.yaml`.
+- Keep synthetic fixtures in their owning stress or topology test modules.
+- Put parser-negative specimens in `implementations/python/tests/data/sdl/invalid/`.
+- Keep other refusal cases beside the rule they test.
 
-```bash
-# Standard tests (excludes fuzz)
-cd implementations/python && uv run --extra dev pytest tests/ -v
-
-# Everything including fuzz
-cd implementations/python && uv run --extra dev pytest tests/ -m '' -v
-```
-
-### Example Scenarios
-
-The `examples/scenarios/` directory contains curated large SDL files that are
-meant to be reusable starting points rather than inline test-only
-fixtures. They are loaded directly from disk by
-`implementations/python/tests/test_example_schema_conformance.py`
-so they stay valid, advisory-free SDL artifacts:
-
-- `hospital-ransomware-surgery-day.sdl.yaml`
-- `satcom-release-poisoning.sdl.yaml`
-- `port-authority-surge-response.sdl.yaml`
-
-`test_example_schema_conformance.py` proves each shipped SDL example through
-two independent legs: strict `sdl-yaml/v1` decoding followed by direct
-validation of the decoded longhand object against the checked-in normalized
-authoring schema, and reference-parser model serialization against that same
-schema. `test_scenarios.py` retains loader failure cases and focused assertions
-about the curated complex examples. The valid/invalid/migration source-profile
-corpus lives under
-`contracts/fixtures/sdl/sdl-yaml-v1/`.
-
-The up-front design briefs for the complex examples live in
-[`docs/explain/sdl/complex-scenarios.md`](complex-scenarios.md).
-
-Those example files also serve as disk-backed coverage for current SDL surfaces: enum-backed variable values, direct service/ACL objective targets, and the redesigned workflow language (`decision`, `retry`, explicit join barriers, failure transitions, and workflow state predicates, including post-join branch-state inspection). The runtime/compiler unit suites additionally pin fail-closed behavior for missing same-node feature dependencies and malformed backend lifecycle payloads.
-
-For workflow and runtime semantics specifically, prefer explicit invariant tests
-that name the semantic rule being protected. Property-based tests are a strong
-fit when the graph/state space can be generated cheaply. Abstract models become
-appropriate only for `FM3` changes that materially alter branching, join,
-re-entry, or portable result-contract behavior.
-
-Participant exposure/visibility boundaries, evidence-capture disclosures,
-apparatus augmentation, and participant-implementation manifests are not
-covered by these tests unless named invariant tests or conformance fixtures
-exist for the relevant syntax or contract.
-
-## Adding New Scenarios
-
-Use the corpus leg that matches the artifact's purpose:
-
-- **Reusable example scenarios** live in `examples/scenarios/*.sdl.yaml`.
-  They are real SDL artifacts and are loaded from disk by
-  `implementations/python/tests/test_example_schema_conformance.py`.
-- **Synthetic stress and real-world topology fixtures** may stay inline in
-  `test_sdl_stress.py` or `test_sdl_realworld.py` when they are test-only
-  specimens rather than reusable examples. Add them to the relevant `SCENARIOS`
-  list so the parametrized tests pick them up.
-- **Negative-path cases** should stay close to the parser, model, or validator
-  rule they exercise. Parser-negative SDL fixtures live under
-  `implementations/python/tests/data/sdl/invalid/`. Do not add invalid files
-  under `examples/scenarios/`; that directory is the positive example corpus.
-
-All scenario corpus loading should continue to flow through the existing
-`load_scenario()` / `parse_sdl()` boundary so it receives the same source-marked
-safe composition, mapping-key preflight, Pydantic structural validation,
-semantic validation, advisory logging,
-and `ScenarioValidationError`/`SDLParseError`/`SDLValidationError` behavior as
-the rest of the SDL stack.
-
-The canonical example-corpus location is repo-root relative
-`examples/scenarios/`. If another suite needs to enumerate the same examples,
-reuse or extract a small shared path helper from the existing test boundary
-rather than introducing a second hard-coded corpus root or a new discovery
-schema.
+Do not put invalid SDL in the positive example corpus.
+Use `load_scenario()` or `parse_sdl()` for scenario loading.
+These boundaries perform source checks, model validation, semantic validation, and advisory handling.
+Preserve their documented error types.
+Reuse the owning test's path helper when another test needs the same corpus.
+Do not create a second corpus root or discovery schema.

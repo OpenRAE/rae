@@ -1,8 +1,9 @@
-# Reusable participant tool unit (DSL-117). It is a valid standalone scenario,
-# and twice-imported.sdl.yaml imports it under two namespaces. The red agent
-# holds the scan action, sees the network-scanner affordance through its own
-# observation boundary, and has an SSH carrier to the web node. None of these
-# declarations authorizes an invocation or proves that a scan ran.
+# Reusable participant tool unit under DSL-117.
+# This is a valid standalone scenario.
+# twice-imported.sdl.yaml imports it under two namespaces.
+# The red agent holds scan and sees network-scanner through its own boundary.
+# It has an SSH carrier to web.
+# These declarations authorize no invocation and establish no completed scan.
 name: scanner-toolkit
 module:
   id: acme/scanner-toolkit

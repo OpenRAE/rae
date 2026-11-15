@@ -1,4 +1,14 @@
-# Required capture admission migration
+<a id="required-capture-admission-migration"></a>
+
+# Required capture admission reference
+
+## Versions and purpose
+
+Source: `Descriptive supported_* discovery lists and metadata-only satisfaction claims`.
+Target: `Atomic capture_offers and process-local ValidatedRunEvidence proof`.
+This is a compatibility reference for the Python implementation in RAES 11.0.2.
+The contracts below retain their separate identities and obligations.
+This page does not supply a standalone converter or deployment procedure.
 
 Issue #1237 adds a process-local content proof to authoritative run validation.
 The proof is immutable.
@@ -11,9 +21,11 @@ Evidence validation admits at most 1024 items per invocation.
 This limit applies to artifacts, capture specs, capture requirements,
 records, and reader entries.
 Declared artifact bytes have a 256 MiB aggregate limit and a 64 MiB per-artifact limit.
+
 The validator reads shared artifacts once.
 Each capture requirement receives its own checks.
 These checks cover relations, metadata, integrity, output contracts, and field selectors.
+
 Artifact locators remain inert.
 The validator rejects credential userinfo, secret query fields, fragments, host
 paths, and `file:` URIs.
@@ -29,9 +41,11 @@ Each offer is atomic.
 It binds the output contract and fields to the supported capture terms.
 These terms cover artifact, media, capture, source, scope, channel, window,
 integrity, sensitivity, availability, fidelity, disclosure, retention, and export.
+
 Legacy `supported_*` lists remain discovery summaries.
 They are not an admission fallback.
 A manifest with no matching offer is rejected before effects.
+
 The in-repo stub manifest publishes no capture offers.
 Its runtime does not implement the promised artifact production path.
 Tests that exercise admission declare narrow, scenario-specific offers explicitly.
@@ -57,6 +71,7 @@ and bounded byte readers. The validator does not fetch URIs.
 It checks artifact identity, byte count, checksum, media, role, and required integrity.
 It checks the authoritative `output_contract` schema and owning semantic model.
 It also checks RFC 6901 field selectors and required redaction state.
+
 Sensitivity must agree across the requirement, record, and artifact.
 Study conditions that require evidence consume the same
 validated requirement-to-artifact bindings.
@@ -68,6 +83,7 @@ metadata; they are not proof of emitted content.
 An evidence record identifies its capture spec through `capture_spec_ref`.
 The reference kind must be `capture-spec`.
 The reference id must equal the supplied spec's `capture_spec_id`.
+
 The published record schema permits an omitted or null `ref_version`.
 These forms place no version condition on the supplied spec.
 An explicit `ref_version` must equal the supplied spec's `spec_version`.
@@ -196,3 +212,9 @@ They need independent matching and diagnostic cases.
 They also need shared pre-effect conformance tests.
 Exact scope targets and wildcard subsets retain different meanings.
 Media overlap, availability, fidelity, and disclosure also retain distinct semantics.
+
+## Continue
+
+Use [revised-control migration](revised-control.md) to coordinate admission owners.
+Use [experiment record production](../public/guides/experiment-records.md) to validate supplied evidence bytes.
+Read [capture semantics](../../specs/sdl/observability-and-evidence.md) for authored intent.

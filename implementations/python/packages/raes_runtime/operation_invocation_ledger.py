@@ -192,6 +192,11 @@ def control_record_is_supervisory(record: ControlPlaneOperationRecord) -> bool:
 
     from .participant_control_effect_continuations import cancellation_continuation_claim
 
+    if record.invocation is None and record.status.context.operation_kind.value in {
+        "workflow-cancellation",
+        "workflow-timeout-reconciliation",
+    }:
+        return True
     if _cancellation_effect_claim(record) or cancellation_continuation_claim(record):
         return True
     return (

@@ -1,5 +1,16 @@
 # Validate SDL from Python
 
+Read a local scenario and obtain a validated `Scenario` for your application.
+
+## Before you start
+
+Use Python 3.14 and RAES 11.0.2 in a virtual environment.
+Save the [first scenario](../_static/examples/first-scenario.sdl.yaml)
+as `first-scenario.sdl.yaml` in your working directory.
+You need read access to that file. No runtime identity is required.
+
+## Read and validate a file
+
 Use `parse_sdl_file` when your app stores a scenario as a file:
 
 ```python
@@ -11,6 +22,12 @@ scenario = parse_sdl_file(Path("first-scenario.sdl.yaml"))
 print(scenario.name)
 ```
 
+The file example prints `first-scenario`. It does not compile or execute the scenario.
+For imports, apply your existing module trust and resolution policy.
+
+## Validate text already in memory
+
+Set `sdl_text` to your SDL text. For this example, use the downloaded file's contents.
 Use `parse_sdl` when you already have SDL text:
 
 ```python
@@ -100,6 +117,8 @@ else:
         print(diagnostic.code)
 ```
 
+Success prints `frontend`. A refusal returns diagnostics and no output artifact.
+
 The rename updates resolved references, module exports, and any explicitly
 supplied external-concept binding documents as one all-or-none operation. An
 alias, collision, stale linked artifact, or invalid target is refused. Renaming
@@ -135,8 +154,20 @@ else:
         print(diagnostic.code)
 ```
 
+Success prints `False`. The original `scenario` still contains `index-page`.
+Review the report before saving the result under a new filename.
+On refusal, correct the target or explicit loss policy. Do not save a missing output.
+
 Use `canonicalize_portable_contract()` to reconstruct an isolated portable
 contract under its closed model, and `compare_canonical_artifacts()` for exact
 canonical identity before and after an operation. Canonical identity is not a
 claim of behavioral or backend equivalence. Consumers remain responsible for
 file transactions, pack layout, persistence, and user-interface behavior.
+
+## Finish
+
+The examples create in-memory models only. No backend cleanup is needed.
+Remove the downloaded example when you no longer need it.
+Read the [SDL API reference](../api/sdl.rst) for exact signatures.
+Read [artifact boundaries](../concepts.md) before treating identity as behavioral equivalence.
+Continue with [compilation and plan inspection](../sdl/validate-compile-plan.md#compile-the-scenario).

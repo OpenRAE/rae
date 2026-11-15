@@ -390,6 +390,15 @@
           "title": "Run Id",
           "type": "string"
         },
+        "safe_states": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ResolvedSafeState"
+          },
+          "maxItems": 4096,
+          "title": "Safe States",
+          "type": "array"
+        },
         "selections": {
           "items": {
             "$ref": "#/$defs/AdmittedSelectionRecordModel"
@@ -851,6 +860,53 @@
       "title": "ApparatusIdentityModel",
       "type": "object"
     },
+    "Assertion": {
+      "additionalProperties": false,
+      "description": "A typed use of one proposition at a governed semantic boundary.",
+      "properties": {
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "polarity": {
+          "$ref": "#/$defs/AssertionPolarity",
+          "default": "positive"
+        },
+        "proposition": {
+          "title": "Proposition",
+          "type": "string"
+        },
+        "role": {
+          "$ref": "#/$defs/AssertionRole"
+        }
+      },
+      "required": [
+        "proposition",
+        "role"
+      ],
+      "title": "Assertion",
+      "type": "object"
+    },
+    "AssertionPolarity": {
+      "description": "Expected polarity of the referenced proposition.",
+      "enum": [
+        "positive",
+        "negative"
+      ],
+      "title": "AssertionPolarity",
+      "type": "string"
+    },
+    "AssertionRole": {
+      "description": "Boundary at which an assertion constrains its owning construct.",
+      "enum": [
+        "precondition",
+        "invariant",
+        "postcondition"
+      ],
+      "title": "AssertionRole",
+      "type": "string"
+    },
     "BindingOwnerModel": {
       "additionalProperties": false,
       "description": "Governed contract and validator profile that owns one binding.",
@@ -896,6 +952,52 @@
       ],
       "title": "BindingScalarType",
       "type": "string"
+    },
+    "BooleanPredicate": {
+      "additionalProperties": false,
+      "description": "Compare a governed Boolean property with an expected Boolean.",
+      "properties": {
+        "expected": {
+          "title": "Expected",
+          "type": "boolean"
+        },
+        "kind": {
+          "const": "boolean",
+          "default": "boolean",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operator": {
+          "default": "equals",
+          "enum": [
+            "equals",
+            "not_equals"
+          ],
+          "title": "Operator",
+          "type": "string"
+        },
+        "property": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$",
+          "title": "Property",
+          "type": "string"
+        },
+        "semantic_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$",
+          "title": "Semantic Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "semantic_ref",
+        "expected"
+      ],
+      "title": "BooleanPredicate",
+      "type": "object"
     },
     "CleanStateRequirementModel": {
       "additionalProperties": false,
@@ -1221,6 +1323,292 @@
       ],
       "title": "DiagnosticModel",
       "type": "object"
+    },
+    "EvidenceIntegrityExpectation": {
+      "description": "Expected integrity or chain-of-custody treatment.",
+      "enum": [
+        "none",
+        "checksum",
+        "signature",
+        "chain_of_custody",
+        "timestamped",
+        "other"
+      ],
+      "title": "EvidenceIntegrityExpectation",
+      "type": "string"
+    },
+    "EvidenceLossDisclosureExpectation": {
+      "description": "Expected disclosure when capture is incomplete or lossy.",
+      "enum": [
+        "not_expected",
+        "best_effort",
+        "required",
+        "other"
+      ],
+      "title": "EvidenceLossDisclosureExpectation",
+      "type": "string"
+    },
+    "EvidenceRedactionExpectation": {
+      "description": "Expected redaction treatment for captured output.",
+      "enum": [
+        "none",
+        "redact_sensitive",
+        "redact_secrets",
+        "aggregate_only",
+        "derived_only",
+        "other"
+      ],
+      "title": "EvidenceRedactionExpectation",
+      "type": "string"
+    },
+    "EvidenceRequirement": {
+      "additionalProperties": false,
+      "description": "One authored data, evidence, or output capture requirement.\n\nThe model records capture intent only. Executable capture contracts may map\nthis to ``experiment-capture-spec-v1`` later, but captured payloads and\nproof of capture belong to experiment evidence records.",
+      "properties": {
+        "artifact_role": {
+          "default": "",
+          "title": "Artifact Role",
+          "type": "string"
+        },
+        "boundary_kind": {
+          "default": "",
+          "title": "Boundary Kind",
+          "type": "string"
+        },
+        "boundary_ref": {
+          "default": "",
+          "title": "Boundary Ref",
+          "type": "string"
+        },
+        "capture_requirement_ref": {
+          "default": "",
+          "title": "Capture Requirement Ref",
+          "type": "string"
+        },
+        "capture_spec_ref": {
+          "default": "",
+          "title": "Capture Spec Ref",
+          "type": "string"
+        },
+        "channel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceRequirementChannel"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Channel"
+        },
+        "channel_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Channel Refs",
+          "type": "array"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "field_selectors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Field Selectors",
+          "type": "array"
+        },
+        "integrity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceIntegrityExpectation"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Integrity"
+        },
+        "loss_disclosure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceLossDisclosureExpectation"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Loss Disclosure"
+        },
+        "media_types": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Media Types",
+          "type": "array"
+        },
+        "notes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Notes",
+          "type": "array"
+        },
+        "observation_demand": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationDemandRule"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "output_contract": {
+          "default": "",
+          "title": "Output Contract",
+          "type": "string"
+        },
+        "redaction": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceRedactionExpectation"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Redaction"
+        },
+        "retention": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceRetentionExpectation"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "title": "Retention"
+        },
+        "scope": {
+          "default": "",
+          "title": "Scope",
+          "type": "string"
+        },
+        "scope_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Scope Refs",
+          "type": "array"
+        },
+        "sensitivity": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RuntimeSensitivityClassification"
+            },
+            {
+              "pattern": "^(?:[pP][lL][aA][iI][nN]|[rR][eE][dD][aA][cC][tT][eE][dD]|[sS][eE][cC][rR][eE][tT][-_][fF][iI][xX][tT][uU][rR][eE]|[oO][pP][eE][rR][aA][tT][oO][rR][-_][sS][eE][cC][rR][eE][tT]|[uU][nN][kK][nN][oO][wW][nN]|[oO][tT][hH][eE][rR]|\\$\\{((?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\\.)*[a-z0-9][a-z0-9_-]{0,63})\\})$(?![\\s\\S])",
+              "type": "string"
+            }
+          ],
+          "title": "Sensitivity"
+        },
+        "source_class": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EvidenceRequirementSourceClass"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Class"
+        },
+        "source_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Refs",
+          "type": "array"
+        },
+        "trigger_ref": {
+          "default": "",
+          "title": "Trigger Ref",
+          "type": "string"
+        },
+        "window": {
+          "default": "",
+          "title": "Window",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sensitivity",
+        "redaction",
+        "integrity",
+        "retention",
+        "loss_disclosure"
+      ],
+      "title": "EvidenceRequirement",
+      "type": "object"
+    },
+    "EvidenceRequirementChannel": {
+      "description": "Capture channel or modality for an authored requirement.",
+      "enum": [
+        "packet_capture",
+        "log",
+        "trace",
+        "metric",
+        "file_artifact",
+        "screen_capture",
+        "api_response",
+        "database_record",
+        "participant_output",
+        "other"
+      ],
+      "title": "EvidenceRequirementChannel",
+      "type": "string"
+    },
+    "EvidenceRequirementSourceClass": {
+      "description": "Closed source classes for requirements without a concrete source ref.",
+      "enum": [
+        "scenario_native_observability",
+        "participant_action",
+        "participant_observation",
+        "scenario_state",
+        "processor_backend",
+        "apparatus",
+        "external",
+        "other"
+      ],
+      "title": "EvidenceRequirementSourceClass",
+      "type": "string"
+    },
+    "EvidenceRetentionExpectation": {
+      "description": "Expected retention boundary for captured output.",
+      "enum": [
+        "not_retained",
+        "run_lifetime",
+        "study_lifetime",
+        "archival",
+        "policy_defined",
+        "other"
+      ],
+      "title": "EvidenceRetentionExpectation",
+      "type": "string"
     },
     "ExactTrialParallelismModel": {
       "additionalProperties": false,
@@ -2077,6 +2465,33 @@
       "title": "ExperimentTaskReferenceModel",
       "type": "object"
     },
+    "GeneratedArtifactValueSource": {
+      "additionalProperties": false,
+      "description": "Value-free reference to a generated-artifact output consumed as a runtime value.\n\nNames the producing ``generated_artifacts.<id>`` (bare id or namespaced\nform) and one of its outputs. It carries no generated bytes: the raw value\nis realized at provisioning time from the referenced output, never authored\ninto the SDL. Cross-resource resolution (artifact exists, output exists and\nis not ``producer_private``) is enforced by semantic admission.",
+      "properties": {
+        "generated_artifact": {
+          "minLength": 1,
+          "title": "Generated Artifact",
+          "type": "string"
+        },
+        "output": {
+          "maxLength": 64,
+          "minLength": 1,
+          "not": {
+            "pattern": "[^a-z0-9_-]"
+          },
+          "pattern": "^[a-z0-9]",
+          "title": "Output",
+          "type": "string"
+        }
+      },
+      "required": [
+        "generated_artifact",
+        "output"
+      ],
+      "title": "GeneratedArtifactValueSource",
+      "type": "object"
+    },
     "GovernedEntropyRefModel": {
       "additionalProperties": false,
       "description": "Governed reference to sensitive root entropy; never carries raw bytes.\n\nRaw entropy is resolved only at an authorized in-process boundary (out of\nscope here) and is never serialized back into this model, a diagnostic, a\nfixture, argv, or telemetry (SVR-028).",
@@ -2168,6 +2583,631 @@
         "value"
       ],
       "title": "LiteralBindingValueModel",
+      "type": "object"
+    },
+    "NumericPredicate": {
+      "additionalProperties": false,
+      "description": "Compare a governed numeric property using an explicit unit.",
+      "properties": {
+        "expected": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Expected"
+        },
+        "kind": {
+          "const": "number",
+          "default": "number",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operator": {
+          "default": "equals",
+          "enum": [
+            "equals",
+            "not_equals",
+            "less_than",
+            "less_than_or_equal",
+            "greater_than",
+            "greater_than_or_equal"
+          ],
+          "title": "Operator",
+          "type": "string"
+        },
+        "property": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$",
+          "title": "Property",
+          "type": "string"
+        },
+        "semantic_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$",
+          "title": "Semantic Ref",
+          "type": "string"
+        },
+        "unit": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$",
+          "title": "Unit",
+          "type": "string"
+        },
+        "unit_semantic_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$",
+          "title": "Unit Semantic Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "semantic_ref",
+        "expected",
+        "unit",
+        "unit_semantic_ref"
+      ],
+      "title": "NumericPredicate",
+      "type": "object"
+    },
+    "ObservationBasis": {
+      "description": "Truthful basis requested for a reportable value.",
+      "enum": [
+        "backend-selected",
+        "observed",
+        "independently-verified",
+        "operational"
+      ],
+      "title": "ObservationBasis",
+      "type": "string"
+    },
+    "ObservationDemandMode": {
+      "description": "Selection posture at a named semantic scope.",
+      "enum": [
+        "inherit",
+        "none",
+        "operational-only",
+        "selected",
+        "exhaustive"
+      ],
+      "title": "ObservationDemandMode",
+      "type": "string"
+    },
+    "ObservationDemandRule": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "properties": {
+                "mode": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "mode"
+              ]
+            },
+            {
+              "properties": {
+                "selector": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "selector"
+              ]
+            },
+            {
+              "properties": {
+                "collection": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "collection"
+              ]
+            },
+            {
+              "properties": {
+                "retention": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "retention"
+              ]
+            },
+            {
+              "properties": {
+                "export": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "export"
+              ]
+            },
+            {
+              "properties": {
+                "basis": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "basis"
+              ]
+            },
+            {
+              "properties": {
+                "redaction": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "redaction"
+              ]
+            },
+            {
+              "properties": {
+                "integrity": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "integrity"
+              ]
+            },
+            {
+              "properties": {
+                "prohibited_stages": {
+                  "minItems": 1
+                }
+              },
+              "required": [
+                "prohibited_stages"
+              ]
+            }
+          ]
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "enum": [
+                  "selected",
+                  "exhaustive"
+                ]
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "selector": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "selector"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "const": "exhaustive"
+              }
+            },
+            "required": [
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "selector": {
+                "properties": {
+                  "coverage_profile": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "max_items": {
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "coverage_profile",
+                  "max_items"
+                ]
+              }
+            },
+            "required": [
+              "selector"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "mode": {
+                "enum": [
+                  "selected",
+                  "exhaustive"
+                ]
+              },
+              "purpose": {
+                "const": "experimental"
+              }
+            },
+            "required": [
+              "purpose",
+              "mode"
+            ]
+          },
+          "then": {
+            "properties": {
+              "integrity": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "redaction": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "redaction",
+              "integrity"
+            ]
+          }
+        }
+      ],
+      "description": "One local scoped preference or independent mandatory requirement.",
+      "properties": {
+        "authority_ref": {
+          "default": "author",
+          "minLength": 1,
+          "title": "Authority Ref",
+          "type": "string"
+        },
+        "basis": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationBasis"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "collection": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationLifecycleDecision"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "export": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationLifecycleDecision"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "integrity": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Integrity"
+        },
+        "mode": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationDemandMode"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "prohibited_stages": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ObservationLifecycleStage"
+          },
+          "maxItems": 3,
+          "title": "Prohibited Stages",
+          "type": "array"
+        },
+        "purpose": {
+          "$ref": "#/$defs/ObservationPurpose"
+        },
+        "redaction": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Redaction"
+        },
+        "required": {
+          "default": false,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "retention": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationLifecycleDecision"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "rule_id": {
+          "minLength": 1,
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "scope": {
+          "maxLength": 4096,
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Scope",
+          "type": "string"
+        },
+        "selector": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObservationSelector"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "rule_id",
+        "scope",
+        "purpose"
+      ],
+      "title": "ObservationDemandRule",
+      "type": "object"
+    },
+    "ObservationLifecycleDecision": {
+      "description": "One local lifecycle preference or monotone prohibition.",
+      "enum": [
+        "inherit",
+        "forbid",
+        "disable",
+        "require"
+      ],
+      "title": "ObservationLifecycleDecision",
+      "type": "string"
+    },
+    "ObservationLifecycleStage": {
+      "description": "Independently governed data-lifecycle stages.",
+      "enum": [
+        "collection",
+        "retention",
+        "export"
+      ],
+      "title": "ObservationLifecycleStage",
+      "type": "string"
+    },
+    "ObservationPurpose": {
+      "description": "Authority plane for requested data use.",
+      "enum": [
+        "experimental",
+        "realization-description",
+        "operational"
+      ],
+      "title": "ObservationPurpose",
+      "type": "string"
+    },
+    "ObservationSelector": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "coverage_profile": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "coverage_profile"
+            ]
+          },
+          "then": {
+            "properties": {
+              "max_items": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "max_items"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "max_items": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "max_items"
+            ]
+          },
+          "then": {
+            "properties": {
+              "coverage_profile": {
+                "not": {
+                  "type": "null"
+                }
+              }
+            },
+            "required": [
+              "coverage_profile"
+            ]
+          }
+        }
+      ],
+      "description": "Bounded selector over a semantic scope and one data surface.",
+      "properties": {
+        "component_refs": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Component Refs",
+          "type": "array"
+        },
+        "coverage_profile": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Coverage Profile"
+        },
+        "data_kind": {
+          "enum": [
+            "field",
+            "stream",
+            "artifact"
+          ],
+          "title": "Data Kind",
+          "type": "string"
+        },
+        "excluded_scopes": {
+          "default": [],
+          "items": {
+            "maxLength": 4096,
+            "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Excluded Scopes",
+          "type": "array"
+        },
+        "max_items": {
+          "anyOf": [
+            {
+              "maximum": 1000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Items"
+        },
+        "names": {
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "minItems": 1,
+          "title": "Names",
+          "type": "array"
+        },
+        "semantic_scope": {
+          "maxLength": 4096,
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Semantic Scope",
+          "type": "string"
+        },
+        "window_refs": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 256,
+          "title": "Window Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "semantic_scope",
+        "data_kind",
+        "names"
+      ],
+      "title": "ObservationSelector",
       "type": "object"
     },
     "OpenTrialParallelismModel": {
@@ -2389,6 +3429,133 @@
       ],
       "title": "ParticipantImplementationBindingTargetModel",
       "type": "object"
+    },
+    "PresencePredicate": {
+      "additionalProperties": false,
+      "description": "Test whether a governed property is present on a subject.",
+      "properties": {
+        "kind": {
+          "const": "presence",
+          "default": "presence",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operator": {
+          "const": "exists",
+          "default": "exists",
+          "title": "Operator",
+          "type": "string"
+        },
+        "property": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$",
+          "title": "Property",
+          "type": "string"
+        },
+        "semantic_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$",
+          "title": "Semantic Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "semantic_ref"
+      ],
+      "title": "PresencePredicate",
+      "type": "object"
+    },
+    "Proposition": {
+      "additionalProperties": false,
+      "description": "A side-effect-free claim over a finite set of stable SDL subjects.",
+      "properties": {
+        "basis": {
+          "$ref": "#/$defs/PropositionBasis"
+        },
+        "description": {
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "evidence_requirements": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Requirements",
+          "type": "array"
+        },
+        "predicate": {
+          "discriminator": {
+            "mapping": {
+              "boolean": "#/$defs/BooleanPredicate",
+              "number": "#/$defs/NumericPredicate",
+              "presence": "#/$defs/PresencePredicate",
+              "string": "#/$defs/StringPredicate"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/PresencePredicate"
+            },
+            {
+              "$ref": "#/$defs/BooleanPredicate"
+            },
+            {
+              "$ref": "#/$defs/StringPredicate"
+            },
+            {
+              "$ref": "#/$defs/NumericPredicate"
+            }
+          ],
+          "title": "Predicate"
+        },
+        "quantifier": {
+          "$ref": "#/$defs/SubjectQuantifier",
+          "default": "all"
+        },
+        "subjects": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Subjects",
+          "type": "array"
+        },
+        "threshold": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Threshold"
+        }
+      },
+      "required": [
+        "description",
+        "subjects",
+        "basis",
+        "predicate"
+      ],
+      "title": "Proposition",
+      "type": "object"
+    },
+    "PropositionBasis": {
+      "description": "Source of facts that may decide a proposition.",
+      "enum": [
+        "declared_state",
+        "observed_state"
+      ],
+      "title": "PropositionBasis",
+      "type": "string"
     },
     "PublicRandomOutcomeModel": {
       "additionalProperties": false,
@@ -2747,6 +3914,249 @@
       "title": "RealizedConfigurationValueModel",
       "type": "object"
     },
+    "ResolvedSafeState": {
+      "additionalProperties": false,
+      "properties": {
+        "governing_scope": {
+          "maxLength": 8192,
+          "minLength": 1,
+          "title": "Governing Scope",
+          "type": "string"
+        },
+        "namespace": {
+          "default": [],
+          "items": {
+            "maxLength": 64,
+            "pattern": "^(?:[a-z0-9][a-z0-9_-]{0,63}|__private)$",
+            "type": "string"
+          },
+          "maxItems": 31,
+          "title": "Namespace",
+          "type": "array"
+        },
+        "proofs": {
+          "additionalProperties": false,
+          "maxProperties": 64,
+          "minProperties": 1,
+          "patternProperties": {
+            "^\\S+$": {
+              "$ref": "#/$defs/SafeStateProof"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\s"
+            }
+          },
+          "title": "Proofs",
+          "type": "object"
+        },
+        "scope": {
+          "maxLength": 4096,
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$",
+          "title": "Scope",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/SafeState"
+        },
+        "target_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "pattern": "^\\S+$",
+          "title": "Target Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "target_ref",
+        "scope",
+        "governing_scope",
+        "state",
+        "proofs"
+      ],
+      "title": "ResolvedSafeState",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Safe states are complete lexical values with unique scopes and assertions. Resolved values bind exact observed postconditions and target-specific evidence. Resolved collections obey aggregate PLAN_VALUE_LIMITS before proof copying. See specs/sdl/safe-state.md.",
+          "id": "safe-state-resolvedsafestate",
+          "inputs": [
+            {
+              "contract_id": "provisioning-plan-v1",
+              "instance_path": "#/safe_states"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.safe_state.ResolvedSafeState.model_validate"
+        }
+      ]
+    },
+    "RuntimeSensitivityClassification": {
+      "description": "Sensitivity/redaction class for observed runtime facts.",
+      "enum": [
+        "plain",
+        "redacted",
+        "secret_fixture",
+        "operator_secret",
+        "unknown",
+        "other"
+      ],
+      "title": "RuntimeSensitivityClassification",
+      "type": "string"
+    },
+    "SafeState": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "continuing_mode": {
+                "type": "null"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "continue"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "properties": {
+              "continuing_mode": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "continuing_mode"
+            ]
+          }
+        }
+      ],
+      "properties": {
+        "assertion_refs": {
+          "items": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "pattern": "^\\S+$",
+            "type": "string"
+          },
+          "maxItems": 64,
+          "minItems": 1,
+          "title": "Assertion Refs",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "continuing_mode": {
+          "anyOf": [
+            {
+              "maxLength": 2048,
+              "minLength": 1,
+              "pattern": "^\\S+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Continuing Mode"
+        },
+        "kind": {
+          "enum": [
+            "safe-hold",
+            "controlled-stop",
+            "continue"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "safe-state/v1",
+          "default": "safe-state/v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "assertion_refs"
+      ],
+      "title": "SafeState",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Safe states are complete lexical values with unique scopes and assertions. Resolved values bind exact observed postconditions and target-specific evidence. Resolved collections obey aggregate PLAN_VALUE_LIMITS before proof copying. See specs/sdl/safe-state.md.",
+          "id": "safe-state-safestate",
+          "inputs": [
+            {
+              "contract_id": "sdl-authoring-input-v1",
+              "instance_path": "#/safe_state"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.safe_state.SafeState.model_validate"
+        }
+      ]
+    },
+    "SafeStateProof": {
+      "additionalProperties": false,
+      "properties": {
+        "assertion": {
+          "$ref": "#/$defs/Assertion"
+        },
+        "evidence_requirements": {
+          "additionalProperties": false,
+          "maxProperties": 64,
+          "minProperties": 1,
+          "patternProperties": {
+            "^\\S+$": {
+              "$ref": "#/$defs/EvidenceRequirement"
+            }
+          },
+          "propertyNames": {
+            "maxLength": 2048,
+            "minLength": 1,
+            "not": {
+              "pattern": "\\s"
+            }
+          },
+          "title": "Evidence Requirements",
+          "type": "object"
+        },
+        "proposition": {
+          "$ref": "#/$defs/Proposition"
+        }
+      },
+      "required": [
+        "assertion",
+        "proposition",
+        "evidence_requirements"
+      ],
+      "title": "SafeStateProof",
+      "type": "object",
+      "x-raes-invariants": [
+        {
+          "description": "Safe states are complete lexical values with unique scopes and assertions. Resolved values bind exact observed postconditions and target-specific evidence. Resolved collections obey aggregate PLAN_VALUE_LIMITS before proof copying. See specs/sdl/safe-state.md.",
+          "id": "safe-state-safestateproof",
+          "inputs": [
+            {
+              "contract_id": "provisioning-plan-v1",
+              "instance_path": "#/safe_states"
+            }
+          ],
+          "level": "error",
+          "validator": "raes_contracts.safe_state.SafeStateProof.model_validate"
+        }
+      ]
+    },
     "ScenarioBindingTargetModel": {
       "additionalProperties": false,
       "description": "Canonical target owned by a composed SDL scenario family.",
@@ -2892,6 +4302,148 @@
           "validator": "raes_contracts.contracts.random_stream.StreamAddressModel._validate_draw_purpose"
         }
       ]
+    },
+    "StringPredicate": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "anyOf": [
+            {
+              "properties": {
+                "expected": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "expected"
+              ]
+            },
+            {
+              "properties": {
+                "expected_from": {
+                  "not": {
+                    "type": "null"
+                  }
+                }
+              },
+              "required": [
+                "expected_from"
+              ]
+            }
+          ]
+        },
+        {
+          "not": {
+            "allOf": [
+              {
+                "properties": {
+                  "expected": {
+                    "not": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "required": [
+                  "expected"
+                ]
+              },
+              {
+                "properties": {
+                  "expected_from": {
+                    "not": {
+                      "type": "null"
+                    }
+                  }
+                },
+                "required": [
+                  "expected_from"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "description": "Compare a governed string property with typed string operands.",
+      "properties": {
+        "expected": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected"
+        },
+        "expected_from": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GeneratedArtifactValueSource"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "kind": {
+          "const": "string",
+          "default": "string",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operator": {
+          "default": "equals",
+          "enum": [
+            "equals",
+            "not_equals",
+            "in",
+            "not_in"
+          ],
+          "title": "Operator",
+          "type": "string"
+        },
+        "property": {
+          "maxLength": 512,
+          "minLength": 1,
+          "pattern": "^[a-z0-9][a-z0-9_-]{0,63}(?:\\.[a-z0-9][a-z0-9_-]{0,63})*$",
+          "title": "Property",
+          "type": "string"
+        },
+        "semantic_ref": {
+          "maxLength": 2048,
+          "minLength": 1,
+          "pattern": "^(?:https://[^\\s]+|urn:[A-Za-z0-9][A-Za-z0-9:._~-]*)$",
+          "title": "Semantic Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "property",
+        "semantic_ref"
+      ],
+      "title": "StringPredicate",
+      "type": "object"
+    },
+    "SubjectQuantifier": {
+      "description": "Quantification over a proposition's finite, resolved subject set.",
+      "enum": [
+        "all",
+        "any",
+        "at_least"
+      ],
+      "title": "SubjectQuantifier",
+      "type": "string"
     },
     "TrialCleanupPlanModel": {
       "additionalProperties": false,

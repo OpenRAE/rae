@@ -4,23 +4,18 @@ from tools.sdl_catalog_parity._paths import _SEMANTIC
 
 _CLOUD_IDENTITY = "nodes.*.runtime.identity_authorities[]"
 _CLOUD_APPLICATION = "nodes.*.runtime.platform_applications[]"
-_CLOUD_RESOURCE_VALIDATOR = (
-    "[cloud resource validator](../../implementations/python/packages/raes/validator/_cloud_resources.py)"
-)
 
 _SCOPE_TARGET = "runtime:resource_scopes"
 _SUBJECT_TARGET = "runtime:subjects"
 _RESOURCE_TARGET = "derived:cloud-resource"
 
-CLOUD_RESOURCE_EXPECTATIONS: dict[str, tuple[str, str, str, str]] = {
-    path: (
-        target,
-        _SEMANTIC,
-        "fatal dangling, wrong kind, or conflicting ancestry",
-        _CLOUD_RESOURCE_VALIDATOR,
-    )
+CLOUD_RESOURCE_EXPECTATIONS: dict[str, tuple[(str, str, str)]] = {
+    path: (target, _SEMANTIC, "fatal dangling, wrong kind, or conflicting ancestry")
     for path, target in (
-        (f"{_CLOUD_IDENTITY}.resource_scopes[].audit_logs[].exempted_principal_refs[]", _SUBJECT_TARGET),
+        (
+            f"{_CLOUD_IDENTITY}.resource_scopes[].audit_logs[].exempted_principal_refs[]",
+            _SUBJECT_TARGET,
+        ),
         (
             f"{_CLOUD_IDENTITY}.resource_scopes[].parent_ref",
             _SCOPE_TARGET,

@@ -86,10 +86,12 @@ def _model_parse_error(
     *,
     path: Path | None,
     source_ranges: dict[str, SDLSourceRange],
+    location_prefix: tuple[object, ...] = (),
 ) -> SDLParseError:
+    """Render a model error; ``location_prefix`` anchors a model validated apart from its document."""
     diagnostics: list[SDLParseDiagnostic] = []
     for item in error.errors():
-        pointer = _pointer_from_location(tuple(item.get("loc", ())))
+        pointer = _pointer_from_location((*location_prefix, *item.get("loc", ())))
         message = _bounded_model_message(str(item.get("msg", "")))
         error_type = item.get("type")
         code = error_type if error_type in _TYPED_DIAGNOSTIC_CODES else "sdl.model.invalid"

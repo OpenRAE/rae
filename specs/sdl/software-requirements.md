@@ -25,26 +25,33 @@ existing service, condition, proposition and participant-contract owners.
 
 `model` names the model that a software component uses. The field is optional.
 A value MUST be a string with at least one non-whitespace character.
+
 RAES treats it as an opaque name. RAES does not select a provider, fetch the model or run inference.
-Authors MAY use a literal or `${variable}`. Existing parameter variation points can choose the value.
+Authors MAY use a literal or `${variable}`.
+
+Existing parameter variation points can choose the value.
 Each trial SDL MUST keep its chosen model.
 Include a model revision in the name when the experiment needs to fix that revision.
 
 The field follows existing realization rules. A literal fixes the exact model.
 A variable keeps its declared domain until a variation point selects its trial value.
+
 The trial then admits only that choice. The source family keeps the full domain.
 The backend MUST NOT replace the choice with another member of that domain.
+
 When `model` is absent or null in an open software scope, the backend selects the model.
 SDL documents that omit this field gain no new model requirement.
-A declaration states what is required. Runtime evidence shows which model was used.
+A declaration states what is required.
 
-The optional `package` refinement reuses the exact `RuntimePackage` wire shape:
-manager, name and distribution-package version, with optional architecture,
-opaque source label, package URL identity and legacy repository. The top-level
+Runtime evidence shows which model was used.
+
+The optional `package` refinement reuses the exact node-runtime `packages[]` wire shape: manager, name and distribution-package version. Optional fields are architecture, opaque source label, package URL identity and legacy repository. The top-level
 node-runtime `packages[]` surface remains its compatibility shorthand. It MUST
 retain exact versions and APT v1 final repository/trust meaning; it MUST NOT be
 reinterpreted as transient acquisition. Both encodings use the same package
-model, architecture checks and recursive conformance relation. There is no
+model, architecture checks and recursive conformance relation.
+
+There is no
 second package comparator or installer for the canonical encoding.
 An embedded package on a forbidden component is not a positive installation
 requirement and MUST NOT require a matching node architecture.
@@ -76,10 +83,14 @@ relation changes their exact-string meaning. `version_constraint` and
 
 At least one endpoint is required. A lower-only exclusive predicate expresses
 newer-than; an upper-only exclusive predicate expresses older-than. Two bounds
-express a range. No restriction requires no predicate, not a compulsory exact
+express a range.
+
+No restriction requires no predicate, not a compulsory exact
 version or a sentinel range. An exact string and a predicate conjoin; neither
 overrides the other. Known empty intervals and known incompatible exact values
-are invalid. Unknown relation identities remain exchangeable, but required
+are invalid.
+
+Unknown relation identities remain exchangeable, but required
 unsupported comparisons MUST be refused before execution.
 
 The reference implementation installs three pure bounded relations under
@@ -114,12 +125,16 @@ Components carry optional `refinements[]`, each with a unique `refinement_id`,
 `purpose`, immutable `definition` and bounded JSON `profile_value`. Components
 MUST accept only `acquisition` and `version-correspondence` purposes. Repository
 and trust constraints MUST attach to their respective shared identity owners,
-never directly to a component. Published schemas and runtime validation MUST
+never directly to a component.
+
+Published schemas and runtime validation MUST
 enforce the same owner/purpose restrictions. Definition
 identity, schema identity, semantic contract identity, namespace admission and
 operation-specific support follow the existing domain-profile contracts.
 JSON data keys inside `schema_document` and `profile_value` retain their exact
-spelling; they are not structural SDL field aliases. Duplicate YAML keys and
+spelling; they are not structural SDL field aliases.
+
+Duplicate YAML keys and
 source resource limits still apply.
 
 | Owner | Purpose | Plan-host context |
@@ -161,9 +176,12 @@ NOT grant network, credential, trust-bypass or installation authority.
 `repository_id` and `trust_id`, respectively. Each accepts independent
 required/optional/forbidden presence and optional refinements; repositories
 accept only `repository-state` refinements and trusts only `repository-trust`.
+
 A repository's optional `trust_ref` resolves one trust binding on that node.
 Component `repository_refs[]` resolve shared final repository identities as an
-unordered set. Reordering references MUST NOT affect conformance. Open sets may
+unordered set. Reordering references MUST NOT affect conformance.
+
+Open sets may
 contain additional valid references; closed sets require the same identities.
 
 Duplicate identities, duplicate references and dangling references are invalid.

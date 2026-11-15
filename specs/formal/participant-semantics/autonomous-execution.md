@@ -4,6 +4,7 @@ This specification defines DSL-437 execution as a composition of existing
 participant semantics and the shared time model. It introduces no background
 actor, inject, or private clock.
 
+<!-- vale RAES.HeadingCase = NO -->
 ## ACT-605 baseline behavior profile coverage
 
 ACT-605's declarative baseline and background behavior profiles are the
@@ -12,6 +13,8 @@ automation, and ambient scenario activity reuse the same participant, action,
 observation, shared-time, native-execution, and evidence invariants. ACT-605
 adds no separate profile root or actor kind and changes none of the v1, v2, or
 v3 policy semantics.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ## V1 authored policy
 
@@ -30,10 +33,12 @@ For behavior specification \(B\), autonomous policy \(P\) contains:
 Every participant action and observation in \(P\) must already be admitted by
 the participant and parent behavior specification. \(G_P\) and every member of
 \(T_P\) use \(C_P\). Exactly one member of \(T_P\) is a cadence constraint.
+
 Cadence starts must be non-negative. For stepped progression, its start and
 period must be integer multiples of `step_ticks`; unreachable cadence points
 are invalid. Externally paced policies remain valid SDL; reference-runtime
 admission rejects them until its transition driver supports them.
+
 Runtime-owned wall pacing drives `real_time` and `dilated`
 policies only when the bound clock declares runtime authority. Backend,
 system, and external clock authorities are never advanced by the participant
@@ -84,15 +89,18 @@ one fairness obligation, and a complete typed demand vector containing:
 - accelerator (`accelerator_milliseconds`, lease).
 
 Each demand binds exactly one owner, logical pool, unit, accounting mode,
-meter profile, limit, reservation quantity, and reset owner. Owner kinds are
-participant, deployment tenant, shared service, and fleet. Participant,
+meter profile, limit, reservation quantity, and reset owner. Owner kinds are participant, deployment tenant, shared service, and fleet.
+
+Participant,
 deployment-tenant, and shared-service refs resolve to their existing canonical
 addresses; a resource owner grants no participant authority or cross-tenant
 access. Deployment-tenant ownership must match an authorized execution target,
 and shared-service ownership must match both the exact target and an explicit
 tenant `uses_shared_service` edge. The optional parent relation is acyclic,
 preserves resource kind, unit, accounting mode, and meter, and cannot increase
-or overcommit its parent limit. Two budget ids cannot alias one canonical pool.
+or overcommit its parent limit.
+
+Two budget ids cannot alias one canonical pool.
 Storage growth resets only through evidence-backed reconciliation. The single
 participant-owned concurrent-action limit equals `max_in_flight`, so execution
 service and budget readback cannot become independent authorities.
@@ -101,6 +109,7 @@ V1 and v2 limits compile into the same canonical demand representation with
 `legacy_maximum` provenance. They do not acquire v3 capacity, fairness,
 isolation, or runtime-accounting requirements.
 
+<!-- vale RAES.HeadingCase = NO -->
 ## Bounded action guarantees (ACT-614)
 
 An action temporal contract opts into `participant-shared-time/v1` through
@@ -109,6 +118,8 @@ cadence, waiting and cooldown never imply a deadline or continuous dwell.
 The binding selects a declared clock and a constraint naming that action.
 The selected event must appear in the action's declared event points. An
 autonomous policy and its bound actions use the same shared clock.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 - A deadline selects `start`, `end` (completion), `observed`, or `effective`.
   The selected event coordinate must be at or before the inclusive deadline.
@@ -169,7 +180,8 @@ When `evaluation_authority.mode = none`:
 \]
 
 and \(B\) has no outcome-interpretation or authority-scope refs, no objective
-names \(a\) as its actor, and the authority record has no objective, proof,
+names \(a\) as its actor.
+The authority record has no objective, proof,
 score, or receipt refs. This is a semantic rejection condition, not guidance.
 
 ## Deterministic selection
@@ -246,8 +258,8 @@ V3 inserts an atomic reservation of the complete resource vector before step
 4. Physical capacity is owned by one canonical pool ledger shared across
 policies. An exactly-once commit occurs only after the native result supplies
 the complete matching operation, generation, resource, unit and meter
-measurement vector with evidence. Protocol failure or an absent or untrusted
-vector releases or rolls back the reservation.
+measurement vector with evidence. Protocol failure or an absent or untrusted vector releases or rolls back the reservation.
+
 If any dimension or ancestor pool cannot reserve, no dimension reserves and
 the native action is not invoked. Stable action identity makes reservation and
 settlement idempotent. Every throttle, reservation, commit, release, or reset
@@ -258,13 +270,15 @@ The scheduler applies these checks to every participant-runtime implementation,
 not only implementations derived from the reference base class. A result is
 invalid when it has the wrong type, is absent or non-terminal, or is bound to
 another episode. It is also invalid when it reports an observation point outside
-the bound temporal contexts or lacks the matching terminal history event. The
-scheduler commits neither the native snapshot nor the portable behavior history
+the bound temporal contexts or lacks the matching terminal history event.
+
+The scheduler commits neither the native snapshot nor the portable behavior history
 of an invalid result. The failed attempt is recorded only in scheduler
 accounting so the same action instance cannot be replayed. If native execution
 reports a valid terminal failure, no successful behavior history is fabricated.
-The current action must append exactly the ordered attempted, transition, and
-terminal observation events, and the attempted event's actor provenance must
+
+The current action must append exactly the ordered attempted, transition, and terminal observation events.
+The attempted event's actor provenance must
 match the selected participant implementation.
 `stop` marks the scheduler failed; `continue` advances the bounded attempt
 counter and cadence.
@@ -279,15 +293,17 @@ rejected without committing native state.
 When at least two participants are due and the admitted policy and backend
 limits permit it, native calls execute concurrently against one immutable
 predecessor. Results commit one at a time. For every changed portable map
-entry, the commit requires the current value to equal either the predecessor
-or the incoming value; otherwise it reports a concurrent-commit conflict.
+entry, the commit requires the current value to equal either the predecessor or the incoming value.
+Otherwise it reports a concurrent-commit conflict.
 Scheduler attempt/in-flight counters are reserved before dispatch and settled
 after each serialized commit.
 
-For v2, a retry is admitted only when the typed terminal failure class is in
-the selected candidate's declared retry set and the per-occurrence retry and
+For v2, a retry is admitted only when two conditions hold.
+The typed terminal failure class is in the selected candidate's declared retry set.
+The per-occurrence retry and
 global attempt bounds both remain. Each retry has a distinct attempt id and
 names its predecessor. Protocol-invalid or indeterminate work is not retried.
+
 A terminal occurrence updates dependency completion and cooldown state before
 the next selection. A burst performs at most `max_burst_size` serialized
 occurrences at one due tick; each remains a distinct occurrence and action
@@ -360,27 +376,35 @@ Dispatch is a one-use grant, and effects start only after it. A completion
 carries a terminal typed outcome bound to the participant, episode, action
 instance and action contract. It must also pass the canonical binding
 validation for the exposure policy, compiled boundary evidence and observation
-point. After dispatch, a cancel request is refused, because it does not prove
+point.
+
+After dispatch, a cancel request is refused, because it does not prove
 that effects stopped. The first unknown effect fences the port: later
 admissions and grants refuse, and accepted work can still settle. The scheduler
-then dispatches no further outer invocation in the pass. A grant also rechecks
-the live-authority condition above. A grant whose authored interaction
+then dispatches no further outer invocation in the pass.
+
+A grant also rechecks the live-authority condition above. A grant whose authored interaction
 footprint conflicts with an active hosted action or another invocation's outer
-action is refused under the scheduler's conflict rule. The unknown-effect fence
-is set before its settlement write and applies to every port in the pass. Closure happens before the scheduler
+action is refused under the scheduler's conflict rule.
+
+The unknown-effect fence is set before its settlement write and applies to every port in the pass. Closure happens before the scheduler
 validates the outer result. Closure and admission are serialized.
 
 The scheduler commits every settled tool action on every outer terminal path.
 This includes valid, protocol-invalid, raised and cancelled outer results. Each
-tool action appends one ordered triple. Every event carries
-`invocation_tool_context` with the version, outer action instance and contract,
+tool action appends one ordered triple.
+
+Every event carries `invocation_tool_context` with the version, outer action instance and contract,
 affordance, tool call identity, admission ordinal, settlement, scope and
 generation. Triples follow admission order, immediately before the outer
 triple, or at the end of the participant history when the outer triple did
-not commit. Predecessor and peer histories stay unchanged. A withheld action
-records status `withheld`. An indeterminate action records status `unknown` and
+not commit. Predecessor and peer histories stay unchanged.
+
+A withheld action records status `withheld`. An indeterminate action records status `unknown` and
 observation status `orphaned_action`. It also marks the participant scheduler
-`failed`. A changed generation or episode commits no tool history. Unknown
+`failed`.
+
+A changed generation or episode commits no tool history. Unknown
 effects are never replayed.
 
 Each tool action is also a child operation record of the enclosing due
@@ -417,28 +441,36 @@ changed operation reference, and new evidence.
 Pause changes non-terminal scheduler states on the governed clock to `paused`;
 resume returns them to `running`. Reset begins a new shared-time segment,
 resets each bound participant episode, and restores the initial cadence,
-action index, and counters. Reapplying an unchanged plan preserves state.
+action index, and counters.
+
+Reapplying an unchanged plan preserves state.
 Reapplying a materially changed policy at the same address fails before
 mutation. A participant belongs to at most one autonomous execution policy.
-Clock transitions that would cross a due cadence without executing it fail
-before clock mutation. Reset-capable autonomous policies require the backend
+
+Clock transitions that would cross a due cadence without executing it fail before clock mutation. Reset-capable autonomous policies require the backend
 manifest to advertise `supports_coordinated_participant_reset`. Runtime
 registration then requires the time authority's `reset_with_participants`
 operation and the participant runtime's atomic `reset_many` operation through
-capability-specific runtime protocols. Together they form one backend
-transaction: the implementation must prepare all clock and episode changes
-before commit, return one coherent snapshot on success, and leave no externally
-observable mutation on failure. Scheduler
-counters are updated locally only after that transaction succeeds. A copied
+capability-specific runtime protocols.
+
+Together they form one backend transaction.
+The implementation must prepare all clock and episode changes before commit and return one coherent snapshot on success.
+It must leave no externally
+observable mutation on failure.
+
+Scheduler counters are updated locally only after that transaction succeeds. A copied
 predecessor snapshot is not treated as rollback of backend side effects.
 Participant runtimes with additional native reset state must supply their own
 atomic batch implementation rather than inherit the reference in-memory
 transaction.
+
 Durable and conformance validation require scheduler segment/lifecycle and
 episode identity to agree with the bound shared clock and live episode.
 V2 reset also clears occurrence, retry, dependency, cooldown, and burst
 continuation, then derives the next timing and burst values under the new
-shared-time segment. The segment is part of every activity address, so reset
+shared-time segment.
+
+The segment is part of every activity address, so reset
 generations cannot alias prior draws. Participant/service state changes remain
 owned by native action results and existing episode/reset contracts; scheduler
 timestamps alone make no causal or rollback claim.
@@ -447,8 +479,9 @@ The service readback binds the policy, execution relation, and admitted
 shared-time declaration by digest and names its scheduler states. Shared-clock
 pause/resume changes both scheduler and execution-service readiness. A
 shared-clock reset advances the execution generation. Loss of runtime wall
-pacing marks the service degraded, not ready, and paused and appends an
-explicit pacing-deviation evidence reference; it is never silently treated as
+pacing marks the service degraded, not ready, and paused.
+It appends an explicit pacing-deviation evidence reference.
+It is never silently treated as
 successful timing.
 
 V3 reset reconciles outstanding reservations before advancing the execution
@@ -564,15 +597,18 @@ The reference implementation covers:
 The wall driver re-reads clock state after waits, remains
 owned until its thread exits, and records unexpected termination. Externally paced autonomous
 execution remains rejected because no portable transition-notification
-contract is yet governed. This establishes the portable protocol behavior only. A
+contract is yet governed. This establishes the portable protocol behavior only.
+
+A
 production backend still must prove that its selected participant
 implementation, native adapter, targets, evidence, and readback faithfully
-materialize a scenario. V3 additionally covers canonical legacy projection,
-atomic multi-resource admission and reservation, typed runtime state/events,
+materialize a scenario.
+
+V3 additionally covers canonical legacy projection, atomic multi-resource admission and reservation, and typed runtime state/events.
+It also covers
 generation-fenced settlement and reset reconciliation, durable/control-plane
-projection, and cross-range isolation rejection. Invocation tool actions cover
-the compiled relation, the capability claim and registration, port admission
-and refusal, one-use dispatch, closure, serial and concurrent settlement, and
+projection, and cross-range isolation rejection. Invocation tool actions cover the compiled relation, the capability claim and registration, and port admission and refusal.
+They also cover one-use dispatch, closure, serial and concurrent settlement, and
 history-view projection. No conformance probe family exercises them yet.
 
 Delivery-owned tool invocations use the separate

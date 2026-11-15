@@ -77,14 +77,14 @@
     {
       "concern_id": "propositions", "status": "implemented", "limitation": "The model defines claims and truth domains; it does not guarantee a backend can decide them.",
       "evidence": [
-        {"kind": "implementation", "path": "implementations/python/packages/raes/propositions.py", "claim": "Typed proposition model."},
+        {"kind": "implementation", "path": "implementations/python/packages/raes_contracts/propositions.py", "claim": "Typed proposition model."},
         {"kind": "test", "path": "implementations/python/tests/test_proposition_semantics.py", "claim": "Predicate, subject, and truth-composition coverage."}
       ]
     },
     {
       "concern_id": "assertions", "status": "implemented", "limitation": "Assertion composition is not evaluator lifecycle success or graded scoring.",
       "evidence": [
-        {"kind": "implementation", "path": "implementations/python/packages/raes/propositions.py", "claim": "Role-constrained assertion model."},
+        {"kind": "implementation", "path": "implementations/python/packages/raes_contracts/propositions.py", "claim": "Role-constrained assertion model."},
         {"kind": "test", "path": "implementations/python/tests/test_truth_result_contracts.py", "claim": "Assertion truth-result integrity coverage."}
       ]
     },

@@ -65,6 +65,8 @@ def _run_boundary(
         "PATH": f"{fake_bin}:{os.environ['PATH']}",
         "RUNNER_TEMP": str(tmp_path),
         "GITHUB_EVENT_PATH": str(event),
+        # The step reads the event through EVENT_PATH, which is github.event_path on a pull request.
+        "EVENT_PATH": str(event),
         "GITHUB_REPOSITORY": "OpenRAE/rae",
         "GH_TOKEN": "fixture-only",
         "BLOBS": json.dumps(blobs),

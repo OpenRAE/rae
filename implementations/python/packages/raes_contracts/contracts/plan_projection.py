@@ -35,6 +35,7 @@ from raes_contracts.contracts.realization_plans import (
     RealizationAuthorityBoundModel,
     ResolvedRealizationAuthorityModel,
 )
+from raes_contracts.contracts.workflow_dispatch import WorkflowStepDispatch
 
 from .._canonical import canonical_json_digest
 from ..diagnostics import Diagnostic, diagnostic_payload
@@ -110,6 +111,7 @@ def provisioning_plan_model(plan: ProvisioningPlan) -> ProvisioningPlanModel:
     """Project a provisioning plan into its published contract model."""
 
     return ProvisioningPlanModel(
+        safe_states=plan.safe_states,
         inventory_attempt_id=plan.inventory_attempt_id,
         inventory_refresh=plan.inventory_refresh,
         materialization_source=plan.materialization_source,
@@ -176,7 +178,7 @@ def planned_provisioning_resources(plan: ProvisioningPlan) -> tuple[PlannedResou
     )
 
 
-def runtime_plan_digest(plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan) -> str:
+def runtime_plan_digest(plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan | WorkflowStepDispatch) -> str:
     """Return one domain-tagged digest for an exact planner-produced artifact."""
 
     if isinstance(plan, ProvisioningPlan):
@@ -188,6 +190,8 @@ def runtime_plan_digest(plan: ProvisioningPlan | OrchestrationPlan | EvaluationP
     elif isinstance(plan, EvaluationPlan):
         domain = "evaluation"
         model = evaluation_plan_model(plan)
+    elif isinstance(plan, WorkflowStepDispatch):
+        return canonical_json_digest({"domain": "workflow-step", "dispatch": plan.model_dump(mode="json")})
     else:
         raise TypeError("unsupported runtime plan type")
     return canonical_json_digest({"domain": domain, "plan": model.model_dump(mode="json", exclude_none=True)})
@@ -197,6 +201,7 @@ def orchestration_plan_model(plan: OrchestrationPlan) -> OrchestrationPlanModel:
     """Project an orchestration plan into its published contract model."""
 
     return OrchestrationPlanModel(
+        safe_states=plan.safe_states,
         operation_id=plan.operation_id,
         materialization_source=plan.materialization_source,
         augmentation_scope_required=plan.augmentation_scope_required,
@@ -212,6 +217,7 @@ def evaluation_plan_model(plan: EvaluationPlan) -> EvaluationPlanModel:
     """Project an evaluation plan into its published contract model."""
 
     return EvaluationPlanModel(
+        safe_states=plan.safe_states,
         operation_id=plan.operation_id,
         materialization_source=plan.materialization_source,
         augmentation_scope_required=plan.augmentation_scope_required,

@@ -1,4 +1,4 @@
-# Evaluator Result Contract
+# Evaluator result contract
 
 ## Envelope
 
@@ -19,7 +19,7 @@ with:
 
 `state_schema_version` is fixed to `evaluation-result-state/v1` in this rollout.
 
-## Resource Contracts
+## Resource contracts
 
 Evaluator result semantics are compiled per observable address.
 
@@ -36,7 +36,7 @@ The manager validates raw backend payloads against the compiled
 `result_contract` attached to each evaluation resource, not against incidental
 payload conventions.
 
-## Status Semantics
+## Status semantics
 
 Portable statuses are:
 
@@ -70,7 +70,7 @@ History timestamps must be monotonic. When history is present, it must begin
 with `evaluation_started`. `ready` results must end with `evaluation_ready`, and
 `failed` results must end with `evaluation_failed`.
 
-## Validation Boundary
+## Validation boundary
 
 Backends may hold richer internal evaluator state, but the manager only accepts
 the portable envelope and history defined here. Python typed models normalize

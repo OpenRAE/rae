@@ -793,7 +793,7 @@ def test_workflows_use_trusted_code_and_read_only_permissions() -> None:
 
     assert "pull_request_target" not in guard_source
     checkout = guard["jobs"]["body-guard"]["steps"][0]
-    assert checkout["with"]["ref"] == "${{ github.event.pull_request.base.sha }}"
+    assert checkout["with"]["ref"] == "${{ github.event.merge_group.base_sha || github.event.pull_request.base.sha }}"
     assert guard["permissions"] == {"contents": "read", "issues": "read", "pull-requests": "read"}
     assert audit["permissions"] == {"contents": "read", "issues": "read", "pull-requests": "read"}
     assert "gh issue close" not in audit_source

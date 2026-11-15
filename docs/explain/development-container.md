@@ -23,6 +23,7 @@ It checks tools, hooks, project imports, and the targeted development-container 
 The canonical CI workflow owns repository-wide policy, lint, tests, and security checks.
 The image job does not repeat that full suite.
 Pinned artifacts, non-root execution, and credential restrictions still apply.
+
 The existing Nox workflow remains the verification owner under ADR-014.
 GitHub path filters and the job event condition select when this work runs.
 Their syntax is defined in the [GitHub workflow reference](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax).
@@ -65,9 +66,12 @@ its path, alongside `git`, `gh`, `ssh`, `gpg`, `make`, `jq`, `less`, and `nano`.
 ```shell
 nox -l                      # list every check
 nox -s verify-changed       # optional change-aware local gate
-nox -s tests                # unit tests
-make policy                 # repository policy
+uv run --project implementations/python --frozen pytest implementations/python/tests/test_runtime_models.py -q
 ```
+
+Select the module or case that covers your change.
+Full test, integration, fuzz, and completion suites run in CI/CD.
+Historical verification results below describe their recorded revision only.
 
 Committing runs file-scoped hygiene and secrets checks, as on a native setup.
 There is no configured pre-push hook. CI/CD runs the full validation and test
@@ -146,10 +150,9 @@ no setup steps again, as this page describes.
   `procps`, `bash-completion`).
 - A non-root `raes` account with no `sudo`.
 
-The image contains no checkout, credentials, tokens, SSH material, virtual
-environment, or payload cache. uv, CPython, and the CLI tools are downloaded
-into the cache volume by the repository's verified installers, and uv is
-forbidden from downloading any interpreter the lock did not admit.
+The image contains no checkout, credentials, tokens, SSH material, virtual environment, or payload cache.
+The verified installers download uv, CPython, and CLI tools into the cache volume.
+uv must not download an interpreter that the lock did not admit.
 
 The artifact lock owns the base digest and verified bootstrap payloads.
 `.devcontainer/Dockerfile` owns native packages, account setup and environment;
@@ -161,9 +164,11 @@ repositories mean image rebuilds are not byte-reproducible.
 ## Caches and rebuilds
 
 The cache volume at `/home/raes/.cache` holds the uv cache and the verified
-clients. It survives container rebuilds. It is never trusted: every setup
-re-verifies each cached archive against the lock, downloads anything missing or
-altered, and swaps in freshly installed clients only when every step succeeds.
+clients. It survives container rebuilds. The cache is never trusted.
+Every setup re-verifies each cached archive against the lock.
+It downloads missing or altered inputs.
+It installs replacement clients only when every step succeeds.
+
 To repeat setup at any time, run:
 
 ```shell
@@ -174,11 +179,13 @@ The project virtual environments live in the checkout, as they do natively.
 Their console scripts record absolute paths, so a checkout mounted at a second
 path carries scripts that cannot start. Setup detects a relocated environment
 and rebuilds it, because `uv sync` alone reports it as already locked. Even so,
-don't share one checkout between the container and a native setup: each would
+do not share one checkout between the container and a native setup: each would
 rebuild the other's environment for its own platform. Use a separate clone for
 each.
 
-## Use Docker or Podman without a dev-container client
+<a id="use-docker-or-podman-without-a-dev-container-client"></a>
+
+## Use a container engine without a development client
 
 From the repository root:
 
@@ -196,11 +203,11 @@ path of each new shell:
 export PATH="$PWD/implementations/tooling/python/.venv/bin:$PATH"
 ```
 
-Plain Docker doesn't remap user IDs, so the checkout must be owned by uid 1000.
+Plain Docker does not remap user IDs, so the checkout must be owned by uid 1000.
 The Docker route above is verified. Rootless Podman is unverified: add
 `--userns=keep-id:uid=1000,gid=1000` to `podman run` if you try it.
 
-Git worktrees whose `.git` file points outside the mounted directory can't be
+Git worktrees whose `.git` file points outside the mounted directory cannot be
 used from the container. Setup still reaches `Ready.`, but it reports the hook
 step as skipped, and Git reports a missing repository. Mount a plain clone
 instead.
@@ -208,17 +215,16 @@ instead.
 ## Limitations
 
 **No proof support.** The container profiles declare
-`proof_support: unsupported`. Bubblewrap needs namespace privileges that an
-unprivileged container does not grant, so `nox -s participant-opacity-proof`
-stops with `bubblewrap is required to enforce offline proof replay` and never
-skips the proof or relaxes its isolation. The full `nox -s verify` gate includes
-that lane and fails in the container for the same reason; use `verify-changed`
-while working and let continuous integration, or a native Linux x86_64 proof
-host, run the full gate.
+`proof_support: unsupported`. Bubblewrap needs namespace privileges that an unprivileged container does not grant.
+Thus `nox -s participant-opacity-proof` stops with `bubblewrap is required to enforce offline proof replay`.
+It never skips the proof or relaxes its isolation.
+
+The full `nox -s verify` gate includes that lane and fails in the container.
+Use `verify-changed` while working.
+CI runs the full gate on its configured host.
 
 **No container daemon.** The image supplies development tools, not a Docker or
-Podman daemon, and mounts no daemon socket. No repository lane needs a
-container daemon.
+Podman daemon, and mounts no daemon socket. Release verification uses a container daemon on its configured CI runner.
 
 **Not a production runtime.** The image exists to develop and verify the
 repository.

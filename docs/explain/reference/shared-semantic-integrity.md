@@ -1,4 +1,4 @@
-# Shared Semantic Integrity
+# Shared semantic integrity
 
 This note is the implementation-facing architecture preflight for `SEM-200`.
 The guardrails below are guidance, not an implementation plan.
@@ -6,10 +6,13 @@ The guardrails below are guidance, not an implementation plan.
 [ADR-016](../../decisions/adrs/adr-016-semantic-layer-scope-and-coverage-model.md)
 fixes the *model* for `SEM-200` — the seven canonical lifecycle phases, the
 construct-family concept, the status vocabulary, and `SEM-200`'s definition of
-done — and is immutable once accepted. The *live* coverage table is the
-[`## Coverage Model`](#coverage-model) section at the end of this note, which
-ADR-016 governs; every `SEM-2xx` implementation PR moves its construct family's
-row toward `active` there. The structural gate `tools/check_semantic_coverage.py`
+done.
+ADR-016 is immutable once accepted.
+The *live* coverage table is the
+[`## Coverage model`](#coverage-model) section at the end of this note, which
+ADR-016 governs.
+Every `SEM-2xx` implementation PR moves its construct family's row toward `active` there.
+The structural gate `tools/check_semantic_coverage.py`
 validates that table on every `nox` policy run.
 
 Per-change FM classifications for semantic and runtime-surface ADRs are
@@ -25,7 +28,7 @@ compilation, planning, execution, live observation, and post-run experiment
 interpretation. The implementation should extend the existing semantic
 authority stack rather than introduce another one.
 
-## Lifecycle Boundary
+## Lifecycle boundary
 
 The current canonical lifecycle is:
 
@@ -34,8 +37,8 @@ The current canonical lifecycle is:
    errors
 3. `instantiate_scenario()` applies parameters/defaults, rejects unresolved
    placeholders, rebuilds the closed `InstantiatedScenario` with portable
-   derivation evidence, and reruns semantic validation; direct/deserialized
-   artifacts pass `admit_instantiated_scenario()` before compilation
+   derivation evidence, and reruns semantic validation.
+   Direct/deserialized artifacts pass `admit_instantiated_scenario()` before compilation.
 4. `compile_runtime_model()` emits canonical runtime addresses, typed runtime
    resources, and compiled result/execution contracts
 5. `plan()` validates backend capability semantics and derives typed
@@ -49,7 +52,7 @@ The current canonical lifecycle is:
 Each phase may add structure, but it must not reinterpret an upstream
 construct by local convention.
 
-## Canonical Incumbents
+## Canonical incumbents
 
 Use these existing surfaces before adding anything new:
 
@@ -77,7 +80,7 @@ Use these existing surfaces before adding anything new:
 - formal-methods policy: ADR-007, the coding standards, and the existing
   `specs/formal/<domain>/` artifacts
 
-## Cross-Cutting Gates
+## Cross-cutting gates
 
 A SEM-200 implementation must pass every gate it touches:
 
@@ -116,7 +119,7 @@ A SEM-200 implementation must pass every gate it touches:
   artifacts, or scenario text. Runtime adapters should receive them through
   headers or process-local configuration that is not echoed into diagnostics.
 
-## Extension Point
+## Extension point
 
 The primary extension point is the governed semantic surface, not a new
 parallel model:
@@ -150,7 +153,7 @@ backend manifest strings, or profile selectors as hidden authority surfaces.
 - Use the smallest adequate formal-methods artifact for the changed surface.
   FM2/FM3 changes need explicit invariants and typed IR/contract coverage.
 
-## Anti-Patterns
+## Anti-patterns
 
 Avoid:
 
@@ -169,15 +172,18 @@ Avoid:
   diagnostics, audit records, snapshots, or JSON fixtures
 - solving the requirement by creating one universal scenario super-model
 
-## Non-Goals
+## Non-goals
 
 The preflight guardrails above do not implement the missing `SEM-200` coverage,
 add new schemas, add new construct-specific tests, or transition the requirement
 status. They only fix the architectural guardrails for the implementation that
-follows. The Coverage Model below is the inventory and tracker; closing each
+follows. The Coverage model below is the inventory and tracker; closing each
 `planned`/`partial` row is its own `/implement <child-UID>` run.
 
+<!-- This heading is a fixed input to tools/check_semantic_coverage.py. -->
+<!-- vale RAES.HeadingCase = NO -->
 ## Coverage Model
+<!-- vale RAES.HeadingCase = YES -->
 
 This is the live, ADR-016-governed coverage table for `SEM-200`. It is mutable
 — each `SEM-2xx` implementation PR updates the affected row — and validated by
@@ -191,16 +197,18 @@ Status is one of:
 - `active` — the owning requirement is `ACTIVE` in Ground Control; the
   construct's semantics are realized in a shared helper/spec; named tests cover
   it. The structural gate enforces that the row names at least one lifecycle
-  phase, at least one *existing* non-test repository artifact, and at least one
-  *existing* test under `implementations/python/tests/test_*.py`. It also
-  enforces *integration, not just existence*: when the row names importable
-  Python realizing modules, at least one named test must actually **import** one
-  of them (resolving package re-exports — a bare
-  `import` of a whole package does not count), and every `test_*` function in the
-  row's named test files must contain at least one assertion (no zero-assertion
-  stub tests). Whether the owning requirement is actually `ACTIVE`, and whether
-  every claimed module is individually exercised, remain Ground Control /
-  requirement-governance facts verified by review, not by the gate;
+  phase and at least one *existing* non-test repository artifact.
+  The row must also name at least one *existing* test under `implementations/python/tests/test_*.py`.
+
+  The gate checks integration.
+  When a row names importable Python realizing modules, at least one named test must **import** one of them.
+  The gate resolves package re-exports; a bare `import` of a whole package does not count.
+  Every `test_*` function in the row's named test files must contain at least one assertion.
+  Zero-assertion stub tests are invalid.
+
+  Ground Control and requirement review verify whether the owning requirement is `ACTIVE`.
+  They also verify whether tests exercise each claimed module.
+  The gate does not check those facts.
   `tools/check_semantic_coverage.py --report` surfaces per-row module-coverage
   counts so thin rows are visible.
 - `partial` — some realization exists (a spec, a helper) but the owning
@@ -210,21 +218,25 @@ Status is one of:
   Phases and artifacts are left as `—`; the gate enforces that they stay empty.
   For a `planned` row, the construct family's lifecycle scope, artifact
   expectations, and wave are defined by the owning requirement's record in Ground
-  Control (its statement and `wave` field) — this table tracks realization
-  status, not the requirement database, and deliberately carries no wave column.
+  Control (its statement and `wave` field).
+  This table tracks realization status, not the requirement database, and deliberately carries no wave column.
 
-A construct family appears here only if its cross-stage *meaning* can drift, and
-only if a `SEM-2xx` child of `SEM-200` (or, for a foundational/peer concern such
-as the concept-authority meta-layer or the runtime/contract layers, an owning
-peer requirement that is already `ACTIVE`) accounts for it. Pure SDL
+A construct family appears here only if its cross-stage *meaning* can drift.
+A `SEM-2xx` child of `SEM-200` must account for it.
+For a foundational or peer concern, an owning peer requirement that is already `ACTIVE` can account for it.
+This exception includes the concept-authority meta-layer and the runtime/contract layers.
+
+Pure SDL
 data-modeling constructs (topology, features, content, exercise timeline, …) get
 their cross-stage integrity from fail-closed validation (`SEM-201`), canonical
-identities (`SEM-205`), and the compiled representation (`RUN-302`), so they have
-no row of their own unless a construct-specific semantic gap is identified
-and a `SEM-*` requirement opened for it. Higher-level capabilities that *consume*
+identities (`SEM-205`), and the compiled representation (`RUN-302`).
+These constructs have no row of their own.
+A row requires an identified construct-specific semantic gap and a `SEM-*` requirement opened for it.
+Higher-level capabilities that *consume*
 the semantic layer (cross-run comparability, semantic diff, federation/standards
-profiles, …) are downstream of `SEM-200` rather than construct families of it,
-so they are tracked by their own requirements, not here.
+profiles, …) are downstream of `SEM-200`.
+They are not construct families of it.
+Their own requirements track them.
 
 | Construct family | Owning requirement(s) | Phases covered | Realizing artifacts | Status |
 | --- | --- | --- | --- | --- |
@@ -236,7 +248,7 @@ so they are tracked by their own requirements, not here.
 | Declarative objective actor binding, target resolution, success interpretation, and dependency ordering | DSL-112, SEM-207 | authoring, validation, instantiation, compilation, planning | `implementations/python/packages/raes/objectives.py`, `implementations/python/packages/raes/semantics/objective_semantics/__init__.py`, `implementations/python/packages/raes/validator/__init__.py`, `implementations/python/packages/raes_processor/compiler/__init__.py`, `implementations/python/packages/raes_processor/models/`, `specs/formal/objectives/README.md`, `specs/formal/objectives/declarative-objective-semantics.md`, `implementations/python/tests/test_semantics_objectives.py`, `implementations/python/tests/test_fm2_semantics.py`, `implementations/python/tests/test_sdl_validator.py` | active |
 | Workflow control semantics (branching, joins, calling, retry, completion, history) | DSL-113, SEM-203 | authoring, validation, compilation, planning, execution, observation | `implementations/python/packages/raes/orchestration/__init__.py`, `implementations/python/packages/raes_contracts/workflow/semantics.py`, `specs/formal/workflows/README.md`, `specs/formal/workflows/state-machine.md`, `implementations/python/tests/test_sdl_validator.py`, `implementations/python/tests/test_runtime_models.py`, `implementations/python/tests/test_sdl_models.py` | active |
 | Workflow compensation semantics (registration, triggering, ordering, observation) | SEM-204 | validation, compilation, execution, observation | `implementations/python/packages/raes_contracts/workflow/semantics.py`, `specs/formal/workflows/compensation.md`, `implementations/python/tests/test_sdl_validator.py`, `implementations/python/tests/test_runtime_manager.py` | partial |
-| Backend-neutral proposition truth and assertion-composed objective success (probe conditions remain separate implementation bindings; SDL scoring pipeline removed per ADR-073) | DSL-110, SEM-206 | authoring, validation, compilation, planning, execution, observation | `implementations/python/packages/raes/propositions.py`, `implementations/python/packages/raes/conditions.py`, `implementations/python/packages/raes/semantics/propositions.py`, `implementations/python/packages/raes/semantics/objective_semantics/__init__.py`, `implementations/python/packages/raes_processor/compiler/__init__.py`, `implementations/python/packages/raes_processor/models/`, `specs/formal/objectives/proposition-and-assertion-semantics.md`, `implementations/python/tests/test_proposition_semantics.py`, `implementations/python/tests/test_truth_result_contracts.py`, `implementations/python/tests/test_fm2_semantics.py` | active |
+| Backend-neutral proposition truth and assertion-composed objective success (probe conditions remain separate implementation bindings; SDL scoring pipeline removed per ADR-073) | DSL-110, SEM-206 | authoring, validation, compilation, planning, execution, observation | `implementations/python/packages/raes_contracts/propositions.py`, `implementations/python/packages/raes/conditions.py`, `implementations/python/packages/raes/semantics/propositions.py`, `implementations/python/packages/raes/semantics/objective_semantics/__init__.py`, `implementations/python/packages/raes_processor/compiler/__init__.py`, `implementations/python/packages/raes_processor/models/`, `specs/formal/objectives/proposition-and-assertion-semantics.md`, `implementations/python/tests/test_proposition_semantics.py`, `implementations/python/tests/test_truth_result_contracts.py`, `implementations/python/tests/test_fm2_semantics.py` | active |
 | Runtime compiled representation and canonical addresses | RUN-302 | compilation | `implementations/python/packages/raes_processor/compiler/__init__.py`, `implementations/python/tests/test_runtime_models.py`, `implementations/python/tests/test_fm2_semantics.py` | active |
 | Planner dependency, ordering, refresh, and applicability semantics | RUN-303 | planning | `implementations/python/packages/raes_processor/semantics/planner.py`, `implementations/python/packages/raes_processor/planner/__init__.py`, `specs/formal/planner/README.md`, `specs/formal/planner/dependency-ordering.md`, `implementations/python/tests/test_semantics_planner.py`, `implementations/python/tests/test_runtime_planner.py` | active |
 | Live execution state and lifecycle (snapshots, results, history) | RUN-304, API-402 | execution, observation | `implementations/python/packages/raes_runtime/manager.py`, `implementations/python/packages/raes_runtime/result_contracts.py`, `implementations/python/packages/raes_processor/models/`, `implementations/python/tests/test_runtime_manager.py`, `implementations/python/tests/test_runtime_models.py` | active |

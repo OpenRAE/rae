@@ -9,3 +9,9 @@ reporting route in
 
 RAES is maintained on a best-effort basis. The project does not promise a
 response time or support service level.
+
+Follow the [support guide](https://github.com/OpenRAE/rae/blob/main/SUPPORT.md)
+for report contents and backend ownership.
+Remove private data and credentials before posting an example.
+Use the [conduct policy](https://github.com/OpenRAE/rae/blob/main/CODE_OF_CONDUCT.md#report-a-concern)
+for participation concerns.

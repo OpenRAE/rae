@@ -1,5 +1,18 @@
 # Serve the runtime control plane
 
+Serve an authenticated administration interface for an existing runtime owner.
+
+## Before you start
+
+Use the Python P2 adapter in RAES 11.0.2.
+Construct one durable P1 core with your installed target, private store, and evidence owners.
+Obtain service credentials through the deployment's approved secret channel.
+You need authority to configure the host, service network, TLS proxy, and store permissions.
+
+Creating the app does not provision those components.
+Mutation routes permit authorized callers to change runtime state and invoke backend effects.
+Use an isolated target with a verified native cleanup procedure.
+
 The optional P2 HTTP adapter serves one durable P1 control-plane core. It is an
 administration and service interface for a trusted host application. It is not
 a participant API.
@@ -90,13 +103,15 @@ app = create_control_plane_app(control_plane, security=security, profile=Control
 
 Load each bearer token from your deployment's secret channel. Use a frozenset
 for roles and tuples for bindings. The configuration refuses mistyped or
-mutable authority fields. It also refuses an identity name or binding set that
-exceeds the operation record limits: 256 characters per name or scope entry,
-and 64 scope entries. A participant address in a binding cannot contain `:`.
+mutable authority fields.
+
+It also refuses an identity name or binding set that exceeds the operation record limits.
+The limits are 256 characters per name or scope entry, and 64 scope entries. A participant address in a binding cannot contain `:`.
 It refuses a token or identity name with leading or trailing whitespace, so
-strip a trailing newline from a secret file before you use it. The two trust
-flags must be real `bool` values, and the size and queue limits must be `int`
-values; parse strings from environment variables or YAML before you pass them.
+strip a trailing newline from a secret file before you use it.
+
+The two trust flags must be real `bool` values, and the size and queue limits must be `int` values.
+Parse strings from environment variables or YAML before you pass them.
 An unknown bearer token fails with `401`. It never falls back to proxy headers.
 
 Every transport-admission refusal returns the same body for its status: `401`
@@ -184,7 +199,9 @@ The adapter is one process that owns one store. It provides no high
 availability and no operation by several owners or workers. RAES does not
 guarantee that a backend effect happens exactly once, and it never replays one.
 After a crash, an operation whose effect cannot be established becomes
-`INDETERMINATE` and keeps that state. To resolve it, an operator calls
+`INDETERMINATE` and keeps that state.
+
+To resolve it, an operator calls
 `POST /operations/{operation_id}/resolution`. That call records a separate,
 linked operation and leaves the original unchanged. TLS and proxy correctness
 belong to your deployment.
@@ -200,10 +217,29 @@ Register the route inside `create_control_plane_app()`, before the adapter
 checks its route inventory. Do not change the returned app. Its routes,
 middleware, exception handlers, and dependency overrides are sealed at
 construction; after any change, startup fails and every request gets a redacted
-`500`. Declare one transport authority with the dependencies in
+`500`.
+
+Declare one transport authority with the dependencies in
 `raes_runtime.control_plane_api._auth`. A public probe is GET-only and must
 return no runtime value. Then apply the operation's own subject policy in the
 core. A stream, callback, or export must authorize every item it releases.
 
 
 For complete run history and measured result counts, see [experiment records](experiment-records.md).
+
+## Verify and stop the service
+
+Check `/health/live` and `/health/ready` through the approved service path.
+Then verify that an unknown token receives `401` and an unauthorized role receives `403`.
+Use disposable credentials for refusal checks. Keep their values out of recorded commands and logs.
+A successful health probe does not prove participant authorization or native backend readiness.
+
+If startup refuses worker count or sealed configuration, correct the host configuration before retrying.
+Do not remove authority checks or edit the returned app.
+Stop admission and drain through the existing runtime owner before shutting down the server.
+Closing the service does not destroy native resources.
+Reconcile uncertain operations before native cleanup or resource reuse.
+
+Deployment remains unverified without its proxy, identity, network, store, and native-effect evidence.
+Read the {py:func}`create_control_plane_app() <raes_runtime.control_plane_api.create_control_plane_app>`
+and [participant boundary explanation](../participant-control-explanation.md#keep-four-planes-separate).

@@ -19,6 +19,7 @@ from raes_contracts.sdl_model import SDLModel
 
 from ._classification_guard import LegacyClassificationGuard
 from .participant_control_context import ParticipantControlContextReference
+from .participant_episode_policy import ParticipantEpisodePolicy
 from .participant_execution import ParticipantAutonomousExecutionPolicy
 from .participant_mixed_control_policy import MIXED_CONTROL_POLICY_SEMANTICS, MixedControlPolicy
 
@@ -303,6 +304,7 @@ class ParticipantBehaviorSpecification(LegacyClassificationGuard):
         default_factory=dict,
         json_schema_extra={"additionalProperties": False},
     )
+    episode_policy: ParticipantEpisodePolicy | None = Field(default=None, exclude_if=lambda value: value is None)
     extension_policy: str = "governed-extension"
     extensions: dict[str, BehaviorSpecificationExtensionValue] = Field(default_factory=dict)
 
@@ -376,6 +378,7 @@ class ParticipantBehaviorSpecification(LegacyClassificationGuard):
                 self.control_context,
                 self.tool_affordances,
                 self.participant_inject_deliveries,
+                self.episode_policy,
             )
         ):
             raise ValueError("behavior specifications must aggregate at least one behavior surface reference")

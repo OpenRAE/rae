@@ -20,6 +20,10 @@ on:
       - CHANGELOG.md
       - .release-please-manifest.json
       - implementations/python/packages/raes/_version.py
+  # The `dev` merge queue runs every required check again on the merge group
+  # (#2026). Path filters do not apply to this event.
+  merge_group:
+    types: [checks_requested]
   workflow_dispatch:
 
 concurrency:
@@ -30,17 +34,62 @@ permissions:
   contents: read
 
 jobs:
+  # A merge group ref names the queued pull request but not its head branch, and
+  # the requirement UID comes from that branch name. This job reads the head
+  # branch from the API. A failure here skips the canonical graph, so the
+  # required contexts fail closed.
+  queued-pull-request:
+    if: github.event_name == 'merge_group'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      number: ${{ steps.resolve.outputs.number }}
+      head-ref: ${{ steps.resolve.outputs.head-ref }}
+    steps:
+      - name: Resolve the queued pull request
+        id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          QUEUE_REF: ${{ github.event.merge_group.head_ref }}
+        run: |
+          set -euo pipefail
+          pattern='^refs/heads/gh-readonly-queue/dev/pr-([0-9]+)-[0-9a-f]{40}$'
+          if [[ ! "${QUEUE_REF}" =~ ${pattern} ]]; then
+            echo "Unexpected merge group ref '${QUEUE_REF}'" >&2
+            exit 1
+          fi
+          number="${BASH_REMATCH[1]}"
+          head_ref="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${number}" --jq 'select(.base.ref == "dev") | .head.ref')"
+          if [ -z "${head_ref}" ]; then
+            echo "Pull request ${number} does not target dev" >&2
+            exit 1
+          fi
+          echo "number=${number}" >> "${GITHUB_OUTPUT}"
+          echo "head-ref=${head_ref}" >> "${GITHUB_OUTPUT}"
+
   canonical:
+    needs: queued-pull-request
+    if: ${{ !cancelled() && needs.queued-pull-request.result != 'failure' }}
     permissions:
       contents: read
     uses: ./.github/workflows/canonical-verification.yml
     with:
       ref: ${{ github.sha }}
+      # A merge group has no pull_request base or push before value, so it falls
+      # through to its own SHA. The canonical graph then uses the parent commit.
+      # The queue squashes each pull request into one commit on the group, so
+      # the diff-scoped policy checks see only the queued pull request.
       base-rev: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
-      requirement-branch: ${{ github.head_ref || github.ref_name }}
+      requirement-branch: ${{ needs.queued-pull-request.outputs.head-ref || github.head_ref || github.ref_name }}
+      sonar-pull-request: ${{ needs.queued-pull-request.outputs.number }}
+      sonar-pull-request-branch: ${{ needs.queued-pull-request.outputs.head-ref }}
       # Run the quality gate inside the reusable graph. The reusable sonar job is
-      # itself trust-gated to same-repository PRs and protected pushes, so the
-      # token below is never exposed to fork or Dependabot contexts.
+      # itself trust-gated to same-repository PRs, merge groups, and protected
+      # pushes, so the token below is never exposed to fork or Dependabot pull
+      # request contexts. Only a user with write access can queue a merge group.
       sonar-enabled: true
     secrets:
       sonar_token: ${{ secrets.SONAR_TOKEN }}
@@ -193,7 +242,7 @@ jobs:
   # The quality gate now runs inside the reusable graph (decoupled from the full
   # test gate). This join preserves the required `sonar` context by checking the
   # reusable quality-gate outcome. When Sonar is required for this event
-  # (same-repository PR or protected push) the outcome MUST be success: an empty
+  # (same-repository PR, merge group, or protected push) the outcome MUST be success: an empty
   # outcome then means the scan failed before recording a verdict (e.g. checkout
   # or artifact download), which must fail closed rather than pass as "skipped".
   # An empty outcome is only allowed for the trust contexts where Sonar is
@@ -211,6 +260,7 @@ jobs:
           SONAR_REQUIRED: >-
             ${{ (github.event_name == 'push'
             && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'))
+            || github.event_name == 'merge_group'
             || (github.event_name == 'pull_request'
             && github.event.pull_request.head.repo.full_name == github.repository
             && github.actor != 'dependabot[bot]') }}

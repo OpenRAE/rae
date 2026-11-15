@@ -6,6 +6,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from raes_contracts.contracts.workflow_dispatch import WorkflowStepDispatch
+
 if TYPE_CHECKING:
     from ..planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
 
@@ -106,7 +108,7 @@ def require_backend_execution_policy_admission(
     request: BackendOperationRequestModel,
     capabilities: BackendOperationCapabilitiesModel,
     response: BackendOperationResponseModel,
-    native_plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+    native_plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan | WorkflowStepDispatch,
     *,
     resolved_native_plan_commitment: str | None = None,
 ) -> None:
@@ -125,12 +127,12 @@ def require_backend_execution_policy_admission(
 
 
 def require_backend_plan_policy_capabilities(
-    native_plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+    native_plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan | WorkflowStepDispatch,
     capabilities: BackendOperationCapabilitiesModel,
 ) -> None:
     """Reuse the exact authored policy checks after a trusted owner resolves its command."""
 
-    for operation in native_plan.operations:
+    for operation in (native_plan,) if isinstance(native_plan, WorkflowStepDispatch) else native_plan.operations:
         for effective in (operation.execution_policy, *operation.execution_policy_scopes):
             if effective is not None and execution_policy_capability_gaps(
                 effective.policy, capabilities.execution_policy
@@ -140,9 +142,12 @@ def require_backend_plan_policy_capabilities(
 
 def _validate_native_plan_commitment(
     request: BackendOperationRequestModel,
-    native_plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan,
+    native_plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan | WorkflowStepDispatch,
     resolved_commitment: str | None = None,
 ) -> None:
+    if isinstance(native_plan, WorkflowStepDispatch):
+        _validate_workflow_dispatch_commitment(request, native_plan, resolved_commitment)
+        return
     kinds = {ProvisioningPlan: "provisioning", OrchestrationPlan: "orchestration", EvaluationPlan: "evaluation"}
     kind = kinds.get(type(native_plan))
     if kind is None or request.command.contract_id != kind + "-plan-v1":
@@ -156,6 +161,24 @@ def _validate_native_plan_commitment(
     _validate_native_plan_identity(request, native_plan)
     if native_plan.purpose != "execution" or any(diagnostic.is_error for diagnostic in native_plan.diagnostics):
         raise ValueError("execution policy native plan is not executable")
+
+
+def _validate_workflow_dispatch_commitment(
+    request: BackendOperationRequestModel,
+    dispatch: WorkflowStepDispatch,
+    resolved_commitment: str | None,
+) -> None:
+    if (
+        request.workflow_step != dispatch
+        or request.command.contract_id != "workflow-step-dispatch-v1"
+        or request.command.artifact_id != dispatch.dispatch_id
+        or request.binding.context.operation_kind.value != "orchestration"
+        or request.binding.context.parent_operation_id != dispatch.root_operation_id
+    ):
+        raise ValueError("workflow dispatch command identity mismatch")
+    expected = runtime_plan_digest(dispatch) if resolved_commitment is None else resolved_commitment
+    if request.command.digest != expected:
+        raise ValueError("workflow dispatch command commitment mismatch")
 
 
 def _validate_native_plan_identity(

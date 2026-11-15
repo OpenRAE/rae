@@ -12,10 +12,9 @@ in runtime adapters.
 """
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
+from raes_contracts.propositions import TruthCompositionMode
 from raes_contracts.sdl_model import SDLModel
 from raes_contracts.variable_references import parse_enum_or_var
-
-from .propositions import TruthCompositionMode
 
 SuccessMode = TruthCompositionMode
 

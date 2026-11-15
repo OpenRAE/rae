@@ -336,16 +336,19 @@ def _augment_provisioning(
     return provisioning, extra
 
 
-def _attach_phase_policies(
+def _attach_phase_declarations(
     model: RuntimeModel,
     manifest: BackendManifest,
     phases: tuple[ProvisioningPlan, OrchestrationPlan, EvaluationPlan],
 ) -> tuple[tuple[ProvisioningPlan, OrchestrationPlan, EvaluationPlan], list[Diagnostic]]:
-    """Attach the effective execution policies to each phase plan, in phase order."""
+    """Attach execution policies and separate safe-state proof in phase order."""
 
     provisioning, provisioning_diagnostics = attach_execution_policies(model, manifest, phases[0])
     orchestration, orchestration_diagnostics = attach_execution_policies(model, manifest, phases[1])
     evaluation, evaluation_diagnostics = attach_execution_policies(model, manifest, phases[2])
+    provisioning = replace(provisioning, safe_states=model.safe_states)
+    orchestration = replace(orchestration, safe_states=model.safe_states)
+    evaluation = replace(evaluation, safe_states=model.safe_states)
     return (provisioning, orchestration, evaluation), [
         *provisioning_diagnostics,
         *orchestration_diagnostics,
@@ -446,7 +449,7 @@ def plan(
     evaluation = _build_evaluation_plan(resources, actions, deleted_entries, effective_model.observation_demands)
     evaluation = replace(evaluation, run_id=run_id, instantiation_id=instantiation_id)
 
-    (provisioning, orchestration, evaluation), policy_diagnostics = _attach_phase_policies(
+    (provisioning, orchestration, evaluation), policy_diagnostics = _attach_phase_declarations(
         effective_model, manifest, (provisioning, orchestration, evaluation)
     )
     diagnostics.extend(policy_diagnostics)

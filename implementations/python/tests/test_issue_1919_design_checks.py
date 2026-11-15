@@ -107,11 +107,9 @@ def test_existing_workflow_gates_remain_configured() -> None:
     assert configuration["rules"] == {"plan_rules": ".gc/plan-rules.md"}
 
 
-def test_readme_links_the_design_check_instructions() -> None:
+def test_developer_index_links_the_design_tool_instructions() -> None:
     page = "docs/develop/ground-control-design-checks.md"
-    readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
 
-    assert f"https://github.com/OpenRAE/rae/blob/main/{page}" in readme
     assert "(develop/ground-control-design-checks.md)" in (REPO_ROOT / "docs" / "README.md").read_text(encoding="utf-8")
     for script in ("tools/design_wiring.py", "tools/design_acceptance.py"):
         assert script in (REPO_ROOT / page).read_text(encoding="utf-8")

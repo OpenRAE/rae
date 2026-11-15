@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping
-from copy import deepcopy
 from dataclasses import replace
 from typing import Any
 
@@ -24,6 +23,7 @@ from raes_contracts.realization_structure import (
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_contracts.runtime_value_limits import PLAN_AUTHORITY_LIMITS, RUNTIME_SNAPSHOT_VALUE_LIMITS
 
+from ..semantics.realization_comparison import portable_realization_value
 from ..semantics.realization_concerns import realization_concern_descriptors
 
 _PROFILE = "raes/prepared-portable-node/v1"
@@ -37,7 +37,7 @@ def prepared_node_payload_projection(payload: Mapping[str, Any]) -> dict[str, An
 
     if not validate_realization_value(payload, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS, python_carriers=True).conformant:
         raise InvalidInputError("prepared node exceeds its recursive projection bounds")
-    projected = deepcopy(payload)
+    projected = portable_realization_value(payload)
     for descriptor in realization_concern_descriptors():
         current = projected
         for token in descriptor.payload_path[:-1]:

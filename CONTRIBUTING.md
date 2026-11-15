@@ -1,17 +1,22 @@
 # Contribute to RAES
 
-RAES SDL is a research-oriented engineering project. Contributions are useful
-when they make the language, reference implementation, contracts, examples, or
-documentation more precise and easier to validate.
+Use this guide to prepare a checkout, check a change, and submit a pull request.
+Start with [setup](#set-up-the-repository), then run a
+[targeted check](#run-the-checks).
+Report vulnerabilities through [SECURITY.md](SECURITY.md).
+
+The checkout uses Python. Go build migration belongs to issue #1803.
+Issue #1804 owns publication at cutover.
+These instructions do not qualify a Go release or a live backend.
 
 ## Choose the right route
 
 - For a small docs fix, typo fix, or narrow test improvement, a pull request
   is enough. Use `No issue: <brief reason>` in its Related Issues section.
 - For SDL language changes, contract changes, processor behavior changes, or
-  backend conformance changes, open an issue first and reference it with a
-  standalone `Refs #N` line when the issue's Requirements section declares
-  requirement UIDs, or `Closes #N` otherwise. Those changes can affect authored scenario
+  backend conformance changes, open an issue first.
+  Use a standalone `Refs #N` line when its Requirements section declares UIDs.
+  Use `Closes #N` otherwise. Those changes can affect authored scenario
   meaning and generated artifacts.
 - Keep unrelated work in separate pull requests.
 - Base pull requests on `dev`, not `main`. `main` is the stable release line;
@@ -26,8 +31,8 @@ Pull request bodies use the section structure that the Ground Control delivery
 workflow renders, so a rendered body passes the body guard unmodified. The
 [pull request template](.github/PULL_REQUEST_TEMPLATE.md) lists the sections:
 Summary, Requirement UIDs, Related Issues, ADR Impact, Changes, Test Plan,
-Ground Control Checks, Traceability, and Checklist, plus an optional
-Documentation section. Each required section appears exactly once and has
+Ground Control Checks, Traceability, and Checklist.
+Documentation is an optional section. Each required section appears exactly once and has
 content. The guard also enforces the following rules:
 
 - The Summary describes the change in non-placeholder prose.
@@ -40,13 +45,11 @@ content. The guard also enforces the following rules:
   this repository. GitHub reads that as a closing route, so reword the mention,
   for example as "the issue 1219 migration". Other issue mentions are accepted.
 
-The body guard normally executes the validator from the PR's base revision.
-A policy migration admits exactly one prior validator digest and a pinned
-two-file validator bundle, with an independent SHA-256 check of each Git blob
-before execution. This lets the introducing PR be validated without executing
-PR-head code or bypassing policy. Once the replacement lands on `dev`, the
-prior digest no longer matches and the normal base-validator path applies.
-Changing these migration pins is an explicit, reviewable workflow trust change.
+The executable body rules are in `tools/check_pr_body.py` and the
+[PR template](.github/PULL_REQUEST_TEMPLATE.md).
+The base revision supplies the validator.
+A reviewed migration can admit a pinned replacement bundle.
+Do not change validator pins to bypass a failed check.
 
 ## Set up the repository
 
@@ -63,9 +66,11 @@ Prerequisites:
   [development profile](implementations/tooling/README.md); 3.14t is preview-only
 - the exact uv payload selected by the development artifact lock
 
-The host profile also requires Git, trusted CA roots, SHA-256 tooling, GH CLI
-when GitHub operations are used, and curl 8.4.0 or newer with verified
-unknown-length size enforcement. An older client is a hard failure for generic
+The host profile also requires Git, trusted CA roots, and SHA-256 tooling.
+GitHub operations require GH CLI.
+Generic acquisition requires curl 8.4.0 or newer with verified unknown-length size enforcement.
+
+An older client is a hard failure for generic
 artifact acquisition. Provision native prerequisites from the reviewed host
 image or signed package repositories. Connected setup acquires exact Python,
 uv and generic-tool inputs against their reviewed identities. Do not pipe
@@ -76,6 +81,7 @@ Install the separate locked project and verification-tool environments:
 ```shell
 git clone https://github.com/OpenRAE/rae.git
 cd rae
+git switch dev
 uv sync --project implementations/python --all-extras --frozen
 uv sync --project implementations/tooling/python --frozen --no-default-groups
 ```
@@ -85,6 +91,11 @@ dependency group; ordinary tooling sync does not need it. The existing Intel
 Mac restriction is not lifted by that separation: patched runtime dependencies
 and actual target smoke evidence are still required. No vulnerable dependency
 downgrade or untested support is implied.
+
+Both sync commands must exit `0` before you run the checks.
+If acquisition fails, read the named prerequisite or digest failure.
+Keep the lock and host checks enabled.
+Use the [tooling guide](implementations/tooling/README.md) to inspect supported profiles.
 
 The [developer documentation index](docs/README.md) links to architecture,
 research, migration, release, and workflow records that are not part of the
@@ -112,46 +123,10 @@ newlines, YAML/JSON syntax, file size, conflict markers, private keys, and
 Gitleaks. No pre-push check is configured. Full tests, policy, contracts,
 lint, proof, and documentation validation remain required in CI/CD.
 
-The full repository gate is available locally when needed:
-
-```shell
-uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s verify
-```
-
-That gate includes a `participant-opacity-proof` lane, which replays the pinned
-Isabelle proof offline. The lane runs on Linux x86_64 only. It needs
-`bubblewrap` to enforce the offline replay, and a fontconfig setup with at least
-one installed font, because Isabelle starts a JVM that will not run without one:
-
-```shell
-sudo apt-get install bubblewrap fontconfig fonts-dejavu-core
-```
-
-Acquire the pinned Isabelle distribution once before running the lane. The
-tool admits the exact reviewed archive with a qualified `curl` (8.4.0 or newer)
-and verifies the complete installed tree on every use:
-
-```shell
-uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.isabelle_tool acquire
-```
-
-On a host whose `curl` is older, such as Ubuntu 22.04, pass an archive you
-already have with `--local-input PATH`. The tool admits it only when its size
-and SHA-256 match the lock. To list every missing proof
-prerequisite without network access or execution, run
-`python -m tools.isabelle_tool preflight`.
-
-The proof tool checks the fontconfig runtime and the C.UTF-8 locale before
-entering the sandbox, and it reports a missing prerequisite separately from a
-kernel rejection. Run the
-gate on Linux, or rely on continuous integration, when your workstation is
-another platform.
-
-Some Linux security policies also deny unprivileged user or network namespaces.
-The proof tool reports that condition as unavailable bubblewrap isolation and
-does not retry without the network sandbox. Use an administrator-approved host
-policy for bubblewrap or rely on continuous integration; do not disable the
-offline boundary to make the lane pass.
+Full verification and proof replay run in CI/CD.
+CI acquires proof inputs through the
+[canonical verification workflow](.github/workflows/canonical-verification.yml).
+Do not disable isolation to make a proof check pass.
 
 Run the change-aware local gate while iterating:
 
@@ -165,11 +140,13 @@ suite. Select relevant test modules or cases explicitly for source-only changes.
 Full test, integration, fuzz and completion suites run in CI/CD only. The
 unconditional `verify` graph remains a CI/CD entry point.
 
-Useful narrower sessions:
+For a runtime-model change, run the selected test module below.
+For prose, replace `CONTRIBUTING.md` with your changed paths.
+Use `-l` to list sessions; it does not run them.
 
 ```shell
 uv run --project implementations/python --frozen pytest implementations/python/tests/test_runtime_models.py -q
-uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -s docs
+uv run --project implementations/tooling/python --frozen --no-default-groups nox -s docs-prose -- CONTRIBUTING.md
 uv run --project implementations/tooling/python --frozen --no-default-groups nox -f noxfile.py -l
 ```
 
@@ -192,3 +169,11 @@ Do not open public issues for suspected security vulnerabilities. See
 ## Follow the community rules
 
 Participation in this project is covered by [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
+## Find release and legal records
+
+Read the [release procedure](docs/explain/releasing.md) before proposing a release.
+[CHANGELOG.md](CHANGELOG.md) records generated release entries.
+[LICENSE](LICENSE) gives the repository license.
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) gives component notices and license boundaries.
+These records do not replace the private security-reporting route.

@@ -1,4 +1,4 @@
-# raes-sdl plan rules
+# RAES SDL plan rules
 
 Mandatory constraints the `/implement` skill applies during plan phase.
 These encode the hard rules previously in `AGENTS.md` prose.
@@ -10,8 +10,9 @@ These encode the hard rules previously in `AGENTS.md` prose.
 - Local test and completion commands MUST remain targeted. Never select a full
   test, integration or fuzz suite locally, even on unknown changes, source edits,
   base synchronization or review repairs. Full verification is CI/CD only.
-- Plans MUST set `RAES_REQUIREMENT_UID` when the branch name does not
-  already contain a UID such as `GOV-918`.
+- Requirement-backed plans MUST set `RAES_REQUIREMENT_UID` when the branch name
+  does not contain an in-scope UID such as `GOV-918`.
+  Requirement-free plans MUST NOT invent a UID.
 - Plans MUST NOT add new authority-bearing artifacts outside `specs/`,
   `contracts/`, `docs/`, and `implementations/`.
 - Plans MUST name the module that owns each piece of new code. Plans MUST also

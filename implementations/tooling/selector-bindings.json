@@ -232,6 +232,28 @@
           "template": "archives/mcrl2/mcrl2-{selector}_x86_64.deb"
         }
       ]
+    },
+    {
+      "binding_id": "doc-tools-tool-version",
+      "artifact_id": "doc-tools",
+      "authority_field": "version",
+      "consumers": [
+        {
+          "path": "tools/tool_versions.py",
+          "template": "DOC_TOOLS_VERSION = \"{selector}\""
+        }
+      ]
+    },
+    {
+      "binding_id": "ste-cli-tool-version",
+      "artifact_id": "ste-cli",
+      "authority_field": "version",
+      "consumers": [
+        {
+          "path": "tools/tool_versions.py",
+          "template": "STE_VERSION = \"{selector}\""
+        }
+      ]
     }
   ]
 }

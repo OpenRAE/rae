@@ -1,23 +1,20 @@
-# Classification-Based Assurance Fulfillment Map (ASR-505, review FM-1, issue #485)
+# Classification-based assurance fulfillment (ASR-505, issue #485, review FM-1)
 #
-# Companion to specs/formal/assurance-policy.yaml. The policy file defines the
-# FM0-FM3 ladder and the required artifact kinds per level (its self-description).
-# This file records, per classified formal-spec subsystem under specs/formal/,
-# whether each required artifact kind for that subsystem's FM level is actually
-# DELIVERED (a concrete, non-empty repo path) or explicitly WAIVED (an ISO date
-# plus at least one tracking reference). It makes ADR-018's "the policy cannot rot
-# silently" claim true for fulfillment, not just description: a subsystem can no
-# longer be classified FM3 forever with no artifacts and a green CI.
+# specs/formal/assurance-policy.yaml defines the FM0-FM3 levels and artifacts.
+# This companion reference records fulfillment for each classified subsystem.
+# DELIVERED means a concrete, non-empty repository path.
+# WAIVED means an ISO date and at least one tracking reference.
+# A waiver is not delivered evidence.
 #
-# Required reading:
-#   docs/decisions/adrs/adr-007-lightweight-formal-methods-policy.md  -- policy
-#   docs/decisions/adrs/adr-018-classification-based-assurance-policy.md  -- seam
-#   specs/formal/assurance-policy.yaml  -- the FM ladder and required artifacts
+# Read these sources:
+#   docs/decisions/adrs/adr-007-lightweight-formal-methods-policy.md
+#   docs/decisions/adrs/adr-018-classification-based-assurance-policy.md
+#   specs/formal/assurance-policy.yaml
 #
-# Gated by tools/check_assurance_policy.py (nox -s policy / verify). Required
-# artifact kinds are DERIVED from assurance-policy.yaml by FM level -- do not
-# duplicate them here. Distinct from docs/explain/reference/fm-classification-
-# ledger.yaml, which is the per-change ADR classification record.
+# tools/check_assurance_policy.py derives required artifacts from the policy.
+# Do not duplicate those requirements here.
+# docs/explain/reference/fm-classification-ledger.yaml separately records
+# the ADR classification for each change.
 
 fulfillment: classification-based-assurance-fulfillment
 
@@ -575,31 +572,36 @@ entries:
         path: implementations/python/tests/test_sem_222_episode_termination_oracle.py
       - kind: typed_ir_or_contract_coverage
         path: implementations/python/packages/raes_contracts/participant_episode_closure.py
+      # Delivered by #307 (DSL-120): the authored episode-structure SDL contract,
+      # its generated schemas, and its authoring/validation/compilation tests.
+      - kind: unit_tests
+        path: implementations/python/tests/test_issue_307_dsl_120_participant_episode_policy.py
+      - kind: typed_ir_or_contract_coverage
+        path: implementations/python/packages/raes/participant_episode_policy.py
     waived_artifacts:
       - kind: unit_tests
         date: 2026-08-02
         tracking:
           - "#306"
-          - "#307"
           - "#308"
           - "#309"
           - "#310"
         rationale: >-
-          Joint-design run (#122). #305 (SEM-222) delivers the episode/termination
-          unit tests above; per-requirement unit tests for budget/exhaustion
-          semantics and the authored SDL surfaces remain owned by the spawned
-          implementation issues #306-#310.
+          Joint-design run (#122). #305 (SEM-222) and #307 (DSL-120) deliver the
+          episode/termination and authored episode-structure unit tests above;
+          per-requirement unit tests for budget/exhaustion semantics, the
+          interaction-budget SDL surface, and the first-class model members
+          remain owned by the spawned implementation issues #306 and #308-#310.
       - kind: typed_ir_or_contract_coverage
         date: 2026-08-02
         tracking:
-          - "#307"
           - "#308"
         rationale: >-
           #305 (SEM-222) delivers the typed RL termination/truncation
-          closure-record contract above; the authored episode-structure and
-          interaction-budget SDL contracts and their generated schemas remain
-          owned by the DSL implementation issues #307 (DSL-120) and #308
-          (DSL-121).
+          closure-record contract and #307 (DSL-120) delivers the authored
+          episode-structure SDL contract above; the interaction-budget SDL
+          contract and its generated schemas remain owned by the DSL
+          implementation issue #308 (DSL-121).
       - kind: property_based_or_differential_tests
         date: 2026-08-02
         tracking:

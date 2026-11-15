@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import cast
 
 from raes import (
     MaterializedScenario,
@@ -14,6 +15,7 @@ from raes import (
 from raes.materialization_provenance import MaterializedResourceBinding
 from raes.scenario import InstantiatedScenario
 from raes_backend_protocols.manifest import BackendManifest, backend_manifest_v2_model
+from raes_contracts.account_credentials import value_free_account_placement_payload
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.materialization_attestation import (
     MaterializationArchiveRecord,
@@ -173,6 +175,21 @@ def _validate_current_scope(
         raise InvalidInputError("materialization inventory does not match the complete returned scope")
 
 
+def _without_runtime_evidence[E: (SnapshotEntry, PlannedResource)](entry: E) -> E:
+    """Leave out runtime-owned artifact evidence; the described SDL cannot contain it."""
+    if "artifact_satisfaction" not in entry.payload:
+        return entry
+    payload = {key: value for key, value in entry.payload.items() if key != "artifact_satisfaction"}
+    return cast(E, replace(entry, payload=payload))
+
+
+def _value_free_resource(resource: PlannedResource) -> PlannedResource:
+    """Describe account material value-free, as the runtime stores it."""
+    if resource.resource_type != "account-placement":
+        return resource
+    return cast(PlannedResource, replace(resource, payload=value_free_account_placement_payload(resource.payload)))
+
+
 def _resources_for_domain(resources: dict[str, PlannedResource], domain: RuntimeDomain) -> dict[str, PlannedResource]:
     return {address: resource for address, resource in resources.items() if resource.domain == domain}
 
@@ -241,6 +258,8 @@ def _materialized_entry_matches(
     resource: PlannedResource,
     requirements: tuple[CompiledRealizationRequirement, ...] = (),
 ) -> bool:
+    entry = _without_runtime_evidence(entry)
+    resource = _value_free_resource(resource)
     if resource.resource_type in {"node", "network"}:
         expected_spec, observed_spec = resource.payload.get("spec"), entry.payload.get("spec")
         if not isinstance(expected_spec, dict) or not isinstance(observed_spec, dict):

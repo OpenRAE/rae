@@ -1,4 +1,4 @@
-# Planner Graph Semantics
+# Planner graph semantics
 
 This directory holds the formal artifacts for dependency ordering and
 reconciliation semantics.
@@ -14,12 +14,12 @@ reconciliation semantics.
 - reconciliation action semantics over desired resources vs snapshot state
 - composition-ready identity invariants for future module/import expansion
 
-## Implementation Mapping
+## Implementation mapping
 
 - shared graph helpers: `implementations/python/packages/raes_processor/semantics/planner.py`
 - planner use sites:
   - `implementations/python/packages/raes_processor/planner/`
-  - `implementations/python/packages/raes_processor/manager.py`
+  - `implementations/python/packages/raes_runtime/manager.py`
 
 ## Tests
 

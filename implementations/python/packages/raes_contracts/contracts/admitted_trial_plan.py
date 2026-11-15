@@ -39,6 +39,7 @@ from pydantic_core import CoreSchema
 
 from .._canonical import canonical_json_digest
 from .._sealing import sealing_active
+from ..safe_state import SafeStates, validate_safe_states
 from ..trial_parallelism import TrialParallelismModel, parallelism_bounds
 from ..versions import ADMITTED_TRIAL_PLAN_SCHEMA_VERSION
 from .admitted_trial_plan_components import (
@@ -117,6 +118,7 @@ def _require_unique(field_name: str, values: list[str]) -> None:
 class AdmittedTrialEntryModel(ContractModel):
     """One immutable admitted trial entry at a unique logical coordinate."""
 
+    safe_states: SafeStates = ()
     plan_entry_id: NonEmptyString
     coordinate: TrialCoordinateModel
     run_id: NonEmptyString
@@ -138,6 +140,7 @@ class AdmittedTrialEntryModel(ContractModel):
 
     @model_validator(mode="after")
     def _validate_entry(self) -> AdmittedTrialEntryModel:
+        validate_safe_states(self.safe_states)
         if self.run_id == self.plan_entry_id:
             raise ValueError("entry run_id must be distinct from plan_entry_id")
         _require_unique(

@@ -663,7 +663,7 @@ workflows:
     assert status is not None
     assert status.state == OperationState.SUCCEEDED
     workflow_result = next(iter(snapshot.snapshot.orchestration_results.values()))
-    assert workflow_result["workflow_status"] == "running"
+    assert workflow_result["workflow_status"] == "succeeded"
     assert "run_id" in workflow_result
     assert snapshot.snapshot.orchestration_history
 
