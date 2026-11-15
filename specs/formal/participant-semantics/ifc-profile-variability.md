@@ -124,7 +124,7 @@ At apparatus admission and the relevant exact cut, establish in order:
    authority. Unknown identities, tokens, revisions, mappings or ambiguous
    interpretations are unsupported, regardless of schema validity.
 3. Resolve installed and effective realization for the required sources, explicit data/control paths, and memory/crossing scope.
-      Also resolve it for sinks, release operations,
+   Also resolve it for sinks, release operations,
    finite bounds and evidence. A declaration, configuration digest, method name
    or generic modular-control feature is insufficient.
 4. Apply CA-04 satisfaction to that coverage, guarantee, admissible loss and

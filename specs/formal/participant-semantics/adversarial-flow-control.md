@@ -63,8 +63,8 @@ governed state reuses:
 - experiment task, protocol, study, run, apparatus, evidence, measure, and
   traceability records.
 
-Every derived identity is fresh and binds the source identities, derivation
-kind, profile and revision, exact policy/state cut, authority, destination or
+Every derived identity is fresh and binds the source identities, derivation kind, and profile and revision.
+It also binds the exact policy/state cut, authority, destination or
 sink, and safe evidence refs. No release operation mutates a prior fact.
 
 ## Exact revision-1 flow algebra
@@ -80,8 +80,8 @@ I_phi = integrity-obligation tokens admitted by phi
 A confidentiality token is one revisioned policy clause, such as an
 owner-relative audience, destination, or sink restriction. An integrity token
 is one unresolved possible-influence obligation. The source-label resolver
-maps a possible writer or influence to the applicable integrity tokens; the
-immutable influence refs remain in provenance even if a later endorsement
+maps a possible writer or influence to the applicable integrity tokens.
+The immutable influence refs remain in provenance even if a later endorsement
 discharges an obligation. Tokens are stable typed refs, not raw values or open
 metadata keys.
 
@@ -116,13 +116,13 @@ ladder.
 
 The join is closed, associative, commutative, idempotent, and monotone in each
 argument. Its componentwise union makes it independent of traversal order.
-Adding a possible input cannot remove an obligation, and a successful decision
+Adding a possible input cannot remove an obligation.
+A successful decision
 for `l2` cannot imply success for a strictly more restrictive label unless the
 sink satisfies the added obligations.
 
-For sink policy `S` at the exact cut, let `SatC_phi(S)` and `SatI_phi(S)` be the
-closed sets of confidentiality and integrity obligations that its resolved
-audience, destination, sink class, and release authorities satisfy:
+Take sink policy `S` at the exact cut.
+Let `SatC_phi(S)` and `SatI_phi(S)` be the closed sets of confidentiality and integrity obligations that its resolved audience, destination, sink class, and release authorities satisfy:
 
 ```text
 ConfidentialityObligationsSatisfied_phi(l,S) iff Conf_phi(l) subset-of SatC_phi(S)
@@ -131,8 +131,8 @@ IntegrityObligationsSatisfied_phi(l,S)       iff Int_phi(l)  subset-of SatI_phi(
 
 The predicates are independent. A sink may satisfy one and fail the other.
 Authentication, signatures, hashes, markings, sensitivity, confidence, roles,
-and monitor scores may contribute evidence to a revisioned resolver, but none
-is a label coordinate or satisfies both predicates.
+and monitor scores may contribute evidence to a revisioned resolver.
+But none is a label coordinate or satisfies both predicates.
 
 ### Source defaults
 
@@ -153,8 +153,8 @@ Conf_phi(d,c) = union { Conf_phi(x,c) | x in Inputs(d) }
 Int_phi(d,c)  = union { Int_phi(x,c)  | x in Inputs(d) }
 ```
 
-`Inputs(d)` includes participant context, retained memory, shared/joint state,
-tool and destination arguments, error branches, and each participant, tool,
+`Inputs(d)` includes participant context, retained memory, shared/joint state, tool and destination arguments, and error branches.
+It also includes each participant, tool,
 service, transformation, monitor, or apparatus source that may influence the
 result. An opaque model, script, summary, copy, redaction, edit, parse, or
 transformation retains all inputs. A typed transformation may exclude an
@@ -163,8 +163,8 @@ evidence; omission from caller-supplied provenance is not such evidence.
 
 ### Cross-participant and cross-episode carriage
 
-API-409 handoff, API-423 crossing, controller change, participant change,
-shared state, joint state, or episode reset never clears labels, unresolved
+API-409 handoff, API-423 crossing, controller change, or participant change never clears labels or related state.
+Shared state, joint state, or episode reset also never clears labels, unresolved
 status, provenance, influence refs, or release history. A receiving
 participant inherits the effective upstream state through the governed
 crossing.
@@ -186,7 +186,7 @@ incumbent contracts.
 | proposal, participant output, action and destination/tool arguments | participant decision surfaces, action definitions, and `ParticipantActionAdmissionRequest` | join of context, memory, observations, participant process, transformation apparatus, and every argument source; structural/action admission remains a separate gate |
 | controller change and handoff | ACT-617 and API-409 control occurrences/context validation | unchanged flow label and history plus fresh controller/authority occurrence refs; handoff is not declassification, endorsement, or admission |
 | crossing, projection, redaction, transformation, disclosure | API-423 typed subjects, predecessor stages, exact policy/cut refs, and contextual validator | source/result identities, transformation relation, full input label join, immutable provenance/influence refs, and any coordinate-specific release ref |
-| participant/external output, delivery, stream, callback, persistent write, and error | API-423 disclosure/delivery/observation stages and participant-facing views | a fresh final-sink decision for every serialization/effect; disclosure, delivery, and observation remain distinct; each stream chunk is independently governed or derived from one governed complete value |
+| participant/external output, delivery, stream, callback, persistent write, and error | API-423 disclosure/delivery/observation stages and participant-facing views | a fresh final-sink decision for every serialization/effect. Disclosure, delivery, and observation remain distinct. Each stream chunk is independently governed or derived from one governed complete value |
 | snapshot, retry, replay, and cross-episode reuse | RUN-310/RUN-319 snapshot/history/idempotency/expected-head carriers | original profile/policy/cut, label, unresolved status, provenance/influence/release histories, new exact cut, and fresh sink decision |
 
 An open `taint`, `security_labels`, `context`, `metadata`, prompt, diagnostic,
@@ -416,8 +416,8 @@ noninterference result, or intentional-subversion evaluation.
 - API-407 declared and effective support is deny-first.
 - Expected failures use stable bounded diagnostics. Unexpected failures use
   the redacted error envelope.
-- Logs, diagnostics, audit, and evidence contain safe refs, digests,
-  classifications, counts, and bounded summaries, never raw confidential data,
+- Logs, diagnostics, audit, and evidence contain safe refs, digests, classifications, counts, and bounded summaries.
+  They never contain raw confidential data,
   prompts, credentials, private state, monitor internals, or hidden objectives.
 - Portable semantics add no required environment variable, CLI flag,
   subprocess, socket, daemon, sidecar, or host path.

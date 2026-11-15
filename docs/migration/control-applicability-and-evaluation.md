@@ -40,6 +40,7 @@ Selection/evaluation schemas currently have draft stability under ADR-061.
 Their process may permit recorded changes in place.
 That permission does not make old and new meanings interchangeable.
 Adoption must introduce an explicit interpretation discriminator or new contract lineage.
+
 At apparatus admission, negotiate exact schema content and protocol support.
 Stable breaking contracts need a new contract ID under ADR-061.
 The #1352 design delivery published no schema or protocol.
@@ -102,6 +103,7 @@ The published set includes selection/evaluation schemas and `ParticipantControlP
 It includes corpus examples, publication entries, and the conformance registry too.
 The v2 conformance entry reports `structural-context-required`.
 The operator must supply its resolver.
+
 That resolver must resolve admitted coverage and installation.
 It must resolve effective API-407 support and exact results.
 It must resolve incumbent crossing and IFC fact owners.
@@ -110,6 +112,7 @@ It must also resolve safe references and effect authority.
 A discharge slot must select the obligation's profile.
 Lifecycle effects need an explicit order.
 They must follow live-target operations that overlap them.
+
 A realized effect must match a retained full-payload claim.
 It also needs an operator-resolved earlier committed evaluation.
 That evaluation must authorize the exact phase, parent outcome, and effect predecessors.
@@ -153,6 +156,7 @@ The optional v2 `continuation` pins an immutable source evaluation.
 It also pins the source commit receipt and exact realized claims.
 A dependency cannot advance without separate trusted-context admission.
 A parent receipt cannot be promoted without that admission either.
+
 Fresh evaluation validation rejects a continuation when its source is missing.
 Historical records omit an absent continuation field and retain their canonical bytes.
 Negotiate the updated v2 schema content pin before consuming these records.
@@ -258,6 +262,7 @@ A legacy record may mark a parent eligible despite later denial.
 Keep it as evidence of that legacy decision and disclose the limitation.
 It is not a valid amended evaluation.
 Retaining it grants no authority for new dispatch.
+
 Withhold pending legacy work if its meaning is unavailable or unsafe.
 The owner must reconcile it explicitly.
 Rerunning a provider or manufacturing a revised record cannot repair that history.
@@ -266,15 +271,18 @@ The meaning or protocol cannot be replaced inside a live evaluation.
 Stop new admission first.
 Finish or explicitly reconcile pending claims through the existing operation lifecycle.
 Then admit a new apparatus binding at a new cut with supported consumers.
+
 Durability does not authorize resumption, retry, or a new trial.
 Indeterminate effects keep their state.
 Exact backend idempotency/readback and authored recovery policy must authorize their resolution.
+
 Changing binding, participant, or episode cannot reset a surviving causal root's consumed budget.
 It cannot turn an old key into a new effect.
 
 Provider-state migration needs explicit old/new scope/version mapping.
 It also needs authority.
 Renaming an implementation is insufficient.
+
 Cross-scope migration must keep isolation and atomicity.
 Otherwise, it must refuse.
 Append migration evidence.
@@ -301,6 +309,7 @@ RUN-320 owns slot/stage invocation.
 It owns scoped state and ordinary crossings/effect owners too.
 It owns atomic commit and final-invocation fences.
 It owns version-aware retained history too.
+
 Conformance readers must distinguish what is declared from what is installed.
 Documentation must make the same distinction.
 They must distinguish bounded contract evidence from realization too.
@@ -309,6 +318,7 @@ Publication records give contract identity, schema path, and stability.
 They hold no content hash or change summary.
 Use exact schemas from a pinned release or Git revision for required runtime content pins.
 Apply the owning protocol's digest rule to those artifacts.
+
 Git records schema changes.
 Use removed-schema tombstones when needed.
 Keep explicit contract routing and package resources under ADR-009/061.

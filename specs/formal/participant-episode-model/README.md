@@ -98,11 +98,11 @@ interchangeable (mirroring the ADR-067 behavior model):
    turn/interaction structure, terminal and truncation conditions, reset policy,
    and interaction-budget allowances).
 2. **Realization layer** - compilation to the existing `ParticipantEpisode*` contract addresses.
-      It also projects authored interaction budgets into the ADR-097 canonical `ParticipantResourceBudgetPolicy` demand.
-      It also includes backend
+   It also projects authored interaction budgets into the ADR-097 canonical `ParticipantResourceBudgetPolicy` demand.
+   It also includes backend
    capability/support claims.
 3. **Evidence layer** - the ADR-013 episode state/history stream and the ADR-097 budget state/event/pool records in `RuntimeSnapshot`.
-      It also includes terminal-reason events,
+   It also includes terminal-reason events,
    consumption events, exhaustion dispositions, and evidence refs.
 
 ## Episode domain

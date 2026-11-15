@@ -187,8 +187,8 @@ What is missing:
 - no deployed-backend proof that extends the bounded oracle or mixed-composition
   witnesses to interoperability, transfer, noninterference, or equivalence
 - no claim that inherited delegation, complete abstract models, or one-choice admission has shipped.
-    The same applies to independent observation demand and the #1212 policy correction.
-    Related design or research material alone does not show that they shipped
+  The same applies to independent observation demand and the #1212 policy correction.
+  Related design or research material alone does not show that they shipped
 
 The repository therefore remains at `partial` participant-semantics coverage:
 delivered runtime and semantic slices remain incomplete for the full family.
