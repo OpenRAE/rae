@@ -51,6 +51,7 @@ Use the ADR-095 reprojection procedure and its existing tests.
 Source: a backend-manifest v2 producer.
 Consumer: current manifest/profile admission.
 The claim is backward structural acceptance and profile-relative operational support.
+
 Missing participant-policy features stay unsupported.
 Positive API-407 features need an exact `feature_support` entry.
 They also need required contracts, evidence, a resolver, and profile admission.
@@ -78,9 +79,11 @@ Source: an API-408 HTTP client.
 Consumer: RUN-319 governed runtime projection.
 The path supports backward legacy behavior or governed operational enforcement.
 Without a resolver, the legacy projection stays available.
+
 With a resolver, the HTTP adapter passes the authenticated identity.
 Before lookup, it requires a candidate participant/audience binding.
 It obtains evidence from `resolve_participant_view_evidence()`.
+
 It commits the crossing before serialization.
 Headers and query values cannot author policy, audience, state-cut, or crossing evidence.
 

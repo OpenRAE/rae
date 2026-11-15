@@ -684,9 +684,8 @@ and evidence relationship.
 <!-- vale RAES.HeadingCase = NO -->
 ### I4 - Fail-Closed Action Applicability
 
-An action's preconditions can be unresolved or unsatisfied.
-Then the action must be rejected, withheld, or marked unknown according to a declared failure
-class. It must not silently execute under backend-local convention.
+If an action's preconditions cannot be resolved or are not satisfied, the action must be rejected, withheld, or marked unknown.
+A declared failure class selects that disposition. It must not silently execute under backend-local convention.
 
 <!-- vale RAES.HeadingCase = YES -->
 
@@ -747,9 +746,8 @@ explicit interpretation rule relates them.
 <!-- vale RAES.HeadingCase = NO -->
 ### I11 - Realization Disclosure
 
-A backend can be unable to realize a declared participant semantic guarantee.
-Then it must fail capability validation or disclose the weaker realization before results are
-used for comparison.
+If a backend cannot realize a declared participant semantic guarantee, it must fail capability validation or disclose the weaker realization.
+It must do so before results are used for comparison.
 
 <!-- vale RAES.HeadingCase = YES -->
 
@@ -776,9 +774,8 @@ unless an explicit view rule permits that disclosure.
 <!-- vale RAES.HeadingCase = NO -->
 ### I14 - External Mapping Loss Labels
 
-This rule applies to mappings to ATT&CK, OCSF, CACAO, STIX, OpenC2, Cyber DEM, CVE, Metasploit, benchmark milestone, or other external vocabularies.
-Each mapping must declare whether the
-mapping is exact, narrower, broader, approximate, lossy, or advisory.
+Mappings to ATT&CK, OCSF, CACAO, STIX, OpenC2, Cyber DEM, CVE, Metasploit, benchmark milestone, or other external vocabularies must declare a mapping kind.
+The kind is exact, narrower, broader, approximate, lossy, or advisory.
 
 <!-- vale RAES.HeadingCase = YES -->
 

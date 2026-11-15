@@ -11,6 +11,7 @@ The files supply no native HTTP runner, monitor, calendar, or backend scheduler.
 Both use a shared simulated clock and v1 ordered cadence.
 They select the opt-in action binding `participant-shared-time/v1`.
 The integer parameter `attempts` defaults to 1.
+
 Set it to 2 to add a second attempt at tick 10.
 The deadline example must reject that attempt before dispatch.
 User and automation select different implementations.
@@ -21,6 +22,7 @@ They do not add an actor kind.
 The file parser and processor can check declarations without executing HTTP requests.
 The execution offer must cover the exact action, targets, implementation, and limits.
 It must also cover clock capabilities and compiled temporal digests.
+
 An offer is a claim, not execution evidence.
 A serial implementation is sufficient if it supports the requested combination.
 Native lifecycle controls are not mandatory.

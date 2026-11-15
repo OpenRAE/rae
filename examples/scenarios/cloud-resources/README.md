@@ -1,7 +1,7 @@
 # Cloud resource descriptions
 
 Use [cloud-secret-cross-project.sdl.yaml](cloud-secret-cross-project.sdl.yaml) to inspect cross-project identity and secret access declarations.
-A workload in project A uses an identity to read a secret in project B.
+A workload in project A uses an identity to read a secret that project B owns.
 The example separates metadata access from version state and includes a denied value read.
 
 ## Required support

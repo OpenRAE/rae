@@ -58,9 +58,8 @@ from FIPA specification SC00037J, Standard status dated 2002-12-03.
 
 Symbols such as `inform`, `request`, `cfp`, and `not-understood` are external
 annotations only. A binding does not import FIPA mental-state semantics,
-feasibility preconditions, rational effects, message transport, content
-language, or interaction protocols, and it does not claim FIPA ACL
-conformance.
+feasibility preconditions, rational effects, message transport, content language, or interaction protocols.
+It does not claim FIPA ACL conformance.
 
 The required HTML locator contains dynamically rewritten email-protection
 markup, so it is not byte-stable. The source record retains that locator and

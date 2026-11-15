@@ -19,6 +19,7 @@ This task edits a local source file and invokes no backend.
 
 Replace `scenario.sdl.yaml` with your source path.
 Exit `1` retains diagnostics; it does not authorize a guessed replacement.
+
 For imports, use [file validation from Python](../public/guides/python.md).
 No native cleanup is needed. Preserve historical evidence under its original reader and identity.
 The dated inventory below remains evidence of its stated revisions only.

@@ -28,12 +28,11 @@ The [truth algebra](proposition-and-assertion-semantics.md) defines assertion ou
   from workflow and workflow-step refs
 - dependency ordering: `depends_on` is an objective-to-objective ordering
   relation, acyclic and fail-closed
-- dependency roles: success and `depends_on` edges both order and refresh;
-  window edges only refresh; actor and target references are normalized for
-  fail-closed validation but carry no runtime dependency role today (the
-  compiler does not propagate ordering or refresh through actor/target identity,
-  so the analyzer assigns them an empty role tuple — a future change that
-  compiles them into runtime addresses lifts the role constants in lockstep)
+- dependency roles: success and `depends_on` edges both order and refresh; window edges only refresh.
+  Actor and target references are normalized for fail-closed validation but carry no runtime dependency role today.
+  The compiler does not propagate ordering or refresh through actor/target identity.
+  Thus the analyzer assigns them an empty role tuple.
+  A future change that compiles them into runtime addresses lifts the role constants in lockstep
 - fail-closed behavior for invalid, dangling, ambiguous, or out-of-window
   references
 - composition-ready invariants for later namespace/module expansion

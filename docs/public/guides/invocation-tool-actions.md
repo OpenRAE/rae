@@ -7,6 +7,7 @@ Admit one child tool action, execute it once, and retain its checked outcome.
 Use RAES 11.0.2 with a host-owned runtime and the exact selected participant implementation.
 Keep the admitted episode, manifest, selection, scope, and trusted identity.
 Install the live-cut resolver, action implementation, and evidence owners.
+
 Choose the v1 or v2 composition below before constructing the request.
 Dispatch grants permission for a native effect. Use only an authorized target and verified cleanup procedure.
 This guide supplies an integration procedure; it does not install a tool runtime.

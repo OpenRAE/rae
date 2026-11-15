@@ -9,6 +9,7 @@ For current authoring, use [the SDL task route](../../public/sdl/index.md).
 `techvault.bindings.json` resolves four historical node/route associations against `examples/scenarios/techvault.sdl.yaml`.
 The paired `techvault.scheme.json` lists historical author labels.
 An author supplied that catalogue explicitly.
+
 It is **not** an authoritative CWE snapshot.
 The original source supplied no CWE revision.
 Confidence is unknown. Review is unreviewed.

@@ -55,9 +55,11 @@ Missing or conflicting evidence cannot establish a native claim.
 The [schema publication manifest](../../../contracts/schema-publication-manifest.json) indexes contract records.
 Each record gives `contract_id`, `schema_path`, and `stability`.
 It gives no schema-content hash or change summary.
+
 For required runtime content pins, use the exact schema from a pinned release or Git revision.
 Use the owning protocol's digest rule for that schema artifact.
 Git records schema history.
+
 A method name or matching revision string does not establish support.
 Neither does a manifest declaration alone.
 An older consumer must refuse unsupported lineage or content pins.

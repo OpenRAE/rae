@@ -94,6 +94,7 @@ endpoint or private scheduler state surface is introduced.
 Success is a validated v2 policy with independently admitted apparatus support.
 Existing v1 sources need no conversion.
 Missing support or an unresolved entropy source refuses admission; do not insert a seed into SDL.
+
 On refusal, retain v1 and correct the named requirement before new admission.
 File conversion creates no resources. Native execution and cleanup remain the backend owner's responsibility.
 Read [autonomous execution semantics](../../specs/formal/participant-semantics/autonomous-execution.md)
