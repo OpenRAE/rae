@@ -168,24 +168,25 @@ owner. Nonretained backend-selected descriptions are immediate manager results,
 not archival evidence or recoverable control-plane bodies.
 
 Task, prospective run-plan, archival run, and study carriers may declare
-`evidence_requirement_relations`. Each relation is a typed `refine` or `extend`
-link from an exact task/run/study authority and immutable scenario snapshot to a
-canonical `evidence_requirements.<qualified-symbol>` declaration and an exact
+`evidence_requirement_relations`. Each relation is a typed `refine` or `extend` link from an exact task/run/study authority and immutable scenario snapshot.
+The link goes to a canonical `evidence_requirements.<qualified-symbol>` declaration and an exact
 capture-specification requirement. The relationship preserves both obligations;
-it never serializes an overwritten effective requirement. Cross-artifact
-validation resolves only caller-supplied scenarios and capture specifications,
-and refinements fail closed unless every named dimension preserves the authored
+it never serializes an overwritten effective requirement.
+
+Cross-artifact
+validation resolves only caller-supplied scenarios and capture specifications.
+Refinements fail closed unless every named dimension preserves the authored
 value and at least one has a governed monotone strengthening. Extensions and
-refinements therefore add independent capture demands to admission. Omitted
-relations add no capture detail and leave permitted realization choices to the
-backend. The authoritative trial compiler combines task and prospective
-run-plan relations, validates them against the immutable expanded scenario,
-and admits their capture specifications together with each selected scenario's
+refinements therefore add independent capture demands to admission.
+
+Omitted relations add no capture detail and leave permitted realization choices to the backend. The authoritative trial compiler combines task and prospective run-plan relations and validates them against the immutable expanded scenario.
+It admits their capture specifications together with each selected scenario's
 base demands. Trial realization repeats that relation-aware compilation from
 the plan's digest-bound task, authoring input, scenario family, and capture
 specifications before processor planning. Authoritative archival run validation
-resolves task and run relations from the supplied evidence scenarios and
-capture specifications; authoritative study validation similarly resolves its
+resolves task and run relations from the supplied evidence scenarios and capture specifications.
+
+Authoritative study validation similarly resolves its
 own relations from explicit caller-supplied scenario and capture artifacts.
 The current comparison profile uses relation-aware task, run, and study owner
 projections so changing only an evidence obligation is a structural and
@@ -222,22 +223,28 @@ A fresh replacement MUST retain its separate run ID and predecessor lineage.
 An explicit `partial` record MUST include `execution_accounting`.
 Partial records MAY lack an end time, apparatus context, evidence artifacts, or traceability.
 They MUST NOT invent missing facts or claim a successful scientific outcome.
+
 Each attempt records its known execution, capture, and cleanup state.
 An absent cleanup receipt MUST NOT imply successful cleanup.
 Unknown or running execution MUST NOT establish an end time.
 A run's start MUST match its first attempt start.
 Complete accounting MUST include each attempt's cleanup receipt.
-Archival execution accounting MUST include trial provenance and agree on plan and entry identities, attempt membership, operation references, cleanup references, and terminal attempt.
+
+Archival execution accounting MUST include trial provenance.
+It MUST agree on plan and entry identities, attempt membership, operation references, cleanup references, and terminal attempt.
 Both record states MUST preserve admitted participant configurations, attempt limits, and exact cleanup receipt contents.
-Deterministic plans MAY have no stochastic controls; no control or parameter is invented to fill a field.
+Deterministic plans MAY have no stochastic controls.
+No control or parameter is invented to fill a field.
 Legacy records without typed accounting retain their non-empty parameter and control requirements.
 
 A missing or withheld result MAY have no evidence reference.
 A reported result MUST carry evidence references and pass the existing evidence checks.
 Partial records MUST NOT mint `ValidatedRunEvidence`.
+
 Evidence history above the scientific proof limit MUST remain retained through exact versioned references and protected source records.
 History retention MUST NOT enlarge the scientific proof limit.
 A valid measured result and a cleanup failure MAY coexist.
+
 Scientific outcome MUST come from the evaluation owner rather than execution status or measurement presence.
 Absent evaluation MUST remain `not-evaluated`.
 Successful execution MAY have a failed or inconclusive scientific outcome.
@@ -247,18 +254,25 @@ Study snapshots MAY pin an authored `definition_ref` with its original version a
 That reference MUST identify the same study.
 Inherited study evidence relations keep the authored definition as their scope authority.
 Authoritative consumers MUST resolve that exact definition and verify unchanged inherited policy and evidence relations.
+
 Generated membership MUST reference exact stored run versions.
 The study MUST preserve intended target counts and disclose failed evidence checks or shortfalls.
 Accounting MUST distinguish runs, attempts, retries, replacements, and unresolved work.
-Metrics MUST state their observed and missing populations; missing values MUST NOT become implicit zeroes.
+
+Metrics MUST state their observed and missing populations.
+Missing values MUST NOT become implicit zeroes.
 Metric eligibility and study membership MUST use the same replacement-aware population.
 Replaced parents MUST remain in complete accounting but MUST NOT enter the eligible analysis population.
 Enabled replacement policies MUST use replacement-aware validation even when replacement history is empty.
+
 All archive paths MUST respect retained artifact version ownership and reject changed bytes before publication.
 Each writer MUST retain its exact candidate before external archive I/O and resume those bytes after an uncertain write.
+
 Additional accounting versions MAY pin an original run through `derived_from_refs` when scientific facts and prior lineage match exactly.
 Scientific checks and study evaluation membership MUST remain bound to the original exact artifact version.
-Original scientific versions MUST be resolvable from either runtime archive path; additional accounting versions MUST NOT create ambiguous competing originals.
+
+Original scientific versions MUST be resolvable from either runtime archive path.
+Additional accounting versions MUST NOT create ambiguous competing originals.
 Accounting lineage MUST NOT transfer scientific proof to a new version or authorize changed scientific facts.
 Archive publication MUST retain referenced scientific versions and replacement history alongside additional accounting versions.
 
@@ -288,8 +302,8 @@ recomputation.
 ### Evidence source and augmentation provenance
 
 EXP-732 uses the existing run as the archival join point. Preserve the authored
-SDL carrier at a pinned revision as well as the instantiated scenario snapshot;
-retain the capture specification and its requirement ids alongside the raw
+SDL carrier at a pinned revision as well as the instantiated scenario snapshot.
+Retain the capture specification and its requirement ids alongside the raw
 evidence records. A reference to a mutable authoring file cannot reconstruct
 historical intent. Capture-specification bindings remain explicit; unresolved
 SDL capture references fail admission rather than implying a generated binding.
@@ -320,8 +334,8 @@ separate content references retain checksums and locators for byte validation.
 Consumers also run `observability_evidence_conformance_diagnostics()` for
 portable affected-carrier and purpose-dependent evidence requirements.
 
-These checks preserve and validate the declared provenance chain; they do not
-collect evidence, retain external artifacts, resolve authored SDL into capture
+These checks preserve and validate the declared provenance chain.
+They do not collect evidence, retain external artifacts, resolve authored SDL into capture
 specifications, or attest every additional source or augmentation side effect.
 Archival callers must retain the referenced immutable artifacts. Unsupported,
 partial, or withheld capture stays disclosed without claiming satisfaction.
@@ -355,7 +369,8 @@ carrier as a second public disclosure contract.
 
 Each capture requirement may carry the same scoped `observation_demand` rule.
 The capture requirement still owns its source, window, channel, sensitivity,
-redaction, integrity, retention, and loss disclosure; the demand rule controls
+redaction, integrity, retention, and loss disclosure.
+The demand rule controls
 whether and where that work is selected. A demand is never proof of capture.
 
 An experiment capture specification is the declarative EXP-707 statement of
@@ -457,9 +472,9 @@ produce. It binds:
   `intended_scenario_ref` to a scenario snapshot;
 - declared apparatus intent (the input-shaped apparatus constraints), distinct
   from the run-scoped observed apparatus context;
-- a run plan: optional stochastic controls, an episode control (turn order,
-  logical step count, termination), either a condition `allocation` plan or a
-  scalar `target_run_count`, a closed keyed selection-policy registry,
+- a run plan: optional stochastic controls and an episode control (turn order, logical step count, termination).
+  It has either a condition `allocation` plan or a scalar `target_run_count`, and a closed keyed selection-policy registry.
+  It also has
   red-variant selections keyed by variant id, optional run-scoped evidence
   requirement relations, and an optional clock intent;
 - study factors keyed by factor id;
@@ -469,10 +484,9 @@ An authoring input is not a run, study, or apparatus-context record. It carries
 no execution provenance, results, or observed evidence. It reuses the archival
 family's input-shaped value models (apparatus constraints, run allocation,
 stochastic controls, factors, clock context) by reference or embedding and does
-not re-declare task, scenario, or capture-specification meaning. The reused run-
-allocation model annotates its semantic invariant against `experiment-study-v1`
-even when embedded here; that annotation is descriptive only — the RAES model
-validator runs regardless of the embedding contract.
+not re-declare task, scenario, or capture-specification meaning. The reused run-allocation model annotates its semantic invariant against `experiment-study-v1` even when embedded here.
+That annotation is descriptive only.
+The RAES model validator runs regardless of the embedding contract.
 
 ## Invariants
 
@@ -480,48 +494,43 @@ validator runs regardless of the embedding contract.
 
 1. A task reference to scenario material MUST use `scenario` or
    `scenario-snapshot` as the reference kind.
-2. A run MUST reference exactly one task and one scenario snapshot. If the task
-   references a generic scenario rather than a snapshot, the run snapshot MUST
-   still use the same scenario identity. Generic scenario references are id-only;
+2. A run MUST reference exactly one task and one scenario snapshot. The task can reference a generic scenario rather than a snapshot.
+   In that case, the run snapshot MUST still use the same scenario identity. Generic scenario references are id-only;
    version, digest, or path binding requires `scenario-snapshot`.
    For composed SDL scenarios, the `scenario-snapshot` digest identifies the
    expanded canonical scenario after import resolution, namespace rewriting, and
-   full-scenario semantic validation. Module source paths, module ids/namespaces,
-   lock records, and fragment digests are preserved as evidence/audit metadata,
-   not as alternate runtime identities.
+   full-scenario semantic validation. Module source paths, module ids/namespaces, lock records, and fragment digests are preserved as evidence/audit metadata.
+   They are not alternate runtime identities.
 3. A run MUST carry apparatus context; apparatus context MUST NOT be represented
    only by free-form metadata or backend-private logs.
-4. A study MUST group typed artifact references; it MUST NOT redefine the task,
+4. A study MUST group typed artifact references.
+   It MUST NOT redefine the task,
    run, apparatus, result, or evidence payloads it references.
 5. SDL objectives MUST remain scenario-local objectives and MUST NOT be treated
    as EXP task records.
-6. Metric definitions, apparatus components, run result summaries, study
-   memberships, and study factors MUST use object keys as their stable local
-   identifiers when uniqueness is a contract invariant. Metric definition keys
+6. Some collections have uniqueness as a contract invariant.
+   These are metric definitions, apparatus components, run result summaries, study memberships, and study factors.
+   They MUST use object keys as their stable local identifiers. Metric definition keys
    MUST match their embedded `metric_id` values.
 7. Manifest-specific fields, including required task manifests, component
    manifests, and selected apparatus manifests, MUST use `manifest` as their
    reference kind.
 8. Processor and backend constraint fields MUST use processor- and
    backend-constrained references rather than generic artifact references.
-   Processor/backend identity references MUST NOT carry digest or path
-   qualifiers; digest-bound apparatus evidence MUST be expressed through
-   canonical processor/backend manifest references or evidence requirements
-   that can be validated against concrete payloads.
-9. Run task references and study task/run membership references MUST NOT carry
-   digest or path qualifiers unless a future validator binds those fields to
-   concrete task/run payload artifacts.
-10. Study membership roles MUST constrain the referenced artifact kind: task
-   roles reference tasks, run roles reference runs, result roles reference
-   results, evidence roles reference evidence, and analysis roles reference
-   analysis artifacts.
+   Processor/backend identity references MUST NOT carry digest or path qualifiers.
+   Digest-bound apparatus evidence MUST use canonical processor/backend manifest references.
+   It can also use evidence requirements that can be validated against concrete payloads.
+9. Run task references and study task/run membership references MUST NOT carry digest or path qualifiers.
+   A future validator can bind those fields to concrete task/run payload artifacts and remove this limit.
+10. Study membership roles MUST constrain the referenced artifact kind: task roles reference tasks, and run roles reference runs.
+    Result roles reference results, and evidence roles reference evidence.
+    Analysis roles reference analysis artifacts.
 11. Processor and backend identity constraints MUST resolve to required
     manifest references with matching identity ids and manifest schema
     versions. For processor/backend manifests, the manifest `ref_id` MUST match
-    the `subject_ref.ref_id`. Manifest references for apparatus identity MUST carry a
-    `subject_ref` that identifies the processor or backend identity and version
-    described by the manifest. Manifest references MUST NOT carry path
-    qualifiers; digest-qualified manifest references MUST identify a processor
+    the `subject_ref.ref_id`. Manifest references for apparatus identity MUST carry a `subject_ref`.
+    The `subject_ref` identifies the processor or backend identity and version described by the manifest. Manifest references MUST NOT carry path qualifiers.
+    Digest-qualified manifest references MUST identify a processor
     or backend subject and the supported processor/backend manifest schema
     version.
 12. Required task apparatus capabilities MUST resolve to capability references
@@ -533,15 +542,14 @@ validator runs regardless of the embedding contract.
 14. Capture specification `capture_requirements` keys MUST match embedded
     `requirement_id` values, and requirement `window_refs` MUST resolve to
     declared capture windows.
-15. Evidence records MUST cite a capture specification and requirement, carry
-    raw content, and MUST NOT include metric ids or derived values.
+15. Evidence records MUST cite a capture specification and requirement, and carry raw content.
+    They MUST NOT include metric ids or derived values.
 16. Derived measures MUST cite at least one evidence record and MUST NOT be
     treated as raw evidence.
 17. Backends that declare `capabilities.observation` MUST declare the published
     experiment evidence contracts that make the observation claim inspectable.
-18. `experiment-run-v1` is the canonical run provenance record. RAES MUST NOT
-    publish a parallel run-provenance root schema for the same archival run
-    facts unless a later ADR supersedes this boundary.
+18. `experiment-run-v1` is the canonical run provenance record. RAES MUST NOT publish a parallel run-provenance root schema for the same archival run facts.
+    Only a later ADR that supersedes this boundary can change this.
 19. Complete archival run traceability MUST link at least one capture specification
     and at least one evidence record. An explicit partial run MAY lack those facts.
     It MUST carry typed execution accounting and MUST NOT claim evidence satisfaction.
@@ -550,22 +558,19 @@ validator runs regardless of the embedding contract.
     value summary. Processor-realized disclosures MUST be attributed to a
     processor reference, and backend-realized disclosures MUST be attributed to
     a backend reference.
-21. `experiment-run-v1` is the trial record for the current model. RAES MUST
-    NOT publish a parallel trial root schema for the same task execution facts
-    unless a later ADR supersedes this boundary.
-22. Repeated executions of the same task MUST be represented by distinct run
-    records with distinct `run_id` values, a shared `task_ref`, and compatible
-    scenario snapshot identity. Operation ids, workflow ids, runtime snapshot
-    ids, participant episode ids, backend-native execution ids, tags, and
-    mutable run statuses MUST NOT stand in for repeated-run identity.
-23. Reproducibility and replay claims MUST use the run traceability chain from
-    run context to capture specs, evidence records, derived measures, and
-    claim/report refs. RAES MUST NOT publish parallel replay-run,
-    reproducibility-claim, replay-claim, or provenance-graph root schemas for
-    the same facts unless a later ADR supersedes this boundary.
-24. An experiment authoring input MUST reference its task with a `task`
-    reference and MUST NOT embed or re-declare task, scenario, or
-    capture-specification meaning; scenario intent uses `scenario` or
+21. `experiment-run-v1` is the trial record for the current model. RAES MUST NOT publish a parallel trial root schema for the same task execution facts.
+    Only a later ADR that supersedes this boundary can change this.
+22. Repeated executions of the same task MUST use distinct run records with distinct `run_id` values.
+    The records MUST have a shared `task_ref` and compatible
+    scenario snapshot identity. Operation ids, workflow ids, runtime snapshot ids, and participant episode ids MUST NOT stand in for repeated-run identity.
+    Backend-native execution ids, tags, and mutable run statuses MUST NOT stand in for it either.
+23. Reproducibility and replay claims MUST use the run traceability chain.
+    The chain goes from run context to capture specs, evidence records, derived measures, and
+    claim/report refs. RAES MUST NOT publish parallel replay-run, reproducibility-claim, replay-claim, or provenance-graph root schemas for the same facts.
+    Only a later ADR that supersedes this boundary can change this.
+24. An experiment authoring input MUST reference its task with a `task` reference.
+    It MUST NOT embed or re-declare task, scenario, or capture-specification meaning.
+    Scenario intent uses `scenario` or
     `scenario-snapshot` references and capture intent uses `capture-spec`
     references.
 25. An experiment authoring input run plan MUST declare exactly one run-count
@@ -583,10 +588,9 @@ validator runs regardless of the embedding contract.
     `experiment-apparatus-context-v1` record. Its declared apparatus intent uses
     the input-shaped apparatus constraints, not the run-scoped observed
     apparatus context.
-27. Selection-policy map keys MUST match their embedded `policy_id`. Every
-    policy MUST declare one of the closed purposes `controlled-factor`,
-    `nuisance-variation`, or `fixed-configuration` as admitted by its policy
-    kind, and its `output_bound` MUST be positive, finite, and no greater than
+27. Selection-policy map keys MUST match their embedded `policy_id`. Every policy MUST declare one of the closed purposes `controlled-factor`, `nuisance-variation`, or `fixed-configuration`.
+    Its policy kind MUST admit that purpose.
+    Its `output_bound` MUST be positive, finite, and no greater than
     the declared run count.
 28. Version 1 selection policy kinds are `fixed`, `enumerate`, `product`,
     `stratified`, and `sample`. Products MUST reference at least two declared
@@ -595,9 +599,9 @@ validator runs regardless of the embedding contract.
     to one declared factor level with the allocation's exact per-condition run
     count.
 29. Deterministic selection policies MUST NOT require a synthetic seed.
-    `sample` MUST use uniform sampling with replacement, declare a sample count
-    equal to the run allocation, and resolve exactly one executable sampling or
-    randomization control whose accepted profile supplies bounded-integer
+    `sample` MUST use uniform sampling with replacement and declare a sample count equal to the run allocation.
+    It MUST resolve exactly one executable sampling or randomization control.
+    That control's accepted profile supplies bounded-integer
     transform version 1. Weighted, without-replacement, permutation, and t-way
     policies fail closed until their exact accepted transform semantics exist.
 30. Policy point references and outcomes MUST be admitted against a trusted,
@@ -620,13 +624,13 @@ authority. No target is inferred from a parameter name.
 
 <!-- vale RAES.HeadingCase = YES -->
 
-Before materialization, reject more than 16 dimensions, 64 levels per
-dimension, 16 bindings per level, the declared `condition_bound` (at most
-10000), more than 10000 logical runs, or more than 10000 generated bindings.
+Before materialization, reject more than 16 dimensions, 64 levels per dimension, or 16 bindings per level.
+Also reject more than the declared `condition_bound` (at most 10000), 10000 logical runs, or 10000 generated bindings.
 Counts are strict integers. Empty, duplicate, unknown, conflicting, or
 operationally indistinguishable conditions fail atomically. Owner admission
 must also reject canonical/alias collisions and conditions that become
 indistinguishable after target resolution.
+
 Participant comparisons use complete effective values, including defaults,
 and exclude default/override origin. Every selected participant referenced
 anywhere in the design receives a complete configuration in each condition,
@@ -638,7 +642,9 @@ Cartesian product. A condition identity is `condition-` followed by the first
 48 lowercase hexadecimal characters of the JCS/SHA-256 digest of its
 factor-to-level map. A binding identity is `binding-` followed by the full
 JCS/SHA-256 hexadecimal digest of `[condition_id, factor_id, target.canonical_key()]`.
-Any identity collision fails the design. Emit the existing allocation and
+Any identity collision fails the design.
+
+Emit the existing allocation and
 binding-descriptor children, sort conditions and descriptors by identity,
 select `explicit-required`, and preserve generation intent. Supplied children
 must equal the generated children; they cannot override them. Compact input
@@ -660,6 +666,7 @@ This profile adds typed scenario selections beside scalar bindings.
 The `factorial-bindings-v1` profile retains its existing meanings and bytes.
 The new profile replaces `level_bindings` with `level_effects`.
 Each declared factor level contains `bindings`, `selections`, or both.
+
 Bindings reuse the existing scalar template.
 Each level MUST contribute between one and sixteen combined effects.
 No factor, level, participant, node, model, prompt, or environment name has special meaning.
@@ -677,6 +684,7 @@ An SDL alternative MUST use a `member` outcome with its declared member id.
 A member id MUST NOT become a scalar string binding.
 The family retains the member's typed payload.
 Node presence with coupled runtime inventory therefore needs one member selection.
+
 The experiment does not copy node or inventory definitions.
 Scalar node configuration uses declared SDL parameters.
 Structural configuration uses only the reviewed slots in
@@ -689,6 +697,7 @@ Generated `required_selections` retain each selection template and add
 All source joins MUST match the enclosing assignment and declared factors.
 The selection id is `selection-` followed by the full JCS/SHA-256 hexadecimal digest of
 `[condition_id, factor_id, target.canonical_key()]`.
+
 The condition and scalar binding identity formulas remain unchanged.
 Selection-only conditions retain `explicit-required` without dummy descriptors or parameters.
 Supplied allocation and binding materializations MUST equal the generated result.
@@ -697,6 +706,7 @@ Serialization preserves both design intent and generated criteria.
 Factor effects and invariant fixed policies MUST cover every family point exactly once in every condition.
 Accompanying policies MUST have `kind: fixed`, `purpose: fixed-configuration`, and `output_bound: 1`.
 They MUST NOT carry `binding_descriptor_refs` or invented factor provenance.
+
 Other accompanying policy kinds fail closed.
 Duplicate point selections fail even when their values agree.
 This includes overlap between fixed policies, scalar scenario bindings, and typed selections.
@@ -705,6 +715,7 @@ Bindings also retain canonical target and alias collision checks.
 Owner admission MUST check the exact family, point, canonical target, owner, and outcome domain together.
 All choices apply against the unchanged composed family.
 Different points retain SDL's existing write agreement rules.
+
 Node absence conflicts with descendant writes.
 Coupled and separate inventory writes may agree on the same collection.
 Unequal writes fail.
@@ -716,6 +727,7 @@ The existing limits on dimensions, levels, conditions, and logical runs still ap
 Combined work across logical runs MUST NOT exceed 10000.
 Each scalar binding costs one work unit.
 Each selection costs one plus its subset or order member count.
+
 Fixed selections contribute the same cost in every logical run.
 The bound uses each factor's maximum level cost before Cartesian expansion.
 Expanded authoring serialization MUST NOT exceed 8 MiB.
@@ -732,6 +744,7 @@ Admitted selections embed the exact descriptor in `treatment`.
 Their point and outcome MUST agree with that descriptor.
 The plan records `profiles.treatment_profile: factorial-treatments-v1`.
 The descriptor's family id and digest MUST match the plan's pinned family.
+
 Its condition MUST match the entry coordinate.
 Conflicting source levels for one factor fail.
 Existing coordinate, entry, and archival run identity profiles retain their meanings.
@@ -741,6 +754,7 @@ Archival runs carry exact descriptors in `realized_selections`.
 Study matching requires every `required_selections` descriptor, including its complete source joins.
 Plan-aware matching requires the exact admitted descriptor set.
 Omission, substitution, and relabelling fail even when the selected member is equal.
+
 These records state realized claims, not independent proof of execution.
 Existing participant configuration preserves ACT-620 asset and content commitments.
 Existing secret-reference bindings retain opaque references without secret resolution.
@@ -764,71 +778,65 @@ sealed record, replay rules, and dispatch/receipt joins are specified in
 1. Experiment artifacts MUST have stable identifiers and schema versions.
 2. Evidence-bearing artifact references MUST include media type, URI, checksum,
    byte size, creation time, source, and sensitivity metadata.
-3. RFC 3339 date-times, including the standard's lower-case `t`/`z`
-   allowance and only known valid UTC leap-second instants, MUST be used for
-   experiment-core archival times.
+3. Experiment-core archival times MUST use RFC 3339 date-times.
+   This includes the standard's lower-case `t`/`z` allowance and only known valid UTC leap-second instants.
 4. Checksums and reference digests MUST identify their digest algorithm and use
    algorithm-appropriate hex digest lengths.
 5. Run evidence and result summaries MUST be linkable back to the run that
-   generated or recorded them. Run result `evidence_refs` are artifact-id links
-   within the same run and MUST NOT carry version, digest, or path qualifiers;
-   artifact `satisfies_refs` MAY carry evidence concept versions but MUST NOT
-   carry digest or path qualifiers because concrete checksum/URI metadata belongs
+   generated or recorded them. Run result `evidence_refs` are artifact-id links within the same run.
+   They MUST NOT carry version, digest, or path qualifiers.
+   Artifact `satisfies_refs` MAY carry evidence concept versions.
+   They MUST NOT carry digest or path qualifiers, because concrete checksum/URI metadata belongs
    on the artifact record.
 6. Invalidation MUST be explicit when a run is marked `invalidated`.
-7. Apparatus context MUST identify selected manifests, compatibility
-   declarations, configuration parameters, stochastic controls, clocks,
+7. Apparatus context MUST identify selected manifests, compatibility declarations, configuration parameters, and stochastic controls.
+   It MUST also identify clocks,
    measurement channels, observed setup evidence, and known limitations.
 8. Completed run intervals MUST not end before they start.
-9. Canonical apparatus processor and backend component manifests MUST appear in
-   the same record's selected manifests with matching reference identity,
-   digest metadata, and `subject_ref` values that match the component
-   identities. Manifest path qualifiers are not part of the v1 apparatus
+9. Canonical apparatus processor and backend component manifests MUST appear in the same record's selected manifests.
+   They MUST have matching reference identity and digest metadata.
+   Their `subject_ref` values MUST match the component identities. Manifest path qualifiers are not part of the v1 apparatus
    contract. Selected manifests MUST NOT contain multiple refs for the same
    subject identity and manifest schema version. Digest-qualified selected
    manifests MUST be the canonical processor/backend component manifests.
-   Compatibility declarations, component compatibility refs, and measurement
-   channel refs MUST NOT carry digest or path qualifiers unless a future
+   Compatibility declarations, component compatibility refs, and measurement channel refs MUST NOT carry digest or path qualifiers.
+   This limit applies until a future
    validator binds those fields to concrete profile, capability, or measurement
    payload artifacts.
-10. Study and benchmark records MUST carry research questions, run allocation,
-    validity notes, and an analysis plan with at least one metric, a primary
-    metric, and structured statistical, uncertainty, multiple-comparison, and
+10. Study and benchmark records MUST carry research questions, run allocation, validity notes, and an analysis plan.
+    The plan MUST have at least one metric and a primary metric.
+    It MUST also have structured statistical, uncertainty, multiple-comparison, and
     missing-data policies.
-11. RAES semantic validation MUST be able to resolve canonical processor and
-    backend manifest references to concrete manifest payloads with matching
-    identities, schema versions, optional digest evidence, and mutual
+11. RAES semantic validation MUST be able to resolve canonical processor and backend manifest references to concrete manifest payloads.
+    The payloads MUST have matching identities, schema versions, optional digest evidence, and mutual
     processor/backend compatibility declarations.
-12. Study analysis metrics MUST be grounded in the metric definitions of the
-    included task protocols and represented by result summaries, including
-    explicit missing/withheld statuses, in included evaluation runs before the
-    study can support comparison claims.
-13. Study run-allocation `compared_conditions` MUST have matching
-    `condition_assignments` that reference declared study factor levels and
-    auditable run-level criteria such as participant implementation,
-    processor, backend, apparatus context, manifest, capability, measurement
-    channel, task/scenario snapshot identity, or non-opaque parameter values.
+12. Study analysis metrics MUST be grounded in the metric definitions of the included task protocols.
+    Result summaries in included evaluation runs MUST represent them, including explicit missing/withheld statuses.
+    The study can support comparison claims only after these conditions hold.
+13. Study run-allocation `compared_conditions` MUST have matching `condition_assignments`.
+    These reference declared study factor levels and auditable run-level criteria.
+    Examples of criteria are participant implementation, processor, backend, apparatus context, manifest, and capability.
+    Other criteria are measurement channel, task/scenario snapshot identity, or non-opaque parameter values.
     Opaque catch-all references and `other` parameter kinds MUST NOT be used as
     condition-assignment evidence. Participant implementation condition
     references MUST resolve through run-level participant implementation
-    provenance, not only through an apparatus component identity. Condition-assignment
-    references MUST NOT carry digest or path qualifiers; digest/path evidence
-    binding belongs to task evidence requirements and canonical processor/backend
+    provenance, not only through an apparatus component identity. Condition-assignment references MUST NOT carry digest or path qualifiers.
+    Digest/path evidence binding belongs to task evidence requirements and canonical processor/backend
     manifest payload validation. Compared conditions MUST NOT share identical factor-level
     combinations or identical run-level criteria.
-14. Included evaluation-run membership groupings MUST reference declared
-    `compared_conditions`, a single run MUST NOT be counted in multiple
-    conditions, each included run MUST satisfy exactly one condition
-    assignment, invalidated/superseded/not-evaluated runs MUST NOT satisfy a
-    declared run allocation, and every condition MUST meet the predeclared
-    `target_runs_per_condition` when run allocation is declared and before the
-    study can support analysis or comparison claims. Analysis-bearing
+14. Included evaluation-run membership groupings MUST reference declared `compared_conditions`.
+    A single run MUST NOT be counted in multiple conditions.
+    Each included run MUST satisfy exactly one condition assignment.
+    Invalidated/superseded/not-evaluated runs MUST NOT satisfy a declared run allocation.
+    When run allocation is declared, every condition MUST meet the predeclared `target_runs_per_condition`.
+    This MUST hold before the study can support analysis or comparison claims. Analysis-bearing
     collection/cohort records without
     `run_allocation` MUST still exclude invalidated, superseded, and
     not-evaluated evaluation runs.
 15. Run-allocation `blocking_factors` MUST reference declared blocking,
     stratification, apparatus, or control study factors with declared levels.
-16. Capture windows MUST declare a start, end, or trigger, and an interval with
+16. Capture windows MUST declare a start, end, or trigger.
+    An interval with
     both start and end MUST NOT end before it starts.
 17. Evidence records MUST use valid RFC 3339 `captured_at` timestamps.
     Redacted or withheld evidence records MUST disclose the loss in
@@ -842,14 +850,11 @@ sealed record, replay rules, and dispatch/receipt joins are specified in
 20. Realized-form disclosure evidence refs MUST be present in the containing
     run's traceability evidence-record refs.
 21. Replication, cohort, benchmark, comparison, and controlled-variation claims
-    MUST be grounded in study membership and run allocation. Study membership
-    and allocation MUST NOT be replaced by tags, folders, evaluator detail,
-    runtime metadata, audit details, diagnostics, backend-private logs, or
-    free-form notes.
-22. Replay and reproducibility claim strength MUST be limited by the preserved
-    run context, evidence availability, redaction, loss disclosure, observer
-    effects, unsupported runtime surfaces, external artifact availability, and
-    apparatus limitations recorded in the relevant run, evidence, derived
+    MUST be grounded in study membership and run allocation. Tags, folders, evaluator detail, and runtime metadata MUST NOT replace study membership and allocation.
+    Audit details, diagnostics, backend-private logs, and free-form notes MUST NOT replace them either.
+22. The preserved run context, evidence availability, redaction, and loss disclosure MUST limit replay and reproducibility claim strength.
+    Observer effects, unsupported runtime surfaces, external artifact availability, and apparatus limitations MUST also limit it.
+    These limits are recorded in the relevant run, evidence, derived
     measure, disclosure, and study artifacts.
 
 ### Closed-world contracts
@@ -861,17 +866,17 @@ sealed record, replay rules, and dispatch/receipt joins are specified in
 4. Valid fixtures MUST validate against their published schemas. Invalid
    fixtures for schema-expressible invariants MUST fail both the published JSON
    Schema and the Python contract model.
-5. Consumers that use only generic JSON Schema can validate portable structure
-   but MUST NOT claim full RAES experiment-core conformance until the RAES
+5. Consumers that use only generic JSON Schema can validate portable structure.
+   They MUST NOT claim full RAES experiment-core conformance until the RAES
    semantic validators named by `x-raes-invariants` have been applied.
 
 ### Security and redaction
 
 1. Experiment-core records are not a credential, traceback, process-argument, or
-   raw backend-inspect transport. v1 automated enforcement covers the
-   closed-world field set, checked-in artifact secret scanning, artifact
-   sensitivity metadata, and redaction-aware parameter validators; it does not
-   claim complete semantic detection of every sensitive string a producer could
+   raw backend-inspect transport.
+   Version 1 automated enforcement covers the closed-world field set and checked-in artifact secret scanning.
+   It also covers artifact sensitivity metadata and redaction-aware parameter validators.
+   It does not claim complete semantic detection of every sensitive string a producer could
    place in free-text fields.
 2. Artifact references that point at restricted or redacted evidence MUST carry
    sensitivity metadata.
@@ -937,8 +942,9 @@ or independently verified evidence; observed bases require evidence references.
 Known values reuse the literal, record, keyed-collection and sequence structures
 from recursive realization constraints. Their role is descriptive: every node
 has an explicit backend or observation origin, neutral presence/cardinality,
-and undefined author closure. No authoring or deployment defaults fill missing
-fields. Known null, false, zero, empty text and empty collections remain values.
+and undefined author closure. No authoring or deployment defaults fill missing fields.
+
+Known null, false, zero, empty text and empty collections remain values.
 Not observed, known absent, withheld, contradictory and not applicable are
 separate states without values. Keyed members MUST agree with their semantic
 identity fields. Ordered sequences retain order and duplicates.
@@ -985,10 +991,10 @@ provenance IDs resolve through the same boundary. A fact or coverage override
 replaces the default provenance for that claim; the default participates in
 verification only where a retained claim inherits it.
 
-A protection callback MUST preserve the typed description carrier. The protected
-value is admitted and projected again before reporting or retention. Complete
-coverage MUST match the requested scope, field/collection kind and coverage
-profile, respect exclusions, and cover all requested facts with a compatible
+A protection callback MUST preserve the typed description carrier. The protected value is admitted and projected again before reporting or retention.
+
+Complete coverage MUST match the requested scope, field/collection kind and coverage profile.
+It MUST respect exclusions, and cover all requested facts with a compatible
 window and basis. A required exhaustive description without this coverage fails;
 an optional one emits no successful description. Partial descriptions remain
 available for selected demand. A narrow report MUST NOT retain a complete claim
