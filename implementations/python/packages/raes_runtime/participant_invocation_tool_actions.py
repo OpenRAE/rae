@@ -112,7 +112,7 @@ class HostedActionRegistry:
 class InvocationToolActionConfiguration:
     """Admitted composition limits and the manifest offers that bound tool actions."""
 
-    max_tool_actions: int
+    max_tool_actions: int | None
     max_concurrent_tool_actions: int
     execution_offers: tuple[ParticipantExecutionBinding, ...]
     ledger: InvocationToolActionLedger
@@ -384,7 +384,11 @@ class ParticipantInvocationToolActions:
         self, request: ParticipantToolActionRequest
     ) -> tuple[_ToolEntry | None, ParticipantToolActionRefusal | None]:
         refusal, binding = self._admission_refusal(request)
-        if refusal is None and len(self._entries) >= self._configuration.max_tool_actions:
+        if (
+            refusal is None
+            and self._configuration.max_tool_actions is not None
+            and len(self._entries) >= self._configuration.max_tool_actions
+        ):
             refusal = ParticipantToolActionRefusal.ADMISSION_LIMIT_EXHAUSTED
         if refusal is None:
             refusal = self._effect_authority_refusal()

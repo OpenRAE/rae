@@ -67,6 +67,20 @@ def test_mixed_treatments_materialize_typed_source_criteria_and_roundtrip() -> N
     assert ExperimentSpecModel.model_validate_json(spec.model_dump_json()) == spec
 
 
+def test_factorial_exclusion_omits_one_exact_combination() -> None:
+    payload = _typed_payload()
+    payload["factorial_design"]["condition_bound"] = 3
+    payload["factorial_design"]["excluded_combinations"] = [{"agent": "cold", "path": "a"}]
+    spec = ExperimentSpecModel.model_validate(payload)
+    assignments = spec.run_plan.allocation.condition_assignments.values()
+    assert len(spec.run_plan.allocation.compared_conditions) == 3
+    assert {tuple(sorted(item.factor_levels.items())) for item in assignments} == {
+        (("agent", "cold"), ("path", "b")),
+        (("agent", "warm"), ("path", "a")),
+        (("agent", "warm"), ("path", "b")),
+    }
+
+
 def test_selection_only_design_needs_no_dummy_binding_and_accepts_fixed_configuration() -> None:
     payload = _typed_payload()
     payload["factors"].pop("agent")
@@ -312,7 +326,7 @@ def test_invalid_treatment_designs_fail_atomically(change) -> None:
     elif change == "unknown-level":
         design["level_effects"]["path"]["unknown"] = effects
     else:
-        design["target_runs_per_condition"] = 2000
+        design["target_runs_per_condition"] = 999_999
     with pytest.raises(ValidationError):
         ExperimentSpecModel.model_validate(payload)
 
@@ -321,6 +335,7 @@ def test_expanded_byte_budget_is_checked_before_building_conditions(monkeypatch)
     import raes_contracts.contracts.experiment_factorial as materialization
 
     payload = _typed_payload()
+    monkeypatch.setattr(materialization, "MAX_EXPANDED_TREATMENT_BYTES", 8 * 1024 * 1024)
     for effects in payload["factorial_design"]["level_effects"]["agent"].values():
         effects["bindings"][0].update(value_type="string", value={"kind": "literal", "value": "x" * 3_000_000})
 

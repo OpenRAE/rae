@@ -13,21 +13,24 @@ Limit = Annotated[int, Field(strict=True, ge=1)]
 
 
 class ParticipantInvocationToolActionCapabilitiesModel(ContractModel):
-    """Exact composition version and finite per-invocation limits."""
+    """Exact composition version and explicitly selected invocation limits."""
 
     model_config = ConfigDict(revalidate_instances="always")
 
     semantic_versions: list[
         Literal["participant-invocation-tool-actions/v1", "participant-invocation-tool-actions/v2"]
     ] = Field(min_length=1, json_schema_extra={"uniqueItems": True})
-    max_tool_actions_per_invocation: Limit
+    max_tool_actions_per_invocation: Limit | None = None
     max_concurrent_tool_actions_per_invocation: Limit
 
     @model_validator(mode="after")
     def _bounded(self) -> ParticipantInvocationToolActionCapabilitiesModel:
         if len(set(self.semantic_versions)) != len(self.semantic_versions):
             raise ValueError("semantic_versions must contain unique values")
-        if self.max_concurrent_tool_actions_per_invocation > self.max_tool_actions_per_invocation:
+        if (
+            self.max_tool_actions_per_invocation is not None
+            and self.max_concurrent_tool_actions_per_invocation > self.max_tool_actions_per_invocation
+        ):
             raise ValueError("max_concurrent_tool_actions_per_invocation cannot exceed max_tool_actions_per_invocation")
         return self
 

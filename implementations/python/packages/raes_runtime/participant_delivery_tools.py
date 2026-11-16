@@ -235,7 +235,11 @@ class ParticipantDeliveryInvocationTools:
         if prior is not None:
             return self._prior_decision(prior, request, evidence)
         binding, reason = tool_binding(self, request)
-        if reason is None and len(self._entries) >= self._limits.max_tool_actions_per_invocation:
+        if (
+            reason is None
+            and self._limits.max_tool_actions_per_invocation is not None
+            and len(self._entries) >= self._limits.max_tool_actions_per_invocation
+        ):
             reason = _R.ADMISSION_LIMIT_EXHAUSTED
         if reason is None and self.has_unresolved_effects:
             reason = _R.UNRESOLVED_EFFECTS
