@@ -18,6 +18,7 @@ type transportValue struct {
 type transportProjection struct {
 	limits value.Limits
 	bytes  int
+	tree   bool
 }
 
 // CheckTransport bounds native generated records before serialization. It
@@ -33,6 +34,18 @@ func CheckTransport(document any, limits ingress.Limits) error {
 	if root.Kind() != reflect.Struct || root.Type().PkgPath() != reflect.TypeFor[binding.RuntimeSnapshotV1]().PkgPath() || strings.HasPrefix(root.Type().Name(), "Field[") || limits.MaxBytes < 1 || limits.MaxDepth < 0 {
 		return invalid()
 	}
+	return checkTransportRoot(root, limits, false)
+}
+
+// CheckTransportTree bounds composite JSON values and generated record leaves
+// before serialization. Foreign carriers cannot supply projection methods.
+func CheckTransportTree(document any, limits ingress.Limits) error {
+	if limits.MaxBytes < 1 || limits.MaxDepth < 0 {
+		return invalid()
+	}
+	return checkTransportRoot(reflect.ValueOf(document), limits, true)
+}
+func checkTransportRoot(root reflect.Value, limits ingress.Limits, tree bool) error {
 	work := value.Plan()
 	work.MaxDepth = 1024
 	if limits.MaxDepth > 0 {
@@ -41,7 +54,7 @@ func CheckTransport(document any, limits ingress.Limits) error {
 	work.MaxScalarBytes = min(8<<20, limits.MaxBytes)
 	work.MaxTotalScalarBytes = min(64<<20, limits.MaxBytes)
 	work.MaxDocumentScalarBytes = 0
-	projection := transportProjection{limits: work, bytes: limits.MaxBytes}
+	projection := transportProjection{limits: work, bytes: limits.MaxBytes, tree: tree}
 	return value.ValidateProjected(transportValue{root, true}, work, projection.project)
 }
 
@@ -110,10 +123,21 @@ func (p *transportProjection) project(input any) (any, error) {
 	if unwrapped.Type() == reflect.TypeFor[json.RawMessage]() {
 		return p.raw(item)
 	}
+	if p.tree {
+		packagePath := unwrapped.Type().PkgPath()
+		if packagePath != "" && packagePath != reflect.TypeFor[binding.RuntimeSnapshotV1]().PkgPath() && unwrapped.Type() != reflect.TypeFor[json.Number]() {
+			return nil, value.ErrInput
+		}
+	}
 	return p.typed(item)
 }
 
 func (p *transportProjection) typed(item transportValue) (any, error) {
+	kind := item.value.Kind()
+	if p.tree && item.value.Type().PkgPath() == "" && (kind >= reflect.Int && kind <= reflect.Uint64 || kind == reflect.Float32 || kind == reflect.Float64) {
+		return p.nativeNumber(item)
+	}
+
 	switch item.value.Kind() {
 	case reflect.Struct:
 		return p.record(item)
@@ -326,4 +350,18 @@ func (counter *rawTransportCounter) step(raw []byte, index int) int {
 	}
 	counter.size++
 	return index
+}
+
+func (p *transportProjection) nativeNumber(item transportValue) (any, error) {
+	raw, err := json.Marshal(item.value.Interface())
+	if err == nil {
+		err = value.Validate(json.Number(raw), p.limits)
+	}
+	if err != nil {
+		return nil, err
+	}
+	if err = p.chargeBytes(item.charge, len(raw)); err != nil {
+		return nil, err
+	}
+	return json.Number(raw), nil
 }

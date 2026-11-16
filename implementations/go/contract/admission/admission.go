@@ -5,6 +5,7 @@ package admission
 
 import (
 	"maps"
+	"sync"
 
 	"github.com/OpenRAE/rae/implementations/go/base/fault"
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
@@ -26,6 +27,8 @@ type Validator struct {
 	informationProfile any
 	definitions        map[string]func(any) error
 }
+
+var packagedAdmission = sync.OnceValues(New) //nolint:gochecknoglobals // The packaged schemas and rule owners are immutable; no caller data is cached.
 
 type definition struct {
 	check                       func(validation.Invocation) error

@@ -1,0 +1,1648 @@
+{
+  "cases": [
+    {
+      "name": "defaults-aliases",
+      "request": {
+        "manifest": {
+          "capabilities": {
+            "exposure_policy_kinds": [
+              "task-statement",
+              "observation-stream"
+            ],
+            "supported_decision_surface_modes": [
+              "autonomous",
+              "policy-directed"
+            ],
+            "supported_participant_contracts": [
+              "participant-episode-state-envelope-v1",
+              "participant-episode-history-event-stream-v1",
+              "participant-behavior-history-event-stream-v1",
+              "participant-decision-surface-v2"
+            ],
+            "tool_affordance_expectations": [
+              "shell",
+              "http-api"
+            ]
+          },
+          "compatibility": {
+            "backends": [
+              "stub"
+            ],
+            "participant_runtimes": [
+              "stub-participant-runtime"
+            ],
+            "processors": [
+              "raes-reference-processor"
+            ]
+          },
+          "concept_bindings": [
+            {
+              "family": "apparatus-declarations",
+              "scope": "implementation_kind"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_participant_contracts"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_decision_surface_modes"
+            },
+            {
+              "family": "tools-and-artifacts",
+              "scope": "capabilities.tool_affordance_expectations"
+            },
+            {
+              "family": "provenance-and-evidence",
+              "scope": "capabilities.exposure_policy_kinds"
+            }
+          ],
+          "configuration_registry": {
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "reference-participant-configuration",
+              "validator_version": "1"
+            },
+            "targets": {
+              "credentials.api": {
+                "aliases": [],
+                "allowed_value_kinds": [
+                  "secret-reference"
+                ],
+                "sensitivity": "secret",
+                "target_id": "credentials.api",
+                "value_type": "string"
+              },
+              "policy.mode": {
+                "aliases": [
+                  "mode"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "sensitivity": "internal",
+                "target_id": "policy.mode",
+                "value_type": "string"
+              },
+              "policy.temperature": {
+                "aliases": [
+                  "temperature"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "default": {
+                  "kind": "literal",
+                  "value": 0.25
+                },
+                "sensitivity": "public",
+                "target_id": "policy.temperature",
+                "value_type": "number"
+              }
+            }
+          },
+          "constraints": {
+            "max_parallel_episodes": "1"
+          },
+          "identity": {
+            "name": "reference-red-agent",
+            "version": "1.0.0"
+          },
+          "implementation_kind": "agent",
+          "schema_version": "participant-implementation-manifest/v1",
+          "supported_contract_versions": [
+            "participant-implementation-manifest-v1",
+            "participant-implementation-provenance-v1",
+            "experiment-binding-descriptors-v1",
+            "participant-configuration-result-v1",
+            "participant-episode-state-envelope-v1",
+            "participant-episode-history-event-stream-v1",
+            "participant-behavior-history-event-stream-v1",
+            "participant-decision-surface-v2"
+          ]
+        },
+        "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "manifest_ref": "manifests/reference-red-agent.json",
+        "overrides": [
+          {
+            "target_id": "mode",
+            "value": {
+              "kind": "literal",
+              "value": "deterministic"
+            }
+          },
+          {
+            "target_id": "credentials.api",
+            "value": {
+              "kind": "secret-reference",
+              "reference_id": "operator-secret.reference-red-api"
+            }
+          }
+        ],
+        "participant_address": "participants.red"
+      },
+      "result": {
+        "configuration": {
+          "implementation_identity": {
+            "name": "reference-red-agent",
+            "version": "1.0.0"
+          },
+          "manifest_version": "participant-implementation-manifest/v1",
+          "owner": {
+            "contract_id": "participant-configuration-result-v1",
+            "contract_version": "1",
+            "validator_id": "reference-participant-configuration",
+            "validator_version": "1"
+          },
+          "values": [
+            {
+              "origin": "override",
+              "target_id": "credentials.api",
+              "value": {
+                "kind": "secret-reference",
+                "reference_id": "operator-secret.reference-red-api"
+              },
+              "value_type": "string"
+            },
+            {
+              "origin": "override",
+              "target_id": "policy.mode",
+              "value": {
+                "kind": "literal",
+                "value": "deterministic"
+              },
+              "value_type": "string"
+            },
+            {
+              "origin": "default",
+              "target_id": "policy.temperature",
+              "value": {
+                "kind": "literal",
+                "value": 0.25
+              },
+              "value_type": "number"
+            }
+          ]
+        },
+        "configuration_digest": "sha256:3949cb272258d96d9506f23077c89cbb77d4dad2d0218fed74145bbd5a971655",
+        "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "manifest_ref": "manifests/reference-red-agent.json",
+        "participant_address": "participants.red",
+        "schema_version": "participant-configuration-result/v1"
+      }
+    },
+    {
+      "name": "canonical-mode",
+      "request": {
+        "manifest": {
+          "capabilities": {
+            "exposure_policy_kinds": [
+              "task-statement",
+              "observation-stream"
+            ],
+            "supported_decision_surface_modes": [
+              "autonomous",
+              "policy-directed"
+            ],
+            "supported_participant_contracts": [
+              "participant-episode-state-envelope-v1",
+              "participant-episode-history-event-stream-v1",
+              "participant-behavior-history-event-stream-v1",
+              "participant-decision-surface-v2"
+            ],
+            "tool_affordance_expectations": [
+              "shell",
+              "http-api"
+            ]
+          },
+          "compatibility": {
+            "backends": [
+              "stub"
+            ],
+            "participant_runtimes": [
+              "stub-participant-runtime"
+            ],
+            "processors": [
+              "raes-reference-processor"
+            ]
+          },
+          "concept_bindings": [
+            {
+              "family": "apparatus-declarations",
+              "scope": "implementation_kind"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_participant_contracts"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_decision_surface_modes"
+            },
+            {
+              "family": "tools-and-artifacts",
+              "scope": "capabilities.tool_affordance_expectations"
+            },
+            {
+              "family": "provenance-and-evidence",
+              "scope": "capabilities.exposure_policy_kinds"
+            }
+          ],
+          "configuration_registry": {
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "reference-participant-configuration",
+              "validator_version": "1"
+            },
+            "targets": {
+              "credentials.api": {
+                "aliases": [],
+                "allowed_value_kinds": [
+                  "secret-reference"
+                ],
+                "sensitivity": "secret",
+                "target_id": "credentials.api",
+                "value_type": "string"
+              },
+              "policy.mode": {
+                "aliases": [
+                  "mode"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "sensitivity": "internal",
+                "target_id": "policy.mode",
+                "value_type": "string"
+              },
+              "policy.temperature": {
+                "aliases": [
+                  "temperature"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "default": {
+                  "kind": "literal",
+                  "value": 0.25
+                },
+                "sensitivity": "public",
+                "target_id": "policy.temperature",
+                "value_type": "number"
+              }
+            }
+          },
+          "constraints": {
+            "max_parallel_episodes": "1"
+          },
+          "identity": {
+            "name": "reference-red-agent",
+            "version": "1.0.0"
+          },
+          "implementation_kind": "agent",
+          "schema_version": "participant-implementation-manifest/v1",
+          "supported_contract_versions": [
+            "participant-implementation-manifest-v1",
+            "participant-implementation-provenance-v1",
+            "experiment-binding-descriptors-v1",
+            "participant-configuration-result-v1",
+            "participant-episode-state-envelope-v1",
+            "participant-episode-history-event-stream-v1",
+            "participant-behavior-history-event-stream-v1",
+            "participant-decision-surface-v2"
+          ]
+        },
+        "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "manifest_ref": "manifests/reference-red-agent.json",
+        "overrides": [
+          {
+            "target_id": "policy.mode",
+            "value": {
+              "kind": "literal",
+              "value": "deterministic"
+            }
+          },
+          {
+            "target_id": "credentials.api",
+            "value": {
+              "kind": "secret-reference",
+              "reference_id": "operator-secret.reference-red-api"
+            }
+          }
+        ],
+        "participant_address": "participants.red"
+      },
+      "result": {
+        "configuration": {
+          "implementation_identity": {
+            "name": "reference-red-agent",
+            "version": "1.0.0"
+          },
+          "manifest_version": "participant-implementation-manifest/v1",
+          "owner": {
+            "contract_id": "participant-configuration-result-v1",
+            "contract_version": "1",
+            "validator_id": "reference-participant-configuration",
+            "validator_version": "1"
+          },
+          "values": [
+            {
+              "origin": "override",
+              "target_id": "credentials.api",
+              "value": {
+                "kind": "secret-reference",
+                "reference_id": "operator-secret.reference-red-api"
+              },
+              "value_type": "string"
+            },
+            {
+              "origin": "override",
+              "target_id": "policy.mode",
+              "value": {
+                "kind": "literal",
+                "value": "deterministic"
+              },
+              "value_type": "string"
+            },
+            {
+              "origin": "default",
+              "target_id": "policy.temperature",
+              "value": {
+                "kind": "literal",
+                "value": 0.25
+              },
+              "value_type": "number"
+            }
+          ]
+        },
+        "configuration_digest": "sha256:3949cb272258d96d9506f23077c89cbb77d4dad2d0218fed74145bbd5a971655",
+        "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "manifest_ref": "manifests/reference-red-agent.json",
+        "participant_address": "participants.red",
+        "schema_version": "participant-configuration-result/v1"
+      }
+    },
+    {
+      "name": "reverse-overrides",
+      "request": {
+        "manifest": {
+          "capabilities": {
+            "exposure_policy_kinds": [
+              "task-statement",
+              "observation-stream"
+            ],
+            "supported_decision_surface_modes": [
+              "autonomous",
+              "policy-directed"
+            ],
+            "supported_participant_contracts": [
+              "participant-episode-state-envelope-v1",
+              "participant-episode-history-event-stream-v1",
+              "participant-behavior-history-event-stream-v1",
+              "participant-decision-surface-v2"
+            ],
+            "tool_affordance_expectations": [
+              "shell",
+              "http-api"
+            ]
+          },
+          "compatibility": {
+            "backends": [
+              "stub"
+            ],
+            "participant_runtimes": [
+              "stub-participant-runtime"
+            ],
+            "processors": [
+              "raes-reference-processor"
+            ]
+          },
+          "concept_bindings": [
+            {
+              "family": "apparatus-declarations",
+              "scope": "implementation_kind"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_participant_contracts"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_decision_surface_modes"
+            },
+            {
+              "family": "tools-and-artifacts",
+              "scope": "capabilities.tool_affordance_expectations"
+            },
+            {
+              "family": "provenance-and-evidence",
+              "scope": "capabilities.exposure_policy_kinds"
+            }
+          ],
+          "configuration_registry": {
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "reference-participant-configuration",
+              "validator_version": "1"
+            },
+            "targets": {
+              "credentials.api": {
+                "aliases": [],
+                "allowed_value_kinds": [
+                  "secret-reference"
+                ],
+                "sensitivity": "secret",
+                "target_id": "credentials.api",
+                "value_type": "string"
+              },
+              "policy.mode": {
+                "aliases": [
+                  "mode"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "sensitivity": "internal",
+                "target_id": "policy.mode",
+                "value_type": "string"
+              },
+              "policy.temperature": {
+                "aliases": [
+                  "temperature"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "default": {
+                  "kind": "literal",
+                  "value": 0.25
+                },
+                "sensitivity": "public",
+                "target_id": "policy.temperature",
+                "value_type": "number"
+              }
+            }
+          },
+          "constraints": {
+            "max_parallel_episodes": "1"
+          },
+          "identity": {
+            "name": "reference-red-agent",
+            "version": "1.0.0"
+          },
+          "implementation_kind": "agent",
+          "schema_version": "participant-implementation-manifest/v1",
+          "supported_contract_versions": [
+            "participant-implementation-manifest-v1",
+            "participant-implementation-provenance-v1",
+            "experiment-binding-descriptors-v1",
+            "participant-configuration-result-v1",
+            "participant-episode-state-envelope-v1",
+            "participant-episode-history-event-stream-v1",
+            "participant-behavior-history-event-stream-v1",
+            "participant-decision-surface-v2"
+          ]
+        },
+        "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "manifest_ref": "manifests/reference-red-agent.json",
+        "overrides": [
+          {
+            "target_id": "credentials.api",
+            "value": {
+              "kind": "secret-reference",
+              "reference_id": "operator-secret.reference-red-api"
+            }
+          },
+          {
+            "target_id": "mode",
+            "value": {
+              "kind": "literal",
+              "value": "deterministic"
+            }
+          }
+        ],
+        "participant_address": "participants.red"
+      },
+      "result": {
+        "configuration": {
+          "implementation_identity": {
+            "name": "reference-red-agent",
+            "version": "1.0.0"
+          },
+          "manifest_version": "participant-implementation-manifest/v1",
+          "owner": {
+            "contract_id": "participant-configuration-result-v1",
+            "contract_version": "1",
+            "validator_id": "reference-participant-configuration",
+            "validator_version": "1"
+          },
+          "values": [
+            {
+              "origin": "override",
+              "target_id": "credentials.api",
+              "value": {
+                "kind": "secret-reference",
+                "reference_id": "operator-secret.reference-red-api"
+              },
+              "value_type": "string"
+            },
+            {
+              "origin": "override",
+              "target_id": "policy.mode",
+              "value": {
+                "kind": "literal",
+                "value": "deterministic"
+              },
+              "value_type": "string"
+            },
+            {
+              "origin": "default",
+              "target_id": "policy.temperature",
+              "value": {
+                "kind": "literal",
+                "value": 0.25
+              },
+              "value_type": "number"
+            }
+          ]
+        },
+        "configuration_digest": "sha256:3949cb272258d96d9506f23077c89cbb77d4dad2d0218fed74145bbd5a971655",
+        "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "manifest_ref": "manifests/reference-red-agent.json",
+        "participant_address": "participants.red",
+        "schema_version": "participant-configuration-result/v1"
+      }
+    },
+    {
+      "name": "duplicate-alias",
+      "request": {
+        "manifest": {
+          "capabilities": {
+            "exposure_policy_kinds": [
+              "task-statement",
+              "observation-stream"
+            ],
+            "supported_decision_surface_modes": [
+              "autonomous",
+              "policy-directed"
+            ],
+            "supported_participant_contracts": [
+              "participant-episode-state-envelope-v1",
+              "participant-episode-history-event-stream-v1",
+              "participant-behavior-history-event-stream-v1",
+              "participant-decision-surface-v2"
+            ],
+            "tool_affordance_expectations": [
+              "shell",
+              "http-api"
+            ]
+          },
+          "compatibility": {
+            "backends": [
+              "stub"
+            ],
+            "participant_runtimes": [
+              "stub-participant-runtime"
+            ],
+            "processors": [
+              "raes-reference-processor"
+            ]
+          },
+          "concept_bindings": [
+            {
+              "family": "apparatus-declarations",
+              "scope": "implementation_kind"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_participant_contracts"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_decision_surface_modes"
+            },
+            {
+              "family": "tools-and-artifacts",
+              "scope": "capabilities.tool_affordance_expectations"
+            },
+            {
+              "family": "provenance-and-evidence",
+              "scope": "capabilities.exposure_policy_kinds"
+            }
+          ],
+          "configuration_registry": {
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "reference-participant-configuration",
+              "validator_version": "1"
+            },
+            "targets": {
+              "credentials.api": {
+                "aliases": [],
+                "allowed_value_kinds": [
+                  "secret-reference"
+                ],
+                "sensitivity": "secret",
+                "target_id": "credentials.api",
+                "value_type": "string"
+              },
+              "policy.mode": {
+                "aliases": [
+                  "mode"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "sensitivity": "internal",
+                "target_id": "policy.mode",
+                "value_type": "string"
+              },
+              "policy.temperature": {
+                "aliases": [
+                  "temperature"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "default": {
+                  "kind": "literal",
+                  "value": 0.25
+                },
+                "sensitivity": "public",
+                "target_id": "policy.temperature",
+                "value_type": "number"
+              }
+            }
+          },
+          "constraints": {
+            "max_parallel_episodes": "1"
+          },
+          "identity": {
+            "name": "reference-red-agent",
+            "version": "1.0.0"
+          },
+          "implementation_kind": "agent",
+          "schema_version": "participant-implementation-manifest/v1",
+          "supported_contract_versions": [
+            "participant-implementation-manifest-v1",
+            "participant-implementation-provenance-v1",
+            "experiment-binding-descriptors-v1",
+            "participant-configuration-result-v1",
+            "participant-episode-state-envelope-v1",
+            "participant-episode-history-event-stream-v1",
+            "participant-behavior-history-event-stream-v1",
+            "participant-decision-surface-v2"
+          ]
+        },
+        "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "manifest_ref": "manifests/reference-red-agent.json",
+        "overrides": [
+          {
+            "target_id": "mode",
+            "value": {
+              "kind": "literal",
+              "value": "deterministic"
+            }
+          },
+          {
+            "target_id": "credentials.api",
+            "value": {
+              "kind": "secret-reference",
+              "reference_id": "operator-secret.reference-red-api"
+            }
+          },
+          {
+            "target_id": "policy.mode",
+            "value": {
+              "kind": "literal",
+              "value": "deterministic"
+            }
+          }
+        ],
+        "participant_address": "participants.red"
+      },
+      "result": null
+    },
+    {
+      "name": "missing-mode",
+      "request": {
+        "manifest": {
+          "capabilities": {
+            "exposure_policy_kinds": [
+              "task-statement",
+              "observation-stream"
+            ],
+            "supported_decision_surface_modes": [
+              "autonomous",
+              "policy-directed"
+            ],
+            "supported_participant_contracts": [
+              "participant-episode-state-envelope-v1",
+              "participant-episode-history-event-stream-v1",
+              "participant-behavior-history-event-stream-v1",
+              "participant-decision-surface-v2"
+            ],
+            "tool_affordance_expectations": [
+              "shell",
+              "http-api"
+            ]
+          },
+          "compatibility": {
+            "backends": [
+              "stub"
+            ],
+            "participant_runtimes": [
+              "stub-participant-runtime"
+            ],
+            "processors": [
+              "raes-reference-processor"
+            ]
+          },
+          "concept_bindings": [
+            {
+              "family": "apparatus-declarations",
+              "scope": "implementation_kind"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_participant_contracts"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_decision_surface_modes"
+            },
+            {
+              "family": "tools-and-artifacts",
+              "scope": "capabilities.tool_affordance_expectations"
+            },
+            {
+              "family": "provenance-and-evidence",
+              "scope": "capabilities.exposure_policy_kinds"
+            }
+          ],
+          "configuration_registry": {
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "reference-participant-configuration",
+              "validator_version": "1"
+            },
+            "targets": {
+              "credentials.api": {
+                "aliases": [],
+                "allowed_value_kinds": [
+                  "secret-reference"
+                ],
+                "sensitivity": "secret",
+                "target_id": "credentials.api",
+                "value_type": "string"
+              },
+              "policy.mode": {
+                "aliases": [
+                  "mode"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "sensitivity": "internal",
+                "target_id": "policy.mode",
+                "value_type": "string"
+              },
+              "policy.temperature": {
+                "aliases": [
+                  "temperature"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "default": {
+                  "kind": "literal",
+                  "value": 0.25
+                },
+                "sensitivity": "public",
+                "target_id": "policy.temperature",
+                "value_type": "number"
+              }
+            }
+          },
+          "constraints": {
+            "max_parallel_episodes": "1"
+          },
+          "identity": {
+            "name": "reference-red-agent",
+            "version": "1.0.0"
+          },
+          "implementation_kind": "agent",
+          "schema_version": "participant-implementation-manifest/v1",
+          "supported_contract_versions": [
+            "participant-implementation-manifest-v1",
+            "participant-implementation-provenance-v1",
+            "experiment-binding-descriptors-v1",
+            "participant-configuration-result-v1",
+            "participant-episode-state-envelope-v1",
+            "participant-episode-history-event-stream-v1",
+            "participant-behavior-history-event-stream-v1",
+            "participant-decision-surface-v2"
+          ]
+        },
+        "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "manifest_ref": "manifests/reference-red-agent.json",
+        "overrides": [
+          {
+            "target_id": "credentials.api",
+            "value": {
+              "kind": "secret-reference",
+              "reference_id": "operator-secret.reference-red-api"
+            }
+          }
+        ],
+        "participant_address": "participants.red"
+      },
+      "result": null
+    },
+    {
+      "name": "missing-secret",
+      "request": {
+        "manifest": {
+          "capabilities": {
+            "exposure_policy_kinds": [
+              "task-statement",
+              "observation-stream"
+            ],
+            "supported_decision_surface_modes": [
+              "autonomous",
+              "policy-directed"
+            ],
+            "supported_participant_contracts": [
+              "participant-episode-state-envelope-v1",
+              "participant-episode-history-event-stream-v1",
+              "participant-behavior-history-event-stream-v1",
+              "participant-decision-surface-v2"
+            ],
+            "tool_affordance_expectations": [
+              "shell",
+              "http-api"
+            ]
+          },
+          "compatibility": {
+            "backends": [
+              "stub"
+            ],
+            "participant_runtimes": [
+              "stub-participant-runtime"
+            ],
+            "processors": [
+              "raes-reference-processor"
+            ]
+          },
+          "concept_bindings": [
+            {
+              "family": "apparatus-declarations",
+              "scope": "implementation_kind"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_participant_contracts"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_decision_surface_modes"
+            },
+            {
+              "family": "tools-and-artifacts",
+              "scope": "capabilities.tool_affordance_expectations"
+            },
+            {
+              "family": "provenance-and-evidence",
+              "scope": "capabilities.exposure_policy_kinds"
+            }
+          ],
+          "configuration_registry": {
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "reference-participant-configuration",
+              "validator_version": "1"
+            },
+            "targets": {
+              "credentials.api": {
+                "aliases": [],
+                "allowed_value_kinds": [
+                  "secret-reference"
+                ],
+                "sensitivity": "secret",
+                "target_id": "credentials.api",
+                "value_type": "string"
+              },
+              "policy.mode": {
+                "aliases": [
+                  "mode"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "sensitivity": "internal",
+                "target_id": "policy.mode",
+                "value_type": "string"
+              },
+              "policy.temperature": {
+                "aliases": [
+                  "temperature"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "default": {
+                  "kind": "literal",
+                  "value": 0.25
+                },
+                "sensitivity": "public",
+                "target_id": "policy.temperature",
+                "value_type": "number"
+              }
+            }
+          },
+          "constraints": {
+            "max_parallel_episodes": "1"
+          },
+          "identity": {
+            "name": "reference-red-agent",
+            "version": "1.0.0"
+          },
+          "implementation_kind": "agent",
+          "schema_version": "participant-implementation-manifest/v1",
+          "supported_contract_versions": [
+            "participant-implementation-manifest-v1",
+            "participant-implementation-provenance-v1",
+            "experiment-binding-descriptors-v1",
+            "participant-configuration-result-v1",
+            "participant-episode-state-envelope-v1",
+            "participant-episode-history-event-stream-v1",
+            "participant-behavior-history-event-stream-v1",
+            "participant-decision-surface-v2"
+          ]
+        },
+        "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "manifest_ref": "manifests/reference-red-agent.json",
+        "overrides": [
+          {
+            "target_id": "mode",
+            "value": {
+              "kind": "literal",
+              "value": "deterministic"
+            }
+          }
+        ],
+        "participant_address": "participants.red"
+      },
+      "result": null
+    },
+    {
+      "name": "secret-literal",
+      "request": {
+        "manifest": {
+          "capabilities": {
+            "exposure_policy_kinds": [
+              "task-statement",
+              "observation-stream"
+            ],
+            "supported_decision_surface_modes": [
+              "autonomous",
+              "policy-directed"
+            ],
+            "supported_participant_contracts": [
+              "participant-episode-state-envelope-v1",
+              "participant-episode-history-event-stream-v1",
+              "participant-behavior-history-event-stream-v1",
+              "participant-decision-surface-v2"
+            ],
+            "tool_affordance_expectations": [
+              "shell",
+              "http-api"
+            ]
+          },
+          "compatibility": {
+            "backends": [
+              "stub"
+            ],
+            "participant_runtimes": [
+              "stub-participant-runtime"
+            ],
+            "processors": [
+              "raes-reference-processor"
+            ]
+          },
+          "concept_bindings": [
+            {
+              "family": "apparatus-declarations",
+              "scope": "implementation_kind"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_participant_contracts"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_decision_surface_modes"
+            },
+            {
+              "family": "tools-and-artifacts",
+              "scope": "capabilities.tool_affordance_expectations"
+            },
+            {
+              "family": "provenance-and-evidence",
+              "scope": "capabilities.exposure_policy_kinds"
+            }
+          ],
+          "configuration_registry": {
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "reference-participant-configuration",
+              "validator_version": "1"
+            },
+            "targets": {
+              "credentials.api": {
+                "aliases": [],
+                "allowed_value_kinds": [
+                  "secret-reference"
+                ],
+                "sensitivity": "secret",
+                "target_id": "credentials.api",
+                "value_type": "string"
+              },
+              "policy.mode": {
+                "aliases": [
+                  "mode"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "sensitivity": "internal",
+                "target_id": "policy.mode",
+                "value_type": "string"
+              },
+              "policy.temperature": {
+                "aliases": [
+                  "temperature"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "default": {
+                  "kind": "literal",
+                  "value": 0.25
+                },
+                "sensitivity": "public",
+                "target_id": "policy.temperature",
+                "value_type": "number"
+              }
+            }
+          },
+          "constraints": {
+            "max_parallel_episodes": "1"
+          },
+          "identity": {
+            "name": "reference-red-agent",
+            "version": "1.0.0"
+          },
+          "implementation_kind": "agent",
+          "schema_version": "participant-implementation-manifest/v1",
+          "supported_contract_versions": [
+            "participant-implementation-manifest-v1",
+            "participant-implementation-provenance-v1",
+            "experiment-binding-descriptors-v1",
+            "participant-configuration-result-v1",
+            "participant-episode-state-envelope-v1",
+            "participant-episode-history-event-stream-v1",
+            "participant-behavior-history-event-stream-v1",
+            "participant-decision-surface-v2"
+          ]
+        },
+        "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "manifest_ref": "manifests/reference-red-agent.json",
+        "overrides": [
+          {
+            "target_id": "mode",
+            "value": {
+              "kind": "literal",
+              "value": "deterministic"
+            }
+          },
+          {
+            "target_id": "credentials.api",
+            "value": {
+              "kind": "literal",
+              "value": "private-marker"
+            }
+          }
+        ],
+        "participant_address": "participants.red"
+      },
+      "result": null
+    },
+    {
+      "name": "wrong-scalar",
+      "request": {
+        "manifest": {
+          "capabilities": {
+            "exposure_policy_kinds": [
+              "task-statement",
+              "observation-stream"
+            ],
+            "supported_decision_surface_modes": [
+              "autonomous",
+              "policy-directed"
+            ],
+            "supported_participant_contracts": [
+              "participant-episode-state-envelope-v1",
+              "participant-episode-history-event-stream-v1",
+              "participant-behavior-history-event-stream-v1",
+              "participant-decision-surface-v2"
+            ],
+            "tool_affordance_expectations": [
+              "shell",
+              "http-api"
+            ]
+          },
+          "compatibility": {
+            "backends": [
+              "stub"
+            ],
+            "participant_runtimes": [
+              "stub-participant-runtime"
+            ],
+            "processors": [
+              "raes-reference-processor"
+            ]
+          },
+          "concept_bindings": [
+            {
+              "family": "apparatus-declarations",
+              "scope": "implementation_kind"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_participant_contracts"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_decision_surface_modes"
+            },
+            {
+              "family": "tools-and-artifacts",
+              "scope": "capabilities.tool_affordance_expectations"
+            },
+            {
+              "family": "provenance-and-evidence",
+              "scope": "capabilities.exposure_policy_kinds"
+            }
+          ],
+          "configuration_registry": {
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "reference-participant-configuration",
+              "validator_version": "1"
+            },
+            "targets": {
+              "credentials.api": {
+                "aliases": [],
+                "allowed_value_kinds": [
+                  "secret-reference"
+                ],
+                "sensitivity": "secret",
+                "target_id": "credentials.api",
+                "value_type": "string"
+              },
+              "policy.mode": {
+                "aliases": [
+                  "mode"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "sensitivity": "internal",
+                "target_id": "policy.mode",
+                "value_type": "string"
+              },
+              "policy.temperature": {
+                "aliases": [
+                  "temperature"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "default": {
+                  "kind": "literal",
+                  "value": 0.25
+                },
+                "sensitivity": "public",
+                "target_id": "policy.temperature",
+                "value_type": "number"
+              }
+            }
+          },
+          "constraints": {
+            "max_parallel_episodes": "1"
+          },
+          "identity": {
+            "name": "reference-red-agent",
+            "version": "1.0.0"
+          },
+          "implementation_kind": "agent",
+          "schema_version": "participant-implementation-manifest/v1",
+          "supported_contract_versions": [
+            "participant-implementation-manifest-v1",
+            "participant-implementation-provenance-v1",
+            "experiment-binding-descriptors-v1",
+            "participant-configuration-result-v1",
+            "participant-episode-state-envelope-v1",
+            "participant-episode-history-event-stream-v1",
+            "participant-behavior-history-event-stream-v1",
+            "participant-decision-surface-v2"
+          ]
+        },
+        "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "manifest_ref": "manifests/reference-red-agent.json",
+        "overrides": [
+          {
+            "target_id": "mode",
+            "value": {
+              "kind": "literal",
+              "value": true
+            }
+          },
+          {
+            "target_id": "credentials.api",
+            "value": {
+              "kind": "secret-reference",
+              "reference_id": "operator-secret.reference-red-api"
+            }
+          }
+        ],
+        "participant_address": "participants.red"
+      },
+      "result": null
+    },
+    {
+      "name": "unknown-target",
+      "request": {
+        "manifest": {
+          "capabilities": {
+            "exposure_policy_kinds": [
+              "task-statement",
+              "observation-stream"
+            ],
+            "supported_decision_surface_modes": [
+              "autonomous",
+              "policy-directed"
+            ],
+            "supported_participant_contracts": [
+              "participant-episode-state-envelope-v1",
+              "participant-episode-history-event-stream-v1",
+              "participant-behavior-history-event-stream-v1",
+              "participant-decision-surface-v2"
+            ],
+            "tool_affordance_expectations": [
+              "shell",
+              "http-api"
+            ]
+          },
+          "compatibility": {
+            "backends": [
+              "stub"
+            ],
+            "participant_runtimes": [
+              "stub-participant-runtime"
+            ],
+            "processors": [
+              "raes-reference-processor"
+            ]
+          },
+          "concept_bindings": [
+            {
+              "family": "apparatus-declarations",
+              "scope": "implementation_kind"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_participant_contracts"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_decision_surface_modes"
+            },
+            {
+              "family": "tools-and-artifacts",
+              "scope": "capabilities.tool_affordance_expectations"
+            },
+            {
+              "family": "provenance-and-evidence",
+              "scope": "capabilities.exposure_policy_kinds"
+            }
+          ],
+          "configuration_registry": {
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "reference-participant-configuration",
+              "validator_version": "1"
+            },
+            "targets": {
+              "credentials.api": {
+                "aliases": [],
+                "allowed_value_kinds": [
+                  "secret-reference"
+                ],
+                "sensitivity": "secret",
+                "target_id": "credentials.api",
+                "value_type": "string"
+              },
+              "policy.mode": {
+                "aliases": [
+                  "mode"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "sensitivity": "internal",
+                "target_id": "policy.mode",
+                "value_type": "string"
+              },
+              "policy.temperature": {
+                "aliases": [
+                  "temperature"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "default": {
+                  "kind": "literal",
+                  "value": 0.25
+                },
+                "sensitivity": "public",
+                "target_id": "policy.temperature",
+                "value_type": "number"
+              }
+            }
+          },
+          "constraints": {
+            "max_parallel_episodes": "1"
+          },
+          "identity": {
+            "name": "reference-red-agent",
+            "version": "1.0.0"
+          },
+          "implementation_kind": "agent",
+          "schema_version": "participant-implementation-manifest/v1",
+          "supported_contract_versions": [
+            "participant-implementation-manifest-v1",
+            "participant-implementation-provenance-v1",
+            "experiment-binding-descriptors-v1",
+            "participant-configuration-result-v1",
+            "participant-episode-state-envelope-v1",
+            "participant-episode-history-event-stream-v1",
+            "participant-behavior-history-event-stream-v1",
+            "participant-decision-surface-v2"
+          ]
+        },
+        "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "manifest_ref": "manifests/reference-red-agent.json",
+        "overrides": [
+          {
+            "target_id": "mode",
+            "value": {
+              "kind": "literal",
+              "value": "deterministic"
+            }
+          },
+          {
+            "target_id": "credentials.api",
+            "value": {
+              "kind": "secret-reference",
+              "reference_id": "operator-secret.reference-red-api"
+            }
+          },
+          {
+            "target_id": "unknown",
+            "value": {
+              "kind": "literal",
+              "value": 1
+            }
+          }
+        ],
+        "participant_address": "participants.red"
+      },
+      "result": null
+    },
+    {
+      "name": "explicit-number",
+      "request": {
+        "manifest": {
+          "capabilities": {
+            "exposure_policy_kinds": [
+              "task-statement",
+              "observation-stream"
+            ],
+            "supported_decision_surface_modes": [
+              "autonomous",
+              "policy-directed"
+            ],
+            "supported_participant_contracts": [
+              "participant-episode-state-envelope-v1",
+              "participant-episode-history-event-stream-v1",
+              "participant-behavior-history-event-stream-v1",
+              "participant-decision-surface-v2"
+            ],
+            "tool_affordance_expectations": [
+              "shell",
+              "http-api"
+            ]
+          },
+          "compatibility": {
+            "backends": [
+              "stub"
+            ],
+            "participant_runtimes": [
+              "stub-participant-runtime"
+            ],
+            "processors": [
+              "raes-reference-processor"
+            ]
+          },
+          "concept_bindings": [
+            {
+              "family": "apparatus-declarations",
+              "scope": "implementation_kind"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_participant_contracts"
+            },
+            {
+              "family": "apparatus-declarations",
+              "scope": "capabilities.supported_decision_surface_modes"
+            },
+            {
+              "family": "tools-and-artifacts",
+              "scope": "capabilities.tool_affordance_expectations"
+            },
+            {
+              "family": "provenance-and-evidence",
+              "scope": "capabilities.exposure_policy_kinds"
+            }
+          ],
+          "configuration_registry": {
+            "owner": {
+              "contract_id": "participant-configuration-result-v1",
+              "contract_version": "1",
+              "validator_id": "reference-participant-configuration",
+              "validator_version": "1"
+            },
+            "targets": {
+              "credentials.api": {
+                "aliases": [],
+                "allowed_value_kinds": [
+                  "secret-reference"
+                ],
+                "sensitivity": "secret",
+                "target_id": "credentials.api",
+                "value_type": "string"
+              },
+              "policy.mode": {
+                "aliases": [
+                  "mode"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "sensitivity": "internal",
+                "target_id": "policy.mode",
+                "value_type": "string"
+              },
+              "policy.temperature": {
+                "aliases": [
+                  "temperature"
+                ],
+                "allowed_value_kinds": [
+                  "literal"
+                ],
+                "default": {
+                  "kind": "literal",
+                  "value": 0.25
+                },
+                "sensitivity": "public",
+                "target_id": "policy.temperature",
+                "value_type": "number"
+              }
+            }
+          },
+          "constraints": {
+            "max_parallel_episodes": "1"
+          },
+          "identity": {
+            "name": "reference-red-agent",
+            "version": "1.0.0"
+          },
+          "implementation_kind": "agent",
+          "schema_version": "participant-implementation-manifest/v1",
+          "supported_contract_versions": [
+            "participant-implementation-manifest-v1",
+            "participant-implementation-provenance-v1",
+            "experiment-binding-descriptors-v1",
+            "participant-configuration-result-v1",
+            "participant-episode-state-envelope-v1",
+            "participant-episode-history-event-stream-v1",
+            "participant-behavior-history-event-stream-v1",
+            "participant-decision-surface-v2"
+          ]
+        },
+        "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "manifest_ref": "manifests/reference-red-agent.json",
+        "overrides": [
+          {
+            "target_id": "mode",
+            "value": {
+              "kind": "literal",
+              "value": "deterministic"
+            }
+          },
+          {
+            "target_id": "credentials.api",
+            "value": {
+              "kind": "secret-reference",
+              "reference_id": "operator-secret.reference-red-api"
+            }
+          },
+          {
+            "target_id": "temperature",
+            "value": {
+              "kind": "literal",
+              "value": 0.75
+            }
+          }
+        ],
+        "participant_address": "participants.red"
+      },
+      "result": {
+        "configuration": {
+          "implementation_identity": {
+            "name": "reference-red-agent",
+            "version": "1.0.0"
+          },
+          "manifest_version": "participant-implementation-manifest/v1",
+          "owner": {
+            "contract_id": "participant-configuration-result-v1",
+            "contract_version": "1",
+            "validator_id": "reference-participant-configuration",
+            "validator_version": "1"
+          },
+          "values": [
+            {
+              "origin": "override",
+              "target_id": "credentials.api",
+              "value": {
+                "kind": "secret-reference",
+                "reference_id": "operator-secret.reference-red-api"
+              },
+              "value_type": "string"
+            },
+            {
+              "origin": "override",
+              "target_id": "policy.mode",
+              "value": {
+                "kind": "literal",
+                "value": "deterministic"
+              },
+              "value_type": "string"
+            },
+            {
+              "origin": "override",
+              "target_id": "policy.temperature",
+              "value": {
+                "kind": "literal",
+                "value": 0.75
+              },
+              "value_type": "number"
+            }
+          ]
+        },
+        "configuration_digest": "sha256:1015dc44e5b6a55b958b828f5a386980303136a68a18a63a77468d7dae578226",
+        "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "manifest_ref": "manifests/reference-red-agent.json",
+        "participant_address": "participants.red",
+        "schema_version": "participant-configuration-result/v1"
+      }
+    }
+  ],
+  "sources": {
+    "contracts/fixtures/participant-implementation-manifest/participant-implementation-manifest-v1/valid/reference.json": "8d5bfcf9e62b497b85d9e6ccac0c014243475825fac49a488859ac96c34d2543",
+    "implementations/python/packages/raes_contracts/participant_configuration.py": "e503425aa1577c92a48df1ac48a4fdfdc307d10590a3d9fabe7c99c95bec4d93",
+    "implementations/python/tests/test_experiment_bindings.py": "56b1b56af5ac1fd5d5d9db700ac1fde35b6e084f2404ca62c4904eba5e6ac7b5"
+  }
+}

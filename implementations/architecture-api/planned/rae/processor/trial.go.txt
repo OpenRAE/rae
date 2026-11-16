@@ -1,6 +1,7 @@
 package trial
 
 import (
+	"context"
 	"github.com/OpenRAE/rae/implementations/go/contract/admission"
 	"github.com/OpenRAE/rae/implementations/go/contract/binding"
 	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
@@ -11,7 +12,10 @@ import (
 
 type ParticipantManifestKey = admission.ParticipantManifestKey
 type ApparatusManifestKey = admission.ApparatusManifestKey
-type ConfigurationValidatorKey struct{ ImplementationName, ImplementationVersion string }
+type ConfigurationValidatorKey struct{ ValidatorID, ValidatorVersion string }
+type ControlContextProvider interface {
+	ForScenario(ctx context.Context, family sdl.Scenario) (admission.ParticipantControlContextValidator, error)
+}
 type Limits struct {
 	MaxCoordinates, MaxDomainValuesPerPoint, MaxProductOutputs int
 	MaxBindingsPerEntry, MaxDrawsPerEntry, MaxDiagnostics      int
@@ -44,6 +48,7 @@ type Request struct {
 	MixedCompositionLimits                   MixedCompositionLimits
 	ParticipantConfigurationValidators       map[ConfigurationValidatorKey]admission.ParticipantConfigurationValidator
 	ParticipantControlContextValidators      map[ConfigurationValidatorKey]admission.ParticipantControlContextValidator
+	ParticipantControlContextFactories       map[ConfigurationValidatorKey]ControlContextProvider
 }
 type Result struct {
 	Plan        *binding.AdmittedTrialPlanV1
@@ -61,7 +66,26 @@ type BatchSchedule struct {
 }
 
 func Compile(request Request) (Result, error)
+func CompileContext(ctx context.Context, request Request) (Result, error)
+func Readmit(ctx context.Context, plan binding.AdmittedTrialPlanV1, request Request) (binding.AdmittedTrialPlanV1, error)
+type ReplacementRequest struct {
+	Compilation Request
+	OriginalPlan binding.AdmittedTrialPlanV1
+	RootEntryID string
+	ParentRun binding.ExperimentRunV1
+	CleanupReceipts []binding.TrialCleanupReceiptV1
+	PreviousAllocations []ReplacementResult
+}
+type ReplacementResult struct {
+	Plan *binding.AdmittedTrialPlanV1
+	SupersededRun, ParentRun *binding.ExperimentRunV1
+	CleanupReceipts []binding.TrialCleanupReceiptV1
+	Diagnostics []diagnostic.Diagnostic
+}
+func CompileReplacement(ctx context.Context, request ReplacementRequest) (ReplacementResult, error)
+func RealizationAssignmentKey(coordinate admission.Fragment) (string, error)
 func PlanBatchSchedule(plan binding.AdmittedTrialPlanV1) (BatchSchedule, error)
+func PlanBatchScheduleValue(plan validation.Value) (BatchSchedule, error)
 
 type RealizationInputs struct {
 	Plan                 binding.AdmittedTrialPlanV1
@@ -89,5 +113,5 @@ type RealizationOptions struct {
 	TargetName           *string
 }
 
-func InstantiateEntry(binding.AdmittedTrialPlanV1, string, sdl.Scenario) (sdl.InstantiatedScenario, error)
+func InstantiateEntry(plan binding.AdmittedTrialPlanV1, entryID string, family sdl.Scenario) (sdl.InstantiatedScenario, error)
 func RealizeEntry(inputs RealizationInputs, entryID string, options RealizationOptions) (Realization, error)

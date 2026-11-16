@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"slices"
 	"strings"
 )
 
@@ -84,6 +85,8 @@ func packageAPIFiles(repo fs.FS, pkg *Package, remaining *int) (map[string][]str
 			}
 			declarations = append(declarations, rows...)
 		}
+		// Fragment order is storage detail; repeated rows remain visible.
+		slices.Sort(declarations)
 		api[config] = declarations
 	}
 	return api, nil

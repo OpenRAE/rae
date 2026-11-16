@@ -150,12 +150,12 @@ func jsonIdentity(value any) (string, error) {
 }
 func (t *transformation) selectTarget() map[string]any {
 	address := t.request.Request.Target
-	declaration, present := t.source.semantic.index.declarations[address]
+	ownerDeclaration, present := t.source.semantic.index.declarations[address]
 	section, key, qualified := strings.Cut(address, ".")
-	if !present || !qualified || !slices.Contains(declarationSections(), section) || len(declaration.tokens) != 2 || declaration.tokens[0] != section || declaration.tokens[1] != key {
+	if !present || !qualified || !slices.Contains(declarationSections(), section) || len(ownerDeclaration.tokens) != 2 || ownerDeclaration.tokens[0] != section || ownerDeclaration.tokens[1] != key {
 		return t.refused("target-not-exact", "The request target is not an exact supported declaration address.", []string{termSourceAdmitted}, false, false)
 	}
-	t.section, t.old, t.declaration = section, key, declaration
+	t.section, t.old, t.declaration = section, key, ownerDeclaration
 	if t.request.Operation == removeProfile {
 		return nil
 	}
@@ -307,8 +307,8 @@ func (t *transformation) roundTrip(candidate *Document) bool {
 	if _, present := candidate.semantic.index.declarations[t.request.Request.Target]; present {
 		return false
 	}
-	declaration, present := candidate.semantic.index.declarations[t.after]
-	if !present || declaration.collisionKind != t.declaration.collisionKind || len(candidate.semantic.index.declarations) != len(t.source.semantic.index.declarations) {
+	ownerDeclaration, present := candidate.semantic.index.declarations[t.after]
+	if !present || ownerDeclaration.collisionKind != t.declaration.collisionKind || len(candidate.semantic.index.declarations) != len(t.source.semantic.index.declarations) {
 		return false
 	}
 	reversed, err := t.candidate(candidate, t.next, t.old, false)

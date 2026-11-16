@@ -70,6 +70,10 @@
         {
           "path": "golang.org/x/text/language",
           "reason": "The language-neutral casing tag used by the existing Unicode casing library."
+        },
+        {
+          "path": "go.yaml.in/yaml/v3",
+          "reason": "Existing admitted MIT YAML parser for bounded experiment documents; the experiment owner applies its distinct scalar, alias and key policies."
         }
       ]
     },
@@ -5368,13 +5372,16 @@
         "implementations/go/contract/diagnostic",
         "implementations/go/internal/base/pyrepr"
       ],
-      "design": "docs/decisions/issue-1787-processor-design.md",
+      "design": "docs/decisions/issue-1788-experiments-design.md",
       "api_files": {
         "linux-amd64": [
           "implementations/architecture-api/processor-design/contract-admission-1.json",
           "implementations/architecture-api/processor-design/contract-admission-2.json",
           "implementations/architecture-api/processor-design/contract-admission-3.json",
-          "implementations/architecture-api/processor-design/contract-admission-4.json"
+          "implementations/architecture-api/processor-design/contract-admission-4.json",
+          "implementations/architecture-api/experiment-design/admission-1.json",
+          "implementations/architecture-api/experiment-design/admission-trial-runtime-1.json",
+          "implementations/architecture-api/experiment-design/admission-runtime-1.json"
         ]
       }
     },
@@ -5618,10 +5625,10 @@
         "implementations/go/internal/sdl/source",
         "implementations/go/sdl/module"
       ],
-      "design": "docs/decisions/issue-1787-processor-design.md",
+      "design": "docs/decisions/issue-1788-experiments-design.md",
       "api_files": {
         "linux-amd64": [
-          "implementations/architecture-api/processor-design/internal-sdl-authoring-1.json"
+          "implementations/architecture-api/experiment-design/internal-sdl-authoring-1.json"
         ]
       }
     },
@@ -6058,10 +6065,12 @@
         "implementations/go/internal/sdl/source",
         "implementations/go/sdl/module"
       ],
-      "design": "docs/decisions/issue-1787-processor-design.md",
+      "design": "docs/decisions/issue-1788-experiments-design.md",
       "api_files": {
         "linux-amd64": [
-          "implementations/architecture-api/processor-design/sdl-1.json"
+          "implementations/architecture-api/processor-design/sdl-1.json",
+          "implementations/architecture-api/experiment-design/sdl-1.json",
+          "implementations/architecture-api/experiment-design/sdl-trial-runtime-1.json"
         ]
       }
     },
@@ -6192,6 +6201,70 @@
           "implementations/architecture-api/processor-design/processor-comparison-1.json"
         ]
       }
+    },
+    {
+      "dir": "implementations/go/processor/trial",
+      "layer": "processor",
+      "public": true,
+      "doc": "Deterministic experiment trial compilation and realization.",
+      "imports": [
+        "implementations/go/base/canonjson",
+        "implementations/go/base/digest",
+        "implementations/go/base/fault",
+        "implementations/go/base/ingress",
+        "implementations/go/contract/admission",
+        "implementations/go/contract/binding",
+        "implementations/go/contract/diagnostic",
+        "implementations/go/contract/validation",
+        "implementations/go/sdl",
+        "implementations/go/processor",
+        "implementations/go/processor/planning",
+        "implementations/go/internal/base/randstream"
+      ],
+      "design": "docs/decisions/issue-1788-experiments-design.md",
+      "api_files": {
+        "linux-amd64": [
+          "implementations/architecture-api/experiment-design/trial-1.json",
+          "implementations/architecture-api/experiment-design/trial-runtime-1.json",
+          "implementations/architecture-api/experiment-design/trial-runtime-2.json",
+          "implementations/architecture-api/experiment-design/trial-runtime-3.json",
+          "implementations/architecture-api/experiment-design/trial-runtime-4.json",
+          "implementations/architecture-api/experiment-design/trial-runtime-5.json",
+          "implementations/architecture-api/experiment-design/admission-trial-runtime-1.json",
+          "implementations/architecture-api/experiment-design/sdl-trial-runtime-1.json"
+        ]
+      }
+    },
+    {
+      "dir": "implementations/go/runtime/experiment",
+      "layer": "runtime",
+      "public": true,
+      "doc": "Runtime-owned experiment coordination, immutable records and archive publication over supplied shared runtime ports.",
+      "imports": [
+        "implementations/go/base/canonjson",
+        "implementations/go/base/clock",
+        "implementations/go/base/digest",
+        "implementations/go/base/fault",
+        "implementations/go/base/ingress",
+        "implementations/go/contract/admission",
+        "implementations/go/contract/binding",
+        "implementations/go/contract/validation",
+        "implementations/go/processor/trial"
+      ],
+      "design": "docs/decisions/issue-1788-experiments-design.md",
+      "api_files": {
+        "linux-amd64": [
+          "implementations/architecture-api/experiment-design/runtime-1.json",
+          "implementations/architecture-api/experiment-design/trial-runtime-1.json",
+          "implementations/architecture-api/experiment-design/trial-runtime-2.json",
+          "implementations/architecture-api/experiment-design/trial-runtime-3.json",
+          "implementations/architecture-api/experiment-design/trial-runtime-4.json",
+          "implementations/architecture-api/experiment-design/trial-runtime-5.json",
+          "implementations/architecture-api/experiment-design/admission-trial-runtime-1.json",
+          "implementations/architecture-api/experiment-design/sdl-trial-runtime-1.json",
+          "implementations/architecture-api/experiment-design/admission-runtime-1.json"
+        ]
+      }
     }
   ],
   "configurations": [
@@ -6213,15 +6286,15 @@
     "docs/decisions/issue-1779-ingress-design.md": "0dcde22676a7429a0c92d01ed2e8d0eaf15da84d5be800404e12c9414348bed1",
     "docs/decisions/issue-1779-random-streams-design.md": "dae79083acb2909a63a43849e9aeb0ddf4594d3e7d54d118b2a1dd54f68cdb8b",
     "docs/decisions/issue-1778-parity-corpus-design.md": "c3197d51b64c8b2684096ad8d4ed4df223457b2e811a16e68bf31e9babc15830",
-    "docs/decisions/issue-1859-go-architecture-contract-design.md": "0057d0da3d7466e02c34cf5545aa14245bc398486519d3dd15457e515f6230ce",
+    "docs/decisions/issue-1859-go-architecture-contract-design.md": "df0610aa609edb15eec1327d3efef5e61f730e4da468b5c9f035ac08c0d1659a",
     "contracts/schemas/experiment-core/materialization-archive-record-v1.json": "fb61b1d9bb70ffedf7fec94325c3751a29ef7db7f6e8bea8fc96c064d101ba90",
     "docs/decisions/adrs/adr-122-go-architecture-model.md": "80b64aac8e4e646f56d129c2c997c19583ecfb0f0b0b571fa46e09a3103ca45c",
     "docs/decisions/issue-1775-go-architecture-model-design.md": "d12f71c98e4bcad11f42db41338d2d93e9d9ed21731e5e4a1b9ed6fbbba1d2c8",
     "docs/decisions/issue-1779-shared-primitives-completion.md": "53b8dcd5ef5e1ad44ca2948eca10fff0d180028b807a496ddbe82e61e9e573ed",
-    "docs/decisions/issue-1780-contract-validation-design.md": "af16cabe834eb350d8074c0856a1ac783c2f56f775a0eddd79326a99b3f84269",
+    "docs/decisions/issue-1780-contract-validation-design.md": "f26e848f8998353626fc2783d1f5aad8caa2c7769699de30b84ea5e3b6651311",
     "docs/decisions/issue-1891-runtime-repository-boundary.md": "e8233ecdf836dbbad4dda9ef373572dd466f1cf59ad0eeb4ab01cc9fd476e406",
     "docs/decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md": "8b23019d17144225d08d6a38301a62a3eb2490c122a3d2ed36a67ab0804d84fa",
-    "docs/decisions/issue-1825-public-go-api.md": "839639219110331b5566d510a55b032d29444b68ee3aada3b1f4f4a3cf5748c8",
+    "docs/decisions/issue-1825-public-go-api.md": "4a8db5cf0bb85a159d927369863f5bed7650a552f78927db04c61ea0a039d7b2",
     "docs/decisions/issue-1892-public-go-packages-design.md": "e66f0bb12f0615a6b5614fe149a2a78b13289c42845c683537df80ec1907fc53",
     "specs/sdl/document-model.md": "496290792659c189242ab93923f6f50e305e383d50588a4d75269d9ade2e2970",
     "specs/sdl/diagnostics.md": "422c46a1080f4dced095729967658f300520fa59b16c1923d113a758422a231e",
@@ -6233,7 +6306,10 @@
     "docs/decisions/issue-2008-sdl-semantic-fixtures-design.md": "93ee0f27747f5adce6296d00f5190a7f5b7a917d9a6ad1afaa7d1ca2554c53b6",
     "docs/decisions/issue-1787-processor-design.md": "130857b7a810e0f58fd694156b7b661e613caf9d0188fa5aea8ba37ced187219",
     "docs/decisions/issue-1787-processor-semantics-preflight.md": "110613485f30ee8bd618c04b1433ce7666d8dc73182c23ed45ea0cfbb031468a",
-    "docs/decisions/issue-1781-concept-profile-design.md": "a0ab2a728136f7b20f504a29701eafd8a2b540d8b190939111297381dd39a6ad"
+    "docs/decisions/issue-1781-concept-profile-design.md": "a0ab2a728136f7b20f504a29701eafd8a2b540d8b190939111297381dd39a6ad",
+    "docs/decisions/issue-1788-experiments-design.md": "34c9528aeca909001591de017321570b9df0d5f88776a0c83eb96bdcfb3ee173",
+    "docs/decisions/issue-1788-experiments-trials-preflight.md": "72e13a31965e84f102c3a90c810467a34cfbaa3a19755769d9695a608cbc7cd6",
+    "docs/decisions/issue-1788-validator-key-decision.md": "c781e3ca480df4429459b7ef51fc932ddbf14ee500b8ed8e5cae5b4c15f271af"
   },
   "consumer_api": {
     "design": "docs/decisions/issue-1825-public-go-api.md",
@@ -6510,7 +6586,37 @@
           "CheckEvidenceRequirementRelations",
           "RealizationOpenOfferDiagnostics",
           "RealizationMemberDiagnostics",
-          "CheckPreparedSnapshot"
+          "CheckPreparedSnapshot",
+          "TrialRunInputs",
+          "ExperimentEvidenceInputs",
+          "TrialStudyInputs",
+          "ObservationDemandResolution",
+          "CheckTransport",
+          "ProjectProcessIdentity",
+          "ProjectProcessResourceLimit",
+          "ParseExperiment",
+          "LoadExperiment",
+          "DiscoverExperiments",
+          "SealTrialPlan",
+          "TrialPlanProjection",
+          "TrialEntryOrder",
+          "ValidateTrialRun",
+          "ValidateExperimentRun",
+          "ValidateTrialStudy",
+          "ParticipantFeatureSupportGaps",
+          "NormalizeObservationDemands",
+          "ResolveSDLObservationScopeWithProfiles",
+          "ValueFreeAccountPlacement",
+          "ResolveExecutionPolicy",
+          "ExecutionPolicyCapabilityGaps",
+          "DomainProfileContextDigest",
+          "CheckDomainProfileBindings",
+          "ResolvePlanProfileAuthority",
+          "CheckPlanProfileAuthority",
+          "CheckPlanProfileSelection",
+          "ParticipantResourceMeasureSupported",
+          "ExperimentProjection",
+          "CheckTransportTree"
         ],
         "uses": [
           "rae:base/ingress",
@@ -6532,9 +6638,9 @@
           "runtime"
         ],
         "existing": "implementations/go/contract/admission",
-        "existing_api_sha256": "6a56cc02d2853aec7e9f8b0c1aee8a826ba73be2dd147f092baf092823283008",
+        "existing_api_sha256": "33d39ab9fcfb753d5c0ecd1c8bfcccb7a061f49cf40a7a76d2a4e3cab812f2e0",
         "declarations": "implementations/architecture-api/planned/rae/contract/admission.go.txt",
-        "declarations_sha256": "ba80e93be2c838ce1c139c06bffb3cba1cebd8e92caa75bcef3a0424deddeead"
+        "declarations_sha256": "c31fe62ed0b1b4237cbe6c80c479a4e688256be172bc668b1ba640d86803a591"
       },
       {
         "owner": "rae",
@@ -6707,7 +6813,19 @@
           "ComparisonProjection",
           "ProjectComparison",
           "EvidenceScenario",
-          "EnvelopeMembershipDiagnostics"
+          "EnvelopeMembershipDiagnostics",
+          "Select",
+          "VariationOutcomes",
+          "NormalizeCapabilityValue",
+          "ObservationScopes",
+          "DescriptorProfiles",
+          "ParameterDerivationImage",
+          "CanonicalBytes",
+          "ResolveRealizationDesignationForNamespace",
+          "ParseWithContext",
+          "ParseFileWithContext",
+          "ParseSourceWithContext",
+          "ResolveBindingTarget"
         ],
         "uses": [
           "rae:contract/admission",
@@ -6728,7 +6846,7 @@
           "runtime"
         ],
         "declarations": "implementations/architecture-api/planned/rae/sdl.go.txt",
-        "declarations_sha256": "4d59385552bf192681a647208504fc5e29bc9de091d8b654bf12f26ea38e0722"
+        "declarations_sha256": "6026ee2bd65ac7b12c179d34a76298dca75d1236df35003d54905e2edaf7697a"
       },
       {
         "owner": "rae",
@@ -6930,7 +7048,15 @@
           "Realization",
           "RealizationOptions",
           "InstantiateEntry",
-          "RealizeEntry"
+          "RealizeEntry",
+          "ControlContextProvider",
+          "ReplacementRequest",
+          "ReplacementResult",
+          "CompileContext",
+          "Readmit",
+          "CompileReplacement",
+          "RealizationAssignmentKey",
+          "PlanBatchScheduleValue"
         ],
         "uses": [
           "rae:contract/admission",
@@ -6949,7 +7075,7 @@
           "runtime"
         ],
         "declarations": "implementations/architecture-api/planned/rae/processor/trial.go.txt",
-        "declarations_sha256": "8df17ba604bf263eaba285fba6730e111dff034422f517336dda294304e3c36f"
+        "declarations_sha256": "2dbfdcf00f1c8b80f3d212ae09a9c10af28303aa8e0a1d7cad01af37c1efddb1"
       },
       {
         "owner": "rae",
@@ -7505,6 +7631,50 @@
         ],
         "declarations": "implementations/architecture-api/planned/rae/processor/comparison.go.txt",
         "declarations_sha256": "4c88544badf5881ea7fdb43e85a395fca1267b205992923d8491f9765c6657aa"
+      },
+      {
+        "owner": "runtime",
+        "path": "runtime/experiment",
+        "layer": "runtime",
+        "symbols": [
+          "Identity",
+          "Trial",
+          "Observation",
+          "Host",
+          "Decision",
+          "Journal",
+          "OwnerCaller",
+          "Options",
+          "Progress",
+          "Coordinator",
+          "RunMetadata",
+          "RecordSource",
+          "Accounting",
+          "RecordBundle",
+          "EvidenceInputs",
+          "EvidenceReader",
+          "Archive",
+          "RecordOptions",
+          "DecodeDecision",
+          "New",
+          "Phase"
+        ],
+        "uses": [
+          "rae:base/clock",
+          "rae:contract/admission",
+          "rae:contract/binding",
+          "rae:processor/trial"
+        ],
+        "issues": [
+          1788,
+          1791
+        ],
+        "consumers": [
+          "lilrae",
+          "coldlight"
+        ],
+        "declarations": "implementations/architecture-api/planned/runtime/runtime/experiment.go.txt",
+        "declarations_sha256": "c2dc1e742535e2997318ee92660e8236e43e1186d6ff2fda52eebafe2c66b4a8"
       }
     ],
     "commands": [

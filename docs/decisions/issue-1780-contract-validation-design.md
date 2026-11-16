@@ -493,3 +493,9 @@ Other contract families retain the existing generic visit ceiling.
 This keeps materialized formatting from reintroducing the smaller generic ceiling after construction.
 The materialized source concreteness walk also uses its actual input byte count as a conservative node ceiling.
 Other materialization operations keep their declared work limits.
+
+For admitted trial plans, semantic and model traversal also use the existing
+finite schema-graph work bound multiplied by bounded input bytes.
+The caller's byte and depth limits still apply.
+The generic defaults walker keeps its separate per-value bound.
+The experiment owner defaults plan members through individual schema fragments.

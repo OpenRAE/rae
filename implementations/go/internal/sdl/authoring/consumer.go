@@ -8,6 +8,7 @@ import (
 
 	"github.com/OpenRAE/rae/implementations/go/internal/base/jsonpointer"
 
+	"github.com/OpenRAE/rae/implementations/go/base/ingress"
 	"github.com/OpenRAE/rae/implementations/go/contract/admission"
 	"github.com/OpenRAE/rae/implementations/go/contract/binding"
 	"github.com/OpenRAE/rae/implementations/go/contract/concept"
@@ -33,8 +34,12 @@ func (p *Parser) ValidateExperimentSelectionAgainstFamily(spec binding.Experimen
 	if family == nil || !family.Validated() || family.contract != expandedContract {
 		return binding.ExperimentAuthoringInputV1{}, selectionInvalid()
 	}
+	limits := ingress.Limits{MaxBytes: 8 << 20, MaxDepth: 64}
+	if admission.CheckTransport(spec, limits) != nil {
+		return binding.ExperimentAuthoringInputV1{}, selectionInvalid()
+	}
 	raw, err := json.Marshal(spec)
-	if err != nil || p.models.CheckPortable("experiment-authoring-input-v1", raw, modelLimits(raw)) != nil {
+	if err != nil || p.models.CheckPortable("experiment-authoring-input-v1", raw, limits) != nil {
 		return binding.ExperimentAuthoringInputV1{}, selectionInvalid()
 	}
 	var copied binding.ExperimentAuthoringInputV1

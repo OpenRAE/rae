@@ -1,0 +1,2132 @@
+{
+  "sources": {
+    "implementations/python/packages/raes_runtime/runtime_record_assembly.py": "8bbd713012a70b8fa92464b0356e23068848f01592bcf32561f3b1e84a95d646",
+    "implementations/python/packages/raes_processor/trial_compiler/replacement.py": "ca7c8bba737179d907bf89a92da98179b135b99f7a6b2a57492b378419e349c0"
+  },
+  "child_case": {
+    "name": "replacement-child",
+    "attempts": [
+      {
+        "schema_version": "runtime-trial-attempt/v1",
+        "experiment_id": "trial-plan-984f620063a764e11756842ddd6a4980a6150f056874b0c316718af18cfcf81a",
+        "plan_entry_id": "trial-entry-2531f1e44320e4294c25fa3dbb54cca2ba2cb0ca70d23bc1c7a89f6787123b57",
+        "run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+        "attempt": 1,
+        "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+        "started_at": "2026-11-15T10:00:00+00:00",
+        "deadline": "2026-11-15T10:10:00+00:00"
+      }
+    ],
+    "observations": [
+      {
+        "schema_version": "runtime-trial-observation/v1",
+        "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+        "observation": {
+          "kind": "capture",
+          "complete": true,
+          "evidence": [
+            {
+              "schema_version": "experiment-evidence-record/v1",
+              "evidence_record_id": "evidence:content",
+              "record_version": "1.0.0",
+              "capture_spec_ref": {
+                "ref_kind": "capture-spec",
+                "ref_id": "capture-techvault-evidence-v1",
+                "ref_version": "1.0.0"
+              },
+              "capture_requirement_ref": "auth-log-evidence",
+              "output_contract": "participant-behavior-history-event-stream-v1",
+              "run_ref": {
+                "ref_kind": "run",
+                "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+                "ref_version": "1",
+                "ref_digest": null,
+                "ref_path": null
+              },
+              "task_ref": {
+                "ref_kind": "task",
+                "ref_id": "task-techvault-red-team-v1",
+                "ref_version": "1.0.0"
+              },
+              "apparatus_context_ref": null,
+              "source_refs": [
+                {
+                  "ref_kind": "measurement-channel",
+                  "ref_id": "evaluation-history-channel",
+                  "ref_version": "1.0.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              ],
+              "evidence_kind": "trace",
+              "captured_at": "2026-11-15T10:00:01+00:00",
+              "capture_window_ref": "run-window",
+              "raw_content": {
+                "artifact_ref": null,
+                "content_uri": "runs/run-techvault-001/evaluation-history.json",
+                "content_checksum": {
+                  "algorithm": "sha256",
+                  "value": "d1a2e6de54aa13b77dc5ccb6473b9130f9f18302fb12e69c06123bd753f07dd3"
+                },
+                "payload_summary": null,
+                "loss_disclosure": null
+              },
+              "sensitivity": "internal",
+              "redaction_state": "none",
+              "redaction_policy": null,
+              "provenance_refs": [
+                {
+                  "ref_kind": "backend",
+                  "ref_id": "stub-backend",
+                  "ref_version": "0.1.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              ],
+              "typed_description": null
+            }
+          ]
+        },
+        "snapshot_json": null,
+        "observed_at": "2026-11-15T10:00:01+00:00"
+      },
+      {
+        "schema_version": "runtime-trial-observation/v1",
+        "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+        "observation": {
+          "kind": "cleanup",
+          "receipt": {
+            "schema_version": "trial-cleanup-receipt/v1",
+            "receipt_id": "cleanup:attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+            "cleanup_plan_ref": "trial-cleanup-2777b6cb3929eb169a5eaca0077a0d139f0b72a5d0c2271c835073249384ea50",
+            "plan_entry_id": "trial-entry-2531f1e44320e4294c25fa3dbb54cca2ba2cb0ca70d23bc1c7a89f6787123b57",
+            "run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+            "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+            "trial_outcome": "failed",
+            "cleanup_status": "succeeded",
+            "obligation_results": {
+              "destroy": {
+                "obligation_id": "destroy",
+                "status": "succeeded",
+                "evidence_refs": [
+                  "evidence:destroy"
+                ],
+                "residual_state_refs": []
+              }
+            },
+            "clean_state_claim": {
+              "disposition": "verified-clean",
+              "boundary_refs": [
+                "range"
+              ],
+              "evidence_refs": [
+                "evidence:clean"
+              ]
+            }
+          },
+          "evidence": [
+            {
+              "schema_version": "experiment-evidence-record/v1",
+              "evidence_record_id": "evidence:clean",
+              "record_version": "1.0.0",
+              "capture_spec_ref": {
+                "ref_kind": "capture-spec",
+                "ref_id": "capture-techvault-evidence-v1",
+                "ref_version": "1.0.0"
+              },
+              "capture_requirement_ref": "auth-log-evidence",
+              "output_contract": "participant-behavior-history-event-stream-v1",
+              "run_ref": {
+                "ref_kind": "run",
+                "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+                "ref_version": "1",
+                "ref_digest": null,
+                "ref_path": null
+              },
+              "task_ref": {
+                "ref_kind": "task",
+                "ref_id": "task-techvault-red-team-v1",
+                "ref_version": "1.0.0"
+              },
+              "apparatus_context_ref": null,
+              "source_refs": [
+                {
+                  "ref_kind": "measurement-channel",
+                  "ref_id": "evaluation-history-channel",
+                  "ref_version": "1.0.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              ],
+              "evidence_kind": "trace",
+              "captured_at": "2026-11-15T10:00:01+00:00",
+              "capture_window_ref": "run-window",
+              "raw_content": {
+                "artifact_ref": null,
+                "content_uri": "runs/run-techvault-001/evaluation-history.json",
+                "content_checksum": {
+                  "algorithm": "sha256",
+                  "value": "d1a2e6de54aa13b77dc5ccb6473b9130f9f18302fb12e69c06123bd753f07dd3"
+                },
+                "payload_summary": null,
+                "loss_disclosure": null
+              },
+              "sensitivity": "internal",
+              "redaction_state": "none",
+              "redaction_policy": null,
+              "provenance_refs": [
+                {
+                  "ref_kind": "backend",
+                  "ref_id": "stub-backend",
+                  "ref_version": "0.1.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              ],
+              "typed_description": null
+            },
+            {
+              "schema_version": "experiment-evidence-record/v1",
+              "evidence_record_id": "evidence:destroy",
+              "record_version": "1.0.0",
+              "capture_spec_ref": {
+                "ref_kind": "capture-spec",
+                "ref_id": "capture-techvault-evidence-v1",
+                "ref_version": "1.0.0"
+              },
+              "capture_requirement_ref": "auth-log-evidence",
+              "output_contract": "participant-behavior-history-event-stream-v1",
+              "run_ref": {
+                "ref_kind": "run",
+                "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+                "ref_version": "1",
+                "ref_digest": null,
+                "ref_path": null
+              },
+              "task_ref": {
+                "ref_kind": "task",
+                "ref_id": "task-techvault-red-team-v1",
+                "ref_version": "1.0.0"
+              },
+              "apparatus_context_ref": null,
+              "source_refs": [
+                {
+                  "ref_kind": "measurement-channel",
+                  "ref_id": "evaluation-history-channel",
+                  "ref_version": "1.0.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              ],
+              "evidence_kind": "trace",
+              "captured_at": "2026-11-15T10:00:01+00:00",
+              "capture_window_ref": "run-window",
+              "raw_content": {
+                "artifact_ref": null,
+                "content_uri": "runs/run-techvault-001/evaluation-history.json",
+                "content_checksum": {
+                  "algorithm": "sha256",
+                  "value": "d1a2e6de54aa13b77dc5ccb6473b9130f9f18302fb12e69c06123bd753f07dd3"
+                },
+                "payload_summary": null,
+                "loss_disclosure": null
+              },
+              "sensitivity": "internal",
+              "redaction_state": "none",
+              "redaction_policy": null,
+              "provenance_refs": [
+                {
+                  "ref_kind": "backend",
+                  "ref_id": "stub-backend",
+                  "ref_version": "0.1.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              ],
+              "typed_description": null
+            }
+          ],
+          "idempotent_effects": false,
+          "verified_compensations": []
+        },
+        "snapshot_json": null,
+        "observed_at": "2026-11-15T10:00:01+00:00"
+      },
+      {
+        "schema_version": "runtime-trial-observation/v1",
+        "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+        "observation": {
+          "kind": "configuration",
+          "configurations": [],
+          "evidence": []
+        },
+        "snapshot_json": null,
+        "observed_at": "2026-11-15T10:00:01+00:00"
+      },
+      {
+        "schema_version": "runtime-trial-observation/v1",
+        "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+        "observation": {
+          "kind": "execution",
+          "state": "failed",
+          "ceased": true,
+          "effects_absent": false,
+          "evidence": []
+        },
+        "snapshot_json": null,
+        "observed_at": "2026-11-15T10:00:01+00:00"
+      }
+    ],
+    "metadata": {
+      "run_version": "1",
+      "outcome_status": "failed",
+      "apparatus_context": {
+        "schema_version": "experiment-apparatus-context/v1",
+        "apparatus_context_id": "apparatus-techvault-reference",
+        "context_version": "1.0.0",
+        "declared_at": "2026-05-26T00:00:00Z",
+        "components": {
+          "backend": {
+            "component_kind": "backend",
+            "identity": {
+              "name": "backend-a",
+              "version": "1"
+            },
+            "manifest_ref": {
+              "ref_kind": "manifest",
+              "ref_id": "backend-a",
+              "ref_version": "backend-manifest/v2",
+              "ref_digest": "sha256:008eb08b684941aa5ca6769f522a7c3cf01d9b290a3a9813f3af3063ea4de2e7",
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "backend",
+                "ref_id": "backend-a",
+                "ref_version": "1",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            "compatibility_refs": [],
+            "observed": true,
+            "limitations": []
+          },
+          "processor": {
+            "component_kind": "processor",
+            "identity": {
+              "name": "raes-reference-processor",
+              "version": "0.2.0"
+            },
+            "manifest_ref": {
+              "ref_kind": "manifest",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "processor-manifest/v2",
+              "ref_digest": "sha256:2bb05867d61bc5bd37852a0a37ef9b9084f4e78c5075b809bac2b7ec59784d8e",
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "processor",
+                "ref_id": "raes-reference-processor",
+                "ref_version": "0.2.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            "compatibility_refs": [],
+            "observed": true,
+            "limitations": []
+          }
+        },
+        "selected_manifests": [
+          {
+            "ref_kind": "manifest",
+            "ref_id": "backend-a",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": "sha256:008eb08b684941aa5ca6769f522a7c3cf01d9b290a3a9813f3af3063ea4de2e7",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "backend-a",
+              "ref_version": "1",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          },
+          {
+            "ref_kind": "manifest",
+            "ref_id": "raes-reference-processor",
+            "ref_version": "processor-manifest/v2",
+            "ref_digest": "sha256:2bb05867d61bc5bd37852a0a37ef9b9084f4e78c5075b809bac2b7ec59784d8e",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "processor",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "0.2.0",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          }
+        ],
+        "compatibility_declarations": [
+          {
+            "ref_kind": "profile",
+            "ref_id": "reference-stack-v1",
+            "ref_version": "semantic-profile/v1"
+          },
+          {
+            "ref_kind": "capability",
+            "ref_id": "workflow-results",
+            "ref_version": null
+          },
+          {
+            "ref_kind": "capability",
+            "ref_id": "evaluation-results",
+            "ref_version": null
+          }
+        ],
+        "configuration_parameters": [
+          {
+            "name": "worker-count",
+            "value": 1,
+            "value_kind": "apparatus",
+            "redaction": "none"
+          }
+        ],
+        "stochastic_controls": [
+          {
+            "control_id": "task-seed",
+            "role": "seed",
+            "value": 12345,
+            "description": "Seed supplied to task randomization.",
+            "executable_binding": null
+          }
+        ],
+        "clocks": [
+          {
+            "clock_id": "range-wall-clock",
+            "authority": "backend wall clock",
+            "time_domain": "wall-clock",
+            "synchronization": "NTP synchronized before run seal."
+          }
+        ],
+        "measurement_channels": [
+          {
+            "ref_kind": "measurement-channel",
+            "ref_id": "evaluation-history-channel",
+            "ref_version": "1.0.0"
+          }
+        ],
+        "observed_setup_evidence": [
+          {
+            "artifact_id": "setup-attestation",
+            "role": "apparatus-evidence",
+            "media_type": "application/json",
+            "uri": "runs/run-techvault-001/setup.json",
+            "checksum": {
+              "algorithm": "sha256",
+              "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "size_bytes": 2048,
+            "created_at": "2026-05-26T00:09:30Z",
+            "source": "stub-backend setup attestation",
+            "satisfies_refs": [],
+            "sensitivity": "internal",
+            "description": null
+          }
+        ],
+        "known_limitations": [
+          {
+            "category": "apparatus",
+            "note": "The stub backend is a conformance apparatus, not a fidelity claim.",
+            "mitigation": null
+          }
+        ]
+      },
+      "participant_implementation_provenance": {
+        "schema_version": "participant-implementation-provenance/v1",
+        "run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+        "participant_implementations": [
+          {
+            "participant_address": "participants.red",
+            "implementation_identity": {
+              "name": "reference-red-agent",
+              "version": "1.0.0"
+            },
+            "manifest_ref": "contracts/fixtures/participant-implementation-manifest/reference.json",
+            "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "configuration_ref": null,
+            "configuration_digest": null,
+            "selected_decision_surface_mode": "policy-directed",
+            "participant_contract_versions": [
+              "participant-episode-state-envelope-v1",
+              "participant-behavior-history-event-stream-v1"
+            ],
+            "exposure_policy": {
+              "policy_id": "red-agent-policy",
+              "policy_version": "1.0.0",
+              "policy_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "exposure_policy_kinds": [
+                "task-statement",
+                "tool-affordance"
+              ],
+              "disclosed_refs": [
+                "scenario.tasks.red"
+              ],
+              "withheld_refs": [
+                "scenario.hidden.answer-key"
+              ],
+              "tool_affordance_refs": [
+                "tool.shell"
+              ],
+              "visibility_scope_refs": [
+                "participants.red.visible"
+              ],
+              "constraints": {}
+            }
+          }
+        ],
+        "processor_manifest_ref": "processor-manifest-v2:raes-reference-processor",
+        "backend_manifest_ref": "backend-manifest-v2:stub-backend",
+        "metadata": {}
+      },
+      "traceability": {
+        "capture_spec_refs": [
+          {
+            "ref_kind": "capture-spec",
+            "ref_id": "capture-techvault-evidence-v1",
+            "ref_version": "1.0.0"
+          }
+        ],
+        "evidence_record_refs": [
+          {
+            "ref_kind": "evidence-record",
+            "ref_id": "evidence:content",
+            "ref_version": "1.0.0"
+          }
+        ],
+        "derived_measure_refs": [],
+        "claim_refs": [],
+        "notes": []
+      },
+      "invalidation": null,
+      "realized_bindings": [],
+      "parameter_set": [],
+      "evidence_artifacts": [
+        {
+          "artifact_id": "auth-log-evidence",
+          "role": "observation",
+          "media_type": "application/json",
+          "uri": "runs/run-techvault-001/evaluation-history.json",
+          "checksum": {
+            "algorithm": "sha256",
+            "value": "d1a2e6de54aa13b77dc5ccb6473b9130f9f18302fb12e69c06123bd753f07dd3"
+          },
+          "size_bytes": 1540,
+          "created_at": "2026-05-26T00:40:00Z",
+          "source": "stub-backend evaluator history export",
+          "satisfies_refs": [],
+          "sensitivity": "internal",
+          "description": null
+        }
+      ],
+      "result_summaries": {
+        "foothold-achieved-result": {
+          "metric_id": "foothold-achieved",
+          "value": true,
+          "value_status": "reported",
+          "evidence_refs": [
+            {
+              "ref_kind": "evidence",
+              "ref_id": "auth-log-evidence"
+            }
+          ],
+          "uncertainty": null,
+          "notes": null
+        }
+      },
+      "realized_form_disclosures": []
+    },
+    "phase_states": {},
+    "run": {
+      "schema_version": "experiment-run/v1",
+      "execution_accounting": {
+        "plan_id": "replacement-plan-78a852879eb51074f832b32038141f10f3bb38c38b07c3241dc9b25f5ae4cc4a",
+        "plan_digest": "sha256:229f0ed33cb7fdf464ffe670b86356e1c93f14ceb6568afbac912e50a680184c",
+        "plan_entry_id": "trial-entry-2531f1e44320e4294c25fa3dbb54cca2ba2cb0ca70d23bc1c7a89f6787123b57",
+        "entry_digest": "sha256:fe88878d9d6dd23ab6dd51853cbd8f5874566392efe5198ca941631dbe7c3298",
+        "attempts": [
+          {
+            "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+            "attempt": 1,
+            "started_at": "2026-11-15T10:00:00+00:00",
+            "ended_at": "2026-11-15T10:00:01+00:00",
+            "execution_status": "failed",
+            "configuration_status": "observed",
+            "capture_status": "complete",
+            "cleanup_status": "succeeded",
+            "cleanup_receipt": {
+              "schema_version": "trial-cleanup-receipt/v1",
+              "receipt_id": "cleanup:attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+              "cleanup_plan_ref": "trial-cleanup-2777b6cb3929eb169a5eaca0077a0d139f0b72a5d0c2271c835073249384ea50",
+              "plan_entry_id": "trial-entry-2531f1e44320e4294c25fa3dbb54cca2ba2cb0ca70d23bc1c7a89f6787123b57",
+              "run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+              "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+              "trial_outcome": "failed",
+              "cleanup_status": "succeeded",
+              "obligation_results": {
+                "destroy": {
+                  "obligation_id": "destroy",
+                  "status": "succeeded",
+                  "evidence_refs": [
+                    "evidence:destroy"
+                  ],
+                  "residual_state_refs": []
+                }
+              },
+              "clean_state_claim": {
+                "disposition": "verified-clean",
+                "boundary_refs": [
+                  "range"
+                ],
+                "evidence_refs": [
+                  "evidence:clean"
+                ]
+              }
+            },
+            "operation_refs": [],
+            "evidence_record_refs": [
+              {
+                "ref_kind": "evidence-record",
+                "ref_id": "evidence:content",
+                "ref_version": "1.0.0"
+              },
+              {
+                "ref_kind": "evidence-record",
+                "ref_id": "evidence:clean",
+                "ref_version": "1.0.0"
+              },
+              {
+                "ref_kind": "evidence-record",
+                "ref_id": "evidence:destroy",
+                "ref_version": "1.0.0"
+              }
+            ],
+            "evidence_records": [
+              {
+                "schema_version": "experiment-evidence-record/v1",
+                "evidence_record_id": "evidence:content",
+                "record_version": "1.0.0",
+                "capture_spec_ref": {
+                  "ref_kind": "capture-spec",
+                  "ref_id": "capture-techvault-evidence-v1",
+                  "ref_version": "1.0.0"
+                },
+                "capture_requirement_ref": "auth-log-evidence",
+                "output_contract": "participant-behavior-history-event-stream-v1",
+                "run_ref": {
+                  "ref_kind": "run",
+                  "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+                  "ref_version": "1",
+                  "ref_digest": null,
+                  "ref_path": null
+                },
+                "task_ref": {
+                  "ref_kind": "task",
+                  "ref_id": "task-techvault-red-team-v1",
+                  "ref_version": "1.0.0"
+                },
+                "apparatus_context_ref": null,
+                "source_refs": [
+                  {
+                    "ref_kind": "measurement-channel",
+                    "ref_id": "evaluation-history-channel",
+                    "ref_version": "1.0.0",
+                    "ref_digest": null,
+                    "ref_path": null
+                  }
+                ],
+                "evidence_kind": "trace",
+                "captured_at": "2026-11-15T10:00:01+00:00",
+                "capture_window_ref": "run-window",
+                "raw_content": {
+                  "artifact_ref": null,
+                  "content_uri": "runs/run-techvault-001/evaluation-history.json",
+                  "content_checksum": {
+                    "algorithm": "sha256",
+                    "value": "d1a2e6de54aa13b77dc5ccb6473b9130f9f18302fb12e69c06123bd753f07dd3"
+                  },
+                  "payload_summary": null,
+                  "loss_disclosure": null
+                },
+                "sensitivity": "internal",
+                "redaction_state": "none",
+                "redaction_policy": null,
+                "provenance_refs": [
+                  {
+                    "ref_kind": "backend",
+                    "ref_id": "stub-backend",
+                    "ref_version": "0.1.0",
+                    "ref_digest": null,
+                    "ref_path": null
+                  }
+                ],
+                "typed_description": null
+              },
+              {
+                "schema_version": "experiment-evidence-record/v1",
+                "evidence_record_id": "evidence:clean",
+                "record_version": "1.0.0",
+                "capture_spec_ref": {
+                  "ref_kind": "capture-spec",
+                  "ref_id": "capture-techvault-evidence-v1",
+                  "ref_version": "1.0.0"
+                },
+                "capture_requirement_ref": "auth-log-evidence",
+                "output_contract": "participant-behavior-history-event-stream-v1",
+                "run_ref": {
+                  "ref_kind": "run",
+                  "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+                  "ref_version": "1",
+                  "ref_digest": null,
+                  "ref_path": null
+                },
+                "task_ref": {
+                  "ref_kind": "task",
+                  "ref_id": "task-techvault-red-team-v1",
+                  "ref_version": "1.0.0"
+                },
+                "apparatus_context_ref": null,
+                "source_refs": [
+                  {
+                    "ref_kind": "measurement-channel",
+                    "ref_id": "evaluation-history-channel",
+                    "ref_version": "1.0.0",
+                    "ref_digest": null,
+                    "ref_path": null
+                  }
+                ],
+                "evidence_kind": "trace",
+                "captured_at": "2026-11-15T10:00:01+00:00",
+                "capture_window_ref": "run-window",
+                "raw_content": {
+                  "artifact_ref": null,
+                  "content_uri": "runs/run-techvault-001/evaluation-history.json",
+                  "content_checksum": {
+                    "algorithm": "sha256",
+                    "value": "d1a2e6de54aa13b77dc5ccb6473b9130f9f18302fb12e69c06123bd753f07dd3"
+                  },
+                  "payload_summary": null,
+                  "loss_disclosure": null
+                },
+                "sensitivity": "internal",
+                "redaction_state": "none",
+                "redaction_policy": null,
+                "provenance_refs": [
+                  {
+                    "ref_kind": "backend",
+                    "ref_id": "stub-backend",
+                    "ref_version": "0.1.0",
+                    "ref_digest": null,
+                    "ref_path": null
+                  }
+                ],
+                "typed_description": null
+              },
+              {
+                "schema_version": "experiment-evidence-record/v1",
+                "evidence_record_id": "evidence:destroy",
+                "record_version": "1.0.0",
+                "capture_spec_ref": {
+                  "ref_kind": "capture-spec",
+                  "ref_id": "capture-techvault-evidence-v1",
+                  "ref_version": "1.0.0"
+                },
+                "capture_requirement_ref": "auth-log-evidence",
+                "output_contract": "participant-behavior-history-event-stream-v1",
+                "run_ref": {
+                  "ref_kind": "run",
+                  "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+                  "ref_version": "1",
+                  "ref_digest": null,
+                  "ref_path": null
+                },
+                "task_ref": {
+                  "ref_kind": "task",
+                  "ref_id": "task-techvault-red-team-v1",
+                  "ref_version": "1.0.0"
+                },
+                "apparatus_context_ref": null,
+                "source_refs": [
+                  {
+                    "ref_kind": "measurement-channel",
+                    "ref_id": "evaluation-history-channel",
+                    "ref_version": "1.0.0",
+                    "ref_digest": null,
+                    "ref_path": null
+                  }
+                ],
+                "evidence_kind": "trace",
+                "captured_at": "2026-11-15T10:00:01+00:00",
+                "capture_window_ref": "run-window",
+                "raw_content": {
+                  "artifact_ref": null,
+                  "content_uri": "runs/run-techvault-001/evaluation-history.json",
+                  "content_checksum": {
+                    "algorithm": "sha256",
+                    "value": "d1a2e6de54aa13b77dc5ccb6473b9130f9f18302fb12e69c06123bd753f07dd3"
+                  },
+                  "payload_summary": null,
+                  "loss_disclosure": null
+                },
+                "sensitivity": "internal",
+                "redaction_state": "none",
+                "redaction_policy": null,
+                "provenance_refs": [
+                  {
+                    "ref_kind": "backend",
+                    "ref_id": "stub-backend",
+                    "ref_version": "0.1.0",
+                    "ref_digest": null,
+                    "ref_path": null
+                  }
+                ],
+                "typed_description": null
+              }
+            ]
+          }
+        ],
+        "participant_configurations": []
+      },
+      "run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+      "run_version": "1",
+      "task_ref": {
+        "ref_kind": "task",
+        "ref_id": "task-techvault-red-team-v1",
+        "ref_version": "1.0.0"
+      },
+      "scenario_snapshot_ref": {
+        "ref_kind": "scenario-snapshot",
+        "ref_id": "compiler-family",
+        "ref_version": "raes-sdl-instantiated-snapshot/v2",
+        "ref_digest": "sha256:01385a644e73e38bcfbd1ae1a25fb39aac32864b0be2d69c9f155145265ec87d",
+        "ref_path": null
+      },
+      "trial_provenance": {
+        "plan_id": "replacement-plan-78a852879eb51074f832b32038141f10f3bb38c38b07c3241dc9b25f5ae4cc4a",
+        "plan_digest": "sha256:229f0ed33cb7fdf464ffe670b86356e1c93f14ceb6568afbac912e50a680184c",
+        "plan_entry_id": "trial-entry-2531f1e44320e4294c25fa3dbb54cca2ba2cb0ca70d23bc1c7a89f6787123b57",
+        "entry_digest": "sha256:fe88878d9d6dd23ab6dd51853cbd8f5874566392efe5198ca941631dbe7c3298",
+        "admitted_run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+        "coordinate": {
+          "condition_id": null,
+          "block_id": null,
+          "replicate_id": "replicate-000003"
+        },
+        "instantiated_scenario_digest": "sha256:01385a644e73e38bcfbd1ae1a25fb39aac32864b0be2d69c9f155145265ec87d",
+        "processor_plan_refs": [
+          {
+            "plan_kind": "provisioning",
+            "artifact_ref": {
+              "ref_kind": "other",
+              "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9:provisioning",
+              "ref_version": "provisioning-plan-v1",
+              "ref_digest": "sha256:4d84caf5d07d971ac83f65eeb79f8c83c4ba0d144d52978f23e0a153816c4700",
+              "ref_path": null
+            }
+          },
+          {
+            "plan_kind": "orchestration",
+            "artifact_ref": {
+              "ref_kind": "other",
+              "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9:orchestration",
+              "ref_version": "orchestration-plan-v1",
+              "ref_digest": "sha256:d126d54f7b380d788b1fce28ebb28344a68f92b376ab673f36eed837fe3afa12",
+              "ref_path": null
+            }
+          },
+          {
+            "plan_kind": "evaluation",
+            "artifact_ref": {
+              "ref_kind": "other",
+              "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9:evaluation",
+              "ref_version": "evaluation-plan-v1",
+              "ref_digest": "sha256:17129719feab06b09d8d9f3434bf80364c3ab2dd9ddb0ecfc91a3dbb40d72a3d",
+              "ref_path": null
+            }
+          }
+        ],
+        "execution_attempts": [
+          {
+            "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+            "cleanup_receipt_ref": "cleanup:attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+            "operation_refs": []
+          }
+        ],
+        "terminal_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23"
+      },
+      "difficulty_provenance": null,
+      "apparatus_context": {
+        "schema_version": "experiment-apparatus-context/v1",
+        "apparatus_context_id": "apparatus-techvault-reference",
+        "context_version": "1.0.0",
+        "declared_at": "2026-05-26T00:00:00Z",
+        "components": {
+          "backend": {
+            "component_kind": "backend",
+            "identity": {
+              "name": "backend-a",
+              "version": "1"
+            },
+            "manifest_ref": {
+              "ref_kind": "manifest",
+              "ref_id": "backend-a",
+              "ref_version": "backend-manifest/v2",
+              "ref_digest": "sha256:008eb08b684941aa5ca6769f522a7c3cf01d9b290a3a9813f3af3063ea4de2e7",
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "backend",
+                "ref_id": "backend-a",
+                "ref_version": "1",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            "compatibility_refs": [],
+            "observed": true,
+            "limitations": []
+          },
+          "processor": {
+            "component_kind": "processor",
+            "identity": {
+              "name": "raes-reference-processor",
+              "version": "0.2.0"
+            },
+            "manifest_ref": {
+              "ref_kind": "manifest",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "processor-manifest/v2",
+              "ref_digest": "sha256:2bb05867d61bc5bd37852a0a37ef9b9084f4e78c5075b809bac2b7ec59784d8e",
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "processor",
+                "ref_id": "raes-reference-processor",
+                "ref_version": "0.2.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            "compatibility_refs": [],
+            "observed": true,
+            "limitations": []
+          }
+        },
+        "selected_manifests": [
+          {
+            "ref_kind": "manifest",
+            "ref_id": "backend-a",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": "sha256:008eb08b684941aa5ca6769f522a7c3cf01d9b290a3a9813f3af3063ea4de2e7",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "backend-a",
+              "ref_version": "1",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          },
+          {
+            "ref_kind": "manifest",
+            "ref_id": "raes-reference-processor",
+            "ref_version": "processor-manifest/v2",
+            "ref_digest": "sha256:2bb05867d61bc5bd37852a0a37ef9b9084f4e78c5075b809bac2b7ec59784d8e",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "processor",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "0.2.0",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          }
+        ],
+        "compatibility_declarations": [
+          {
+            "ref_kind": "profile",
+            "ref_id": "reference-stack-v1",
+            "ref_version": "semantic-profile/v1"
+          },
+          {
+            "ref_kind": "capability",
+            "ref_id": "workflow-results",
+            "ref_version": null
+          },
+          {
+            "ref_kind": "capability",
+            "ref_id": "evaluation-results",
+            "ref_version": null
+          }
+        ],
+        "configuration_parameters": [
+          {
+            "name": "worker-count",
+            "value": 1,
+            "value_kind": "apparatus",
+            "redaction": "none"
+          }
+        ],
+        "stochastic_controls": [
+          {
+            "control_id": "task-seed",
+            "role": "seed",
+            "value": 12345,
+            "description": "Seed supplied to task randomization.",
+            "executable_binding": null
+          }
+        ],
+        "clocks": [
+          {
+            "clock_id": "range-wall-clock",
+            "authority": "backend wall clock",
+            "time_domain": "wall-clock",
+            "synchronization": "NTP synchronized before run seal."
+          }
+        ],
+        "measurement_channels": [
+          {
+            "ref_kind": "measurement-channel",
+            "ref_id": "evaluation-history-channel",
+            "ref_version": "1.0.0"
+          }
+        ],
+        "observed_setup_evidence": [
+          {
+            "artifact_id": "setup-attestation",
+            "role": "apparatus-evidence",
+            "media_type": "application/json",
+            "uri": "runs/run-techvault-001/setup.json",
+            "checksum": {
+              "algorithm": "sha256",
+              "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            },
+            "size_bytes": 2048,
+            "created_at": "2026-05-26T00:09:30Z",
+            "source": "stub-backend setup attestation",
+            "satisfies_refs": [],
+            "sensitivity": "internal",
+            "description": null
+          }
+        ],
+        "known_limitations": [
+          {
+            "category": "apparatus",
+            "note": "The stub backend is a conformance apparatus, not a fidelity claim.",
+            "mitigation": null
+          }
+        ]
+      },
+      "participant_implementation_provenance": {
+        "schema_version": "participant-implementation-provenance/v1",
+        "run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+        "participant_implementations": [
+          {
+            "participant_address": "participants.red",
+            "implementation_identity": {
+              "name": "reference-red-agent",
+              "version": "1.0.0"
+            },
+            "manifest_ref": "contracts/fixtures/participant-implementation-manifest/reference.json",
+            "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+            "configuration_ref": null,
+            "configuration_digest": null,
+            "selected_decision_surface_mode": "policy-directed",
+            "participant_contract_versions": [
+              "participant-episode-state-envelope-v1",
+              "participant-behavior-history-event-stream-v1"
+            ],
+            "exposure_policy": {
+              "policy_id": "red-agent-policy",
+              "policy_version": "1.0.0",
+              "policy_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+              "exposure_policy_kinds": [
+                "task-statement",
+                "tool-affordance"
+              ],
+              "disclosed_refs": [
+                "scenario.tasks.red"
+              ],
+              "withheld_refs": [
+                "scenario.hidden.answer-key"
+              ],
+              "tool_affordance_refs": [
+                "tool.shell"
+              ],
+              "visibility_scope_refs": [
+                "participants.red.visible"
+              ],
+              "constraints": {}
+            }
+          }
+        ],
+        "processor_manifest_ref": "processor-manifest-v2:raes-reference-processor",
+        "backend_manifest_ref": "backend-manifest-v2:stub-backend",
+        "metadata": {}
+      },
+      "parameter_set": [],
+      "realized_bindings": [],
+      "stochastic_controls": [
+        {
+          "control_id": "sample-control",
+          "role": "sampling",
+          "value": null,
+          "description": null,
+          "executable_binding": {
+            "profile_ref": {
+              "ref_kind": "profile",
+              "ref_id": "blake3-xof-v1",
+              "ref_version": "random-stream-profile/v1",
+              "ref_digest": null,
+              "ref_path": null
+            },
+            "namespace": "compiler-sampling",
+            "root_entropy": {
+              "kind": "public-seed",
+              "encoding": "hex-fixed-width",
+              "value": "0101010101010101010101010101010101010101010101010101010101010101"
+            }
+          }
+        }
+      ],
+      "stochastic_draws": [
+        {
+          "control_id": "sample-control",
+          "address": {
+            "namespace": "compiler-sampling",
+            "trial_coordinate": {
+              "condition_id": null,
+              "block_id": null,
+              "replicate_id": "replicate-000003"
+            },
+            "selection_policy_id": "sample-path",
+            "variation_point_id": "payload-path",
+            "draw_purpose": "sampling-selection",
+            "local_coordinate": 0
+          },
+          "transform_id": "bounded-integer",
+          "transform_version": "1",
+          "local_coordinate": 0,
+          "outcome": {
+            "kind": "public-value",
+            "value": "1"
+          },
+          "rejection_attempts": 0,
+          "rejection_exhausted": false
+        }
+      ],
+      "started_at": "2026-11-15T10:00:00+00:00",
+      "ended_at": "2026-11-15T10:00:01+00:00",
+      "clock_context": {
+        "clock_id": "runtime-utc",
+        "authority": "runtime UTC clock",
+        "time_domain": "wall-clock",
+        "synchronization": "Clock synchronization is not attested by record production."
+      },
+      "realized_time_model": null,
+      "run_status": "failed",
+      "outcome_status": "failed",
+      "traceability": {
+        "capture_spec_refs": [
+          {
+            "ref_kind": "capture-spec",
+            "ref_id": "capture-techvault-evidence-v1",
+            "ref_version": "1.0.0"
+          }
+        ],
+        "evidence_record_refs": [
+          {
+            "ref_kind": "evidence-record",
+            "ref_id": "evidence:content",
+            "ref_version": "1.0.0"
+          }
+        ],
+        "derived_measure_refs": [],
+        "claim_refs": [],
+        "notes": []
+      },
+      "realized_form_disclosures": [],
+      "augmentation_disclosures": [],
+      "materialization_attestations": [],
+      "evidence_artifacts": [
+        {
+          "artifact_id": "auth-log-evidence",
+          "role": "observation",
+          "media_type": "application/json",
+          "uri": "runs/run-techvault-001/evaluation-history.json",
+          "checksum": {
+            "algorithm": "sha256",
+            "value": "d1a2e6de54aa13b77dc5ccb6473b9130f9f18302fb12e69c06123bd753f07dd3"
+          },
+          "size_bytes": 1540,
+          "created_at": "2026-05-26T00:40:00Z",
+          "source": "stub-backend evaluator history export",
+          "satisfies_refs": [],
+          "sensitivity": "internal",
+          "description": null
+        }
+      ],
+      "result_summaries": {
+        "foothold-achieved-result": {
+          "metric_id": "foothold-achieved",
+          "value": true,
+          "value_status": "reported",
+          "evidence_refs": [
+            {
+              "ref_kind": "evidence",
+              "ref_id": "auth-log-evidence"
+            }
+          ],
+          "uncertainty": null,
+          "notes": null
+        }
+      },
+      "deviations": [],
+      "invalidation": null,
+      "used_refs": [],
+      "generated_refs": [],
+      "derived_from_refs": [],
+      "validation_basis_disclosures": [],
+      "evidence_requirement_relations": []
+    }
+  },
+  "second_child": {
+    "schema_version": "admitted-trial-plan/v1",
+    "plan_id": "replacement-plan-9ceca3126b6ab203c224652968d4cf2ef76fa1433f3aa486a46ca58d24c5bf7e",
+    "profiles": {
+      "coordinate_profile": "trial-coordinate-v1",
+      "entry_identity_profile": "trial-entry-identity-v1",
+      "run_identity_profile": "archival-run-identity-v1",
+      "canonicalization_profile": "jcs-sha256-v1",
+      "integrity_profile": "acyclic-digest-chain-v1",
+      "compiler_profile": "trial-compiler-replacement-v1",
+      "selection_policy_profile": "experiment-selection-v1",
+      "random_stream_profile": "blake3-xof-v1",
+      "execution_control_profile": "attempt-control-v1",
+      "cleanup_profile": "trial-cleanup-v1",
+      "isolation_profile": "scheduler-isolation-v1"
+    },
+    "input_refs": {
+      "authoring_input_ref": {
+        "ref_kind": "authoring-input",
+        "ref_id": "spec-techvault-red-tactic-sweep-v1",
+        "ref_version": "1.0.0",
+        "ref_digest": "sha256:ab7976ed952c6882b27ae15cec71ff30a84053e10098049897db282bc91a197d",
+        "ref_path": null
+      },
+      "task_ref": {
+        "ref_kind": "task",
+        "ref_id": "task-techvault-red-team-v1",
+        "ref_version": "1.0.0"
+      },
+      "task_digest": "sha256:c67fbe712f8ce70e486bac40a7e8e156299028910c44a254517de777c1ad252c",
+      "scenario_family_ref": {
+        "ref_kind": "scenario-family",
+        "ref_id": "compiler-family",
+        "ref_version": "expanded-scenario-family/v1",
+        "ref_digest": "sha256:7c4fb8b018851aadf8cfdd66be8f8ec30bdfd85a0c8da60c800fa8c142886ff5"
+      },
+      "capture_spec_refs": [
+        {
+          "ref_kind": "capture-spec",
+          "ref_id": "capture-techvault-evidence-v1",
+          "ref_version": "1.0.0",
+          "ref_digest": "sha256:faf38d11eb1f0eed4092cf009a3f4630c63fe718aecf1b1773d8fa52400f3c64",
+          "ref_path": null
+        }
+      ],
+      "binding_descriptor_set_ref": null,
+      "study_ref": null,
+      "associated_artifact_set_ref": null
+    },
+    "stochastic_controls": {
+      "sample-control": {
+        "control_id": "sample-control",
+        "role": "sampling",
+        "value": null,
+        "description": null,
+        "executable_binding": {
+          "profile_ref": {
+            "ref_kind": "profile",
+            "ref_id": "blake3-xof-v1",
+            "ref_version": "random-stream-profile/v1",
+            "ref_digest": null,
+            "ref_path": null
+          },
+          "namespace": "compiler-sampling",
+          "root_entropy": {
+            "kind": "public-seed",
+            "encoding": "hex-fixed-width",
+            "value": "0101010101010101010101010101010101010101010101010101010101010101"
+          }
+        }
+      }
+    },
+    "cleanup_plans": {
+      "trial-cleanup-18b3d2d0648fb56ba5259dfffc7cd899d205f3629fdc14460333b2caf7ca4b97": {
+        "schema_version": "trial-cleanup-plan/v1",
+        "plan_id": "trial-cleanup-18b3d2d0648fb56ba5259dfffc7cd899d205f3629fdc14460333b2caf7ca4b97",
+        "plan_entry_id": "trial-entry-47b528a0e86dfb9acfa0d6cddeb93c8b468e13e6ef1323a748fcda3071d70b75",
+        "run_id": "archival-run-b8bd3a3ee2dd84ae989cdc7e5db93969c705a27dad1696941a33ffc7b01789ff",
+        "clean_state": {
+          "mode": "fresh",
+          "boundary_refs": [
+            "range"
+          ],
+          "verification_probe_refs": [
+            "probe:fresh"
+          ],
+          "reusable_state_claim_ref": null
+        },
+        "resource_boundaries": {
+          "range": {
+            "boundary_id": "range",
+            "resource_kind": "range-instance",
+            "owner_ref": "apparatus:range",
+            "resource_refs": [
+              "range:compiler-fixture"
+            ]
+          }
+        },
+        "cleanup_obligations": {
+          "destroy": {
+            "obligation_id": "destroy",
+            "boundary_refs": [
+              "range"
+            ],
+            "action_kind": "destroy",
+            "action_profile_ref": null,
+            "triggers": [
+              "success",
+              "failure",
+              "cancellation",
+              "timeout",
+              "abort"
+            ],
+            "requirement": "required",
+            "depends_on": [],
+            "idempotency": "idempotent",
+            "compensation_refs": [],
+            "verification_probe_refs": [
+              "probe:absent"
+            ],
+            "timeout_seconds": 120
+          }
+        },
+        "retry_policy": {
+          "max_attempts": 1,
+          "after_effect_policy": "disallow",
+          "reset_obligation_refs": [],
+          "compensation_refs": []
+        }
+      }
+    },
+    "isolation_proof": null,
+    "replacement_policy": {
+      "schema_version": "trial-replacement-policy/v1",
+      "max_replacements": 2,
+      "replace_on": [
+        "failed"
+      ]
+    },
+    "replacement_origin": {
+      "root_plan_id": "trial-plan-984f620063a764e11756842ddd6a4980a6150f056874b0c316718af18cfcf81a",
+      "root_plan_digest": "sha256:0610be24a2f66c156304cc9a4acbb988747ccd5b5bd39dd76c4f803f2655eda6",
+      "root_entry_id": "trial-entry-216fee6652749ac47bf4825c2c159fe3185639b64206a3ec55a804c613aac517",
+      "ordinal": 2,
+      "parent_plan_id": "replacement-plan-78a852879eb51074f832b32038141f10f3bb38c38b07c3241dc9b25f5ae4cc4a",
+      "parent_plan_digest": "sha256:229f0ed33cb7fdf464ffe670b86356e1c93f14ceb6568afbac912e50a680184c",
+      "parent_entry_id": "trial-entry-2531f1e44320e4294c25fa3dbb54cca2ba2cb0ca70d23bc1c7a89f6787123b57",
+      "parent_run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+      "parent_run_version": "1",
+      "parent_run_digest": "sha256:ef8119c8f70d32496c0f9553940dc0423205597ecf321e1cd9643ce94b7a3a08",
+      "cleanup_receipt_ref": "cleanup:attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23"
+    },
+    "entries": {
+      "trial-entry-47b528a0e86dfb9acfa0d6cddeb93c8b468e13e6ef1323a748fcda3071d70b75": {
+        "plan_entry_id": "trial-entry-47b528a0e86dfb9acfa0d6cddeb93c8b468e13e6ef1323a748fcda3071d70b75",
+        "coordinate": {
+          "condition_id": null,
+          "block_id": null,
+          "replicate_id": "replicate-000004"
+        },
+        "run_id": "archival-run-b8bd3a3ee2dd84ae989cdc7e5db93969c705a27dad1696941a33ffc7b01789ff",
+        "selections": [
+          {
+            "variation_point_id": "payload-path",
+            "origin_policy_id": "sample-path",
+            "origin_policy_kind": "sample",
+            "outcome": {
+              "kind": "literal",
+              "value": "/opt/b"
+            }
+          }
+        ],
+        "bindings": [],
+        "stochastic_draws": [
+          {
+            "control_id": "sample-control",
+            "address": {
+              "namespace": "compiler-sampling",
+              "trial_coordinate": {
+                "condition_id": null,
+                "block_id": null,
+                "replicate_id": "replicate-000004"
+              },
+              "selection_policy_id": "sample-path",
+              "variation_point_id": "payload-path",
+              "draw_purpose": "sampling-selection",
+              "local_coordinate": 0
+            },
+            "transform_id": "bounded-integer",
+            "transform_version": "1",
+            "local_coordinate": 0,
+            "outcome": {
+              "kind": "public-value",
+              "value": "1"
+            },
+            "rejection_attempts": 0,
+            "rejection_exhausted": false
+          }
+        ],
+        "apparatus": {
+          "manifest_refs": [
+            {
+              "ref_kind": "manifest",
+              "ref_id": "backend-a",
+              "ref_version": "backend-manifest/v2",
+              "ref_digest": "sha256:008eb08b684941aa5ca6769f522a7c3cf01d9b290a3a9813f3af3063ea4de2e7",
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "backend",
+                "ref_id": "backend-a",
+                "ref_version": "1",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            },
+            {
+              "ref_kind": "manifest",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "processor-manifest/v2",
+              "ref_digest": "sha256:2bb05867d61bc5bd37852a0a37ef9b9084f4e78c5075b809bac2b7ec59784d8e",
+              "ref_path": null,
+              "subject_ref": {
+                "ref_kind": "processor",
+                "ref_id": "raes-reference-processor",
+                "ref_version": "0.2.0",
+                "ref_digest": null,
+                "ref_path": null
+              }
+            }
+          ],
+          "realization_envelope": {
+            "contract_id": "realization-envelope-v1",
+            "envelope_id": "libvirt-qemu.generic.v1",
+            "schema_version": "realization-envelope/v1",
+            "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
+            "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
+          },
+          "capability_refs": [
+            "evaluation-results",
+            "workflow-results"
+          ]
+        },
+        "execution_controls": {
+          "attempt_timeout_seconds": 600,
+          "on_timeout": "cleanup-and-fail",
+          "on_cancellation": "cleanup-and-fail",
+          "cleanup_plan_ref": "trial-cleanup-18b3d2d0648fb56ba5259dfffc7cd899d205f3629fdc14460333b2caf7ca4b97"
+        },
+        "instantiation_provenance": {
+          "plan_id": "replacement-plan-9ceca3126b6ab203c224652968d4cf2ef76fa1433f3aa486a46ca58d24c5bf7e",
+          "plan_entry_id": "trial-entry-47b528a0e86dfb9acfa0d6cddeb93c8b468e13e6ef1323a748fcda3071d70b75",
+          "run_id": "archival-run-b8bd3a3ee2dd84ae989cdc7e5db93969c705a27dad1696941a33ffc7b01789ff",
+          "scenario_family_id": "compiler-family"
+        },
+        "entry_digest": "sha256:d31b4dcecc3a38405723255fe90ae479c7948f0bbadf4cfc3c792359a228cdd8"
+      }
+    },
+    "admission": {
+      "admitted_at_stage": "admitted-sealed",
+      "entry_count": 1,
+      "limitations": [],
+      "diagnostics": []
+    },
+    "plan_digest": "sha256:7ec2c4259eee10ee41df1c66519b430c9cc664448aa35448ace9d2cf98bee3cd"
+  },
+  "second_superseded_run": {
+    "schema_version": "experiment-run/v1",
+    "execution_accounting": {
+      "plan_id": "replacement-plan-78a852879eb51074f832b32038141f10f3bb38c38b07c3241dc9b25f5ae4cc4a",
+      "plan_digest": "sha256:229f0ed33cb7fdf464ffe670b86356e1c93f14ceb6568afbac912e50a680184c",
+      "plan_entry_id": "trial-entry-2531f1e44320e4294c25fa3dbb54cca2ba2cb0ca70d23bc1c7a89f6787123b57",
+      "entry_digest": "sha256:fe88878d9d6dd23ab6dd51853cbd8f5874566392efe5198ca941631dbe7c3298",
+      "attempts": [
+        {
+          "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+          "attempt": 1,
+          "started_at": "2026-11-15T10:00:00+00:00",
+          "ended_at": "2026-11-15T10:00:01+00:00",
+          "execution_status": "failed",
+          "configuration_status": "observed",
+          "capture_status": "complete",
+          "cleanup_status": "succeeded",
+          "cleanup_receipt": {
+            "schema_version": "trial-cleanup-receipt/v1",
+            "receipt_id": "cleanup:attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+            "cleanup_plan_ref": "trial-cleanup-2777b6cb3929eb169a5eaca0077a0d139f0b72a5d0c2271c835073249384ea50",
+            "plan_entry_id": "trial-entry-2531f1e44320e4294c25fa3dbb54cca2ba2cb0ca70d23bc1c7a89f6787123b57",
+            "run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+            "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+            "trial_outcome": "failed",
+            "cleanup_status": "succeeded",
+            "obligation_results": {
+              "destroy": {
+                "obligation_id": "destroy",
+                "status": "succeeded",
+                "evidence_refs": [
+                  "evidence:destroy"
+                ],
+                "residual_state_refs": []
+              }
+            },
+            "clean_state_claim": {
+              "disposition": "verified-clean",
+              "boundary_refs": [
+                "range"
+              ],
+              "evidence_refs": [
+                "evidence:clean"
+              ]
+            }
+          },
+          "operation_refs": [],
+          "evidence_record_refs": [
+            {
+              "ref_kind": "evidence-record",
+              "ref_id": "evidence:content",
+              "ref_version": "1.0.0"
+            },
+            {
+              "ref_kind": "evidence-record",
+              "ref_id": "evidence:clean",
+              "ref_version": "1.0.0"
+            },
+            {
+              "ref_kind": "evidence-record",
+              "ref_id": "evidence:destroy",
+              "ref_version": "1.0.0"
+            }
+          ],
+          "evidence_records": [
+            {
+              "schema_version": "experiment-evidence-record/v1",
+              "evidence_record_id": "evidence:content",
+              "record_version": "1.0.0",
+              "capture_spec_ref": {
+                "ref_kind": "capture-spec",
+                "ref_id": "capture-techvault-evidence-v1",
+                "ref_version": "1.0.0"
+              },
+              "capture_requirement_ref": "auth-log-evidence",
+              "output_contract": "participant-behavior-history-event-stream-v1",
+              "run_ref": {
+                "ref_kind": "run",
+                "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+                "ref_version": "1",
+                "ref_digest": null,
+                "ref_path": null
+              },
+              "task_ref": {
+                "ref_kind": "task",
+                "ref_id": "task-techvault-red-team-v1",
+                "ref_version": "1.0.0"
+              },
+              "apparatus_context_ref": null,
+              "source_refs": [
+                {
+                  "ref_kind": "measurement-channel",
+                  "ref_id": "evaluation-history-channel",
+                  "ref_version": "1.0.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              ],
+              "evidence_kind": "trace",
+              "captured_at": "2026-11-15T10:00:01+00:00",
+              "capture_window_ref": "run-window",
+              "raw_content": {
+                "artifact_ref": null,
+                "content_uri": "runs/run-techvault-001/evaluation-history.json",
+                "content_checksum": {
+                  "algorithm": "sha256",
+                  "value": "d1a2e6de54aa13b77dc5ccb6473b9130f9f18302fb12e69c06123bd753f07dd3"
+                },
+                "payload_summary": null,
+                "loss_disclosure": null
+              },
+              "sensitivity": "internal",
+              "redaction_state": "none",
+              "redaction_policy": null,
+              "provenance_refs": [
+                {
+                  "ref_kind": "backend",
+                  "ref_id": "stub-backend",
+                  "ref_version": "0.1.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              ],
+              "typed_description": null
+            },
+            {
+              "schema_version": "experiment-evidence-record/v1",
+              "evidence_record_id": "evidence:clean",
+              "record_version": "1.0.0",
+              "capture_spec_ref": {
+                "ref_kind": "capture-spec",
+                "ref_id": "capture-techvault-evidence-v1",
+                "ref_version": "1.0.0"
+              },
+              "capture_requirement_ref": "auth-log-evidence",
+              "output_contract": "participant-behavior-history-event-stream-v1",
+              "run_ref": {
+                "ref_kind": "run",
+                "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+                "ref_version": "1",
+                "ref_digest": null,
+                "ref_path": null
+              },
+              "task_ref": {
+                "ref_kind": "task",
+                "ref_id": "task-techvault-red-team-v1",
+                "ref_version": "1.0.0"
+              },
+              "apparatus_context_ref": null,
+              "source_refs": [
+                {
+                  "ref_kind": "measurement-channel",
+                  "ref_id": "evaluation-history-channel",
+                  "ref_version": "1.0.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              ],
+              "evidence_kind": "trace",
+              "captured_at": "2026-11-15T10:00:01+00:00",
+              "capture_window_ref": "run-window",
+              "raw_content": {
+                "artifact_ref": null,
+                "content_uri": "runs/run-techvault-001/evaluation-history.json",
+                "content_checksum": {
+                  "algorithm": "sha256",
+                  "value": "d1a2e6de54aa13b77dc5ccb6473b9130f9f18302fb12e69c06123bd753f07dd3"
+                },
+                "payload_summary": null,
+                "loss_disclosure": null
+              },
+              "sensitivity": "internal",
+              "redaction_state": "none",
+              "redaction_policy": null,
+              "provenance_refs": [
+                {
+                  "ref_kind": "backend",
+                  "ref_id": "stub-backend",
+                  "ref_version": "0.1.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              ],
+              "typed_description": null
+            },
+            {
+              "schema_version": "experiment-evidence-record/v1",
+              "evidence_record_id": "evidence:destroy",
+              "record_version": "1.0.0",
+              "capture_spec_ref": {
+                "ref_kind": "capture-spec",
+                "ref_id": "capture-techvault-evidence-v1",
+                "ref_version": "1.0.0"
+              },
+              "capture_requirement_ref": "auth-log-evidence",
+              "output_contract": "participant-behavior-history-event-stream-v1",
+              "run_ref": {
+                "ref_kind": "run",
+                "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+                "ref_version": "1",
+                "ref_digest": null,
+                "ref_path": null
+              },
+              "task_ref": {
+                "ref_kind": "task",
+                "ref_id": "task-techvault-red-team-v1",
+                "ref_version": "1.0.0"
+              },
+              "apparatus_context_ref": null,
+              "source_refs": [
+                {
+                  "ref_kind": "measurement-channel",
+                  "ref_id": "evaluation-history-channel",
+                  "ref_version": "1.0.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              ],
+              "evidence_kind": "trace",
+              "captured_at": "2026-11-15T10:00:01+00:00",
+              "capture_window_ref": "run-window",
+              "raw_content": {
+                "artifact_ref": null,
+                "content_uri": "runs/run-techvault-001/evaluation-history.json",
+                "content_checksum": {
+                  "algorithm": "sha256",
+                  "value": "d1a2e6de54aa13b77dc5ccb6473b9130f9f18302fb12e69c06123bd753f07dd3"
+                },
+                "payload_summary": null,
+                "loss_disclosure": null
+              },
+              "sensitivity": "internal",
+              "redaction_state": "none",
+              "redaction_policy": null,
+              "provenance_refs": [
+                {
+                  "ref_kind": "backend",
+                  "ref_id": "stub-backend",
+                  "ref_version": "0.1.0",
+                  "ref_digest": null,
+                  "ref_path": null
+                }
+              ],
+              "typed_description": null
+            }
+          ]
+        }
+      ],
+      "participant_configurations": []
+    },
+    "run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+    "run_version": "1.superseded-2",
+    "task_ref": {
+      "ref_kind": "task",
+      "ref_id": "task-techvault-red-team-v1",
+      "ref_version": "1.0.0"
+    },
+    "scenario_snapshot_ref": {
+      "ref_kind": "scenario-snapshot",
+      "ref_id": "compiler-family",
+      "ref_version": "raes-sdl-instantiated-snapshot/v2",
+      "ref_digest": "sha256:01385a644e73e38bcfbd1ae1a25fb39aac32864b0be2d69c9f155145265ec87d",
+      "ref_path": null
+    },
+    "trial_provenance": {
+      "plan_id": "replacement-plan-78a852879eb51074f832b32038141f10f3bb38c38b07c3241dc9b25f5ae4cc4a",
+      "plan_digest": "sha256:229f0ed33cb7fdf464ffe670b86356e1c93f14ceb6568afbac912e50a680184c",
+      "plan_entry_id": "trial-entry-2531f1e44320e4294c25fa3dbb54cca2ba2cb0ca70d23bc1c7a89f6787123b57",
+      "entry_digest": "sha256:fe88878d9d6dd23ab6dd51853cbd8f5874566392efe5198ca941631dbe7c3298",
+      "admitted_run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+      "coordinate": {
+        "condition_id": null,
+        "block_id": null,
+        "replicate_id": "replicate-000003"
+      },
+      "instantiated_scenario_digest": "sha256:01385a644e73e38bcfbd1ae1a25fb39aac32864b0be2d69c9f155145265ec87d",
+      "processor_plan_refs": [
+        {
+          "plan_kind": "provisioning",
+          "artifact_ref": {
+            "ref_kind": "other",
+            "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9:provisioning",
+            "ref_version": "provisioning-plan-v1",
+            "ref_digest": "sha256:4d84caf5d07d971ac83f65eeb79f8c83c4ba0d144d52978f23e0a153816c4700",
+            "ref_path": null
+          }
+        },
+        {
+          "plan_kind": "orchestration",
+          "artifact_ref": {
+            "ref_kind": "other",
+            "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9:orchestration",
+            "ref_version": "orchestration-plan-v1",
+            "ref_digest": "sha256:d126d54f7b380d788b1fce28ebb28344a68f92b376ab673f36eed837fe3afa12",
+            "ref_path": null
+          }
+        },
+        {
+          "plan_kind": "evaluation",
+          "artifact_ref": {
+            "ref_kind": "other",
+            "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9:evaluation",
+            "ref_version": "evaluation-plan-v1",
+            "ref_digest": "sha256:17129719feab06b09d8d9f3434bf80364c3ab2dd9ddb0ecfc91a3dbb40d72a3d",
+            "ref_path": null
+          }
+        }
+      ],
+      "execution_attempts": [
+        {
+          "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+          "cleanup_receipt_ref": "cleanup:attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+          "operation_refs": []
+        }
+      ],
+      "terminal_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23"
+    },
+    "difficulty_provenance": null,
+    "apparatus_context": {
+      "schema_version": "experiment-apparatus-context/v1",
+      "apparatus_context_id": "apparatus-techvault-reference",
+      "context_version": "1.0.0",
+      "declared_at": "2026-05-26T00:00:00Z",
+      "components": {
+        "backend": {
+          "component_kind": "backend",
+          "identity": {
+            "name": "backend-a",
+            "version": "1"
+          },
+          "manifest_ref": {
+            "ref_kind": "manifest",
+            "ref_id": "backend-a",
+            "ref_version": "backend-manifest/v2",
+            "ref_digest": "sha256:008eb08b684941aa5ca6769f522a7c3cf01d9b290a3a9813f3af3063ea4de2e7",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "backend",
+              "ref_id": "backend-a",
+              "ref_version": "1",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          },
+          "compatibility_refs": [],
+          "observed": true,
+          "limitations": []
+        },
+        "processor": {
+          "component_kind": "processor",
+          "identity": {
+            "name": "raes-reference-processor",
+            "version": "0.2.0"
+          },
+          "manifest_ref": {
+            "ref_kind": "manifest",
+            "ref_id": "raes-reference-processor",
+            "ref_version": "processor-manifest/v2",
+            "ref_digest": "sha256:2bb05867d61bc5bd37852a0a37ef9b9084f4e78c5075b809bac2b7ec59784d8e",
+            "ref_path": null,
+            "subject_ref": {
+              "ref_kind": "processor",
+              "ref_id": "raes-reference-processor",
+              "ref_version": "0.2.0",
+              "ref_digest": null,
+              "ref_path": null
+            }
+          },
+          "compatibility_refs": [],
+          "observed": true,
+          "limitations": []
+        }
+      },
+      "selected_manifests": [
+        {
+          "ref_kind": "manifest",
+          "ref_id": "backend-a",
+          "ref_version": "backend-manifest/v2",
+          "ref_digest": "sha256:008eb08b684941aa5ca6769f522a7c3cf01d9b290a3a9813f3af3063ea4de2e7",
+          "ref_path": null,
+          "subject_ref": {
+            "ref_kind": "backend",
+            "ref_id": "backend-a",
+            "ref_version": "1",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        },
+        {
+          "ref_kind": "manifest",
+          "ref_id": "raes-reference-processor",
+          "ref_version": "processor-manifest/v2",
+          "ref_digest": "sha256:2bb05867d61bc5bd37852a0a37ef9b9084f4e78c5075b809bac2b7ec59784d8e",
+          "ref_path": null,
+          "subject_ref": {
+            "ref_kind": "processor",
+            "ref_id": "raes-reference-processor",
+            "ref_version": "0.2.0",
+            "ref_digest": null,
+            "ref_path": null
+          }
+        }
+      ],
+      "compatibility_declarations": [
+        {
+          "ref_kind": "profile",
+          "ref_id": "reference-stack-v1",
+          "ref_version": "semantic-profile/v1"
+        },
+        {
+          "ref_kind": "capability",
+          "ref_id": "workflow-results",
+          "ref_version": null
+        },
+        {
+          "ref_kind": "capability",
+          "ref_id": "evaluation-results",
+          "ref_version": null
+        }
+      ],
+      "configuration_parameters": [
+        {
+          "name": "worker-count",
+          "value": 1,
+          "value_kind": "apparatus",
+          "redaction": "none"
+        }
+      ],
+      "stochastic_controls": [
+        {
+          "control_id": "task-seed",
+          "role": "seed",
+          "value": 12345,
+          "description": "Seed supplied to task randomization.",
+          "executable_binding": null
+        }
+      ],
+      "clocks": [
+        {
+          "clock_id": "range-wall-clock",
+          "authority": "backend wall clock",
+          "time_domain": "wall-clock",
+          "synchronization": "NTP synchronized before run seal."
+        }
+      ],
+      "measurement_channels": [
+        {
+          "ref_kind": "measurement-channel",
+          "ref_id": "evaluation-history-channel",
+          "ref_version": "1.0.0"
+        }
+      ],
+      "observed_setup_evidence": [
+        {
+          "artifact_id": "setup-attestation",
+          "role": "apparatus-evidence",
+          "media_type": "application/json",
+          "uri": "runs/run-techvault-001/setup.json",
+          "checksum": {
+            "algorithm": "sha256",
+            "value": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "size_bytes": 2048,
+          "created_at": "2026-05-26T00:09:30Z",
+          "source": "stub-backend setup attestation",
+          "satisfies_refs": [],
+          "sensitivity": "internal",
+          "description": null
+        }
+      ],
+      "known_limitations": [
+        {
+          "category": "apparatus",
+          "note": "The stub backend is a conformance apparatus, not a fidelity claim.",
+          "mitigation": null
+        }
+      ]
+    },
+    "participant_implementation_provenance": {
+      "schema_version": "participant-implementation-provenance/v1",
+      "run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+      "participant_implementations": [
+        {
+          "participant_address": "participants.red",
+          "implementation_identity": {
+            "name": "reference-red-agent",
+            "version": "1.0.0"
+          },
+          "manifest_ref": "contracts/fixtures/participant-implementation-manifest/reference.json",
+          "manifest_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+          "configuration_ref": null,
+          "configuration_digest": null,
+          "selected_decision_surface_mode": "policy-directed",
+          "participant_contract_versions": [
+            "participant-episode-state-envelope-v1",
+            "participant-behavior-history-event-stream-v1"
+          ],
+          "exposure_policy": {
+            "policy_id": "red-agent-policy",
+            "policy_version": "1.0.0",
+            "policy_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+            "exposure_policy_kinds": [
+              "task-statement",
+              "tool-affordance"
+            ],
+            "disclosed_refs": [
+              "scenario.tasks.red"
+            ],
+            "withheld_refs": [
+              "scenario.hidden.answer-key"
+            ],
+            "tool_affordance_refs": [
+              "tool.shell"
+            ],
+            "visibility_scope_refs": [
+              "participants.red.visible"
+            ],
+            "constraints": {}
+          }
+        }
+      ],
+      "processor_manifest_ref": "processor-manifest-v2:raes-reference-processor",
+      "backend_manifest_ref": "backend-manifest-v2:stub-backend",
+      "metadata": {}
+    },
+    "parameter_set": [],
+    "realized_bindings": [],
+    "stochastic_controls": [
+      {
+        "control_id": "sample-control",
+        "role": "sampling",
+        "value": null,
+        "description": null,
+        "executable_binding": {
+          "profile_ref": {
+            "ref_kind": "profile",
+            "ref_id": "blake3-xof-v1",
+            "ref_version": "random-stream-profile/v1",
+            "ref_digest": null,
+            "ref_path": null
+          },
+          "namespace": "compiler-sampling",
+          "root_entropy": {
+            "kind": "public-seed",
+            "encoding": "hex-fixed-width",
+            "value": "0101010101010101010101010101010101010101010101010101010101010101"
+          }
+        }
+      }
+    ],
+    "stochastic_draws": [
+      {
+        "control_id": "sample-control",
+        "address": {
+          "namespace": "compiler-sampling",
+          "trial_coordinate": {
+            "condition_id": null,
+            "block_id": null,
+            "replicate_id": "replicate-000003"
+          },
+          "selection_policy_id": "sample-path",
+          "variation_point_id": "payload-path",
+          "draw_purpose": "sampling-selection",
+          "local_coordinate": 0
+        },
+        "transform_id": "bounded-integer",
+        "transform_version": "1",
+        "local_coordinate": 0,
+        "outcome": {
+          "kind": "public-value",
+          "value": "1"
+        },
+        "rejection_attempts": 0,
+        "rejection_exhausted": false
+      }
+    ],
+    "started_at": "2026-11-15T10:00:00+00:00",
+    "ended_at": "2026-11-15T10:00:01+00:00",
+    "clock_context": {
+      "clock_id": "runtime-utc",
+      "authority": "runtime UTC clock",
+      "time_domain": "wall-clock",
+      "synchronization": "Clock synchronization is not attested by record production."
+    },
+    "realized_time_model": null,
+    "run_status": "superseded",
+    "outcome_status": "failed",
+    "traceability": {
+      "capture_spec_refs": [
+        {
+          "ref_kind": "capture-spec",
+          "ref_id": "capture-techvault-evidence-v1",
+          "ref_version": "1.0.0"
+        }
+      ],
+      "evidence_record_refs": [
+        {
+          "ref_kind": "evidence-record",
+          "ref_id": "evidence:content",
+          "ref_version": "1.0.0"
+        }
+      ],
+      "derived_measure_refs": [],
+      "claim_refs": [],
+      "notes": []
+    },
+    "realized_form_disclosures": [],
+    "augmentation_disclosures": [],
+    "materialization_attestations": [],
+    "evidence_artifacts": [
+      {
+        "artifact_id": "auth-log-evidence",
+        "role": "observation",
+        "media_type": "application/json",
+        "uri": "runs/run-techvault-001/evaluation-history.json",
+        "checksum": {
+          "algorithm": "sha256",
+          "value": "d1a2e6de54aa13b77dc5ccb6473b9130f9f18302fb12e69c06123bd753f07dd3"
+        },
+        "size_bytes": 1540,
+        "created_at": "2026-05-26T00:40:00Z",
+        "source": "stub-backend evaluator history export",
+        "satisfies_refs": [],
+        "sensitivity": "internal",
+        "description": null
+      }
+    ],
+    "result_summaries": {
+      "foothold-achieved-result": {
+        "metric_id": "foothold-achieved",
+        "value": true,
+        "value_status": "reported",
+        "evidence_refs": [
+          {
+            "ref_kind": "evidence",
+            "ref_id": "auth-log-evidence"
+          }
+        ],
+        "uncertainty": null,
+        "notes": null
+      }
+    },
+    "deviations": [],
+    "invalidation": {
+      "invalidated_at": "2026-11-15T10:00:01+00:00",
+      "reason": "failed trial replaced under the admitted experiment policy",
+      "superseded_by": {
+        "ref_kind": "run",
+        "ref_id": "archival-run-b8bd3a3ee2dd84ae989cdc7e5db93969c705a27dad1696941a33ffc7b01789ff",
+        "ref_version": "1",
+        "ref_digest": null,
+        "ref_path": null
+      }
+    },
+    "used_refs": [],
+    "generated_refs": [],
+    "derived_from_refs": [
+      {
+        "ref_kind": "run",
+        "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+        "ref_version": "1",
+        "ref_digest": null,
+        "ref_path": null
+      }
+    ],
+    "validation_basis_disclosures": [],
+    "evidence_requirement_relations": []
+  }
+}

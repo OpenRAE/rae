@@ -1,0 +1,1217 @@
+{
+  "issue": 1788,
+  "baseline": "9777721d13141ecdd9056d83ddbf3d5d0181c289",
+  "purpose": "Source identity and scope inventory. Behavioral evidence is recorded separately; a source pin alone is not a coverage assertion.",
+  "modules": [
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_allocation.py",
+      "sha256": "6a1000d9ac3b1367954b26adb14f3753547d8334ac53750bd172e22812800cb4",
+      "lines": 97,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentAllocationPolicyModel",
+        "AllocationStreamAddressModel",
+        "AllocationDrawModel",
+        "AdmittedExperimentAllocationModel",
+        "resolve_allocation_control",
+        "compile_experiment_allocation"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_analysis.py",
+      "sha256": "03bd71e55090a28cf8d1822cc43fbad1712b4cc485e738a74dd329bbe59a07d3",
+      "lines": 482,
+      "family": "contracts",
+      "top_level_symbols": [
+        "_run_model_key",
+        "_task_ref_matches_task",
+        "_run_ref_matches_run",
+        "_run_is_eligible_for_study_analysis",
+        "_validate_study_analysis_run_eligibility",
+        "_RunAllocationCoverageState",
+        "_classify_evaluation_run_allocation_candidate",
+        "_classify_eligible_run_allocation_candidate",
+        "_classify_evaluation_run_allocation_member",
+        "_raise_for_run_allocation_coverage_violations",
+        "_validate_study_run_allocation_coverage",
+        "_executable_binding_identity",
+        "_StochasticControlIdentityState",
+        "_record_stochastic_control_identity",
+        "_collect_evaluation_run_stochastic_control_identities",
+        "_validate_study_run_allocation_stochastic_control_consistency",
+        "_resolve_and_validate_study_tasks",
+        "_resolve_and_validate_study_runs",
+        "_validate_study_analysis_plan_metrics",
+        "_validate_experiment_study_against_tasks_and_runs",
+        "validate_experiment_study_structure_against_tasks_and_runs",
+        "validate_experiment_study_against_tasks_and_runs"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_analysis_eligibility.py",
+      "sha256": "39ba7aa2f5ad56f359255ec0d753b40a061644c340b1c00ed497d5c6836bf661",
+      "lines": 23,
+      "family": "contracts",
+      "top_level_symbols": [
+        "experiment_run_is_analysis_eligible"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_apparatus.py",
+      "sha256": "29938354023b83b5867be50663047deb9426b628c7632d55551b6daf7ffe985e",
+      "lines": 464,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentStochasticControlModel",
+        "ExperimentClockContextModel",
+        "ExperimentApparatusComponentModel",
+        "ExperimentApparatusContextModel",
+        "_require_processor_and_backend_components",
+        "_validate_selected_manifest_subject_uniqueness",
+        "_validate_component_manifest_ref_identity",
+        "_validate_core_component_manifest_refs",
+        "_validate_participant_component_manifest_refs",
+        "_validate_digest_qualified_manifests_are_canonical",
+        "_validate_observed_setup_evidence_present",
+        "_component_identity_satisfies_allowed_refs",
+        "_apparatus_capability_ids",
+        "_validate_apparatus_context_satisfies_constraints",
+        "_validate_component_manifest_payload",
+        "_validate_component_manifest_digest_match",
+        "processor_backend_manifests_are_mutually_compatible",
+        "validate_experiment_apparatus_context_against_manifests"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_archival.py",
+      "sha256": "8e2f8a6d34804d088dac5e85163b4c229cee46c5d76e3bdb8157b758d695a99a",
+      "lines": 55,
+      "family": "contracts",
+      "top_level_symbols": [
+        "validate_experiment_task_archival_datetimes",
+        "validate_experiment_apparatus_context_archival_datetimes",
+        "validate_experiment_run_archival_datetimes",
+        "validate_experiment_study_archival_datetimes"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_artifacts.py",
+      "sha256": "14bbf13e3cd644939f9e9b483aca0fffeef32eb1a684ce2e0e20c3e49f5b01fb",
+      "lines": 322,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentDerivedMeasureReferenceModel",
+        "ExperimentMeasurementChannelReferenceModel",
+        "ExperimentApparatusCompatibilityReferenceModel",
+        "ExperimentConditionAssignmentReferenceModel",
+        "_manifest_reference_key",
+        "_reference_scalar_fields_mismatch",
+        "_reference_subject_satisfies_requirement",
+        "_reference_satisfies_requirement",
+        "_reference_identity_scalar_fields_mismatch",
+        "_reference_identity_subject_satisfies_requirement",
+        "_reference_identity_satisfies_requirement",
+        "_experiment_reference_key",
+        "_validate_unique_experiment_references",
+        "_identity_matches_reference",
+        "_format_reference",
+        "ExperimentChecksumModel",
+        "ExperimentArtifactRefModel"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_bindings.py",
+      "sha256": "3c760fb45b0d85f2b17c1ab42b742398a887ac3871ad26c0c2d44f34aa4400d5",
+      "lines": 494,
+      "family": "contracts",
+      "top_level_symbols": [
+        "BindingScalarType",
+        "LiteralBindingValueModel",
+        "SecretReferenceBindingValueModel",
+        "ScenarioBindingTargetModel",
+        "ParticipantImplementationBindingTargetModel",
+        "ApparatusBindingTargetModel",
+        "BindingOwnerModel",
+        "ParticipantControlContextTargetModel",
+        "ParticipantControlContextConfigurationSelectionModel",
+        "ConfigurationTargetDeclarationModel",
+        "ConfigurationTargetRegistryModel",
+        "ExperimentBindingDescriptorModel",
+        "ExperimentBindingDescriptorSetModel",
+        "RealizedBindingProvenanceModel",
+        "RealizedConfigurationValueModel",
+        "ParticipantConfigurationModel",
+        "ParticipantConfigurationResultModel",
+        "_binding_value_matches_type",
+        "_validate_realized_bindings"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_capture.py",
+      "sha256": "7a698a5550a6922fe33516ebf5025ba0e8316d57239b9c8f045f2b9eeca754f1",
+      "lines": 253,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentValidityNoteModel",
+        "ExperimentCaptureWindowModel",
+        "ExperimentCaptureRequirementModel",
+        "ExperimentCaptureSpecModel",
+        "ExperimentRawEvidenceContentModel"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_conditions.py",
+      "sha256": "1765744d26ebe65d2241f06c202c1399fee8e99138792ea0a21fca811894117c",
+      "lines": 289,
+      "family": "contracts",
+      "top_level_symbols": [
+        "_component_identity_matches_reference",
+        "_participant_selection_matches_reference",
+        "_reference_in_collection",
+        "_condition_reference_matches_processor_or_backend",
+        "_condition_reference_matches_participant_implementation",
+        "_condition_reference_matches_task",
+        "_condition_reference_matches_scenario_snapshot",
+        "_condition_reference_matches_apparatus_context",
+        "_condition_reference_matches_manifest",
+        "_condition_reference_matches_profile_or_capability",
+        "_condition_reference_matches_measurement_channel",
+        "_condition_reference_matches_default_refs",
+        "_run_satisfies_condition_reference",
+        "_parameter_satisfies_requirement",
+        "_condition_assignment_run_criteria_signature",
+        "_run_satisfies_condition_assignment",
+        "_missing_required_bindings",
+        "_binding_matches_selected_configuration"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_difficulty.py",
+      "sha256": "1c91d4b31e01111270584850880e5b3c40db91b961c6ca9f81aa16b5aff51315",
+      "lines": 117,
+      "family": "contracts",
+      "top_level_symbols": [
+        "validate_adaptive_difficulty_treatment",
+        "validate_difficulty_policy_registry",
+        "_validate_absent_difficulty_registry",
+        "_validate_variant_selection_policies",
+        "_validate_difficulty_assignments",
+        "add_adaptive_study_invariant",
+        "add_difficulty_registry_invariant"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_disclosure.py",
+      "sha256": "021a6ae52923117b0482f6e0b1f95dfca95fb561bf722f2adeed4b5097468a23",
+      "lines": 449,
+      "family": "contracts",
+      "top_level_symbols": [
+        "_validate_sem_225_claim_evidence",
+        "_validate_sem_225_environment_visible",
+        "_validate_sem_225_participant_visible",
+        "_validate_sem_225_comparability_relevant",
+        "ExperimentAugmentationDisclosureModel",
+        "ExperimentMetricDefinitionModel",
+        "ExperimentEvaluationProtocolModel",
+        "ExperimentSplitAndLeakageControlsModel",
+        "_expected_manifest_schema_version_for_ref_kind",
+        "_validate_required_manifest_subject_ref",
+        "_validate_required_manifest_subject_refs",
+        "_build_required_manifest_keys",
+        "_validate_apparatus_constraint_disclosure_surface",
+        "_validate_allowed_processor_refs_resolve",
+        "_validate_allowed_backend_refs_resolve",
+        "ExperimentApparatusConstraintModel"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_evidence.py",
+      "sha256": "d3c097e1140dfe98827a84d78e5385f2679985c3b0a6407becd839fcaa0914e6",
+      "lines": 352,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentEvidenceRecordModel",
+        "ExperimentDerivedMeasureMethodModel",
+        "ExperimentDerivedMeasureModel",
+        "ExperimentRunTraceabilityModel",
+        "ExperimentRealizedFormDisclosureModel"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_evidence_refinement.py",
+      "sha256": "494f384875e520779ef07f56432b03e53bd0ab1cb485ded3c312df0c1df7084b",
+      "lines": 392,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentEvidenceRequirementRelationModel",
+        "_reference_identity",
+        "_validate_relation_owner",
+        "_validate_relation_scenario_reference",
+        "validate_evidence_requirement_relation_carrier",
+        "_resolved_authored_requirement",
+        "_resolved_scenario_identity",
+        "_resolved_capture_requirement",
+        "_enum_value",
+        "_set_refinement",
+        "_alternative_refinement",
+        "_dimension_is_stricter",
+        "validate_evidence_requirement_relations",
+        "validate_evidence_requirement_relations_against_artifacts"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_execution_accounting.py",
+      "sha256": "33ee97a78d76c23c471917c36186ccb429b87d867e838dcb96e36f2208e84431",
+      "lines": 171,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentAttemptAccountingModel",
+        "ExperimentExecutionAccountingModel",
+        "validate_run_record_shape",
+        "_validate_partial_record_shape",
+        "_validate_archival_record_shape",
+        "_validate_attempt_membership",
+        "_validate_accounting_consistency",
+        "_validate_accounting_status",
+        "_validate_archival_accounting_provenance"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_execution_accounting_schema.py",
+      "sha256": "d85e4fc97348ef6ef5689029daf3ab5c0a3e66c4233b960aea8fa91c32e4da2f",
+      "lines": 80,
+      "family": "contracts",
+      "top_level_symbols": [
+        "add_record_shape_schema"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_factorial.py",
+      "sha256": "f32b0717606d2415c537c4b3690f32f40883bd5ff69fad8bc6528085be6a50db",
+      "lines": 260,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentFactorLevelBindingModel",
+        "ExperimentFactorialDesignModel",
+        "ExperimentFactorLevelEffectsModel",
+        "ExperimentFactorialTreatmentDesignModel",
+        "_factorial_condition_count",
+        "_validate_factorial_bounds",
+        "_condition_bindings",
+        "generate_factorial_conditions",
+        "expand_factorial_input",
+        "_validate_supplied_materializations"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_factorial_treatments.py",
+      "sha256": "21de94698f40ae572c6ab917dc2c5cfd43abd66e6c6c7d5b65035e4c64672b12",
+      "lines": 162,
+      "family": "contracts",
+      "top_level_symbols": [
+        "_outcome_cost",
+        "_fixed_policies",
+        "_validate_work",
+        "_reject_unknown_carrier",
+        "_validate_byte_bound",
+        "expand_treatment_input"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_manifest_references.py",
+      "sha256": "74505cf63b6cee314b7d904703e6be55c4b99c5a742ce4612f7cc56b6384f93c",
+      "lines": 233,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentManifestReferenceModel",
+        "ExperimentProcessorReferenceModel",
+        "ExperimentBackendReferenceModel",
+        "ExperimentEvidenceReferenceModel",
+        "ExperimentEvidenceSatisfactionReferenceModel",
+        "ExperimentRunEvidenceArtifactReferenceModel",
+        "ExperimentCaptureSpecReferenceModel",
+        "ExperimentEvidenceRecordReferenceModel"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_plan_controls.py",
+      "sha256": "ff0632be7595403c1ec7d9b7f8f11f5512cb82579f4830ca4198707d42e69048",
+      "lines": 40,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentEpisodeControlModel",
+        "ExperimentRedVariantSelectionModel"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_references.py",
+      "sha256": "41e58dde62698c0ce710f05aeafdb9b78270f826bbf827c2c4723fce2dc45cd5",
+      "lines": 231,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentReferenceModel",
+        "PrunedReferenceFieldsMixin",
+        "ExperimentScenarioReferenceModel",
+        "ExperimentTaskReferenceModel",
+        "ExperimentScenarioSnapshotReferenceModel",
+        "AssociatedArtifactParentReferenceModel",
+        "ExperimentParameterModel",
+        "ExperimentConditionAssignmentParameterModel"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_run.py",
+      "sha256": "82e3df9f2b83baa79e7ddf1f0a036ff6f4a8074a6ad4c456ed8528a3db499b1f",
+      "lines": 470,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentResultSummaryModel",
+        "ExperimentInvalidationModel",
+        "ExperimentRunModel",
+        "_validate_run_outcome_evidence",
+        "_participant_implementation_components",
+        "_validate_run_participant_provenance_required",
+        "_validate_run_participant_implementation_selections",
+        "_validate_run_evidence_artifact_refs",
+        "_traced_evidence_record_refs",
+        "_validate_run_realized_form_disclosures",
+        "_validate_run_augmentation_disclosures",
+        "_validate_run_task_ref",
+        "_validate_run_scenario_ref",
+        "_validate_run_apparatus_constraints",
+        "_validate_run_metric_ids_declared",
+        "validate_experiment_run_structure_against_task",
+        "validate_experiment_run_time_model"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_run_difficulty.py",
+      "sha256": "d8c9dfa06af94397b94f8aa2c804a82a5b3835bc6a0b7a4bb633e2ee775bf484",
+      "lines": 95,
+      "family": "contracts",
+      "top_level_symbols": [
+        "validate_run_difficulty_provenance",
+        "_difficulty_decision_times",
+        "_validate_difficulty_intervention_time",
+        "add_run_difficulty_invariants"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_run_evidence_validation.py",
+      "sha256": "b3ab15d45761f10f53a2ef15d9258633adad2bc60803cbc85cd64671b990e176",
+      "lines": 66,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentRunEvidenceInputs",
+        "_task_claims_required_evidence",
+        "validate_experiment_run_against_task"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_run_stochastic.py",
+      "sha256": "ae866e571c58a427c4650ea717175d1e28e44be334e058a484c41e45f209aead",
+      "lines": 114,
+      "family": "contracts",
+      "top_level_symbols": [
+        "_require_run_stochastic_draw_control_ids_resolve",
+        "_RunStochasticDrawControlProblems",
+        "_classify_run_stochastic_draw_control_refs",
+        "_raise_for_run_stochastic_draw_control_problem",
+        "_raise_for_run_stochastic_draw_control_problems",
+        "_validate_run_stochastic_draw_control_refs"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_run_timing.py",
+      "sha256": "8c86a705340b0612aa072c42f3748c4270a2974d0af5692f4bbfd6a5f099a920",
+      "lines": 31,
+      "family": "contracts",
+      "top_level_symbols": [
+        "validate_run_timing",
+        "validate_run_invalidation_status"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_selection.py",
+      "sha256": "8b2e1a48501b74939c6233b65bd8cfeb5fe7b2fa78c5db79c87dd9b35def79b1",
+      "lines": 382,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentSelectionReferenceOutcomeModel",
+        "ExperimentSelectionMemberOutcomeModel",
+        "ExperimentSelectionSubsetOutcomeModel",
+        "ExperimentSelectionOrderOutcomeModel",
+        "ExperimentFixedSelectionPolicyModel",
+        "ExperimentEnumerateSelectionPolicyModel",
+        "ExperimentProductSelectionPolicyModel",
+        "ExperimentSelectionStratumModel",
+        "ExperimentStratifiedSelectionPolicyModel",
+        "ExperimentSampleSelectionPolicyModel",
+        "_validate_selection_policy_registry",
+        "_validate_sample_control",
+        "_validate_product_graph",
+        "_validate_product_policy",
+        "_product_output_bound",
+        "_validate_product_cycles",
+        "_validate_selection_factor_joins",
+        "_validate_binding_descriptor_refs",
+        "_validate_stratified_factor_join",
+        "_validate_stratum_factor_join"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_spec.py",
+      "sha256": "526a041e62dd6db29d20d29146953a719d50f82f5b3cd3c2315a55dd67a507e3",
+      "lines": 394,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentRunPlanModel",
+        "_validate_binding_descriptor_source",
+        "ExperimentSpecModel",
+        "_add_authoring_conditionals"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_study.py",
+      "sha256": "6b6217a5283dcddf4cac14f3af859709664df7d9438641ecf2397a097f7678ce",
+      "lines": 378,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentStudyMembershipModel",
+        "ExperimentStudyFactorModel",
+        "ExperimentConditionAssignmentModel",
+        "_validate_condition_factor_levels",
+        "ExperimentRunAllocationPlanModel",
+        "ExperimentStatisticalMethodModel",
+        "ExperimentUncertaintyMethodModel",
+        "ExperimentMultipleComparisonPolicyModel",
+        "ExperimentMissingDataPolicyModel",
+        "ExperimentAnalysisPlanModel"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_study_contract.py",
+      "sha256": "262c323c7a38348e4778b47d0ce87afea02518d4f5b1aa2bfa27451471a144c7",
+      "lines": 251,
+      "family": "contracts",
+      "top_level_symbols": [
+        "_add_claim_bearing_study_schema",
+        "ExperimentStudyModel"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_study_definition.py",
+      "sha256": "ec3b7e5e4a6c276908801b7cd593f47005028d8a0cc4b38f09d6bb6a64be87d8",
+      "lines": 41,
+      "family": "contracts",
+      "top_level_symbols": [
+        "StudyRelationInputs",
+        "validate_study_definition"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_study_run_validation.py",
+      "sha256": "3ee70c4445b78b16254fae9495ed103a1123b724441de334f2ca2218024b0e47",
+      "lines": 42,
+      "family": "contracts",
+      "top_level_symbols": [
+        "validate_study_run_task_membership"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_task.py",
+      "sha256": "0e0c9b5c5fac2afff6c279bfcc691836353fef34c4144143794d43ecb987fe91",
+      "lines": 80,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentTaskModel"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/experiment_treatments.py",
+      "sha256": "f9d4632d4dd3874ece090451cddf25d017dff8a0bbc842ac71b7c0560d60fc96",
+      "lines": 171,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentFactorLevelSelectionModel",
+        "ExperimentScenarioSelectionDescriptorModel",
+        "validate_selection_descriptor_set",
+        "_validate_entry_treatments",
+        "_validate_retained_treatments",
+        "validate_plan_treatments"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/trial_analysis.py",
+      "sha256": "60dba43fdcce357ecebff47a051570627160059ef3fe8db0c8aac3a88515da5a",
+      "lines": 409,
+      "family": "contracts",
+      "top_level_symbols": [
+        "AdmittedTrialPlanReconciliation",
+        "_validate_trial_terminal_outcome",
+        "_validate_run_plan_linkage",
+        "_validate_run_stochastic_provenance",
+        "_validate_run_selection_provenance",
+        "_validate_run_binding_provenance",
+        "_validate_run_attempt_evidence",
+        "validate_admitted_trial_run",
+        "_index_cleanup_receipts",
+        "_index_archival_runs",
+        "reconcile_admitted_trial_plan",
+        "_validate_study_identity",
+        "_validate_study_run_membership",
+        "_validate_study_allocation",
+        "validate_admitted_trial_study",
+        "_validate_admitted_trial_study",
+        "TrialReplacementStudyInputs",
+        "validate_replacement_trial_study",
+        "_validate_trial_accounting",
+        "_validate_accounting_cleanup"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/trial_cleanup.py",
+      "sha256": "a7e1dc3fb919b776ca09739f9e8e5d6fb79cb2d3c64809ee3a3b2a3b3a7d9f95",
+      "lines": 441,
+      "family": "contracts",
+      "top_level_symbols": [
+        "_require_unique",
+        "_validate_cleanup_plan_map_keys",
+        "_validate_cleanup_plan_references",
+        "_validate_cleanup_retry_safety",
+        "CleanupResourceBoundaryModel",
+        "CleanStateRequirementModel",
+        "CleanupObligationModel",
+        "TrialCleanupPlanModel",
+        "CleanupObligationResultModel",
+        "CleanStateClaimModel",
+        "TrialCleanupReceiptModel",
+        "validate_trial_cleanup_receipt",
+        "_validate_clean_state_claim_boundaries",
+        "IsolationDimensionEvidenceModel",
+        "SchedulerIsolationProofModel"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/trial_compilation.py",
+      "sha256": "17822f3a9432ccca2e4a87b753201b360c56cc2892a52e1a6f37ee4d4cace1b9",
+      "lines": 77,
+      "family": "contracts",
+      "top_level_symbols": [
+        "TrialCompilationLimitsModel",
+        "TrialCleanupTemplateModel",
+        "TrialExecutionAuthorityModel"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/trial_controls.py",
+      "sha256": "e5671aafe11348188a75b59e0d1db4bb3b856c31133abbf176b309b9eabb7d18",
+      "lines": 39,
+      "family": "contracts",
+      "top_level_symbols": [
+        "OperationSupervisionCapabilitiesModel",
+        "required_trial_operation_guarantees"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/trial_coordinate_order.py",
+      "sha256": "3fe02f78b6c438349c4ef7a2d236bfe11517e8ea847c4c3744ebfa10c569a195",
+      "lines": 75,
+      "family": "contracts",
+      "top_level_symbols": [
+        "replicate_ordinal",
+        "canonical_coordinate_sort_key",
+        "canonical_entry_order",
+        "scheduling_policy_id"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/trial_provenance.py",
+      "sha256": "dc9f44b573edea9697c6dabddb3992e63b8cea41c1e000c8728f23cf57a2bb15",
+      "lines": 128,
+      "family": "contracts",
+      "top_level_symbols": [
+        "TrialProcessorPlanReferenceModel",
+        "TrialExecutionAttemptReferenceModel",
+        "TrialRunProvenanceModel",
+        "validate_trial_run_provenance_binding",
+        "add_trial_run_provenance_invariant"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/trial_replacement.py",
+      "sha256": "38d7c2ef4c7996814ae961fa62ca47c1903ec5d111713f332cb31104232dc6d8",
+      "lines": 71,
+      "family": "contracts",
+      "top_level_symbols": [
+        "TrialReplacementPolicyModel",
+        "TrialReplacementOriginModel"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/trial_replacement_analysis.py",
+      "sha256": "37c29239655f4292a67d0639efd42c6e4fe5bf0c474cb5e86764583e76677dd1",
+      "lines": 336,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ReplacementTrialReconciliation",
+        "_key",
+        "_digest",
+        "_revalidated",
+        "_index",
+        "_index_plans",
+        "_validate_receipt_identities",
+        "_index_receipts",
+        "_index_runs",
+        "_validate_child",
+        "_validate_child_authority",
+        "_validate_child_parent",
+        "_validate_child_evidence",
+        "_chains",
+        "_follow_chain",
+        "_leaf_run",
+        "_eligible",
+        "_exhausted",
+        "_validate_original",
+        "reconcile_replacement_trials"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/contracts/trial_replacement_archive.py",
+      "sha256": "9a276a1e44c6d912424a35dfc9f841e6dba67e57a9aa93b1b88bc772fc462025",
+      "lines": 65,
+      "family": "contracts",
+      "top_level_symbols": [
+        "replacement_parent_cleanup",
+        "replacement_resources_reusable",
+        "build_superseded_trial_run"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/experiment_bindings.py",
+      "sha256": "f8b7cf81e30ca8838600f9c2e5f89c4a42abb745c61758d770b25cb0cc4f236b",
+      "lines": 213,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentBindingTargetError",
+        "ScenarioBindingResolution",
+        "ScenarioBindingTargetResolver",
+        "validate_experiment_binding_targets",
+        "_resolve_scenario_target",
+        "_resolve_participant_target",
+        "_resolve_apparatus_target",
+        "_declared_target",
+        "_validate_declared_target"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_contracts/experiment_spec.py",
+      "sha256": "63b636edc94a1752fcea3c98e818523619dc5d3f2cc3d92b76d8010ac7d118ef",
+      "lines": 203,
+      "family": "contracts",
+      "top_level_symbols": [
+        "ExperimentSpecError",
+        "ExperimentSpecValidationError",
+        "_DuplicateMappingKey",
+        "_ExperimentSpecLoader",
+        "_validate_finite_json",
+        "_safe_validation_details",
+        "_load_yaml",
+        "parse_experiment_spec",
+        "_validate_task_reference",
+        "load_experiment_spec",
+        "find_experiment_specs"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/trial_compiler/__init__.py",
+      "sha256": "2c4723e4af41c8b10df88ce715f176d1705233b768b690a81b6f500bd0e3cec7",
+      "lines": 17,
+      "family": "compiler",
+      "top_level_symbols": []
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/trial_compiler/apparatus.py",
+      "sha256": "52e2d1dca2b31f5862b2a05b37ab105434be4f05f4962fb24943ab907c0e5bbc",
+      "lines": 490,
+      "family": "compiler",
+      "top_level_symbols": [
+        "_fail",
+        "apparatus_manifest_key",
+        "_manifest_kind",
+        "_validate_reference_payload",
+        "_manifest_capability_ids",
+        "_identity_allowed",
+        "_reference_satisfies_requirement",
+        "_load_apparatus_manifests",
+        "_validate_apparatus_envelope_and_capabilities",
+        "_validate_apparatus_allowlists",
+        "_validate_apparatus_intent",
+        "_validate_selected_compatibility",
+        "validate_selected_apparatus",
+        "validate_admitted_apparatus",
+        "validate_selected_participant_manifests",
+        "validate_participant_manifest_references",
+        "_resolve_composition_components",
+        "_validate_composition_compatibility",
+        "_validate_composition_intent",
+        "validate_composition_components"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/trial_compiler/bindings.py",
+      "sha256": "9353ea30f91629bbf1c3c4d24ba9cebf82336775979c2c995ac7b17e12773a31",
+      "lines": 278,
+      "family": "compiler",
+      "top_level_symbols": [
+        "_outcome_binding_value",
+        "_descriptor_matches_selection",
+        "_admitted_descriptors",
+        "_entry_bindings",
+        "_factorial_entry_bindings",
+        "_selection_entry_bindings",
+        "entry_participant_configurations",
+        "_configuration_rejected",
+        "_factorial_participant_defaults"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/trial_compiler/compiler.py",
+      "sha256": "2d9ac534c5cc51fd1b3f99f7acb7124e20965c7d846f03f6cb246a01169b9020",
+      "lines": 477,
+      "family": "compiler",
+      "top_level_symbols": [
+        "_CaptureAdmissionFailure",
+        "_fail",
+        "_diagnostic",
+        "_require_capture_admission",
+        "_compile_entry",
+        "_failure_key",
+        "_earliest_failure",
+        "_has_typed_treatments",
+        "_compile_coordinate",
+        "_compile_entries",
+        "_compilation_authority",
+        "_compile",
+        "_compile_controls_and_allocation",
+        "compile_admitted_trial_plan"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/trial_compiler/control_admission.py",
+      "sha256": "811c4abd6f64baafc4736acc71370cf4d46de36d19d247ba2796971131c47d36",
+      "lines": 32,
+      "family": "compiler",
+      "top_level_symbols": [
+        "_unsupported",
+        "require_trial_controls"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/trial_compiler/domains.py",
+      "sha256": "ba4dde55092c89a87caad22130e096800fd8b5dc800fe638ca7034bb8e45ebdd",
+      "lines": 152,
+      "family": "compiler",
+      "top_level_symbols": [
+        "_canonical_scalar_key",
+        "_integer_interval_bounds",
+        "_integer_interval_values",
+        "_scalar_domain_cardinality",
+        "_domain_cardinality",
+        "_scalar_values",
+        "canonical_domain_outcomes"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/trial_compiler/effects.py",
+      "sha256": "498d39a24509fa3d593cbffd0e6e43677ea253603d5b4d67e8473e706f8fd87a",
+      "lines": 123,
+      "family": "compiler",
+      "top_level_symbols": [
+        "_participant_effects",
+        "resolved_treatment_signature",
+        "validate_factorial_distinctness"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/trial_compiler/inputs.py",
+      "sha256": "efbf345b69f5f2ee9417bf41148ccc0790d9bdd70c9f6f7a295976f483d18960",
+      "lines": 427,
+      "family": "compiler",
+      "top_level_symbols": [
+        "_fail",
+        "coordinate_replicate_id",
+        "validate_treatment_profile",
+        "_validate_primary_input_refs",
+        "_validate_binding_input_ref",
+        "_validate_capture_inputs",
+        "validate_input_identities",
+        "validate_realization_assignments",
+        "_participant_reference_key",
+        "canonical_realization_binding",
+        "entry_descriptor_ids",
+        "coordinates",
+        "_unconditioned_coordinates",
+        "plan_intent",
+        "canonical_input_refs",
+        "visit_indices"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/trial_compiler/models.py",
+      "sha256": "cac2acb80f592f788bb2d2838f36cef882c1fad7116094f1c0b732732d9ecf11",
+      "lines": 168,
+      "family": "compiler",
+      "top_level_symbols": [
+        "_EntryCompilationAuthority",
+        "TrialCompilationRequest",
+        "TrialCompilationResult",
+        "CompilationFailure"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/trial_compiler/policies.py",
+      "sha256": "7a8e5e40868ca3cb6c438f28f69294eedd8ef2ca23181c63fc3d7bc55c816db2",
+      "lines": 452,
+      "family": "compiler",
+      "top_level_symbols": [
+        "ResolvedSelection",
+        "CoordinateSelections",
+        "_merge_rows",
+        "_static_rows",
+        "_stratified_rows",
+        "_resolve_sample_control",
+        "_sample_rows",
+        "compile_coordinate_selections",
+        "_factorial_coordinate_selections",
+        "_treatment_coordinate_selections",
+        "_factorial_row"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/trial_compiler/profiles.py",
+      "sha256": "26a3c224567b6e748b0dd97bd679d6f808e2767df31ea7b4d5d9da0aa4861313",
+      "lines": 110,
+      "family": "compiler",
+      "top_level_symbols": [
+        "admitted_profiles",
+        "replicate_id",
+        "coordinate_projection",
+        "realization_assignment_key",
+        "derive_identity"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/trial_compiler/readmission.py",
+      "sha256": "1cdeb1bfb2401faa9ef489d9aba8623e7f9d1ae6cb1f12339437541062fa54ea",
+      "lines": 32,
+      "family": "compiler",
+      "top_level_symbols": [
+        "readmit_admitted_trial_plan"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/trial_compiler/realization_admission.py",
+      "sha256": "d69cabfd2f0f472bad346c49dcbcba67cb7335568ccb9e942af0f053c2f280ff",
+      "lines": 382,
+      "family": "compiler",
+      "top_level_symbols": [
+        "MixedCompositionAuthority",
+        "_fail",
+        "validate_selected_scenario",
+        "_validate_mixed_resources",
+        "_profile_work",
+        "_resolve_profile_closure",
+        "_validate_profile_apparatus",
+        "_profile_closures",
+        "_validate_profile_limits",
+        "_admit_profile_apparatus",
+        "validate_mixed_authority",
+        "_revalidate_source_plan",
+        "_resolve_source_entry",
+        "_validate_source_inputs",
+        "_source_scenario",
+        "_validate_mixed_source",
+        "validate_mixed_realization"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/trial_compiler/replacement.py",
+      "sha256": "ca7c8bba737179d907bf89a92da98179b135b99f7a6b2a57492b378419e349c0",
+      "lines": 255,
+      "family": "compiler",
+      "top_level_symbols": [
+        "TrialReplacementResult",
+        "_refuse",
+        "_clean_parent",
+        "_context",
+        "_validated_run",
+        "_validated_receipts",
+        "_validated_root",
+        "_prior_plan_bytes",
+        "_validated_prior",
+        "_replayed_decision",
+        "_replay_history",
+        "_allocate",
+        "compile_replacement_trial"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/trial_compiler/replacement_inputs.py",
+      "sha256": "867180d1ac5abdff983e9672500ff77690fbe27e4fe04cf4e5a1c087b28e1531",
+      "lines": 90,
+      "family": "compiler",
+      "top_level_symbols": [
+        "replacement_coordinate",
+        "ReplacementCompilationContext"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/trial_compiler/sources.py",
+      "sha256": "d17fb61887b6782606dc3536ecfb270841de0acd72369728d35bfcced2766197",
+      "lines": 153,
+      "family": "compiler",
+      "top_level_symbols": [
+        "validate_authoring_selections",
+        "_validate_coordinate_set",
+        "_resolve_descriptors",
+        "_authoring_coordinates",
+        "_validate_entry_sources"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_processor/trial_compiler/tool_support.py",
+      "sha256": "2d7da7e58ef95bff824f9735696c565cf0be8c1552254aab7b5f4dd1ebd52ecb",
+      "lines": 37,
+      "family": "compiler",
+      "top_level_symbols": [
+        "require_selected_tool_support"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_runtime/experiment_records.py",
+      "sha256": "12998c65b943a16dff381c7f67f2249f0b9e14f3b7ea49cfece3d9eb86cd20a0",
+      "lines": 140,
+      "family": "runtime",
+      "top_level_symbols": [
+        "ExperimentRunMetadata",
+        "ExperimentRecordSource",
+        "ExperimentAccounting",
+        "ExperimentRecordBundle",
+        "ExperimentRecordArchive",
+        "ExperimentEvidenceReader"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_runtime/runtime_experiment.py",
+      "sha256": "c64f3e61a3aa519f0d45cfbf392e13f557d6094e32f3d3681ec96d19976f0238",
+      "lines": 331,
+      "family": "runtime",
+      "top_level_symbols": [
+        "ExperimentProgress",
+        "TrialSlot",
+        "trial_request",
+        "RuntimeExperiment"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_runtime/runtime_experiment_admission.py",
+      "sha256": "72bcc1c86c757a12cfab5fb3af424f7c7b1e72131e1561c4a812470251e09c52",
+      "lines": 97,
+      "family": "runtime",
+      "top_level_symbols": [
+        "admit_trial",
+        "_require_plan",
+        "_require_operation_guarantees",
+        "_require_retry_owner"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_runtime/runtime_experiment_progress.py",
+      "sha256": "b1da8a696b9968f5338f1aae6aeb916468bed6f79f73dda651b370d9314dadb9",
+      "lines": 174,
+      "family": "runtime",
+      "top_level_symbols": [
+        "advance_experiment",
+        "_pending_slots",
+        "_advance_slot",
+        "_finish_attempt",
+        "_advance_unit",
+        "_record_terminal",
+        "retry_attempt",
+        "_retry_after_effects",
+        "_prepare_retry"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_runtime/runtime_experiment_records.py",
+      "sha256": "fa38580b5f8b9e32f7dc06499f8711d43657b7d701fbb20a6dd4674318ffa932",
+      "lines": 232,
+      "family": "runtime",
+      "top_level_symbols": [
+        "experiment_records",
+        "_planned_run_count",
+        "_started_sources",
+        "_run_metadata",
+        "_checked_run",
+        "_source",
+        "_publish"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_runtime/runtime_experiment_replacement.py",
+      "sha256": "8491006f15684fd021534120464bfe90a528692433e0ce2cff35667141eaab4a",
+      "lines": 262,
+      "family": "runtime",
+      "top_level_symbols": [
+        "TrialArchiveOwner",
+        "ExperimentReplacementBinding",
+        "_write_archive",
+        "_publish_archive",
+        "archive_and_replace",
+        "_run_attempts",
+        "_archive_attempts",
+        "_archive_candidate_run",
+        "_validate_archive_attempts",
+        "_replace_archived_run",
+        "_compile_replacement"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_runtime/runtime_study_records.py",
+      "sha256": "2c45df5939d4ff232e4533c990155f09db017e4bb2e3f00f98f60b993f6364cc",
+      "lines": 196,
+      "family": "runtime",
+      "top_level_symbols": [
+        "assemble_study",
+        "_authored_definition",
+        "_study_snapshot",
+        "_add_run_membership",
+        "_validate_study",
+        "_replacement_runs"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_runtime/runtime_trial_decisions.py",
+      "sha256": "1042a1b62d910abb9b1f6e16cb4be24e859735c5a98a484fd87186406a2a7704",
+      "lines": 150,
+      "family": "runtime",
+      "top_level_symbols": [
+        "ExperimentDecision",
+        "TrialAttemptDecision",
+        "TrialObservationDecision",
+        "TrialTerminalDecision",
+        "ExperimentCancellationDecision",
+        "TrialReplacementDecision",
+        "TrialArchiveCandidateDecision",
+        "TrialArchiveDecision",
+        "TrialInterruptionDecision"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_runtime/runtime_trial_services.py",
+      "sha256": "08b1ae2078e46e7258051c2ce4854f60ff41f6917378d765433f2aecbe031431",
+      "lines": 137,
+      "family": "runtime",
+      "top_level_symbols": [
+        "call_installed_owner",
+        "TrialConfigurationObservation",
+        "TrialExecutionObservation",
+        "TrialCaptureObservation",
+        "TrialCleanupObservation",
+        "TrialRetryObservation",
+        "TrialRuntimeServices"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_runtime/runtime_trial_unit.py",
+      "sha256": "bc9fccaafcda48b3df28486c35c0573932a3beb0b19c07e1f3adb99eee9b3418",
+      "lines": 423,
+      "family": "runtime",
+      "top_level_symbols": [
+        "TrialPending",
+        "RuntimeTrialUnit"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_runtime/runtime_record_assembly.py",
+      "sha256": "8bbd713012a70b8fa92464b0356e23068848f01592bcf32561f3b1e84a95d646",
+      "lines": 322,
+      "family": "record-support",
+      "top_level_symbols": [
+        "assemble_run",
+        "_record_traceability",
+        "_observed_evidence",
+        "_has_archival_facts",
+        "_merge_realized_bindings",
+        "_assemble_attempt",
+        "_configuration_status",
+        "_capture_status",
+        "_cleanup_status",
+        "_realized_bindings",
+        "_trial_provenance",
+        "eligible_run_ids",
+        "summarize_records"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_runtime/runtime_record_decisions.py",
+      "sha256": "b2c9a4111c5c48f95c66f76ad3c90daee6e47b24a765c87e429f771f332c2b2b",
+      "lines": 51,
+      "family": "record-support",
+      "top_level_symbols": [
+        "ExperimentStudyDefinitionDecision",
+        "ExperimentRecordPublicationDecision"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_runtime/runtime_record_lineage.py",
+      "sha256": "a3382bdea5c4cc902a6b260b7d8e79e3126f134830f3b3e5f02824ee22e43615",
+      "lines": 78,
+      "family": "record-support",
+      "top_level_symbols": [
+        "canonical_archival_runs",
+        "accounting_validation_record",
+        "_matching_scientific_record"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_runtime/runtime_record_publication.py",
+      "sha256": "80094cac0dbed69f4c104238b09a77eec5ed2611e31fd16854673ebeee975a03",
+      "lines": 117,
+      "family": "record-support",
+      "top_level_symbols": [
+        "publish_records",
+        "_require_archive_owner",
+        "_run_candidates",
+        "_run_candidate",
+        "_retain_candidate",
+        "_write_and_read"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_runtime/runtime_record_validation.py",
+      "sha256": "adae8d6719beb087d98a44c071d9f5589eb30c18a0955dc349b6cfdd731d54aa",
+      "lines": 148,
+      "family": "record-support",
+      "top_level_symbols": [
+        "validate_observed_apparatus",
+        "record_evidence",
+        "_validate_evidence_inputs",
+        "with_record_evidence",
+        "validate_run_evidence"
+      ]
+    },
+    {
+      "path": "implementations/python/packages/raes_runtime/runtime_record_versions.py",
+      "sha256": "bc8dfb9a61f5adf29cf79b5e0a4781cd488b6e4d0c1fdd4d99001402a300450c",
+      "lines": 61,
+      "family": "record-support",
+      "top_level_symbols": [
+        "_retain",
+        "retained_record_versions",
+        "require_compatible_record_versions"
+      ]
+    }
+  ]
+}

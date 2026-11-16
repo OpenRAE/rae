@@ -50,7 +50,7 @@ func trialAllocation(plan any, source, path string) error {
 	policy := at(allocation, termPolicy)
 	control := at(plan, "stochastic_controls", stringAt(policy, "stochastic_control_ref"))
 	binding := at(control, "executable_binding")
-	if stringAt(control, "role") != "randomization" || stringAt(binding, "profile_ref", "ref_id") != termBlake3XofV1 || stringAt(binding, "profile_ref", "ref_version") != "random-stream-profile/v1" || stringAt(binding, "root_entropy", termKind) != "public-seed" {
+	if stringAt(control, "role") != experimentTermRandomization || stringAt(binding, "profile_ref", "ref_id") != termBlake3XofV1 || stringAt(binding, "profile_ref", "ref_version") != "random-stream-profile/v1" || stringAt(binding, "root_entropy", termKind) != "public-seed" {
 		return invalid()
 	}
 	seed, err := randstream.PublicSeed(stringAt(binding, "root_entropy", "encoding"), stringAt(binding, "root_entropy", "value"))

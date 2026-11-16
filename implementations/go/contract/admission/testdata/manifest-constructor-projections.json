@@ -1,0 +1,2907 @@
+{
+  "sources": {
+    "implementations/python/packages/raes_contracts/contracts/manifests.py": "22f94329768fcf440d167c4cc0ff04993c7a594191c9e16d16d77bfdf1ca75d0",
+    "implementations/python/packages/raes_contracts/contracts/participant_manifests.py": "bee590b0e8cf8f9330b90dcb43b8620fdc5e83de98734fb5af4eccb276415c7f",
+    "implementations/python/packages/raes_contracts/contracts/experiment_bindings.py": "3c760fb45b0d85f2b17c1ab42b742398a887ac3871ad26c0c2d44f34aa4400d5"
+  },
+  "cases": [
+    {
+      "name": "backend-defaults",
+      "contract_id": "backend-manifest-v2",
+      "input": {
+        "identity": {
+          "name": "backend-a",
+          "version": "1"
+        },
+        "supported_contract_versions": [
+          "backend-manifest-v2",
+          "artifact-requirement-v1",
+          "provisioning-plan-v1",
+          "orchestration-plan-v1",
+          "evaluation-plan-v1",
+          "operation-receipt-v1",
+          "operation-status-v1",
+          "runtime-snapshot-v1",
+          "workflow-result-envelope-v1",
+          "workflow-history-event-stream-v1",
+          "evaluation-result-envelope-v1",
+          "proposition-truth-result-v1",
+          "evaluation-history-event-stream-v1",
+          "participant-episode-state-envelope-v1",
+          "participant-episode-history-event-stream-v1",
+          "participant-behavior-history-event-stream-v1",
+          "participant-execution-binding-v1",
+          "participant-execution-control-v1",
+          "participant-execution-service-state-v1",
+          "participant-resource-budget-policy-v1",
+          "participant-resource-pool-capacity-v1",
+          "participant-resource-budget-state-v1",
+          "participant-resource-budget-event-v1",
+          "participant-control-occurrence-v1",
+          "participant-control-selection-v1",
+          "participant-control-evaluation-v1",
+          "participant-control-selection-v2",
+          "participant-control-evaluation-v2",
+          "participant-crossing-occurrence-v1",
+          "participant-flow-control-relation-v1",
+          "participant-lifecycle-event-v1",
+          "participant-observation-envelope-v1",
+          "participant-shared-state-record-v1",
+          "participant-joint-action-record-v1",
+          "participant-time-management-context-v1",
+          "participant-outcome-report-v1",
+          "experiment-capture-spec-v1",
+          "experiment-evidence-record-v1",
+          "experiment-derived-measure-v1",
+          "experiment-run-v1",
+          "trial-cleanup-plan-v1",
+          "trial-cleanup-receipt-v1",
+          "realization-envelope-v1"
+        ],
+        "compatibility": {
+          "processors": [
+            "raes-reference-processor"
+          ]
+        },
+        "realization_support": [
+          {
+            "domain": "runtime-realization",
+            "support_mode": "constrained",
+            "supported_constraint_kinds": [
+              "account-feature",
+              "content-type",
+              "node-architecture",
+              "node-type",
+              "os-family",
+              "workflow-feature",
+              "workflow-state-predicate"
+            ],
+            "supported_exact_requirement_kinds": [
+              "declared-capability-match"
+            ],
+            "disclosure_kinds": [
+              "backend-manifest-v2",
+              "operation-status-v1",
+              "runtime-snapshot-v1"
+            ],
+            "observation_capabilities": {
+              "operating-system": {
+                "verification_scope": "presence",
+                "observation_strength": "guest-observed"
+              }
+            }
+          }
+        ],
+        "realization_envelope": {
+          "envelope_id": "libvirt-qemu.generic.v1",
+          "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
+          "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
+        },
+        "concept_bindings": [
+          {
+            "scope": "capabilities.provisioner.supported_node_types",
+            "family": "assets"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_os_families",
+            "family": "assets"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_node_architectures",
+            "family": "assets"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_content_types",
+            "family": "tools-and-artifacts"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_account_features",
+            "family": "identities"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_domain_profiles",
+            "family": "identities"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_service_materialization_profiles",
+            "family": "tools-and-artifacts"
+          },
+          {
+            "scope": "capabilities.orchestrator.supported_sections",
+            "family": "actions-and-events"
+          },
+          {
+            "scope": "capabilities.evaluator.supported_sections",
+            "family": "observables"
+          },
+          {
+            "scope": "capabilities.participant_runtime.supported_participant_roles",
+            "family": "identities"
+          },
+          {
+            "scope": "capabilities.participant_runtime.supported_behavior_features",
+            "family": "actions-and-events"
+          },
+          {
+            "scope": "capabilities.participant_runtime.supported_interaction_features",
+            "family": "relationships"
+          },
+          {
+            "scope": "capabilities.observation.supported_capture_kinds",
+            "family": "provenance-and-evidence"
+          },
+          {
+            "scope": "capabilities.observation.supported_channel_kinds",
+            "family": "apparatus-declarations"
+          },
+          {
+            "scope": "capabilities.observation.supported_sealing_modes",
+            "family": "provenance-and-evidence"
+          }
+        ],
+        "capabilities": {
+          "provisioner": {
+            "name": "stub-provisioner",
+            "supported_node_types": [
+              "compute",
+              "switch"
+            ],
+            "supported_os_families": [
+              "freebsd",
+              "linux",
+              "macos",
+              "other",
+              "windows"
+            ],
+            "operating_systems": [
+              {
+                "family": "linux",
+                "distribution": "ubuntu",
+                "versions": [
+                  "22.04"
+                ]
+              }
+            ],
+            "supported_node_architectures": [
+              "aarch64",
+              "x86_64"
+            ],
+            "supported_content_types": [
+              "dataset",
+              "directory",
+              "file"
+            ],
+            "supported_account_features": [
+              "auth_method",
+              "disabled",
+              "groups",
+              "home",
+              "mail",
+              "shell",
+              "spn"
+            ],
+            "supported_domain_profiles": [
+              "active_directory"
+            ],
+            "supports_acls": true,
+            "supports_accounts": true,
+            "supports_generated_artifacts": true,
+            "supported_generated_artifact_kinds": [
+              "certificate_bundle",
+              "rendered_config",
+              "ssh_key_bundle"
+            ],
+            "supported_generated_artifact_delivery_modes": [
+              "env_file",
+              "environment",
+              "mount"
+            ],
+            "supports_persistent_volumes": true
+          },
+          "orchestrator": {
+            "name": "stub-orchestrator",
+            "supported_sections": [
+              "events",
+              "injects",
+              "scripts",
+              "stories",
+              "workflows"
+            ],
+            "supports_workflows": true,
+            "supported_workflow_features": [
+              "call",
+              "cancellation",
+              "compensation",
+              "decision",
+              "failure-transitions",
+              "parallel-barrier",
+              "retry",
+              "switch",
+              "timeouts"
+            ],
+            "supported_workflow_state_predicates": [
+              "attempt-counts",
+              "outcome-matching"
+            ]
+          },
+          "evaluator": {
+            "name": "stub-evaluator",
+            "supported_sections": [
+              "assertions",
+              "conditions",
+              "objectives",
+              "propositions"
+            ],
+            "supported_predicate_families": [
+              "boolean",
+              "number",
+              "presence",
+              "string"
+            ],
+            "supported_quantifiers": [
+              "all",
+              "any",
+              "at_least"
+            ],
+            "supported_truth_outcomes": [
+              "false",
+              "true",
+              "unknown",
+              "unsupported"
+            ],
+            "supported_evidence_channels": [
+              "api_response",
+              "file_artifact",
+              "log"
+            ],
+            "supported_time_domains": [
+              "scenario_time"
+            ],
+            "preserves_binding_provenance": true
+          },
+          "participant_runtime": {
+            "name": "stub-participant-runtime",
+            "supported_participant_roles": [
+              "blue",
+              "green",
+              "red",
+              "white"
+            ],
+            "supported_behavior_features": [
+              "action_contracts",
+              "attribution_support",
+              "behavior_history",
+              "effects",
+              "failure_classes",
+              "observation_boundaries",
+              "outcome_interpretation",
+              "preconditions",
+              "state_transitions",
+              "temporal_contracts"
+            ],
+            "supported_interaction_features": [
+              "contention",
+              "coordination",
+              "interference",
+              "shared_state_change"
+            ],
+            "feature_support": [
+              {
+                "feature": "participant_boundary_flow_resolution",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_boundary_flow_resolution:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_boundary_flow_resolution:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_declassification",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_declassification:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_declassification:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_directed_inject_delivery",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_directed_inject_delivery:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_directed_inject_delivery:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_egress_projection",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_egress_projection:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_egress_projection:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_final_sink_mediation",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_final_sink_mediation:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_final_sink_mediation:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_ingress_admission",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_ingress_admission:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_ingress_admission:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_intervention",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_intervention:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_intervention:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_modular_control",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_modular_control:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_modular_control:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_monitor_topology",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_monitor_topology:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_monitor_topology:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_predicate_opacity",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_predicate_opacity:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_predicate_opacity:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_processing_role_trust",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_processing_role_trust:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_processing_role_trust:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_quarantined_processing",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_quarantined_processing:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_quarantined_processing:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_transformation",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_transformation:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_transformation:unsupported"
+                ]
+              },
+              {
+                "feature": "scoped_tool_affordances",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:scoped_tool_affordances:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:scoped_tool_affordances:unsupported"
+                ]
+              },
+              {
+                "feature": "tool_affordances",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:tool_affordances:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:tool_affordances:unsupported"
+                ]
+              }
+            ]
+          },
+          "observation": {
+            "name": "stub-observation",
+            "supported_capture_kinds": [
+              "artifact",
+              "log",
+              "observation",
+              "packet-capture",
+              "telemetry",
+              "trace"
+            ],
+            "supported_channel_kinds": [
+              "backend-log",
+              "evaluation-history",
+              "file-artifact",
+              "packet-capture",
+              "participant-observation",
+              "runtime-snapshot",
+              "workflow-history"
+            ],
+            "supported_evidence_contracts": [
+              "experiment-capture-spec-v1",
+              "experiment-derived-measure-v1",
+              "experiment-evidence-record-v1",
+              "experiment-run-v1"
+            ],
+            "supported_media_types": [
+              "application/json",
+              "text/plain"
+            ],
+            "supported_sealing_modes": [
+              "digest",
+              "immutable-store"
+            ],
+            "supports_redaction": true,
+            "supports_loss_disclosure": true,
+            "capture_offers": [
+              {
+                "offer_id": "compiler-fixture-auth-log-evidence",
+                "offer_version": "1.0.0",
+                "output_contract": "participant-behavior-history-event-stream-v1",
+                "field_selectors": [
+                  "/0/action_contract_address"
+                ],
+                "artifact_roles": [
+                  "observation"
+                ],
+                "media_types": [
+                  "application/json"
+                ],
+                "capture_kind": "trace",
+                "source_classes": [
+                  "experiment-capture-spec"
+                ],
+                "scopes": [
+                  "network"
+                ],
+                "channel_refs": [
+                  "evaluation-history-channel"
+                ],
+                "window_kinds": [
+                  "run"
+                ],
+                "integrity_modes": [
+                  "sha256-digest"
+                ],
+                "sensitivity": "internal",
+                "availability": "available",
+                "fidelity": "complete",
+                "disclosure": "full",
+                "retention_policy_refs": [
+                  "Retain raw evidence for the experiment review window."
+                ],
+                "export_policy": "not-required"
+              }
+            ]
+          },
+          "cleanup": {
+            "name": "stub-cleanup",
+            "supported_contract_versions": [
+              "trial-cleanup-plan-v1",
+              "trial-cleanup-receipt-v1"
+            ],
+            "supported_action_kinds": [
+              "compensate",
+              "destroy",
+              "reset",
+              "restore",
+              "verify"
+            ],
+            "supported_verification_methods": [
+              "probe",
+              "receipt"
+            ],
+            "supports_reusable_state": true,
+            "supports_residual_state_disclosure": true
+          }
+        }
+      },
+      "expected": {
+        "schema_version": "backend-manifest/v2",
+        "identity": {
+          "name": "backend-a",
+          "version": "1"
+        },
+        "supported_contract_versions": [
+          "backend-manifest-v2",
+          "artifact-requirement-v1",
+          "provisioning-plan-v1",
+          "orchestration-plan-v1",
+          "evaluation-plan-v1",
+          "operation-receipt-v1",
+          "operation-status-v1",
+          "runtime-snapshot-v1",
+          "workflow-result-envelope-v1",
+          "workflow-history-event-stream-v1",
+          "evaluation-result-envelope-v1",
+          "proposition-truth-result-v1",
+          "evaluation-history-event-stream-v1",
+          "participant-episode-state-envelope-v1",
+          "participant-episode-history-event-stream-v1",
+          "participant-behavior-history-event-stream-v1",
+          "participant-execution-binding-v1",
+          "participant-execution-control-v1",
+          "participant-execution-service-state-v1",
+          "participant-resource-budget-policy-v1",
+          "participant-resource-pool-capacity-v1",
+          "participant-resource-budget-state-v1",
+          "participant-resource-budget-event-v1",
+          "participant-control-occurrence-v1",
+          "participant-control-selection-v1",
+          "participant-control-evaluation-v1",
+          "participant-control-selection-v2",
+          "participant-control-evaluation-v2",
+          "participant-crossing-occurrence-v1",
+          "participant-flow-control-relation-v1",
+          "participant-lifecycle-event-v1",
+          "participant-observation-envelope-v1",
+          "participant-shared-state-record-v1",
+          "participant-joint-action-record-v1",
+          "participant-time-management-context-v1",
+          "participant-outcome-report-v1",
+          "experiment-capture-spec-v1",
+          "experiment-evidence-record-v1",
+          "experiment-derived-measure-v1",
+          "experiment-run-v1",
+          "trial-cleanup-plan-v1",
+          "trial-cleanup-receipt-v1",
+          "realization-envelope-v1"
+        ],
+        "compatibility": {
+          "processors": [
+            "raes-reference-processor"
+          ]
+        },
+        "realization_support": [
+          {
+            "domain": "runtime-realization",
+            "support_mode": "constrained",
+            "supported_constraint_kinds": [
+              "account-feature",
+              "content-type",
+              "node-architecture",
+              "node-type",
+              "os-family",
+              "workflow-feature",
+              "workflow-state-predicate"
+            ],
+            "supported_exact_requirement_kinds": [
+              "declared-capability-match"
+            ],
+            "disclosure_kinds": [
+              "backend-manifest-v2",
+              "operation-status-v1",
+              "runtime-snapshot-v1"
+            ],
+            "observation_capabilities": {
+              "operating-system": {
+                "verification_scope": "presence",
+                "observation_strength": "guest-observed"
+              }
+            },
+            "process_resource_limits": [],
+            "artifact_mechanisms": [],
+            "constraints": {}
+          }
+        ],
+        "realization_envelope": {
+          "contract_id": "realization-envelope-v1",
+          "envelope_id": "libvirt-qemu.generic.v1",
+          "schema_version": "realization-envelope/v1",
+          "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
+          "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
+        },
+        "concept_bindings": [
+          {
+            "scope": "capabilities.provisioner.supported_node_types",
+            "family": "assets"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_os_families",
+            "family": "assets"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_node_architectures",
+            "family": "assets"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_content_types",
+            "family": "tools-and-artifacts"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_account_features",
+            "family": "identities"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_domain_profiles",
+            "family": "identities"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_service_materialization_profiles",
+            "family": "tools-and-artifacts"
+          },
+          {
+            "scope": "capabilities.orchestrator.supported_sections",
+            "family": "actions-and-events"
+          },
+          {
+            "scope": "capabilities.evaluator.supported_sections",
+            "family": "observables"
+          },
+          {
+            "scope": "capabilities.participant_runtime.supported_participant_roles",
+            "family": "identities"
+          },
+          {
+            "scope": "capabilities.participant_runtime.supported_behavior_features",
+            "family": "actions-and-events"
+          },
+          {
+            "scope": "capabilities.participant_runtime.supported_interaction_features",
+            "family": "relationships"
+          },
+          {
+            "scope": "capabilities.observation.supported_capture_kinds",
+            "family": "provenance-and-evidence"
+          },
+          {
+            "scope": "capabilities.observation.supported_channel_kinds",
+            "family": "apparatus-declarations"
+          },
+          {
+            "scope": "capabilities.observation.supported_sealing_modes",
+            "family": "provenance-and-evidence"
+          }
+        ],
+        "constraints": {},
+        "capabilities": {
+          "provisioner": {
+            "name": "stub-provisioner",
+            "supported_node_types": [
+              "compute",
+              "switch"
+            ],
+            "supported_os_families": [
+              "freebsd",
+              "linux",
+              "macos",
+              "other",
+              "windows"
+            ],
+            "operating_systems": [
+              {
+                "family": "linux",
+                "distribution": "ubuntu",
+                "versions": [
+                  "22.04"
+                ]
+              }
+            ],
+            "supported_node_architectures": [
+              "aarch64",
+              "x86_64"
+            ],
+            "supported_content_types": [
+              "dataset",
+              "directory",
+              "file"
+            ],
+            "supported_account_features": [
+              "auth_method",
+              "disabled",
+              "groups",
+              "home",
+              "mail",
+              "shell",
+              "spn"
+            ],
+            "supported_domain_profiles": [
+              "active_directory"
+            ],
+            "supported_service_materialization_profiles": [],
+            "max_total_nodes": null,
+            "supports_acls": true,
+            "supports_accounts": true,
+            "supports_generated_artifacts": true,
+            "supported_generated_artifact_kinds": [
+              "certificate_bundle",
+              "rendered_config",
+              "ssh_key_bundle"
+            ],
+            "supported_generated_artifact_delivery_modes": [
+              "env_file",
+              "environment",
+              "mount"
+            ],
+            "supported_regeneration_scopes": [],
+            "supports_persistent_volumes": true,
+            "constraints": {}
+          },
+          "orchestrator": {
+            "name": "stub-orchestrator",
+            "supported_sections": [
+              "events",
+              "injects",
+              "scripts",
+              "stories",
+              "workflows"
+            ],
+            "supports_workflows": true,
+            "supports_assertion_refs": true,
+            "supports_inject_bindings": true,
+            "supported_workflow_features": [
+              "call",
+              "cancellation",
+              "compensation",
+              "decision",
+              "failure-transitions",
+              "parallel-barrier",
+              "retry",
+              "switch",
+              "timeouts"
+            ],
+            "supported_workflow_state_predicates": [
+              "attempt-counts",
+              "outcome-matching"
+            ],
+            "constraints": {}
+          },
+          "evaluator": {
+            "name": "stub-evaluator",
+            "supported_sections": [
+              "assertions",
+              "conditions",
+              "objectives",
+              "propositions"
+            ],
+            "supports_scoring": true,
+            "supports_objectives": true,
+            "supported_predicate_families": [
+              "boolean",
+              "number",
+              "presence",
+              "string"
+            ],
+            "supported_quantifiers": [
+              "all",
+              "any",
+              "at_least"
+            ],
+            "supported_truth_outcomes": [
+              "false",
+              "true",
+              "unknown",
+              "unsupported"
+            ],
+            "supported_evidence_channels": [
+              "api_response",
+              "file_artifact",
+              "log"
+            ],
+            "supported_time_domains": [
+              "scenario_time"
+            ],
+            "preserves_binding_provenance": true,
+            "supports_deferred_expected_comparison": false,
+            "constraints": {}
+          },
+          "participant_runtime": {
+            "name": "stub-participant-runtime",
+            "supported_participant_roles": [
+              "blue",
+              "green",
+              "red",
+              "white"
+            ],
+            "supported_behavior_features": [
+              "action_contracts",
+              "attribution_support",
+              "behavior_history",
+              "effects",
+              "failure_classes",
+              "observation_boundaries",
+              "outcome_interpretation",
+              "preconditions",
+              "state_transitions",
+              "temporal_contracts"
+            ],
+            "supported_interaction_features": [
+              "contention",
+              "coordination",
+              "interference",
+              "shared_state_change"
+            ],
+            "feature_support": [
+              {
+                "feature": "participant_boundary_flow_resolution",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_boundary_flow_resolution:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_boundary_flow_resolution:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_declassification",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_declassification:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_declassification:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_directed_inject_delivery",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_directed_inject_delivery:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_directed_inject_delivery:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_egress_projection",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_egress_projection:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_egress_projection:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_final_sink_mediation",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_final_sink_mediation:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_final_sink_mediation:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_ingress_admission",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_ingress_admission:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_ingress_admission:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_intervention",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_intervention:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_intervention:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_modular_control",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_modular_control:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_modular_control:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_monitor_topology",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_monitor_topology:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_monitor_topology:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_predicate_opacity",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_predicate_opacity:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_predicate_opacity:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_processing_role_trust",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_processing_role_trust:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_processing_role_trust:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_quarantined_processing",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_quarantined_processing:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_quarantined_processing:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_transformation",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_transformation:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_transformation:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "scoped_tool_affordances",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:scoped_tool_affordances:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:scoped_tool_affordances:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "tool_affordances",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:tool_affordances:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:tool_affordances:unsupported"
+                ],
+                "evidence_refs": []
+              }
+            ],
+            "supports_autonomous_execution": false,
+            "supported_autonomous_selection_strategies": [],
+            "supported_autonomous_action_contracts": [],
+            "supported_autonomous_observation_boundaries": [],
+            "supported_autonomous_target_addresses": [],
+            "supported_autonomous_policy_profiles": [],
+            "supported_autonomous_activity_features": [],
+            "supported_autonomous_random_stream_profiles": [],
+            "max_autonomous_participants": null,
+            "max_autonomous_action_attempts": null,
+            "max_autonomous_in_flight": null,
+            "max_autonomous_occurrences": null,
+            "max_autonomous_retries_per_occurrence": null,
+            "max_autonomous_burst_size": null,
+            "execution_bindings": [],
+            "supports_execution_control": false,
+            "supported_execution_control_actions": [],
+            "supports_bounded_concurrency": false,
+            "max_execution_services": null,
+            "max_concurrent_actions": null,
+            "resource_budgets": null,
+            "constraints": {}
+          },
+          "observation": {
+            "name": "stub-observation",
+            "supported_capture_kinds": [
+              "artifact",
+              "log",
+              "observation",
+              "packet-capture",
+              "telemetry",
+              "trace"
+            ],
+            "supported_channel_kinds": [
+              "backend-log",
+              "evaluation-history",
+              "file-artifact",
+              "packet-capture",
+              "participant-observation",
+              "runtime-snapshot",
+              "workflow-history"
+            ],
+            "supported_evidence_contracts": [
+              "experiment-capture-spec-v1",
+              "experiment-derived-measure-v1",
+              "experiment-evidence-record-v1",
+              "experiment-run-v1"
+            ],
+            "supported_media_types": [
+              "application/json",
+              "text/plain"
+            ],
+            "supported_sealing_modes": [
+              "digest",
+              "immutable-store"
+            ],
+            "supports_redaction": true,
+            "supports_loss_disclosure": true,
+            "supports_chain_of_custody": false,
+            "capture_offers": [
+              {
+                "offer_id": "compiler-fixture-auth-log-evidence",
+                "offer_version": "1.0.0",
+                "output_contract": "participant-behavior-history-event-stream-v1",
+                "field_selectors": [
+                  "/0/action_contract_address"
+                ],
+                "artifact_roles": [
+                  "observation"
+                ],
+                "media_types": [
+                  "application/json"
+                ],
+                "capture_kind": "trace",
+                "source_classes": [
+                  "experiment-capture-spec"
+                ],
+                "source_refs": [],
+                "scopes": [
+                  "network"
+                ],
+                "scope_refs": [],
+                "channel_kinds": [],
+                "channel_refs": [
+                  "evaluation-history-channel"
+                ],
+                "window_kinds": [
+                  "run"
+                ],
+                "integrity_modes": [
+                  "sha256-digest"
+                ],
+                "sensitivity": "internal",
+                "availability": "available",
+                "fidelity": "complete",
+                "disclosure": "full",
+                "retention_policy_refs": [
+                  "Retain raw evidence for the experiment review window."
+                ],
+                "export_policy": "not-required",
+                "redaction_policy": null
+              }
+            ],
+            "constraints": {}
+          },
+          "cleanup": {
+            "name": "stub-cleanup",
+            "supported_contract_versions": [
+              "trial-cleanup-plan-v1",
+              "trial-cleanup-receipt-v1"
+            ],
+            "supported_action_kinds": [
+              "compensate",
+              "destroy",
+              "reset",
+              "restore",
+              "verify"
+            ],
+            "supported_verification_methods": [
+              "probe",
+              "receipt"
+            ],
+            "supports_reusable_state": true,
+            "supports_residual_state_disclosure": true
+          },
+          "time": null
+        }
+      }
+    },
+    {
+      "name": "backend-ordered-claims",
+      "contract_id": "backend-manifest-v2",
+      "input": {
+        "identity": {
+          "name": "backend-a",
+          "version": "1"
+        },
+        "supported_contract_versions": [
+          "realization-envelope-v1",
+          "trial-cleanup-receipt-v1",
+          "trial-cleanup-plan-v1",
+          "experiment-run-v1",
+          "experiment-derived-measure-v1",
+          "experiment-evidence-record-v1",
+          "experiment-capture-spec-v1",
+          "participant-outcome-report-v1",
+          "participant-time-management-context-v1",
+          "participant-joint-action-record-v1",
+          "participant-shared-state-record-v1",
+          "participant-observation-envelope-v1",
+          "participant-lifecycle-event-v1",
+          "participant-flow-control-relation-v1",
+          "participant-crossing-occurrence-v1",
+          "participant-control-evaluation-v2",
+          "participant-control-selection-v2",
+          "participant-control-evaluation-v1",
+          "participant-control-selection-v1",
+          "participant-control-occurrence-v1",
+          "participant-resource-budget-event-v1",
+          "participant-resource-budget-state-v1",
+          "participant-resource-pool-capacity-v1",
+          "participant-resource-budget-policy-v1",
+          "participant-execution-service-state-v1",
+          "participant-execution-control-v1",
+          "participant-execution-binding-v1",
+          "participant-behavior-history-event-stream-v1",
+          "participant-episode-history-event-stream-v1",
+          "participant-episode-state-envelope-v1",
+          "evaluation-history-event-stream-v1",
+          "proposition-truth-result-v1",
+          "evaluation-result-envelope-v1",
+          "workflow-history-event-stream-v1",
+          "workflow-result-envelope-v1",
+          "runtime-snapshot-v1",
+          "operation-status-v1",
+          "operation-receipt-v1",
+          "evaluation-plan-v1",
+          "orchestration-plan-v1",
+          "provisioning-plan-v1",
+          "artifact-requirement-v1",
+          "backend-manifest-v2"
+        ],
+        "compatibility": {
+          "processors": [
+            "raes-reference-processor"
+          ]
+        },
+        "realization_support": [
+          {
+            "domain": "runtime-realization",
+            "support_mode": "constrained",
+            "supported_constraint_kinds": [
+              "account-feature",
+              "content-type",
+              "node-architecture",
+              "node-type",
+              "os-family",
+              "workflow-feature",
+              "workflow-state-predicate"
+            ],
+            "supported_exact_requirement_kinds": [
+              "declared-capability-match"
+            ],
+            "disclosure_kinds": [
+              "backend-manifest-v2",
+              "operation-status-v1",
+              "runtime-snapshot-v1"
+            ],
+            "observation_capabilities": {
+              "operating-system": {
+                "verification_scope": "presence",
+                "observation_strength": "guest-observed"
+              }
+            }
+          }
+        ],
+        "realization_envelope": {
+          "envelope_id": "libvirt-qemu.generic.v1",
+          "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
+          "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
+        },
+        "concept_bindings": [
+          {
+            "scope": "capabilities.provisioner.supported_node_types",
+            "family": "assets"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_os_families",
+            "family": "assets"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_node_architectures",
+            "family": "assets"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_content_types",
+            "family": "tools-and-artifacts"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_account_features",
+            "family": "identities"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_domain_profiles",
+            "family": "identities"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_service_materialization_profiles",
+            "family": "tools-and-artifacts"
+          },
+          {
+            "scope": "capabilities.orchestrator.supported_sections",
+            "family": "actions-and-events"
+          },
+          {
+            "scope": "capabilities.evaluator.supported_sections",
+            "family": "observables"
+          },
+          {
+            "scope": "capabilities.participant_runtime.supported_participant_roles",
+            "family": "identities"
+          },
+          {
+            "scope": "capabilities.participant_runtime.supported_behavior_features",
+            "family": "actions-and-events"
+          },
+          {
+            "scope": "capabilities.participant_runtime.supported_interaction_features",
+            "family": "relationships"
+          },
+          {
+            "scope": "capabilities.observation.supported_capture_kinds",
+            "family": "provenance-and-evidence"
+          },
+          {
+            "scope": "capabilities.observation.supported_channel_kinds",
+            "family": "apparatus-declarations"
+          },
+          {
+            "scope": "capabilities.observation.supported_sealing_modes",
+            "family": "provenance-and-evidence"
+          }
+        ],
+        "capabilities": {
+          "provisioner": {
+            "name": "stub-provisioner",
+            "supported_node_types": [
+              "compute",
+              "switch"
+            ],
+            "supported_os_families": [
+              "freebsd",
+              "linux",
+              "macos",
+              "other",
+              "windows"
+            ],
+            "operating_systems": [
+              {
+                "family": "linux",
+                "distribution": "ubuntu",
+                "versions": [
+                  "22.04"
+                ]
+              }
+            ],
+            "supported_node_architectures": [
+              "aarch64",
+              "x86_64"
+            ],
+            "supported_content_types": [
+              "dataset",
+              "directory",
+              "file"
+            ],
+            "supported_account_features": [
+              "auth_method",
+              "disabled",
+              "groups",
+              "home",
+              "mail",
+              "shell",
+              "spn"
+            ],
+            "supported_domain_profiles": [
+              "active_directory"
+            ],
+            "supports_acls": true,
+            "supports_accounts": true,
+            "supports_generated_artifacts": true,
+            "supported_generated_artifact_kinds": [
+              "certificate_bundle",
+              "rendered_config",
+              "ssh_key_bundle"
+            ],
+            "supported_generated_artifact_delivery_modes": [
+              "env_file",
+              "environment",
+              "mount"
+            ],
+            "supports_persistent_volumes": true
+          },
+          "orchestrator": {
+            "name": "stub-orchestrator",
+            "supported_sections": [
+              "events",
+              "injects",
+              "scripts",
+              "stories",
+              "workflows"
+            ],
+            "supports_workflows": true,
+            "supported_workflow_features": [
+              "call",
+              "cancellation",
+              "compensation",
+              "decision",
+              "failure-transitions",
+              "parallel-barrier",
+              "retry",
+              "switch",
+              "timeouts"
+            ],
+            "supported_workflow_state_predicates": [
+              "attempt-counts",
+              "outcome-matching"
+            ]
+          },
+          "evaluator": {
+            "name": "stub-evaluator",
+            "supported_sections": [
+              "assertions",
+              "conditions",
+              "objectives",
+              "propositions"
+            ],
+            "supported_predicate_families": [
+              "boolean",
+              "number",
+              "presence",
+              "string"
+            ],
+            "supported_quantifiers": [
+              "all",
+              "any",
+              "at_least"
+            ],
+            "supported_truth_outcomes": [
+              "false",
+              "true",
+              "unknown",
+              "unsupported"
+            ],
+            "supported_evidence_channels": [
+              "api_response",
+              "file_artifact",
+              "log"
+            ],
+            "supported_time_domains": [
+              "scenario_time"
+            ],
+            "preserves_binding_provenance": true
+          },
+          "participant_runtime": {
+            "name": "stub-participant-runtime",
+            "supported_participant_roles": [
+              "blue",
+              "green",
+              "red",
+              "white"
+            ],
+            "supported_behavior_features": [
+              "action_contracts",
+              "attribution_support",
+              "behavior_history",
+              "effects",
+              "failure_classes",
+              "observation_boundaries",
+              "outcome_interpretation",
+              "preconditions",
+              "state_transitions",
+              "temporal_contracts"
+            ],
+            "supported_interaction_features": [
+              "contention",
+              "coordination",
+              "interference",
+              "shared_state_change"
+            ],
+            "feature_support": [
+              {
+                "feature": "participant_boundary_flow_resolution",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_boundary_flow_resolution:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_boundary_flow_resolution:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_declassification",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_declassification:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_declassification:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_directed_inject_delivery",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_directed_inject_delivery:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_directed_inject_delivery:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_egress_projection",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_egress_projection:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_egress_projection:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_final_sink_mediation",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_final_sink_mediation:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_final_sink_mediation:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_ingress_admission",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_ingress_admission:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_ingress_admission:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_intervention",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_intervention:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_intervention:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_modular_control",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_modular_control:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_modular_control:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_monitor_topology",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_monitor_topology:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_monitor_topology:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_predicate_opacity",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_predicate_opacity:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_predicate_opacity:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_processing_role_trust",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_processing_role_trust:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_processing_role_trust:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_quarantined_processing",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_quarantined_processing:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_quarantined_processing:unsupported"
+                ]
+              },
+              {
+                "feature": "participant_transformation",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:participant_transformation:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_transformation:unsupported"
+                ]
+              },
+              {
+                "feature": "scoped_tool_affordances",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:scoped_tool_affordances:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:scoped_tool_affordances:unsupported"
+                ]
+              },
+              {
+                "feature": "tool_affordances",
+                "support_level": "unsupported",
+                "limitation_refs": [
+                  "limitation:tool_affordances:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:tool_affordances:unsupported"
+                ]
+              }
+            ]
+          },
+          "observation": {
+            "name": "stub-observation",
+            "supported_capture_kinds": [
+              "artifact",
+              "log",
+              "observation",
+              "packet-capture",
+              "telemetry",
+              "trace"
+            ],
+            "supported_channel_kinds": [
+              "backend-log",
+              "evaluation-history",
+              "file-artifact",
+              "packet-capture",
+              "participant-observation",
+              "runtime-snapshot",
+              "workflow-history"
+            ],
+            "supported_evidence_contracts": [
+              "experiment-capture-spec-v1",
+              "experiment-derived-measure-v1",
+              "experiment-evidence-record-v1",
+              "experiment-run-v1"
+            ],
+            "supported_media_types": [
+              "application/json",
+              "text/plain"
+            ],
+            "supported_sealing_modes": [
+              "digest",
+              "immutable-store"
+            ],
+            "supports_redaction": true,
+            "supports_loss_disclosure": true,
+            "capture_offers": [
+              {
+                "offer_id": "compiler-fixture-auth-log-evidence",
+                "offer_version": "1.0.0",
+                "output_contract": "participant-behavior-history-event-stream-v1",
+                "field_selectors": [
+                  "/0/action_contract_address"
+                ],
+                "artifact_roles": [
+                  "observation"
+                ],
+                "media_types": [
+                  "application/json"
+                ],
+                "capture_kind": "trace",
+                "source_classes": [
+                  "experiment-capture-spec"
+                ],
+                "scopes": [
+                  "network"
+                ],
+                "channel_refs": [
+                  "evaluation-history-channel"
+                ],
+                "window_kinds": [
+                  "run"
+                ],
+                "integrity_modes": [
+                  "sha256-digest"
+                ],
+                "sensitivity": "internal",
+                "availability": "available",
+                "fidelity": "complete",
+                "disclosure": "full",
+                "retention_policy_refs": [
+                  "Retain raw evidence for the experiment review window."
+                ],
+                "export_policy": "not-required"
+              }
+            ]
+          },
+          "cleanup": {
+            "name": "stub-cleanup",
+            "supported_contract_versions": [
+              "trial-cleanup-plan-v1",
+              "trial-cleanup-receipt-v1"
+            ],
+            "supported_action_kinds": [
+              "compensate",
+              "destroy",
+              "reset",
+              "restore",
+              "verify"
+            ],
+            "supported_verification_methods": [
+              "probe",
+              "receipt"
+            ],
+            "supports_reusable_state": true,
+            "supports_residual_state_disclosure": true
+          }
+        }
+      },
+      "expected": {
+        "schema_version": "backend-manifest/v2",
+        "identity": {
+          "name": "backend-a",
+          "version": "1"
+        },
+        "supported_contract_versions": [
+          "realization-envelope-v1",
+          "trial-cleanup-receipt-v1",
+          "trial-cleanup-plan-v1",
+          "experiment-run-v1",
+          "experiment-derived-measure-v1",
+          "experiment-evidence-record-v1",
+          "experiment-capture-spec-v1",
+          "participant-outcome-report-v1",
+          "participant-time-management-context-v1",
+          "participant-joint-action-record-v1",
+          "participant-shared-state-record-v1",
+          "participant-observation-envelope-v1",
+          "participant-lifecycle-event-v1",
+          "participant-flow-control-relation-v1",
+          "participant-crossing-occurrence-v1",
+          "participant-control-evaluation-v2",
+          "participant-control-selection-v2",
+          "participant-control-evaluation-v1",
+          "participant-control-selection-v1",
+          "participant-control-occurrence-v1",
+          "participant-resource-budget-event-v1",
+          "participant-resource-budget-state-v1",
+          "participant-resource-pool-capacity-v1",
+          "participant-resource-budget-policy-v1",
+          "participant-execution-service-state-v1",
+          "participant-execution-control-v1",
+          "participant-execution-binding-v1",
+          "participant-behavior-history-event-stream-v1",
+          "participant-episode-history-event-stream-v1",
+          "participant-episode-state-envelope-v1",
+          "evaluation-history-event-stream-v1",
+          "proposition-truth-result-v1",
+          "evaluation-result-envelope-v1",
+          "workflow-history-event-stream-v1",
+          "workflow-result-envelope-v1",
+          "runtime-snapshot-v1",
+          "operation-status-v1",
+          "operation-receipt-v1",
+          "evaluation-plan-v1",
+          "orchestration-plan-v1",
+          "provisioning-plan-v1",
+          "artifact-requirement-v1",
+          "backend-manifest-v2"
+        ],
+        "compatibility": {
+          "processors": [
+            "raes-reference-processor"
+          ]
+        },
+        "realization_support": [
+          {
+            "domain": "runtime-realization",
+            "support_mode": "constrained",
+            "supported_constraint_kinds": [
+              "account-feature",
+              "content-type",
+              "node-architecture",
+              "node-type",
+              "os-family",
+              "workflow-feature",
+              "workflow-state-predicate"
+            ],
+            "supported_exact_requirement_kinds": [
+              "declared-capability-match"
+            ],
+            "disclosure_kinds": [
+              "backend-manifest-v2",
+              "operation-status-v1",
+              "runtime-snapshot-v1"
+            ],
+            "observation_capabilities": {
+              "operating-system": {
+                "verification_scope": "presence",
+                "observation_strength": "guest-observed"
+              }
+            },
+            "process_resource_limits": [],
+            "artifact_mechanisms": [],
+            "constraints": {}
+          }
+        ],
+        "realization_envelope": {
+          "contract_id": "realization-envelope-v1",
+          "envelope_id": "libvirt-qemu.generic.v1",
+          "schema_version": "realization-envelope/v1",
+          "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
+          "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
+        },
+        "concept_bindings": [
+          {
+            "scope": "capabilities.provisioner.supported_node_types",
+            "family": "assets"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_os_families",
+            "family": "assets"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_node_architectures",
+            "family": "assets"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_content_types",
+            "family": "tools-and-artifacts"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_account_features",
+            "family": "identities"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_domain_profiles",
+            "family": "identities"
+          },
+          {
+            "scope": "capabilities.provisioner.supported_service_materialization_profiles",
+            "family": "tools-and-artifacts"
+          },
+          {
+            "scope": "capabilities.orchestrator.supported_sections",
+            "family": "actions-and-events"
+          },
+          {
+            "scope": "capabilities.evaluator.supported_sections",
+            "family": "observables"
+          },
+          {
+            "scope": "capabilities.participant_runtime.supported_participant_roles",
+            "family": "identities"
+          },
+          {
+            "scope": "capabilities.participant_runtime.supported_behavior_features",
+            "family": "actions-and-events"
+          },
+          {
+            "scope": "capabilities.participant_runtime.supported_interaction_features",
+            "family": "relationships"
+          },
+          {
+            "scope": "capabilities.observation.supported_capture_kinds",
+            "family": "provenance-and-evidence"
+          },
+          {
+            "scope": "capabilities.observation.supported_channel_kinds",
+            "family": "apparatus-declarations"
+          },
+          {
+            "scope": "capabilities.observation.supported_sealing_modes",
+            "family": "provenance-and-evidence"
+          }
+        ],
+        "constraints": {},
+        "capabilities": {
+          "provisioner": {
+            "name": "stub-provisioner",
+            "supported_node_types": [
+              "compute",
+              "switch"
+            ],
+            "supported_os_families": [
+              "freebsd",
+              "linux",
+              "macos",
+              "other",
+              "windows"
+            ],
+            "operating_systems": [
+              {
+                "family": "linux",
+                "distribution": "ubuntu",
+                "versions": [
+                  "22.04"
+                ]
+              }
+            ],
+            "supported_node_architectures": [
+              "aarch64",
+              "x86_64"
+            ],
+            "supported_content_types": [
+              "dataset",
+              "directory",
+              "file"
+            ],
+            "supported_account_features": [
+              "auth_method",
+              "disabled",
+              "groups",
+              "home",
+              "mail",
+              "shell",
+              "spn"
+            ],
+            "supported_domain_profiles": [
+              "active_directory"
+            ],
+            "supported_service_materialization_profiles": [],
+            "max_total_nodes": null,
+            "supports_acls": true,
+            "supports_accounts": true,
+            "supports_generated_artifacts": true,
+            "supported_generated_artifact_kinds": [
+              "certificate_bundle",
+              "rendered_config",
+              "ssh_key_bundle"
+            ],
+            "supported_generated_artifact_delivery_modes": [
+              "env_file",
+              "environment",
+              "mount"
+            ],
+            "supported_regeneration_scopes": [],
+            "supports_persistent_volumes": true,
+            "constraints": {}
+          },
+          "orchestrator": {
+            "name": "stub-orchestrator",
+            "supported_sections": [
+              "events",
+              "injects",
+              "scripts",
+              "stories",
+              "workflows"
+            ],
+            "supports_workflows": true,
+            "supports_assertion_refs": true,
+            "supports_inject_bindings": true,
+            "supported_workflow_features": [
+              "call",
+              "cancellation",
+              "compensation",
+              "decision",
+              "failure-transitions",
+              "parallel-barrier",
+              "retry",
+              "switch",
+              "timeouts"
+            ],
+            "supported_workflow_state_predicates": [
+              "attempt-counts",
+              "outcome-matching"
+            ],
+            "constraints": {}
+          },
+          "evaluator": {
+            "name": "stub-evaluator",
+            "supported_sections": [
+              "assertions",
+              "conditions",
+              "objectives",
+              "propositions"
+            ],
+            "supports_scoring": true,
+            "supports_objectives": true,
+            "supported_predicate_families": [
+              "boolean",
+              "number",
+              "presence",
+              "string"
+            ],
+            "supported_quantifiers": [
+              "all",
+              "any",
+              "at_least"
+            ],
+            "supported_truth_outcomes": [
+              "false",
+              "true",
+              "unknown",
+              "unsupported"
+            ],
+            "supported_evidence_channels": [
+              "api_response",
+              "file_artifact",
+              "log"
+            ],
+            "supported_time_domains": [
+              "scenario_time"
+            ],
+            "preserves_binding_provenance": true,
+            "supports_deferred_expected_comparison": false,
+            "constraints": {}
+          },
+          "participant_runtime": {
+            "name": "stub-participant-runtime",
+            "supported_participant_roles": [
+              "blue",
+              "green",
+              "red",
+              "white"
+            ],
+            "supported_behavior_features": [
+              "action_contracts",
+              "attribution_support",
+              "behavior_history",
+              "effects",
+              "failure_classes",
+              "observation_boundaries",
+              "outcome_interpretation",
+              "preconditions",
+              "state_transitions",
+              "temporal_contracts"
+            ],
+            "supported_interaction_features": [
+              "contention",
+              "coordination",
+              "interference",
+              "shared_state_change"
+            ],
+            "feature_support": [
+              {
+                "feature": "participant_boundary_flow_resolution",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_boundary_flow_resolution:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_boundary_flow_resolution:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_declassification",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_declassification:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_declassification:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_directed_inject_delivery",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_directed_inject_delivery:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_directed_inject_delivery:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_egress_projection",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_egress_projection:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_egress_projection:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_final_sink_mediation",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_final_sink_mediation:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_final_sink_mediation:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_ingress_admission",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_ingress_admission:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_ingress_admission:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_intervention",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_intervention:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_intervention:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_modular_control",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_modular_control:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_modular_control:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_monitor_topology",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_monitor_topology:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_monitor_topology:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_predicate_opacity",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_predicate_opacity:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_predicate_opacity:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_processing_role_trust",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_processing_role_trust:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_processing_role_trust:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_quarantined_processing",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_quarantined_processing:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_quarantined_processing:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "participant_transformation",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:participant_transformation:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:participant_transformation:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "scoped_tool_affordances",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:scoped_tool_affordances:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:scoped_tool_affordances:unsupported"
+                ],
+                "evidence_refs": []
+              },
+              {
+                "feature": "tool_affordances",
+                "support_level": "unsupported",
+                "constraint_refs": [],
+                "limitation_refs": [
+                  "limitation:tool_affordances:not-realized"
+                ],
+                "disclosure_refs": [
+                  "disclosure:tool_affordances:unsupported"
+                ],
+                "evidence_refs": []
+              }
+            ],
+            "supports_autonomous_execution": false,
+            "supported_autonomous_selection_strategies": [],
+            "supported_autonomous_action_contracts": [],
+            "supported_autonomous_observation_boundaries": [],
+            "supported_autonomous_target_addresses": [],
+            "supported_autonomous_policy_profiles": [],
+            "supported_autonomous_activity_features": [],
+            "supported_autonomous_random_stream_profiles": [],
+            "max_autonomous_participants": null,
+            "max_autonomous_action_attempts": null,
+            "max_autonomous_in_flight": null,
+            "max_autonomous_occurrences": null,
+            "max_autonomous_retries_per_occurrence": null,
+            "max_autonomous_burst_size": null,
+            "execution_bindings": [],
+            "supports_execution_control": false,
+            "supported_execution_control_actions": [],
+            "supports_bounded_concurrency": false,
+            "max_execution_services": null,
+            "max_concurrent_actions": null,
+            "resource_budgets": null,
+            "constraints": {}
+          },
+          "observation": {
+            "name": "stub-observation",
+            "supported_capture_kinds": [
+              "artifact",
+              "log",
+              "observation",
+              "packet-capture",
+              "telemetry",
+              "trace"
+            ],
+            "supported_channel_kinds": [
+              "backend-log",
+              "evaluation-history",
+              "file-artifact",
+              "packet-capture",
+              "participant-observation",
+              "runtime-snapshot",
+              "workflow-history"
+            ],
+            "supported_evidence_contracts": [
+              "experiment-capture-spec-v1",
+              "experiment-derived-measure-v1",
+              "experiment-evidence-record-v1",
+              "experiment-run-v1"
+            ],
+            "supported_media_types": [
+              "application/json",
+              "text/plain"
+            ],
+            "supported_sealing_modes": [
+              "digest",
+              "immutable-store"
+            ],
+            "supports_redaction": true,
+            "supports_loss_disclosure": true,
+            "supports_chain_of_custody": false,
+            "capture_offers": [
+              {
+                "offer_id": "compiler-fixture-auth-log-evidence",
+                "offer_version": "1.0.0",
+                "output_contract": "participant-behavior-history-event-stream-v1",
+                "field_selectors": [
+                  "/0/action_contract_address"
+                ],
+                "artifact_roles": [
+                  "observation"
+                ],
+                "media_types": [
+                  "application/json"
+                ],
+                "capture_kind": "trace",
+                "source_classes": [
+                  "experiment-capture-spec"
+                ],
+                "source_refs": [],
+                "scopes": [
+                  "network"
+                ],
+                "scope_refs": [],
+                "channel_kinds": [],
+                "channel_refs": [
+                  "evaluation-history-channel"
+                ],
+                "window_kinds": [
+                  "run"
+                ],
+                "integrity_modes": [
+                  "sha256-digest"
+                ],
+                "sensitivity": "internal",
+                "availability": "available",
+                "fidelity": "complete",
+                "disclosure": "full",
+                "retention_policy_refs": [
+                  "Retain raw evidence for the experiment review window."
+                ],
+                "export_policy": "not-required",
+                "redaction_policy": null
+              }
+            ],
+            "constraints": {}
+          },
+          "cleanup": {
+            "name": "stub-cleanup",
+            "supported_contract_versions": [
+              "trial-cleanup-plan-v1",
+              "trial-cleanup-receipt-v1"
+            ],
+            "supported_action_kinds": [
+              "compensate",
+              "destroy",
+              "reset",
+              "restore",
+              "verify"
+            ],
+            "supported_verification_methods": [
+              "probe",
+              "receipt"
+            ],
+            "supports_reusable_state": true,
+            "supports_residual_state_disclosure": true
+          },
+          "time": null
+        }
+      }
+    },
+    {
+      "name": "processor-defaults",
+      "contract_id": "processor-manifest-v2",
+      "input": {
+        "identity": {
+          "name": "raes-reference-processor",
+          "version": "0.2.0"
+        },
+        "supported_contract_versions": [
+          "processor-manifest-v2",
+          "provisioning-plan-v1",
+          "orchestration-plan-v1",
+          "evaluation-plan-v1",
+          "workflow-cancellation-request-v1",
+          "operation-receipt-v1",
+          "operation-status-v1",
+          "runtime-snapshot-v1"
+        ],
+        "compatibility": {
+          "backends": [
+            "backend-a"
+          ]
+        },
+        "concept_bindings": [
+          {
+            "scope": "capabilities.supported_sdl_versions",
+            "family": "scenarios"
+          },
+          {
+            "scope": "capabilities.supported_features",
+            "family": "apparatus-declarations"
+          }
+        ],
+        "capabilities": {
+          "supported_sdl_versions": [
+            "sdl-authoring-input-v1"
+          ],
+          "supported_features": [
+            "compilation",
+            "planning",
+            "orchestration-coordination",
+            "evaluation-coordination",
+            "workflow-semantics",
+            "objective-window-consistency",
+            "dependency-ordering",
+            "runtime-control-plane"
+          ],
+          "participant_tools": {
+            "semantic_versions": [
+              "participant-tool-profile/v1"
+            ],
+            "feature_support": [
+              {
+                "feature": "tool_affordances",
+                "support_level": "exact",
+                "evidence_refs": [
+                  "tests:ACT-619",
+                  "tests:API-414"
+                ]
+              },
+              {
+                "feature": "scoped_tool_affordances",
+                "support_level": "exact",
+                "evidence_refs": [
+                  "tests:ACT-619",
+                  "tests:API-414"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "expected": {
+        "schema_version": "processor-manifest/v2",
+        "identity": {
+          "name": "raes-reference-processor",
+          "version": "0.2.0"
+        },
+        "supported_contract_versions": [
+          "processor-manifest-v2",
+          "provisioning-plan-v1",
+          "orchestration-plan-v1",
+          "evaluation-plan-v1",
+          "workflow-cancellation-request-v1",
+          "operation-receipt-v1",
+          "operation-status-v1",
+          "runtime-snapshot-v1"
+        ],
+        "compatibility": {
+          "backends": [
+            "backend-a"
+          ]
+        },
+        "concept_bindings": [
+          {
+            "scope": "capabilities.supported_sdl_versions",
+            "family": "scenarios"
+          },
+          {
+            "scope": "capabilities.supported_features",
+            "family": "apparatus-declarations"
+          }
+        ],
+        "constraints": {},
+        "capabilities": {
+          "supported_sdl_versions": [
+            "sdl-authoring-input-v1"
+          ],
+          "supported_features": [
+            "compilation",
+            "planning",
+            "orchestration-coordination",
+            "evaluation-coordination",
+            "workflow-semantics",
+            "objective-window-consistency",
+            "dependency-ordering",
+            "runtime-control-plane"
+          ],
+          "participant_tools": {
+            "semantic_versions": [
+              "participant-tool-profile/v1"
+            ],
+            "max_bindings_per_profile": null,
+            "max_participants_per_binding": null,
+            "feature_support": [
+              {
+                "feature": "tool_affordances",
+                "support_level": "exact",
+                "constraint_refs": [],
+                "limitation_refs": [],
+                "disclosure_refs": [],
+                "evidence_refs": [
+                  "tests:ACT-619",
+                  "tests:API-414"
+                ]
+              },
+              {
+                "feature": "scoped_tool_affordances",
+                "support_level": "exact",
+                "constraint_refs": [],
+                "limitation_refs": [],
+                "disclosure_refs": [],
+                "evidence_refs": [
+                  "tests:ACT-619",
+                  "tests:API-414"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "processor-ordered-claims",
+      "contract_id": "processor-manifest-v2",
+      "input": {
+        "identity": {
+          "name": "raes-reference-processor",
+          "version": "0.2.0"
+        },
+        "supported_contract_versions": [
+          "runtime-snapshot-v1",
+          "operation-status-v1",
+          "operation-receipt-v1",
+          "workflow-cancellation-request-v1",
+          "evaluation-plan-v1",
+          "orchestration-plan-v1",
+          "provisioning-plan-v1",
+          "processor-manifest-v2"
+        ],
+        "compatibility": {
+          "backends": [
+            "backend-a"
+          ]
+        },
+        "concept_bindings": [
+          {
+            "scope": "capabilities.supported_sdl_versions",
+            "family": "scenarios"
+          },
+          {
+            "scope": "capabilities.supported_features",
+            "family": "apparatus-declarations"
+          }
+        ],
+        "capabilities": {
+          "supported_sdl_versions": [
+            "sdl-authoring-input-v1"
+          ],
+          "supported_features": [
+            "compilation",
+            "planning",
+            "orchestration-coordination",
+            "evaluation-coordination",
+            "workflow-semantics",
+            "objective-window-consistency",
+            "dependency-ordering",
+            "runtime-control-plane"
+          ],
+          "participant_tools": {
+            "semantic_versions": [
+              "participant-tool-profile/v1"
+            ],
+            "feature_support": [
+              {
+                "feature": "tool_affordances",
+                "support_level": "exact",
+                "evidence_refs": [
+                  "tests:ACT-619",
+                  "tests:API-414"
+                ]
+              },
+              {
+                "feature": "scoped_tool_affordances",
+                "support_level": "exact",
+                "evidence_refs": [
+                  "tests:ACT-619",
+                  "tests:API-414"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "expected": {
+        "schema_version": "processor-manifest/v2",
+        "identity": {
+          "name": "raes-reference-processor",
+          "version": "0.2.0"
+        },
+        "supported_contract_versions": [
+          "runtime-snapshot-v1",
+          "operation-status-v1",
+          "operation-receipt-v1",
+          "workflow-cancellation-request-v1",
+          "evaluation-plan-v1",
+          "orchestration-plan-v1",
+          "provisioning-plan-v1",
+          "processor-manifest-v2"
+        ],
+        "compatibility": {
+          "backends": [
+            "backend-a"
+          ]
+        },
+        "concept_bindings": [
+          {
+            "scope": "capabilities.supported_sdl_versions",
+            "family": "scenarios"
+          },
+          {
+            "scope": "capabilities.supported_features",
+            "family": "apparatus-declarations"
+          }
+        ],
+        "constraints": {},
+        "capabilities": {
+          "supported_sdl_versions": [
+            "sdl-authoring-input-v1"
+          ],
+          "supported_features": [
+            "compilation",
+            "planning",
+            "orchestration-coordination",
+            "evaluation-coordination",
+            "workflow-semantics",
+            "objective-window-consistency",
+            "dependency-ordering",
+            "runtime-control-plane"
+          ],
+          "participant_tools": {
+            "semantic_versions": [
+              "participant-tool-profile/v1"
+            ],
+            "max_bindings_per_profile": null,
+            "max_participants_per_binding": null,
+            "feature_support": [
+              {
+                "feature": "tool_affordances",
+                "support_level": "exact",
+                "constraint_refs": [],
+                "limitation_refs": [],
+                "disclosure_refs": [],
+                "evidence_refs": [
+                  "tests:ACT-619",
+                  "tests:API-414"
+                ]
+              },
+              {
+                "feature": "scoped_tool_affordances",
+                "support_level": "exact",
+                "constraint_refs": [],
+                "limitation_refs": [],
+                "disclosure_refs": [],
+                "evidence_refs": [
+                  "tests:ACT-619",
+                  "tests:API-414"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "participant-defaults",
+      "contract_id": "participant-implementation-manifest-v1",
+      "input": {
+        "identity": {
+          "name": "reference-red-agent",
+          "version": "1.0.0"
+        },
+        "implementation_kind": "agent",
+        "supported_contract_versions": [
+          "participant-implementation-manifest-v1",
+          "participant-implementation-provenance-v1",
+          "experiment-binding-descriptors-v1",
+          "participant-configuration-result-v1",
+          "participant-episode-state-envelope-v1",
+          "participant-episode-history-event-stream-v1",
+          "participant-behavior-history-event-stream-v1",
+          "participant-decision-surface-v2"
+        ],
+        "compatibility": {
+          "participant_runtimes": [
+            "stub-participant-runtime"
+          ],
+          "processors": [
+            "raes-reference-processor"
+          ],
+          "backends": [
+            "stub"
+          ]
+        },
+        "concept_bindings": [
+          {
+            "scope": "implementation_kind",
+            "family": "apparatus-declarations"
+          },
+          {
+            "scope": "capabilities.supported_participant_contracts",
+            "family": "apparatus-declarations"
+          },
+          {
+            "scope": "capabilities.supported_decision_surface_modes",
+            "family": "apparatus-declarations"
+          },
+          {
+            "scope": "capabilities.tool_affordance_expectations",
+            "family": "tools-and-artifacts"
+          },
+          {
+            "scope": "capabilities.exposure_policy_kinds",
+            "family": "provenance-and-evidence"
+          }
+        ],
+        "constraints": {
+          "max_parallel_episodes": "1"
+        },
+        "capabilities": {
+          "supported_participant_contracts": [
+            "participant-episode-state-envelope-v1",
+            "participant-episode-history-event-stream-v1",
+            "participant-behavior-history-event-stream-v1",
+            "participant-decision-surface-v2"
+          ],
+          "supported_decision_surface_modes": [
+            "autonomous",
+            "policy-directed"
+          ],
+          "tool_affordance_expectations": [
+            "shell",
+            "http-api"
+          ],
+          "exposure_policy_kinds": [
+            "task-statement",
+            "observation-stream"
+          ]
+        },
+        "configuration_registry": {
+          "owner": {
+            "contract_id": "participant-configuration-result-v1",
+            "contract_version": "1",
+            "validator_id": "reference-participant-configuration",
+            "validator_version": "1"
+          },
+          "targets": {
+            "policy.temperature": {
+              "target_id": "policy.temperature",
+              "value_type": "number",
+              "aliases": [
+                "temperature"
+              ],
+              "allowed_value_kinds": [
+                "literal"
+              ],
+              "sensitivity": "public",
+              "default": {
+                "kind": "literal",
+                "value": 0.25
+              }
+            },
+            "policy.mode": {
+              "target_id": "policy.mode",
+              "value_type": "string",
+              "aliases": [
+                "mode"
+              ],
+              "allowed_value_kinds": [
+                "literal"
+              ],
+              "sensitivity": "internal"
+            },
+            "credentials.api": {
+              "target_id": "credentials.api",
+              "value_type": "string",
+              "allowed_value_kinds": [
+                "secret-reference"
+              ],
+              "sensitivity": "secret"
+            }
+          }
+        }
+      },
+      "expected": {
+        "schema_version": "participant-implementation-manifest/v1",
+        "identity": {
+          "name": "reference-red-agent",
+          "version": "1.0.0"
+        },
+        "implementation_kind": "agent",
+        "supported_contract_versions": [
+          "participant-implementation-manifest-v1",
+          "participant-implementation-provenance-v1",
+          "experiment-binding-descriptors-v1",
+          "participant-configuration-result-v1",
+          "participant-episode-state-envelope-v1",
+          "participant-episode-history-event-stream-v1",
+          "participant-behavior-history-event-stream-v1",
+          "participant-decision-surface-v2"
+        ],
+        "compatibility": {
+          "participant_runtimes": [
+            "stub-participant-runtime"
+          ],
+          "processors": [
+            "raes-reference-processor"
+          ],
+          "backends": [
+            "stub"
+          ]
+        },
+        "concept_bindings": [
+          {
+            "scope": "implementation_kind",
+            "family": "apparatus-declarations"
+          },
+          {
+            "scope": "capabilities.supported_participant_contracts",
+            "family": "apparatus-declarations"
+          },
+          {
+            "scope": "capabilities.supported_decision_surface_modes",
+            "family": "apparatus-declarations"
+          },
+          {
+            "scope": "capabilities.tool_affordance_expectations",
+            "family": "tools-and-artifacts"
+          },
+          {
+            "scope": "capabilities.exposure_policy_kinds",
+            "family": "provenance-and-evidence"
+          }
+        ],
+        "constraints": {
+          "max_parallel_episodes": "1"
+        },
+        "capabilities": {
+          "supported_participant_contracts": [
+            "participant-episode-state-envelope-v1",
+            "participant-episode-history-event-stream-v1",
+            "participant-behavior-history-event-stream-v1",
+            "participant-decision-surface-v2"
+          ],
+          "supported_decision_surface_modes": [
+            "autonomous",
+            "policy-directed"
+          ],
+          "tool_affordance_expectations": [
+            "shell",
+            "http-api"
+          ],
+          "exposure_policy_kinds": [
+            "task-statement",
+            "observation-stream"
+          ]
+        },
+        "configuration_registry": {
+          "owner": {
+            "contract_id": "participant-configuration-result-v1",
+            "contract_version": "1",
+            "validator_id": "reference-participant-configuration",
+            "validator_version": "1"
+          },
+          "targets": {
+            "policy.temperature": {
+              "target_id": "policy.temperature",
+              "value_type": "number",
+              "aliases": [
+                "temperature"
+              ],
+              "allowed_value_kinds": [
+                "literal"
+              ],
+              "sensitivity": "public",
+              "default": {
+                "kind": "literal",
+                "value": 0.25
+              }
+            },
+            "policy.mode": {
+              "target_id": "policy.mode",
+              "value_type": "string",
+              "aliases": [
+                "mode"
+              ],
+              "allowed_value_kinds": [
+                "literal"
+              ],
+              "sensitivity": "internal"
+            },
+            "credentials.api": {
+              "target_id": "credentials.api",
+              "value_type": "string",
+              "aliases": [],
+              "allowed_value_kinds": [
+                "secret-reference"
+              ],
+              "sensitivity": "secret"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

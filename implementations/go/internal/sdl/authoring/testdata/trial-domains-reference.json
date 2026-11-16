@@ -1,0 +1,113 @@
+{
+  "cases": [
+    {
+      "name": "boolean",
+      "domain": {
+        "kind": "boolean"
+      },
+      "maximum": 2,
+      "outcomes": [
+        {
+          "kind": "literal",
+          "value": false
+        },
+        {
+          "kind": "literal",
+          "value": true
+        }
+      ],
+      "code": ""
+    },
+    {
+      "name": "fixed-boolean",
+      "domain": {
+        "kind": "boolean",
+        "value": true
+      },
+      "maximum": 2,
+      "outcomes": [
+        {
+          "kind": "literal",
+          "value": true
+        }
+      ],
+      "code": ""
+    },
+    {
+      "name": "interval",
+      "domain": {
+        "kind": "numeric-interval",
+        "numeric_type": "integer",
+        "lower": -1,
+        "upper": 2
+      },
+      "maximum": 5,
+      "outcomes": [
+        {
+          "kind": "literal",
+          "value": -1
+        },
+        {
+          "kind": "literal",
+          "value": 0
+        },
+        {
+          "kind": "literal",
+          "value": 1
+        },
+        {
+          "kind": "literal",
+          "value": 2
+        }
+      ],
+      "code": ""
+    },
+    {
+      "name": "open-interval",
+      "domain": {
+        "kind": "numeric-interval",
+        "numeric_type": "integer",
+        "lower": -1,
+        "upper": 2,
+        "lower_closed": false,
+        "upper_closed": false
+      },
+      "maximum": 5,
+      "outcomes": [
+        {
+          "kind": "literal",
+          "value": 0
+        },
+        {
+          "kind": "literal",
+          "value": 1
+        }
+      ],
+      "code": ""
+    },
+    {
+      "name": "wide-interval-limit",
+      "domain": {
+        "kind": "numeric-interval",
+        "numeric_type": "integer",
+        "lower": -100000000000000000000,
+        "upper": 100000000000000000000
+      },
+      "maximum": 5,
+      "outcomes": null,
+      "code": "trial-domain-limit-exceeded"
+    },
+    {
+      "name": "real-interval",
+      "domain": {
+        "kind": "numeric-interval",
+        "numeric_type": "number",
+        "lower": 0,
+        "upper": 1
+      },
+      "maximum": 5,
+      "outcomes": null,
+      "code": "trial-domain-not-finite"
+    }
+  ]
+}

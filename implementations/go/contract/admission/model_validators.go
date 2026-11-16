@@ -44,6 +44,8 @@ func definitionRules() map[string]func(any) error {
 		"ServiceMaterialization":                  sdlServiceMaterializationFields,
 		"ServiceSearchIndexSchemaMaterialization": sdlServiceMaterializationFields,
 		"ExperimentArtifactRefModel":              func(v any) error { return timestamps(v, "created_at") },
+		"ExperimentCaptureRequirementModel":       experimentCaptureSelectors,
+		modelExperimentRunPlan:                    experimentAllocationControl,
 		"RealizationDesignation":                  sdlDesignation,
 		"OrderVariationPoint":                     sdlOrder,
 		"AlternativeVariationPoint":               sdlAlternative,

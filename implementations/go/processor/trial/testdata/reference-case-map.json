@@ -1,0 +1,2405 @@
+{
+  "issue": 1788,
+  "evidence_policy": "The map identifies native owners and the named invariant tests. It is not a claim that each assertion in a Python integration test ran against a live Go backend. Exact finite fixtures, source identities, limits, defect families and component boundaries are documented in issue-1788-experiments-verification.md.",
+  "module_audit": [
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_allocation.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_analysis.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_analysis_eligibility.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_apparatus.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_archival.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_artifacts.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_bindings.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_capture.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_conditions.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_difficulty.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_disclosure.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_evidence.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_evidence_refinement.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_execution_accounting.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_execution_accounting_schema.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_factorial.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_factorial_treatments.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_manifest_references.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_plan_controls.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_references.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_run.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_run_difficulty.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_run_evidence_validation.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_run_stochastic.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_run_timing.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_selection.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_spec.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_study.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_study_contract.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_study_definition.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_study_run_validation.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_task.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/experiment_treatments.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/trial_analysis.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/trial_cleanup.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/trial_compilation.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/trial_controls.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/trial_coordinate_order.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/trial_provenance.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/trial_replacement.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/trial_replacement_analysis.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/contracts/trial_replacement_archive.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/experiment_bindings.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_contracts/experiment_spec.py",
+      "owners": [
+        "implementations/go/contract/admission/experiment_projection.go",
+        "implementations/go/contract/admission/experiment_evidence.go",
+        "implementations/go/contract/admission/trial_reconciliation.go",
+        "implementations/go/contract/admission/trial_study.go",
+        "implementations/go/contract/admission/trial_replacement_history.go",
+        "implementations/go/contract/admission/trial_sealing.go"
+      ],
+      "tests": [
+        {
+          "name": "TestFullValidationGoldenCorpus",
+          "path": "implementations/go/contract/admission/full_reference_test.go:37"
+        },
+        {
+          "name": "TestExperimentProjectionsMatchNativeConstructors",
+          "path": "implementations/go/contract/admission/experiment_projection_test.go:15"
+        },
+        {
+          "name": "TestExperimentEvidenceMatchesIndependentContentVerdicts",
+          "path": "implementations/go/contract/admission/experiment_evidence_test.go:14"
+        },
+        {
+          "name": "TestTrialRunReconciliationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/trial_reconciliation_test.go:11"
+        },
+        {
+          "name": "TestTrialStudyMatchesIndependentEvidenceAndMembershipVerdicts",
+          "path": "implementations/go/contract/admission/trial_study_test.go:14"
+        },
+        {
+          "name": "TestReplacementStudyRequiresCompleteRetainedHistory",
+          "path": "implementations/go/contract/admission/trial_replacement_study_test.go:33"
+        },
+        {
+          "name": "TestTrialSealingMatchesIndependentConstructors",
+          "path": "implementations/go/contract/admission/trial_sealing_test.go:47"
+        }
+      ],
+      "boundary": "Published schema/model and family joins use the existing complete admission registry. The new projection and content/join tests supplement its frozen independent cases."
+    },
+    {
+      "reference": "implementations/python/packages/raes_processor/trial_compiler/__init__.py",
+      "owners": [
+        "implementations/go/processor/trial/compiler.go"
+      ],
+      "tests": [
+        {
+          "name": "TestCompilerMatchesIndependentPlansAndDraws",
+          "path": "implementations/go/processor/trial/compiler_reference_test.go:120"
+        }
+      ],
+      "boundary": "Pure compilation, supplied authority, deterministic records and original-input replay. No effect execution is asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_processor/trial_compiler/apparatus.py",
+      "owners": [
+        "implementations/go/processor/trial/apparatus.go"
+      ],
+      "tests": [
+        {
+          "name": "TestCompilerRequiresSelectedApparatusIntentAndCompatibility",
+          "path": "implementations/go/processor/trial/apparatus_test.go:9"
+        }
+      ],
+      "boundary": "Pure compilation, supplied authority, deterministic records and original-input replay. No effect execution is asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_processor/trial_compiler/bindings.py",
+      "owners": [
+        "implementations/go/processor/trial/bindings.go"
+      ],
+      "tests": [
+        {
+          "name": "TestTypedCompilerMatchesIndependentConfigurationsAndStructure",
+          "path": "implementations/go/processor/trial/typed_test.go:120"
+        },
+        {
+          "name": "TestParticipantConfigurationMatchesIndependentReference",
+          "path": "implementations/go/contract/admission/participant_configuration_test.go:20"
+        }
+      ],
+      "boundary": "Pure compilation, supplied authority, deterministic records and original-input replay. No effect execution is asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_processor/trial_compiler/compiler.py",
+      "owners": [
+        "implementations/go/processor/trial/plan_compile.go"
+      ],
+      "tests": [
+        {
+          "name": "TestCompilerMatchesIndependentPlansAndDraws",
+          "path": "implementations/go/processor/trial/compiler_reference_test.go:120"
+        },
+        {
+          "name": "TestTypedCompilerMatchesIndependentConfigurationsAndStructure",
+          "path": "implementations/go/processor/trial/typed_test.go:120"
+        }
+      ],
+      "boundary": "Pure compilation, supplied authority, deterministic records and original-input replay. No effect execution is asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_processor/trial_compiler/control_admission.py",
+      "owners": [
+        "implementations/go/processor/trial/support.go"
+      ],
+      "tests": [
+        {
+          "name": "TestCompilerRequiresSelectedApparatusIntentAndCompatibility",
+          "path": "implementations/go/processor/trial/apparatus_test.go:9"
+        }
+      ],
+      "boundary": "Pure compilation, supplied authority, deterministic records and original-input replay. No effect execution is asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_processor/trial_compiler/domains.py",
+      "owners": [
+        "implementations/go/processor/trial/policies.go"
+      ],
+      "tests": [
+        {
+          "name": "TestTrialScalarDomainsMatchIndependentReferenceBounds",
+          "path": "implementations/go/internal/sdl/authoring/trial_domains_test.go:13"
+        },
+        {
+          "name": "TestCompilerLimitsPreserveIndependentAtomicRefusals",
+          "path": "implementations/go/processor/trial/limits_test.go:23"
+        }
+      ],
+      "boundary": "Pure compilation, supplied authority, deterministic records and original-input replay. No effect execution is asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_processor/trial_compiler/effects.py",
+      "owners": [
+        "implementations/go/processor/trial/treatment_effects.go"
+      ],
+      "tests": [
+        {
+          "name": "TestTypedCompilerRefusesForgedTargetsAndEqualContent",
+          "path": "implementations/go/processor/trial/typed_test.go:144"
+        }
+      ],
+      "boundary": "Pure compilation, supplied authority, deterministic records and original-input replay. No effect execution is asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_processor/trial_compiler/inputs.py",
+      "owners": [
+        "implementations/go/processor/trial/inputs.go"
+      ],
+      "tests": [
+        {
+          "name": "TestCompilerRefusalsMatchIndependentReference",
+          "path": "implementations/go/processor/trial/configuration_test.go:68"
+        },
+        {
+          "name": "TestCompilerLimitsPreserveIndependentAtomicRefusals",
+          "path": "implementations/go/processor/trial/limits_test.go:23"
+        }
+      ],
+      "boundary": "Pure compilation, supplied authority, deterministic records and original-input replay. No effect execution is asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_processor/trial_compiler/models.py",
+      "owners": [
+        "implementations/go/processor/trial/types.go"
+      ],
+      "tests": [
+        {
+          "name": "TestCompilerSelectsConfigurationValidatorByDeclaredOwner",
+          "path": "implementations/go/processor/trial/configuration_test.go:46"
+        }
+      ],
+      "boundary": "Pure compilation, supplied authority, deterministic records and original-input replay. No effect execution is asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_processor/trial_compiler/policies.py",
+      "owners": [
+        "implementations/go/processor/trial/policies.go"
+      ],
+      "tests": [
+        {
+          "name": "TestCompilerMatchesIndependentPlansAndDraws",
+          "path": "implementations/go/processor/trial/compiler_reference_test.go:120"
+        }
+      ],
+      "boundary": "Pure compilation, supplied authority, deterministic records and original-input replay. No effect execution is asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_processor/trial_compiler/profiles.py",
+      "owners": [
+        "implementations/go/processor/trial/compiler.go"
+      ],
+      "tests": [
+        {
+          "name": "TestSchedulingAndReadmissionUseCompleteSealedAuthority",
+          "path": "implementations/go/processor/trial/schedule_test.go:11"
+        }
+      ],
+      "boundary": "Pure compilation, supplied authority, deterministic records and original-input replay. No effect execution is asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_processor/trial_compiler/readmission.py",
+      "owners": [
+        "implementations/go/processor/trial/schedule.go"
+      ],
+      "tests": [
+        {
+          "name": "TestSchedulingAndReadmissionUseCompleteSealedAuthority",
+          "path": "implementations/go/processor/trial/schedule_test.go:11"
+        },
+        {
+          "name": "TestTypedRealizationReplaysIndependentAuthoringSelections",
+          "path": "implementations/go/processor/trial/typed_test.go:173"
+        }
+      ],
+      "boundary": "Pure compilation, supplied authority, deterministic records and original-input replay. No effect execution is asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_processor/trial_compiler/realization_admission.py",
+      "owners": [
+        "implementations/go/processor/trial/mixed.go"
+      ],
+      "tests": [
+        {
+          "name": "TestMixedCompilerRefusesUnresolvedAuthorityAndBoundedWork",
+          "path": "implementations/go/processor/trial/mixed_test.go:169"
+        }
+      ],
+      "boundary": "Pure compilation, supplied authority, deterministic records and original-input replay. No effect execution is asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_processor/trial_compiler/replacement.py",
+      "owners": [
+        "implementations/go/processor/trial/replacement_history.go"
+      ],
+      "tests": [
+        {
+          "name": "TestReplacementMatchesIndependentDecisionsAndRefusals",
+          "path": "implementations/go/processor/trial/replacement_test.go:29"
+        }
+      ],
+      "boundary": "Pure compilation, supplied authority, deterministic records and original-input replay. No effect execution is asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_processor/trial_compiler/replacement_inputs.py",
+      "owners": [
+        "implementations/go/processor/trial/replacement.go"
+      ],
+      "tests": [
+        {
+          "name": "TestReplacementMatchesIndependentDecisionsAndRefusals",
+          "path": "implementations/go/processor/trial/replacement_test.go:29"
+        }
+      ],
+      "boundary": "Pure compilation, supplied authority, deterministic records and original-input replay. No effect execution is asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_processor/trial_compiler/sources.py",
+      "owners": [
+        "implementations/go/processor/trial/authoring_sources.go"
+      ],
+      "tests": [
+        {
+          "name": "TestTypedRealizationReplaysIndependentAuthoringSelections",
+          "path": "implementations/go/processor/trial/typed_test.go:173"
+        }
+      ],
+      "boundary": "Pure compilation, supplied authority, deterministic records and original-input replay. No effect execution is asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_processor/trial_compiler/tool_support.py",
+      "owners": [
+        "implementations/go/processor/trial/support.go"
+      ],
+      "tests": [
+        {
+          "name": "TestTrialToolSupportRequiresSelectedProcessor",
+          "path": "implementations/go/processor/trial/tool_support_test.go:15"
+        }
+      ],
+      "boundary": "Pure compilation, supplied authority, deterministic records and original-input replay. No effect execution is asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_runtime/experiment_records.py",
+      "owners": [
+        "implementations/go/runtime/experiment/types.go"
+      ],
+      "tests": [
+        {
+          "name": "TestRuntimeRecordsMatchIndependentAssembly",
+          "path": "implementations/go/runtime/experiment/records_test.go:93"
+        }
+      ],
+      "boundary": "Controller and record behavior at supplied Host, Journal, OwnerCaller and Archive seams. Concrete engine/store/worker implementation is not asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_runtime/runtime_experiment.py",
+      "owners": [
+        "implementations/go/runtime/experiment/coordinator.go"
+      ],
+      "tests": [
+        {
+          "name": "TestRuntimeRequiresOwnersAndPreservesActor",
+          "path": "implementations/go/runtime/experiment/coordinator_test.go:113"
+        },
+        {
+          "name": "TestRuntimeCompletesAllEntriesAndRetainsCleanup",
+          "path": "implementations/go/runtime/experiment/coordinator_test.go:237"
+        }
+      ],
+      "boundary": "Controller and record behavior at supplied Host, Journal, OwnerCaller and Archive seams. Concrete engine/store/worker implementation is not asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_runtime/runtime_experiment_admission.py",
+      "owners": [
+        "implementations/go/runtime/experiment/coordinator.go"
+      ],
+      "tests": [
+        {
+          "name": "TestRuntimeEveryPublicOperationEnforcesActorAndScopes",
+          "path": "implementations/go/runtime/experiment/results_test.go:90"
+        },
+        {
+          "name": "TestRuntimeHandoffsKeepSharedPortableValueBudgets",
+          "path": "implementations/go/runtime/experiment/bounds_test.go:35"
+        }
+      ],
+      "boundary": "Controller and record behavior at supplied Host, Journal, OwnerCaller and Archive seams. Concrete engine/store/worker implementation is not asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_runtime/runtime_experiment_progress.py",
+      "owners": [
+        "implementations/go/runtime/experiment/progress.go"
+      ],
+      "tests": [
+        {
+          "name": "TestRuntimeRetryHonorsAuthorPolicyAndAttemptLimit",
+          "path": "implementations/go/runtime/experiment/recovery_test.go:118"
+        },
+        {
+          "name": "TestRuntimeRecoversLostRetirementAcknowledgement",
+          "path": "implementations/go/runtime/experiment/retirement_test.go:56"
+        }
+      ],
+      "boundary": "Controller and record behavior at supplied Host, Journal, OwnerCaller and Archive seams. Concrete engine/store/worker implementation is not asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_runtime/runtime_experiment_records.py",
+      "owners": [
+        "implementations/go/runtime/experiment/records.go"
+      ],
+      "tests": [
+        {
+          "name": "TestRuntimeRecordsMatchIndependentAssembly",
+          "path": "implementations/go/runtime/experiment/records_test.go:93"
+        }
+      ],
+      "boundary": "Controller and record behavior at supplied Host, Journal, OwnerCaller and Archive seams. Concrete engine/store/worker implementation is not asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_runtime/runtime_experiment_replacement.py",
+      "owners": [
+        "implementations/go/runtime/experiment/replacement.go"
+      ],
+      "tests": [
+        {
+          "name": "TestRuntimeReplacementRetainsChildBeforeRetirementAndRecoversArchive",
+          "path": "implementations/go/runtime/experiment/replacement_test.go:59"
+        }
+      ],
+      "boundary": "Controller and record behavior at supplied Host, Journal, OwnerCaller and Archive seams. Concrete engine/store/worker implementation is not asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_runtime/runtime_study_records.py",
+      "owners": [
+        "implementations/go/runtime/experiment/studies.go"
+      ],
+      "tests": [
+        {
+          "name": "TestRuntimeValidatesScientificEvidenceAndStudyAgainstIndependentRecords",
+          "path": "implementations/go/runtime/experiment/science_test.go:119"
+        }
+      ],
+      "boundary": "Controller and record behavior at supplied Host, Journal, OwnerCaller and Archive seams. Concrete engine/store/worker implementation is not asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_runtime/runtime_trial_decisions.py",
+      "owners": [
+        "implementations/go/runtime/experiment/decisions.go"
+      ],
+      "tests": [
+        {
+          "name": "TestDecisionMatchesIndependentIdentitiesAndDefaults",
+          "path": "implementations/go/runtime/experiment/decisions_test.go:12"
+        },
+        {
+          "name": "TestDecisionReconstructsIndependentNestedConstructorDefaults",
+          "path": "implementations/go/runtime/experiment/decision_defaults_test.go:9"
+        }
+      ],
+      "boundary": "Controller and record behavior at supplied Host, Journal, OwnerCaller and Archive seams. Concrete engine/store/worker implementation is not asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_runtime/runtime_trial_services.py",
+      "owners": [
+        "implementations/go/runtime/experiment/coordinator.go"
+      ],
+      "tests": [
+        {
+          "name": "TestRuntimeIsolatesForeignErrorInspection",
+          "path": "implementations/go/runtime/experiment/owner_errors_test.go:21"
+        },
+        {
+          "name": "TestRuntimeForeignOwnerFailureOmitsPrivateMessages",
+          "path": "implementations/go/runtime/experiment/results_test.go:101"
+        }
+      ],
+      "boundary": "Controller and record behavior at supplied Host, Journal, OwnerCaller and Archive seams. Concrete engine/store/worker implementation is not asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_runtime/runtime_trial_unit.py",
+      "owners": [
+        "implementations/go/runtime/experiment/results.go"
+      ],
+      "tests": [
+        {
+          "name": "TestRuntimeResultsRetainAttemptReceiptsSnapshotAndEvidenceRoles",
+          "path": "implementations/go/runtime/experiment/results_test.go:59"
+        },
+        {
+          "name": "TestRuntimeCancellationRemainsAvailableDuringBlockedProgress",
+          "path": "implementations/go/runtime/experiment/recovery_test.go:216"
+        }
+      ],
+      "boundary": "Controller and record behavior at supplied Host, Journal, OwnerCaller and Archive seams. Concrete engine/store/worker implementation is not asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_runtime/runtime_record_assembly.py",
+      "owners": [
+        "implementations/go/runtime/experiment/records.go"
+      ],
+      "tests": [
+        {
+          "name": "TestRuntimeRecordsMatchIndependentAssembly",
+          "path": "implementations/go/runtime/experiment/records_test.go:93"
+        }
+      ],
+      "boundary": "Controller and record behavior at supplied Host, Journal, OwnerCaller and Archive seams. Concrete engine/store/worker implementation is not asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_runtime/runtime_record_decisions.py",
+      "owners": [
+        "implementations/go/runtime/experiment/decisions.go"
+      ],
+      "tests": [
+        {
+          "name": "TestDecisionReconstructsIndependentNestedConstructorDefaults",
+          "path": "implementations/go/runtime/experiment/decision_defaults_test.go:9"
+        }
+      ],
+      "boundary": "Controller and record behavior at supplied Host, Journal, OwnerCaller and Archive seams. Concrete engine/store/worker implementation is not asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_runtime/runtime_record_lineage.py",
+      "owners": [
+        "implementations/go/runtime/experiment/lineage.go"
+      ],
+      "tests": [
+        {
+          "name": "TestRuntimeAccountingPreservesExactScientificOriginal",
+          "path": "implementations/go/runtime/experiment/lineage_test.go:11"
+        }
+      ],
+      "boundary": "Controller and record behavior at supplied Host, Journal, OwnerCaller and Archive seams. Concrete engine/store/worker implementation is not asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_runtime/runtime_record_publication.py",
+      "owners": [
+        "implementations/go/runtime/experiment/publication.go"
+      ],
+      "tests": [
+        {
+          "name": "TestRuntimePublicationFreezesCandidatesAcrossLostAcknowledgement",
+          "path": "implementations/go/runtime/experiment/publication_test.go:59"
+        },
+        {
+          "name": "TestRuntimeDeliversFrozenRecordsToEverySuppliedArchive",
+          "path": "implementations/go/runtime/experiment/record_failures_test.go:72"
+        }
+      ],
+      "boundary": "Controller and record behavior at supplied Host, Journal, OwnerCaller and Archive seams. Concrete engine/store/worker implementation is not asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_runtime/runtime_record_validation.py",
+      "owners": [
+        "implementations/go/runtime/experiment/record_validation.go"
+      ],
+      "tests": [
+        {
+          "name": "TestRuntimeRecordValidationSelectsOnlyPinnedApparatus",
+          "path": "implementations/go/runtime/experiment/record_context_test.go:8"
+        },
+        {
+          "name": "TestRuntimeValidatesOriginalWhilePublishingAddedAccounting",
+          "path": "implementations/go/runtime/experiment/lineage_test.go:28"
+        }
+      ],
+      "boundary": "Controller and record behavior at supplied Host, Journal, OwnerCaller and Archive seams. Concrete engine/store/worker implementation is not asserted."
+    },
+    {
+      "reference": "implementations/python/packages/raes_runtime/runtime_record_versions.py",
+      "owners": [
+        "implementations/go/runtime/experiment/publication.go"
+      ],
+      "tests": [
+        {
+          "name": "TestRuntimePublicationRejectsDifferentReadback",
+          "path": "implementations/go/runtime/experiment/publication_test.go:84"
+        },
+        {
+          "name": "TestRuntimeAccountingPreservesExactScientificOriginal",
+          "path": "implementations/go/runtime/experiment/lineage_test.go:11"
+        }
+      ],
+      "boundary": "Controller and record behavior at supplied Host, Journal, OwnerCaller and Archive seams. Concrete engine/store/worker implementation is not asserted."
+    }
+  ],
+  "current_sources": {
+    "implementations/go/contract/admission/experiment_evidence.go": "9ccd3eb5343f7d0067845ae48308da5feb00f9779ffb4dbf6cb0d6b93ede0234",
+    "implementations/go/contract/admission/experiment_evidence_test.go": "9e9addd3627684abed1cc7d1de24c2333c976bc6cca580bfe1197a9ff8e75e31",
+    "implementations/go/contract/admission/experiment_projection.go": "54e8294bf3dc8a1728c9cfb1f26b5e5402776afa0fe8fbe07087b2fabf1a4f56",
+    "implementations/go/contract/admission/experiment_projection_test.go": "1ea69e624d67ce4c2b7050602bd7636b64267b07cd49405812340be2b55445a8",
+    "implementations/go/contract/admission/full_reference_test.go": "81957bb0bc76db478299f72917874f66c5bb96faed29f3d6582f1c6f26968b9b",
+    "implementations/go/contract/admission/participant_configuration_test.go": "f128321036dcc586676c90a18b3072c1ea4b2bbdb054e65e25836ca933590286",
+    "implementations/go/contract/admission/trial_reconciliation.go": "983d7e1b87b051de0837c5aca78ba26083d4791e7b1bc077a10f95e687e3b45b",
+    "implementations/go/contract/admission/trial_reconciliation_test.go": "adc31db3a22518d4f9d34028323985ad09cdd7d0a91aa6e69d90291295f9c12c",
+    "implementations/go/contract/admission/trial_replacement_history.go": "667b29e01f51fca93ccc0390fac44d9d5742bae38ffe47461eb57aee2798e067",
+    "implementations/go/contract/admission/trial_replacement_study_test.go": "25ad3f261cd69f4fc1aee32d784799ebc722574b8f83ea2ca0388beef1ca86de",
+    "implementations/go/contract/admission/trial_sealing.go": "e874a96da816cb39dd723ca895b16cb60dc82d5fcd6e8c54df41ad5eb8a74a7d",
+    "implementations/go/contract/admission/trial_sealing_test.go": "7dfea9210a87b048a671d0ead531fd1d7d0d408dc04130e2d5697fd5f4882b61",
+    "implementations/go/contract/admission/trial_study.go": "3abbd76903d189ea0b818887b5175ac8bb3d512f108762f2acba2bc856153d91",
+    "implementations/go/contract/admission/trial_study_test.go": "33662bdb0108bee45b997ecbee31d033a7c35a2c3abce40024ba0c5be3d09315",
+    "implementations/go/internal/sdl/authoring/trial_domains_test.go": "0d17714cc57848905101c937ee02cb4e4593d906dff0c2d9655b991428d16674",
+    "implementations/go/processor/trial/apparatus.go": "a591e26ed425cb07e597bed14e718e4c38365065624e67f6dea6d8fc40fc0e0b",
+    "implementations/go/processor/trial/apparatus_test.go": "df6febf28ecbc489e643e2741ec4685b4600f30f285cce06061412e98b19cf85",
+    "implementations/go/processor/trial/authoring_sources.go": "d2dbf92dd318ebc50ac0dd05cc61d2c217140e5486be736240f08364236009fc",
+    "implementations/go/processor/trial/bindings.go": "af63e1eafa5984f3ea63cf3d0297330d833d87ba1b7a66923f2817571f171abe",
+    "implementations/go/processor/trial/compiler.go": "4029337b91da3215d6bd313bada56cef55d52e003b400a64ca1b9c1b0574b541",
+    "implementations/go/processor/trial/compiler_reference_test.go": "789958052ec5aaf32ad561c9019181a0421482b89b7711830b7d2731aecd8ca7",
+    "implementations/go/processor/trial/configuration_test.go": "4e0b11847deb5f38e6238956613962004f47d1f1cbf864be23d3ebb8683988a5",
+    "implementations/go/processor/trial/inputs.go": "680d556402f460d74d6bcd70ff8590b7eeb26b9c2858734601e49379bcce5932",
+    "implementations/go/processor/trial/limits_test.go": "295ef17ff78cba5180c437c4bd28447e8225d317d466654aba55c734c2c5c85c",
+    "implementations/go/processor/trial/mixed.go": "266954da318b7fd35c51bb797e00525326b3bd3d965728b96dcb7395d70cb7b0",
+    "implementations/go/processor/trial/mixed_test.go": "ead87b3443f43eb1cacbeedb80eb0e75ebc792c3945ba67b59ad6e79430111a6",
+    "implementations/go/processor/trial/plan_compile.go": "b5d037550028de94cd4d9d812e024c25038bb3eecf0a2c61cd5d65aefb11ad06",
+    "implementations/go/processor/trial/policies.go": "11392b505a0031e16cd8848f513a9da2cda3d5718ce0b5903ddfae3c9fc1b925",
+    "implementations/go/processor/trial/replacement.go": "cf254e940c544b2667e74c92f5c3e7ab50b2f3c22257c2dff08ac98a45dc06a0",
+    "implementations/go/processor/trial/replacement_history.go": "5f3d28a6c8023e5c62a9b3adca365ac3c17626d7800df3143fdffde60c79a7db",
+    "implementations/go/processor/trial/replacement_test.go": "0c3fb712e579e11e4cb7117bb42176ac418538ac6fa8596dc3206f7f86fe0b5b",
+    "implementations/go/processor/trial/schedule.go": "16e98c14da635611d2c537e07c89c813a75173891c5b565facb2506e6af116f5",
+    "implementations/go/processor/trial/schedule_test.go": "0a1deaa5586abc61469deb025b05ca5b87886a5772546a79139a8b5c50cfca42",
+    "implementations/go/processor/trial/support.go": "324302be188f9121563cf181ea6c3eb3bcdb1833294956ae3eed87aebfe6b5e4",
+    "implementations/go/processor/trial/tool_support_test.go": "a0270258a252194c499a9650150e58101c1e932ab7936a50d700673d32ac9b13",
+    "implementations/go/processor/trial/treatment_effects.go": "32d7586bb4df94c101d9a281dd8f06c441ed1eecb105e4d260881ca5b3b07bd9",
+    "implementations/go/processor/trial/typed_test.go": "b97ef508248bef9e44e786c361fbad6f9e299e168406e10c0a944575e5d772ef",
+    "implementations/go/processor/trial/types.go": "01759549cecf3e33061f924c20035108ea58a4675b936789abc11134c1444933",
+    "implementations/go/runtime/experiment/bounds_test.go": "90486f8c8f6592c6c78e15f19cf2b811369602799e8ef3d333ea5c27caf6e1cc",
+    "implementations/go/runtime/experiment/coordinator.go": "43c8b9c999e26ec7c5aac8e80966db4a30e829820fcdcb04738c463e6e9aa316",
+    "implementations/go/runtime/experiment/coordinator_test.go": "78a2c7f358a7f6a823cd004146828d148d91cd7f79d7eaf7994422a359f43ddc",
+    "implementations/go/runtime/experiment/decision_defaults_test.go": "0bd3d02750b1fe261b9b05723bb950e67ad253c5354340cf449c76fc4bcc2e76",
+    "implementations/go/runtime/experiment/decisions.go": "0dce59d170ea58a3b9c487a3ffc2bf95eef021a783bffb6ea1d26e56449d470a",
+    "implementations/go/runtime/experiment/decisions_test.go": "4dc81485b97b16cf9017ef413206957eeca784c00aeb5cefa1e8c18b37db6b39",
+    "implementations/go/runtime/experiment/lineage.go": "d008b763ace19ecf803f34fb20654b0f017e78ca11c6af13a0014b5e7c29dc20",
+    "implementations/go/runtime/experiment/lineage_test.go": "f26ed59b9236dbb309f5048e5e375eed900e900d156e60408e04dd142ce0f651",
+    "implementations/go/runtime/experiment/owner_errors_test.go": "2705097908f37cc74e256e345969ca6e948c92da74a584c1e68044c308fe1721",
+    "implementations/go/runtime/experiment/progress.go": "2cd945f6740d1c2794fa26f934989e23e5b65501c3bb463603edf8adcfa780ba",
+    "implementations/go/runtime/experiment/publication.go": "53bbb765e7661f24e6f819a34d75754548dfd629c048c6fc52e081a41509fa10",
+    "implementations/go/runtime/experiment/publication_test.go": "4f564091f2ce7b5149f806092db2d521479664ffdf1ce9eaa26c2b29225c9897",
+    "implementations/go/runtime/experiment/record_context_test.go": "6571cc64c18b554e2d8a21035ca25752b78d2cd7ae8940d611f404b8a499d889",
+    "implementations/go/runtime/experiment/record_failures_test.go": "b073cd0e10c26ba97ca35fa95eb6afea613eea1b9051f964a5f9804709936451",
+    "implementations/go/runtime/experiment/record_validation.go": "ecb67ed1f42bf63d34470fc48b59bd7a21b811deddbd6063e96e1f336264d7cf",
+    "implementations/go/runtime/experiment/records.go": "fd54f6b6b0c8b49ddd5819279a71f1bdb8867e798d333ac50415f8659acd688d",
+    "implementations/go/runtime/experiment/records_test.go": "e2ea42f0a474b23581b46eb3688620b0e23064025ddfe7fb50b944ea99af6425",
+    "implementations/go/runtime/experiment/recovery_test.go": "93a61ef73ec4589633f7018964a1d9c52c51ba990b08d3ba23fbb23fa9c1f92b",
+    "implementations/go/runtime/experiment/replacement.go": "b8e3a9f47b9ce099c93e6885c3d15f31b96b7161e6ea58af1823771d5787b6b8",
+    "implementations/go/runtime/experiment/replacement_test.go": "ef3dc8325c3ff5a8d535b334d70b62ec0413675a7575ba028c5b038df7ce63ee",
+    "implementations/go/runtime/experiment/results.go": "1bbf32b725f93e63c5877cbb2eb59b18bf64406d5cecf78f6d9d7d1e0815f432",
+    "implementations/go/runtime/experiment/results_test.go": "a2c67fe914df2df9ebaebbff94e59cd66ca86abd6112c228d4a22058e7064877",
+    "implementations/go/runtime/experiment/retirement_test.go": "72c9daf6f292c1e54875edd3ac0f137c61c5e18be01d2784418fc87d2c0632d2",
+    "implementations/go/runtime/experiment/science_test.go": "28cdbe71e1b2351717e8a00f84b2e2e400b7dcf8e70de55e85c2907d0a28bd84",
+    "implementations/go/runtime/experiment/studies.go": "77ecbee2ff7ecb415766a2ade4e5f7def637422c8feecaf22ec18f344fb202b3",
+    "implementations/go/runtime/experiment/types.go": "5ceee24b52a6463aa6c463f98ec5f029024cb7c96a8ad6c703ac70de7b920307"
+  }
+}

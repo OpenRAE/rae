@@ -73,3 +73,36 @@ func TestTransportRetainsRawEscapesAndDepthBounds(t *testing.T) {
 		t.Fatal("nested raw transport bypassed the depth bound")
 	}
 }
+
+type foreignText string
+
+func (foreignText) MarshalJSON() ([]byte, error) { panic("foreign text called") }
+func TestTransportTreeBoundsKnownRecordsWithoutForeignMethods(t *testing.T) {
+	var record binding.RuntimeSnapshotV1
+	if json.Unmarshal([]byte(`{"schema_version":"runtime-snapshot/v1","entries":{}}`), &record) != nil {
+		t.Fatal("fixture")
+	}
+	tree := map[string]any{"record": record, "count": 3, "ratio": 0.5, "null": nil, "raw": json.RawMessage(`{"valid":true}`)}
+	raw, err := json.Marshal(tree)
+	if err != nil {
+		t.Fatal(err)
+	}
+	limits := ingress.Limits{MaxBytes: len(raw), MaxDepth: 64}
+	if err = admission.CheckTransportTree(tree, limits); err != nil {
+		t.Fatal(err)
+	}
+	limits.MaxBytes--
+	if admission.CheckTransportTree(tree, limits) == nil {
+		t.Fatal("aggregate overflow accepted")
+	}
+	for _, v := range []any{foreignTransport{}, foreignText("text")} {
+		if admission.CheckTransportTree(map[string]any{"foreign": v}, ingress.Limits{MaxBytes: 1024, MaxDepth: 64}) == nil {
+			t.Fatal("foreign carrier accepted")
+		}
+	}
+	cycle := map[string]any{}
+	cycle["self"] = cycle
+	if admission.CheckTransportTree(cycle, ingress.Limits{MaxBytes: 1024, MaxDepth: 64}) == nil {
+		t.Fatal("cycle accepted")
+	}
+}

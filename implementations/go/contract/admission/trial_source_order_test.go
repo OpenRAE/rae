@@ -1,6 +1,13 @@
 package admission
 
-import "testing"
+import (
+	"compress/gzip"
+	"io"
+	"os"
+	"testing"
+
+	"github.com/OpenRAE/rae/implementations/go/base/ingress"
+)
 
 func TestTrialCoordinateTiesKeepOriginalSourceOrder(t *testing.T) {
 	for _, test := range []struct {
@@ -26,5 +33,31 @@ func TestTrialCoordinateTiesKeepOriginalSourceOrder(t *testing.T) {
 		if !equal(order, test.want) {
 			t.Errorf("order=%v want %v", order, test.want)
 		}
+	}
+}
+
+func TestTrialSourceOrderAcceptsBoundedLargeValueSet(t *testing.T) {
+	file, err := os.Open("testdata/large-source-plan.json.gz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = file.Close() }()
+	reader, err := gzip.NewReader(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { _ = reader.Close() }()
+	raw, err := io.ReadAll(io.LimitReader(reader, 32<<20))
+	if err != nil {
+		t.Fatal(err)
+	}
+	owner := boundTestOwner(t)
+	value, err := owner.Validate(trialPlanContract, raw, ingress.Limits{MaxBytes: 32 << 20, MaxDepth: 64}, nil)
+	if err != nil {
+		t.Fatal("independently sealed 800-entry plan refused", err)
+	}
+	order, err := TrialEntryOrder(owner, value)
+	if err != nil || len(order) != 800 {
+		t.Fatal("large source order refused", err, len(order))
 	}
 }

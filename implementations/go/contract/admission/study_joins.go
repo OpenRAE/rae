@@ -25,17 +25,9 @@ func (e *Validator) studyJoins(i validation.Invocation) error {
 	if err != nil {
 		return err
 	}
-	if err := e.studyRunTasks(sources); err != nil {
-		return err
-	}
-	if err := studyAnalysis(v, sources); err != nil {
-		return err
-	}
-	if err := studyAllocation(v, sources); err != nil {
-		return err
-	}
-	return studyStochastic(v, sources.evaluation)
+	return e.validateStudySources(v, sources)
 }
+
 func studyMembership(v any, tasks, runs []any) (studySources, error) {
 	s := studySources{}
 	var taskRefs, runRefs, evaluationRefs []any

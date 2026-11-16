@@ -79,7 +79,7 @@ func (e *Validator) sampleControl(plan, policy any) error {
 			continue
 		}
 		role := stringAt(control, "role")
-		if role != "sampling" && role != "randomization" {
+		if role != "sampling" && role != experimentTermRandomization {
 			return invalid()
 		}
 		return require(stringAt(e.streams[stringAt(control, "executable_binding", "profile_ref", fieldRefID)], "transforms", "bounded-integer", "version") == "1")

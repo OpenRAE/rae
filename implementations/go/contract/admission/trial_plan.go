@@ -1,9 +1,11 @@
 package admission
 
 import (
+	"encoding/json"
 	"maps"
 	"strings"
 
+	"github.com/OpenRAE/rae/implementations/go/base/ingress"
 	"github.com/OpenRAE/rae/implementations/go/contract/validation"
 )
 
@@ -16,7 +18,7 @@ func (e *Validator) trialPlanRules() map[string]definition {
 
 func (e *Validator) trialEntry(i validation.Invocation) error {
 	v := i.Instance
-	if equal(at(v, termRunID), at(v, "plan_entry_id")) || !unique(rowIDs(at(v, "selections"), "variation_point_id")) || !matchingFields(v, at(v, "instantiation_provenance"), "plan_entry_id", termRunID) {
+	if equal(at(v, termRunID), at(v, fieldPlanEntryID)) || !unique(rowIDs(at(v, "selections"), "variation_point_id")) || !matchingFields(v, at(v, "instantiation_provenance"), fieldPlanEntryID, termRunID) {
 		return invalid()
 	}
 	for _, draw := range array(at(v, "stochastic_draws")) {
@@ -46,14 +48,24 @@ func trialProjection(v any) {
 }
 
 func (e *Validator) trialDigest(i validation.Invocation, field string) error {
-	root, err := e.defaulted(i.Key.ContractID, invocationRoot(i))
+	raw, err := json.Marshal(i.Instance)
+	if err != nil {
+		return invalid()
+	}
+	// This value already passed its caller's byte bound. Allow one bounded
+	// reconstruction copy for schema defaults that the serializer omits.
+	if len(raw) > int(^uint(0)>>1)/2 {
+		return invalid()
+	}
+	limits := ingress.Limits{MaxBytes: max(32<<20, 2*len(raw)), MaxDepth: 64}
+	var v map[string]any
+	if field == "entry_digest" {
+		v, err = e.trialEntryProjection(i.Key.ContractID, raw, limits)
+	} else {
+		v, err = e.trialConstructed(raw, limits)
+	}
 	if err != nil {
 		return err
-	}
-	trialProjection(root)
-	v, ok := pointerAt(root, i.Path)
-	if !ok {
-		return invalid()
 	}
 	content := maps.Clone(object(v))
 	delete(content, field)
@@ -64,12 +76,28 @@ func (e *Validator) trialDigest(i validation.Invocation, field string) error {
 	return require(stringAt(v, field) == digest)
 }
 
+func (e *Validator) trialEntryProjection(id string, raw []byte, limits ingress.Limits) (map[string]any, error) {
+	entry, err := e.low.DefaultedObjectFragment(id, schemaDefinitionsPrefix+modelAdmittedTrialEntry, raw, limits)
+	if err != nil {
+		return nil, err
+	}
+	addExperimentFactories(modelAdmittedTrialEntry, entry)
+	apparatus := object(entry[termApparatus])
+	model := modelTrialApparatus
+	if stringAt(apparatus, "realization_kind") == experimentTermMixedComposition {
+		model = modelTrialMixedApparatus
+	}
+	addExperimentFactories(model, apparatus)
+	trialProjection(entry)
+	return entry, nil
+}
+
 func (e *Validator) trialPlan(i validation.Invocation) error {
 	v := i.Instance
 	if err := trialReplacement(v); err != nil {
 		return err
 	}
-	if !keyed(at(v, "entries"), "plan_entry_id") || !keyed(at(v, "cleanup_plans"), "plan_id") || !keyed(at(v, "stochastic_controls"), "control_id") || !countEqual(at(v, termAdmission, "entry_count"), len(object(at(v, "entries")))) {
+	if !keyed(at(v, "entries"), fieldPlanEntryID) || !keyed(at(v, "cleanup_plans"), fieldPlanID) || !keyed(at(v, "stochastic_controls"), "control_id") || !countEqual(at(v, termAdmission, "entry_count"), len(object(at(v, "entries")))) {
 		return invalid()
 	}
 	if err := trialIdentities(v); err != nil {
@@ -101,7 +129,7 @@ func trialReplacement(v any) error {
 	if origin == nil {
 		return nil
 	}
-	if policy == nil || numericGreater(at(origin, "ordinal"), at(policy, "max_replacements")) || len(object(at(v, "entries"))) != 1 || stringAt(v, "plan_id") == stringAt(origin, "root_plan_id") || stringAt(v, "plan_id") == stringAt(origin, "parent_plan_id") {
+	if policy == nil || numericGreater(at(origin, "ordinal"), at(policy, "max_replacements")) || len(object(at(v, "entries"))) != 1 || stringAt(v, fieldPlanID) == stringAt(origin, "root_plan_id") || stringAt(v, fieldPlanID) == stringAt(origin, "parent_plan_id") {
 		return invalid()
 	}
 	for _, entry := range object(at(v, "entries")) {
@@ -117,12 +145,12 @@ func trialIdentities(v any) error {
 	for _, entry := range entries {
 		run := stringAt(entry, termRunID)
 		coordinate := join(stringAt(entry, "coordinate", "condition_id"), stringAt(entry, "coordinate", "block_id"), stringAt(entry, "coordinate", "replicate_id"))
-		if runs[run] || entries[run] != nil || run == stringAt(v, "plan_id") || coordinates[coordinate] {
+		if runs[run] || entries[run] != nil || run == stringAt(v, fieldPlanID) || coordinates[coordinate] {
 			return invalid()
 		}
 		runs[run], coordinates[coordinate] = true, true
 		provenance := at(entry, "instantiation_provenance")
-		if !equal(at(provenance, "plan_id"), at(v, "plan_id")) || !equal(at(provenance, "scenario_family_id"), at(v, "input_refs", "scenario_family_ref", "ref_id")) {
+		if !equal(at(provenance, fieldPlanID), at(v, fieldPlanID)) || !equal(at(provenance, "scenario_family_id"), at(v, "input_refs", "scenario_family_ref", "ref_id")) {
 			return invalid()
 		}
 	}
@@ -139,13 +167,13 @@ func trialProfileJoins(v any) error {
 	used := map[string]bool{}
 	for _, entry := range object(at(v, "entries")) {
 		apparatus := at(entry, termApparatus)
-		if stringAt(apparatus, "realization_kind") != "mixed-composition" {
+		if stringAt(apparatus, "realization_kind") != experimentTermMixedComposition {
 			continue
 		}
 		mixed = true
 		ref := at(apparatus, "profile_ref")
 		used[join(stringAt(ref, "ref_id"), stringAt(ref, "ref_version"), stringAt(ref, "ref_digest"))] = true
-		if equal(at(apparatus, "source_trial", "plan_id"), at(v, "plan_id")) {
+		if equal(at(apparatus, "source_trial", fieldPlanID), at(v, fieldPlanID)) {
 			return invalid()
 		}
 	}
@@ -169,7 +197,7 @@ func trialCleanupJoins(v any) error {
 	for _, entry := range object(at(v, "entries")) {
 		id := stringAt(entry, "execution_controls", "cleanup_plan_ref")
 		cleanup := at(v, "cleanup_plans", id)
-		if cleanup == nil || !matchingFields(entry, cleanup, "plan_entry_id", termRunID) {
+		if cleanup == nil || !matchingFields(entry, cleanup, fieldPlanEntryID, termRunID) {
 			return invalid()
 		}
 		used[id] = true
@@ -239,7 +267,7 @@ func trialModelProjection(value map[string]any) {
 	if _, ok := value["realization_envelope"]; ok && len(array(value["participant_manifest_refs"])) == 0 {
 		delete(value, "participant_manifest_refs")
 	}
-	if stringAt(value, "realization_kind") == "mixed-composition" && len(array(value["participant_manifest_refs"])) == 0 {
+	if stringAt(value, "realization_kind") == experimentTermMixedComposition && len(array(value["participant_manifest_refs"])) == 0 {
 		delete(value, "participant_manifest_refs")
 	}
 	trialOptionalProjection(value)

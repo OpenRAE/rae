@@ -359,7 +359,7 @@ func use(plan b.AdmittedTrialPlanV1) {
 import t "github.com/OpenRAE/rae/implementations/go/processor/trial"
 var participant = t.ParticipantManifestKey{ParticipantAddress:"p",ImplementationName:"i",ImplementationVersion:"1",ManifestVersion:"v1"}
 var apparatus = t.ApparatusManifestKey{ComponentKind:"processor",ComponentName:"i",ComponentVersion:"1",ManifestVersion:"v2"}
-var validator = t.ConfigurationValidatorKey{ImplementationName:"i",ImplementationVersion:"1"}
+var validator = t.ConfigurationValidatorKey{ValidatorID:"i",ValidatorVersion:"1"}
 `},
 		{"independent experiment admission", `package consumer
 import (
