@@ -1,0 +1,2511 @@
+{
+  "issue": 1790,
+  "source_revision": "e039884f818e5eb7d3a20cc0cdffa3d4723c2735",
+  "scope": "Source-module audit and named portable invariant attribution. Runtime wrapper assertions are excluded, not claimed as equivalent unit tests. Existing #1781/#1787/#1788 admission and processor vectors are reused. A mapping is review evidence, not an execution report.",
+  "module_audit": [
+    {
+      "python_module": "implementations/python/packages/raes/_realization_envelope_domains.py",
+      "sha256": "7ba512aaea4bba81df2b47c92cf824f8604f00ef0c8b7e456d7c90e977c4a6d2",
+      "definitions": [
+        "finite_members",
+        "_governed_subset",
+        "_interval_subset",
+        "_numeric_subset",
+        "domain_subset",
+        "_enum_sort_key",
+        "_integer_witness_value",
+        "_real_witness_value",
+        "_numeric_witness_value",
+        "default_witness_value",
+        "positive_probe_values",
+        "_perturb_scalar",
+        "_fresh_scalar_outside",
+        "_interval_out_of_domain",
+        "out_of_domain_value",
+        "out_of_domain_candidates"
+      ],
+      "disposition": "envelope",
+      "boundary": "One bounded relation owner; ordinary SDL owns valid witnesses, probes and typed presence. Existing independent domain and membership vectors remain authoritative."
+    },
+    {
+      "python_module": "implementations/python/packages/raes/_realization_envelope_engine.py",
+      "sha256": "13df70697bdae6e6b03a5352933f01b7323415e4db0d7c8677c7b2c73b9be2ec",
+      "definitions": [
+        "LeafConstraint",
+        "tokenize_path",
+        "_path_tokens",
+        "_is_same_or_descendant",
+        "_render_path",
+        "_navigate_step",
+        "navigate",
+        "normalize_scalar",
+        "_is_nonempty",
+        "present_children",
+        "_model_present_children",
+        "_expand_constraint",
+        "_collect_record_closures",
+        "_record_closed_scopes",
+        "_prefixed_paths",
+        "_apply_binding",
+        "_add_admitted_children",
+        "_open_closed_subtree",
+        "effective_constraints",
+        "_binding_specificity",
+        "_overlay_specificity",
+        "_record_open_widenings",
+        "_record_overwrite_widenings",
+        "overridability_violations",
+        "witness_value",
+        "assign_path",
+        "remove_path",
+        "fresh_extra_key"
+      ],
+      "disposition": "envelope",
+      "boundary": "One bounded relation owner; ordinary SDL owns valid witnesses, probes and typed presence. Existing independent domain and membership vectors remain authoritative."
+    },
+    {
+      "python_module": "implementations/python/packages/raes/_realization_envelope_probe_payloads.py",
+      "sha256": "012cef0ea657551c8e24fec3f47b98efcd05dc29a677a42b2ba28355f81ddc04",
+      "definitions": [
+        "ProbePayloadCandidate",
+        "_minimal_discriminator_payload",
+        "value_probe_payloads",
+        "_extra_dimension_values",
+        "_model_extra_dimension_payloads",
+        "closed_scope_probe_payloads"
+      ],
+      "disposition": "envelope",
+      "boundary": "One bounded relation owner; ordinary SDL owns valid witnesses, probes and typed presence. Existing independent domain and membership vectors remain authoritative."
+    },
+    {
+      "python_module": "implementations/python/packages/raes/_realization_envelope_projection.py",
+      "sha256": "16e4f248199d27861c2a4cf73d3f3a287b5705587413b51f16f300f34bf8b4a7",
+      "definitions": [
+        "_typed_children",
+        "projected_member"
+      ],
+      "disposition": "envelope",
+      "boundary": "One bounded relation owner; ordinary SDL owns valid witnesses, probes and typed presence. Existing independent domain and membership vectors remain authoritative."
+    },
+    {
+      "python_module": "implementations/python/packages/raes/realization_envelope.py",
+      "sha256": "860054d17c8e9ec8be7803916fb8b414f1e5bf074ee996a2f448c05aa88b3cf4",
+      "definitions": [
+        "RelationKind",
+        "RelationResult",
+        "WitnessResult",
+        "NegativeProbe",
+        "PositiveProbe",
+        "_diag",
+        "_envelope_r2_diagnostics",
+        "_member_sdl_invalid",
+        "_member_constraint_diagnostics",
+        "_resolve_scope_value",
+        "_closed_extra_diagnostics",
+        "_member_closed_diagnostics",
+        "member",
+        "member_projection",
+        "_subsumption_domain_diagnostics",
+        "_subsumption_closure_diagnostics",
+        "subsumes",
+        "_build_witness_payload",
+        "_validate_witness_payload",
+        "witness",
+        "_positive_probe",
+        "generate_positive_probes",
+        "generate_negative_probes"
+      ],
+      "disposition": "envelope",
+      "boundary": "One bounded relation owner; ordinary SDL owns valid witnesses, probes and typed presence. Existing independent domain and membership vectors remain authoritative."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/__init__.py",
+      "sha256": "b9d9b3accd0e242fb0266cf94cb5bd97381dbb75fcbb85cd0c6acbc8a3509478",
+      "definitions": [],
+      "disposition": "roles",
+      "boundary": "Small role method sets use the approved public declarations. Structural capability protocols use admitted published payloads. No foreign method is invoked during opt-in checks."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/_domain_topology_binding.py",
+      "sha256": "bd49643caf24965e52ceeae91cbc48d5170222de0fa7ff9857bfb158be568e3f",
+      "definitions": [
+        "_profile_binding",
+        "domain_topology_profile",
+        "DomainTopologyBinding"
+      ],
+      "disposition": "planning",
+      "boundary": "Existing planner and realization owners retain topology, naming and contextual capability admission. See the #1787 reference-case maps."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/account_features.py",
+      "sha256": "d01d645f87684c305db80e39db3c12bffa4fd4a8f2a6eed69e5d854eef2c6556",
+      "definitions": [
+        "provisioner_account_features"
+      ],
+      "disposition": "account",
+      "boundary": "Reuse existing account projections and placement capability admission."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/augmentation.py",
+      "sha256": "627db1112585b0f986b8a563ee1920b92c7fc8dd072d3c8a9c1e7ace301c3a35",
+      "definitions": [
+        "AugmentationPreparingProducer",
+        "augmentation_preparation"
+      ],
+      "disposition": "preparation",
+      "boundary": "Portable preparation commitments and owned operations remain here. Runtime authorization, delivery verification and replay prevention remain with #1894."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/backend_manifest.py",
+      "sha256": "076b0ce24e88f9d6eed9bd591eb288ea39a435971d9bc0cb04612fb45dd1aa41",
+      "definitions": [
+        "BackendCompatibility",
+        "_BackendManifestOptions",
+        "BackendManifest",
+        "_reject_unknown_options",
+        "_resolve_identity",
+        "_resolve_compatibility",
+        "_resolve_capabilities",
+        "_validate_supported_contract_versions",
+        "_validate_realization_envelope_contract",
+        "_validate_cleanup_capability_contracts",
+        "_validate_time_capability_contracts",
+        "_validate_coordinated_reset_capabilities",
+        "_require_non_empty_tuple"
+      ],
+      "disposition": "manifest",
+      "boundary": "Published binding records and the existing manifest admission owner replace Python constructor and serialization classes."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/capabilities.py",
+      "sha256": "f7abdb867425609c10ba2a41a8b0cdb7de98b2d4aa4f14eec87a9d966f6a8fe1",
+      "definitions": [
+        "OrchestratorCapabilities",
+        "EvaluatorCapabilities",
+        "_validate_unique_non_empty_strings",
+        "ObservationCapabilities",
+        "CleanupCapabilities",
+        "RecoveryObservationCapabilities",
+        "BackendCapabilitySet",
+        "__getattr__"
+      ],
+      "disposition": "manifest",
+      "boundary": "Published binding records and the existing manifest admission owner replace Python constructor and serialization classes."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/capability_admission.py",
+      "sha256": "e1cc3d53610aacb33c79b29dfccb39256041f18d45781bb8d05bb9b1df16464b",
+      "definitions": [
+        "AutonomousExecutionPolicy",
+        "_required_activity_features",
+        "participant_runtime_capability_contract_gaps",
+        "_autonomous_limit_gaps",
+        "_unsupported_autonomous_value_gaps",
+        "_autonomous_execution_binding_gaps",
+        "_binding_identity_matches",
+        "_binding_capacity_matches",
+        "_requires_coordinated_reset",
+        "_autonomous_reset_gaps",
+        "_autonomous_temporal_binding_gaps",
+        "participant_autonomous_execution_capability_gaps",
+        "observation_capability_contract_gaps",
+        "time_capability_contract_gaps",
+        "_unsupported_time_terms",
+        "_time_capacity_gaps",
+        "_time_control_gaps",
+        "time_model_capability_gaps",
+        "require_time_model_capability",
+        "_required_cleanup_actions",
+        "_required_cleanup_probe_methods",
+        "_require_supported_cleanup_values",
+        "require_cleanup_plan_capability"
+      ],
+      "disposition": "feature",
+      "boundary": "Reuse existing participant feature-strength, evidence, downgrade and governed vocabulary admission."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/domain_topology.py",
+      "sha256": "f6e4376188e5dbb8ced97f37b9d74fda1d67e01e9704aa1b158ed69ef8b816e7",
+      "definitions": [
+        "_MaterializedResource",
+        "_snapshot_resources",
+        "_materialize_snapshot_entry",
+        "_materialize_planned_resource",
+        "_materialize_operation",
+        "_materialized_resources",
+        "_diagnostic",
+        "_parse_binding",
+        "_binding_core",
+        "_account_spn",
+        "_account_target",
+        "_dedupe_diagnostics",
+        "_collect_bindings",
+        "_profile_support_diagnostic",
+        "_domain_definition_diagnostics",
+        "_bindings_for_resource_type",
+        "_controller_matches_domain",
+        "_node_binding_diagnostics",
+        "_account_binding_diagnostics",
+        "_controller_placement_diagnostics",
+        "_authority_account_is_valid",
+        "_authority_account_diagnostics",
+        "domain_topology_plan_diagnostics"
+      ],
+      "disposition": "planning",
+      "boundary": "Existing planner and realization owners retain topology, naming and contextual capability admission. See the #1787 reference-case maps."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/inject_execution.py",
+      "sha256": "b60c6acb721b6c7df77dabab6f188c0c691898c24b783c3b8dc934eb0e5b2f43",
+      "definitions": [
+        "InjectAdmission",
+        "InjectArtifactContent",
+        "InjectExecutionEvidence",
+        "ResolvedInjectOutcome",
+        "InjectExecutionResolver",
+        "require_inject_resolver"
+      ],
+      "disposition": "runtime",
+      "boundary": "Live adapters, target composition, trial/inject dispatch, execution-service lookup and grants belong to runtime extraction #1894. This port supplies their portable interfaces and payloads, not the runtime implementation."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/inventory.py",
+      "sha256": "3d71ab788a3eeb8bc49563a0c327b2d2847192a1b26e57e8b0e366bc03b593c6",
+      "definitions": [
+        "RuntimeInventoryReporter"
+      ],
+      "disposition": "roles",
+      "boundary": "Small role method sets use the approved public declarations. Structural capability protocols use admitted published payloads. No foreign method is invoked during opt-in checks."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/manifest.py",
+      "sha256": "6c8a43cbcca95e78ea9f6e2ccc86101c5888992c1fdc7b14e2b3c7cde6e35a34",
+      "definitions": [
+        "BackendManifestEnvelopeUnsupportedError",
+        "BackendManifestInvalidError",
+        "_evaluator_capability_payload",
+        "backend_manifest_v2_model",
+        "backend_manifest_payload",
+        "_realization_support_from_model",
+        "_orchestrator_from_model",
+        "_evaluator_from_model",
+        "_participant_feature_support_from_model",
+        "_participant_runtime_from_model",
+        "_cleanup_from_model",
+        "_time_from_model",
+        "_recovery_observation_from_model",
+        "_capability_set_from_model",
+        "backend_manifest_from_v2_model",
+        "backend_manifest_from_v2_model_with_envelope",
+        "_backend_manifest_from_v2_model"
+      ],
+      "disposition": "manifest",
+      "boundary": "Published binding records and the existing manifest admission owner replace Python constructor and serialization classes."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/mixed_backend.py",
+      "sha256": "6a138da1b26cb0c4cf022a3e08baa1c1cd7deaeefc84a2bb05751a4d7e2bd8bd",
+      "definitions": [
+        "MixedBackendBridge",
+        "MixedTimeCoordinator",
+        "MixedStageReader",
+        "require_mixed_backend_service"
+      ],
+      "disposition": "roles",
+      "boundary": "Small role method sets use the approved public declarations. Structural capability protocols use admitted published payloads. No foreign method is invoked during opt-in checks."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/naming.py",
+      "sha256": "08458bb5979f18d2e59a70cec8f6ae4b24b6483653bd0b171273952ed2a65183",
+      "definitions": [
+        "provider_resource_name"
+      ],
+      "disposition": "planning",
+      "boundary": "Existing planner and realization owners retain topology, naming and contextual capability admission. See the #1787 reference-case maps."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/observation_capture.py",
+      "sha256": "6f5f0297e1242f9390c58138316b217e881df8ae9ed86c8cbc94af6d71579b35",
+      "definitions": [
+        "_validate_unique_non_empty_strings",
+        "ObservationCaptureOffer",
+        "_validate_offer_identity",
+        "_validate_offer_collections",
+        "_validate_offer_governance"
+      ],
+      "disposition": "capture",
+      "boundary": "Reuse capture offer identity, governance and single-offer admission; runtime collection remains with #1894."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/observation_manifest.py",
+      "sha256": "09baf9001d6a27130fff60376bd86defcf3f82505d87196c174876142bb8110a",
+      "definitions": [
+        "observation_capability_payload",
+        "observation_from_model"
+      ],
+      "disposition": "manifest",
+      "boundary": "Published binding records and the existing manifest admission owner replace Python constructor and serialization classes."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/operation_supervision.py",
+      "sha256": "3f04ff36d812095fccbf1986a2ad8b9f2b90e6fb1ad18da5c008267ef0fda6bb",
+      "definitions": [
+        "BackendOperationProvider",
+        "require_operation_provider",
+        "require_inject_occurrence_provider"
+      ],
+      "disposition": "roles",
+      "boundary": "Small role method sets use the approved public declarations. Structural capability protocols use admitted published payloads. No foreign method is invoked during opt-in checks."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/participant_action_commit.py",
+      "sha256": "aaba5d4c72aff67b1d685bf164d2ba09b1bf7a8145775cb3005b2163599bce0e",
+      "definitions": [
+        "participant_binding_post_state_digest",
+        "as_participant_action_result",
+        "reject_participant_action_outcome"
+      ],
+      "disposition": "participant",
+      "boundary": "Owned portable joins and inert episode/history transitions. Native execution adapters and concurrent runtime grants remain with #1894."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/participant_capabilities.py",
+      "sha256": "1921d037fc42cd920650f0dbb8216286f19ad5290e9c78c38bfc599f1c942ca9",
+      "definitions": [
+        "_validate_unique_non_empty_strings",
+        "_validate_participant_feature_support_term",
+        "_participant_feature_support_level",
+        "_participant_feature_refs",
+        "_validate_participant_feature_evidence",
+        "ParticipantFeatureSupport",
+        "ParticipantExecutionBinding",
+        "ParticipantRuntimeCapabilities"
+      ],
+      "disposition": "manifest",
+      "boundary": "Published binding records and the existing manifest admission owner replace Python constructor and serialization classes."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/participant_control_admission.py",
+      "sha256": "87a07d8c00952f4ef57a021c4b50bcf23c07dbc98251a69f4107bd9b5af05c23",
+      "definitions": [
+        "resolve_participant_control_support"
+      ],
+      "disposition": "feature",
+      "boundary": "Reuse existing participant feature-strength, evidence, downgrade and governed vocabulary admission."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/participant_execution_manifest.py",
+      "sha256": "de096dea66cf9915f26dcfa4a880407910b1a2a323a192b7c9262baabad0ad59",
+      "definitions": [
+        "participant_execution_capability_payload",
+        "participant_execution_capability_kwargs"
+      ],
+      "disposition": "manifest",
+      "boundary": "Published binding records and the existing manifest admission owner replace Python constructor and serialization classes."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/participant_execution_runtime.py",
+      "sha256": "8209193989b79ba5a672798c2c97bd82461a79f7ecc40dde99445a4c810335cc",
+      "definitions": [
+        "ParticipantExecutionRuntimeMixin"
+      ],
+      "disposition": "runtime",
+      "boundary": "Live adapters, target composition, trial/inject dispatch, execution-service lookup and grants belong to runtime extraction #1894. This port supplies their portable interfaces and payloads, not the runtime implementation."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/participant_execution_service.py",
+      "sha256": "dc5e0042b0424db607325f6427b4526c57943c4292d254f70fd5ee76564daa3b",
+      "definitions": [
+        "participant_execution_state"
+      ],
+      "disposition": "runtime",
+      "boundary": "Live adapters, target composition, trial/inject dispatch, execution-service lookup and grants belong to runtime extraction #1894. This port supplies their portable interfaces and payloads, not the runtime implementation."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/participant_feature_admission.py",
+      "sha256": "f6025afe23bfbd05299a33a669d6bec5700a1e1561a03611f382b0a3d41e8fb6",
+      "definitions": [
+        "_participant_feature_required_contracts",
+        "_validate_downgrade_authorization",
+        "_participant_feature_declaration",
+        "_validate_participant_feature_evidence",
+        "_validate_participant_feature_strength",
+        "resolve_participant_feature_support",
+        "participant_feature_support_gaps"
+      ],
+      "disposition": "feature",
+      "boundary": "Reuse existing participant feature-strength, evidence, downgrade and governed vocabulary admission."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/participant_invocation_tools.py",
+      "sha256": "340806e54659a730b92e4129117a5e8056a8a1f6560df0b6075f2cc81829df4b",
+      "definitions": [
+        "ParticipantInvocationToolActionPort",
+        "InvocationToolActionParticipantRuntime"
+      ],
+      "disposition": "roles",
+      "boundary": "Small role method sets use the approved public declarations. Structural capability protocols use admitted published payloads. No foreign method is invoked during opt-in checks."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/participant_reset.py",
+      "sha256": "1bbe991ffec08cce7e6de568e2f9a63e24286667eeaf44be97a9676bd5b90efe",
+      "definitions": [
+        "_AtomicResetRuntime",
+        "reset_many_atomically"
+      ],
+      "disposition": "participant",
+      "boundary": "Owned portable joins and inert episode/history transitions. Native execution adapters and concurrent runtime grants remain with #1894."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/participant_resource_admission.py",
+      "sha256": "2cd226382cb89813643447723f0dd10d7b2f4d988429bbb6cfcda8ac381de3c1",
+      "definitions": [
+        "ResourceDemand",
+        "ResourceFairness",
+        "ResourceGovernedPolicy",
+        "ResourcePool",
+        "ResourceBudgetCapabilities",
+        "_AdmissionState",
+        "_capability_gaps",
+        "_parent_limit_gaps",
+        "_unsupported_attributes",
+        "_matching_pool",
+        "_pool_key",
+        "_pool_policy_gaps",
+        "_assess_demand",
+        "_assess_policy",
+        "_aggregate_pool_gaps",
+        "participant_resource_budget_gaps"
+      ],
+      "disposition": "resource",
+      "boundary": "Reuse published capability models, resource budget semantics and process-limit owner. Do not duplicate Python structural protocols."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/participant_resource_budgets.py",
+      "sha256": "da69afee35d962ae52c8a2551833826fe7d6e3f9fd0e46dfce07c9ed32b8bb87",
+      "definitions": [
+        "ParticipantResourcePoolCapacity",
+        "ParticipantResourceBudgetCapabilities",
+        "participant_resource_budget_capability_payload",
+        "participant_resource_budget_capability_from_model"
+      ],
+      "disposition": "resource",
+      "boundary": "Reuse published capability models, resource budget semantics and process-limit owner. Do not duplicate Python structural protocols."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/participant_runtime_base.py",
+      "sha256": "81ca203b96c08bfddcbaf2656cede3a7af85402da3c4f1f6d172ceb866bd6f8b",
+      "definitions": [
+        "BaseParticipantRuntime"
+      ],
+      "disposition": "participant",
+      "boundary": "Owned portable joins and inert episode/history transitions. Native execution adapters and concurrent runtime grants remain with #1894."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/process_resource_limits.py",
+      "sha256": "52e37d0decb47930cfbc818e56cb947ab0c2910a961a866cc9536b3484f0ea4c",
+      "definitions": [
+        "process_resource_limit_models",
+        "process_resource_limit_capabilities"
+      ],
+      "disposition": "resource",
+      "boundary": "Reuse published capability models, resource budget semantics and process-limit owner. Do not duplicate Python structural protocols."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/protocols.py",
+      "sha256": "38b2f4f357a3cf630f6128dc370d302e18a84bc31ec899a60e7044e485982672",
+      "definitions": [
+        "ParticipantControlProvider",
+        "ParticipantControlProviderV2",
+        "Provisioner",
+        "PreparingProvisioner",
+        "ProfilePreparingProvisioner",
+        "Orchestrator",
+        "Evaluator",
+        "ParticipantRuntime",
+        "AutonomousParticipantRuntime",
+        "ControlledAutonomousParticipantRuntime",
+        "TimeRuntime",
+        "CoordinatedParticipantResetRuntime",
+        "CoordinatedParticipantTimeRuntime"
+      ],
+      "disposition": "roles",
+      "boundary": "Small role method sets use the approved public declarations. Structural capability protocols use admitted published payloads. No foreign method is invoked during opt-in checks."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/provisioner_capabilities.py",
+      "sha256": "dcf434187534b42894f78e1d2253cd49f5fec43c3de49d7159bc4cd6bcc9e3ab",
+      "definitions": [
+        "OperatingSystemCompatibility",
+        "_require_string_values",
+        "_validate_operating_system_rows",
+        "_validated_artifact_kinds",
+        "_validated_artifact_delivery_modes",
+        "_validated_regeneration_scopes",
+        "_validate_account_support",
+        "_profile_terms",
+        "ProvisionerCapabilities"
+      ],
+      "disposition": "manifest",
+      "boundary": "Published binding records and the existing manifest admission owner replace Python constructor and serialization classes."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/provisioner_manifest.py",
+      "sha256": "fe8b0b895e73376036a5972c57404eaf7acca18d0b2c8f5b7946bf83b52db621",
+      "definitions": [
+        "provisioner_capability_payload",
+        "provisioner_from_model"
+      ],
+      "disposition": "manifest",
+      "boundary": "Published binding records and the existing manifest admission owner replace Python constructor and serialization classes."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/recovery_observation.py",
+      "sha256": "35e3ef65a3140d2736d277b1539f1db6cf0126fe2e365b04ea19217508ed14ba",
+      "definitions": [
+        "RecoveryEffectClassification",
+        "RecoveryObservationRequest",
+        "RecoveryObservationResult",
+        "RecoveryObserver"
+      ],
+      "disposition": "recovery",
+      "boundary": "Closed read-only request/result carriers; crash reconciliation, observers and redispatch authority remain with #1894."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/service_materialization.py",
+      "sha256": "f5660cb025c67a57a6fcd497f71af567f3ee1b4acbc2503ef56e44d43a0d666c",
+      "definitions": [
+        "_ProfileContract",
+        "service_materialization_plan_diagnostics",
+        "_private_service_selection",
+        "_unsupported_private_profile",
+        "_legacy_service_diagnostic",
+        "_service_support_diagnostic",
+        "_binding_violation",
+        "_profile_contract",
+        "_requirements_violation",
+        "_content_type_violation",
+        "_target_violation",
+        "_digest_violation",
+        "_field_schema_violation",
+        "_exact_requirement_supported",
+        "_readback_violation",
+        "_ownership_violation",
+        "_service_belongs_to_target",
+        "_readback_refs_valid",
+        "_unique_non_empty_sequence",
+        "_ownership_valid",
+        "_independent_readback_supported",
+        "_diagnostic"
+      ],
+      "disposition": "service",
+      "boundary": "Reuse existing planner service profile, exact support, target, digest, ownership and independent readback checks."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/time_capabilities.py",
+      "sha256": "1e32fa64ac749d32ea9f881289b2c8148bd10acb0266644d5554ef32d30d90a9",
+      "definitions": [
+        "_validate_unique_non_empty_strings",
+        "_validate_time_terms",
+        "TimeCapabilities"
+      ],
+      "disposition": "manifest",
+      "boundary": "Published binding records and the existing manifest admission owner replace Python constructor and serialization classes."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/trial_control_admission.py",
+      "sha256": "f1705157fb71290e2449d6fa11922ae7909314878c5efd910cb7956f1e1d5d2a",
+      "definitions": [
+        "require_trial_control_capability"
+      ],
+      "disposition": "runtime",
+      "boundary": "Live adapters, target composition, trial/inject dispatch, execution-service lookup and grants belong to runtime extraction #1894. This port supplies their portable interfaces and payloads, not the runtime implementation."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_protocols/trial_unit.py",
+      "sha256": "6b6e91eed04a91ffb3772ecef4ba59a3b98e8f0ce15f421d0cbb69f07d667115",
+      "definitions": [
+        "BackendTrialUnit"
+      ],
+      "disposition": "runtime",
+      "boundary": "Live adapters, target composition, trial/inject dispatch, execution-service lookup and grants belong to runtime extraction #1894. This port supplies their portable interfaces and payloads, not the runtime implementation."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_stubs/__init__.py",
+      "sha256": "c4bc2318b8bb68c9a522af362488c9334cd97bf01e563c9f92e09dbad3371769",
+      "definitions": [],
+      "disposition": "roles",
+      "boundary": "Small role method sets use the approved public declarations. Structural capability protocols use admitted published payloads. No foreign method is invoked during opt-in checks."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_stubs/evaluation_support.py",
+      "sha256": "8e3dcc7b082e1f192dc2ba3c0b879b13612d82e6ee2db0c6b45086aef444b249",
+      "definitions": [
+        "_result_payload",
+        "_history",
+        "apply_evaluation_operation"
+      ],
+      "disposition": "stub",
+      "boundary": "Runtime-free doubles preserve portable inventory, results and histories. Live target composition stays with #1894."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_stubs/manifest.py",
+      "sha256": "4ff6fa1bfea360533634a42a212a0b5054890efbfad4d3c7ad8d3a55cd16a939",
+      "definitions": [
+        "_current_backend_version",
+        "_stub_supported_contract_versions",
+        "_stub_concept_bindings",
+        "load_stub_realization_envelope",
+        "_stub_realization_support",
+        "_stub_provisioner",
+        "_stub_orchestrator",
+        "_stub_evaluator",
+        "_stub_participant_runtime",
+        "_stub_observation",
+        "_stub_cleanup",
+        "_stub_time",
+        "_stub_capabilities",
+        "create_stub_manifest"
+      ],
+      "disposition": "manifest",
+      "boundary": "Published binding records and the existing manifest admission owner replace Python constructor and serialization classes."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_backend_stubs/stubs.py",
+      "sha256": "c56eccf1f3199d6afd009dad3ac6c132d6da7f7f69a32353a026cef86bd184d5",
+      "definitions": [
+        "_applied_entries",
+        "StubProvisioner",
+        "StubOrchestrator",
+        "StubEvaluator",
+        "StubParticipantRuntime",
+        "create_stub_components",
+        "create_stub_target"
+      ],
+      "disposition": "stub",
+      "boundary": "Runtime-free doubles preserve portable inventory, results and histories. Live target composition stays with #1894."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_contracts/backend_profiles.py",
+      "sha256": "4f472c30bb17702c0d702f67657e22c4c2105ca68e83e466b658efdbf38753e3",
+      "definitions": [
+        "backend_profiles_root",
+        "_validate_backend_profile_id",
+        "backend_profile_path",
+        "BackendProfileModel",
+        "BackendProfileIdentityError",
+        "load_backend_profile_from_path",
+        "load_backend_profile"
+      ],
+      "disposition": "profiles",
+      "boundary": "Offline packaged profile IDs are admitted before lookup. All six profiles are returned as detached records. There is no caller-supplied profile filesystem path."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_contracts/realization_envelope.py",
+      "sha256": "d593dd2a4dd572d1b9f8f2b740c5102425e7680217bb741173d2bad255e838a6",
+      "definitions": [
+        "_require_envelope_path",
+        "EnvelopeScope",
+        "scope_specificity",
+        "Posture",
+        "EnvelopeBinding",
+        "ClosureOverlay",
+        "WitnessPolicy",
+        "RealizationEnvelopeModel",
+        "_is_singleton_domain"
+      ],
+      "disposition": "envelope",
+      "boundary": "One bounded relation owner; ordinary SDL owns valid witnesses, probes and typed presence. Existing independent domain and membership vectors remain authoritative."
+    },
+    {
+      "python_module": "implementations/python/packages/raes_contracts/realization_envelope_carrier.py",
+      "sha256": "77d6247f5e7aa1741a8b91c841917255c402ee04594b1f18e2d8442d7cd6a6fb",
+      "definitions": [
+        "ConcernDisposition",
+        "RealizationConcern",
+        "TransformationKind",
+        "IntegerBoundsModel",
+        "RealizerConfigurationModel",
+        "_validate_transformation_coupling",
+        "_validate_observation_coupling",
+        "RealizationConcernDisclosureModel",
+        "_realizer_configuration_payload",
+        "realizer_configuration_digest",
+        "realization_envelope_digest",
+        "BackendRealizationEnvelopeModel",
+        "validate_backend_realization_envelope"
+      ],
+      "disposition": "envelope",
+      "boundary": "One bounded relation owner; ordinary SDL owns valid witnesses, probes and typed presence. Existing independent domain and membership vectors remain authoritative."
+    }
+  ],
+  "evidence_groups": {
+    "manifest": {
+      "boundary": "Published binding records and the existing manifest admission owner replace Python constructor and serialization classes.",
+      "go_tests": [
+        "implementations/go/backend/stub/manifest_test.go:TestManifestOptionsMatchPythonReference",
+        "implementations/go/contract/admission/backend_manifest_projection_test.go:TestBackendManifestNormalizationMatchesReference",
+        "implementations/go/contract/admission/capability_authority_reference_test.go:TestCapabilityAuthoritySetsMatchIndependentPython",
+        "implementations/go/contract/admission/capability_models_test.go:TestManifestCapabilityModelReferenceVerdicts",
+        "implementations/go/contract/admission/capability_models_test.go:TestResourceBudgetModelReferenceVerdicts",
+        "implementations/go/contract/admission/capability_models_test.go:TestResourceProfileReferenceVerdicts",
+        "implementations/go/contract/admission/capability_models_test.go:TestDomainProfileModelReferenceVerdicts",
+        "implementations/go/contract/admission/manifest_projection_test.go:TestManifestConstructorsPreserveDefaultAndCollectionSemantics"
+      ]
+    },
+    "roles": {
+      "boundary": "Small role method sets use the approved public declarations. Structural capability protocols use admitted published payloads. No foreign method is invoked during opt-in checks.",
+      "go_tests": [
+        "implementations/go/backend/operation_test.go:TestOperationOptInChecksContractFamilyWithoutCallingProvider",
+        "implementations/go/backend/operation_test.go:TestMixedAndInjectRolesRequireIndependentOptIn"
+      ]
+    },
+    "profiles": {
+      "boundary": "Offline packaged profile IDs are admitted before lookup. All six profiles are returned as detached records. There is no caller-supplied profile filesystem path.",
+      "go_tests": [
+        "implementations/go/backend/profile_test.go:TestLoadProfileUsesPackagedAuthorityAndReturnsCopies",
+        "implementations/go/contract/profile/profile_test.go:TestLoadReadsEveryPackagedProfile",
+        "implementations/go/contract/profile/profile_test.go:TestLoadRefusesDamagedProfiles",
+        "implementations/go/contract/profile/profile_test.go:TestComparisonProfilesMatchTheReferenceDigests",
+        "implementations/go/contract/profile/profile_test.go:TestRelationProfileLookupIsExact",
+        "implementations/go/contract/profile/profile_test.go:TestValidationProfileSelection"
+      ]
+    },
+    "preparation": {
+      "boundary": "Portable preparation commitments and owned operations remain here. Runtime authorization, delivery verification and replay prevention remain with #1894.",
+      "go_tests": [
+        "implementations/go/contract/admission/augmentation_preparation_test.go:TestAugmentationPreparationMatchesIndependentPureReference",
+        "implementations/go/contract/admission/augmentation_preparation_test.go:TestAugmentationReportBoundsScopeResolutionBeforeEncoding",
+        "implementations/go/contract/runtime/preparation_test.go:TestPreparationCommitmentsMatchPythonReference",
+        "implementations/go/contract/runtime/preparation_test.go:TestPreparationOwnsSelectedOperationsAndRejectsForeignValues"
+      ]
+    },
+    "participant": {
+      "boundary": "Owned portable joins and inert episode/history transitions. Native execution adapters and concurrent runtime grants remain with #1894.",
+      "go_tests": [
+        "implementations/go/backend/stub/participant_payload_test.go:TestParticipantEventPayloadOmitsOnlyModelDefaults",
+        "implementations/go/backend/stub/participant_test.go:TestParticipantLifecycleMatchesPythonReference",
+        "implementations/go/backend/stub/participant_test.go:TestParticipantAtomicResetRollsBackCountersAndState",
+        "implementations/go/backend/stub/participant_test.go:TestParticipantActionHistoryMatchesPythonReference",
+        "implementations/go/backend/stub/participant_test.go:TestParticipantCorruptStateRefusalDoesNotExposePayload",
+        "implementations/go/contract/runtime/participant_test.go:TestParticipantBindingOwnsInputAndEnforcesExposure",
+        "implementations/go/contract/runtime/participant_test.go:TestParticipantBindingRejectsForeignFragmentsBeforeCallbacks",
+        "implementations/go/contract/runtime/participant_test.go:TestParticipantActionReaderRejectsForeignHandles",
+        "implementations/go/contract/runtime/participant_test.go:TestParticipantBindingChecksNestedEvidenceAndTemporalIdentity"
+      ]
+    },
+    "recovery": {
+      "boundary": "Closed read-only request/result carriers; crash reconciliation, observers and redispatch authority remain with #1894.",
+      "go_tests": [
+        "implementations/go/contract/runtime/recovery_test.go:TestRecoveryObservationsKeepClosedClassificationAndSnapshotRules"
+      ]
+    },
+    "observation": {
+      "boundary": "Reuse effective demand selection and admitted disclosure models. The stub does not manufacture independent native evidence.",
+      "go_tests": [
+        "implementations/go/backend/stub/observations_test.go:TestRetainedObservationsRequireSelectedUnchangedApparatusBinding",
+        "implementations/go/contract/admission/observation_normalization_test.go:TestObservationNormalizationRetainsIndependentProhibitions",
+        "implementations/go/contract/admission/observation_normalization_test.go:TestObservationSelectionKeepsNarrowerPolicyAndPurpose",
+        "implementations/go/contract/admission/realization_observation_test.go:TestRealizationObservationRequiresCompleteIndependentBinding",
+        "implementations/go/contract/admission/realization_observation_test.go:TestRealizationObservationSeparatesOSAndValueFreeConcerns"
+      ]
+    },
+    "envelope": {
+      "boundary": "One bounded relation owner; ordinary SDL owns valid witnesses, probes and typed presence. Existing independent domain and membership vectors remain authoritative.",
+      "go_tests": [
+        "implementations/go/contract/admission/envelope_relation_test.go:TestEnvelopeSubsumptionMatchesPythonReference",
+        "implementations/go/contract/admission/envelope_relation_test.go:TestEnvelopeUnicodeCarrierChecksReferenceDigestAndTampering",
+        "implementations/go/contract/admission/envelope_relation_test.go:TestEnvelopeRelationsReportNonOverrideableWidening",
+        "implementations/go/contract/admission/envelope_relation_test.go:TestEnvelopeIntegerBoundsUseReferenceFloatDigest",
+        "implementations/go/contract/admission/envelope_witness_test.go:TestEnvelopeWitnessProjectionMatchesPythonReference",
+        "implementations/go/contract/admission/membership_reference_test.go:TestPortableNodeMembershipSubsetMatchesIndependentPython",
+        "implementations/go/contract/admission/offer_reference_test.go:TestOfferProjectionAndSubsetMatchPython",
+        "implementations/go/sdl/envelope_probes_test.go:TestEnvelopeProbesMatchPythonReference",
+        "implementations/go/sdl/envelope_witness_test.go:TestEnvelopeWitnessUsesNativeSDLAdmission"
+      ]
+    },
+    "account": {
+      "boundary": "Reuse existing account projections and placement capability admission.",
+      "go_tests": [
+        "implementations/go/contract/admission/account_projection_test.go:TestAccountProjectionDisclosesOnlyCredentialMaterialPresence",
+        "implementations/go/processor/planning/capabilities_test.go:TestManifestCapabilityChecksRetainResourceOrder",
+        "implementations/go/processor/planning/capabilities_test.go:TestCoupledOperatingSystemRowsCannotBeCrossCombined",
+        "implementations/go/processor/planning/capabilities_test.go:TestTimeModelRequiresDeclaredTargetCapability",
+        "implementations/go/processor/planning/capabilities_test.go:TestPlacementCapabilityChecksUseNativeResourceKinds"
+      ]
+    },
+    "service": {
+      "boundary": "Reuse existing planner service profile, exact support, target, digest, ownership and independent readback checks.",
+      "go_tests": [
+        "implementations/go/processor/planning/service_policy_edges_test.go:TestServiceMaterializationRequiresProfileExactSupportAndReadbackTogether",
+        "implementations/go/processor/planning/service_policy_edges_test.go:TestPrivateServiceProfilesUseTheirExactCanonicalCoordinate",
+        "implementations/go/processor/planning/service_policy_edges_test.go:TestServiceReadbackNeedsRealizedIndependentObservation"
+      ]
+    },
+    "resource": {
+      "boundary": "Reuse published capability models, resource budget semantics and process-limit owner. Do not duplicate Python structural protocols.",
+      "go_tests": [
+        "implementations/go/contract/admission/capability_models_test.go:TestManifestCapabilityModelReferenceVerdicts",
+        "implementations/go/contract/admission/capability_models_test.go:TestResourceBudgetModelReferenceVerdicts",
+        "implementations/go/contract/admission/capability_models_test.go:TestResourceProfileReferenceVerdicts",
+        "implementations/go/contract/admission/capability_models_test.go:TestDomainProfileModelReferenceVerdicts",
+        "implementations/go/contract/admission/resource_measure_test.go:TestResourceMeasureRequiresExactIndependentSemantics",
+        "implementations/go/contract/admission/sdl_process_limits_test.go:TestRuntimeProcessLimitReference",
+        "implementations/go/contract/admission/sdl_process_limits_test.go:TestRuntimeProcessLimitIdentityBounds",
+        "implementations/go/contract/admission/sdl_process_limits_test.go:TestRuntimeProcessLimitProjectionCopiesSelector"
+      ]
+    },
+    "capture": {
+      "boundary": "Reuse capture offer identity, governance and single-offer admission; runtime collection remains with #1894.",
+      "go_tests": [
+        "implementations/go/processor/planning/capture_test.go:TestCaptureAdmissionCannotCombineOffers"
+      ]
+    },
+    "planning": {
+      "boundary": "Existing planner and realization owners retain topology, naming and contextual capability admission. See the #1787 reference-case maps.",
+      "go_tests": [
+        "implementations/go/processor/planning/capabilities_test.go:TestManifestCapabilityChecksRetainResourceOrder",
+        "implementations/go/processor/planning/capabilities_test.go:TestCoupledOperatingSystemRowsCannotBeCrossCombined",
+        "implementations/go/processor/planning/capabilities_test.go:TestTimeModelRequiresDeclaredTargetCapability",
+        "implementations/go/processor/planning/capabilities_test.go:TestPlacementCapabilityChecksUseNativeResourceKinds",
+        "implementations/go/processor/realization/compile_test.go:TestRealizationCompileRetainsAuthorityAndSafeLeafConstraints",
+        "implementations/go/processor/realization/compile_test.go:TestRealizationCompileKeepsDefaultOmissionClosed",
+        "implementations/go/processor/realization/compile_test.go:TestRealizationCompileRetainsNestedClosureAndSubstrateDomain",
+        "implementations/go/processor/realization/compile_test.go:TestRealizationCompileRetainsProcessIdentityAndExactBounds",
+        "implementations/go/processor/realization/compile_test.go:TestRealizationCompileBindsFiniteCollectionIdentityChoices",
+        "implementations/go/processor/realization/compile_test.go:TestRealizationCompileRefusesUnpublishableClassifiedBounds",
+        "implementations/go/processor/realization/compile_test.go:TestRealizationCompileKeepsReferenceScopeOrderInBinding",
+        "implementations/go/processor/realization/compile_test.go:TestRealizationSoftwareJoinRetainsImpliedPackageCoordinates",
+        "implementations/go/processor/realization/compile_test.go:TestDomainAuthorityAccountReceivesTopologyRequirement"
+      ]
+    },
+    "feature": {
+      "boundary": "Reuse existing participant feature-strength, evidence, downgrade and governed vocabulary admission.",
+      "go_tests": [
+        "implementations/go/contract/admission/participant_support_test.go:TestParticipantFeatureSupportUsesStrengthAndExistingContractCatalog"
+      ]
+    },
+    "stub": {
+      "boundary": "Runtime-free doubles preserve portable inventory, results and histories. Live target composition stays with #1894.",
+      "go_tests": [
+        "implementations/go/backend/stub/components_test.go:TestProvisionerPreservesDomainsAndUnchangedWrites",
+        "implementations/go/backend/stub/components_test.go:TestOrchestratorFixedClockAndReadbackIsolation",
+        "implementations/go/backend/stub/components_test.go:TestProvisionerAdmitsEnvelopeAndRefusesIdentitySwap",
+        "implementations/go/backend/stub/components_test.go:TestStopKeepsTheEstablishedOperationOrder",
+        "implementations/go/backend/stub/evaluation_test.go:TestEvaluatorMatchesPythonReference",
+        "implementations/go/backend/stub/participant_test.go:TestParticipantLifecycleMatchesPythonReference",
+        "implementations/go/backend/stub/participant_test.go:TestParticipantAtomicResetRollsBackCountersAndState",
+        "implementations/go/backend/stub/participant_test.go:TestParticipantActionHistoryMatchesPythonReference",
+        "implementations/go/backend/stub/participant_test.go:TestParticipantCorruptStateRefusalDoesNotExposePayload"
+      ]
+    },
+    "runtime": {
+      "boundary": "Live adapters, target composition, trial/inject dispatch, execution-service lookup and grants belong to runtime extraction #1894. This port supplies their portable interfaces and payloads, not the runtime implementation.",
+      "go_tests": []
+    },
+    "operations": {
+      "boundary": "Existing contract admission owns operation identity, context, history and mixed-stage truth. Live dispatch remains with runtime.",
+      "go_tests": [
+        "implementations/go/contract/admission/backend_history_test.go:TestBackendHistoryPreservesAcknowledgementAndTerminalEvidence",
+        "implementations/go/contract/admission/backend_history_test.go:TestMixedStagesRefuseSubstitutedProducersAndFalseSuccess",
+        "implementations/go/contract/admission/backend_test.go:TestBackendOperationLocalRules",
+        "implementations/go/contract/admission/backend_test.go:TestBackendOperationTrustedJoins",
+        "implementations/go/contract/admission/mixed_backend_context_test.go:TestMixedBackendBindingsRequireExactProfileAndWillingness"
+      ]
+    }
+  },
+  "source_cases": [
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_workflow_vocab_enum_values",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_rejects_hollow_defaults",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_rejects_unknown_keywords",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_provisioner_capabilities_reject_hollow_declaration",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_roundtrip_from_stub_manifest",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_legacy_generated_artifact_capability_defaults_to_mount_delivery",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_generated_artifact_capability_requires_explicit_kind_support",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_contradictory_generated_artifact_capabilities",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_schema_requires_true_support_flag_for_nonempty_supported_values",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_coordinated_reset_manifest_claim_requires_participant_runtime_capabilities",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_declares_participant_capability_dimensions",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_declares_observation_capability_dimensions",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_without_participant_runtime_declares_no_participant_runtime_surface",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_without_observation_declares_no_observation_surface",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_observation_capabilities_validate_exp_715_vocabularies",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_observation_capability_claims_require_published_contract_evidence",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_participant_runtime_without_api_405_declarations",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_duplicate_api_405_declarations",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_participant_runtime_capabilities_validate_api_405_vocabularies",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_participant_feature_support_validates_api_407_declarations",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_payload_renders_api_407_feature_support_entries",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_participant_runtime_capability_evidence_covers_standard_vocabularies",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_observation_capability_evidence_covers_standard_vocabularies",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_participant_runtime_capability_claims_require_published_contract_evidence",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_accepts_feature_support_declarations",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_accepts_evidence_backed_participant_policy_support",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_positive_participant_policy_support_without_evidence",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_bounded_policy_support_without_constraints",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_weak_policy_support_without_limitations",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_positive_participant_policy_support_without_required_contracts",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_positive_policy_support_absent_from_supported_features",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_supported_policy_feature_without_strength_declaration",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_accepts_honest_unsupported_policy_features",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_participant_policy_feature_support_admission_fails_closed_and_demotes_authorized_downgrade",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_participant_policy_feature_support_admission_accepts_evidence_backed_exact_support",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_participant_policy_feature_support_admission_rejects_missing_declaration",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_participant_feature_support_gaps_do_not_report_defects_as_gaps",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_time_model_capability_admission_refuses_with_a_conflict",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_feature_support_defaults_to_empty",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_accepts_exact_feature_support_without_disclosure",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_accepts_unsupported_feature_support_for_undeclared_feature",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_unguarded_feature_support_terms",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_unknown_feature_support_levels",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_duplicate_feature_support_features",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_unsupported_feature_support_for_declared_feature",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_below_exact_feature_support_without_disclosure",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_schema_publishes_feature_support_disclosure_rule",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_requires_manifest_sections",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_runtime_rejects_unknown_supported_contract_versions",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_empty_compatibility",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_non_processor_compatibility_surfaces",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_hollow_realization_support",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_hollow_capability_blocks",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_reference_backend_v2_fixture_matches_emitted_manifest",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_valid_fixtures_pass_validation",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_invalid_fixtures_fail_validation",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_requires_concept_bindings",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_empty_concept_bindings",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_accepts_governed_extension_vocabulary_values",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_rejects_unguarded_vocabulary_values",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_runtime_capabilities_accept_governed_extension_vocabulary_values",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_runtime_capabilities_reject_unguarded_vocabulary_values",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_rejects_duplicate_binding_scopes",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest.py:test_backend_manifest_v2_concept_bindings_roundtrip",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest_v2_adapter.py:test_round_trips_the_full_stub_manifest",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest_v2_adapter.py:test_round_trips_reduced_capability_stub_manifests",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest_v2_adapter.py:test_round_trip_reconstructs_via_serialized_payload",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest_v2_adapter.py:test_envelope_bearing_manifest_fails_closed",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_manifest_v2_adapter.py:test_capability_rejection_is_value_free_invalid_input",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_profiles.py:test_backend_profiles_root_resolves_to_contracts_tree",
+      "disposition": "profiles"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_profiles.py:test_backend_profile_path_resolves_per_profile_id",
+      "disposition": "profiles"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_profiles.py:test_at_least_one_published_backend_profile_exists",
+      "disposition": "profiles"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_profiles.py:test_load_published_backend_profile",
+      "disposition": "profiles"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_profiles.py:test_full_remote_profile_includes_participant_episode_contracts",
+      "disposition": "profiles"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_profiles.py:test_backend_profile_model_rejects_unknown_contract_id",
+      "disposition": "profiles"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_profiles.py:test_backend_profile_model_rejects_extra_keys",
+      "disposition": "profiles"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_profiles.py:test_backend_profile_model_rejects_duplicate_contract_ids",
+      "disposition": "profiles"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_profiles.py:test_backend_profile_model_rejects_empty_required_contracts",
+      "disposition": "profiles"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_profiles.py:test_published_profiles_match_loader_round_trip",
+      "disposition": "profiles"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_profiles.py:test_load_backend_profile_from_path_rejects_identity_mismatch",
+      "disposition": "profiles"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_profiles.py:test_load_backend_profile_from_path_accepts_identity_match",
+      "disposition": "profiles"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_profiles.py:test_backend_profile_path_rejects_malicious_ids",
+      "disposition": "profiles"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_profiles.py:test_load_backend_profile_rejects_malicious_id",
+      "disposition": "profiles"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_protocols_account_features.py:test_empty_spec_uses_no_features",
+      "disposition": "account"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_protocols_account_features.py:test_full_spec_exercises_every_governed_feature",
+      "disposition": "account"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_protocols_account_features.py:test_descriptive_defaults_are_not_features",
+      "disposition": "account"
+    },
+    {
+      "python_test": "implementations/python/tests/test_backend_protocols_account_features.py:test_empty_collection_values_are_not_features",
+      "disposition": "account"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1204_backend_preparation.py:test_backend_selects_supported_completion_before_apply",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1204_backend_preparation.py:test_equal_detached_authority_still_applies_the_prepared_completion",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1204_backend_preparation.py:test_invalid_preparation_never_reaches_apply",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1204_backend_preparation.py:test_successful_delivery_must_match_the_admitted_completion",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1204_backend_preparation.py:test_selected_values_must_pass_the_backend_validation_before_apply",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1204_backend_preparation.py:test_preparation_and_validation_warnings_survive_successful_apply",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1204_backend_preparation.py:test_prepared_choice_must_belong_to_the_configured_backend_offer",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1204_backend_preparation.py:test_preparation_honors_backend_record_closure_not_only_leaf_domains",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1204_backend_preparation.py:test_closed_offer_uses_typed_default_presence_for_prepared_values",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1204_backend_preparation.py:test_negotiated_preparation_does_not_claim_universal_linux_coverage",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1204_backend_preparation.py:test_mutated_preparation_carriers_fail_before_apply",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1204_backend_preparation.py:test_preparation_cannot_be_replayed_for_a_new_operation",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_exact_environment_has_no_implicit_experimental_collection_retention_or_export",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_effective_none_mode_cannot_carry_collection_work",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_same_environment_can_select_or_exhaustively_observe_a_supported_scope",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_abstract_action_trace_does_not_require_concrete_machine_detail",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_mixed_scopes_keep_operational_collection_and_experimental_lifecycle_independent",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_restrictive_descendant_partitions_broad_selector_without_rejecting_allowed_siblings",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_unsupported_or_prohibited_required_work_fails_before_any_producer",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_backend_selection_report_uses_requested_depth_and_truthful_basis",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_reporting_never_promotes_requested_basis_to_achieved_basis",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_strong_reporting_basis_requires_trusted_evidence_bound_to_the_selected_value",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_runtime_rejects_strong_reporting_capability_without_trusted_evidence_verifier",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_reporting_protection_is_mandatory_and_preserves_evidence_claims",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_inherited_axes_and_monotone_prohibition_are_resolved_independently",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_explicit_inherit_keeps_parent_axis_and_independent_authorities_compose",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_required_parent_policy_cannot_be_weakened_by_narrower_optional_none",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_equal_scope_independent_mandatory_authorities_conflict_explicitly",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_compiler_rejects_invalid_observation_resolution_instead_of_carrying_a_winner",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_sdl_cannot_impersonate_an_independent_observation_policy_authority",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_selected_scope_requires_privacy_and_integrity_policy",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_scope_profile_is_closed_and_versioned",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_authored_observation_scopes_and_component_refs_must_resolve",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_authored_scope_resolves_stable_keyed_sequence_members",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_shared_contract_is_carried_by_sdl_task_capture_and_run_policy_owners",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_effective_demand_survives_published_plan_round_trip_and_changes_digest",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_sdl_demand_is_normalized_once_carried_to_plans_and_owned_by_one_phase",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_composite_runtime_executes_observation_once_at_the_last_actionable_phase",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_authored_demand_executes_protected_collection_and_retention_in_control_plane",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_required_observation_rejects_mutation_and_read_only_failure_is_terminal",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_runtime_manager_uses_the_same_observation_apply_boundary",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_control_plane_persists_no_placeholder_for_an_unsupported_optional_selector",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_manager_retains_observations_under_its_control_plane_owner",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_authored_realization_description_reports_only_achieved_basis",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_realization_detail_creates_no_experimental_demand_but_keeps_operational_verification",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_backend_does_not_persist_unrequested_realization_observations",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_native_realization_readback_is_not_reused_as_unprotected_retention",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_direct_submission_rejects_unsupported_required_selector_before_backend_apply",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_more_specific_effective_policy_blocks_broad_selector_side_effects",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_more_specific_effective_policy_blocks_broad_describer_side_effects",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_planner_authorization_digest_is_domain_separated_and_registers_all_phases",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_observation_demand_is_in_the_published_schema_bundle",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1212_observation_demand.py:test_published_selector_schema_enforces_coverage_pair",
+      "disposition": "observation"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1360_backend_operations.py:test_api_402_is_admitted_by_real_requirement_policy",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1360_backend_operations.py:test_contextual_willingness_and_capability_are_both_required",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1360_backend_operations.py:test_individually_valid_foreign_response_is_rejected",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1360_backend_operations.py:test_original_admission_context_cannot_be_rebound",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1360_backend_operations.py:test_request_commitment_includes_guarantees_budget_and_artifact",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1360_backend_operations.py:test_unknown_effects_or_unproved_cessation_cannot_claim_known_terminal_outcome",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1360_backend_operations.py:test_known_partial_cancellation_preserves_residual_state",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1360_backend_operations.py:test_cancel_acceptance_can_be_followed_by_success_without_claiming_cancellation",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1360_backend_operations.py:test_duplicate_records_are_idempotent_but_changed_sequence_content_is_rejected",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1360_backend_operations.py:test_uncertain_completion_and_reconciliation_do_not_rewrite_parent_outcome",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1360_backend_operations.py:test_budgets_reject_coercion_expiry_and_renewal",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1360_backend_operations.py:test_closed_versioned_carriers_reject_unknown_fields_and_versions",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1360_backend_operations.py:test_supervisor_identity_and_control_commitment_are_independent",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1360_backend_operations.py:test_published_family_and_profile_are_consumable_without_runtime",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1360_backend_operations.py:test_success_requires_full_validated_claim_not_just_observed_effects",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1360_backend_operations.py:test_example_corpus_exercises_every_message_and_required_scenario",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1360_backend_operations.py:test_existing_stub_does_not_advertise_operation_supervision",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_example_transcripts_validate_for_each_supported_arrangement",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_execution_delivery_and_observation_remain_distinct_evidenced_stages",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_bindings_join_the_admitted_sealed_profile",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_binding_sets_refuse_missing_foreign_or_unsupported_obligations",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_alternative_profiles_admit_no_executable_binding",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_one_obligation_cannot_be_bound_twice",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_component_keeping_transitions_need_no_binding",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_binding_sets_and_stage_transcripts_are_bounded",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_edge_binding_must_match_the_admitted_edge_and_destination_owner",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_handoff_binding_must_match_one_to_one_ownership_and_resolved_time",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_binding_pins_a_distinct_service_for_each_role",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_contextual_admission_uses_the_shared_operation_protocol",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_request_must_commit_to_the_exact_binding_kind_and_installed_service",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_edge_transcript_rejects_out_of_order_foreign_or_overclaimed_stages",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_independent_producers_number_each_stage_by_its_chain_position",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_chain_numbered_reports_are_accepted_in_any_supplied_order",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_ordered_grant_must_establish_the_mapped_order_at_the_committed_readback",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_each_stage_must_name_the_service_pinned_for_its_role",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_an_observation_report_needs_a_pinned_observation_reader",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_trusted_inputs_must_match_the_binding_time_model_clocks_and_composition",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_an_edge_validates_against_a_composition_state_that_activates_it",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_composition_readback_must_belong_to_the_invocation_run",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_native_handoff_is_fenced_on_the_committed_composition_head_and_revision",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_unknown_or_failed_execution_cannot_support_a_success_outcome",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_partial_execution_cannot_settle_as_a_known_failure",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_known_failed_execution_cannot_be_followed_by_delivery",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_known_failed_execution_settles_without_post_effect_time",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_incomparable_grant_without_invocation_settles_as_known_failure",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_an_ordered_grant_without_invocation_establishes_no_failure",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_settlement_needs_a_confirmed_post_invocation_time_readback",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_contextual_refusal_permits_a_grant_record_but_no_invocation_stage",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_handoff_settles_only_on_a_correlated_matching_owner_readback",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_committed_transfer_without_owner_readback_cannot_settle",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_published_schema_matches_the_bundle_and_classifies_the_example_corpus",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_closed_models_refuse_contradictory_local_facts",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_context_invalid_examples_fail_their_trusted_joins",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_service_declarations_and_call_shapes_are_checked_without_invocation",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_a_bridge_needs_its_mixed_methods_beyond_the_shared_operation_protocol",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1371_mixed_backend_contracts.py:test_stub_backend_does_not_advertise_mixed_backend_contracts",
+      "disposition": "operations"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_backend_protocols.py:test_missing_participant_execution_scope_is_not_found",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_backend_protocols.py:test_invalid_domain_profile_binding_diagnostic_is_value_free",
+      "disposition": "service"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_backend_protocols.py:test_corrupt_participant_episode_state_diagnostic_is_value_free",
+      "disposition": "participant"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_backend_protocols.py:test_contradicting_native_outcome_diagnostic_omits_validation_text",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_backend_protocols.py:test_malformed_private_service_binding_is_an_unsupported_profile",
+      "disposition": "service"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_backend_protocols.py:test_defect_in_private_service_binding_is_not_an_unsupported_profile",
+      "disposition": "service"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_backend_protocols.py:test_concurrent_admission_records_every_failure_after_the_first",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_participant_runtime.py:test_clock_driver_boundary_logs_one_value_free_record",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_participant_runtime.py:test_rejected_history_event_diagnostic_omits_the_event_values",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_participant_runtime.py:test_flow_sink_resolver_failure_is_logged_and_denied",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_participant_runtime.py:test_control_resolver_failure_is_logged_and_unresolved",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_participant_runtime.py:test_control_provider_failure_is_logged_and_contributes_nothing",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_participant_runtime.py:test_mixed_phase_evaluator_failure_is_logged_and_denied",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_participant_runtime.py:test_concurrent_backend_failure_is_logged_and_settled",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_participant_runtime.py:test_inject_resolver_failure_is_logged_before_the_hidden_refusal",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_participant_runtime.py:test_crossing_extension_refusal_is_a_conflict",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_participant_runtime.py:test_context_view_request_reference_refusal_is_invalid_input",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_participant_runtime.py:test_proposal_source_reference_without_revision_is_invalid_input",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_participant_runtime.py:test_effect_owner_claim_block_propagates_and_owner_refusal_fails",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_participant_runtime.py:test_linked_action_refusal_does_not_report_a_defect_as_a_refusal",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_participant_runtime.py:test_scheduler_binding_defect_is_not_a_binding_refusal",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1678_participant_runtime.py:test_restored_control_archive_refusal_is_an_integrity_failure",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1710_wall_clock.py:test_configuration_refuses_a_clock_that_is_not_callable",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1710_wall_clock.py:test_the_default_clock_is_the_system_utc_clock",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1710_wall_clock.py:test_each_control_plane_records_time_from_its_own_clock",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1710_wall_clock.py:test_a_run_inherits_the_clock_of_its_engine",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1710_wall_clock.py:test_a_run_cannot_replace_the_clock_of_its_engine",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1710_wall_clock.py:test_a_scheduler_pass_refuses_an_unknown_keyword",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1710_wall_clock.py:test_backend_participant_runtime_records_episode_time_from_its_clock",
+      "disposition": "stub"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1710_wall_clock.py:test_stub_orchestrator_records_workflow_time_from_its_clock",
+      "disposition": "stub"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1710_wall_clock.py:test_restore_names_the_retained_copy_from_the_maintenance_clock",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_policy_compiles_exact_invocation_tool_relation_and_digest_covers_it",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_policy_without_affordances_keeps_its_digest_and_has_no_tool_relation",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_capability_claim_requires_autonomous_execution_and_tool_affordance_support",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_capability_limits_are_finite_and_versioned",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_registration_refuses_claim_without_attach_method",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_request_shape_is_closed_and_bounded",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_tool_action_commits_its_own_triple_before_the_outer_triple",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_tool_admission_progresses_from_another_thread_while_outer_waits",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_overlapping_tool_actions_finish_in_reverse_order_and_keep_peer_and_predecessor_history",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_undispatched_tool_is_withheld_and_dispatched_tool_without_outcome_is_indeterminate",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_reported_unknown_effects_are_retained_and_never_replayed",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_outer_protocol_failure_keeps_tool_history_and_consumes_the_attempt",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_raised_outer_invocation_keeps_tool_history_and_cannot_be_replayed",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_tool_events_returned_inside_the_outer_snapshot_stay_protocol_invalid",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_completion_after_outer_settlement_is_refused_as_stale",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_backend_without_claim_receives_no_port_and_runs_ordinary_actions",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_authority_refusals_cause_no_effect_and_no_history",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_tool_action_requires_one_exact_manifest_execution_offer",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_replay_conflict_limits_and_state_refusals",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_unsupported_compositions_refuse_before_effects",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_failed_attachment_dispatches_nothing",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_raised_concurrent_batch_keeps_every_peer_tool_history",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_settlement_after_generation_change_commits_no_tool_history",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_settlement_merges_into_a_distinct_failure_snapshot",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_cancelled_outer_invocation_settles_tool_history_before_the_cancellation_sink",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_committed_tool_history_round_trips_through_the_local_store",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_port_is_inactive_while_the_backend_attaches_it",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_cancelled_attachment_leaves_a_registered_closed_port",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_tool_outcome_must_pass_canonical_exposure_and_observation_binding",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_durable_store_retains_claims_before_decisions_and_grants",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_restart_classifies_interrupted_tool_claims_without_replay",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_only_a_validated_tool_child_is_compatible_with_its_parent_reservation",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_store_write_failure_refuses_decisions_and_grants_and_fails_closure",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_outer_backend_returning_none_consumes_the_attempt_without_redispatch",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_cancelled_concurrent_attachment_restores_the_reserved_batch",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_tool_action_identity_is_unique_across_episodes_and_generations",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_reused_call_id_is_admitted_again_after_a_clock_reset",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_unknown_effects_fence_later_grants_but_let_accepted_work_settle",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_unknown_effects_stop_later_outer_dispatch_in_the_same_pass",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_store_barrier_refuses_a_new_port_after_another_child_is_indeterminate",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_grant_requires_a_live_parent_and_open_effect_admission",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_sqlite_failure_during_closure_keeps_completed_sibling_history",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_conflicting_hosted_actions_are_not_granted_together",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_unknown_effects_fence_grants_even_when_the_settlement_write_fails",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1740_invocation_tool_actions.py:test_engine_stop_refuses_hosted_tool_claims_and_grants",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1742_bounded_materialization_source.py:test_full_size_source_crosses_the_former_limit_and_keeps_its_original_bytes",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1742_bounded_materialization_source.py:test_full_size_source_is_delivered_reported_and_archived_with_verified_bytes",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1742_bounded_materialization_source.py:test_full_size_source_keeps_its_target_binding_through_descendant_reporting",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1742_bounded_materialization_source.py:test_full_size_source_survives_durable_store_restart_without_reapplying",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1742_bounded_materialization_source.py:test_source_beyond_the_shared_bound_is_a_distinct_limit_refusal",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1742_bounded_materialization_source.py:test_missing_run_context_remains_the_context_refusal",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1742_bounded_materialization_source.py:test_submission_bound_is_inclusive_and_counts_utf8_bytes",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1742_bounded_materialization_source.py:test_prospective_content_uses_the_same_byte_bound",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1742_bounded_materialization_source.py:test_only_a_declared_document_field_receives_the_document_ceiling",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1742_bounded_materialization_source.py:test_document_ceiling_must_lie_between_scalar_and_total_limits",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1742_bounded_materialization_source.py:test_archive_refuses_oversized_content_before_writing",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1742_bounded_materialization_source.py:test_archive_refuses_rendered_bytes_that_expand_beyond_the_bound",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1742_bounded_materialization_source.py:test_archive_record_cannot_advertise_bytes_beyond_the_bound",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_1742_bounded_materialization_source.py:test_plan_scale_authority_uses_the_plan_budget_and_applies",
+      "disposition": "runtime"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_899_participant_resource_budgets.py:test_v3_resource_budget_compiles_complete_typed_vector",
+      "disposition": "resource"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_899_participant_resource_budgets.py:test_resource_owners_must_bind_to_authorized_execution_topology",
+      "disposition": "resource"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_899_participant_resource_budgets.py:test_composition_rewrites_kind_specific_resource_owner_refs",
+      "disposition": "resource"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_899_participant_resource_budgets.py:test_v3_resource_budget_rejects_incompatible_units_cycles_and_episode_reset",
+      "disposition": "resource"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_899_participant_resource_budgets.py:test_resource_event_rejects_contradictory_transition_disposition",
+      "disposition": "resource"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_899_participant_resource_budgets.py:test_legacy_profiles_compile_into_canonical_demand_representation",
+      "disposition": "resource"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_899_participant_resource_budgets.py:test_manifest_round_trip_separates_support_capacity_and_realization",
+      "disposition": "resource"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_899_participant_resource_budgets.py:test_admission_is_atomic_for_complete_vector_and_exact_meters",
+      "disposition": "resource"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_899_participant_resource_budgets.py:test_runtime_pool_ledger_prevents_competing_policy_overcommit",
+      "disposition": "resource"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_899_participant_resource_budgets.py:test_backend_cannot_rewrite_runtime_owned_budget_counters",
+      "disposition": "resource"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_899_participant_resource_budgets.py:test_runtime_reserve_commit_throttle_and_idempotency_are_generation_fenced",
+      "disposition": "resource"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_899_participant_resource_budgets.py:test_reset_reconciles_participant_window_without_erasing_persistent_owners",
+      "disposition": "resource"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_899_participant_resource_budgets.py:test_runtime_manager_enforces_v3_budgets_and_reconciles_reset_generation",
+      "disposition": "resource"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_899_participant_resource_budgets.py:test_scheduler_releases_reservations_when_native_measurements_are_absent",
+      "disposition": "resource"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_899_participant_resource_budgets.py:test_cross_range_shared_pool_requires_partitioned_isolation",
+      "disposition": "resource"
+    },
+    {
+      "python_test": "implementations/python/tests/test_issue_899_participant_resource_budgets.py:test_published_resource_budget_fixtures_match_contract_models",
+      "disposition": "resource"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_backend_contracts_are_published_closed_world",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_runtime_carriers_embed_one_shared_base_envelope",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_outcome_report_publishes_no_score_or_reward_surface",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_outcome_report_requires_state_relationships",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_history_view_schema_requires_completeness_basis_when_not_complete",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_views_reuse_published_episode_shapes",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_backend_contract_valid_fixtures_pass_schema_and_model_validation",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_backend_contract_invalid_fixtures_fail_schema_and_model_validation",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_history_view_requires_completeness_basis_unless_complete",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_view_projected_models_track_recorded_contract_shapes",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_status_view_rejects_episode_state_restating_scope",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_status_view_requires_episode_id_when_state_embedded",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_history_view_rejects_events_restating_scope",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_history_view_accepts_in_scope_nested_records",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_history_view_rejects_nested_action_result_for_another_participant",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_history_view_rejects_nested_precondition_for_another_episode",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_history_view_rejects_nested_attribution_edge_out_of_scope",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_history_view_rejects_nested_outcome_interpretation_out_of_scope",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_context_view_requires_source_snapshot_ref",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_context_view_rejects_hidden_or_global_source_layers",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_context_view_rejects_future_state_sources",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_context_view_bounded_staleness_requires_basis",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_context_view_weak_comparability_requires_backend_disclosure",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_lifecycle_event_rejects_unknown_mapping_loss",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_observation_envelope_rejects_unknown_information_guarantee",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_shared_state_record_rejects_unknown_conflict_policy",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_joint_action_record_rejects_implicit_last_writer_wins",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_participant_backend_contracts.py:test_participant_time_management_context_rejects_timestamp_only_exact_claim",
+      "disposition": "manifest"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_contract.py:test_backend_realization_envelope_validates_its_canonical_digest",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_contract.py:test_realization_concern_taxonomy_accounts_for_declared_services",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_contract.py:test_backend_realization_envelope_rejects_content_tampering",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_contract.py:test_backend_realization_envelope_rejects_duplicate_concerns",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_contract.py:test_backend_realization_envelope_rejects_missing_concern_disclosure",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_contract.py:test_operating_system_capability_rows_require_realized_guest_observed_claim",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_contract.py:test_operating_system_claim_requires_coupled_capability_rows",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_contract.py:test_published_schema_enforces_expressible_realization_invariants",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_contract.py:test_published_schema_declares_the_canonical_semantic_invariant",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_contract.py:test_transformed_concern_requires_a_transformation",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_contract.py:test_unsupported_concern_cannot_claim_observation_or_mechanism",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_contract.py:test_identity_rejects_non_sha256_digests",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_contract.py:test_manifest_plan_and_snapshot_publish_the_same_typed_identity",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_contract.py:test_local_control_plane_store_roundtrips_envelope_identity",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_contract.py:test_published_realization_envelope_fixture_corpus_is_nonvacuous",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_contract.py:test_backend_manifest_requires_contract_declaration_for_envelope_identity",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_valid_fixtures_parse",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_invalid_fixtures_rejected",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_contract_rejects_unknown_field",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_contract_rejects_partially_tokenizable_binding_paths",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_contract_rejects_arbitrary_predicate_domain",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_member_accepts_in_envelope_instance",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_member_rejects_out_of_domain_value",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_member_rejects_wrong_exact_name",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_member_reports_absent_constrained_path",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_member_closed_world_rejects_unspecified_dimension",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_member_diagnostics_are_secret_free",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_member_governed_reference_and_numeric_interval",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_subsumption_reflexive",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_subsumption_wider_offered_contains_narrower",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_subsumption_requested_open_where_offered_constrained",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_subsumption_closure_mismatch",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_subsumption_numeric_interval_types",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_witness_is_deterministic_and_in_envelope",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_witness_default_selects_lexicographically_first_enum",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_witness_policy_overrides_default",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_witness_under_specified_envelope_yields_diagnostic",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_witness_rejects_list_indexed_path",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_positive_probes_cover_every_finite_member_deterministically",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_positive_probes_cover_safe_integer_interval_boundaries",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_positive_probes_fail_closed_for_non_constructive_envelope",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_negative_probes_are_all_out_of_envelope",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_negative_probes_exclude_malformed_exact_omissions",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_negative_probes_without_witness_report_diagnostic",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_property_subsumption_is_enum_set_inclusion",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_property_subsumption_transitive",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_property_integer_interval_subsumption_matches_int_ranges",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_property_witness_is_member_and_deterministic",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_property_negative_probes_out_of_envelope",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_record_domain_membership_and_witness",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_open_posture_widens_overrideable_record_leaf",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_binding_scope_breaks_equal_path_ties_independent_of_list_order",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_topology_and_app_bindings_conflict_as_sibling_scopes",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_topology_and_app_closure_conflicts_as_sibling_scopes",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_open_world_overlay_removes_inherited_closed_state",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_open_descendant_shadows_closed_root_without_opening_siblings",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_open_world_overlay_uses_token_ancestry_for_indexed_descendants",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_widening_non_overrideable_inherited_value_is_invalid",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_subsumption_over_governed_and_boolean_domains",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_subsumption_governed_reference_rejects_cross_kind",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_default_witness_selection_rules",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_realization_envelope_relation.py:test_out_of_domain_variation_rules",
+      "disposition": "envelope"
+    },
+    {
+      "python_test": "implementations/python/tests/test_stub_backend_components.py:test_orchestrator_start_records_workflow_result_and_history",
+      "disposition": "stub"
+    },
+    {
+      "python_test": "implementations/python/tests/test_stub_backend_components.py:test_evaluator_start_records_results_and_history",
+      "disposition": "stub"
+    },
+    {
+      "python_test": "implementations/python/tests/test_stub_backend_components.py:test_participant_lifecycle_satisfies_run311_invariants",
+      "disposition": "stub"
+    },
+    {
+      "python_test": "implementations/python/tests/test_stub_backend_components.py:test_participant_initialize_then_reinitialize_is_rejected",
+      "disposition": "stub"
+    },
+    {
+      "python_test": "implementations/python/tests/test_stub_backend_provenance.py:test_apply_records_realization_provenance",
+      "disposition": "stub"
+    },
+    {
+      "python_test": "implementations/python/tests/test_stub_backend_provenance.py:test_apply_snapshot_preserves_planned_payload_without_backend_state",
+      "disposition": "stub"
+    }
+  ]
+}

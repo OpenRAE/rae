@@ -31,6 +31,9 @@ func RealizationOpenOfferDiagnostics(v *Validator, envelope binding.RealizationE
 	if err != nil {
 		return nil, err
 	}
+	if findings := offer.invalidDiagnostics(); len(findings) > 0 {
+		return findings, nil
+	}
 	selected := slices.Clone(paths)
 	slices.Sort(selected)
 	selected = slices.Compact(selected)
@@ -71,6 +74,9 @@ func RealizationMemberDiagnostics(v *Validator, envelope binding.RealizationEnve
 	offer, err := materializationOfferForOrdered(at(document, "expression"), order)
 	if err != nil {
 		return nil, err
+	}
+	if findings := offer.invalidDiagnostics(); len(findings) > 0 {
+		return findings, nil
 	}
 	findings, err := offer.memberConstraintDiagnostics(input)
 	if err != nil {
@@ -156,6 +162,15 @@ func (o *materializationOffer) memberClosedDiagnostics(input any, presence map[s
 				findings = append(findings, realizationOfferFinding("membership.closed-world-extra", strings.TrimPrefix(path+"."+child, "."), "closed-world scope admits no unspecified realizable dimension"))
 			}
 		}
+	}
+	return findings
+}
+
+func (o *materializationOffer) invalidDiagnostics() []diagnostic.Diagnostic {
+	paths := o.violations
+	findings := make([]diagnostic.Diagnostic, 0, len(paths))
+	for _, path := range paths {
+		findings = append(findings, realizationOfferFinding("invalid.non-overrideable-widen", path, "a more-specific binding widens a non-overrideable inherited value"))
 	}
 	return findings
 }

@@ -1,9 +1,10 @@
 package runtime
 
 import (
-	"context"
 	"github.com/OpenRAE/rae/implementations/go/contract/admission"
 	"github.com/OpenRAE/rae/implementations/go/contract/binding"
+	"context"
+
 	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
 )
 
@@ -13,6 +14,47 @@ type MaterializationSubmission struct {
 }
 
 func NewMaterializationSubmission(sdl []byte) (MaterializationSubmission, error)
+
+func BindParticipantAction(input ParticipantActionInput) (ParticipantActionRequest, error)
+
+func ParticipantActionInputFor(request ParticipantActionRequest) (ParticipantActionInput, error)
+func PrepareForRequest(plan binding.ProvisioningPlanV1, snapshot binding.RuntimeSnapshotV1, operations []ProvisionOperation, success bool, diagnostics []diagnostic.Diagnostic) (RealizationPreparation, error)
+
+type RecoveryObservationRequest struct {
+	OperationID, OperationKind, TargetScope, RunScope, RequestCommitment string
+	BaselineSnapshot                                                     binding.RuntimeSnapshotV1
+}
+type RecoveryObservationResult struct {
+	Classification, OperationID, RequestCommitment string
+	Snapshot                                       *binding.RuntimeSnapshotV1
+	ChangedAddresses                               []string
+}
+
+func (request RecoveryObservationRequest) Validate() error
+
+func (result RecoveryObservationResult) Validate() error
+
+type InvocationToolIdentity struct {
+	InvocationActionInstanceID, ParticipantAddress, EpisodeID, ParticipantImplementationRef, ExecutionScopeRef, ObservationPoint string
+	ExecutionGeneration                                                                                                          int64
+}
+type ToolActionRequest struct {
+	ToolCallID, InvocationActionInstanceID, ParticipantAddress, EpisodeID, ParticipantImplementationRef, ToolAffordanceAddress, ActionContractAddress, ObservationBoundaryAddress, ExecutionScopeRef string
+	TargetAddresses                                                                                                                                                                                  []string
+	ExecutionGeneration                                                                                                                                                                              int64
+}
+type ToolActionDecision struct {
+	ToolCallID                string
+	Admitted                  bool
+	ActionInstanceID, Refusal *string
+}
+type ToolActionReceipt struct {
+	ActionInstanceID    string
+	Accepted            bool
+	Refusal, Settlement *string
+}
+
+func (request ToolActionRequest) Validate() error
 
 type RealizationObservationDisclosure struct {
 	Address, FieldPath, Domain, RequirementKind, VerificationScope, ObservationStrength string
@@ -37,9 +79,6 @@ type RealizationPreparation struct {
 	Success                          bool
 	Diagnostics                      []diagnostic.Diagnostic
 }
-
-func PrepareForRequest(plan binding.ProvisioningPlanV1, snapshot binding.RuntimeSnapshotV1, operations []ProvisionOperation, success bool, diagnostics []diagnostic.Diagnostic) (RealizationPreparation, error)
-
 type ApplyResult struct {
 	Success                            bool
 	Snapshot                           binding.RuntimeSnapshotV1
@@ -86,6 +125,7 @@ type ParticipantActionInput struct {
 }
 type ParticipantActionApplyResult struct {
 	ApplyResult
+
 	ActionResult admission.Fragment
 }
 type NativeActionOutcome struct {
@@ -94,7 +134,5 @@ type NativeActionOutcome struct {
 	PostStateDigest *string
 }
 type NativeActionExecution interface {
-	Invoke(context.Context, ParticipantActionRequest, binding.RuntimeSnapshotV1) (NativeActionOutcome, error)
+	Invoke(ctx context.Context, request ParticipantActionRequest, snapshot binding.RuntimeSnapshotV1) (NativeActionOutcome, error)
 }
-
-func BindParticipantAction(input ParticipantActionInput) (ParticipantActionRequest, error)

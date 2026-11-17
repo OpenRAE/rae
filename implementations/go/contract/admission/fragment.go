@@ -304,3 +304,21 @@ func (e *Validator) CheckModelFragment(contract, pointer string, data []byte, li
 	}
 	return e.checkModelFragment(contract, pointer, data, limits)
 }
+
+// CheckFragmentBudget bounds the total encoded bytes retained through native
+// fragment handles. Repeated handles are charged for every occurrence. Foreign
+// implementations are refused without invoking their methods.
+func CheckFragmentBudget(inputs []Fragment, maximumBytes int) error {
+	if maximumBytes < 1 || len(inputs) > value.Runtime().MaxMembers {
+		return fragmentInvalid()
+	}
+	remaining := maximumBytes
+	for _, input := range inputs {
+		owned, ok := input.(fragment)
+		if !ok || len(owned.data) > remaining {
+			return fragmentInvalid()
+		}
+		remaining -= len(owned.data)
+	}
+	return nil
+}

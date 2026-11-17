@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
+	"github.com/OpenRAE/rae/implementations/go/contract/admission"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/value"
 	"github.com/OpenRAE/rae/implementations/go/internal/sdl/source"
 )
@@ -53,6 +54,7 @@ type nodeDefault struct {
 	present bool
 }
 type typedPresenceWalk struct {
+	probes     map[string]admission.EnvelopeProbeScope
 	queries    *scopeQueries
 	presence   map[string][]string
 	defaults   map[string]nodeDefault
@@ -87,6 +89,13 @@ func nodeChildPath(path, field string) string {
 func (w *typedPresenceWalk) mapping(data, schema map[string]any, pointer, path string, depth int) error {
 	presentation, typed := w.queries.w.parser.lookupLayout(w.queries.w.id, pointer)
 	if typed {
+		if w.probes != nil {
+			scope, err := w.probeScope(data, schema, pointer, path, presentation)
+			if err != nil {
+				return err
+			}
+			w.probes[path] = scope
+		}
 		children, err := w.children(data, schema, pointer)
 		if err != nil {
 			return err
