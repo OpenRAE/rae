@@ -121,7 +121,10 @@ type ParticipantControlProvider interface {
 	Resolve(ctx context.Context, input admission.Fragment) ([]admission.Fragment, error)
 }
 
-// ParticipantControlProviderV2 resolves version-two staged control requests.
-type ParticipantControlProviderV2 interface {
+// ParticipantStageResolver resolves version-two staged control requests.
+type ParticipantStageResolver interface {
 	ResolveStage(ctx context.Context, input admission.Fragment) ([]admission.Fragment, error)
 }
+
+// ParticipantControlProviderV2 preserves the accepted version-two role name.
+type ParticipantControlProviderV2 = ParticipantStageResolver

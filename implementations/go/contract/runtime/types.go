@@ -111,7 +111,10 @@ type NativeActionOutcome struct {
 	PostStateDigest *string
 }
 
-// NativeActionExecution invokes native effects after external runtime authorization.
-type NativeActionExecution interface {
+// NativeActionInvoker invokes native effects after external runtime authorization.
+type NativeActionInvoker interface {
 	Invoke(ctx context.Context, request ParticipantActionRequest, snapshot binding.RuntimeSnapshotV1) (NativeActionOutcome, error)
 }
+
+// NativeActionExecution preserves the accepted native action role name.
+type NativeActionExecution = NativeActionInvoker

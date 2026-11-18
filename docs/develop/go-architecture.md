@@ -362,7 +362,7 @@ flowchart BT
 | `github.com/OpenRAE/rae/implementations/go/processor/trial` | rae | Request, Compile, PlanBatchSchedule, ScheduledEntry, BatchSchedule, ParticipantManifestKey, ApparatusManifestKey, ConfigurationValidatorKey, Limits, MixedCompositionLimits, Result, DefaultLimits, DefaultMixedCompositionLimits, Limits.Validate, MixedCompositionLimits.Validate, RealizationInputs, Realization, RealizationOptions, InstantiateEntry, RealizeEntry, ControlContextProvider, ReplacementRequest, ReplacementResult, CompileContext, Readmit, CompileReplacement, RealizationAssignmentKey, PlanBatchScheduleValue | rae:contract/admission, rae:contract/binding, rae:contract/diagnostic, rae:contract/validation, rae:processor/planning, rae:sdl | environment-packs, lilrae, runtime | #1788 |
 | `github.com/OpenRAE/rae/implementations/go/processor/realization` | rae | ProjectConcern, ConcernDescriptors, HasRequiredObservationSupport, Descriptor, Requirement, Authority, Resolution, Compile, Resolve, Equivalent, SanitizeSnapshot, Decision, ResolveOptions, ValueConstraint, ProcessResourceLimit, AdmitRequirement, EvaluationOptions, Provenance, Evaluation, Evaluate, ArtifactAvailability, ArtifactSupport, SelectionAdmits, CompilePreparedNode, SanitizePreparedNodeSnapshot, PlannedAuthorityDiagnostics, PlannedRequirements, EvaluatePlanned, CleanupPlannedDiagnostics | rae:contract/admission, rae:contract/binding, rae:contract/diagnostic, rae:sdl | environment-packs, lilrae, runtime | #1787 |
 | `github.com/OpenRAE/rae/implementations/go/processor/analysis` | rae | Analyze, Request, Result | rae:contract/diagnostic, rae:processor | lilrae, runtime | #1789 |
-| `github.com/OpenRAE/rae/implementations/go/backend` | rae | AugmentationPreparer, AutonomousActionBinding, AutonomousParticipantRuntime, ControlledAutonomousParticipantRuntime, CoordinatedParticipantResetRuntime, CoordinatedParticipantTimeRuntime, Evaluator, InventoryReporter, InvocationToolActionPort, InvocationToolParticipantRuntime, LoadProfile, Manifest, MixedBridge, MixedStageReader, MixedTimeCoordinator, OperationProvider, Orchestrator, ParticipantControlProvider, ParticipantControlProviderV2, ParticipantRuntime, PreparingProvisioner, ProfilePreparingProvisioner, Provisioner, RecoveryObserver, RequireInjectOccurrenceProvider, RequireMixedService, RequireOperationProvider, TimeRuntime | rae:contract/admission, rae:contract/binding, rae:contract/diagnostic, rae:contract/runtime, rae:contract/validation | environment-packs, lilrae, runtime | #1790 |
+| `github.com/OpenRAE/rae/implementations/go/backend` | rae | AugmentationPreparer, AutonomousActionBinding, AutonomousParticipantRuntime, ControlledAutonomousParticipantRuntime, CoordinatedParticipantResetRuntime, CoordinatedParticipantTimeRuntime, Evaluator, InventoryReporter, InvocationToolActionPort, InvocationToolParticipantRuntime, LoadProfile, Manifest, MixedBridge, MixedStageReader, MixedTimeCoordinator, OperationProvider, Orchestrator, ParticipantControlProvider, ParticipantControlProviderV2, ParticipantRuntime, ParticipantStageResolver, PreparingProvisioner, ProfilePreparingProvisioner, Provisioner, RecoveryObserver, RequireInjectOccurrenceProvider, RequireMixedService, RequireOperationProvider, TimeRuntime | rae:contract/admission, rae:contract/binding, rae:contract/diagnostic, rae:contract/runtime, rae:contract/validation | environment-packs, lilrae, runtime | #1790 |
 | `github.com/OpenRAE/rae/implementations/go/backend/stub` | rae | Configuration, DefaultOptions, Evaluator, Manifest, ManifestWithVersion, NewEvaluator, NewEvaluatorWithConfiguration, NewOrchestrator, NewOrchestratorWithConfiguration, NewParticipantRuntime, NewParticipantRuntimeWithConfiguration, NewProvisioner, NewProvisionerWithConfiguration, Options, Orchestrator, ParticipantRuntime, Provisioner | rae:backend, rae:base/clock, rae:contract/binding | environment-packs, lilrae, runtime | #1790 |
 | `github.com/OpenRAE/rae/implementations/go/conformance` | rae | ValidateFixture, ValidateProcessor, ValidateModularReport, ModularControlEvidence, ModularOwnerObservation | rae:contract/diagnostic, rae:processor | lilrae, runtime | #1796 |
 | `github.com/OpenRAE/rae/implementations/go/command/authoring` | rae | Commands, Command, Streams |  | runtime | #1797 |
@@ -372,7 +372,7 @@ flowchart BT
 | `RUNTIME/runtime/temporal` | runtime | New, Adapter, Configuration, Worker, ClientOptions, Client, WorkerOptions, DefaultConfiguration, Dial, NewWorker, Configuration.Validate, RuntimeWorkerOptions, NewRuntimeWorker | rae:backend, runtime:runtime/execution | coldlight | #1793 |
 | `RUNTIME/runtime/result` | runtime | AdmitResult, Context, EvidenceResolver, AdmitApplyResult | rae:contract/admission, rae:contract/binding, rae:contract/runtime, rae:contract/validation, rae:processor | lilrae, coldlight | #1794, #1795 |
 | `RUNTIME/runtime/profile` | runtime | ID, P0, P1, P2, P3, Capability, Claim, Declaration, StoreCapabilities, DeclarationFor, Select, RequireCapabilities, CoreCapabilities, ErrProfileUnavailable, NewStoreCapabilities, StoreCapabilities.Values, ActorBoundary, RecoveryObservationRequirement |  | coldlight, lilrae | #1791, #1792 |
-| `github.com/OpenRAE/rae/implementations/go/contract/runtime` | rae | ApplyResult, BindParticipantAction, EpisodeInitializeRequest, EpisodeResetRequest, EpisodeRestartRequest, EpisodeTerminateRequest, InvocationToolIdentity, MaterializationSubmission, NativeActionExecution, NativeActionOutcome, NewMaterializationSubmission, ObservedOperatingSystemIdentity, ParticipantActionApplyResult, ParticipantActionInput, ParticipantActionInputFor, ParticipantActionRequest, PrepareForRequest, ProvisionOperation, RealizationObservationDisclosure, RealizationPreparation, RecoveryObservationRequest, RecoveryObservationResult, ToolActionDecision, ToolActionReceipt, ToolActionRequest | rae:contract/admission, rae:contract/binding, rae:contract/diagnostic | lilrae, runtime | #1790 |
+| `github.com/OpenRAE/rae/implementations/go/contract/runtime` | rae | ApplyResult, BindParticipantAction, EpisodeInitializeRequest, EpisodeResetRequest, EpisodeRestartRequest, EpisodeTerminateRequest, InvocationToolIdentity, MaterializationSubmission, NativeActionExecution, NativeActionInvoker, NativeActionOutcome, NewMaterializationSubmission, ObservedOperatingSystemIdentity, ParticipantActionApplyResult, ParticipantActionInput, ParticipantActionInputFor, ParticipantActionRequest, PrepareForRequest, ProvisionOperation, RealizationObservationDisclosure, RealizationPreparation, RecoveryObservationRequest, RecoveryObservationResult, ToolActionDecision, ToolActionReceipt, ToolActionRequest | rae:contract/admission, rae:contract/binding, rae:contract/diagnostic | lilrae, runtime | #1790 |
 | `github.com/OpenRAE/rae/implementations/go/processor/comparison` | rae | Artifact, Options, FromScenario, FromDocument, FromModule, Coordinate, BuildImpactScope, Analyze | rae:contract/admission, rae:contract/profile, rae:contract/validation, rae:sdl | environment-packs, lilrae, runtime | #1787 |
 | `RUNTIME/runtime/experiment` | runtime | Identity, Trial, Observation, Host, Decision, Journal, OwnerCaller, Options, Progress, Coordinator, RunMetadata, RecordSource, Accounting, RecordBundle, EvidenceInputs, EvidenceReader, Archive, RecordOptions, DecodeDecision, New, Phase | rae:base/clock, rae:contract/admission, rae:contract/binding, rae:processor/trial | lilrae, coldlight | #1788, #1791 |
 
@@ -381,7 +381,7 @@ flowchart BT
 | `raes` | runtime | `RUNTIME/cmd/raes` | rae:command/authoring, runtime:runtime/control |
 | `raes-mcp` | rae | `github.com/OpenRAE/rae/implementations/go/cmd/raes-mcp` | rae:sdl/language, rae:processor, rae:contract/admission |
 
-<!-- go-consumer c792f8fb2ea0429268531260d512040e3c368eeedc8a4d459067fa934968a0f0 -->
+<!-- go-consumer 70aeff9652b23df41d3f5b036b5e247e0870957fe19f817876291196efba48f3 -->
 
 | Trust-view evidence | SHA-256 |
 | --- | --- |
@@ -410,7 +410,7 @@ flowchart BT
 | `docs/decisions/issue-1788-experiments-design.md` | `adbda62ad0c2c5b69a8ec4d1ecbf78c9f952d8af44b219d5c49c5e24196fd695` |
 | `docs/decisions/issue-1788-experiments-trials-preflight.md` | `72e13a31965e84f102c3a90c810467a34cfbaa3a19755769d9695a608cbc7cd6` |
 | `docs/decisions/issue-1788-validator-key-decision.md` | `c781e3ca480df4429459b7ef51fc932ddbf14ee500b8ed8e5cae5b4c15f271af` |
-| `docs/decisions/issue-1790-backend-design.md` | `5bb5ab2eca4fc664c2572649ca6876c69a83f460caf94c67d53e57fc0502459f` |
+| `docs/decisions/issue-1790-backend-design.md` | `399c218cbe38723cfe5e845720cdad77c0972d680d8fa30e474cf6454b312ccc` |
 | `docs/decisions/issue-1799-go-governance-design.md` | `abcc366a9fba4afcd8a9e0e42af3907f5cd858249152b8eacad25b85fb91e6e7` |
 | `docs/decisions/issue-1825-public-go-api.md` | `45e4568e7a6721b153e40c6de6b6d2bc2ade9f48c736b81db2e4a8624252bc4e` |
 | `docs/decisions/issue-1859-go-architecture-contract-design.md` | `df0610aa609edb15eec1327d3efef5e61f730e4da468b5c9f035ac08c0d1659a` |
@@ -419,17 +419,17 @@ flowchart BT
 | `docs/decisions/issue-2008-sdl-semantic-fixtures-design.md` | `93ee0f27747f5adce6296d00f5190a7f5b7a917d9a6ad1afaa7d1ca2554c53b6` |
 | `specs/sdl/diagnostics.md` | `422c46a1080f4dced095729967658f300520fa59b16c1923d113a758422a231e` |
 | `specs/sdl/document-model.md` | `496290792659c189242ab93923f6f50e305e383d50588a4d75269d9ade2e2970` |
-<!-- go-component base 546b9da2c82dd7a59d9f396a14b34fe68f28e8ead83bdaa8b0891474d9b81e92 -->
-<!-- go-component contract 743e7a24fd21ce92aa0cd4eb3a5ab31f68511343dbcedae3a842595db576feba -->
-<!-- go-component sdl 097561f29e7be63af617f9ac51b5cad327b8513ece051d7b9f1c5dab4d603684 -->
-<!-- go-component processor 8182c22f2f9d68387df8d939e3297e3acde5d9efaa02f786055448856e089205 -->
-<!-- go-component backend 880bcd39a63932780d9fc193ca7f5083a977278ad8195c721046c6e928edb5ba -->
-<!-- go-component runtime d7a1fd210ecbc4d6ecb7978a7e7d8dc48178d783a88f6c70b880543ccab8750a -->
-<!-- go-component conformance e4d7539a872c6e20e7ea102342a0b03c37972682c488a19edc2ebd01aeb09bf0 -->
-<!-- go-component app c6d0811e9e102f5d19d3545859b6b2604ea8b95cf1f31e6f40b5fc6d9bf98bfb -->
-<!-- go-component adapter a9910e8217c031065040c686145f025d20017e38b56022c175417b3bd1b89a61 -->
-<!-- go-component command d00e527022f3e92f1f56483e2ca445a5fb08467934513ad13f93f5dd60fdcfb5 -->
-<!-- go-component parity 27bc2a4bd4198ad2442c4ec558c6f4b1ddbffb4a415cc505e56e20a0a988f40a -->
-<!-- go-component tooling 8a3dead30a640e7a917db7890f5ba7aebd1958260e2610fb182b190c841ff9f1 -->
+<!-- go-component base abcb69a996945630e7349b3cd490985029f60deb0dafe281ffbb54e339dd1b0c -->
+<!-- go-component contract 57fc323473afaf267e5a3be9c62364d8134d7fc9f95ac1f4f724105c73747211 -->
+<!-- go-component sdl af0be9fcf607cb287fc926e6e4a1b7fa239bd0c7534253646453a237569e6075 -->
+<!-- go-component processor 9ff11cc10e436984539a047a394cf1646c14ef7768fd9573ebadf38c44b14f92 -->
+<!-- go-component backend 5d47f134b7355c7031db17416947da735017422047aa6187d0ad7906f0e90b1d -->
+<!-- go-component runtime 88fe26fc1f6be98c075a067fe5a5a8da9334f0db7a2bfbe133c72087ad6df40e -->
+<!-- go-component conformance 9d6345c135ae32b6754e352554e5c3f955c5747784971e490c15ebfb8880d4cb -->
+<!-- go-component app 24cf8ab8978cc2d2ebeeeafca807a52943ad4604229bf2a886d39d9d4743750f -->
+<!-- go-component adapter e69a10eff358b25ba0d27357b20010fdf64c1f66ca1e57ab572850f44e2e3e51 -->
+<!-- go-component command 0eb30b7d6eb551b695c43f7934644207fd73ecbe592ca211702cf42040af1716 -->
+<!-- go-component parity e9782d2319dca54d34bce7e945a28ad2d0e2be496217fca733a71624e5281477 -->
+<!-- go-component tooling bbb8e8ed8ee450b12d244bef7c1f478c570d993de28079e47eaa4b364c386d78 -->
 
 <!-- /go-view -->

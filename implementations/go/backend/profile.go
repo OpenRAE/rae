@@ -13,6 +13,8 @@ import (
 	"github.com/OpenRAE/rae/implementations/go/contract/validation"
 )
 
+const profileInvalidCode = "backend-profile-invalid"
+
 var profileID = regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
 var backendProfiles = sync.OnceValues(loadProfiles) //nolint:gochecknoglobals // Only immutable packaged contracts are shared; request state remains local.
 
@@ -31,7 +33,7 @@ func LoadProfile(id string) (binding.BackendProfileV1, error) {
 	}
 	var result binding.BackendProfileV1
 	if err := json.Unmarshal(raw, &result); err != nil {
-		return binding.BackendProfileV1{}, fault.New(fault.Operational, "backend-profile-invalid", nil)
+		return binding.BackendProfileV1{}, fault.New(fault.Operational, profileInvalidCode, nil)
 	}
 	return result, nil
 }
@@ -55,11 +57,11 @@ func loadProfiles() (map[string][]byte, error) {
 			continue
 		}
 		if err := validator.CheckPortable(document.ContractID, document.JSON, ingress.Limits{MaxBytes: 8 << 20, MaxDepth: 64}); err != nil {
-			return nil, fault.New(fault.Operational, "backend-profile-invalid", nil)
+			return nil, fault.New(fault.Operational, profileInvalidCode, nil)
 		}
 		var payload binding.BackendProfileV1
 		if err := json.Unmarshal(document.JSON, &payload); err != nil {
-			return nil, fault.New(fault.Operational, "backend-profile-invalid", nil)
+			return nil, fault.New(fault.Operational, profileInvalidCode, nil)
 		}
 		id, ok := payload.Profile.Value()
 		if !ok || document.Path != "profiles/backend/"+id+".json" || !profileID.MatchString(id) {

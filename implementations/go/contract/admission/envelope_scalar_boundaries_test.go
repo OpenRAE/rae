@@ -182,7 +182,7 @@ func TestEnvelopeProbeFailuresPropagateWithoutPartialPublication(t *testing.T) {
 	if err := checkProbeScopes([]EnvelopeProbeScope{{Fields: []EnvelopeProbeField{{Variations: []any{make(chan int)}}}}}); err == nil {
 		t.Fatal("foreign field metadata accepted")
 	}
-	if message := assignEnvelopePath(map[string]any{}, "", true); message == "" {
+	if assignEnvelopePath(map[string]any{}, "", true) == "" {
 		t.Fatal("empty assignment path accepted")
 	}
 }

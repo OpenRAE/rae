@@ -14,7 +14,9 @@ import (
 
 type participantRequest struct{ input ParticipantActionInput }
 
-func (*participantRequest) admittedAction() {}
+func (*participantRequest) admittedAction() {
+	// This marker seals requests to the native owner; it performs no effect.
+}
 
 // Input returns a detached view of this request. Admitted fragments remain
 // immutable owner handles and each Document call returns its own copy.

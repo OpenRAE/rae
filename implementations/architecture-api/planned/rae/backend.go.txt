@@ -134,6 +134,8 @@ type OperationProvider interface {
 type ParticipantControlProvider interface {
 	Resolve(ctx context.Context, input admission.Fragment) ([]admission.Fragment, error)
 }
-type ParticipantControlProviderV2 interface {
+type ParticipantStageResolver interface {
 	ResolveStage(ctx context.Context, input admission.Fragment) ([]admission.Fragment, error)
 }
+
+type ParticipantControlProviderV2 = ParticipantStageResolver

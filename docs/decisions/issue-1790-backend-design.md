@@ -175,6 +175,14 @@ These references were read for the Go 1.27.3 module context.
 Review keeps this document explanatory, uses short sentences, and preserves normative meaning.
 Vale is a style check and does not prove full STE conformance.
 
+## Interface naming
+
+`ParticipantStageResolver` names the version-two staged control role.
+`NativeActionInvoker` names the native action role.
+`ParticipantControlProviderV2` and `NativeActionExecution` remain exact type aliases.
+The aliases preserve the accepted public names and method sets.
+The canonical names follow the Go convention for interfaces with one method.
+
 ## Implemented boundary details
 
 `NewMaterializationSubmission` admits nonempty UTF-8 text up to 4 MiB.
@@ -218,8 +226,8 @@ The delivery still runs the commit checks and CI.
 
 The verification record is [issue-1790-backend-verification.md](issue-1790-backend-verification.md).
 
-<!-- go-api implementations/go/backend bc318e118a3be13de924eef2490f72cd8adacff67d3a49439ad7a68e746936a7 -->
+<!-- go-api implementations/go/backend 9dcaa2f55530b058f06cbfec3c16e0bdd1ed44925a79177cab078fc04e88c019 -->
 
 <!-- go-api implementations/go/backend/stub 132469e022bbc25f648a914864e125c568871b0163d392d935d2f1c80d5b77e4 -->
 
-<!-- go-api implementations/go/contract/runtime f7e6d7789795143fd0399abf75dff705f0daf15d7cf129568aedabc282c5b53d -->
+<!-- go-api implementations/go/contract/runtime f5dff81fbbee0bddd56893f8a82d0d520cb171bf2eb19ec852c91bb495ff7c1c -->

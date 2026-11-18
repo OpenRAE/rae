@@ -133,6 +133,8 @@ type NativeActionOutcome struct {
 	ActionResult    admission.Fragment
 	PostStateDigest *string
 }
-type NativeActionExecution interface {
+type NativeActionInvoker interface {
 	Invoke(ctx context.Context, request ParticipantActionRequest, snapshot binding.RuntimeSnapshotV1) (NativeActionOutcome, error)
 }
+
+type NativeActionExecution = NativeActionInvoker
