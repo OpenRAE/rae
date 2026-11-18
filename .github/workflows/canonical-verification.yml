@@ -598,7 +598,7 @@ jobs:
         group: [shared, authoring, parity, processor, trial, runtime, tooling]
         mode: [race, coverage]
         include:
-          - {module: product, group: shared, path: implementations/go, packages: './base/... ./contract/... ./internal/base/... ./internal/contract/... ./internal/sdl/source/...'}
+          - {module: product, group: shared, path: implementations/go, packages: './backend/... ./base/... ./contract/... ./internal/base/... ./internal/contract/... ./internal/sdl/source/...'}
           - {module: product, group: authoring, path: implementations/go, packages: './internal/sdl/authoring/...'}
           - {module: product, group: parity, path: implementations/go, packages: './internal/parity/...'}
           - {module: product, group: processor, path: implementations/go, packages: './processor ./processor/comparison/... ./processor/planning/... ./processor/realization/... ./sdl/...'}
