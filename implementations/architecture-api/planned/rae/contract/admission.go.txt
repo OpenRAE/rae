@@ -271,3 +271,41 @@ func ExperimentModelProjection(v *Validator, contractID string, data []byte) ([]
 func ValidateTrialRunJSON(v *Validator, plan validation.Value, run []byte, cleanupReceipts [][]byte) error
 func SupersedeTrialRunJSON(v *Validator, run []byte, child validation.Value) ([]byte, error)
 func ManifestModelProjection(v *Validator, contractID string, data []byte) ([]byte, error)
+
+func BackendPreparationCommitments(v *Validator, plan binding.ProvisioningPlanV1, snapshot binding.RuntimeSnapshotV1) (string, string, error)
+
+func EnvelopeSubsumptionDiagnostics(v *Validator, offered, requested binding.RealizationEnvelopeV1) ([]diagnostic.Diagnostic, error)
+
+func CheckBackendContractVersions(versions []string) error
+
+func EnvelopeWitnessProjection(v *Validator, envelope binding.RealizationEnvelopeV1) (Fragment, []diagnostic.Diagnostic, error)
+
+// EnvelopeProbeField carries native SDL field variants, without admission authority.
+type EnvelopeProbeField struct {Name string;Variations,EnumMembers []any}
+// EnvelopeProbeScope names a native typed model and its fields.
+type EnvelopeProbeScope struct {Path string;Fields []EnvelopeProbeField}
+// EnvelopeProbeCandidate is a bounded proposal; SDL admission must check it.
+type EnvelopeProbeCandidate struct {Path,DomainKind,Variation,Digest string;Payload Fragment}
+
+func EnvelopeProbeCandidates(v *Validator, envelope binding.RealizationEnvelopeV1, scopes []EnvelopeProbeScope, positive bool) ([]EnvelopeProbeCandidate, []diagnostic.Diagnostic, error)
+
+func CheckFragmentBudget(inputs []Fragment, maximumBytes int) error
+
+type ObservationFieldSelector struct {
+	Scope      string   `json:"semantic_scope"`
+	Excluded   []string `json:"excluded_scopes"`
+	Components []string `json:"component_refs"`
+	Kind       string   `json:"data_kind"`
+	Names      []string `json:"names"`
+}
+type ObservationDemandSelection struct {
+	Scope      string                     `json:"scope"`
+	Purpose    string                     `json:"purpose"`
+	Mode       string                     `json:"mode"`
+	Collection string                     `json:"collection"`
+	Retention  string                     `json:"retention"`
+	Export     string                     `json:"export"`
+	Selectors  []ObservationFieldSelector `json:"selectors"`
+}
+
+func SelectObservationDemand(demands []ObservationDemandSelection, scope, address, kind, stage string) (bool, error)

@@ -118,6 +118,10 @@ linters:
   exclusions:
     generated: strict
     rules:
+      # The approved public API fixes this package name (issue #1825).
+      - path: 'go/contract/runtime/'
+        linters: [revive]
+        text: '^package-naming: don.t use "runtime" because it conflicts with common Go standard library package "runtime"$'
       # ADR-118 permits exactly the system clock owner to read wall time.
       - path: 'go/base/clock/clock\.go$'
         linters: [forbidigo]

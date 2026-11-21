@@ -13,7 +13,7 @@ import (
 
 // envelopeMembershipView derives values and presence from the same native
 // constructor. Presence is never accepted as independently editable authority.
-func (p *Parser) envelopeMembershipView(document *Document) (admission.Fragment, map[string][]string, error) { //nolint:ireturn // The shared relation receives only a sealed native fragment.
+func (p *Parser) envelopeConstructed(document *Document) (any, *scopeQueries, error) {
 	if p == nil || p.models == nil || document == nil || !document.Instantiated() {
 		return nil, nil, invalid()
 	}
@@ -37,6 +37,15 @@ func (p *Parser) envelopeMembershipView(document *Document) (admission.Fragment,
 	if err = value.Validate(data, value.Runtime()); err != nil {
 		return nil, nil, err
 	}
+	return data, queries, nil
+}
+
+func (p *Parser) envelopeMembershipView(document *Document) (admission.Fragment, map[string][]string, error) { //nolint:ireturn // The shared relation receives a sealed native fragment.
+	data, queries, err := p.envelopeConstructed(document)
+	if err != nil {
+		return nil, nil, err
+	}
+	root := p.schemas[document.contract]
 	presence := typedPresenceWalk{modelNames: true, queries: queries, presence: map[string][]string{}, defaults: map[string]nodeDefault{}, remaining: value.Runtime().MaxNodes}
 	if err = presence.visit(data, root, "#", "", 0); err != nil {
 		return nil, nil, err
@@ -64,4 +73,15 @@ func (p *Parser) EnvelopeMembershipDiagnostics(document *Document, envelope bind
 		return nil, err
 	}
 	return admission.RealizationMemberDiagnostics(p.models, envelope, projection, presence)
+}
+
+// EnvelopeWitnessProjection uses this parser's existing immutable contract owner.
+// It returns a candidate, not an admitted SDL document.
+//
+//nolint:ireturn // The relation owner returns its existing sealed fragment.
+func (p *Parser) EnvelopeWitnessProjection(envelope binding.RealizationEnvelopeV1) (admission.Fragment, []diagnostic.Diagnostic, error) {
+	if p == nil || p.models == nil {
+		return nil, nil, invalid()
+	}
+	return admission.EnvelopeWitnessProjection(p.models, envelope)
 }

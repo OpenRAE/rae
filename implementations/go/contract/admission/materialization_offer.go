@@ -11,6 +11,8 @@ import (
 type materializationOfferLeaf struct {
 	descriptor   any
 	overrideable bool
+	domainName   string
+	posture      string
 }
 type materializationOffer struct {
 	domains     map[string]any
@@ -19,12 +21,16 @@ type materializationOffer struct {
 	leafOrder   []string
 	recordOrder map[string][]string
 	remaining   int
+	violations  []string
 }
 
 func materializationOfferIn(node any, prefix string, presence map[string][]string, expression any) error {
 	offer, err := materializationOfferFor(expression)
 	if err != nil {
 		return err
+	}
+	if len(offer.violations) > 0 {
+		return invalid()
 	}
 	for path, leaf := range offer.leaves {
 		if !materializationOfferContains(prefix, path) {
@@ -74,10 +80,11 @@ func materializationOfferOrder(a, b any) int {
 func (o *materializationOffer) binding(binding any) error {
 	path := stringAt(binding, "path")
 	if stringAt(binding, "posture") == termOpen {
-		for previous, leaf := range o.leaves {
+		for _, previous := range o.leafOrder {
+			leaf := o.leaves[previous]
 			if materializationOfferContains(path, previous) {
 				if !leaf.overrideable {
-					return invalid()
+					o.violations = append(o.violations, previous)
 				}
 				delete(o.leaves, previous)
 			}
@@ -85,30 +92,30 @@ func (o *materializationOffer) binding(binding any) error {
 		o.leafOrder = slices.DeleteFunc(o.leafOrder, func(path string) bool { _, retained := o.leaves[path]; return !retained })
 		return nil
 	}
-	name := stringAt(binding, "domain")
-	return o.expand(path, o.domains[name], name, boolean(at(binding, "overrideable")), 0)
+	name := stringAt(binding, fieldDomain)
+	return o.expand(path, o.domains[name], name, stringAt(binding, "posture"), boolean(at(binding, "overrideable")), 0)
 }
-func (o *materializationOffer) expand(path string, descriptor any, name string, override bool, depth int) error {
+func (o *materializationOffer) expand(path string, descriptor any, name, posture string, override bool, depth int) error {
 	o.remaining--
 	if o.remaining < 0 || depth > 64 || descriptor == nil {
 		return invalid()
 	}
 	if stringAt(descriptor, "kind") == termRecord {
-		return o.expandRecord(path, descriptor, name, override, depth)
+		return o.expandRecord(path, descriptor, name, posture, override, depth)
 	}
 	prior, exists := o.leaves[path]
 	if exists && !prior.overrideable && !materializationDomainSubset(descriptor, prior.descriptor) {
-		return invalid()
+		o.violations = append(o.violations, path)
 	}
 	if !exists {
 		o.leafOrder = append(o.leafOrder, path)
 	}
-	o.leaves[path] = materializationOfferLeaf{descriptor, override}
+	o.leaves[path] = materializationOfferLeaf{descriptor: descriptor, overrideable: override, domainName: name, posture: posture}
 	return nil
 }
 
-func (o *materializationOffer) expandRecord(path string, descriptor any, name string, override bool, depth int) error {
-	fields := object(at(descriptor, "fields"))
+func (o *materializationOffer) expandRecord(path string, descriptor any, name, posture string, override bool, depth int) error {
+	fields := object(at(descriptor, termFields))
 	order, supplied := o.recordOrder[name]
 	if !supplied {
 		order = mapKeys(fields)
@@ -119,7 +126,7 @@ func (o *materializationOffer) expandRecord(path string, descriptor any, name st
 	}
 	for _, field := range order {
 		target := text(fields[field])
-		if err := o.expand(path+"."+field, o.domains[target], target, override, depth+1); err != nil {
+		if err := o.expand(path+"."+field, o.domains[target], target, posture, override, depth+1); err != nil {
 			return err
 		}
 	}

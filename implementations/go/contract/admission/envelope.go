@@ -5,7 +5,9 @@ import (
 	"maps"
 	"regexp"
 	"strconv"
+	"strings"
 
+	"github.com/OpenRAE/rae/implementations/go/base/canonjson"
 	"github.com/OpenRAE/rae/implementations/go/base/digest"
 	"github.com/OpenRAE/rae/implementations/go/contract/validation"
 	"github.com/OpenRAE/rae/implementations/go/internal/base/domain"
@@ -38,7 +40,7 @@ func (e *Validator) envelope(i validation.Invocation) error {
 	}
 	content := maps.Clone(configuration)
 	delete(content, "configuration_digest")
-	actual, err := sortedJSON(content)
+	actual, err := envelopeSortedJSON(content)
 	if err != nil {
 		return err
 	}
@@ -49,7 +51,7 @@ func (e *Validator) envelope(i validation.Invocation) error {
 	payload["expression"] = envelopeExpressionDigestView(at(v, "expression"))
 	payload[termConfiguration] = configuration
 	delete(payload, termDigest)
-	canonical, err := sortedJSON(payload)
+	canonical, err := envelopeSortedJSON(payload)
 	if err != nil {
 		return err
 	}
@@ -58,6 +60,18 @@ func (e *Validator) envelope(i validation.Invocation) error {
 
 func envelopeExpressionDigestView(v any) any {
 	expression := maps.Clone(object(v))
+	domains := maps.Clone(object(expression[termDomains]))
+	for name, input := range domains {
+		descriptor := object(input)
+		if stringAt(descriptor, termKind) != termNumericInterval {
+			continue
+		}
+		normalized := maps.Clone(descriptor)
+		normalized["lower"] = envelopeFloat(normalized["lower"])
+		normalized["upper"] = envelopeFloat(normalized["upper"])
+		domains[name] = normalized
+	}
+	expression[termDomains] = domains
 	for _, name := range []string{"witness_policy", "source_ref", "contract_id", "digest"} {
 		if _, supplied := expression[name]; !supplied {
 			expression[name] = nil
@@ -137,18 +151,18 @@ func scopeRank(v any) string {
 func envelopeBindings(v any, domains map[string]any) error {
 	seen := map[string]any{}
 	for _, binding := range array(at(v, termBindings)) {
-		if !envelopePath.MatchString(stringAt(binding, "path")) || (stringAt(binding, "posture") == termOpen) != (at(binding, "domain") == nil) {
+		if !envelopePath.MatchString(stringAt(binding, "path")) || (stringAt(binding, "posture") == termOpen) != (at(binding, fieldDomain) == nil) {
 			return invalid()
 		}
-		descriptor := domains[stringAt(binding, "domain")]
-		if at(binding, "domain") != nil && descriptor == nil {
+		descriptor := domains[stringAt(binding, fieldDomain)]
+		if at(binding, fieldDomain) != nil && descriptor == nil {
 			return invalid()
 		}
 		if stringAt(binding, "posture") == postureExact && !singletonDomain(descriptor) {
 			return invalid()
 		}
 		key := join(stringAt(binding, "path"), scopeRank(at(binding, "scope")))
-		meaning := []any{at(binding, "domain"), at(binding, "posture"), defaultMember(binding, "overrideable", false)}
+		meaning := []any{at(binding, fieldDomain), at(binding, "posture"), defaultMember(binding, "overrideable", false)}
 		if previous, ok := seen[key]; ok && !equal(previous, meaning) {
 			return invalid()
 		}
@@ -190,7 +204,7 @@ func envelopeDomain(v any) (domain.Domain, error) { //nolint:ireturn // The clos
 		return domain.References{Authority: stringAt(v, termAuthority), Allowed: stringsOf(at(v, "allowed_refs"))}, nil
 	case termRecord:
 		fields := map[string]string{}
-		for key, target := range object(at(v, "fields")) {
+		for key, target := range object(at(v, termFields)) {
 			fields[key] = text(target)
 		}
 		return domain.Record{Fields: fields, Extra: boolean(at(v, "extra"))}, nil
@@ -223,7 +237,7 @@ func envelopeDomainGraph(domains map[string]any, edges map[string][]string) erro
 		}
 		edges[name] = nil
 		if stringAt(descriptor, termKind) == termRecord {
-			for _, target := range object(at(descriptor, "fields")) {
+			for _, target := range object(at(descriptor, termFields)) {
 				if domains[text(target)] == nil {
 					return invalid()
 				}
@@ -272,4 +286,36 @@ func (e *Validator) envelopeConcern(v, claim any) error {
 	}
 
 	return nil
+}
+
+// Envelope identities use the reference ASCII sorted-JSON profile.
+// Other legacy digest families keep their separately declared profiles.
+func envelopeSortedJSON(input any) (string, error) {
+	raw, err := json.Marshal(input)
+	if err != nil {
+		return "", invalid()
+	}
+	canonical, err := canonjson.Sorted(raw, true)
+	if err != nil {
+		return "", invalid()
+	}
+	return string(canonical), nil
+}
+
+// Numeric interval models construct floats even when their JSON input uses
+// integer tokens. Keep that constructor step separate from canonical encoding.
+func envelopeFloat(input any) any {
+	number, ok := input.(json.Number)
+	if !ok {
+		return input
+	}
+	parsed, err := number.Float64()
+	if err != nil {
+		return input
+	}
+	rendered := strconv.FormatFloat(parsed, 'g', -1, 64)
+	if !strings.ContainsAny(rendered, ".eE") {
+		rendered += ".0"
+	}
+	return json.Number(rendered)
 }

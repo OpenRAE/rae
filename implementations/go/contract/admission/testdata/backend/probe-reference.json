@@ -1,0 +1,4289 @@
+[
+  {
+    "name": "web",
+    "positive": true,
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "reference-emulation.in-process.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "web",
+        "scope": "scenario",
+        "domains": {
+          "name": {
+            "kind": "exact",
+            "value": "web-family"
+          },
+          "node": {
+            "kind": "exact",
+            "value": "compute"
+          },
+          "os": {
+            "kind": "enum",
+            "values": [
+              "linux",
+              "windows"
+            ]
+          }
+        },
+        "bindings": [
+          {
+            "path": "name",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "name",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.type",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "node",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.os",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "os",
+            "overrideable": false
+          }
+        ],
+        "closure": [],
+        "witness_policy": null,
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "in-process-emulation",
+        "configuration_digest": "sha256:6ebdcb05bec9d9691110df0ce23c1b660936b4565415ab254026dffc8040a57a",
+        "architecture": "x86_64",
+        "image_policy": "descriptor-only",
+        "network_policy": "in-process-emulation",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux",
+          "windows",
+          "macos",
+          "freebsd",
+          "other"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file",
+          "dataset",
+          "directory"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "mail",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": false,
+        "memory_mib": {
+          "minimum": 1,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "x-openrae:in-process-emulation",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "network",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "service",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:9b8ee55617c9fecaa09155c0f222d14e77dc94a52dbaf143365f8b0b20ea5f8b"
+    },
+    "probes": [
+      {
+        "path": "web",
+        "domain_kind": "witness",
+        "variation": "base-witness",
+        "digest": "sha256:e538dc4bd3d1cdb0171c65cfe8313076e0f48fbd7f74f7b1720ae19b7f7d00a8",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "linux",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "bounded-member",
+        "digest": "sha256:662ce91e16f4aeeb56e461c33d8fcce671f49e47e50a018f16400748dfbb984c",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "windows",
+              "type": "compute"
+            }
+          }
+        }
+      }
+    ],
+    "diagnostics": []
+  },
+  {
+    "name": "web",
+    "positive": false,
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "reference-emulation.in-process.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "web",
+        "scope": "scenario",
+        "domains": {
+          "name": {
+            "kind": "exact",
+            "value": "web-family"
+          },
+          "node": {
+            "kind": "exact",
+            "value": "compute"
+          },
+          "os": {
+            "kind": "enum",
+            "values": [
+              "linux",
+              "windows"
+            ]
+          }
+        },
+        "bindings": [
+          {
+            "path": "name",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "name",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.type",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "node",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.os",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "os",
+            "overrideable": false
+          }
+        ],
+        "closure": [],
+        "witness_policy": null,
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "in-process-emulation",
+        "configuration_digest": "sha256:6ebdcb05bec9d9691110df0ce23c1b660936b4565415ab254026dffc8040a57a",
+        "architecture": "x86_64",
+        "image_policy": "descriptor-only",
+        "network_policy": "in-process-emulation",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux",
+          "windows",
+          "macos",
+          "freebsd",
+          "other"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file",
+          "dataset",
+          "directory"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "mail",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": false,
+        "memory_mib": {
+          "minimum": 1,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "x-openrae:in-process-emulation",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "network",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "service",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:9b8ee55617c9fecaa09155c0f222d14e77dc94a52dbaf143365f8b0b20ea5f8b"
+    },
+    "probes": [
+      {
+        "path": "name",
+        "domain_kind": "exact",
+        "variation": "value-outside-domain",
+        "digest": "sha256:21748ee5b65cd5335e4fe2b7a1c60bc747cab584a620c6658ff5ea6fa1600219",
+        "payload": {
+          "name": "web-family-out-of-envelope",
+          "nodes": {
+            "web": {
+              "os": "linux",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "value-outside-domain",
+        "digest": "sha256:a18b7a666baa25f5c2e77f3cbc514070808a41411ee1ff54f7a2d07d65737644",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "macos",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "value-outside-domain",
+        "digest": "sha256:91a5d804add8da570ea17433a53ae53ad2ad3883bf9cb05356221b5698f74381",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "freebsd",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "value-outside-domain",
+        "digest": "sha256:55775dab9103b1e22911b106df2e7028e99eeeb503f3b76ae5e2a133334842a2",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "other",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.type",
+        "domain_kind": "exact",
+        "variation": "value-outside-domain",
+        "digest": "sha256:7ef1449d185830d55748cb3ea895722b4da9061bf6c1d7bd67790a6dc312e95f",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "type": "switch"
+            }
+          }
+        }
+      }
+    ],
+    "diagnostics": []
+  },
+  {
+    "name": "policy",
+    "positive": true,
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "reference-emulation.in-process.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "policy",
+        "scope": "scenario",
+        "domains": {
+          "name": {
+            "kind": "exact",
+            "value": "web-family"
+          },
+          "node": {
+            "kind": "exact",
+            "value": "compute"
+          },
+          "os": {
+            "kind": "enum",
+            "values": [
+              "linux",
+              "windows"
+            ]
+          }
+        },
+        "bindings": [
+          {
+            "path": "name",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "name",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.type",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "node",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.os",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "os",
+            "overrideable": false
+          }
+        ],
+        "closure": [],
+        "witness_policy": {
+          "seed": null,
+          "selections": {
+            "os": "windows"
+          }
+        },
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "in-process-emulation",
+        "configuration_digest": "sha256:6ebdcb05bec9d9691110df0ce23c1b660936b4565415ab254026dffc8040a57a",
+        "architecture": "x86_64",
+        "image_policy": "descriptor-only",
+        "network_policy": "in-process-emulation",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux",
+          "windows",
+          "macos",
+          "freebsd",
+          "other"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file",
+          "dataset",
+          "directory"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "mail",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": false,
+        "memory_mib": {
+          "minimum": 1,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "x-openrae:in-process-emulation",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "network",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "service",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:88bfcc726205794bab0ab39211ee789e1619ee5671299bfea022f2518dd4df6c"
+    },
+    "probes": [
+      {
+        "path": "policy",
+        "domain_kind": "witness",
+        "variation": "base-witness",
+        "digest": "sha256:662ce91e16f4aeeb56e461c33d8fcce671f49e47e50a018f16400748dfbb984c",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "windows",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "bounded-member",
+        "digest": "sha256:e538dc4bd3d1cdb0171c65cfe8313076e0f48fbd7f74f7b1720ae19b7f7d00a8",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "linux",
+              "type": "compute"
+            }
+          }
+        }
+      }
+    ],
+    "diagnostics": []
+  },
+  {
+    "name": "policy",
+    "positive": false,
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "reference-emulation.in-process.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "policy",
+        "scope": "scenario",
+        "domains": {
+          "name": {
+            "kind": "exact",
+            "value": "web-family"
+          },
+          "node": {
+            "kind": "exact",
+            "value": "compute"
+          },
+          "os": {
+            "kind": "enum",
+            "values": [
+              "linux",
+              "windows"
+            ]
+          }
+        },
+        "bindings": [
+          {
+            "path": "name",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "name",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.type",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "node",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.os",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "os",
+            "overrideable": false
+          }
+        ],
+        "closure": [],
+        "witness_policy": {
+          "seed": null,
+          "selections": {
+            "os": "windows"
+          }
+        },
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "in-process-emulation",
+        "configuration_digest": "sha256:6ebdcb05bec9d9691110df0ce23c1b660936b4565415ab254026dffc8040a57a",
+        "architecture": "x86_64",
+        "image_policy": "descriptor-only",
+        "network_policy": "in-process-emulation",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux",
+          "windows",
+          "macos",
+          "freebsd",
+          "other"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file",
+          "dataset",
+          "directory"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "mail",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": false,
+        "memory_mib": {
+          "minimum": 1,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "x-openrae:in-process-emulation",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "network",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "service",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:88bfcc726205794bab0ab39211ee789e1619ee5671299bfea022f2518dd4df6c"
+    },
+    "probes": [
+      {
+        "path": "name",
+        "domain_kind": "exact",
+        "variation": "value-outside-domain",
+        "digest": "sha256:263c79e5dd966e380080a0945f567c6fd6ae8794a769c7579998090d71e8c518",
+        "payload": {
+          "name": "web-family-out-of-envelope",
+          "nodes": {
+            "web": {
+              "os": "windows",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "value-outside-domain",
+        "digest": "sha256:a18b7a666baa25f5c2e77f3cbc514070808a41411ee1ff54f7a2d07d65737644",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "macos",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "value-outside-domain",
+        "digest": "sha256:91a5d804add8da570ea17433a53ae53ad2ad3883bf9cb05356221b5698f74381",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "freebsd",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "value-outside-domain",
+        "digest": "sha256:55775dab9103b1e22911b106df2e7028e99eeeb503f3b76ae5e2a133334842a2",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "other",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.type",
+        "domain_kind": "exact",
+        "variation": "value-outside-domain",
+        "digest": "sha256:7ef1449d185830d55748cb3ea895722b4da9061bf6c1d7bd67790a6dc312e95f",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "type": "switch"
+            }
+          }
+        }
+      }
+    ],
+    "diagnostics": []
+  },
+  {
+    "name": "closed",
+    "positive": true,
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "reference-emulation.in-process.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "closed",
+        "scope": "scenario",
+        "domains": {
+          "name": {
+            "kind": "exact",
+            "value": "web-family"
+          },
+          "node": {
+            "kind": "exact",
+            "value": "compute"
+          },
+          "os": {
+            "kind": "enum",
+            "values": [
+              "linux",
+              "windows"
+            ]
+          }
+        },
+        "bindings": [
+          {
+            "path": "name",
+            "scope": "field",
+            "posture": "exact",
+            "domain": "name",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.type",
+            "scope": "field",
+            "posture": "exact",
+            "domain": "node",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.os",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "os",
+            "overrideable": false
+          }
+        ],
+        "closure": [
+          {
+            "path": "",
+            "scope": "scenario",
+            "closure": "closed-world"
+          }
+        ],
+        "witness_policy": null,
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "in-process-emulation",
+        "configuration_digest": "sha256:6ebdcb05bec9d9691110df0ce23c1b660936b4565415ab254026dffc8040a57a",
+        "architecture": "x86_64",
+        "image_policy": "descriptor-only",
+        "network_policy": "in-process-emulation",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux",
+          "windows",
+          "macos",
+          "freebsd",
+          "other"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file",
+          "dataset",
+          "directory"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "mail",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": false,
+        "memory_mib": {
+          "minimum": 1,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "x-openrae:in-process-emulation",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "network",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "service",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:d4c616ac56724eabc75e700c242a6e8370faddfa79e5c2f81be3c9060a2370e4"
+    },
+    "probes": [
+      {
+        "path": "closed",
+        "domain_kind": "witness",
+        "variation": "base-witness",
+        "digest": "sha256:e538dc4bd3d1cdb0171c65cfe8313076e0f48fbd7f74f7b1720ae19b7f7d00a8",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "linux",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "bounded-member",
+        "digest": "sha256:662ce91e16f4aeeb56e461c33d8fcce671f49e47e50a018f16400748dfbb984c",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "windows",
+              "type": "compute"
+            }
+          }
+        }
+      }
+    ],
+    "diagnostics": []
+  },
+  {
+    "name": "closed",
+    "positive": false,
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "reference-emulation.in-process.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "closed",
+        "scope": "scenario",
+        "domains": {
+          "name": {
+            "kind": "exact",
+            "value": "web-family"
+          },
+          "node": {
+            "kind": "exact",
+            "value": "compute"
+          },
+          "os": {
+            "kind": "enum",
+            "values": [
+              "linux",
+              "windows"
+            ]
+          }
+        },
+        "bindings": [
+          {
+            "path": "name",
+            "scope": "field",
+            "posture": "exact",
+            "domain": "name",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.type",
+            "scope": "field",
+            "posture": "exact",
+            "domain": "node",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.os",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "os",
+            "overrideable": false
+          }
+        ],
+        "closure": [
+          {
+            "path": "",
+            "scope": "scenario",
+            "closure": "closed-world"
+          }
+        ],
+        "witness_policy": null,
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "in-process-emulation",
+        "configuration_digest": "sha256:6ebdcb05bec9d9691110df0ce23c1b660936b4565415ab254026dffc8040a57a",
+        "architecture": "x86_64",
+        "image_policy": "descriptor-only",
+        "network_policy": "in-process-emulation",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux",
+          "windows",
+          "macos",
+          "freebsd",
+          "other"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file",
+          "dataset",
+          "directory"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "mail",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": false,
+        "memory_mib": {
+          "minimum": 1,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "x-openrae:in-process-emulation",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "network",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "service",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:d4c616ac56724eabc75e700c242a6e8370faddfa79e5c2f81be3c9060a2370e4"
+    },
+    "probes": [
+      {
+        "path": "name",
+        "domain_kind": "exact",
+        "variation": "value-outside-domain",
+        "digest": "sha256:21748ee5b65cd5335e4fe2b7a1c60bc747cab584a620c6658ff5ea6fa1600219",
+        "payload": {
+          "name": "web-family-out-of-envelope",
+          "nodes": {
+            "web": {
+              "os": "linux",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "value-outside-domain",
+        "digest": "sha256:a18b7a666baa25f5c2e77f3cbc514070808a41411ee1ff54f7a2d07d65737644",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "macos",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "value-outside-domain",
+        "digest": "sha256:91a5d804add8da570ea17433a53ae53ad2ad3883bf9cb05356221b5698f74381",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "freebsd",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "value-outside-domain",
+        "digest": "sha256:55775dab9103b1e22911b106df2e7028e99eeeb503f3b76ae5e2a133334842a2",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "other",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.type",
+        "domain_kind": "exact",
+        "variation": "value-outside-domain",
+        "digest": "sha256:7ef1449d185830d55748cb3ea895722b4da9061bf6c1d7bd67790a6dc312e95f",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "type": "switch"
+            }
+          }
+        }
+      },
+      {
+        "path": "description",
+        "domain_kind": "closed-scope",
+        "variation": "extra-dimension",
+        "digest": "sha256:ba7517bcd1d11e2cc413d8a472b854c04e8a463782903d28974c25b19004d9ac",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "linux",
+              "type": "compute"
+            }
+          },
+          "description": "out-of-envelope"
+        }
+      },
+      {
+        "path": "version",
+        "domain_kind": "closed-scope",
+        "variation": "extra-dimension",
+        "digest": "sha256:332ac67b14728ce0f2a9a2d33a18dcc37cdd3bb55e85b4b2a13d88b1630c9cfd",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "linux",
+              "type": "compute"
+            }
+          },
+          "version": "out-of-envelope"
+        }
+      }
+    ],
+    "diagnostics": []
+  },
+  {
+    "name": "unicode",
+    "positive": true,
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "reference-emulation.in-process.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "unicode",
+        "scope": "scenario",
+        "domains": {
+          "name": {
+            "kind": "exact",
+            "value": "web-family"
+          },
+          "node": {
+            "kind": "exact",
+            "value": "compute"
+          },
+          "os": {
+            "kind": "enum",
+            "values": [
+              "linux",
+              "windows"
+            ]
+          },
+          "description": {
+            "kind": "exact",
+            "value": "caf\u00e9"
+          }
+        },
+        "bindings": [
+          {
+            "path": "name",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "name",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.type",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "node",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.os",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "os",
+            "overrideable": false
+          },
+          {
+            "path": "description",
+            "scope": "field",
+            "posture": "exact",
+            "domain": "description",
+            "overrideable": false
+          }
+        ],
+        "closure": [],
+        "witness_policy": null,
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "in-process-emulation",
+        "configuration_digest": "sha256:6ebdcb05bec9d9691110df0ce23c1b660936b4565415ab254026dffc8040a57a",
+        "architecture": "x86_64",
+        "image_policy": "descriptor-only",
+        "network_policy": "in-process-emulation",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux",
+          "windows",
+          "macos",
+          "freebsd",
+          "other"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file",
+          "dataset",
+          "directory"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "mail",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": false,
+        "memory_mib": {
+          "minimum": 1,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "x-openrae:in-process-emulation",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "network",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "service",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:c5681a1cfe875f9dc948d9e3f0aeccef5485d648c176b6375f62ae6b211cf9ee"
+    },
+    "probes": [
+      {
+        "path": "unicode",
+        "domain_kind": "witness",
+        "variation": "base-witness",
+        "digest": "sha256:5e783193e57fda0115fc1180540e4b0971e8164cb3fdf68a86aa5642050d3588",
+        "payload": {
+          "description": "caf\u00e9",
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "linux",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "bounded-member",
+        "digest": "sha256:73071c62de845fb186e903ea0610ecb1d0bacf66c17d492a9de1e0216b1d91a2",
+        "payload": {
+          "description": "caf\u00e9",
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "windows",
+              "type": "compute"
+            }
+          }
+        }
+      }
+    ],
+    "diagnostics": []
+  },
+  {
+    "name": "unicode",
+    "positive": false,
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "reference-emulation.in-process.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "unicode",
+        "scope": "scenario",
+        "domains": {
+          "name": {
+            "kind": "exact",
+            "value": "web-family"
+          },
+          "node": {
+            "kind": "exact",
+            "value": "compute"
+          },
+          "os": {
+            "kind": "enum",
+            "values": [
+              "linux",
+              "windows"
+            ]
+          },
+          "description": {
+            "kind": "exact",
+            "value": "caf\u00e9"
+          }
+        },
+        "bindings": [
+          {
+            "path": "name",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "name",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.type",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "node",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.os",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "os",
+            "overrideable": false
+          },
+          {
+            "path": "description",
+            "scope": "field",
+            "posture": "exact",
+            "domain": "description",
+            "overrideable": false
+          }
+        ],
+        "closure": [],
+        "witness_policy": null,
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "in-process-emulation",
+        "configuration_digest": "sha256:6ebdcb05bec9d9691110df0ce23c1b660936b4565415ab254026dffc8040a57a",
+        "architecture": "x86_64",
+        "image_policy": "descriptor-only",
+        "network_policy": "in-process-emulation",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux",
+          "windows",
+          "macos",
+          "freebsd",
+          "other"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file",
+          "dataset",
+          "directory"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "mail",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": false,
+        "memory_mib": {
+          "minimum": 1,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "x-openrae:in-process-emulation",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "network",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "service",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:c5681a1cfe875f9dc948d9e3f0aeccef5485d648c176b6375f62ae6b211cf9ee"
+    },
+    "probes": [
+      {
+        "path": "description",
+        "domain_kind": "exact",
+        "variation": "value-outside-domain",
+        "digest": "sha256:45cdcbfd0efb0e5d9aa465ac468794b8130651c396e3910bca22a31d24570c5e",
+        "payload": {
+          "description": "caf\u00e9-out-of-envelope",
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "linux",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "description",
+        "domain_kind": "exact",
+        "variation": "omitted-required-exact",
+        "digest": "sha256:e538dc4bd3d1cdb0171c65cfe8313076e0f48fbd7f74f7b1720ae19b7f7d00a8",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "linux",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "name",
+        "domain_kind": "exact",
+        "variation": "value-outside-domain",
+        "digest": "sha256:1589a367626ccaf64ef609b29f154b0dc30ba0d3b82b71e3b702e901762aeb05",
+        "payload": {
+          "description": "caf\u00e9",
+          "name": "web-family-out-of-envelope",
+          "nodes": {
+            "web": {
+              "os": "linux",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "value-outside-domain",
+        "digest": "sha256:e4d5c88985512193b2c4ddcce01d383d7b53cf9d0c0300364794bde16a1a8868",
+        "payload": {
+          "description": "caf\u00e9",
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "macos",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "value-outside-domain",
+        "digest": "sha256:6b4621921efc41ce58d0f57dde404a9f83a7330901cb51d185583c4280bb9caf",
+        "payload": {
+          "description": "caf\u00e9",
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "freebsd",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "value-outside-domain",
+        "digest": "sha256:582ec6fe0b6fb173302ccde39d525cf17333265ff2366e2f634ccf5d40c23c78",
+        "payload": {
+          "description": "caf\u00e9",
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "other",
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.type",
+        "domain_kind": "exact",
+        "variation": "value-outside-domain",
+        "digest": "sha256:5810c1a92fa4744a5e42f56efa29e812795f03b642dab5469b991366ae628dd9",
+        "payload": {
+          "description": "caf\u00e9",
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "type": "switch"
+            }
+          }
+        }
+      }
+    ],
+    "diagnostics": []
+  },
+  {
+    "name": "unconstructive-integer",
+    "positive": true,
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "reference-emulation.in-process.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "integer",
+        "scope": "scenario",
+        "domains": {
+          "name": {
+            "kind": "exact",
+            "value": "web-family"
+          },
+          "node": {
+            "kind": "exact",
+            "value": "compute"
+          },
+          "os": {
+            "kind": "enum",
+            "values": [
+              "linux",
+              "windows"
+            ]
+          },
+          "cpu": {
+            "kind": "numeric-interval",
+            "numeric_type": "integer",
+            "lower": 1.0,
+            "upper": 3.0,
+            "lower_closed": false,
+            "upper_closed": true
+          }
+        },
+        "bindings": [
+          {
+            "path": "name",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "name",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.type",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "node",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.os",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "os",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.resources.vcpus",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "cpu",
+            "overrideable": false
+          }
+        ],
+        "closure": [],
+        "witness_policy": null,
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "in-process-emulation",
+        "configuration_digest": "sha256:6ebdcb05bec9d9691110df0ce23c1b660936b4565415ab254026dffc8040a57a",
+        "architecture": "x86_64",
+        "image_policy": "descriptor-only",
+        "network_policy": "in-process-emulation",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux",
+          "windows",
+          "macos",
+          "freebsd",
+          "other"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file",
+          "dataset",
+          "directory"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "mail",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": false,
+        "memory_mib": {
+          "minimum": 1,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "x-openrae:in-process-emulation",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "network",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "service",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:1f8e772c4085c65fa39e89857fbf795d25427163f38755c366d0687d1f154391"
+    },
+    "probes": [],
+    "diagnostics": [
+      {
+        "code": "realization-envelope.positive-probe.no-witness",
+        "address": "integer",
+        "message": "cannot derive positive probes from a non-constructive envelope"
+      }
+    ]
+  },
+  {
+    "name": "unconstructive-integer",
+    "positive": false,
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "reference-emulation.in-process.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "integer",
+        "scope": "scenario",
+        "domains": {
+          "name": {
+            "kind": "exact",
+            "value": "web-family"
+          },
+          "node": {
+            "kind": "exact",
+            "value": "compute"
+          },
+          "os": {
+            "kind": "enum",
+            "values": [
+              "linux",
+              "windows"
+            ]
+          },
+          "cpu": {
+            "kind": "numeric-interval",
+            "numeric_type": "integer",
+            "lower": 1.0,
+            "upper": 3.0,
+            "lower_closed": false,
+            "upper_closed": true
+          }
+        },
+        "bindings": [
+          {
+            "path": "name",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "name",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.type",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "node",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.os",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "os",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.resources.vcpus",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "cpu",
+            "overrideable": false
+          }
+        ],
+        "closure": [],
+        "witness_policy": null,
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "in-process-emulation",
+        "configuration_digest": "sha256:6ebdcb05bec9d9691110df0ce23c1b660936b4565415ab254026dffc8040a57a",
+        "architecture": "x86_64",
+        "image_policy": "descriptor-only",
+        "network_policy": "in-process-emulation",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux",
+          "windows",
+          "macos",
+          "freebsd",
+          "other"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file",
+          "dataset",
+          "directory"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "mail",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": false,
+        "memory_mib": {
+          "minimum": 1,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "x-openrae:in-process-emulation",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "network",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "service",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:1f8e772c4085c65fa39e89857fbf795d25427163f38755c366d0687d1f154391"
+    },
+    "probes": [],
+    "diagnostics": [
+      {
+        "code": "realization-envelope.negative-probe.no-witness",
+        "address": "integer",
+        "message": "cannot derive a witness base for negative probes"
+      }
+    ]
+  },
+  {
+    "name": "unconstructive-boolean",
+    "positive": true,
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "reference-emulation.in-process.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "boolean",
+        "scope": "scenario",
+        "domains": {
+          "name": {
+            "kind": "exact",
+            "value": "web-family"
+          },
+          "node": {
+            "kind": "exact",
+            "value": "compute"
+          },
+          "os": {
+            "kind": "enum",
+            "values": [
+              "linux",
+              "windows"
+            ]
+          },
+          "bool": {
+            "kind": "boolean",
+            "value": null
+          }
+        },
+        "bindings": [
+          {
+            "path": "name",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "name",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.type",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "node",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.os",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "os",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.metadata.flag",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "bool",
+            "overrideable": false
+          }
+        ],
+        "closure": [],
+        "witness_policy": null,
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "in-process-emulation",
+        "configuration_digest": "sha256:6ebdcb05bec9d9691110df0ce23c1b660936b4565415ab254026dffc8040a57a",
+        "architecture": "x86_64",
+        "image_policy": "descriptor-only",
+        "network_policy": "in-process-emulation",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux",
+          "windows",
+          "macos",
+          "freebsd",
+          "other"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file",
+          "dataset",
+          "directory"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "mail",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": false,
+        "memory_mib": {
+          "minimum": 1,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "x-openrae:in-process-emulation",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "network",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "service",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:c59c5ce3fcf86344f87de8ffa595a07c015e6e89dc204f2d813019a54692d900"
+    },
+    "probes": [],
+    "diagnostics": [
+      {
+        "code": "realization-envelope.positive-probe.no-witness",
+        "address": "boolean",
+        "message": "cannot derive positive probes from a non-constructive envelope"
+      }
+    ]
+  },
+  {
+    "name": "unconstructive-boolean",
+    "positive": false,
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "reference-emulation.in-process.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "boolean",
+        "scope": "scenario",
+        "domains": {
+          "name": {
+            "kind": "exact",
+            "value": "web-family"
+          },
+          "node": {
+            "kind": "exact",
+            "value": "compute"
+          },
+          "os": {
+            "kind": "enum",
+            "values": [
+              "linux",
+              "windows"
+            ]
+          },
+          "bool": {
+            "kind": "boolean",
+            "value": null
+          }
+        },
+        "bindings": [
+          {
+            "path": "name",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "name",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.type",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "node",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.os",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "os",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.metadata.flag",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "bool",
+            "overrideable": false
+          }
+        ],
+        "closure": [],
+        "witness_policy": null,
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "in-process-emulation",
+        "configuration_digest": "sha256:6ebdcb05bec9d9691110df0ce23c1b660936b4565415ab254026dffc8040a57a",
+        "architecture": "x86_64",
+        "image_policy": "descriptor-only",
+        "network_policy": "in-process-emulation",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux",
+          "windows",
+          "macos",
+          "freebsd",
+          "other"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file",
+          "dataset",
+          "directory"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "mail",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": false,
+        "memory_mib": {
+          "minimum": 1,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "x-openrae:in-process-emulation",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "network",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "service",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:c59c5ce3fcf86344f87de8ffa595a07c015e6e89dc204f2d813019a54692d900"
+    },
+    "probes": [],
+    "diagnostics": [
+      {
+        "code": "realization-envelope.negative-probe.no-witness",
+        "address": "boolean",
+        "message": "cannot derive a witness base for negative probes"
+      }
+    ]
+  },
+  {
+    "name": "unconstructive-partial",
+    "positive": true,
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "reference-emulation.in-process.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "partial",
+        "scope": "scenario",
+        "domains": {
+          "name": {
+            "kind": "exact",
+            "value": "web-family"
+          },
+          "node": {
+            "kind": "exact",
+            "value": "compute"
+          },
+          "os": {
+            "kind": "enum",
+            "values": [
+              "linux",
+              "windows"
+            ]
+          }
+        },
+        "bindings": [
+          {
+            "path": "nodes.web.os",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "os",
+            "overrideable": false
+          }
+        ],
+        "closure": [],
+        "witness_policy": null,
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "in-process-emulation",
+        "configuration_digest": "sha256:6ebdcb05bec9d9691110df0ce23c1b660936b4565415ab254026dffc8040a57a",
+        "architecture": "x86_64",
+        "image_policy": "descriptor-only",
+        "network_policy": "in-process-emulation",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux",
+          "windows",
+          "macos",
+          "freebsd",
+          "other"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file",
+          "dataset",
+          "directory"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "mail",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": false,
+        "memory_mib": {
+          "minimum": 1,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "x-openrae:in-process-emulation",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "network",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "service",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:7564ba01c1f42640f0ec5fb516d1bee752a256e2eb0ba68f65147c256b93758a"
+    },
+    "probes": [],
+    "diagnostics": [
+      {
+        "code": "realization-envelope.positive-probe.no-witness",
+        "address": "partial",
+        "message": "cannot derive positive probes from a non-constructive envelope"
+      }
+    ]
+  },
+  {
+    "name": "unconstructive-partial",
+    "positive": false,
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "reference-emulation.in-process.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "partial",
+        "scope": "scenario",
+        "domains": {
+          "name": {
+            "kind": "exact",
+            "value": "web-family"
+          },
+          "node": {
+            "kind": "exact",
+            "value": "compute"
+          },
+          "os": {
+            "kind": "enum",
+            "values": [
+              "linux",
+              "windows"
+            ]
+          }
+        },
+        "bindings": [
+          {
+            "path": "nodes.web.os",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "os",
+            "overrideable": false
+          }
+        ],
+        "closure": [],
+        "witness_policy": null,
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "in-process-emulation",
+        "configuration_digest": "sha256:6ebdcb05bec9d9691110df0ce23c1b660936b4565415ab254026dffc8040a57a",
+        "architecture": "x86_64",
+        "image_policy": "descriptor-only",
+        "network_policy": "in-process-emulation",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux",
+          "windows",
+          "macos",
+          "freebsd",
+          "other"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file",
+          "dataset",
+          "directory"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "mail",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": false,
+        "memory_mib": {
+          "minimum": 1,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "x-openrae:in-process-emulation",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "network",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "service",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:7564ba01c1f42640f0ec5fb516d1bee752a256e2eb0ba68f65147c256b93758a"
+    },
+    "probes": [],
+    "diagnostics": [
+      {
+        "code": "realization-envelope.negative-probe.no-witness",
+        "address": "partial",
+        "message": "cannot derive a witness base for negative probes"
+      }
+    ]
+  },
+  {
+    "name": "unconstructive-indexed",
+    "positive": true,
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "reference-emulation.in-process.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "indexed",
+        "scope": "scenario",
+        "domains": {
+          "name": {
+            "kind": "exact",
+            "value": "web-family"
+          },
+          "node": {
+            "kind": "exact",
+            "value": "compute"
+          },
+          "os": {
+            "kind": "enum",
+            "values": [
+              "linux",
+              "windows"
+            ]
+          }
+        },
+        "bindings": [
+          {
+            "path": "name",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "name",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.type",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "node",
+            "overrideable": false
+          },
+          {
+            "path": "nodes[0].os",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "os",
+            "overrideable": false
+          }
+        ],
+        "closure": [],
+        "witness_policy": null,
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "in-process-emulation",
+        "configuration_digest": "sha256:6ebdcb05bec9d9691110df0ce23c1b660936b4565415ab254026dffc8040a57a",
+        "architecture": "x86_64",
+        "image_policy": "descriptor-only",
+        "network_policy": "in-process-emulation",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux",
+          "windows",
+          "macos",
+          "freebsd",
+          "other"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file",
+          "dataset",
+          "directory"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "mail",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": false,
+        "memory_mib": {
+          "minimum": 1,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "x-openrae:in-process-emulation",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "network",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "service",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:80413032f5b1c3f4d0d283630c773507aa2e75c1438f8fde1f4e68cfae16b759"
+    },
+    "probes": [],
+    "diagnostics": [
+      {
+        "code": "realization-envelope.positive-probe.no-witness",
+        "address": "indexed",
+        "message": "cannot derive positive probes from a non-constructive envelope"
+      }
+    ]
+  },
+  {
+    "name": "unconstructive-indexed",
+    "positive": false,
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "reference-emulation.in-process.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "indexed",
+        "scope": "scenario",
+        "domains": {
+          "name": {
+            "kind": "exact",
+            "value": "web-family"
+          },
+          "node": {
+            "kind": "exact",
+            "value": "compute"
+          },
+          "os": {
+            "kind": "enum",
+            "values": [
+              "linux",
+              "windows"
+            ]
+          }
+        },
+        "bindings": [
+          {
+            "path": "name",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "name",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.type",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "node",
+            "overrideable": false
+          },
+          {
+            "path": "nodes[0].os",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "os",
+            "overrideable": false
+          }
+        ],
+        "closure": [],
+        "witness_policy": null,
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "in-process-emulation",
+        "configuration_digest": "sha256:6ebdcb05bec9d9691110df0ce23c1b660936b4565415ab254026dffc8040a57a",
+        "architecture": "x86_64",
+        "image_policy": "descriptor-only",
+        "network_policy": "in-process-emulation",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux",
+          "windows",
+          "macos",
+          "freebsd",
+          "other"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file",
+          "dataset",
+          "directory"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "mail",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": false,
+        "memory_mib": {
+          "minimum": 1,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "x-openrae:in-process-emulation",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "network",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "service",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:80413032f5b1c3f4d0d283630c773507aa2e75c1438f8fde1f4e68cfae16b759"
+    },
+    "probes": [],
+    "diagnostics": [
+      {
+        "code": "realization-envelope.negative-probe.no-witness",
+        "address": "indexed",
+        "message": "cannot derive a witness base for negative probes"
+      }
+    ]
+  },
+  {
+    "name": "integer",
+    "positive": true,
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "reference-emulation.in-process.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "integer-bounds",
+        "scope": "scenario",
+        "domains": {
+          "name": {
+            "kind": "exact",
+            "value": "web-family"
+          },
+          "node": {
+            "kind": "exact",
+            "value": "compute"
+          },
+          "os": {
+            "kind": "enum",
+            "values": [
+              "linux",
+              "windows"
+            ]
+          },
+          "ram": {
+            "kind": "exact",
+            "value": 1024
+          },
+          "cpu": {
+            "kind": "numeric-interval",
+            "numeric_type": "integer",
+            "lower": 1.0,
+            "upper": 4.0,
+            "lower_closed": true,
+            "upper_closed": true
+          }
+        },
+        "bindings": [
+          {
+            "path": "name",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "name",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.type",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "node",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.os",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "os",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.resources.ram",
+            "scope": "field",
+            "posture": "exact",
+            "domain": "ram",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.resources.cpu",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "cpu",
+            "overrideable": false
+          }
+        ],
+        "closure": [],
+        "witness_policy": null,
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "in-process-emulation",
+        "configuration_digest": "sha256:6ebdcb05bec9d9691110df0ce23c1b660936b4565415ab254026dffc8040a57a",
+        "architecture": "x86_64",
+        "image_policy": "descriptor-only",
+        "network_policy": "in-process-emulation",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux",
+          "windows",
+          "macos",
+          "freebsd",
+          "other"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file",
+          "dataset",
+          "directory"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "mail",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": false,
+        "memory_mib": {
+          "minimum": 1,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "x-openrae:in-process-emulation",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "network",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "service",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:72d49730e697afa0609d1352923c70540110848cbce6b9bf7a53e9ee49c3a9a0"
+    },
+    "probes": [
+      {
+        "path": "integer-bounds",
+        "domain_kind": "witness",
+        "variation": "base-witness",
+        "digest": "sha256:c0288f08d354e69202b0be340db683426e65eb9c2bcf7b24c58f675f8b501348",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "linux",
+              "resources": {
+                "cpu": 1,
+                "ram": 1024
+              },
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "bounded-member",
+        "digest": "sha256:285e2fd692a4d6fa2694a6502b28dee8ab310af09bd178789456495bb5b68f55",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "windows",
+              "resources": {
+                "cpu": 1,
+                "ram": 1024
+              },
+              "type": "compute"
+            }
+          }
+        }
+      },
+      {
+        "path": "nodes.web.resources.cpu",
+        "domain_kind": "numeric-interval",
+        "variation": "bounded-member",
+        "digest": "sha256:b9224ea13325f205d62ba790ced7636248f335d3d221cec68ff057b1d6018c49",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "linux",
+              "resources": {
+                "cpu": 4,
+                "ram": 1024
+              },
+              "type": "compute"
+            }
+          }
+        }
+      }
+    ],
+    "diagnostics": []
+  },
+  {
+    "name": "integer",
+    "positive": false,
+    "envelope": {
+      "schema_version": "realization-envelope/v1",
+      "contract_id": "realization-envelope-v1",
+      "id": "reference-emulation.in-process.v1",
+      "expression": {
+        "schema_version": "realization-envelope/v1",
+        "id": "integer-bounds",
+        "scope": "scenario",
+        "domains": {
+          "name": {
+            "kind": "exact",
+            "value": "web-family"
+          },
+          "node": {
+            "kind": "exact",
+            "value": "compute"
+          },
+          "os": {
+            "kind": "enum",
+            "values": [
+              "linux",
+              "windows"
+            ]
+          },
+          "ram": {
+            "kind": "exact",
+            "value": 1024
+          },
+          "cpu": {
+            "kind": "numeric-interval",
+            "numeric_type": "integer",
+            "lower": 1.0,
+            "upper": 4.0,
+            "lower_closed": true,
+            "upper_closed": true
+          }
+        },
+        "bindings": [
+          {
+            "path": "name",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "name",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.type",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "node",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.os",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "os",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.resources.ram",
+            "scope": "field",
+            "posture": "exact",
+            "domain": "ram",
+            "overrideable": false
+          },
+          {
+            "path": "nodes.web.resources.cpu",
+            "scope": "field",
+            "posture": "constrained",
+            "domain": "cpu",
+            "overrideable": false
+          }
+        ],
+        "closure": [],
+        "witness_policy": null,
+        "source_ref": null,
+        "contract_id": null,
+        "digest": null
+      },
+      "configuration": {
+        "mode": "in-process-emulation",
+        "configuration_digest": "sha256:6ebdcb05bec9d9691110df0ce23c1b660936b4565415ab254026dffc8040a57a",
+        "architecture": "x86_64",
+        "image_policy": "descriptor-only",
+        "network_policy": "in-process-emulation",
+        "supported_node_types": [
+          "switch",
+          "compute"
+        ],
+        "supported_os_families": [
+          "linux",
+          "windows",
+          "macos",
+          "freebsd",
+          "other"
+        ],
+        "operating_systems": [],
+        "supported_content_types": [
+          "file",
+          "dataset",
+          "directory"
+        ],
+        "supported_account_features": [
+          "auth_method",
+          "disabled",
+          "groups",
+          "home",
+          "mail",
+          "shell"
+        ],
+        "supported_domain_profiles": [],
+        "process_resource_limits": [],
+        "supports_acls": false,
+        "memory_mib": {
+          "minimum": 1,
+          "maximum": null
+        },
+        "vcpus": {
+          "minimum": 1,
+          "maximum": null
+        }
+      },
+      "concerns": [
+        {
+          "concern": "compute-substrate",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "x-openrae:in-process-emulation",
+          "transformations": []
+        },
+        {
+          "concern": "operating-system",
+          "disposition": "unsupported",
+          "observation_strength": "none",
+          "mechanism": null,
+          "transformations": []
+        },
+        {
+          "concern": "topology",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "architecture",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "image",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "resource-allocation",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "network",
+          "disposition": "realized",
+          "observation_strength": "driver-reported",
+          "mechanism": "in-process-ledger",
+          "transformations": []
+        },
+        {
+          "concern": "content-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "account-placement",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "feature-binding",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "service",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        },
+        {
+          "concern": "acl",
+          "disposition": "descriptor-only",
+          "observation_strength": "driver-reported",
+          "mechanism": "portable-descriptor",
+          "transformations": []
+        }
+      ],
+      "digest": "sha256:72d49730e697afa0609d1352923c70540110848cbce6b9bf7a53e9ee49c3a9a0"
+    },
+    "probes": [
+      {
+        "path": "name",
+        "domain_kind": "exact",
+        "variation": "value-outside-domain",
+        "payload": {
+          "name": "web-family-out-of-envelope",
+          "nodes": {
+            "web": {
+              "os": "linux",
+              "resources": {
+                "cpu": 1,
+                "ram": 1024
+              },
+              "type": "compute"
+            }
+          }
+        },
+        "digest": "sha256:9a7749a7b90f72c6124523d55a6566539074127917371cdd7a20d4e0b1b68f44"
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "value-outside-domain",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "macos",
+              "resources": {
+                "cpu": 1,
+                "ram": 1024
+              },
+              "type": "compute"
+            }
+          }
+        },
+        "digest": "sha256:0918bbbd09d18686006cc4c162e8fb958bfe1d2a9111d9912a91fb7e4c0b342f"
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "value-outside-domain",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "freebsd",
+              "resources": {
+                "cpu": 1,
+                "ram": 1024
+              },
+              "type": "compute"
+            }
+          }
+        },
+        "digest": "sha256:608655bbfafbf8f4b63aa18be1f4058011e9fe5420ffa269e7e9a684d87c700e"
+      },
+      {
+        "path": "nodes.web.os",
+        "domain_kind": "enum",
+        "variation": "value-outside-domain",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "other",
+              "resources": {
+                "cpu": 1,
+                "ram": 1024
+              },
+              "type": "compute"
+            }
+          }
+        },
+        "digest": "sha256:99da94eeeda7025fa49bf1cff145393580b1bdf098f269feb5f58e671a7a5dea"
+      },
+      {
+        "path": "nodes.web.resources.cpu",
+        "domain_kind": "numeric-interval",
+        "variation": "value-outside-domain",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "linux",
+              "resources": {
+                "cpu": 5,
+                "ram": 1024
+              },
+              "type": "compute"
+            }
+          }
+        },
+        "digest": "sha256:08ddd89aacf598b4a2689f344845aa48bdc214b6c247a2a5bf5d18922d544925"
+      },
+      {
+        "path": "nodes.web.resources.ram",
+        "domain_kind": "exact",
+        "variation": "value-outside-domain",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "os": "linux",
+              "resources": {
+                "cpu": 1,
+                "ram": 1025
+              },
+              "type": "compute"
+            }
+          }
+        },
+        "digest": "sha256:013cddbeeab56bc3b83712e7633a180c51f6317965bfe29444c4c67f7f7d2820"
+      },
+      {
+        "path": "nodes.web.type",
+        "domain_kind": "exact",
+        "variation": "value-outside-domain",
+        "payload": {
+          "name": "web-family",
+          "nodes": {
+            "web": {
+              "type": "switch"
+            }
+          }
+        },
+        "digest": "sha256:7ef1449d185830d55748cb3ea895722b4da9061bf6c1d7bd67790a6dc312e95f"
+      }
+    ],
+    "diagnostics": []
+  }
+]
