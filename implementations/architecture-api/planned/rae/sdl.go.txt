@@ -128,3 +128,9 @@ func EnvelopeMembershipDiagnostics(input InstantiatedScenario,envelope binding.R
 
 func ResolveBindingTarget(family Scenario, scenarioFamilyID, pointID, suppliedTargetID string) (admission.ScenarioBindingResolution,error)
 func ValidateTreatment(family Scenario, treatment admission.Fragment) error
+
+func InstantiateWithProfile(scenario Scenario, parameters map[string]any, profile string) (InstantiatedScenario, error)
+
+func RenderSource(ctx context.Context, scenario Scenario) ([]byte, error)
+
+func AdmitSnapshotWithContext(ctx context.Context, data []byte, expectedDigest string) (InstantiatedScenario, error)

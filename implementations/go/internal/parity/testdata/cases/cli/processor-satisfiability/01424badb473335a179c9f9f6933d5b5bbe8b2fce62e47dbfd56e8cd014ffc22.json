@@ -35,7 +35,7 @@
       },
       "normalized_model_digest": "sha256:fc5b4e7bb5933e837f70258ca8e9439b8a0793cb7db9b04c5c2330e60b883ac8",
       "outcome": "satisfiable",
-      "profile": "scenario-satisfiability-evidence/v1",
+      "profile": "scenario-satisfiability-evidence/v2",
       "solver_configuration": {
         "auto_config": false,
         "core_reduction": "sorted-deletion-subset-minimal/v1",
@@ -60,9 +60,9 @@
       "unsat_core": null,
       "unsupported": null,
       "witness": {
-        "profile": "raes-satisfiability-witness/v1",
+        "profile": "raes-satisfiability-witness/v2",
         "snapshot": {
-          "profile": "raes-sdl-instantiated-snapshot/v2",
+          "profile": "raes-sdl-instantiated-snapshot/v3",
           "scenario": {
             "accounts": {
               "domain-admin": {
@@ -1195,7 +1195,7 @@
             "workflows": {}
           }
         },
-        "snapshot_digest": "sha256:ddd86fc3320597a8b70eba86fda66773652a141b87b58a60bf12e2d020f7dc34"
+        "snapshot_digest": "sha256:47ba7f6a4eb521429904b53f9b23a5e3c6e3c800b3c26060fe8672ca5d5316cc"
       }
     }
   },

@@ -723,6 +723,14 @@ The pure `processor/comparison` owner derives semantic comparisons from sealed n
 Its SDL projections preserve model ownership and authored presence.
 Profile admission recomputes pins before analysis.
 
+The [analysis design](issue-1789-processor-analysis-design.md) adds typed source, JSON, comparison, and authoring inputs to `processor/analysis.Request`.
+These inputs preserve authored domains and original source bytes when a compilation cannot supply them.
+`AnalyzeContext` and `ReplayContext` add cancellation and evidence replay while `Analyze` retains its signature.
+`OpenSolver` admits the exact native solver executable; it does not download or select an executable from `PATH`.
+The clock owner adds `StartElapsed` for monotonic elapsed time without changing UTC wall-clock reads.
+
 The realization owner can also recover and evaluate published plan authority directly.
 It keeps failed-cleanup diagnostics separate.
 It does not rebuild the compiler model or cause runtime effects.
+
+Issue #1789 also adds `sdl.InstantiateWithProfile` to preserve the selected analysis profile through the native instantiation owner.

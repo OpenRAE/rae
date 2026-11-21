@@ -1,7 +1,11 @@
 package admission
 
 import (
+	"cmp"
+	"slices"
+
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
+	"github.com/OpenRAE/rae/implementations/go/contract/concept"
 	"github.com/OpenRAE/rae/implementations/go/contract/profile"
 	"github.com/OpenRAE/rae/implementations/go/contract/validation"
 )
@@ -52,6 +56,11 @@ func (e *Validator) profileClaim(i validation.Invocation) error {
 	if err != nil {
 		return invalid()
 	}
+	if supplied, ok := i.Context.(interface{ BehavioralCatalog() []byte }); ok {
+		if raw := supplied.BehavioralCatalog(); len(raw) != 0 {
+			return e.claimInSuppliedCatalog(claim, i.Instance, raw)
+		}
+	}
 	return e.behavioralClaim(claim, i.Instance)
 }
 
@@ -88,4 +97,24 @@ func relationProfileRecord(v any) *profile.RelationProfile {
 		record.RightCarrierRef = stringAt(v, "parameters", "right", "model_id")
 	}
 	return &record
+}
+
+func (e *Validator) claimInSuppliedCatalog(claim, supplied any, raw []byte) error {
+	admitted, err := e.Validate("behavioral-relations-v1", raw, ingress.Limits{MaxBytes: 8 << 20, MaxDepth: 64}, nil)
+	if err != nil {
+		return err
+	}
+	document, err := parseCatalog(admitted.JSON())
+	if err != nil {
+		return err
+	}
+	if err = claimStrength(claim); err != nil {
+		return err
+	}
+	catalog := concept.RelationCatalog{TaxonomyID: stringAt(document, fieldTaxonomyID), TaxonomyRevision: stringAt(document, fieldTaxonomyRevision)}
+	for id, row := range object(at(document, "relations")) {
+		catalog.Relations = append(catalog.Relations, concept.Relation{ID: id, ProjectionRequired: boolean(at(row, "projection_required")), ProfileRequired: boolean(at(row, "relation_parameter_profile_required"))})
+	}
+	slices.SortFunc(catalog.Relations, func(a, b concept.Relation) int { return cmp.Compare(a.ID, b.ID) })
+	return require(e.owners.CheckBehavioralClaimInCatalog(catalog, behavioralClaimRecord(claim), relationProfileRecord(supplied)) == nil)
 }

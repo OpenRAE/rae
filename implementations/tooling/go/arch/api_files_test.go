@@ -138,3 +138,27 @@ func TestSharedAPIFragmentsPreserveExactClosuresAndDuplicates(t *testing.T) {
 		t.Fatal("shared storage erased a duplicate declaration")
 	}
 }
+
+func TestAPIFileSnapshotAggregateEighteenMiBBound(t *testing.T) {
+	const total = 18 * 1024 * 1024
+	if apiTotalLimit != total {
+		t.Fatalf("aggregate snapshot limit = %d", apiTotalLimit)
+	}
+	budget := apiTotalLimit
+	raw := []byte(`["package example"]` + strings.Repeat(" ", apiFileLimit-len(`["package example"]`)))
+	repo := fstest.MapFS{apiFixturePath: {Data: raw}}
+	for budget >= len(raw) {
+		if _, err := readAPIFile(repo, apiFixturePath, &budget); err != nil {
+			t.Fatal(err)
+		}
+	}
+	// Whitespace is counted too; an exact final read exhausts the shared budget.
+	final := []byte(`["x"]` + strings.Repeat(" ", budget-5))
+	repo[apiFixturePath] = &fstest.MapFile{Data: final}
+	if _, err := readAPIFile(repo, apiFixturePath, &budget); err != nil || budget != 0 {
+		t.Fatalf("exact final read: %d %v", budget, err)
+	}
+	if _, err := readAPIFile(repo, apiFixturePath, &budget); err == nil {
+		t.Fatal("aggregate allowance was not enforced")
+	}
+}

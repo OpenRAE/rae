@@ -1,0 +1,404 @@
+{
+  "cases": [
+    {
+      "source_test": "tests/test_authoring_adapters.py::test_semantic_uncertainty_remains_incomparable[context]",
+      "semantic_result": {
+        "schema_version": "semantic-comparison-result/v1",
+        "comparison_profile": "raes-semantic-comparison/v1",
+        "comparison_profile_digest": "sha256:6c854fccb0a982dff1bb122ba75d795a3f2a28474c0cd7be0022137830fc7830",
+        "analyzer_profile": "raes-reference-semantic-comparator/v1",
+        "request_digest": "sha256:7f6c3431cc59bc1c912d079a0d073f44dd318145823afedbf0df82a05df50642",
+        "before": {
+          "canonical_identity": "scenario:adapter-fixture",
+          "canonicalization_profile": "raes-canonical-sdl/v2",
+          "canonical_digest": "sha256:5fcc24aef66b0505b7d5230749f9f9ae4f0b01c58eeefee75156c1d1cd600ae8",
+          "exact_representation": null,
+          "artifact_kind": "scenario",
+          "lifecycle_phase": "normalized-authoring",
+          "source_profile": "sdl-normalized-authoring/v1",
+          "scenario_id": "adapter-fixture",
+          "scenario_version": "*"
+        },
+        "after": {
+          "canonical_identity": "scenario:adapter-fixture",
+          "canonicalization_profile": "raes-canonical-sdl/v2",
+          "canonical_digest": "sha256:5fcc24aef66b0505b7d5230749f9f9ae4f0b01c58eeefee75156c1d1cd600ae8",
+          "exact_representation": null,
+          "artifact_kind": "scenario",
+          "lifecycle_phase": "normalized-authoring",
+          "source_profile": "sdl-normalized-authoring/v1",
+          "scenario_id": "adapter-fixture",
+          "scenario_version": "*"
+        },
+        "impact_scope": {
+          "scope_id": "comparison-scope",
+          "closure_policy": "declared-exact-artifact-set/v1",
+          "closure_status": "complete",
+          "traversal_roots": [
+            "scenario:adapter-fixture"
+          ],
+          "before_artifacts": [
+            {
+              "canonical_identity": "scenario:adapter-fixture",
+              "canonicalization_profile": "raes-canonical-sdl/v2",
+              "canonical_digest": "sha256:5fcc24aef66b0505b7d5230749f9f9ae4f0b01c58eeefee75156c1d1cd600ae8",
+              "exact_representation": null,
+              "artifact_kind": "scenario",
+              "lifecycle_phase": "normalized-authoring",
+              "source_profile": "sdl-normalized-authoring/v1",
+              "scenario_id": "adapter-fixture",
+              "scenario_version": "*"
+            }
+          ],
+          "after_artifacts": [
+            {
+              "canonical_identity": "scenario:adapter-fixture",
+              "canonicalization_profile": "raes-canonical-sdl/v2",
+              "canonical_digest": "sha256:5fcc24aef66b0505b7d5230749f9f9ae4f0b01c58eeefee75156c1d1cd600ae8",
+              "exact_representation": null,
+              "artifact_kind": "scenario",
+              "lifecycle_phase": "normalized-authoring",
+              "source_profile": "sdl-normalized-authoring/v1",
+              "scenario_id": "adapter-fixture",
+              "scenario_version": "*"
+            }
+          ],
+          "scope_digest": "sha256:a27d042725a29c9caa93f39b920e9a127a6359d3456cd9a4fbb9ada5b7c012b1"
+        },
+        "impact_scope_digest": "sha256:a27d042725a29c9caa93f39b920e9a127a6359d3456cd9a4fbb9ada5b7c012b1",
+        "changes": [
+          {
+            "identity": "scenario:adapter-fixture",
+            "before_identity": "scenario:adapter-fixture",
+            "after_identity": "scenario:adapter-fixture",
+            "identity_relation": "same",
+            "textual_relation": "unknown",
+            "structural_relation": "unchanged",
+            "semantic_relation": "unchanged",
+            "reason_codes": [
+              "representation-evidence-missing"
+            ]
+          },
+          {
+            "identity": "scenario:adapter-fixture/nodes:web",
+            "before_identity": "scenario:adapter-fixture/nodes:web",
+            "after_identity": "scenario:adapter-fixture/nodes:web",
+            "identity_relation": "same",
+            "textual_relation": "unknown",
+            "structural_relation": "unchanged",
+            "semantic_relation": "unchanged",
+            "reason_codes": [
+              "representation-evidence-missing"
+            ]
+          }
+        ],
+        "dependencies": [],
+        "impact_paths": [],
+        "completeness": "indeterminate",
+        "reason_codes": [
+          "representation-evidence-missing"
+        ],
+        "context_digests": [],
+        "diagnostics": []
+      },
+      "expected_relation": "equivalent"
+    },
+    {
+      "source_test": "tests/test_authoring_adapters.py::test_semantic_uncertainty_remains_incomparable[context]",
+      "semantic_result": {
+        "schema_version": "semantic-comparison-result/v1",
+        "comparison_profile": "raes-semantic-comparison/v1",
+        "comparison_profile_digest": "sha256:6c854fccb0a982dff1bb122ba75d795a3f2a28474c0cd7be0022137830fc7830",
+        "analyzer_profile": "raes-reference-semantic-comparator/v1",
+        "request_digest": "sha256:7f6c3431cc59bc1c912d079a0d073f44dd318145823afedbf0df82a05df50642",
+        "before": {
+          "canonical_identity": "scenario:adapter-fixture",
+          "canonicalization_profile": "raes-canonical-sdl/v2",
+          "canonical_digest": "sha256:5fcc24aef66b0505b7d5230749f9f9ae4f0b01c58eeefee75156c1d1cd600ae8",
+          "exact_representation": null,
+          "artifact_kind": "scenario",
+          "lifecycle_phase": "normalized-authoring",
+          "source_profile": "sdl-normalized-authoring/v1",
+          "scenario_id": "adapter-fixture",
+          "scenario_version": "*"
+        },
+        "after": {
+          "canonical_identity": "scenario:adapter-fixture",
+          "canonicalization_profile": "raes-canonical-sdl/v2",
+          "canonical_digest": "sha256:5fcc24aef66b0505b7d5230749f9f9ae4f0b01c58eeefee75156c1d1cd600ae8",
+          "exact_representation": null,
+          "artifact_kind": "scenario",
+          "lifecycle_phase": "normalized-authoring",
+          "source_profile": "sdl-normalized-authoring/v1",
+          "scenario_id": "adapter-fixture",
+          "scenario_version": "*"
+        },
+        "impact_scope": {
+          "scope_id": "comparison-scope",
+          "closure_policy": "declared-exact-artifact-set/v1",
+          "closure_status": "complete",
+          "traversal_roots": [
+            "scenario:adapter-fixture"
+          ],
+          "before_artifacts": [
+            {
+              "canonical_identity": "scenario:adapter-fixture",
+              "canonicalization_profile": "raes-canonical-sdl/v2",
+              "canonical_digest": "sha256:5fcc24aef66b0505b7d5230749f9f9ae4f0b01c58eeefee75156c1d1cd600ae8",
+              "exact_representation": null,
+              "artifact_kind": "scenario",
+              "lifecycle_phase": "normalized-authoring",
+              "source_profile": "sdl-normalized-authoring/v1",
+              "scenario_id": "adapter-fixture",
+              "scenario_version": "*"
+            }
+          ],
+          "after_artifacts": [
+            {
+              "canonical_identity": "scenario:adapter-fixture",
+              "canonicalization_profile": "raes-canonical-sdl/v2",
+              "canonical_digest": "sha256:5fcc24aef66b0505b7d5230749f9f9ae4f0b01c58eeefee75156c1d1cd600ae8",
+              "exact_representation": null,
+              "artifact_kind": "scenario",
+              "lifecycle_phase": "normalized-authoring",
+              "source_profile": "sdl-normalized-authoring/v1",
+              "scenario_id": "adapter-fixture",
+              "scenario_version": "*"
+            }
+          ],
+          "scope_digest": "sha256:a27d042725a29c9caa93f39b920e9a127a6359d3456cd9a4fbb9ada5b7c012b1"
+        },
+        "impact_scope_digest": "sha256:a27d042725a29c9caa93f39b920e9a127a6359d3456cd9a4fbb9ada5b7c012b1",
+        "changes": [
+          {
+            "identity": "scenario:adapter-fixture",
+            "before_identity": "scenario:adapter-fixture",
+            "after_identity": "scenario:adapter-fixture",
+            "identity_relation": "same",
+            "textual_relation": "unknown",
+            "structural_relation": "unchanged",
+            "semantic_relation": "unchanged",
+            "reason_codes": [
+              "representation-evidence-missing"
+            ]
+          },
+          {
+            "identity": "scenario:adapter-fixture/nodes:web",
+            "before_identity": "scenario:adapter-fixture/nodes:web",
+            "after_identity": "scenario:adapter-fixture/nodes:web",
+            "identity_relation": "same",
+            "textual_relation": "unknown",
+            "structural_relation": "unchanged",
+            "semantic_relation": "unchanged",
+            "reason_codes": [
+              "representation-evidence-missing"
+            ]
+          }
+        ],
+        "dependencies": [],
+        "impact_paths": [],
+        "completeness": "indeterminate",
+        "reason_codes": [
+          "impact-scope-partial"
+        ],
+        "context_digests": [],
+        "diagnostics": []
+      },
+      "expected_relation": "incomparable"
+    },
+    {
+      "source_test": "tests/test_authoring_adapters.py::test_semantic_uncertainty_remains_incomparable[change]",
+      "semantic_result": {
+        "schema_version": "semantic-comparison-result/v1",
+        "comparison_profile": "raes-semantic-comparison/v1",
+        "comparison_profile_digest": "sha256:6c854fccb0a982dff1bb122ba75d795a3f2a28474c0cd7be0022137830fc7830",
+        "analyzer_profile": "raes-reference-semantic-comparator/v1",
+        "request_digest": "sha256:7f6c3431cc59bc1c912d079a0d073f44dd318145823afedbf0df82a05df50642",
+        "before": {
+          "canonical_identity": "scenario:adapter-fixture",
+          "canonicalization_profile": "raes-canonical-sdl/v2",
+          "canonical_digest": "sha256:5fcc24aef66b0505b7d5230749f9f9ae4f0b01c58eeefee75156c1d1cd600ae8",
+          "exact_representation": null,
+          "artifact_kind": "scenario",
+          "lifecycle_phase": "normalized-authoring",
+          "source_profile": "sdl-normalized-authoring/v1",
+          "scenario_id": "adapter-fixture",
+          "scenario_version": "*"
+        },
+        "after": {
+          "canonical_identity": "scenario:adapter-fixture",
+          "canonicalization_profile": "raes-canonical-sdl/v2",
+          "canonical_digest": "sha256:5fcc24aef66b0505b7d5230749f9f9ae4f0b01c58eeefee75156c1d1cd600ae8",
+          "exact_representation": null,
+          "artifact_kind": "scenario",
+          "lifecycle_phase": "normalized-authoring",
+          "source_profile": "sdl-normalized-authoring/v1",
+          "scenario_id": "adapter-fixture",
+          "scenario_version": "*"
+        },
+        "impact_scope": {
+          "scope_id": "comparison-scope",
+          "closure_policy": "declared-exact-artifact-set/v1",
+          "closure_status": "complete",
+          "traversal_roots": [
+            "scenario:adapter-fixture"
+          ],
+          "before_artifacts": [
+            {
+              "canonical_identity": "scenario:adapter-fixture",
+              "canonicalization_profile": "raes-canonical-sdl/v2",
+              "canonical_digest": "sha256:5fcc24aef66b0505b7d5230749f9f9ae4f0b01c58eeefee75156c1d1cd600ae8",
+              "exact_representation": null,
+              "artifact_kind": "scenario",
+              "lifecycle_phase": "normalized-authoring",
+              "source_profile": "sdl-normalized-authoring/v1",
+              "scenario_id": "adapter-fixture",
+              "scenario_version": "*"
+            }
+          ],
+          "after_artifacts": [
+            {
+              "canonical_identity": "scenario:adapter-fixture",
+              "canonicalization_profile": "raes-canonical-sdl/v2",
+              "canonical_digest": "sha256:5fcc24aef66b0505b7d5230749f9f9ae4f0b01c58eeefee75156c1d1cd600ae8",
+              "exact_representation": null,
+              "artifact_kind": "scenario",
+              "lifecycle_phase": "normalized-authoring",
+              "source_profile": "sdl-normalized-authoring/v1",
+              "scenario_id": "adapter-fixture",
+              "scenario_version": "*"
+            }
+          ],
+          "scope_digest": "sha256:a27d042725a29c9caa93f39b920e9a127a6359d3456cd9a4fbb9ada5b7c012b1"
+        },
+        "impact_scope_digest": "sha256:a27d042725a29c9caa93f39b920e9a127a6359d3456cd9a4fbb9ada5b7c012b1",
+        "changes": [
+          {
+            "identity": "scenario:adapter-fixture",
+            "before_identity": "scenario:adapter-fixture",
+            "after_identity": "scenario:adapter-fixture",
+            "identity_relation": "same",
+            "textual_relation": "unknown",
+            "structural_relation": "unchanged",
+            "semantic_relation": "unchanged",
+            "reason_codes": [
+              "representation-evidence-missing"
+            ]
+          },
+          {
+            "identity": "scenario:adapter-fixture/nodes:web",
+            "before_identity": "scenario:adapter-fixture/nodes:web",
+            "after_identity": "scenario:adapter-fixture/nodes:web",
+            "identity_relation": "same",
+            "textual_relation": "unknown",
+            "structural_relation": "unchanged",
+            "semantic_relation": "unchanged",
+            "reason_codes": [
+              "representation-evidence-missing"
+            ]
+          }
+        ],
+        "dependencies": [],
+        "impact_paths": [],
+        "completeness": "indeterminate",
+        "reason_codes": [
+          "representation-evidence-missing"
+        ],
+        "context_digests": [],
+        "diagnostics": []
+      },
+      "expected_relation": "equivalent"
+    },
+    {
+      "source_test": "tests/test_authoring_adapters.py::test_semantic_uncertainty_remains_incomparable[change]",
+      "semantic_result": {
+        "schema_version": "semantic-comparison-result/v1",
+        "comparison_profile": "raes-semantic-comparison/v1",
+        "comparison_profile_digest": "sha256:6c854fccb0a982dff1bb122ba75d795a3f2a28474c0cd7be0022137830fc7830",
+        "analyzer_profile": "raes-reference-semantic-comparator/v1",
+        "request_digest": "sha256:7f6c3431cc59bc1c912d079a0d073f44dd318145823afedbf0df82a05df50642",
+        "before": {
+          "canonical_identity": "scenario:adapter-fixture",
+          "canonicalization_profile": "raes-canonical-sdl/v2",
+          "canonical_digest": "sha256:5fcc24aef66b0505b7d5230749f9f9ae4f0b01c58eeefee75156c1d1cd600ae8",
+          "exact_representation": null,
+          "artifact_kind": "scenario",
+          "lifecycle_phase": "normalized-authoring",
+          "source_profile": "sdl-normalized-authoring/v1",
+          "scenario_id": "adapter-fixture",
+          "scenario_version": "*"
+        },
+        "after": {
+          "canonical_identity": "scenario:adapter-fixture",
+          "canonicalization_profile": "raes-canonical-sdl/v2",
+          "canonical_digest": "sha256:5fcc24aef66b0505b7d5230749f9f9ae4f0b01c58eeefee75156c1d1cd600ae8",
+          "exact_representation": null,
+          "artifact_kind": "scenario",
+          "lifecycle_phase": "normalized-authoring",
+          "source_profile": "sdl-normalized-authoring/v1",
+          "scenario_id": "adapter-fixture",
+          "scenario_version": "*"
+        },
+        "impact_scope": {
+          "scope_id": "comparison-scope",
+          "closure_policy": "declared-exact-artifact-set/v1",
+          "closure_status": "complete",
+          "traversal_roots": [
+            "scenario:adapter-fixture"
+          ],
+          "before_artifacts": [
+            {
+              "canonical_identity": "scenario:adapter-fixture",
+              "canonicalization_profile": "raes-canonical-sdl/v2",
+              "canonical_digest": "sha256:5fcc24aef66b0505b7d5230749f9f9ae4f0b01c58eeefee75156c1d1cd600ae8",
+              "exact_representation": null,
+              "artifact_kind": "scenario",
+              "lifecycle_phase": "normalized-authoring",
+              "source_profile": "sdl-normalized-authoring/v1",
+              "scenario_id": "adapter-fixture",
+              "scenario_version": "*"
+            }
+          ],
+          "after_artifacts": [
+            {
+              "canonical_identity": "scenario:adapter-fixture",
+              "canonicalization_profile": "raes-canonical-sdl/v2",
+              "canonical_digest": "sha256:5fcc24aef66b0505b7d5230749f9f9ae4f0b01c58eeefee75156c1d1cd600ae8",
+              "exact_representation": null,
+              "artifact_kind": "scenario",
+              "lifecycle_phase": "normalized-authoring",
+              "source_profile": "sdl-normalized-authoring/v1",
+              "scenario_id": "adapter-fixture",
+              "scenario_version": "*"
+            }
+          ],
+          "scope_digest": "sha256:a27d042725a29c9caa93f39b920e9a127a6359d3456cd9a4fbb9ada5b7c012b1"
+        },
+        "impact_scope_digest": "sha256:a27d042725a29c9caa93f39b920e9a127a6359d3456cd9a4fbb9ada5b7c012b1",
+        "changes": [
+          {
+            "identity": "scenario:adapter-fixture",
+            "before_identity": "scenario:adapter-fixture",
+            "after_identity": "scenario:adapter-fixture",
+            "identity_relation": "same",
+            "textual_relation": "unknown",
+            "structural_relation": "unchanged",
+            "semantic_relation": "unknown",
+            "reason_codes": [
+              "representation-evidence-missing"
+            ]
+          }
+        ],
+        "dependencies": [],
+        "impact_paths": [],
+        "completeness": "indeterminate",
+        "reason_codes": [
+          "representation-evidence-missing"
+        ],
+        "context_digests": [],
+        "diagnostics": []
+      },
+      "expected_relation": "incomparable"
+    }
+  ]
+}

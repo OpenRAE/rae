@@ -969,6 +969,76 @@
           ]
         }
       ]
+    },
+    {
+      "artifact_id": "z3-analysis",
+      "artifact_class": "generic-cli",
+      "version": "4.16.0",
+      "owner": "Processor",
+      "consumers": [
+        "processor-analysis"
+      ],
+      "trust_root_refs": [
+        "adr-106-reviewed-upstream-release"
+      ],
+      "availability_class": "R",
+      "retention_class": "supported-input",
+      "license": {
+        "spdx": "MIT",
+        "redistribution": "allowed",
+        "review_ref": "issue-1789"
+      },
+      "authenticity": {
+        "status": "absent-reviewed",
+        "decision_ref": "issue-1789-processor-analysis-design"
+      },
+      "policy_refs": [
+        "artifact-integrity-v1"
+      ],
+      "source": {
+        "repository": "https://github.com/Z3Prover/z3",
+        "release": "z3-4.16.0",
+        "asset": "z3-4.16.0-x64-glibc-2.39.zip",
+        "locator_refs": [
+          "official-github-release"
+        ]
+      },
+      "platforms": [
+        {
+          "platform_id": "linux-x86_64",
+          "source_urls": [
+            "https://github.com/Z3Prover/z3/releases/download/z3-4.16.0/z3-4.16.0-x64-glibc-2.39.zip"
+          ],
+          "raw_manifest": [
+            {
+              "path": "z3-4.16.0-x64-glibc-2.39.zip",
+              "sha256": "7288c49a5bd6dbafd7b0b0d1f65956b91672da24b08f09242919af159be3418e",
+              "size": 52375919
+            }
+          ],
+          "installed_manifest": [
+            {
+              "path": "z3-4.16.0-x64-glibc-2.39/bin/z3",
+              "sha256": "e583c4186a45e72411fa2cb2048401eed03f0f8e5f24694676a8f6271a50b765",
+              "size": 34954456,
+              "executable": true
+            },
+            {
+              "path": "z3-4.16.0-x64-glibc-2.39/LICENSE.txt",
+              "sha256": "e617cad2ab9347e3129c2b171e87909332174e17961c5c3412d0799469111337",
+              "size": 1096,
+              "executable": false
+            }
+          ],
+          "dependencies": [],
+          "profile_ids": [
+            "public-linux-x86_64"
+          ],
+          "host_profile_ids": [
+            "public-ubuntu-24.04-x86_64"
+          ]
+        }
+      ]
     }
   ]
 }

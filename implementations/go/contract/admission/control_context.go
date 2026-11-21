@@ -2,6 +2,7 @@ package admission
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/OpenRAE/rae/implementations/go/base/fault"
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
@@ -55,6 +56,16 @@ func (e *Validator) controlContextRules() map[string]definition {
 }
 
 func (e *Validator) controlContextAgreement(i validation.Invocation) error {
+	// Nested witness assets describe authored intent. Full witness admission
+	// below Validate re-enters the native phase owner and binds its digest.
+	if (i.Key.ContractID == satisfiabilityEvidenceID || i.Key.ContractID == satisfiabilityEvidenceV2ID) && strings.HasPrefix(i.Path, "/witness/snapshot/scenario/control_context_assets/") && strings.Count(i.Path, "/") == 5 {
+		owner, ok := i.Context.(MaterializationCompiler)
+		if !ok || witnessCompilerMissing(owner) {
+			return contextRequired()
+		}
+		return nil
+	}
+
 	context, ok := i.Context.(ControlContextAgreementContext)
 	if !ok {
 		return contextRequired()

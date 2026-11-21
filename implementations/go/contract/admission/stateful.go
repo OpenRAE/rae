@@ -21,6 +21,14 @@ func (e *Validator) statefulRules() map[string]definition {
 }
 func sdlInstance(i validation.Invocation) any {
 	v := invocationRoot(i)
+	switch i.Key.ContractID {
+	case satisfiabilityEvidenceID, satisfiabilityEvidenceV2ID:
+		scenario := at(v, "witness", "snapshot", kindScenario)
+		if scenario == nil {
+			return map[string]any{}
+		}
+		return scenario
+	}
 	if at(v, kindScenario) != nil {
 		return at(v, kindScenario)
 	}

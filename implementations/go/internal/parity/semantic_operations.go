@@ -100,7 +100,7 @@ func semanticPayload(ctx context.Context, parser *authoring.Parser, document *au
 	return payload, nil
 }
 func semanticDigest(identity string) map[string]any {
-	return map[string]any{"algorithm": "sha256", "profile": "raes-sdl-semantic/v2", "value": identity}
+	return map[string]any{"algorithm": "sha256", profileField: "raes-sdl-semantic/v2", "value": identity}
 }
 func semanticResult(command semanticCommand) map[string]any {
 	result := map[string]any{"operation": command.operation, "status": "success", "contract_id": command.contract, "source_format": nil, "migration_policy": nil, "normalization_profile": nil, "validation_strength": nil, "processor_profile": nil, "transform_profile": nil, "provenance": map[string]any{"network": "disabled", "filesystem": "read-only"}, "payload": map[string]any{}, termDiagnostics: []any{}}

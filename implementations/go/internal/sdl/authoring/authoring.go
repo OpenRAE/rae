@@ -155,6 +155,9 @@ func (d *Document) ModelJSON() []byte {
 	if !d.Validated() {
 		return nil
 	}
+	if d.expanded != nil {
+		return slices.Clone(d.expanded.modelBytes())
+	}
 	return slices.Clone(d.modelBytes())
 }
 

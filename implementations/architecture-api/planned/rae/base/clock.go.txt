@@ -1,0 +1,5 @@
+package clock
+
+import "time"
+
+func StartElapsed() func() time.Duration

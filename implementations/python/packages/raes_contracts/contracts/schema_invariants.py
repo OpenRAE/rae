@@ -127,6 +127,7 @@ def _attach_stateful_resource_invariants(contract_id: str, json_schema: dict[str
         "materialized-scenario-v1",
         "instantiated-scenario-v1",
         "instantiated-scenario-snapshot-v1",
+        "instantiated-scenario-snapshot-v2",
     }:
         return
     input_contract = [{"contract_id": contract_id, "instance_path": "#"}]
@@ -181,7 +182,9 @@ def _attach_initial_service_state_invariants(contract_id: str, json_schema: dict
         "materialized-scenario-v1",
         "instantiated-scenario-v1",
         "instantiated-scenario-snapshot-v1",
+        "instantiated-scenario-snapshot-v2",
         "scenario-satisfiability-evidence-v1",
+        "scenario-satisfiability-evidence-v2",
     }:
         return
     _add_raes_invariant(
@@ -285,6 +288,7 @@ _SDL_IDENTIFIER_CONTRACT_IDS = frozenset(
         "materialized-scenario-v1",
         _INSTANTIATION_INVARIANT_CONTRACT_ID,
         _INSTANTIATED_SNAPSHOT_CONTRACT_ID,
+        "instantiated-scenario-snapshot-v2",
     }
 )
 
