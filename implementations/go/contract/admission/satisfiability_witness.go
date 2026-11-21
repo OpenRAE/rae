@@ -11,7 +11,7 @@ import (
 // for materialization. That owner returns phase facts; the contract keeps its
 // own source, model, solver and canonical witness joins.
 func (e *Validator) checkSatisfiabilityWitness(id string, data []byte, limits ingress.Limits, context any) error {
-	if id != "scenario-satisfiability-evidence-v1" {
+	if id != satisfiabilityEvidenceID && id != satisfiabilityEvidenceV2ID {
 		return nil
 	}
 	root, err := ingress.Parse(data, limits, ingress.Object)
@@ -38,7 +38,11 @@ func (e *Validator) checkSatisfiabilityWitness(id string, data []byte, limits in
 	if !materializationSupplied(supplied, compiled.full) {
 		return invalid()
 	}
-	actual, err := jsonDigest(map[string]any{"profile": "raes-sdl-instantiated-snapshot/v2", kindScenario: compiled.full})
+	profile := "raes-sdl-instantiated-snapshot/v2"
+	if id == satisfiabilityEvidenceV2ID {
+		profile = "raes-sdl-instantiated-snapshot/v3"
+	}
+	actual, err := jsonDigest(map[string]any{"profile": profile, kindScenario: compiled.full})
 	if err != nil || actual != stringAt(witness, "snapshot_digest") {
 		return invalid()
 	}
@@ -53,3 +57,8 @@ func witnessCompilerMissing(owner MaterializationCompiler) bool {
 	kind := v.Kind()
 	return (kind == reflect.Chan || kind == reflect.Func || kind == reflect.Interface || kind == reflect.Map || kind == reflect.Pointer || kind == reflect.Slice) && v.IsNil()
 }
+
+const (
+	satisfiabilityEvidenceID   = "scenario-satisfiability-evidence-v1"
+	satisfiabilityEvidenceV2ID = "scenario-satisfiability-evidence-v2"
+)

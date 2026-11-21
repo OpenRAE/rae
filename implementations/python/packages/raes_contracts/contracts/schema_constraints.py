@@ -268,7 +268,9 @@ def _attach_instantiation_invariants(contract_id: str, json_schema: dict[str, An
         _INSTANTIATION_INVARIANT_CONTRACT_ID,
         "materialized-scenario-v1",
         _INSTANTIATED_SNAPSHOT_CONTRACT_ID,
+        "instantiated-scenario-snapshot-v2",
         _SATISFIABILITY_EVIDENCE_CONTRACT_ID,
+        "scenario-satisfiability-evidence-v2",
     }:
         return
     _forbid_variable_tokens_in_strings(json_schema)

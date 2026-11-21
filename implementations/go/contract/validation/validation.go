@@ -300,7 +300,7 @@ func compileDocument(id string, root map[string]any, annotations map[string][]an
 	}
 	fragments := sync.OnceValue(func() map[string]*jsonschema.Schema { return indexSchemaFragments(compiled) })
 	entry := contract{schema: compiled, fragments: fragments, annotations: annotations, raw: root}
-	if id == "admitted-trial-plan-v1" {
+	if id == "admitted-trial-plan-v1" || opacityWorkBound(id) {
 		entry.constructionWork = constructionGraphWork(compiled)
 	}
 	return entry, nil
@@ -398,4 +398,13 @@ func (v *Validator) Validate(id string, data []byte, limits ingress.Limits, trus
 		return Value{}, failure(fault.Operational, codeContractBindingMismatch)
 	}
 	return Value{id, slices.Clone(data)}, nil
+}
+
+func opacityWorkBound(id string) bool {
+	switch id {
+	case "participant-opacity-analysis-input-v1", "participant-opacity-analysis-evidence-v1", "participant-opacity-model-check-input-v1", "participant-opacity-model-check-evidence-v1":
+		return true
+	default:
+		return false
+	}
 }

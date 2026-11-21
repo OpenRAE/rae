@@ -143,3 +143,25 @@ validity, temporal properties, uniqueness, optimality, independent Z3 proof
 verification, or universal soundness/completeness. New sorts, targets, theories,
 encodings, solver versions, witness orders, core algorithms, or evidence meaning
 require a new governed profile/version.
+
+## Evidence v2
+
+Evidence v2 corrects Python's workflow-field serialization. New service and CLI
+results SHALL use `scenario-satisfiability-evidence/v2`. A satisfiable result
+SHALL use witness profile `raes-satisfiability-witness/v2` and snapshot profile
+`raes-sdl-instantiated-snapshot/v3`. The snapshot SHALL serialize public SDL
+names, including `then`, `else` and `default`. Its digest SHALL bind that exact
+serialized snapshot, including its profile.
+
+The analysis, theory, translation, budgets and outcome meanings above remain
+unchanged. The solver configuration SHALL select one complete published Python
+v1 or Go v2 adapter identity. A mixed adapter identity is invalid.
+
+The published schema is `scenario-satisfiability-evidence-v2`. The standalone
+snapshot schema is `instantiated-scenario-snapshot-v2`. Existing v1 evidence
+and snapshot contracts retain their historical meanings. Readers SHALL select
+contracts by explicit version. Re-running an analysis creates new v2 evidence;
+it does not rewrite stored v1 evidence or retain its digest.
+
+See [the migration guide](../../../docs/decisions/issue-1789-evidence-v2-migration.md)
+for the public identifiers and Python and Go type names.

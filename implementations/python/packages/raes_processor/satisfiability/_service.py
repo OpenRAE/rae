@@ -9,9 +9,8 @@ import z3
 from pydantic import ValidationError
 from raes import SDLMigrationPolicy
 from raes.canonical import (
-    INSTANTIATED_SNAPSHOT_PROFILE,
-    InstantiatedScenarioSnapshot,
-    canonical_instantiated_sdl_digest,
+    InstantiatedScenarioSnapshotV3,
+    canonical_instantiated_sdl_v3_digest,
 )
 from raes.instantiate import instantiate_scenario
 from raes.parser import parse_sdl, read_sdl_source
@@ -20,8 +19,8 @@ from raes_contracts.digests import sha256_digest
 from raes_contracts.errors import EvidenceIntegrityError, OperationalError
 from raes_contracts.satisfiability import (
     SatisfiabilityOutcome,
-    SatisfiableWitnessModel,
-    ScenarioSatisfiabilityEvidenceModel,
+    SatisfiableWitnessV2Model,
+    ScenarioSatisfiabilityEvidenceV2Model,
     SolverConfigurationModel,
     SourceArtifactIdentityModel,
     UnsatisfiableCoreModel,
@@ -74,7 +73,7 @@ def analyze_scenario_file(
     path: Path,
     *,
     profile: str = ANALYSIS_PROFILE,
-) -> ScenarioSatisfiabilityEvidenceModel:
+) -> ScenarioSatisfiabilityEvidenceV2Model:
     """Analyze a bounded SDL file through the governed production boundary."""
 
     if profile != ANALYSIS_PROFILE:
@@ -92,7 +91,7 @@ def analyze_scenario_file(
     translation = translate_scenario(scenario, source_digest=source_digest)
     solver_configuration = _solver_configuration()
     common = {
-        "profile": "scenario-satisfiability-evidence/v1",
+        "profile": "scenario-satisfiability-evidence/v2",
         "analysis_profile": ANALYSIS_PROFILE,
         "source": SourceArtifactIdentityModel(source_id=path.name, byte_digest=source_digest),
         "authored_digest": translation.model.authored_digest,
@@ -103,7 +102,7 @@ def analyze_scenario_file(
         "solver_configuration_digest": canonical_contract_digest(solver_configuration),
     }
     if translation.diagnostics:
-        return ScenarioSatisfiabilityEvidenceModel(
+        return ScenarioSatisfiabilityEvidenceV2Model(
             **common,
             outcome=SatisfiabilityOutcome.UNSUPPORTED,
             diagnostics=translation.diagnostics,
@@ -130,22 +129,22 @@ def analyze_scenario_file(
             parameters=result.assignment,
             profile=ANALYSIS_PROFILE,
         )
-        snapshot = InstantiatedScenarioSnapshot(
-            profile=INSTANTIATED_SNAPSHOT_PROFILE,
+        snapshot = InstantiatedScenarioSnapshotV3(
+            profile="raes-sdl-instantiated-snapshot/v3",
             scenario=instantiated,
         )
-        return ScenarioSatisfiabilityEvidenceModel(
+        return ScenarioSatisfiabilityEvidenceV2Model(
             **common,
             outcome=result.outcome,
             diagnostics=(),
-            witness=SatisfiableWitnessModel(
-                profile="raes-satisfiability-witness/v1",
+            witness=SatisfiableWitnessV2Model(
+                profile="raes-satisfiability-witness/v2",
                 snapshot=snapshot,
-                snapshot_digest=canonical_instantiated_sdl_digest(instantiated).value,
+                snapshot_digest=canonical_instantiated_sdl_v3_digest(instantiated).value,
             ),
         )
     assert result.core is not None
-    return ScenarioSatisfiabilityEvidenceModel(
+    return ScenarioSatisfiabilityEvidenceV2Model(
         **common,
         outcome=result.outcome,
         diagnostics=(),
@@ -159,8 +158,8 @@ def analyze_scenario_file(
 
 def replay_satisfiability_evidence(
     path: Path,
-    evidence: ScenarioSatisfiabilityEvidenceModel,
-) -> ScenarioSatisfiabilityEvidenceModel:
+    evidence: ScenarioSatisfiabilityEvidenceV2Model,
+) -> ScenarioSatisfiabilityEvidenceV2Model:
     """Recompute and compare every source/model/solver/result evidence join."""
 
     document = read_sdl_source(path)

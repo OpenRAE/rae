@@ -7,7 +7,7 @@ func TestContractInventoryQueryDoesNotGrantAdmission(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(v.contracts) != 148 {
+	if len(v.contracts) != 150 {
 		t.Fatal("publication inventory changed")
 	}
 	for id := range v.contracts {

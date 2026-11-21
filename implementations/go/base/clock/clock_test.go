@@ -25,3 +25,12 @@ func TestInjectedClockIsReadAtEachCallAndNormalizedToUTC(t *testing.T) {
 		t.Errorf("Read(nil) = %v, want a current UTC wall-clock instant", got)
 	}
 }
+
+func TestElapsedUsesIndependentMonotonicStarts(t *testing.T) {
+	first := StartElapsed()
+	time.Sleep(time.Millisecond)
+	second := StartElapsed()
+	if first() < time.Millisecond || second() < 0 {
+		t.Fatal("elapsed clock did not advance")
+	}
+}

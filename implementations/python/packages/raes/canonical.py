@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Any, Literal
 
 import rfc8785
-from pydantic import ConfigDict, model_validator
+from pydantic import ConfigDict, SerializationInfo, field_serializer, model_validator
 from raes_contracts.canonical import canonical_json_bytes, canonical_json_digest
 from raes_contracts.digests import sha256_digest
 from raes_contracts.json_pointer import escape_token
@@ -120,6 +120,46 @@ class InstantiatedScenarioSnapshot(SDLModel):
     def _migrate_legacy_vm_snapshot(cls, value: object) -> object:
         migrated, _changed = migrate_legacy_instantiated_snapshot_payload(value)
         return migrated
+
+
+class InstantiatedScenarioSnapshotV3(SDLModel):
+    """Public-name serialization with a distinct canonical snapshot identity."""
+
+    model_config = ConfigDict(
+        title="SDL Instantiated Scenario Snapshot v2",
+        extra="forbid",
+        frozen=True,
+        json_schema_extra={"x-raes-document-phase": "canonical-instantiated-snapshot"},
+    )
+    profile: Literal["raes-sdl-instantiated-snapshot/v3"]
+    scenario: InstantiatedScenario
+
+    @field_serializer("scenario")
+    def _public_scenario(self, scenario: InstantiatedScenario, info: SerializationInfo) -> dict[str, Any]:
+        return scenario.model_dump(mode=info.mode, by_alias=True)
+
+
+def canonical_instantiated_sdl_v3_bytes(scenario: InstantiatedScenario) -> bytes:
+    """Return canonical snapshot v3 bytes using the published SDL field names."""
+    from .instantiate import admit_instantiated_scenario
+
+    admitted = admit_instantiated_scenario(
+        InstantiatedScenario.model_validate(scenario.model_dump(mode="python", by_alias=True))
+    )
+    snapshot = InstantiatedScenarioSnapshotV3(profile="raes-sdl-instantiated-snapshot/v3", scenario=admitted)
+    try:
+        return canonical_json_bytes(snapshot.model_dump(mode="json"))
+    except rfc8785.CanonicalizationError as exc:
+        raise SDLParseError("Instantiated SDL v3 canonicalization failed") from exc
+
+
+def canonical_instantiated_sdl_v3_digest(scenario: InstantiatedScenario) -> SDLCanonicalDigest:
+    """Bind the corrected public serialization to its new snapshot profile."""
+    return SDLCanonicalDigest(
+        profile="raes-sdl-instantiated-snapshot/v3",
+        algorithm="sha256",
+        value=sha256_digest(canonical_instantiated_sdl_v3_bytes(scenario)),
+    )
 
 
 def migrate_legacy_instantiated_snapshot_payload(value: object) -> tuple[object, bool]:

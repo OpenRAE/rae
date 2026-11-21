@@ -18,6 +18,7 @@ import sys
 import tarfile
 import tempfile
 import uuid
+import zipfile
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from contextlib import contextmanager, suppress
 from pathlib import Path, PurePosixPath
@@ -243,6 +244,58 @@ def materialize_tar_gz(raw_bytes: bytes, selection: ArtifactSelection) -> dict[s
     except ToolInstallationError:
         raise
     except (OSError, tarfile.TarError, UnicodeError) as exc:
+        raise ToolInstallationError("tool-installation: unsafe-archive") from exc
+    return _validate_materialized(materialized, selection.installed_manifest)
+
+
+def _zip_members(archive: zipfile.ZipFile) -> dict[str, zipfile.ZipInfo]:
+    members = archive.infolist()
+    if len(members) > MAX_ARCHIVE_MEMBERS:
+        raise ToolInstallationError("tool-installation: archive-member-limit")
+    paths: dict[PurePosixPath, bool] = {}
+    by_path: dict[str, zipfile.ZipInfo] = {}
+    total = 0
+    for member in members:
+        directory = member.is_dir()
+        name = member.filename[:-1] if directory else member.filename
+        path = _portable_path(name)
+        kind = stat.S_IFMT(member.external_attr >> 16)
+        if (
+            path in paths
+            or member.flag_bits & 1
+            or member.compress_type not in {zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED}
+            or kind not in {0, stat.S_IFDIR if directory else stat.S_IFREG}
+        ):
+            raise ToolInstallationError("tool-installation: unsafe-archive-member")
+        if member.file_size < 0 or member.file_size > MAX_ARCHIVE_MEMBER_BYTES:
+            raise ToolInstallationError("tool-installation: archive-size-limit")
+        total += member.file_size
+        if total > MAX_ARCHIVE_EXPANDED_BYTES:
+            raise ToolInstallationError("tool-installation: archive-size-limit")
+        paths[path] = directory
+        by_path[name] = member
+    for path in paths:
+        if any(parent in paths and not paths[parent] for parent in path.parents):
+            raise ToolInstallationError("tool-installation: unsafe-archive-member")
+    return by_path
+
+
+def materialize_zip(raw_bytes: bytes, selection: ArtifactSelection) -> dict[str, bytes]:
+    """Admit ZIP metadata before reading only the bounded installed manifest."""
+
+    try:
+        with zipfile.ZipFile(io.BytesIO(raw_bytes)) as archive:
+            by_path = _zip_members(archive)
+            materialized: dict[str, bytes] = {}
+            for entry in selection.installed_manifest:
+                member = by_path.get(entry.path)
+                if member is None or member.is_dir() or member.file_size != entry.size:
+                    raise ToolInstallationError("tool-installation: installed-manifest-mismatch")
+                with archive.open(member) as stream:
+                    materialized[entry.path] = stream.read(entry.size + 1)
+    except ToolInstallationError:
+        raise
+    except (OSError, ValueError, zipfile.BadZipFile, UnicodeError) as exc:
         raise ToolInstallationError("tool-installation: unsafe-archive") from exc
     return _validate_materialized(materialized, selection.installed_manifest)
 

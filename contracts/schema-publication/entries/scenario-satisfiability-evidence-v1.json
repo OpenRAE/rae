@@ -1,9 +1,9 @@
 {
-  "content_hash": "9daa30f44560a5069694cb32bdb7c2b0f1a60dca6baff2cb6ad1332aefcbcb19",
+  "content_hash": "502ea5f7e0dec8a031aa786384c3bd1181dbfa9c496784c236eddfabd3f77e9d",
   "contract_id": "scenario-satisfiability-evidence-v1",
   "last_change": {
-    "content_hash": "9daa30f44560a5069694cb32bdb7c2b0f1a60dca6baff2cb6ad1332aefcbcb19",
-    "summary": "Remove the Python validator paths from the semantic invariants and the Python names from two descriptions (#1776)."
+    "content_hash": "502ea5f7e0dec8a031aa786384c3bd1181dbfa9c496784c236eddfabd3f77e9d",
+    "summary": "Add the correlated raes-z3-finite-domain/v2 identity for the Go SMT-LIB adapter and Z3 4.16.0; preserve the existing Python v1 identity and all solver settings (#1789)."
   },
   "schema_path": "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
   "stability": "draft"

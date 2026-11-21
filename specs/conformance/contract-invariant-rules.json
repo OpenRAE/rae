@@ -2458,6 +2458,110 @@
       "level": "error"
     },
     {
+      "contract_id": "instantiated-scenario-snapshot-v2",
+      "schema_pointer": "#",
+      "description": "Service-target content must resolve to one named service, retain exact tenant/reset ownership and content ordering, and bind observed-state postconditions to participant observation boundaries.",
+      "id": "initial-service-state-semantics",
+      "inputs": [
+        {
+          "contract_id": "instantiated-scenario-snapshot-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-snapshot-v2",
+      "schema_pointer": "#",
+      "description": "Explicit temporal bindings must resolve the action's shared clock, constraint and selected event. Dwell conditions require authorized observation boundaries and observable support and evidence. Numeric parameters are revalidated after binding.",
+      "id": "participant-shared-time-source-bindings",
+      "inputs": [
+        {
+          "contract_id": "instantiated-scenario-snapshot-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-snapshot-v2",
+      "schema_pointer": "#",
+      "description": "Stateful resource consumers and dependencies must resolve unambiguously, use the POSIX v1 path dialect, and must not collide on a consumer node mount destination.",
+      "id": "stateful-cross-resource-semantics",
+      "inputs": [
+        {
+          "contract_id": "instantiated-scenario-snapshot-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-snapshot-v2",
+      "schema_pointer": "#",
+      "description": "Generated artifact output names and paths, consumers, and dependency entries must be unique, and generated artifact consumers must be read-only. Explicit selections must name declared consumer-selectable outputs; SSH artifact consumers must select outputs and every consumer-selectable SSH output must be selected.",
+      "id": "stateful-generated-artifact-semantics",
+      "inputs": [
+        {
+          "contract_id": "instantiated-scenario-snapshot-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-snapshot-v2",
+      "schema_pointer": "#",
+      "description": "Persistent volume consumers and dependency entries must be unique and access cardinality must match the declared portable access mode.",
+      "id": "stateful-persistent-volume-semantics",
+      "inputs": [
+        {
+          "contract_id": "instantiated-scenario-snapshot-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-snapshot-v2",
+      "schema_pointer": "#/$defs/ExecutionPolicy",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicy",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-snapshot-v2",
+      "schema_pointer": "#/$defs/ExecutionPolicyDocument",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicydocument",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "instantiated-scenario-snapshot-v2",
+      "schema_pointer": "#/$defs/ParticipantControlContextAssetModel",
+      "description": "Full conformance requires trusted exact version, lifecycle, authority, recipient, cut and content agreement.",
+      "id": "control-context-trusted-agreement",
+      "inputs": [
+        {
+          "contract_id": "participant-control-context-asset-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
       "contract_id": "instantiated-scenario-v1",
       "schema_pointer": "#",
       "description": "Service-target content must resolve to one named service, retain exact tenant/reset ownership and content ordering, and bind observed-state postconditions to participant observation boundaries.",
@@ -3743,6 +3847,58 @@
     },
     {
       "contract_id": "scenario-satisfiability-evidence-v1",
+      "schema_pointer": "#/$defs/ParticipantControlContextAssetModel",
+      "description": "Full conformance requires trusted exact version, lifecycle, authority, recipient, cut and content agreement.",
+      "id": "control-context-trusted-agreement",
+      "inputs": [
+        {
+          "contract_id": "participant-control-context-asset-v1",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "scenario-satisfiability-evidence-v2",
+      "schema_pointer": "#",
+      "description": "Service-target content must resolve to one named service, retain exact tenant/reset ownership and content ordering, and bind observed-state postconditions to participant observation boundaries.",
+      "id": "initial-service-state-semantics",
+      "inputs": [
+        {
+          "contract_id": "scenario-satisfiability-evidence-v2",
+          "instance_path": "#"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "scenario-satisfiability-evidence-v2",
+      "schema_pointer": "#/$defs/ExecutionPolicy",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicy",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "scenario-satisfiability-evidence-v2",
+      "schema_pointer": "#/$defs/ExecutionPolicyDocument",
+      "description": "Execution choices are complete, bounded and consistent; scope identities and references are unique, effective evidence resolves exactly, and unsupported continuation claims fail closed. See specs/sdl/execution-recovery.md for the portable semantic obligations.",
+      "id": "execution-policy-executionpolicydocument",
+      "inputs": [
+        {
+          "contract_id": "sdl-authoring-input-v1",
+          "instance_path": "#/execution_policy"
+        }
+      ],
+      "level": "error"
+    },
+    {
+      "contract_id": "scenario-satisfiability-evidence-v2",
       "schema_pointer": "#/$defs/ParticipantControlContextAssetModel",
       "description": "Full conformance requires trusted exact version, lifecycle, authority, recipient, cut and content agreement.",
       "id": "control-context-trusted-agreement",

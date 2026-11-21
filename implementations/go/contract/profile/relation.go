@@ -155,6 +155,15 @@ func (p *Profiles) CheckBehavioralClaim(authority *concept.Authority, claim Beha
 	if err != nil || claim.TaxonomyID != catalog.TaxonomyID {
 		return claimMismatch()
 	}
+	return p.CheckBehavioralClaimInCatalog(catalog, claim, supplied)
+}
+
+// CheckBehavioralClaimInCatalog applies the existing claim joins to an exact
+// supplied catalog. The caller must admit the catalog before projecting it.
+func (p *Profiles) CheckBehavioralClaimInCatalog(catalog concept.RelationCatalog, claim BehavioralClaim, supplied *RelationProfile) error {
+	if claim.TaxonomyID != catalog.TaxonomyID || claim.TaxonomyRevision != catalog.TaxonomyRevision {
+		return claimMismatch()
+	}
 	relation, ok := catalog.Relation(claim.RelationID)
 	if !ok || relation.ProjectionRequired && claim.ObservationProjectionRef == "" {
 		return claimMismatch()

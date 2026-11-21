@@ -86,3 +86,15 @@ regexes = [
   '''issue-1788-validator-key-decision\.md":\s*"[0-9a-f]{64}"''',
 ]
 paths = ['''(^|/)implementations/architecture\.json$''']
+
+[[allowlists]]
+description = "Issue #1789: three exact SHA-256 source-file checksums in the CLI recording provenance; verified against the named repository sources. These values are not credentials. All other values, files and scanner rules remain checked."
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "secret"
+regexes = [
+  '''^e942bca965a6e5afd3f70aed5dd89fab66df1bf95bef19fc19eff76970c0529a$''',
+  '''^04aebc2ffe3007f89ae2fb479dfc3222c7d710ee3e0eb502138ecbb3fdf1ea5a$''',
+  '''^47f93b3d602998c9f6808350173571055c63bc4c6b899ff325b016e7b0d6636a$''',
+]
+paths = ['''(^|/)implementations/go/processor/analysis/testdata/cli-v2-provenance\.json$''']

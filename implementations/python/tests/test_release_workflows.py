@@ -1233,6 +1233,7 @@ def test_release_bookkeeping_changes_do_not_retrigger_check_workflows() -> None:
     assert expected == [
         ".release-please-manifest.json",
         "CHANGELOG.md",
+        "implementations/go/processor/analysis/version.go",
         "implementations/python/packages/raes/_version.py",
     ]
 

@@ -1,0 +1,76 @@
+{
+  "command": "implementations/python/.venv/bin/python implementations/go/processor/analysis/testdata/reference_driver.py",
+  "excluded_injected_cases": [
+    "test_semantic_uncertainty_remains_incomparable",
+    "test_observation_defect_is_not_reported_as_invalid_output",
+    "test_unknown_during_initial_decision_fails_without_evidence",
+    "test_unknown_during_core_reduction_fails_loudly_with_budget_context",
+    "test_unknown_during_witness_selection_fails_loudly_with_budget_context"
+  ],
+  "exclusion_reason": "These cases replace Python internals through monkeypatch. Native owner and solver fault tests cover the fault boundary; ordinary unpatched calls are not an oracle for the injected behavior.",
+  "format_version": 1,
+  "parts": [
+    {
+      "cases": 87,
+      "path": "authoring-adapter-comparison.json.gz",
+      "sha256": "07f7b208959541fa259c350f4724f7a1e7768364c8015ae54767ac8ed91c1e6a"
+    },
+    {
+      "cases": 20,
+      "path": "candidate-synthesis.json.gz",
+      "sha256": "c6dc0efe1950378ef4ca2c832f01e9f58aa0805c323aa2386f60af71d15748fd"
+    },
+    {
+      "cases": 19,
+      "path": "exploit-path.json.gz",
+      "sha256": "ff934f760b7a357c6623b133fe1f16f81296546070470d74e00ea0daf486e90b"
+    },
+    {
+      "cases": 18,
+      "path": "participant-opacity.json.gz",
+      "sha256": "295bc659c8baadc5dfd03986d61322c6a4a2481af69cedb2205ea804505d54c9"
+    },
+    {
+      "cases": 15,
+      "path": "participant-opacity-model-check.json.gz",
+      "sha256": "4b71dec1e06b140851f7d0bae37bf9d9cb64dd2ecb0eb8a765ae9e4342719e4c"
+    },
+    {
+      "cases": 21,
+      "path": "satisfiability.json.gz",
+      "sha256": "e2d44a4b9e43c553519956f2ee0c1caea1e5a99d78a6fb8b991fd412c62471d5"
+    },
+    {
+      "cases": 4,
+      "path": "semantic-uncertainty.json",
+      "sha256": "2686a47ba559a6e212cf976124f5711b35311606dcfe7fc713a41af58408c74f"
+    }
+  ],
+  "source_sha256": {
+    "implementations/python/tests/test_authoring_adapters.py": "1424f9157e9149bd51d67cb6d7fb7575903146bb2c9bac2ed5afa78fe68472fc",
+    "implementations/python/tests/test_candidate_synthesis.py": "ef30d3b14c56679a98faa91fb4c6819119c887f64e5b639f8edafe9581ae59c1",
+    "implementations/python/tests/test_exploit_path_analysis.py": "81e6dd6334bac3e20a45e13d7f1ed76e748ac1532ee944ac7ce478b35264310b",
+    "implementations/python/tests/test_issue_961_participant_opacity.py": "f258cdcb80e2f3663fc2b66ccd0ff5489b86f88a41b58269dbc1d01639198adc",
+    "implementations/python/tests/test_issue_962_participant_opacity_model_check.py": "52701520ee88236ef07e2bcb22e479463e0bf5eb818c67ecce285ed809d6dcb9",
+    "implementations/python/tests/test_scenario_satisfiability.py": "c3d70cdc129353257fa70629fcfec48450fc9ea11d6cd30eba3fbe8423ea7b34"
+  },
+  "source_trees": {
+    "implementations/python/packages/raes": {
+      "files": 295,
+      "sha256": "3bb101d21cb85c7a57001f7ce36d58ac27901185cc302d25d779006b4db4af7e"
+    },
+    "implementations/python/packages/raes_conformance": {
+      "files": 58,
+      "sha256": "031e849547b496a6bbed6a752e04c2d2536439652991e7f77782238934feee67"
+    },
+    "implementations/python/packages/raes_contracts": {
+      "files": 376,
+      "sha256": "4f69a29320c697212cd859a97b217ca07b0db7671fda0f57aa5522797e816bc7"
+    },
+    "implementations/python/packages/raes_processor": {
+      "files": 171,
+      "sha256": "db453f5d85cbd0c8e8d06fd8615196cfa4f54d174cad362b66798b8bb426b9e7"
+    }
+  },
+  "tree_hash_format": "SHA-256 of UTF-8 compact sorted JSON mapping repository-relative .py paths to SHA-256 file hex digests."
+}

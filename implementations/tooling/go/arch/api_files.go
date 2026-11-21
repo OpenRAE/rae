@@ -13,7 +13,7 @@ import (
 
 const (
 	apiFileLimit      = 512_000    // 500 KiB
-	apiTotalLimit     = 16_777_216 // 16 MiB
+	apiTotalLimit     = 18_874_368 // 18 MiB
 	apiFileCountLimit = 64
 )
 
