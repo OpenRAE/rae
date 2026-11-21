@@ -734,3 +734,11 @@ It keeps failed-cleanup diagnostics separate.
 It does not rebuild the compiler model or cause runtime effects.
 
 Issue #1789 also adds `sdl.InstantiateWithProfile` to preserve the selected analysis profile through the native instantiation owner.
+
+## Backend port additions
+
+Issue #1790 adds constructor configuration and optional portable backend roles.
+The [accepted API decision](issue-1790-public-api-proposal.md) keeps the existing signatures.
+The [backend design](issue-1790-backend-design.md) assigns each addition to its existing owner.
+The typed declarations and architecture model give the exact exported API.
+Live registration and invocation remain with runtime extraction #1894.

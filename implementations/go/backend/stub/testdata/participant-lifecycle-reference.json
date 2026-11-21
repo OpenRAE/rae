@@ -1,0 +1,421 @@
+[
+  {
+    "action": "initialize",
+    "success": true,
+    "states": {
+      "participant.behavior.agent": {
+        "state_schema_version": "participant-episode-state/v1",
+        "participant_address": "participant.behavior.agent",
+        "episode_id": "participant.behavior.agent-episode-1",
+        "sequence_number": 0,
+        "status": "running",
+        "terminal_reason": null,
+        "initialized_at": "2026-01-02T03:04:05Z",
+        "updated_at": "2026-01-02T03:04:05Z",
+        "terminated_at": null,
+        "last_control_action": "initialize",
+        "previous_episode_id": null
+      }
+    },
+    "history": {
+      "participant.behavior.agent": [
+        {
+          "event_type": "episode_initialized",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-1",
+          "sequence_number": 0,
+          "terminal_reason": null,
+          "control_action": "initialize",
+          "details": {}
+        },
+        {
+          "event_type": "episode_running",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-1",
+          "sequence_number": 0,
+          "terminal_reason": null,
+          "control_action": null,
+          "details": {}
+        }
+      ]
+    },
+    "messages": []
+  },
+  {
+    "action": "initialize",
+    "success": false,
+    "states": {
+      "participant.behavior.agent": {
+        "state_schema_version": "participant-episode-state/v1",
+        "participant_address": "participant.behavior.agent",
+        "episode_id": "participant.behavior.agent-episode-1",
+        "sequence_number": 0,
+        "status": "running",
+        "terminal_reason": null,
+        "initialized_at": "2026-01-02T03:04:05Z",
+        "updated_at": "2026-01-02T03:04:05Z",
+        "terminated_at": null,
+        "last_control_action": "initialize",
+        "previous_episode_id": null
+      }
+    },
+    "history": {
+      "participant.behavior.agent": [
+        {
+          "event_type": "episode_initialized",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-1",
+          "sequence_number": 0,
+          "terminal_reason": null,
+          "control_action": "initialize",
+          "details": {}
+        },
+        {
+          "event_type": "episode_running",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-1",
+          "sequence_number": 0,
+          "terminal_reason": null,
+          "control_action": null,
+          "details": {}
+        }
+      ]
+    },
+    "messages": [
+      "participant 'participant.behavior.agent' already has a live episode; use reset or restart"
+    ]
+  },
+  {
+    "action": "reset",
+    "success": true,
+    "states": {
+      "participant.behavior.agent": {
+        "state_schema_version": "participant-episode-state/v1",
+        "participant_address": "participant.behavior.agent",
+        "episode_id": "participant.behavior.agent-episode-2",
+        "sequence_number": 1,
+        "status": "running",
+        "terminal_reason": null,
+        "initialized_at": "2026-01-02T03:04:05Z",
+        "updated_at": "2026-01-02T03:04:05Z",
+        "terminated_at": null,
+        "last_control_action": "reset",
+        "previous_episode_id": "participant.behavior.agent-episode-1"
+      }
+    },
+    "history": {
+      "participant.behavior.agent": [
+        {
+          "event_type": "episode_initialized",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-1",
+          "sequence_number": 0,
+          "terminal_reason": null,
+          "control_action": "initialize",
+          "details": {}
+        },
+        {
+          "event_type": "episode_running",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-1",
+          "sequence_number": 0,
+          "terminal_reason": null,
+          "control_action": null,
+          "details": {}
+        },
+        {
+          "event_type": "episode_reset",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-2",
+          "sequence_number": 1,
+          "terminal_reason": null,
+          "control_action": "reset",
+          "details": {
+            "previous_episode_id": "participant.behavior.agent-episode-1",
+            "reason": "reset by operator"
+          }
+        },
+        {
+          "event_type": "episode_running",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-2",
+          "sequence_number": 1,
+          "terminal_reason": null,
+          "control_action": null,
+          "details": {}
+        }
+      ]
+    },
+    "messages": []
+  },
+  {
+    "action": "terminate",
+    "success": true,
+    "states": {
+      "participant.behavior.agent": {
+        "state_schema_version": "participant-episode-state/v1",
+        "participant_address": "participant.behavior.agent",
+        "episode_id": "participant.behavior.agent-episode-2",
+        "sequence_number": 1,
+        "status": "terminated",
+        "terminal_reason": "completed",
+        "initialized_at": "2026-01-02T03:04:05Z",
+        "updated_at": "2026-01-02T03:04:05Z",
+        "terminated_at": "2026-01-02T03:04:05Z",
+        "last_control_action": "reset",
+        "previous_episode_id": "participant.behavior.agent-episode-1"
+      }
+    },
+    "history": {
+      "participant.behavior.agent": [
+        {
+          "event_type": "episode_initialized",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-1",
+          "sequence_number": 0,
+          "terminal_reason": null,
+          "control_action": "initialize",
+          "details": {}
+        },
+        {
+          "event_type": "episode_running",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-1",
+          "sequence_number": 0,
+          "terminal_reason": null,
+          "control_action": null,
+          "details": {}
+        },
+        {
+          "event_type": "episode_reset",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-2",
+          "sequence_number": 1,
+          "terminal_reason": null,
+          "control_action": "reset",
+          "details": {
+            "previous_episode_id": "participant.behavior.agent-episode-1",
+            "reason": "reset by operator"
+          }
+        },
+        {
+          "event_type": "episode_running",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-2",
+          "sequence_number": 1,
+          "terminal_reason": null,
+          "control_action": null,
+          "details": {}
+        },
+        {
+          "event_type": "episode_completed",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-2",
+          "sequence_number": 1,
+          "terminal_reason": "completed",
+          "control_action": null,
+          "details": {
+            "detail": "terminated by operator"
+          }
+        }
+      ]
+    },
+    "messages": []
+  },
+  {
+    "action": "reset",
+    "success": false,
+    "states": {
+      "participant.behavior.agent": {
+        "state_schema_version": "participant-episode-state/v1",
+        "participant_address": "participant.behavior.agent",
+        "episode_id": "participant.behavior.agent-episode-2",
+        "sequence_number": 1,
+        "status": "terminated",
+        "terminal_reason": "completed",
+        "initialized_at": "2026-01-02T03:04:05Z",
+        "updated_at": "2026-01-02T03:04:05Z",
+        "terminated_at": "2026-01-02T03:04:05Z",
+        "last_control_action": "reset",
+        "previous_episode_id": "participant.behavior.agent-episode-1"
+      }
+    },
+    "history": {
+      "participant.behavior.agent": [
+        {
+          "event_type": "episode_initialized",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-1",
+          "sequence_number": 0,
+          "terminal_reason": null,
+          "control_action": "initialize",
+          "details": {}
+        },
+        {
+          "event_type": "episode_running",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-1",
+          "sequence_number": 0,
+          "terminal_reason": null,
+          "control_action": null,
+          "details": {}
+        },
+        {
+          "event_type": "episode_reset",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-2",
+          "sequence_number": 1,
+          "terminal_reason": null,
+          "control_action": "reset",
+          "details": {
+            "previous_episode_id": "participant.behavior.agent-episode-1",
+            "reason": "reset by operator"
+          }
+        },
+        {
+          "event_type": "episode_running",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-2",
+          "sequence_number": 1,
+          "terminal_reason": null,
+          "control_action": null,
+          "details": {}
+        },
+        {
+          "event_type": "episode_completed",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-2",
+          "sequence_number": 1,
+          "terminal_reason": "completed",
+          "control_action": null,
+          "details": {
+            "detail": "terminated by operator"
+          }
+        }
+      ]
+    },
+    "messages": [
+      "cannot reset terminated participant 'participant.behavior.agent'; use restart"
+    ]
+  },
+  {
+    "action": "restart",
+    "success": true,
+    "states": {
+      "participant.behavior.agent": {
+        "state_schema_version": "participant-episode-state/v1",
+        "participant_address": "participant.behavior.agent",
+        "episode_id": "participant.behavior.agent-episode-3",
+        "sequence_number": 2,
+        "status": "running",
+        "terminal_reason": null,
+        "initialized_at": "2026-01-02T03:04:05Z",
+        "updated_at": "2026-01-02T03:04:05Z",
+        "terminated_at": null,
+        "last_control_action": "restart",
+        "previous_episode_id": "participant.behavior.agent-episode-2"
+      }
+    },
+    "history": {
+      "participant.behavior.agent": [
+        {
+          "event_type": "episode_initialized",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-1",
+          "sequence_number": 0,
+          "terminal_reason": null,
+          "control_action": "initialize",
+          "details": {}
+        },
+        {
+          "event_type": "episode_running",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-1",
+          "sequence_number": 0,
+          "terminal_reason": null,
+          "control_action": null,
+          "details": {}
+        },
+        {
+          "event_type": "episode_reset",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-2",
+          "sequence_number": 1,
+          "terminal_reason": null,
+          "control_action": "reset",
+          "details": {
+            "previous_episode_id": "participant.behavior.agent-episode-1",
+            "reason": "reset by operator"
+          }
+        },
+        {
+          "event_type": "episode_running",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-2",
+          "sequence_number": 1,
+          "terminal_reason": null,
+          "control_action": null,
+          "details": {}
+        },
+        {
+          "event_type": "episode_completed",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-2",
+          "sequence_number": 1,
+          "terminal_reason": "completed",
+          "control_action": null,
+          "details": {
+            "detail": "terminated by operator"
+          }
+        },
+        {
+          "event_type": "episode_restarted",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-3",
+          "sequence_number": 2,
+          "terminal_reason": null,
+          "control_action": "restart",
+          "details": {
+            "previous_episode_id": "participant.behavior.agent-episode-2",
+            "reason": "restarted by operator"
+          }
+        },
+        {
+          "event_type": "episode_running",
+          "timestamp": "2026-01-02T03:04:05Z",
+          "participant_address": "participant.behavior.agent",
+          "episode_id": "participant.behavior.agent-episode-3",
+          "sequence_number": 2,
+          "terminal_reason": null,
+          "control_action": null,
+          "details": {}
+        }
+      ]
+    },
+    "messages": []
+  }
+]

@@ -134,3 +134,14 @@ func InstantiateWithProfile(scenario Scenario, parameters map[string]any, profil
 func RenderSource(ctx context.Context, scenario Scenario) ([]byte, error)
 
 func AdmitSnapshotWithContext(ctx context.Context, data []byte, expectedDigest string) (InstantiatedScenario, error)
+
+func EnvelopeWitness(envelope binding.RealizationEnvelopeV1) (InstantiatedScenario, []diagnostic.Diagnostic, error)
+
+// EnvelopeProbe retains an admitted scenario and its original bounded candidate payload.
+type EnvelopeProbe struct {
+ Path,DomainKind,Variation,Digest string
+ Payload admission.Fragment
+ Scenario InstantiatedScenario
+}
+
+func EnvelopeProbes(envelope binding.RealizationEnvelopeV1, positive bool) ([]EnvelopeProbe, []diagnostic.Diagnostic, error)

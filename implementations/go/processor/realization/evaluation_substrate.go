@@ -3,75 +3,26 @@ package realization
 import (
 	"bytes"
 	"encoding/json"
-	"slices"
-	"strings"
 
+	"github.com/OpenRAE/rae/implementations/go/contract/admission"
 	"github.com/OpenRAE/rae/implementations/go/contract/diagnostic"
 )
 
-type evaluatedObservationDemand struct {
-	Scope      string                   `json:"scope"`
-	Purpose    string                   `json:"purpose"`
-	Mode       string                   `json:"mode"`
-	Collection string                   `json:"collection"`
-	Selectors  []evaluatedFieldSelector `json:"selectors"`
-}
-type evaluatedFieldSelector struct {
-	Scope      string   `json:"semantic_scope"`
-	Excluded   []string `json:"excluded_scopes"`
-	Components []string `json:"component_refs"`
-	Kind       string   `json:"data_kind"`
-	Names      []string `json:"names"`
-}
+type evaluatedObservationDemand = admission.ObservationDemandSelection
 
-func scopeContains(parent, child string) bool {
-	return parent == child || parent == "" || strings.HasPrefix(child, parent+"/")
-}
-func (s *evaluationState) substrateObservationDemand(requirement Requirement) bool {
-	scope := strings.TrimPrefix(requirement.GoverningScope, "#")
-	for _, demand := range s.plan.Demands {
-		if !scopeContains(demand.Scope, scope) || demand.Purpose == "realization-description" || demand.Collection != "require" {
-			continue
-		}
-		if !slices.Contains([]string{"selected", "exhaustive", "operational-only"}, demand.Mode) || s.narrowerDemandExists(demand, scope) {
-			continue
-		}
-		for _, selector := range demand.Selectors {
-			if selector.selects(scope, requirement.Address, requirement.Kind) {
-				return true
-			}
-		}
-	}
-	return false
-}
-func (s *evaluationState) narrowerDemandExists(demand evaluatedObservationDemand, scope string) bool {
-	for _, candidate := range s.plan.Demands {
-		if candidate.Purpose == demand.Purpose && scopeContains(candidate.Scope, scope) && strings.Count(candidate.Scope, "/") > strings.Count(demand.Scope, "/") {
-			return true
-		}
-	}
-	return false
-}
-func (selector evaluatedFieldSelector) selects(scope, address, kind string) bool {
-	if !scopeContains(selector.Scope, scope) || selector.Kind != "field" || !slices.Contains(selector.Names, kind) {
-		return false
-	}
-	if len(selector.Components) > 0 && !slices.Contains(selector.Components, address) {
-		return false
-	}
-	for _, excluded := range selector.Excluded {
-		if scopeContains(excluded, scope) {
-			return false
-		}
-	}
-	return true
+func (s *evaluationState) substrateObservationDemand(requirement Requirement) (bool, error) {
+	return admission.SelectObservationDemand(s.plan.Demands, requirement.GoverningScope, requirement.Address, requirement.Kind, "collection")
 }
 func (s *evaluationState) evaluateSubstrate(requirement Requirement, operation evaluatedOperation) (*diagnostic.Diagnostic, *Provenance, error) {
 	if s.options.Manifest == nil || s.options.Envelope == nil {
 		return substrateEvidenceFailure(requirement), nil, nil
 	}
 	mechanism := s.substrateMechanism()
-	if s.substrateObservationDemand(requirement) {
+	selected, err := s.substrateObservationDemand(requirement)
+	if err != nil {
+		return nil, nil, err
+	}
+	if selected {
 		return s.evaluateSubstrateObservation(requirement, operation, mechanism)
 	}
 	if mechanism == "" || !s.substrateEnvelopeMatches() {

@@ -1,0 +1,41 @@
+{
+  "participant.behavior.agent": [
+    {
+      "event_type": "action_attempted",
+      "timestamp": "2026-01-02T03:04:05Z",
+      "participant_address": "participant.behavior.agent",
+      "episode_id": "participant.behavior.agent-episode-1",
+      "action_instance_id": "action-1",
+      "action_contract_address": "participant.action-contract.scan",
+      "actor_provenance": "participant-implementation:libvirt-deterministic-agent@1.0.0",
+      "lifecycle_phase": "selection_or_admission",
+      "phase_realization": "runtime_mediated",
+      "admission_disposition": "admitted"
+    },
+    {
+      "event_type": "state_transition_recorded",
+      "timestamp": "2026-01-02T03:04:05Z",
+      "participant_address": "participant.behavior.agent",
+      "episode_id": "participant.behavior.agent-episode-1",
+      "action_instance_id": "action-1",
+      "action_contract_address": "participant.action-contract.scan",
+      "lifecycle_phase": "state_update_commit",
+      "phase_realization": "runtime_mediated",
+      "state_transition_kind": "participant_action_admitted",
+      "post_state_digest": "sha256:385478164eda1a5696e2d684b296e94d199339b3758c7e4792d77c20eb3c6ea9"
+    },
+    {
+      "event_type": "observation_emitted",
+      "timestamp": "2026-01-02T03:04:05Z",
+      "participant_address": "participant.behavior.agent",
+      "episode_id": "participant.behavior.agent-episode-1",
+      "action_instance_id": "action-1",
+      "action_contract_address": "participant.action-contract.scan",
+      "observation_boundary_address": "participant.observation-boundary.agent",
+      "observation_status": "terminal",
+      "lifecycle_phase": "observation_emission",
+      "phase_realization": "runtime_mediated",
+      "post_state_digest": "sha256:385478164eda1a5696e2d684b296e94d199339b3758c7e4792d77c20eb3c6ea9"
+    }
+  ]
+}

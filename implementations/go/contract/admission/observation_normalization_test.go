@@ -37,3 +37,26 @@ func TestObservationNormalizationRetainsIndependentProhibitions(t *testing.T) {
 		t.Fatal("duplicate scopes accepted")
 	}
 }
+
+func TestObservationSelectionKeepsNarrowerPolicyAndPurpose(t *testing.T) {
+	demands := []ObservationDemandSelection{{Scope: "", Purpose: "experimental", Mode: "selected", Collection: "require", Selectors: []ObservationFieldSelector{{Scope: "", Kind: "field", Names: []string{"compute-substrate"}}}}}
+	selected, err := SelectObservationDemand(demands, "#/nodes/web", "provision.node.web", "compute-substrate", "collection")
+	if err != nil || !selected {
+		t.Fatal("base selection", err)
+	}
+	demands = append(demands, ObservationDemandSelection{Scope: "/nodes/web", Purpose: "experimental", Mode: "none", Collection: "disable"})
+	selected, err = SelectObservationDemand(demands, "/nodes/web", "provision.node.web", "compute-substrate", "collection")
+	if err != nil || selected {
+		t.Fatal("narrower refusal was bypassed", err)
+	}
+	demands[1].Purpose = "operational"
+	selected, err = SelectObservationDemand(demands, "/nodes/web", "provision.node.web", "compute-substrate", "collection")
+	if err != nil || !selected {
+		t.Fatal("independent purpose suppressed", err)
+	}
+	demands[0].Selectors[0].Excluded = []string{"/nodes/web"}
+	selected, err = SelectObservationDemand(demands, "/nodes/web", "provision.node.web", "compute-substrate", "collection")
+	if err != nil || selected {
+		t.Fatal("excluded scope selected", err)
+	}
+}

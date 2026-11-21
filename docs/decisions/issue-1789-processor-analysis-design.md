@@ -204,7 +204,7 @@ Official STE access returned HTTP 403; no full dictionary-conformance claim is m
 <!-- go-api implementations/go/base/clock 2582eb92f20e5edc6057de2fa7ca965af86a967711c8dcdf24d1c47ad3fcd187 -->
 <!-- go-api implementations/go/processor/analysis f8dd33c947a61ec4c5d00693dac9ebd477db4d7c6997b87d3953ba2a491545e7 -->
 
-<!-- go-api implementations/go/sdl dfd3dc0ecc9f0a933b51bd8f934843f3b3d6c5241cde40c6bb946bcf927c3c97 -->
+<!-- go-api implementations/go/sdl 6ba216e06e79957da1e0eca2c28d356356c8d31760c4f288b2db2e801e41bb35 -->
 
 ## Retained expanded model
 
@@ -393,3 +393,7 @@ the CLI capture provenance file. A regression verifies each checksum against
 its source file and checks the exact file scope. Other values, files, and
 scanner rules remain checked. Contract selection uses an equivalent Go switch
 to avoid a false match on its field-comparison expression.
+
+The analysis API listing uses one bounded external snapshot file. This keeps
+the combined architecture model below its existing 4 MiB limit. The listing
+contains the same declarations; the exact API and file-size checks still apply.
