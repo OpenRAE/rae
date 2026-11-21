@@ -397,3 +397,12 @@ to avoid a false match on its field-comparison expression.
 The analysis API listing uses one bounded external snapshot file. This keeps
 the combined architecture model below its existing 4 MiB limit. The listing
 contains the same declarations; the exact API and file-size checks still apply.
+
+Both new schemas have checked-in workflow fixtures produced by the Python
+service. Tests validate their public field names and the exact snapshot hash.
+The tooling pattern tests retain the same explicit unsupported-syntax result
+as the previous schema versions. The shared snapshot-budget test checks 18 MiB.
+
+The ZIP installer unit test uses the existing mock lock boundary. The tooling
+environment owns portable-lock qualification. The current opacity proof
+manifest binds the changed shared installer source; CI replays the proof kernel.

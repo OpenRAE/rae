@@ -20,6 +20,25 @@ from raes_processor.satisfiability import analyze_scenario_file, replay_satisfia
 ROOT = Path(__file__).resolve().parents[3]
 
 
+def test_published_v2_fixtures_preserve_public_names_and_snapshot_join():
+    fixtures = ROOT / "contracts/fixtures"
+    evidence = json.loads(
+        (fixtures / "satisfiability/scenario-satisfiability-evidence-v2/valid/reconciliation-workflow.json").read_text()
+    )
+    snapshot = json.loads(
+        (fixtures / "sdl/instantiated-scenario-snapshot-v2/valid/reconciliation-workflow.json").read_text()
+    )
+    schemas = schema_bundle()
+    Draft202012Validator(schemas["scenario-satisfiability-evidence-v2"]).validate(evidence)
+    Draft202012Validator(schemas["instantiated-scenario-snapshot-v2"]).validate(snapshot)
+    ScenarioSatisfiabilityEvidenceV2Model.model_validate(evidence)
+    assert evidence["witness"]["snapshot"] == snapshot
+    assert evidence["witness"]["snapshot_digest"] == canonical_json_digest(snapshot)
+    branch = snapshot["scenario"]["workflows"]["flow"]["steps"]["branch"]
+    assert branch["then"] == "finish"
+    assert {"then_step", "else_step", "default_step"}.isdisjoint(branch)
+
+
 def test_snapshot_v3_serializes_public_names_and_preserves_legacy():
     instance = instantiate_scenario(
         parse_sdl(

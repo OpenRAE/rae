@@ -103,5 +103,6 @@ Agent-assisted development can produce internally coherent code and documentatio
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/satisfiability.py` (Evidence v2 and exact hashes)
 - IMPLEMENTS → CODE_FILE `implementations/go/processor/analysis/satisfiability.go` (Go solver and evidence v2)
 - IMPLEMENTS → SPEC `contracts/schemas/satisfiability/scenario-satisfiability-evidence-v2.json` (New schema for correct JSON names)
+- IMPLEMENTS → SPEC `contracts/schemas/sdl/instantiated-scenario-snapshot-v2.json` (Versioned satisfiability witness snapshot with public JSON names)
 - TESTS → TEST `implementations/python/tests/test_issue_1789_serialization.py` (JSON names, versions, hashes, old bytes and CLI)
 - TESTS → TEST `implementations/go/processor/analysis/replay_test.go` (Replay and refusal of changed input)

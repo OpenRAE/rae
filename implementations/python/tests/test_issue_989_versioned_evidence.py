@@ -655,7 +655,10 @@ def test_release_managed_version_source_is_the_file_release_please_rewrites():
 
     config = json.loads((ROOT / "release-please-config.json").read_text(encoding="utf-8"))
     extra_files = config["packages"]["."]["extra-files"]
-    assert extra_files == [{"type": "generic", "path": RELEASE_MANAGED_VERSION_SOURCE}]
+    assert extra_files == [
+        {"type": "generic", "path": RELEASE_MANAGED_VERSION_SOURCE},
+        {"type": "generic", "path": "implementations/go/processor/analysis/version.go"},
+    ]
 
 
 def test_current_capture_requires_the_release_stable_source_profile():

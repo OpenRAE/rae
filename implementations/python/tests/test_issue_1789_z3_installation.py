@@ -10,7 +10,6 @@ from contextlib import nullcontext
 from types import SimpleNamespace
 
 import pytest
-
 from tools import verified_tool_installation as installation
 
 
@@ -83,6 +82,9 @@ def test_z3_installer_uses_locked_acquisition_and_verified_tree(tmp_path, monkey
         SimpleNamespace(path="solver.zip", size=len(raw), sha256=hashlib.sha256(raw).hexdigest(), executable=False),
     )
     monkeypatch.setattr(tooling_policy_gate, "load_tooling_artifact_selection", lambda **kwargs: selected)
+    # Portable locking is qualified in the tooling closure. This unit test
+    # checks acquisition and verified materialization in the runtime closure.
+    monkeypatch.setattr(installation, "_portable_lock", lambda _path: nullcontext())
     calls = []
     monkeypatch.setattr(z3_tool, "acquire_locked_bytes", lambda **kwargs: calls.append(kwargs) or raw)
     path = z3_tool.ensure_z3(tmp_path)
