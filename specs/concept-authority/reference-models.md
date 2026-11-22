@@ -6,8 +6,8 @@ This specification defines shared reference models for recurrent
 federation-relevant structures carried in RAES artifact surfaces.
 
 Shared reference models do not redefine concept authority and do not replace
-artifact-local schemas. They declare which published structure definitions are
-the shared reusable models for recurrent objects such as assets, identities,
+artifact-local schemas. They declare which published structure definitions are the shared reusable models for recurrent objects.
+Examples are assets, identities,
 relationships, observables, actions or events, and tools or artifacts.
 
 ## Decision record
@@ -84,9 +84,8 @@ Its anchor is the published `RuntimeConfiguration` definition
 
 The `runtime` node field is optional, so its published shape is a nullable
 `anyOf` of the `RuntimeConfiguration` reference and `null`. Reference-model
-binding resolution looks through that nullable-optional wrapper to the
-underlying definition, which lets optional surfaces participate as reference
-models while bindings still resolve to real published schema definitions. The
+binding resolution looks through that nullable-optional wrapper to the underlying definition.
+This lets optional surfaces participate as reference models, while bindings still resolve to real published schema definitions. The
 governance decision path for adding a new runtime inventory field is documented
 under Extension Discipline in [concept-authority.md](./concept-authority.md).
 
@@ -108,8 +107,9 @@ do not inherit UCO class structure. The concept-authority relationship behind
 the adopted and adapted cyber-domain families those models reference is recorded
 separately as machine-checkable evidence in
 `contracts/concept-authority/uco-alignment-v1.json` (schema `uco-alignment/v1`).
-That artifact pins the reviewed UCO version and maps each adopted and adapted
-family to the UCO object types it aligns to, enumerating adapted-family
+That artifact pins the reviewed UCO version.
+It maps each adopted and adapted family to the UCO object types it aligns to.
+It enumerates adapted-family
 divergences explicitly. See ADR-012 in the [decision index](../../docs/decisions/adrs/README.md).
 
 <!-- vale RAES.HeadingCase = YES -->

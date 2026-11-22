@@ -183,15 +183,13 @@ authority.
 
 `tools/check_attack_tactic_vocabulary.py` is part of the contract verification
 stage. Its default offline mode compares the catalog to the pinned source
-artifact. Its `--verify-remote` mode fetches the pinned upstream STIX bundle,
-verifies the recorded SHA-256 digest, extracts Enterprise tactics in matrix
-order, and compares them to the checked-in source artifact.
+artifact. Its `--verify-remote` mode fetches the pinned upstream STIX bundle and verifies the recorded SHA-256 digest.
+It extracts Enterprise tactics in matrix order and compares them to the checked-in source artifact.
 
 `tools/check_atlas_tactic_vocabulary.py` is part of the same contract
 verification stage. Its default offline mode compares the catalog to the pinned
-ATLAS source artifact. Its `--verify-remote` mode fetches the pinned upstream
-YAML release asset, verifies the recorded SHA-256 digest, extracts ATLAS tactics
-in matrix order, and compares them to the checked-in source artifact.
+ATLAS source artifact. Its `--verify-remote` mode fetches the pinned upstream YAML release asset and verifies the recorded SHA-256 digest.
+It extracts ATLAS tactics in matrix order and compares them to the checked-in source artifact.
 
 <!-- vale RAES.HeadingCase = NO -->
 ### NIST CSF adaptation guardrail
@@ -200,9 +198,8 @@ The ACT-610 base terms are adapted classifications, not claims that a NIST CSF
 outcome was achieved. A source update must change the pinned category snapshot,
 catalog, valid fixture, generated schemas and publication ledger when needed,
 documentation, and `tools/check_nist_csf_defensive_vocabulary.py` together.
-The checker's normal mode is offline. Its explicit `--verify-remote` mode
-downloads the official NIST Core export, extracts the eight active categories,
-and compares their canonical semantic digest and content with the checked-in
+The checker's normal mode is offline. Its explicit `--verify-remote` mode downloads the official NIST Core export and extracts the eight active categories.
+It compares their canonical semantic digest and content with the checked-in
 snapshot.
 
 <!-- vale RAES.HeadingCase = YES -->

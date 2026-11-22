@@ -102,17 +102,16 @@ Profiles resolve from a closed repository-governed registry. Callers cannot
 replace the adapter digest or create a new approximation posture by resealing
 a payload. Each fact retains its authoritative owner artifact, and the public
 projector reruns the fixed adapter before classification. The admitted,
-observed, and verified adapters require the subject to identify the exact
-disclosure, truth result, or transformation report; a valid result for another
+observed, and verified adapters require the subject to identify the exact disclosure, truth result, or transformation report.
+A valid result for another
 subject cannot be substituted.
 
 Observed decided facts resolve every and only the evidence references declared
 by their truth result through a trusted evidence resolver. Each result must
 resolve typed `experiment-evidence-record/v1` artifacts whose canonical
 digests, capture window, redaction posture, and probe provenance satisfy the
-exact evidence boundary. Verified facts use the same resolver and require the
-fixed `verify-semantic-predicate/v1` operation, the
-`semantic-predicate-witness/v1` preservation profile, the exact predicate
+exact evidence boundary. Verified facts use the same resolver and require the fixed `verify-semantic-predicate/v1` operation.
+They also require the `semantic-predicate-witness/v1` preservation profile, the exact predicate
 profile digest as policy, and an exact native-subject join. A generic successful
 transformation is not semantic verification. Every positive row carries the
 exact native subject, native result id and digest, producer contract,
@@ -152,8 +151,8 @@ Internal projection is pure and introduces no authentication surface.
 Participant-relative frames retain exact participant, episode, audience,
 policy revision/digest, and applicable-cut coordinates, but the pure contract
 projector refuses to emit them. Participant-visible reporting must invoke the
-incumbent deny-first participant exposure-policy service, which resolves its
-authorization from trusted apparatus, policy, and authorization-record
+incumbent deny-first participant exposure-policy service.
+That service resolves its authorization from trusted apparatus, policy, and authorization-record
 resolvers rather than accepting caller-constructible permit data. Actual
 authorization, disclosure, transformation, delivery, observation, and audit
 remain owned by those exposure and API-423 participant-crossing contracts.

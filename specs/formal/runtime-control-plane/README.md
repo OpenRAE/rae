@@ -22,14 +22,16 @@ An operation is the tuple
 `O = (operation_id, kind, actor, authorization_scope, idempotency_key,
 request_commitment, state, parent_operation_id?)`. The store fixes `S` at
 creation. `actor`, `authorization_scope`, `kind`, and `request_commitment` are
-immutable after admission. The request commitment is a value-free,
-domain-separated canonical digest; it is not a raw request body or bearer
+immutable after admission.
+
+The request commitment is a value-free, domain-separated canonical digest; it is not a raw request body or bearer
 credential. It covers every execution-affecting semantic input, including an
 explicit base snapshot through the same value-free projection. A separate
-ephemeral exact fingerprint binds credential-bearing input for in-process
-idempotency collision detection; that fingerprint never enters the operation
-store, receipts, statuses, diagnostics, or audit records. After restart its
-proof is intentionally unavailable, so a credential-bearing retry under an
+ephemeral exact fingerprint binds credential-bearing input for in-process idempotency collision detection.
+That fingerprint never enters the operation
+store, receipts, statuses, diagnostics, or audit records.
+
+After restart its proof is intentionally unavailable, so a credential-bearing retry under an
 already-durable idempotency key fails closed. Status retrieval remains separate;
 a new key is necessary for new effect work but never sufficient authorization
 to repeat it or bypass unresolved effects.
@@ -63,8 +65,8 @@ store-specific transition table.
 | `CANCELLED` | illegal | illegal | illegal | illegal | illegal | illegal |
 | `INDETERMINATE` | illegal | illegal | illegal | illegal | illegal | illegal |
 
-An exact retry of an already-persisted carrier is an idempotent persistence
-no-op, not a self-transition, and is valid only when the complete immutable
+An exact retry of an already-persisted carrier is an idempotent persistence no-op, not a self-transition.
+It is valid only when the complete immutable
 operation context and terminal carrier are identical. `UNRECORDED` is not a
 persisted state and remains governed by the admission rules above.
 
@@ -76,8 +78,8 @@ acknowledgement identifies an operation governed by the matrix above.
 
 Lifecycle diagnostics use the existing closed `DiagnosticModel` contract.
 Invalid transition attempts and non-success terminal classifications carry
-stable namespaced codes and bounded, value-free messages; `INDETERMINATE` has
-a distinct code and must not be represented by a generic failed/cancelled
+stable namespaced codes and bounded, value-free messages.
+`INDETERMINATE` has a distinct code and must not be represented by a generic failed/cancelled
 diagnostic. Provider exception text, request content, credentials, paths, and
 authorization values never enter the diagnostic. Public diagnostic locations
 use the shared model's safe JSON-Pointer address shape.
@@ -141,17 +143,16 @@ predecessor without proving absence of external effects.
 7. **No-replay invariant.** Startup, retry, timeout, cancellation, and request
    disconnect do not automatically invoke the backend again.
 8. **Idempotency invariant.** A claim is unique within
-   `(store scope, actor, operation kind, idempotency key)`. A duplicate with a
-   different request commitment, explicit base snapshot, admission context, or
-   private exact fingerprint fails closed; a duplicate never bypasses
+   `(store scope, actor, operation kind, idempotency key)`. A duplicate with a different request commitment or explicit base snapshot fails closed.
+   A duplicate with a different admission context or private exact fingerprint also fails closed.
+   A duplicate never bypasses
    authorization or discloses another actor's receipt.
 9. **Authorization invariant.** Possession of an operation id, receipt, store,
    or idempotency key grants no authority. Every mutation and read is checked
    against the immutable actor, target/run, role, and relevant participant
    subject/audience scope.
-10. **Provenance invariant.** Operational audit records stable action, actor,
-    target, operation, outcome, and coarse reason fields without tokens, raw
-    requests, host paths, credentials, backend exception text, or payload
+10. **Provenance invariant.** Operational audit records stable action, actor, target, operation, outcome, and coarse reason fields.
+    It records them without tokens, raw requests, host paths, credentials, backend exception text, or payload
     values. Audit is distinct from participant observations, captured evidence,
     and archival run provenance; append-only is not a tamper-evidence claim.
 11. **Validation invariant.** Persisted and transported portable state passes
@@ -175,9 +176,9 @@ partially migrated records still fail closed.
 For two concurrent claims, at most one transaction wins a given scoped
 idempotency key. For two terminal commits based on the same snapshot revision,
 at most one compare-and-swap succeeds. Store transactions never span backend
-calls. Process loss at each boundary therefore leaves either no claim, a
-non-terminal operation eligible for classification, or one complete terminal
-commit; it never makes a partial terminal record authoritative.
+calls. Process loss at each boundary therefore leaves one of three results.
+These are no claim, a non-terminal operation eligible for classification, or one complete terminal commit.
+It never makes a partial terminal record authoritative.
 
 P0 may lose all state on process loss but must preserve the in-process safety,
 identity, authorization, validation, and no-double-invocation properties while

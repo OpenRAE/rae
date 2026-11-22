@@ -171,8 +171,8 @@ breaks the tie: field, node, topology/app, then scenario. Topology and app remai
 sibling scopes.
 
 If two bindings have equal specificity and incompatible domains or posture, the
-envelope is invalid. If a more-specific binding widens a value that an enclosing
-closed-world scope made exact or excluded, the envelope is invalid unless the
+envelope is invalid. A more-specific binding can widen a value that an enclosing closed-world scope made exact or excluded.
+Then the envelope is invalid unless the
 enclosing binding explicitly marks that child as overrideable.
 
 That `overrideable` condition governs explicit envelope domain bindings. It
@@ -241,8 +241,8 @@ one instance. It is not a proof of subsumption or backend honesty.
 
 ### R6 - Closed envelopes require negative conformance
 
-When a backend declares a closed-world envelope, conformance MUST generate
-negative probes for closed dimensions that can be varied without introducing
+When a backend declares a closed-world envelope, conformance MUST generate negative probes for closed dimensions.
+These are dimensions that can be varied without introducing
 secrets or unsafe side effects.
 
 A negative probe is a request that differs from a valid witness by one
@@ -289,8 +289,8 @@ Envelope diagnostics MAY name:
 - non-sensitive governed identifiers;
 - digest and contract ids.
 
-Diagnostics MUST NOT echo credentials, bearer tokens, private keys, process
-argv, host paths, backend-native ids, raw backend object representations,
+Diagnostics MUST NOT echo credentials, bearer tokens, private keys, process argv, or host paths.
+They MUST NOT echo backend-native ids, raw backend object representations,
 hidden truth, scoring state, or full tracebacks.
 
 ## Invariants

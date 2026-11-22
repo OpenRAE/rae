@@ -16,6 +16,7 @@ API-409 v2 carries their occurrences.
 After #1364, the compiler and API-409 v2 reader are available.
 An explicitly configured RUN-310 control owner can execute reusable applications.
 It can retain evidenced cancellation outcomes.
+
 See [reusable participant control](../explain/reference/reusable-participant-control.md) for installation and original-policy recovery.
 That reference gives the supported-path boundary too.
 Ordinary planning and unsupported delivery/consumer paths still refuse unsupported work.
@@ -106,6 +107,7 @@ A finite declaration's permitted trace set always changes when it becomes **reus
 It needs an explicit author decision.
 Removing fixed revisions does not authorize that change.
 Neither does copying the same edge into a cycle.
+
 Do not infer new authority or clock mappings.
 Do not infer future completion receipts.
 Keep transformed-proposal lineage and all original source artifacts.
@@ -116,6 +118,7 @@ Never rewrite historical IDs, actual order, revisions, or dispositions.
 Never rewrite controller attribution, evidence, or markings.
 Do not renumber an occurrence revision to match a state revision.
 Occurrence revisions may count records across rejections and episodes.
+
 V1 non-handoff history can depend on its original compiled transition.
 That transition can determine the resulting state.
 Keep that dependency and its content pin.
@@ -124,6 +127,7 @@ Historical v1 rejection records keep their original assertions.
 The new rejected-attempt shape may express attempted/evaluated coordinates.
 It can express them more truthfully than the old shape.
 It does not change old records.
+
 Conversion cannot manufacture missing historical evidence.
 Old delivery bindings keep their original equality and destination-state rules.
 The new source-controller rules do not apply retroactively.
@@ -133,6 +137,7 @@ A live policy cannot be upgraded inside an episode.
 Its meaning cannot be upgraded there either.
 Drain or stop through the existing lifecycle.
 Keep indeterminate effects for reconciliation.
+
 Then explicitly admit a new episode with the selected supported policy.
 Initialization must validate its authority.
 It must mark the predecessor relation too.
@@ -162,6 +167,7 @@ It owns their contextual joins too.
 RUN-310 checks which targets are eligible.
 It owns the state fold too.
 It keeps history, receipt, and audit atomic at the exact cut.
+
 DSL-142 covers directed-delivery declarations.
 It also covers the actual joins to control applications.
 It covers independent disclosure-policy resolution.
@@ -183,6 +189,7 @@ Use the existing rules to govern every embedded schema affected by this change.
 These include SDL authoring and instantiated scenario.
 They include instantiated-scenario snapshot, materialized scenario, and satisfiability evidence too.
 Include direct control occurrences and runtime snapshots too.
+
 Use existing publication records for contract identity, schema path, and stability.
 They contain no hash or change summary.
 Resolve required schema-content pins from exact artifacts at a pinned release or Git revision.

@@ -109,6 +109,7 @@ Runtime snapshots add `participant_resource_budget_states`,
 `participant_resource_pool_states`, and
 `participant_resource_budget_events`. Budget states use canonical policy-scoped state references as keys.
 Pool states use exact physical-pool identities as keys.
+
 They contain the cross-policy allocation ledger. Consumers that
 deserialize the current closed snapshot schema must regenerate against the
 updated `runtime-snapshot-v1` schema. Execution-service state includes `resource_budget_state_refs`.
@@ -118,6 +119,7 @@ Reservation is atomic across the full vector and occurs before native work.
 The native result must return one measurement per reservation.
 Its operation, generation, resource, unit, meter, and evidence must match.
 Absent or contradictory measurements release or roll back the reservation.
+
 They cannot commit its estimate. Commit is generation-fenced and idempotent by action
 identity. A shared-time
 reset advances every state generation, clears only `time_segment` dimensions,

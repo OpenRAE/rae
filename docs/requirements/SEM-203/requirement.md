@@ -21,6 +21,10 @@ Current state: implemented. Explicit state-machine rules keep workflow meaning t
 
 ## Traceability
 
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/workflow_transitions.py` (Runtime graph control.)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/workflow_execution.py` (Dispatch and response acceptance.)
+- TESTS → TEST `implementations/python/tests/test_issue_2041_runtime_step_dispatch.py` (Graph order, shared steps, calls, barriers, and retries.)
+
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/workflow/semantics.py` (Workflow step state and join rules)
 - TESTS → TEST `implementations/python/tests/test_workflow_join_analysis.py` (Join checks against all paths in small graphs)
 - DOCUMENTS → DOCUMENTATION `docs/explain/sdl/sections.md` (SDL Sections Reference)

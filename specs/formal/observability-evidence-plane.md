@@ -10,9 +10,8 @@ This cross-domain formal design artifact supports ADR-066 and issue #127 for:
   Operational apparatus observability and run-level augmentation/evidence
   conformance
 
-It is design coverage. It defines the invariant set and source-to-contract-to-
-test matrix that the spawned implementation issues must realize in SDL models,
-semantic helpers, contract fields, fixtures, validators, and tests.
+It is design coverage. It defines the invariant set and source-to-contract-to-test matrix.
+The spawned implementation issues must realize them in SDL models, semantic helpers, contract fields, fixtures, validators, and tests.
 
 <!-- vale RAES.HeadingCase = NO -->
 ## FM classification
@@ -37,9 +36,8 @@ Rationale:
 
 In-world observability systems authored as part of the scenario. They are
 targetable only when represented by an SDL section, runtime family, or typed
-relationship endpoint. Examples include network sensors, detection engines,
-security monitoring managers, forwarding agents, telemetry collectors, tracing
-services, dashboards, or metrics stores when the scenario makes them part of
+relationship endpoint. Examples include network sensors, detection engines, security monitoring managers, and forwarding agents.
+Other examples are telemetry collectors, tracing services, dashboards, or metrics stores when the scenario makes them part of
 the environment.
 
 ### Authored evidence requirement
@@ -58,9 +56,8 @@ scenario meaning unless explicitly projected into an SDL or runtime contract.
 
 ### Captured evidence
 
-Concrete evidence artifacts or `experiment-evidence-record-v1` records. They
-cite the capture specification or authored requirement they satisfy and carry
-source, capture time/window, raw content reference or bounded summary,
+Concrete evidence artifacts or `experiment-evidence-record-v1` records. They cite the capture specification or authored requirement they satisfy.
+They carry source, capture time/window, raw content reference or bounded summary,
 sensitivity, redaction state, provenance, and integrity metadata.
 
 ### Derived analysis
@@ -151,13 +148,13 @@ The minimum adversarial fixture set for implementation is:
 
 SEM-224 is realized as a carrier-oriented plane classifier plus portable plane
 traceability over the existing carriers. The classifier
-`raes.observability_plane_semantics` is the single source of plane
-ownership; it assigns exactly one primary plane by contract role or runtime
+`raes.observability_plane_semantics` is the single source of plane ownership.
+It assigns exactly one primary plane by contract role or runtime
 family identity and never by a free string (OE-01, OE-11). The three
 claim-bearing experiment-core carriers publish their plane as an `x-raes-plane`
 annotation sourced from that classifier. The plane *separation* each carrier
-enforces was already realized by the EXP-707/708/709 contracts and SEM-216; this
-issue adds the unifying classifier, the portable annotation, and the SEM-224
+enforces was already realized by the EXP-707/708/709 contracts and SEM-216.
+This issue adds the unifying classifier, the portable annotation, and the SEM-224
 probe set.
 
 <!-- vale RAES.HeadingCase = YES -->
@@ -227,8 +224,8 @@ Its checks establish that qualified runtime-family refs can serve as relationshi
 DSL-124 is realized as the SDL `evidence_requirements` section. It records
 authored capture intent and remains separate from participant objectives,
 scenario-native observability systems, raw evidence records, and derived
-analysis. Concrete source, scope, channel, trigger, and boundary refs reuse the
-existing fail-closed targetable reference resolver; class-level requirements use
+analysis. Concrete source, scope, channel, trigger, and boundary refs reuse the existing fail-closed targetable reference resolver.
+Class-level requirements use
 closed source/channel/redaction/integrity/retention/loss-disclosure
 vocabularies instead of free-form observability bags.
 
@@ -247,8 +244,8 @@ vocabularies instead of free-form observability bags.
 ## Implementation coverage (#128 / RUN-316, API-419, ASR-525, EXP-731, EXP-732)
 
 Issue #128 connects the already-realized observability/evidence carriers to the
-backend conformance runner. `experiment-run-v1` is now part of the governed
-backend observation evidence surface, so backend profiles can require it and
+backend conformance runner. `experiment-run-v1` is now part of the governed backend observation evidence surface.
+Thus backend profiles can require it and
 manifest observation capability checks can detect a missing archival run
 carrier.
 
@@ -313,17 +310,20 @@ fail closed. `extend` relations keep the added obligation separately identified.
 artifacts without rewriting either input. The processor's
 `compile_scoped_evidence_requirement_demands()` then concatenates the incumbent
 SDL and capture-spec demand projections so admission evaluates every base and
-scoped obligation independently. Empty relation collections retain open scope:
-they do not require an author to declare backend recipes, captured specimens,
-retention/export policy, or other unmentioned implementation detail.
+scoped obligation independently.
+
+Empty relation collections retain open scope.
+They do not require an author to declare backend recipes, captured specimens, or retention/export policy.
+They do not require other unmentioned implementation detail either.
 The authoritative trial compiler supplies both task and run-plan relations to
 that function against the immutable expanded scenario. Trial realization
 revalidates the same relation set from the digest-bound authoring inputs before
-processor planning. Authoritative archival run and study validators also
-resolve every carried relation against exact caller-supplied scenario and
+processor planning.
+
+Authoritative archival run and study validators also resolve every carried relation against exact caller-supplied scenario and
 capture-specification artifacts. Version-2 task, run, and study owner
-projections include the relation set, while revision 1 retains its historical
-meaning and is not accepted for current relation-bearing carrier schemas.
+projections include the relation set.
+Revision 1 retains its historical meaning and is not accepted for current relation-bearing carrier schemas.
 
 | Invariant / matrix row | Realizing artifact | Test |
 | --- | --- | --- |
@@ -340,9 +340,8 @@ meaning and is not accepted for current relation-bearing carrier schemas.
 ## Implementation coverage (#1212 / scoped observation demand)
 
 Issue #1212 adds `observation-demand-v1` as the shared demand carrier without
-adding another evidence plane. SDL evidence requirements, experiment task and
-capture policy, run planning, normalized runtime models, and all three
-execution plans carry the same closed contract or its effective form.
+adding another evidence plane. SDL evidence requirements, experiment task and capture policy, and run planning carry the same closed contract or its effective form.
+Normalized runtime models and all three execution plans also carry it.
 
 <!-- vale RAES.HeadingCase = YES -->
 

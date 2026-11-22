@@ -2188,7 +2188,7 @@
       "_owner": 1
     },
     "raes_runtime.control_plane_local_execution": {
-      "_execution_adapter": 3,
+      "_execution_adapter": 2,
       "_information_state_context_resolver": 2,
       "_materialization_archive": 2,
       "_mutation_authority": 2,
@@ -3082,8 +3082,7 @@
       "raes_contracts.snapshot_histories": 1
     },
     "raes_runtime.control_plane_store_snapshots": {
-      "raes_contracts.contracts.materialization_attestation": 1,
-      "raes_contracts.immutable_history": 1
+      "raes_contracts.contracts.materialization_attestation": 1
     },
     "raes_runtime.control_plane_store_sql_changes": {
       "raes_runtime.control_plane_store_local_codec": 1,

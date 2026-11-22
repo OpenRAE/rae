@@ -107,6 +107,7 @@ profiles, assets, examples, vocabularies, backends, and evidence rules.
 
 This repository includes contracts, stubs, and conformance tests. It does not
 include a concrete deployment backend or a managed environment service.
+
 External backends realize scenarios outside this repository:
 [Shifter](https://github.com/Brad-Edwards/shifter),
 [LilRAE](https://github.com/OpenRAE/lilrae), or your own backend. To write a

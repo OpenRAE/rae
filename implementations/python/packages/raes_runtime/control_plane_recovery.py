@@ -111,6 +111,9 @@ def reconcile_startup_operations(control_plane: object) -> None:
 
 
 def _reconcile_record(control_plane: object, record: ControlPlaneOperationRecord) -> None:
+    if record.workflow is not None and record.workflow.kind in {"root", "checkpoint"} and record.invocation is None:
+        # The continuation is runtime bookkeeping. Its child invocation owns any uncertain native effect.
+        return
     if reconcile_delivery_tool(control_plane, record, port_type=control_plane.delivery_tool_port_type):
         return
     if record.status.state is OperationState.ACCEPTED:

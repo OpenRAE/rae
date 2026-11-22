@@ -35,6 +35,7 @@ from raes_contracts.contracts.realization_plans import (
     RealizationAuthorityBoundModel,
     ResolvedRealizationAuthorityModel,
 )
+from raes_contracts.contracts.workflow_dispatch import WorkflowStepDispatch
 
 from .._canonical import canonical_json_digest
 from ..diagnostics import Diagnostic, diagnostic_payload
@@ -177,7 +178,7 @@ def planned_provisioning_resources(plan: ProvisioningPlan) -> tuple[PlannedResou
     )
 
 
-def runtime_plan_digest(plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan) -> str:
+def runtime_plan_digest(plan: ProvisioningPlan | OrchestrationPlan | EvaluationPlan | WorkflowStepDispatch) -> str:
     """Return one domain-tagged digest for an exact planner-produced artifact."""
 
     if isinstance(plan, ProvisioningPlan):
@@ -189,6 +190,8 @@ def runtime_plan_digest(plan: ProvisioningPlan | OrchestrationPlan | EvaluationP
     elif isinstance(plan, EvaluationPlan):
         domain = "evaluation"
         model = evaluation_plan_model(plan)
+    elif isinstance(plan, WorkflowStepDispatch):
+        return canonical_json_digest({"domain": "workflow-step", "dispatch": plan.model_dump(mode="json")})
     else:
         raise TypeError("unsupported runtime plan type")
     return canonical_json_digest({"domain": domain, "plan": model.model_dump(mode="json", exclude_none=True)})

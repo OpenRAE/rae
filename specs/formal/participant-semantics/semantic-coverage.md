@@ -29,8 +29,9 @@ review on its own:
 | [family-rows.md](semantic-coverage/family-rows.md) | 14 | SEM-214.F to DSL-437.F |
 
 `implementations/python/tests/test_issue_219_participant_semantic_coverage.py`
-reads every part. It checks the matrix against the tree in both directions:
-every clause has a row, every row resolves to a clause, and every cited path,
+reads every part. It checks the matrix against the tree in both directions.
+Every clause has a row, and every row resolves to a clause.
+Every cited path,
 test function, requirement, and relation exists. It also checks that this
 file lists each part with its row count, and that the open-row table below
 matches the parts. Whether a cited test exercises the whole clause is a review
@@ -38,17 +39,16 @@ judgment.
 
 ## Scope
 
-- **Clause rows.** The "Design commitments" bullets of SEM-208, SEM-209,
-  SEM-210, SEM-212, SEM-213, and SEM-215; the SEM-211 precondition, effect, and
-  failure groups; invariants I1 to I18; and the behavior-model cross-clause
-  invariants PBM-01 to PBM-13. Clause IDs such as `SEM-208.C1` exist only here
+- **Clause rows.** Clause rows cover the "Design commitments" bullets of SEM-208, SEM-209, SEM-210, SEM-212, SEM-213, and SEM-215.
+  They cover the SEM-211 precondition, effect, and failure groups, and invariants I1 to I18.
+  They also cover the behavior-model cross-clause invariants PBM-01 to PBM-13. Clause IDs such as `SEM-208.C1` exist only here
   and follow bullet order. The normative bullets are not renumbered.
 - **Family rows** (`.F`). One row for each `## SEM-…` README section without
   clause rows, and one for each focused-specification requirement family with
   no README section (SEM-234, SEM-235, ACT-617, ACT-618, DSL-142, and DSL-437), for 14
-  rows. SEM-219, SEM-220, and SEM-226 share one joint row, which points to
-  the README's ADR-083 §7 "Source-to-contract-to-test matrix" instead of
-  restating it, so no clause has two clause matrices. Rows follow requirement
+  rows. SEM-219, SEM-220, and SEM-226 share one joint row.
+  It points to the README's ADR-083 §7 "Source-to-contract-to-test matrix" instead of restating it.
+  Thus no clause has two clause matrices. Rows follow requirement
   families, not files. Every focused specification (every top-level `*.md` in
   this directory other than `README.md` and this index) is named in the
   normative location of at least one family row, and one row can name several:
@@ -168,6 +168,7 @@ The evidence classes remain those defined above; a crosswalk reference adds no s
 API-409 occurrence v2, API-424 evaluation v2, and decision-surface v2 have independent reader and semantic lineages.
 Historical records retain their original policy, identity, consumed budgets, provenance, and outcome.
 V1 `observation_order` selects a supplied behavior-history occurrence. It is not a v2 decision epoch.
+
 V2 admission requires trusted reprojection and the exact delivered view; renaming a field supplies neither.
 Projection, disclosure, delivery, observation, selection, admission, execution, and outcome remain distinct facts.
 The [v2 migration reference](../../../docs/explain/reference/participant-decision-surface-v2-migration.md) retains the reader and admission boundary.

@@ -118,6 +118,7 @@ It does not depend on `raes`, install a placeholder, or restore retired import a
 Under that plan, archival follows verification on PyPI.
 Verification covers the final artifact name, version, contents, metadata, and replacement links.
 Historical releases remain available. They are not deleted or broadly yanked.
+
 The current release-please workflow remains exclusive to `raes`.
 The one-time legacy publication needs immutable reviewed source and the protected PyPI environment.
 It uses short-lived OIDC credentials, not a stored token.

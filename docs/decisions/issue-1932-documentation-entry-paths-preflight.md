@@ -18,6 +18,7 @@ The four pages have different entry contexts, with one purpose: route readers.
 `README.md` serves GitHub and the PyPI description.
 `docs/public/index.md` serves the hosted guide.
 `docs/index.md` preserves an older repository entry.
+
 `docs/README.md` routes readers to repository records and contributor guidance.
 The latter two pages remain outside the hosted build.
 They must still provide useful routes without requiring repository knowledge.
@@ -232,11 +233,13 @@ flowchart LR
 The maintainer or CI supplies the selection. The stage reads Git data and catalogs.
 Vale reads prose and style rules, then returns findings to the stage.
 The stage returns the result to the maintainer or CI.
+
 Sphinx reads only public sources and sends checked HTML to the existing publisher.
 The trust boundary is the repository root. External URLs are links; no check sends prose to them.
 
 No other diagram is necessary. This change adds no component, deployment, or state.
 No ADR changes are necessary. ADR-014 covers the nox graph, ADR-059 covers ADR pins,
 and ADR-096 covers the historical records.
+
 No policy-as-code rule changes. The landing-page tests change with the page layout.
 No architecture-as-code file changes, because schema version 1 has no architecture block.

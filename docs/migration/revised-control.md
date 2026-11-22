@@ -10,6 +10,7 @@ Target: `Explicit rev1 policy forms and separately negotiated v2 carrier/provide
 Use RAES 11.0.2 with the original source, apparatus selections, histories, stores, and content pins.
 The author decides semantic changes. The runtime operator admits new bindings.
 Backend owners supply native effects, evidence, and cleanup.
+
 A file conversion is local.
 Installing new live apparatus changes runtime admission.
 Stop new affected admission.
@@ -35,6 +36,7 @@ It must support its profiles and installed owners too.
 The rev1 declaration requires `semantics: mixed-control-policy-occurrence/rev1` and an explicit `form`.
 Removing fixed coordinates alone is not a valid conversion.
 A reusable edge authorizes no automatic execution.
+
 An exact retry returns the saved receipt.
 It does not request another cycle.
 The [adoption contract](reusable-mixed-control.md) governs source-preserving conversion.
@@ -64,6 +66,7 @@ P0, P1, and P2 keep their existing process guarantees.
 They keep their existing durability and transport guarantees too.
 These contracts add no P3 guarantee.
 They add no multi-owner or exactly-once-effects guarantee.
+
 The inject guide records the applicable local and PostgreSQL ledger versions.
 The applicability guide records v2 evaluation reader admission.
 These internal versions do not replace wire or semantic pins.
@@ -87,6 +90,7 @@ Transport retries, durable queues, and backend idempotency cannot authorize anot
 Restart does not grant redispatch. A new ID does not reset a surviving causal budget.
 Migration evidence appends facts.
 It does not rewrite past outcomes or fabricate cessation.
+
 The [executable examples](../examples/revised-control.md) check repeated control, world effects, and refusals.
 They also check supported mixed arrangements.
 They verify RAES behavior through test providers. Downstream native qualification remains separate.
@@ -97,8 +101,10 @@ Success is an admitted arrangement.
 It retains exact pins and historical readers.
 On refusal, keep the source.
 Keep the unsupported route closed until its required consumer, owner, or pin is available.
+
 Do not erase uncertainty or reset consumed budgets.
 Do not repeat effects to finish adoption.
+
 The original backend owner must establish cessation.
 That owner must also establish cleanup before resource reuse.
 Read [current support](../explain/reference/revised-control-semantics.md)

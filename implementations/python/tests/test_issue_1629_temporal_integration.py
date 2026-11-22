@@ -3,7 +3,8 @@
 import asyncio
 import os
 import socket
-from contextlib import ExitStack, asynccontextmanager
+from contextlib import asynccontextmanager
+from dataclasses import replace
 from pathlib import Path
 from threading import Thread
 from time import monotonic
@@ -92,12 +93,11 @@ def test_real_sequence_delivery_retains_runtime_authority(kind, tmp_path):
         pytest.skip("requires the hosted runtime-execution integration composition")
     from postgresql_ledger_fixtures import disposable_ledger_database
 
-    with ExitStack() as databases:
-        owned = [databases.enter_context(disposable_ledger_database()) for _ in range(3 if kind == "experiment" else 1)]
-        asyncio.run(exercise(kind, tmp_path, owned))
+    with disposable_ledger_database() as database:
+        asyncio.run(exercise(kind, tmp_path, database))
 
 
-async def exercise(kind, tmp_path, databases):
+async def exercise(kind, tmp_path, database):
     import uvicorn
     from issue_1629_trial_fixture import TrialServices, factorial_inputs
     from postgresql_ledger_fixtures import ledger_configuration
@@ -118,7 +118,9 @@ async def exercise(kind, tmp_path, databases):
     from test_issue_1629_temporal_runtime import worker
     from test_runtime_manager import _full_scenario
 
-    store = PostgreSQLControlPlaneStore(ledger_configuration(databases[0]))
+    configuration = ledger_configuration(database)
+    engine_configuration = replace(configuration, namespace="engine")
+    store = PostgreSQLControlPlaneStore(engine_configuration)
     await asyncio.to_thread(store.initialize_schema)
     services = None
     if kind == "run":
@@ -161,8 +163,8 @@ async def exercise(kind, tmp_path, databases):
         services = TrialServices(target)
         services.pending = True
         run_stores = {}
-        for entry, database in zip(inputs.plan.entries.values(), databases[1:], strict=True):
-            run_store = PostgreSQLControlPlaneStore(ledger_configuration(database))
+        for index, entry in enumerate(inputs.plan.entries.values()):
+            run_store = PostgreSQLControlPlaneStore(replace(configuration, namespace=f"trial_{index}"))
             await asyncio.to_thread(run_store.initialize_schema)
             run_stores[entry.run_id] = run_store
         experiment = plane.admit_experiment(inputs, services=services, store_factory=run_stores.__getitem__)
@@ -237,6 +239,10 @@ async def exercise(kind, tmp_path, databases):
                         assert [phase for _, phase in services.events].count("configure") == 2
                     retained = plane._store.load_runtime_decisions()
                     assert retained
+                    if services is not None:
+                        retained_run_snapshots = {
+                            run_id: plane.get_run("run:" + run_id).snapshot for run_id in run_stores
+                        }
     finally:
         if delivery is not None:
             await asyncio.to_thread(delivery.close)
@@ -247,5 +253,11 @@ async def exercise(kind, tmp_path, databases):
         plane.close()
     # The owner process can reopen the committed decisions; engine history is
     # never used as a substitute for the RAE ledger.
-    with RuntimeControlPlane(target, store=PostgreSQLControlPlaneStore(ledger_configuration(databases[0]))) as reopened:
+    with RuntimeControlPlane(target, store=PostgreSQLControlPlaneStore(engine_configuration)) as reopened:
         assert reopened._store.load_runtime_decisions() == retained
+        if kind == "experiment":
+            for run_id, prior in run_stores.items():
+                run = reopened.open_run(
+                    run_scope="run:" + run_id, store=PostgreSQLControlPlaneStore(prior._configuration)
+                )
+                assert run.snapshot == retained_run_snapshots[run_id]

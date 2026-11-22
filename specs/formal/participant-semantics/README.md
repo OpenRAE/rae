@@ -4,8 +4,8 @@ Issue #1354 and ADR-114 publish [IFC profile variability and publication](ifc-pr
 The amendment separates authored requirements, exact profile expressibility
 and evidenced realization, preserving this document's original revision and
 implementation boundary. The amendment itself registers no owner-aware profile
-or runtime support. Issue #1370 (PR #1614) adopted it under its migration
-contract: the finite two-owner `participant-owner-flow-policy-v1` profile,
+or runtime support. Issue #1370 (PR #1614) adopted it under its migration contract.
+The contract covers the finite two-owner `participant-owner-flow-policy-v1` profile,
 per-obligation release authority, independent sink resolution, and API-424 v2
 admission of the profile's obligations and admitted support. The
 [owner-qualified IFC reference](../../../docs/explain/reference/owner-qualified-ifc.md)
@@ -25,8 +25,8 @@ for ACT-617, API-409, RUN-310 and DSL-142. Its finite model is design evidence;
 the contract states the historical-reader boundary explicitly. Issue #1363
 (PR #1584) added the reusable authoring form and the API-409
 `participant-control-occurrence-v2` carrier. Issue #1364 (PR #1613) added the
-explicitly installed RUN-310 control path that executes that form; planning
-without that path's admission, the runtime manager, and control-plane
+explicitly installed RUN-310 control path that executes that form.
+Planning without that path's admission, the runtime manager, and control-plane
 construction without the installed binding refuse it. The
 [coverage matrix](semantic-coverage.md) row `ACT-617.F` names the open owners
 of the remaining consumer adoption.
@@ -75,16 +75,20 @@ PR #914) then amended the decision-surface coordinates and made
 `participant-decision-surface-v2` the actionable contract.
 
 The [participant semantic coverage matrix](semantic-coverage.md) (issue #219)
-indexes this document and its focused specifications. It has clause rows for
-the design commitments of SEM-208, SEM-209, SEM-210, SEM-212, SEM-213, and
-SEM-215, the SEM-211 precondition, effect, and failure groups, and invariants
-I1 to I18. Every other `SEM-…` section has one family row, as does each of
+indexes this document and its focused specifications.
+It has clause rows for the design commitments of SEM-208, SEM-209, SEM-210, SEM-212, SEM-213, and SEM-215.
+It also has clause rows for the SEM-211 precondition, effect, and failure groups, and invariants I1 to I18.
+
+Every other `SEM-…` section has one family row, as does each of
 the five requirement families whose focused specifications have no section
-here. Family rows follow requirement families, not files: a row can name
-several focused specifications, and every focused specification is named by
+here.
+
+Family rows follow requirement families, not files.
+A row can name several focused specifications, and every focused specification is named by
 at least one family row. SEM-219, SEM-220, and
 SEM-226 share a family row that points to the ADR-083 §7
 source-to-contract-to-test matrix in this document instead of restating it.
+
 The matrix also has clause rows for the behavior model's invariants PBM-01 to
 PBM-13 and three participant-runtime criteria. Each row records contracts,
 implementation, tests, evidence class, and coverage, and each row that is not
@@ -119,11 +123,12 @@ falsification evidence. Issue #1002 publishes the immutable flow profile and
 portable relation contract. Issue #1007 adds bounded executed evaluation with
 controlled providers. Issue #1008 publishes source-bound RAE harness results.
 ASR-536 separates RAE harness evaluation from concrete backend qualification.
+
 Their normative profiles are in
-[`adversarial-flow-control.md`](adversarial-flow-control.md). The design
-extends the existing participant, control, crossing, runtime, backend, and
-experiment carriers with independent confidentiality and integrity
-coordinates, conservative derivation, final-sink mediation, and explicit
+[`adversarial-flow-control.md`](adversarial-flow-control.md).
+
+The design extends the existing participant, control, crossing, runtime, backend, and experiment carriers.
+It adds independent confidentiality and integrity coordinates, conservative derivation, final-sink mediation, and explicit
 attack-protocol variables. The #1001 SEM-233 finite model is not the #1002 portable contract,
 runtime enforcement, backend realization, monitor-honesty, covert-channel, or
 adversarial-robustness result.
@@ -143,8 +148,8 @@ IFC/noninterference, or cross-backend equivalence.
 
 Issue #861 and ADR-092 add deterministic autonomous execution for ordinary
 participants. The focused normative composition is
-[`autonomous-execution.md`](autonomous-execution.md): it binds existing
-participant actions and observations to the shared time model, participant
+[`autonomous-execution.md`](autonomous-execution.md).
+It binds existing participant actions and observations to the shared time model, participant
 implementation selection, backend-native execution, and typed runtime
 readback. It adds no parallel actor or private time semantics.
 
@@ -181,9 +186,9 @@ What is missing:
   semantic family
 - no deployed-backend proof that extends the bounded oracle or mixed-composition
   witnesses to interoperability, transfer, noninterference, or equivalence
-- no claim that inherited delegation, complete abstract models, one-choice
-  admission, independent observation demand, or the #1212 policy correction
-  has shipped merely because related design or research material exists
+- no claim that inherited delegation, complete abstract models, or one-choice admission has shipped.
+  The same applies to independent observation demand and the #1212 policy correction.
+  Related design or research material alone does not show that they shipped
 
 The repository therefore remains at `partial` participant-semantics coverage:
 delivered runtime and semantic slices remain incomplete for the full family.
@@ -207,7 +212,8 @@ action, observation, reward, and episode concepts explicit.
 [PettingZoo](https://papers.nips.cc/paper/2021/hash/7ed2d3454c5eea71148b11d0c25104ff-Abstract.html)
 extends this ecosystem to multi-agent environments through the Agent Environment
 Cycle model. It is a useful precedent for explicit per-agent turns and
-multi-agent API consistency, but RAES cannot adopt a turn-only worldview because
+multi-agent API consistency.
+But RAES cannot adopt a turn-only worldview, because
 real cyber ranges also need concurrent, asynchronous, and backend-realized
 action ordering.
 
@@ -219,8 +225,8 @@ details.
 
 ### Partial observability and multi-agent control
 
-Kaelbling, Littman, and Cassandra's POMDP treatment frames sequential action
-under incomplete observation; the core lesson for RAES is that a participant's
+Kaelbling, Littman, and Cassandra's POMDP treatment frames sequential action under incomplete observation.
+The core lesson for RAES is that a participant's
 observation stream is not the environment state. Local history and belief matter
 when interpreting behavior.
 
@@ -233,18 +239,18 @@ RAES reuses for joint policies, action-observation histories, and information
 states. RAES should not pretend that one global state and one global
 observation stream are enough for multi-participant experiments.
 
-Mean-field game theory — Huang, Caines, and Malhamé (2006) and Lasry and Lions
-(2007), brought to MARL by Yang et al. (2018) — covers the population-limit
-regime where individual interaction is replaced by interaction with a
+Mean-field game theory comes from Huang, Caines, and Malhamé (2006) and Lasry and Lions (2007).
+Yang and colleagues (2018) brought it to MARL.
+It covers the population-limit regime where individual interaction is replaced by interaction with a
 population distribution. RAES's runtime layer records mean-field updates as
-environment state over a population scope, not as hidden participant actions;
-this lineage is why population-distribution disclosure is a first-class runtime
+environment state over a population scope, not as hidden participant actions.
+This lineage is why population-distribution disclosure is a first-class runtime
 record in `specs/formal/participant-runtime/`.
 
 ### Knowledge, information structure, and information flow
 
-Fagin, Halpern, Moses, and Vardi's interpreted-systems framework gives the
-formal basis for participant-relative information: an agent's knowledge at a
+Fagin, Halpern, Moses, and Vardi's interpreted-systems framework gives the formal basis for participant-relative information.
+An agent's knowledge at a
 point is determined by indistinguishability over its local state across global
 runs. RAES's view relation `V_p,t`, local history `H_p,t`, and the
 visible-history indistinguishability relation in
@@ -253,14 +259,13 @@ ad hoc bookkeeping.
 
 Dynamic epistemic logic (Baltag, Moss, and Solecki's announcement logics; van
 Ditmarsch, van der Hoek, and Kooi's treatment) models information change as
-explicit epistemic actions. This is the lineage for SEM-210's time-indexed
-`view_transition` discipline: discovery, inference, disclosure, concealment,
-and deception are recorded transition events that update a participant's view
-relation, never silent side effects of topology or scheduling.
+explicit epistemic actions. This is the lineage for SEM-210's time-indexed `view_transition` discipline.
+Discovery, inference, disclosure, concealment, and deception are recorded transition events that update a participant's view relation.
+They are never silent side effects of topology or scheduling.
 
 Kuhn's extensive-form game analysis (1953) is the original formal source for
-information sets and perfect recall. Perfect recall is a property of an
-information partition; a runtime claim that a participant history satisfies it
+information sets and perfect recall. Perfect recall is a property of an information partition.
+A runtime claim that a participant history satisfies it
 therefore needs a constructive, checkable witness over the visible projection.
 The participant-runtime specification defines that witness; this document only
 records the obligation.
@@ -293,21 +298,20 @@ Declared effect classes are disclosure obligations, not complete world models.
 [CybORG](https://arxiv.org/abs/2108.09118) is the closest cyber-agent precedent.
 It defines scenarios with agents, action spaces, observations, rewards, and
 reset; it also supports simulation and emulation. The sim-to-emulation transfer
-failures reported in the results discussion of Standen et al. (2021) are
-directly relevant: an agent can overfit to an observation artifact that does
+failures reported in the results discussion of Standen and colleagues (2021) are directly relevant.
+An agent can overfit to an observation artifact that does
 not exist in the emulator. RAES must therefore record observation provenance
 and realized backend disclosure, not action results alone.
 
 [CyberBattleSim](https://www.microsoft.com/en-us/research/project/cyberbattlesim/)
-shows the value and limits of abstract cyber-network simulation. It is useful
-for studying automated agents, but its high-level abstraction reinforces the
-need to disclose which action/effect/observation semantics are realized rather
-than assuming simulation results transfer to operational environments.
+shows the value and limits of abstract cyber-network simulation. It is useful for studying automated agents.
+But its high-level abstraction reinforces the need to disclose which action/effect/observation semantics are realized.
+RAES must not rely on assuming simulation results transfer to operational environments.
 
 [CyGIL](https://arxiv.org/abs/2109.03331) and its follow-on
 [unified emulation-simulation training environment](https://arxiv.org/abs/2304.01244)
-are relevant because the unified design derives simulation transitions from
-emulated traces, preserving the same action space across the sim-to-real loop.
+are relevant.
+The unified design derives simulation transitions from emulated traces, preserving the same action space across the sim-to-real loop.
 They motivate RAES's requirement that action and observation contracts survive
 across backend fidelity modes.
 
@@ -326,7 +330,8 @@ These belong in semantic and provenance records.
 [AutoPenBench](https://arxiv.org/abs/2410.03225) adds penetration-test tasks,
 gold steps, generic and specific milestones, autonomous and human-assisted
 agent variants, and repeated execution. It reinforces that result
-interpretation cannot be reduced to final flag capture: progress milestones,
+interpretation cannot be reduced to final flag capture.
+Progress milestones,
 human assistance, task memory, and run-to-run stochasticity are part of the
 instrumentation.
 
@@ -363,17 +368,15 @@ does not remove the need for participant-specific semantics.
 [CyRIS](https://www.jaist.ac.jp/~razvan/publications/cyris_facilitating_training.pdf)
 is important because it automatically and repeatably creates cyber ranges from
 YAML descriptions with topology, content, and security-incident features.
-It strengthens the lineage for reproducible range construction, while also
-showing the boundary of construction systems: repeatable deployment is not the
+It strengthens the lineage for reproducible range construction.
+It also shows the boundary of construction systems: repeatable deployment is not the
 same as portable participant behavior, observation, causality, or outcome
 semantics.
 
 Ear, Remy, and Xu's automated cyber-range design framework
 ([arXiv:2307.04416](https://arxiv.org/abs/2307.04416)) treats range
-architecture selection as an explicit requirements-matching problem. For RAES,
-the lesson is that architecture, teaming model, fidelity, observability,
-concurrency, resetability, and updateability are experiment requirements that
-must be surfaced instead of disappearing into backend choice.
+architecture selection as an explicit requirements-matching problem. For RAES, architecture, teaming model, fidelity, observability, concurrency, resetability, and updateability are experiment requirements.
+They must be surfaced instead of disappearing into backend choice.
 
 ### Adversary emulation and security events
 
@@ -392,8 +395,8 @@ evidence references, but it is not a participant-visible-state model by itself.
 
 [CACAO v2.0](https://docs.oasis-open.org/cacao/security-playbooks/v2.0/security-playbooks-v2.0.pdf)
 separates workflows, commands, agents, targets, variables, and authentication
-information. It is useful lineage for agent/target and action-step boundaries,
-but RAES participant semantics must also handle observation, discovery,
+information. It is useful lineage for agent/target and action-step boundaries.
+But RAES participant semantics must also handle observation, discovery,
 concealment, and evaluation across heterogeneous participant implementations.
 
 ### Time, ordering, and causality
@@ -404,8 +407,8 @@ causal ordering.
 
 Lamport's scalar clocks only respect causality in one direction; they cannot
 prove that two events are causally unrelated. Fidge (1988) and Mattern (1989)
-introduced vector time, which characterizes the causal partial order exactly,
-and Schwarz and Mattern (1994) survey what causal claims each clock mechanism
+introduced vector time, which characterizes the causal partial order exactly.
+Schwarz and Mattern (1994) survey what causal claims each clock mechanism
 can and cannot support. This distinction is load-bearing for RAES: any
 `VectorClock` ordering basis in the runtime layer claims the stronger
 characterization and therefore needs the Fidge/Mattern lineage. Lamport's alone is insufficient.
@@ -430,8 +433,8 @@ Those concerns are clock authority, time domain, advancement, pacing, synchroniz
 
 [SISO Cyber DEM](https://cdn.ymaws.com/www.sisostandards.org/resource/resmgr/standards_products/siso-std-025-2023_cyberdem.pdf)
 provides cyber objects and events for simulation interoperability. It supports
-the idea that cyber events and effects need exchangeable representations across
-simulation and range systems, but RAES still needs its own scenario/participant
+the idea that cyber events and effects need exchangeable representations across simulation and range systems.
+But RAES still needs its own scenario/participant
 semantics around those events.
 
 Halpern and Pearl's structural-model causality supplies the basis for this specification's attribution rule.
@@ -487,9 +490,8 @@ concerns that belong to other RAES design or evidence gates.
 | DSL language adequacy | Needs dedicated evidence | #346 | #221 | Provide ambiguity, usability, maintainability, reviewability, and authoring-profile evidence for concrete syntax |
 
 The "Current open owner(s)" column records the open issues on 2026-10-25. Of
-the original owners, #106, #124, #125, #273, #328, and #333 are still open;
-#165, #166, #170, and #177 were transferred to OpenRAE/research; the rest are
-closed. Every [coverage matrix](semantic-coverage.md) row that defers to one of
+the original owners, #106, #124, #125, #273, #328, and #333 are still open.
+#165, #166, #170, and #177 were transferred to OpenRAE/research, and the rest are closed. Every [coverage matrix](semantic-coverage.md) row that defers to one of
 these concerns names its owner from this column.
 
 ## Semantic core
@@ -590,15 +592,13 @@ Attempt(p, e, a, args, t_submit)
   -> Outcome(local_status, failure_class?, effects_observed, observations, evidence)
 ```
 
-The action name in the current SDL is not enough to define this contract. A
-future implementation must either resolve action names to governed action
-contracts or fail closed when a participant action is referenced by semantics
+The action name in the current SDL is not enough to define this contract. A future implementation must resolve action names to governed action contracts.
+If it cannot, it must fail closed when a participant action is referenced by semantics
 that require a contract.
 
 `behavior_granularity` distinguishes intent, tactic, technique, procedure,
-tool invocation, command, and realized system effect. `procedure_basis` names
-the evidence for the procedure, such as an ATT&CK technique, CVE, exploit
-module, CACAO command, OpenC2 command, human runbook step, emulated trace, or
+tool invocation, command, and realized system effect. `procedure_basis` names the evidence for the procedure.
+Examples are an ATT&CK technique, CVE, exploit module, CACAO command, OpenC2 command, human runbook step, emulated trace, or
 experiment-specific procedure. External classifications use standalone
 [concept binding documents](../../concept-authority/external-concept-bindings.md)
 with explicit provenance and approximation/loss, not action-contract fields.
@@ -684,9 +684,8 @@ and evidence relationship.
 <!-- vale RAES.HeadingCase = NO -->
 ### I4 - Fail-Closed Action Applicability
 
-If an action's preconditions cannot be resolved or are not satisfied, the action
-must be rejected, withheld, or marked unknown according to a declared failure
-class. It must not silently execute under backend-local convention.
+If an action's preconditions cannot be resolved or are not satisfied, the action must be rejected, withheld, or marked unknown.
+A declared failure class selects that disposition. It must not silently execute under backend-local convention.
 
 <!-- vale RAES.HeadingCase = YES -->
 
@@ -747,9 +746,8 @@ explicit interpretation rule relates them.
 <!-- vale RAES.HeadingCase = NO -->
 ### I11 - Realization Disclosure
 
-If a backend cannot realize a declared participant semantic guarantee, it must
-fail capability validation or disclose the weaker realization before results are
-used for comparison.
+If a backend cannot realize a declared participant semantic guarantee, it must fail capability validation or disclose the weaker realization.
+It must do so before results are used for comparison.
 
 <!-- vale RAES.HeadingCase = YES -->
 
@@ -776,9 +774,8 @@ unless an explicit view rule permits that disclosure.
 <!-- vale RAES.HeadingCase = NO -->
 ### I14 - External Mapping Loss Labels
 
-Mappings to ATT&CK, OCSF, CACAO, STIX, OpenC2, Cyber DEM, CVE, Metasploit,
-benchmark milestone, or other external vocabularies must declare whether the
-mapping is exact, narrower, broader, approximate, lossy, or advisory.
+Mappings to ATT&CK, OCSF, CACAO, STIX, OpenC2, Cyber DEM, CVE, Metasploit, benchmark milestone, or other external vocabularies must declare a mapping kind.
+The kind is exact, narrower, broader, approximate, lossy, or advisory.
 
 <!-- vale RAES.HeadingCase = YES -->
 
@@ -844,8 +841,8 @@ The mapping is checked in both directions:
   rejected counterexample.
 
 The oracle is a spec-sync and discrimination check over a test-local model.
-It generates no inputs, and no shipped code calls its predicates, so the
-coverage matrix classes it as `executable-invariant` evidence and cites the
+It generates no inputs, and no shipped code calls its predicates.
+Thus the coverage matrix classes it as `executable-invariant` evidence and cites the
 runtime tests of shipped code for each invariant separately.
 
 | Spec invariant | Oracle predicate |
@@ -883,7 +880,8 @@ Design commitments:
   histories;
 - actions resolve to action contracts, not untyped names;
 - action contracts declare semantic version, behavioral granularity, procedure
-  basis, realization profile, and fidelity claim; external mappings and their
+  basis, realization profile, and fidelity claim.
+  External mappings and their
   losses are standalone concept bindings against the exact action contract
   (issue #989);
 - observations are participant-specific projections of world/evidence state;
@@ -1010,15 +1008,16 @@ Implemented transition discipline:
   (`history_event_type`, plus `action_instance_id` except for `episode_close`),
   non-empty `evidence_refs`, `certainty`, and `latency_profile`;
 - compiled participant observation boundaries sort transitions by
-  `effective_order` and publish `view_relation_timeline` snapshots; dynamic
-  discovery, inference, disclosure, concealment, and deception are read from
+  `effective_order` and publish `view_relation_timeline` snapshots.
+  Dynamic discovery, inference, disclosure, concealment, and deception are read from
   those snapshots rather than from lifetime aggregate fields;
-- runtime participant observation details that declare visible, disclosed, or
-  evidence refs are checked against the compiled `V_p,t` snapshot derived from
-  behavior-history anchors at or before the observation event, so future
-  disclosure cannot justify earlier visibility;
+- some runtime participant observation details declare visible, disclosed, or evidence refs.
+  They are checked against the compiled `V_p,t` snapshot derived from
+  behavior-history anchors at or before the observation event.
+  Thus future disclosure cannot justify earlier visibility;
 - conformance diagnostics reject transition anchors that do not resolve to the
-  corresponding participant behavior-history event; `episode_close` transitions
+  corresponding participant behavior-history event.
+  `episode_close` transitions
   resolve against terminal participant-episode history and do not authorize
   in-episode observation payloads.
 
@@ -1042,11 +1041,10 @@ Current implementation artifacts for the `SEM-210` slice:
   compiled visibility metadata for runtime planning, snapshots, and
   conformance consumers, and validates observation detail refs against the
   corresponding timeline snapshot;
-- `implementations/python/tests/test_sem_208_participant_behavior.py` covers
-  leakage fixtures proving hidden truth cannot enter participant observations
-  without an explicit disclosure rule, cannot be used as evidence without an
-  evidence-only rule, cannot be inferred or disclosed through static metadata,
-  and cannot be justified by a transition whose temporal order or runtime
+- `implementations/python/tests/test_sem_208_participant_behavior.py` covers leakage fixtures for hidden truth.
+  They prove that hidden truth cannot enter participant observations without an explicit disclosure rule.
+  It cannot be used as evidence without an evidence-only rule, or be inferred or disclosed through static metadata.
+  It also cannot be justified by a transition whose temporal order or runtime
   anchor is invalid.
 
 This implementation slice enforces the reference-level visibility relation for
@@ -1113,18 +1111,17 @@ Current implementation artifacts for the `SEM-211` slice:
 - `implementations/python/packages/raes_processor/compiler/` carries the
   typed precondition classes, effect classes, failure classes, and backend
   failure mappings into compiled participant action contracts;
-- `implementations/python/packages/raes_processor/models/` defines typed
-  action precondition results, action effect results, action results,
-  fail-closed validation for unsatisfied or unresolved preconditions, behavior
-  history action-result embedding, compiled-contract validation for declared
+- `implementations/python/packages/raes_processor/models/` defines typed action precondition results, action effect results, and action results.
+  It defines fail-closed validation for unsatisfied or unresolved preconditions, and behavior history action-result embedding.
+  It also defines compiled-contract validation for declared
   effects and failure classes, and backend diagnostic mapping to portable
   failure classes;
 - `implementations/python/packages/raes_contracts/contracts/` publishes the
   action-result payload shape in the participant behavior-history and runtime
   snapshot schemas;
 - `implementations/python/tests/test_sem_211_participant_action_semantics.py`
-  covers positive contract compilation, controlled vocabulary rejection,
-  fail-closed unresolved preconditions, portable failure round-tripping,
+  covers positive contract compilation, controlled vocabulary rejection, and fail-closed unresolved preconditions.
+  It covers portable failure round-tripping,
   participant-scope mismatch rejection, undeclared effect/failure-class
   counterexamples, required terminal action results, and backend diagnostic
   mapping.
@@ -1160,10 +1157,8 @@ Current implementation artifacts for the first `SEM-212` slice:
 - `implementations/python/packages/raes_processor/models/` defines typed
   attribution candidates, ordering bases, evidence bases, and attribution
   edges on participant behavior-history observation events;
-- `implementations/python/packages/raes_processor/models/` validates
-  participant/episode/observation scope, explicit ordering and evidence
-  bases, outcome interpretation-rule refs, timestamp-adjacency limits for
-  strong causal support, effect grounding in actual observations/action
+- `implementations/python/packages/raes_processor/models/` validates participant/episode/observation scope, explicit ordering and evidence bases, and outcome interpretation-rule refs.
+  It validates timestamp-adjacency limits for strong causal support, effect grounding in actual observations/action
   results, and participant-boundary authorization for attribution evidence;
 - `implementations/python/packages/raes_contracts/contracts/` publishes the
   attribution-edge payload under participant behavior-history event contracts;
@@ -1210,22 +1205,22 @@ Current implementation artifacts for the first `SEM-213` slice:
   dwell/latency/time-window contract kinds, backend timing disclosure kinds,
   support modes, and abstract temporal states;
 - `implementations/python/packages/raes/participant_behavior/__init__.py` embeds
-  temporal contracts and backend timing disclosures in governed participant
-  action contracts, requires temporal preconditions to resolve to typed
+  temporal contracts and backend timing disclosures in governed participant action contracts.
+  It requires temporal preconditions to resolve to typed
   temporal contracts, and fails closed on unknown backend disclosure refs;
 - `implementations/python/packages/raes_processor/compiler/` carries temporal
   contract ids, kinds, time domains, clock authorities, and backend timing
   disclosures into compiled participant action contracts;
 - `implementations/python/packages/raes_processor/models/` defines runtime
-  temporal context on participant behavior-history events, validates it
-  against the compiled action contract, and exposes an abstract state-machine
+  temporal context on participant behavior-history events, validates it against the compiled action contract.
+  It exposes an abstract state-machine
   checker for cadence, deadline, dwell, timeout, reset, and replay interactions;
 - `implementations/python/packages/raes_contracts/contracts/` publishes the
   runtime temporal-context payload in participant behavior-history and runtime
   snapshot schemas;
 - `implementations/python/tests/test_sem_213_temporal_participant_semantics.py`
-  covers positive SDL-to-runtime compilation, missing clock authority, unknown
-  backend disclosure refs, invalid temporal contract shapes, runtime contract
+  covers positive SDL-to-runtime compilation, missing clock authority, and unknown backend disclosure refs.
+  It covers invalid temporal contract shapes, runtime contract
   mismatches, bounded timing disclosures, and invalid cadence / deadline / dwell
   / timeout state-machine transitions.
 
@@ -1294,13 +1289,13 @@ Design commitments:
   governed assessment rule;
 - participant outcomes must preserve enough provenance for replay and academic
   critique;
-- runtime interpretation records must ground participant-action outcome sources
-  in the event `action_result`, evidence sources and evidence refs in evidence
-  emitted by the event, and participant-episode status sources in terminal
+- runtime interpretation records must ground participant-action outcome sources in the event `action_result`.
+  They must ground evidence sources and evidence refs in evidence emitted by the event.
+  They must ground participant-episode status sources in terminal
   `participant_episode_history` records for the same participant and episode;
-- progress milestones, subtasks, gold steps, human assistance, scaffold
-  variants, cost/resource telemetry, and privacy/redaction results are outcome
-  inputs only when declared by an interpretation rule; none substitutes for the
+- progress milestones, subtasks, gold steps, human assistance, and scaffold variants are outcome inputs only when declared by an interpretation rule.
+    The same applies to cost/resource telemetry and privacy/redaction results.
+    None substitutes for the
   full outcome model.
 
 Implementation artifacts:
@@ -1344,7 +1339,8 @@ The five strata and their governing carriers:
   record is never a metric value, score, or measure.
 - **analysis outputs** are study/report artifacts or derived measures with
   `measure_kind: analysis-output`, kept grounded through run traceability and at
-  least one derived-measure reference; they must not float from raw runtime
+  least one derived-measure reference.
+  They must not float from raw runtime
   state or evaluator detail.
 - **audience-specific views** are projections over recorded carriers
   (`participant-status-view-v1`, `participant-history-view-v1`,
@@ -1354,11 +1350,9 @@ Design commitments:
 
 - the five strata are distinct objects carried by named existing contracts; no
   contract may carry another stratum's shape (closed-world models reject it);
-- archival evidence and derived evaluation/adjudication outputs reach a
-  participant-visible view only through a governed view rule and a redaction
-  policy, only when the archival source is mediated by the view transformation
-  rather than passed through raw, and only when the disclosed `payload_ref` is
-  the transformed view output rather than an alias of the raw archival ref;
+- archival evidence and derived evaluation/adjudication outputs reach a participant-visible view only through a governed view rule and a redaction policy.
+  The view transformation must mediate the archival source, not pass it through raw.
+  The disclosed `payload_ref` must be the transformed view output, not an alias of the raw archival ref;
 - evidence claims disclose redaction and loss at the evidence boundary;
 - backend-native observability is not an admissible portable view source and is
   not a portable semantic observation;
@@ -1369,13 +1363,14 @@ Boundary obligations (each is exercised by an adversarial negative fixture):
 - **B1** - archived evidence must not become participant-visible without a view
   rule. A `participant_visible` `participant-context-view-v1` that draws on an
   `evidence_record` source layer must declare a `derivation_basis_ref` view rule
-  and a `redaction_policy_ref` (published `allOf`), the evidence source must
-  appear in `transformation.input_source_ids`, and `payload_ref` must not alias
+  and a `redaction_policy_ref` (published `allOf`).
+  The evidence source must appear in `transformation.input_source_ids`.
+  `payload_ref` must not alias
   the raw evidence ref (both relational rules published as `x-raes-invariants`).
 - **B2** - hidden adjudication / derived-evaluation outputs must not reach a
   participant view without redaction governance. A `participant_visible` view
-  that draws on a `derived_measure` source layer must additionally declare a
-  `redaction_policy_ref`, mediate the source through the transformation, and
+  that draws on a `derived_measure` source layer must additionally declare a `redaction_policy_ref`.
+  It must mediate the source through the transformation, and
   expose a transformed `payload_ref` rather than the raw measure ref.
 
 The closed-world model and published JSON Schema `allOf` enforce the required-ref clauses of B1/B2 and B4.
@@ -1421,7 +1416,8 @@ Current implementation artifacts for the `SEM-216` slice:
   `ParticipantContextViewModel._validate_sem216_audience_boundary` with its
   published `allOf` (required view rule + redaction policy) and
   `x-raes-invariants` (archival source mediation, `payload_ref` non-aliasing)
-  for the B1/B2/B5 view boundary, and publishes the evidence
+  for the B1/B2/B5 view boundary.
+  It publishes the evidence
   redaction/loss-disclosure rule as a portable schema constraint on
   `ExperimentEvidenceRecordModel` (B4);
 - `contracts/schemas/control-plane/participant-context-view-v1.json` and
@@ -1433,8 +1429,8 @@ Current implementation artifacts for the `SEM-216` slice:
   positive mediated-view fixture and the five adversarial negative fixtures
   (B1-B5);
 - `implementations/python/tests/test_sem_216_boundary_semantics.py` proves each
-  boundary obligation is rejected by both schema and model, with the mediated
-  view admitted; the existing fixture-walk tests in
+  boundary obligation is rejected by both schema and model, with the mediated view admitted.
+  The existing fixture-walk tests in
   `test_participant_backend_contracts.py` and `test_runtime_contracts.py` carry
   the same fixtures.
 
@@ -1450,8 +1446,8 @@ profile cannot silently rewrite RAES-native meaning.
 An external knowledge binding has exactly the effect declared by the governed
 RAES surface that carries it:
 
-- **annotates** - an external reference, reviewed class, evidence source, or
-  citation adds context for a native RAES concept without changing validation,
+- **annotates** - an external reference, reviewed class, evidence source, or citation adds context for a native RAES concept.
+  It does not change validation,
   planning, runtime, or conformance semantics by itself.
 - **aligns** - a reviewed external authority has equivalent meaning for the
   native RAES family. In the current concept-authority slice, adopted UCO
@@ -1460,7 +1456,8 @@ RAES surface that carries it:
   narrowing, loss, or divergence. In the current slice, adapted UCO concept
   families refine rather than align and must enumerate the divergence.
 - **constrains** - a governed surface must bind a vocabulary, capability, or
-  phase assumption to a declared concept family; missing, unknown, duplicate,
+  phase assumption to a declared concept family.
+  Missing, unknown, duplicate,
   or out-of-scope bindings are validation failures, not advisory metadata.
 
 Design commitments:
@@ -1479,9 +1476,9 @@ Current implementation artifacts for the `SEM-217` slice:
 - `implementations/python/packages/raes_contracts/semantic_binding_effects.py`
   resolves the four SEM-217 effects over the existing UCO alignment and shared
   semantic-profile records;
-- `implementations/python/tests/test_sem_217_knowledge_bindings.py` proves that
-  adopted UCO bindings annotate and align, adapted UCO bindings annotate and
-  refine, profile required bindings constrain governed surfaces, phases without
+- `implementations/python/tests/test_sem_217_knowledge_bindings.py` proves that adopted UCO bindings annotate and align, and adapted UCO bindings annotate and refine.
+  It proves that profile required bindings constrain governed surfaces.
+  It proves that phases without
   governed bindings do not create constraint effects, and the effect vocabulary
   is closed over the four SEM-217 terms;
 - `docs/explain/reference/shared-concept-model.md` records the
@@ -1661,7 +1658,7 @@ It is neither relabelled nor admitted through the v2 path.
 The retained historical entry `ParticipantControlMixin.admit_participant_decision_surface_selection` still admits v1 selections under their historical behavior-index meaning.
 ADR-095 section 3 limits v1's non-actionability to the new runtime-admission path.
 PR #914 Migration rule 1 permits existing v1 consumers to continue.
-A v1 selection binds no decision epoch, state cut, participant-view digest, or delivery ref.
+A v1 selection binds no decision epoch, state cut, participant-view digest, or delivery reference.
 It requires no surface-level delivery occurrence, and v1 item-level realized delivery is optional.
 It is not ADR-095's delivery-bound admission path.
 
@@ -1671,13 +1668,12 @@ V2 separates three trust planes:
   participant delivery: surface/participant/episode identity, `decision_epoch`,
   information-state/context refs, visible context, action entries,
   affordances, form, markings, redaction, and disclosed limitations;
-- `assurance` carries the exact derivation state cut, lifecycle or terminal
-  observation anchor, policy decision, apparatus/boundary refs, per-item
-  authorization, participant-memory scope and reset authority when applicable,
+- `assurance` carries the exact derivation state cut, lifecycle or terminal observation anchor, policy decision, and apparatus/boundary refs.
+  It also carries per-item authorization, participant-memory scope and reset authority when applicable,
   evidence, provenance, and canonical RFC 8785 digest of the participant view;
   and
-- `delivery` records the trusted occurrence by which that exact digest became
-  available to the participant, including delivery basis, delivery cut,
+- `delivery` records the trusted occurrence by which that exact digest became available to the participant.
+  The record includes delivery basis, delivery cut,
   delivery authorization/policy decision, observation ref, evidence,
   provenance, and limitations.
 
@@ -1698,9 +1694,10 @@ episode_running
   -> derive D(p,e,1) from that exact behavior cut
 ```
 
-Projection is not disclosure; disclosure is not delivery; delivery is not
-acknowledgement or interpretation; presentation is not selection; selection is
-not admission; admission is not attempt, result, or outcome. A projected
+Projection is not disclosure, and disclosure is not delivery.
+Delivery is not acknowledgement or interpretation.
+Presentation is not selection, and selection is not admission.
+Admission is not attempt, result, or outcome. A projected
 surface is valid assurance data but cannot be selected. A v2 selection binds
 surface id, decision epoch, participant-view digest, and delivery ref.
 Admission re-resolves both derivation and delivery before behavior can be
@@ -1716,10 +1713,11 @@ resets every participant-visible channel.
 
 The three surface forms have distinct selection meaning:
 
-- **Open-ended generation:** the participant implementation may propose an
-  action and arguments, but the proposal must resolve to a governed action
-  contract, validate and normalize concrete values against the argument shape
-  compiled from that exact contract, and pass SEM-211 admission before it
+- **Open-ended generation:** the participant implementation may propose an action and arguments.
+  The proposal must resolve to a governed action contract.
+  It must validate and normalize concrete values against the argument shape
+  compiled from that exact contract.
+  It must pass SEM-211 admission before it
   becomes an attempt. The resulting immutable validated-selection carrier is
   the backend input. Generation authority is not invocation authority.
 - **Constrained form:** a form, grammar, or parameter editor maps to an action
@@ -1893,16 +1891,16 @@ cross-requirement failure shapes explicit:
 The obligations above refine existing I1-I17 invariants. They add no new
 `### I*` heading and therefore do not expand the abstract invariant oracle in
 this design issue. Issues #294-#296 delivered concrete typed bindings and
-negative fixtures that specialize the existing oracle; the coverage matrix
+negative fixtures that specialize the existing oracle.
+The coverage matrix
 names the open owners of the remaining gaps.
 
 <!-- vale RAES.HeadingCase = NO -->
 ## SEM-230 - participant information-flow and control semantics
 
 SEM-230 is defined in
-[`information-flow-control.md`](information-flow-control.md). The focused
-authority defines the revisioned crossing relation, participant/audience/policy
-and order-relative label projection, independent control and information-flow
+[`information-flow-control.md`](information-flow-control.md). The focused authority defines the revisioned crossing relation and participant/audience/policy and order-relative label projection.
+It also defines independent control and information-flow
 operations, dynamic purge and declassification semantics, and the exact
 baseline `policy-noninterference` obligation.
 
@@ -1956,10 +1954,13 @@ establishes a bisimulation or runtime-realization result.
 Taxonomy revision `rev6` defines the exact relation and claim surface. Issue
 #811 supplies the closed carrier, label projection, relation clauses, witness
 family, mapping boundary, proof-tool contract, counterexample design, DRAFT
-SEM-232 authority, and child program. It does not run the model check. Issue
+SEM-232 authority, and child program. It does not run the model check.
+
+Issue
 #971 (PR #1397) delivered independent model construction. Issue #972 delivered
 [bounded runtime mapping](participant-crossing-runtime-mapping.md) against the single-operation rev2 carrier.
 Issue #973 delivered the [negative mutations](participant-crossing-counterexamples.md).
+
 Issue #974 delivered the [finite machine check](participant-crossing-machine-check.md).
 Issues #975 and #976 delivered an isolated reproduction record and a published result.
 Issue #1929 removed both. CI now builds the models and the corpus and repeats the decision on every commit.
@@ -1978,9 +1979,8 @@ SEM-233 and ASR-536 are defined in
 
 <!-- vale RAES.HeadingCase = YES -->
 
-SEM-233 adds a revisioned participant-neutral explicit-flow profile with
-independent confidentiality and integrity coordinates, conservative
-propagation, distinct declassification and integrity endorsement, and
+SEM-233 adds a revisioned participant-neutral explicit-flow profile with independent confidentiality and integrity coordinates.
+The profile has conservative propagation, distinct declassification and integrity endorsement, and
 deny-first final-sink decisions immediately before external action or
 disclosure. Handoff, participant change, and episode reset do not erase labels
 or provenance.
@@ -2033,8 +2033,8 @@ Future implementation PRs should still include:
 - run/study provenance fixtures covering reset strategy, seeds, backend and
   participant versions, scaffold disclosure, and content/action-contract
   versions;
-- authoring-profile examples and ambiguity/usability review artifacts for the
-  concrete syntax chosen by child implementation issues, coordinated with the
+- authoring-profile examples and ambiguity/usability review artifacts for the concrete syntax chosen by child implementation issues.
+  They are coordinated with the
   DSL language-evaluation evidence gate in issue #346;
 - cross-stage agreement tests spanning authoring, validation, instantiation,
   compilation, planning, execution, and observation;

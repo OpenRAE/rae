@@ -8,24 +8,23 @@ in prose.
 ## Files
 
 - [`authority-boundary.yaml`](authority-boundary.yaml) — canonical manifest
-  for ASR-517. Enumerates each normative authority root (`specs/`,
-  `contracts/schemas/`, `contracts/fixtures/`, `contracts/profiles/`,
-  `contracts/concept-authority/`), each non-normative root
+  for ASR-517. Enumerates each normative authority root (`specs/`, `contracts/schemas/`, `contracts/fixtures/`, `contracts/profiles/`, `contracts/concept-authority/`).
+  It also enumerates each non-normative root
   (`implementations/`, `docs/`, `examples/`, `research/`, `notes/`,
-  `tools/`), the legacy top-level directories ADR-009
-  transitioned out (`schemas/`, `conformance/`, `src/`), the
-  schema-authority direction (no published schema may live under
-  `implementations/`), and the `normative_artifact_families` block described
+  `tools/`) and the legacy top-level directories ADR-009 transitioned out (`schemas/`, `conformance/`, `src/`).
+  It also records the schema-authority direction (no published schema may live under
+  `implementations/`) and the `normative_artifact_families` block described
   below.
 
 ## Artifact-family classification
 
 `authority_roots` classify whole directory trees.
 The default family for `specs/` is `prose`.
+
 Some normative artifacts use another family.
 For example, `specs/agent-guidance/agent-guidance.yaml` (AUT-811) is machine-readable governance guidance.
-The `normative_artifact_families` block classifies such artifacts explicitly:
-each entry pins one artifact path to a distinct authority `family` (for
+The `normative_artifact_families` block classifies such artifacts explicitly.
+Each entry pins one artifact path to a distinct authority `family` (for
 agent-guidance, `governance-guidance`) so the artifact's authority class is
 decidable from the manifest alone. Such a classified, governed scope is a
 **surface** in the

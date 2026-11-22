@@ -120,13 +120,16 @@ def test_codeql_steps_cannot_override_the_scan_boundary(tmp_path: Path, key: str
     assert "tooling-action-permissions" in _check(tmp_path, workflow, ".github/workflows/codeql.yml")
 
 
+_PHASE_E = ".github/workflows/ground-control-phase-e.yml"
+
+
 def _finalization_workflow() -> dict:
     root = Path(__file__).resolve().parents[3]
-    return yaml.safe_load((root / ".github/workflows/ground-control-phase-e.yml").read_text())
+    return yaml.safe_load((root / _PHASE_E).read_text())
 
 
 def test_merged_issue_finalization_has_a_valid_credential_boundary(tmp_path: Path) -> None:
-    assert _check(tmp_path, _finalization_workflow()) == set()
+    assert _check(tmp_path, _finalization_workflow(), _PHASE_E) == set()
     assert _finalization_workflow()["permissions"]["issues"] == "read"
 
 
@@ -134,33 +137,79 @@ def test_merged_issue_finalization_has_a_valid_credential_boundary(tmp_path: Pat
 def test_merged_issue_finalization_cannot_gain_other_writes(tmp_path: Path, permission: str) -> None:
     workflow = _finalization_workflow()
     workflow["jobs"]["finalize"]["permissions"][permission] = "write"
-    assert "tooling-action-permissions" in _check(tmp_path, workflow)
+    assert "tooling-action-permissions" in _check(tmp_path, workflow, _PHASE_E)
 
 
 @pytest.mark.parametrize("guard", [None, "always()", "github.event_name == 'pull_request'"])
 def test_issue_writes_require_the_exact_merged_guard(tmp_path: Path, guard: str | None) -> None:
     workflow = _finalization_workflow()
     workflow["jobs"]["finalize"]["if"] = guard
-    assert "tooling-action-permissions" in _check(tmp_path, workflow)
+    assert "tooling-action-permissions" in _check(tmp_path, workflow, _PHASE_E)
 
 
 @pytest.mark.parametrize("event", ["pull_request_target", "workflow_call", "push"])
 def test_issue_finalization_cannot_add_an_unchecked_trigger(tmp_path: Path, event: str) -> None:
     workflow = _finalization_workflow()
     workflow[True][event] = {}
-    assert "tooling-action-permissions" in _check(tmp_path, workflow)
+    assert "tooling-action-permissions" in _check(tmp_path, workflow, _PHASE_E)
 
 
 def test_issue_finalization_requires_closed_pull_requests(tmp_path: Path) -> None:
     workflow = _finalization_workflow()
     workflow[True]["pull_request"]["types"] = ["opened", "closed"]
-    assert "tooling-action-permissions" in _check(tmp_path, workflow)
+    assert "tooling-action-permissions" in _check(tmp_path, workflow, _PHASE_E)
 
 
 def test_issue_finalization_does_not_allow_repository_secrets(tmp_path: Path) -> None:
     workflow = _finalization_workflow()
     workflow["jobs"]["finalize"]["env"] = {"TOKEN": "${{ secrets.TOKEN }}"}
-    assert "tooling-action-credentials" in _check(tmp_path, workflow)
+    assert "tooling-action-credentials" in _check(tmp_path, workflow, _PHASE_E)
+
+
+def _step_index(workflow: dict, name: str) -> int:
+    steps = workflow["jobs"]["finalize"]["steps"]
+    return next(index for index, step in enumerate(steps) if step.get("name") == name)
+
+
+def test_release_token_reaches_only_the_download_step_before_checkout(tmp_path: Path) -> None:
+    workflow = _finalization_workflow()
+    steps = workflow["jobs"]["finalize"]["steps"]
+    download = _step_index(workflow, "Download grndctl")
+    checkout = next(index for index, step in enumerate(steps) if step.get("uses", "").startswith("actions/checkout@"))
+    assert download < checkout
+    assert steps[download]["env"] == {"GH_TOKEN": "${{ secrets.GROUND_CONTROL_READ_TOKEN }}"}
+    assert _check(tmp_path, workflow, _PHASE_E) == set()
+
+
+def test_release_token_cannot_reach_the_finalize_step(tmp_path: Path) -> None:
+    workflow = _finalization_workflow()
+    finalize = workflow["jobs"]["finalize"]["steps"][_step_index(workflow, "Finalize the merged delivery")]
+    finalize["env"]["READ"] = "${{ secrets.GROUND_CONTROL_READ_TOKEN }}"
+    assert "tooling-action-credentials" in _check(tmp_path, workflow, _PHASE_E)
+
+
+def test_release_token_cannot_follow_a_checkout(tmp_path: Path) -> None:
+    workflow = _finalization_workflow()
+    steps = workflow["jobs"]["finalize"]["steps"]
+    steps.append(steps.pop(_step_index(workflow, "Download grndctl")))
+    assert "tooling-action-credentials" in _check(tmp_path, workflow, _PHASE_E)
+
+
+def test_release_token_cannot_be_held_by_the_job(tmp_path: Path) -> None:
+    workflow = _finalization_workflow()
+    workflow["jobs"]["finalize"]["env"] = {"READ": "${{ secrets.GROUND_CONTROL_READ_TOKEN }}"}
+    assert "tooling-action-credentials" in _check(tmp_path, workflow, _PHASE_E)
+
+
+def test_release_download_admits_no_other_secret(tmp_path: Path) -> None:
+    workflow = _finalization_workflow()
+    download = workflow["jobs"]["finalize"]["steps"][_step_index(workflow, "Download grndctl")]
+    download["env"]["GH_TOKEN"] = "${{ secrets.OTHER_TOKEN }}"
+    assert "tooling-action-credentials" in _check(tmp_path, workflow, _PHASE_E)
+
+
+def test_release_token_boundary_is_specific_to_the_phase_e_workflow(tmp_path: Path) -> None:
+    assert "tooling-action-credentials" in _check(tmp_path, _finalization_workflow())
 
 
 @pytest.mark.parametrize("secret", ["${{ secrets.TOKEN }}", "${{ secrets['TOKEN'] }}", "${{ toJSON(secrets) }}"])

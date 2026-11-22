@@ -32,7 +32,9 @@ _TABLE_COLUMNS = "SELECT attname FROM pg_attribute WHERE attrelid = to_regclass(
 _LOST_COLUMN = "PostgreSQL ledger is missing a required table or column"
 
 
-def require_ledger_tables(connection: Connection[tuple[object, ...]], *, projection: bool) -> None:
+def require_ledger_tables(
+    connection: Connection[tuple[object, ...]], *, projection: bool, namespace: str | None = None
+) -> None:
     """Refuse a ledger that misses a table or a column that its schema requires.
 
     The bootstrap creates all ledger tables in one transaction. A ledger without any of
@@ -41,6 +43,8 @@ def require_ledger_tables(connection: Connection[tuple[object, ...]], *, project
     """
 
     tables = {**LEDGER_COLUMNS, **(PROJECTION_COLUMNS if projection else {})}
+    if namespace is not None:
+        tables = {f"{namespace}.{name}": columns for name, columns in tables.items()}
     missing = {name for name in tables if connection.execute("SELECT to_regclass(%s)", (name,)).fetchone() == (None,)}
     if missing == set(tables):
         raise ConflictError("PostgreSQL ledger schema is missing or unsupported")
@@ -73,9 +77,10 @@ def refuse_corrupted_ledger() -> Iterator[None]:
         raise EvidenceIntegrityError("PostgreSQL ledger storage is damaged") from exc
 
 
-def initialize_schema(connection: Connection[tuple[object, ...]]) -> None:
+def initialize_schema(connection: Connection[tuple[object, ...]], *, namespace: str | None = None) -> None:
     # A bootstrap statement must not reach a damaged existing table; an absent table is created below.
-    _require_ledger_columns(connection, LEDGER_COLUMNS, allow_absent=True)
+    columns = {f"{namespace}.{name}": value for name, value in LEDGER_COLUMNS.items()} if namespace else LEDGER_COLUMNS
+    _require_ledger_columns(connection, columns, allow_absent=True)
     statements = (
         "CREATE TABLE IF NOT EXISTS raes_ledger_metadata(key TEXT PRIMARY KEY, value TEXT NOT NULL)",
         "CREATE TABLE IF NOT EXISTS raes_ledger_state(key TEXT PRIMARY KEY, payload TEXT NOT NULL, "
@@ -97,12 +102,17 @@ def initialize_schema(connection: Connection[tuple[object, ...]]) -> None:
         elif version != (POSTGRES_LEDGER_SCHEMA_VERSION,):
             # A schema that this build cannot open conflicts with the ledger state.
             raise ConflictError("PostgreSQL ledger schema is unsupported")
-        initialize_projection_schema(connection)
+        initialize_projection_schema(connection, namespace=namespace)
 
 
-def initialize_projection_schema(connection: Connection[tuple[object, ...]]) -> None:
+def initialize_projection_schema(connection: Connection[tuple[object, ...]], *, namespace: str | None = None) -> None:
     # A bootstrap statement must not reach a damaged existing table; an absent table is created below.
-    _require_ledger_columns(connection, PROJECTION_COLUMNS, allow_absent=True)
+    columns = (
+        {f"{namespace}.{name}": value for name, value in PROJECTION_COLUMNS.items()}
+        if namespace
+        else PROJECTION_COLUMNS
+    )
+    _require_ledger_columns(connection, columns, allow_absent=True)
     from .runtime_decision_store import initialize_runtime_decisions
 
     initialize_runtime_decisions(connection)
@@ -122,12 +132,14 @@ def initialize_projection_schema(connection: Connection[tuple[object, ...]]) -> 
         "((payload::jsonb #>> '{receipt,context,parent_operation_id}'))",
         "INSERT INTO raes_ledger_metadata(key, value) VALUES ('snapshot-history-generation', "
         "'0') ON CONFLICT DO NOTHING",
-        "CREATE OR REPLACE FUNCTION raes_ledger_operation_change() RETURNS trigger LANGUAGE plpgsql AS $$ "
+        "CREATE OR REPLACE FUNCTION raes_ledger_operation_change() RETURNS trigger LANGUAGE plpgsql "
+        "SET search_path FROM CURRENT AS $$ "
         "BEGIN IF TG_OP='DELETE' THEN INSERT INTO raes_ledger_changes(operation_id, removed) "
         "VALUES (OLD.operation_id, TRUE); "
         "RETURN OLD; ELSE INSERT INTO raes_ledger_changes(operation_id) VALUES "
         "(NEW.operation_id); RETURN NEW; END IF; END $$",
-        "CREATE OR REPLACE FUNCTION raes_ledger_snapshot_change() RETURNS trigger LANGUAGE plpgsql AS $$ "
+        "CREATE OR REPLACE FUNCTION raes_ledger_snapshot_change() RETURNS trigger LANGUAGE plpgsql "
+        "SET search_path FROM CURRENT AS $$ "
         "BEGIN UPDATE raes_ledger_metadata SET value=(value::bigint+1)::text WHERE key='snapshot-history-generation'; "
         "RETURN NULL; END $$",
         "DROP TRIGGER IF EXISTS raes_ledger_operation_change ON raes_ledger_operations",

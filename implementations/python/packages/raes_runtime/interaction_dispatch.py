@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, TypedDict, Unpack, cast
+from uuid import uuid4
 
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.operation_lifecycle import OperationAdmissionContext
@@ -18,6 +19,7 @@ from .control_plane_execution import OperationExecutionRequest, execute_operatio
 from .control_plane_operation_context import operation_admission_context
 from .control_plane_submission import control_plane_plan_diagnostics
 from .participant_activity import resolve_participant_activity_controls
+from .workflow_execution import has_workflow_program
 
 if TYPE_CHECKING:
     from .control_plane_configuration import ControlPlaneConfiguration
@@ -146,6 +148,11 @@ class RuntimeInteractionDispatchMixin:
         idempotency_key: str = "",
         identity: object | None = None,
     ) -> ApplyResult:
+        if has_workflow_program(phase):
+            receipt = self.submit_orchestration(
+                phase, base_snapshot=snapshot, idempotency_key=idempotency_key or str(uuid4()), identity=identity
+            )
+            return self._interaction_phase_result(receipt, [])
         domain = _phase_domain(phase)
         results = []
         context = operation_admission_context(self, kind=OperationKind(domain.value), request=phase, identity=identity)

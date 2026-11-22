@@ -2,6 +2,7 @@
 
 from ..participant_tool_support import participant_tool_support_diagnostics
 from ..semantics.realization import realization_disclosure, sanitize_realization_snapshot
+from ..semantics.realization_comparison import portable_realization_plan, portable_realization_value
 from ..semantics.realization_snapshot_sanitization import realization_payload_projections
 from .account_credentials import account_credential_spec_is_valid
 from .core import plan
@@ -35,6 +36,8 @@ __all__ = [
     "realization_payload_projections",
     "plan_realization_requirements",
     "planned_constraint_requirements",
+    "portable_realization_plan",
+    "portable_realization_value",
     "realization_authority_diagnostics",
     "realization_authority_disclosure",
     "realization_cleanup_diagnostics",

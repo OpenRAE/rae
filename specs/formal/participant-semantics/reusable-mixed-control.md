@@ -9,9 +9,10 @@ policy revision, schema publication hash and store version.
 This publication establishes the design contract. The SDL and compiler accept
 both the earlier fixed-coordinate form and this form, and API-409
 `participant-control-occurrence-v2` publishes the occurrence carrier. API-409
-v1 implements only the fixed-coordinate form, and v1 schemas acquire nothing by
-publication. Only the explicitly installed RUN-310 control path of issue #1364
-executes this form; planning without that path's admission, the runtime
+v1 implements only the fixed-coordinate form, and v1 schemas acquire nothing by publication.
+
+Only the explicitly installed RUN-310 control path of issue #1364 executes this form.
+Planning without that path's admission, the runtime
 manager, and control-plane construction without the installed binding refuse
 it.
 The [migration contract](../../../docs/migration/reusable-mixed-control.md)
@@ -71,8 +72,9 @@ Cycles authorize neither automatic firing nor an infinite execution.
 
 A finite-script pins a finite ordered list of distinct step identities. Each
 step names an edge and may narrow its target, exact revision, order and validity
-constraints. It cannot widen the edge's authority. A committed application
-must match the current step as well as the common occurrence relation. Only
+constraints. It cannot widen the edge's authority.
+
+A committed application must match the current step as well as the common occurrence relation. Only
 acceptance advances the script cursor; rejection retains the step, and an
 idempotent retry cannot advance it again. Exhaustion admits no further step.
 Corrected submissions require fresh operation identities and ordinary retry
@@ -106,9 +108,8 @@ For a fresh request `q` and edge `e`, acceptance requires all of:
 3. The acting controller and grants satisfy MC-04; targets satisfy MC-05.
 4. Order and validity satisfy MC-06; script and resource constraints hold.
 5. Required occurrence-specific evidence is resolved and the atomic commit
-   succeeds at the same cut. A changed grant, clock, target or history fence
-   forces rejection or a new evaluation, never substitution of new coordinates
-   into the original request.
+   succeeds at the same cut. A changed grant, clock, target or history fence forces rejection or a new evaluation.
+   It never substitutes new coordinates into the original request.
 
 The accepted successor is `C.state := e.destination` and
 `C.revision := C.revision + 1`. **Every accepted control kind advances revision**,
@@ -117,7 +118,8 @@ revision 2 does not recreate `A` at revision 0. State identity, state revision,
 proposal revision, occurrence revision and history head are separate values.
 
 Rejection preserves accepted state, order and script cursor. A durable rejected
-attempt may advance history append position, so it cannot be folded as a state
+attempt may advance history append position.
+Thus it cannot be folded as a state
 advance or registered as a usable proposal, decision or authorizing target.
 All dispositions remain available as appropriately authorized historical
 facts. Only an `accepted` occurrence is eligible for control-state advancement;
@@ -138,8 +140,9 @@ and the resolved grant. Omitted or unresolved authority never widens scope.
 
 Only a `handoff` changes the controller identity in this revised form; it must
 change that identity and supply completion evidence for this exact transfer.
-Other kinds may move between policy states with the same controller. A
-destination controller's presence does not authorize its own takeover. Initial
+Other kinds may move between policy states with the same controller.
+
+A destination controller's presence does not authorize its own takeover. Initial
 and resulting controller authority must independently resolve and be valid.
 No implicit supervisory exception or new delegation mechanism is introduced.
 External supervision uses explicitly established controller state; behavior
@@ -186,10 +189,12 @@ that proposes new work creates fresh proposal/decision identities.
 
 Approval and denial are mutually exclusive resolutions of the same pending
 proposal revision. A second distinct decision does not reopen that proposal.
+
 Explicit override/cancellation may append a superseding fact only when its
-current target lifecycle permits it. An approval ceases to authorize further
-progress when superseded/cancelled, its proposal is replaced, its validity or
-grant is no longer effective at admission, or its episode ends. Prior actions
+current target lifecycle permits it. An approval ceases to authorize further progress when it is superseded/cancelled or its proposal is replaced.
+It also ceases when its validity or grant is no longer effective at admission, or its episode ends.
+
+Prior actions
 and evidence remain historical facts. A direction to a proposal never doubles
 as approval. Approval, direction and handoff still require independent action
 admission, crossing/flow policy and execution gates.
@@ -219,8 +224,9 @@ Order-window endpoints are inclusive and interpreted only in their named
 control-order domain. They do not claim elapsed-time expiry. Temporal validity
 uses the existing [shared-time model](../time-model/README.md): exact clock,
 domain, segment, tick and microstep coordinates, with inclusive window endpoints
-and explicitly admitted mappings. Order is never implicitly converted to a
-tick. Unmapped domains and invalid/reset segments cannot satisfy a window.
+and explicitly admitted mappings.
+
+Order is never implicitly converted to a tick. Unmapped domains and invalid/reset segments cannot satisfy a window.
 Where both constraints apply they conjoin, and current grant revocation defeats
 either. Resolve coordinates and grants from trusted owners at the decision and
 commit cut; authoring consistency alone proves no live validity.
@@ -246,15 +252,17 @@ The existing operation claim key is `(principal, operation kind, client key)`
 within a target/run store. Participant, episode, policy, target and semantic
 input are request commitments, not extra retry-key namespaces. After current
 receipt-access authorization, an identical retry returns the retained receipt
-without re-executing or validating a new occurrence at today's cut. Changed
-content under that key conflicts, including a changed episode. A fresh visit
+without re-executing or validating a new occurrence at today's cut.
+
+Changed content under that key conflicts, including a changed episode. A fresh visit
 uses a fresh operation key and occurrence identity. The reusable edge is
 neither key. Retain the incumbent canonical fingerprint/digest rules.
 
 A fresh control occurrence does not automatically mean a fresh API-424 logical
 effect. Preserve trigger-root/rule/slot/firing-epoch identity, the originating
-principal's admitted scope, causal budgets and consumption. A drain caller
-cannot lend authority. Recovery of indeterminate external work requires the
+principal's admitted scope, causal budgets and consumption. A drain caller cannot lend authority.
+
+Recovery of indeterminate external work requires the
 owner's reconciliation evidence; a new cycle cannot conceal a duplicate effect.
 An accepted operation receipt alone proves neither accepted control nor a
 successful external effect. Cancellation records actual prevented/partial/late
@@ -308,9 +316,8 @@ It never grants access to the inject's hidden body or environment effects.
 <!-- vale RAES.HeadingCase = YES -->
 
 Reusable authored direction/intervention bindings pin a permitted edge and its
-kind/target/authority/evidence constraints. Each realized application must join
-an **exact accepted** control occurrence identity/revision, participant/episode,
-edge/policy pin, acting source controller, scope, target, evaluated cut and
+kind/target/authority/evidence constraints. Each realized application must join an **exact accepted** control occurrence identity/revision, participant/episode, and edge/policy pin.
+It must also join the acting source controller, scope, target, evaluated cut and
 validity evidence. Never select the latest event with the same edge. Declaration
 references and matching version strings alone establish no agreement.
 
@@ -336,8 +343,9 @@ Disclosure-only bindings carry no control authority.
 Ordinary disclosure can preserve the same source/result item identity where
 its existing contract permits. An API-424 inject effect instead creates a fresh
 DSL-111 occurrence and fresh produced result with source provenance, as ADR-108
-requires. Neither identity renaming nor a control receipt proves transformation,
-delivery or observation. Reuse the existing API-423 stage records and realized
+requires. Neither identity renaming nor a control receipt proves transformation, delivery or observation.
+
+Reuse the existing API-423 stage records and realized
 exposure/evidence owners; require explicit emission/acknowledgment/observation
 basis. A later delivery failure cannot erase accepted control. Required
 predecessor delivery keeps its parent withheld under RUN-320 until evidenced

@@ -8,7 +8,7 @@ from paths import REPO_ROOT
 from pydantic import ValidationError
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import BackendManifestV2Model
-from raes_contracts.versions import BACKEND_OPERATION_CONTRACT_IDS
+from raes_contracts.versions import BACKEND_OPERATION_CONTRACT_IDS, WORKFLOW_DISPATCH_CONTRACTS
 from raes_processor.trial_compiler import compile_admitted_trial_plan
 from test_sce_002_trial_compiler import _request
 
@@ -122,12 +122,17 @@ def test_manifest_requires_operation_contract_family():
         BackendManifestV2Model.model_validate(payload)
 
 
-def test_unchanged_manifest_omits_declaration_and_retains_digest():
+def test_legacy_manifest_omits_declaration_and_retains_digest():
     import json
 
     payload = json.loads(
         (REPO_ROOT / "contracts/fixtures/backend-manifest/backend-manifest-v2/valid/stub.json").read_text()
     )
+    # This digest pins the declaration before workflow dispatch was introduced.
+    # Current stub parity is checked separately in test_backend_manifest.py.
+    payload["supported_contract_versions"] = [
+        contract for contract in payload["supported_contract_versions"] if contract not in WORKFLOW_DISPATCH_CONTRACTS
+    ]
     model = BackendManifestV2Model.model_validate(payload)
     assert "operation_supervision" not in model.model_dump(mode="json")["capabilities"]
     assert (

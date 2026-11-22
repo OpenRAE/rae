@@ -99,6 +99,7 @@ No command above saves an output file. Redirect stdout only to a new path that y
 
 Results go to stdout. Diagnostics and operational logs go to stderr.
 Logs include exception types and code locations, but omit exception messages.
+
 Use `raes --log-level DEBUG <command>` for more records.
 Replace `<command>` with the command you need; do not include credentials in its arguments.
 An unexpected failure is sanitized and exits `70`.

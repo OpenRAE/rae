@@ -100,10 +100,8 @@ surface or two using a single rule established by
 
 - Two facts belong to the **same surface** when they share the same semantic
   boundary *and* the same typed owner.
-- They belong to **separate surfaces** when they sit at different semantic
-  boundaries — authored scenario intent, observed runtime state, source-artifact
-  and image provenance, and backend or host delivery mechanics are four distinct
-  boundaries — **even when the same real-world evidence supports both**.
+- They belong to **separate surfaces** when they sit at different semantic boundaries, **even when the same real-world evidence supports both**.
+  Authored scenario intent, observed runtime state, source-artifact and image provenance, and backend or host delivery mechanics are four distinct boundaries.
   Surfaces do not collapse into each other.
 
 ADR-033 gives an example with three facts on three surfaces:
@@ -212,8 +210,8 @@ Runtime inventory is the largest extension surface, so the decision path for
 adding to it is explicit. A contributor can determine the required governance
 steps from this section and the machine-readable catalog alone:
 
-1. **Extend the existing runtime surface first.** A new observed node fact
-   should extend `RuntimeConfiguration` and register through the canonical
+1. **Extend the existing runtime surface first.** A new observed node fact should extend `RuntimeConfiguration`.
+   It should register through the canonical
    runtime service-family registry (`raes._runtime_service_families`)
    instead of introducing a new top-level concept family. The
    `runtime-inventory` family and the `nodes.*.runtime` reference model are the
@@ -228,17 +226,16 @@ steps from this section and the machine-readable catalog alone:
    typed-child container registered in the registry. A new family that violates
    an invariant fails the suite immediately.
 3. **Keep observed values redaction-safe.** Values that can carry secrets must
-   route through the runtime redaction helpers (ADR-056 / ADR-057,
-   `raes_contracts.runtime_values`); raw credential material is unrepresentable on the
+   route through the runtime redaction helpers (ADR-056 / ADR-057, `raes_contracts.runtime_values`).
+   Raw credential material is unrepresentable on the
    model surface.
 4. **Add controlled vocabulary, not free strings.** New enumerated terms belong
    in `contracts/concept-authority/controlled-vocabularies-v1.json` (GOV-922),
    not as artifact-local labels.
-5. **Promote to a new concept family only when warranted.** A genuinely new
-   concept that is not a runtime sub-surface requires an ADR, a catalog entry in
-   `concept-families-v1.json` declaring `extension_scope`, `relation_rules`, and
-   `non_ambiguity_constraints` (the discipline above), and a reference-model
-   entry when it has a recurrent SDL structure.
+5. **Promote to a new concept family only when warranted.** A genuinely new concept that is not a runtime sub-surface requires an ADR.
+   It requires a catalog entry in `concept-families-v1.json` that declares `extension_scope`, `relation_rules`, and `non_ambiguity_constraints`.
+   This is the discipline above.
+   It also requires a reference-model entry when it has a recurrent SDL structure.
 
 ## Machine-readable catalog
 
@@ -268,8 +265,8 @@ The JSON Schema for the catalog format is published at:
 
 ## Relationship to implementation
 
-Implementation code may define enums and models that correspond to concept
-families, but the normative catalog is the authority for what families exist
+Implementation code may define enums and models that correspond to concept families.
+But the normative catalog is the authority for what families exist
 and where their meaning comes from.
 
 ## Relationship to other requirements

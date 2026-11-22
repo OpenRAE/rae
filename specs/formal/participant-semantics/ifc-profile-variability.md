@@ -14,8 +14,8 @@ profile, authoring syntax, provider protocol or runtime behavior. The original
 
 | Boundary | Required information and authority |
 | --- | --- |
-| Authored requirement | Independent confidentiality owners/clauses, allowed audiences and destinations, possible writers and integrity obligations, required release distinctions, sources/flows/sinks, memory scope, minimum guarantees and admissible limitations. An exact governed profile/policy reference may supply these; an author assertion grants no release authority. |
-| Published semantic profile | Exact carrier and encoding, token meaning, order, conservative join, source/default and sink relations, release and non-influence relations, memory scope, unknown behavior, finite bounds and claim limits. |
+| Authored requirement | Independent confidentiality owners/clauses, allowed audiences and destinations, and possible writers and integrity obligations. Required release distinctions, sources/flows/sinks, memory scope, minimum guarantees and admissible limitations. An exact governed profile/policy reference may supply these; an author assertion grants no release authority. |
+| Published semantic profile | Exact carrier and encoding, token meaning, order, conservative join, and source/default and sink relations. Release and non-influence relations, memory scope, unknown behavior, finite bounds and claim limits. |
 | Backend/operator configuration | Installed implementation and configuration identity, admitted principal/source/sink bindings, instrumentation, effective coverage, resources, willingness and independently resolved realization evidence. These instantiate published relations; they cannot redefine them. |
 
 <!-- vale RAES.HeadingCase = YES -->
@@ -33,8 +33,8 @@ only where the published relation already permits those bindings. They may not
 silently turn a generic token into a new owner algebra.
 
 This amendment introduces no parameterized owner syntax. Repeated deployment
-needs may justify bounded typed owner parameters in a later publication, but
-that decision must specify admitted identity scope, canonical binding identity,
+needs may justify bounded typed owner parameters in a later publication.
+That decision must specify admitted identity scope, canonical binding identity,
 finite bounds, authority, validation and every consumer. Arbitrary/unbounded
 runtime owners, scenario-selected code, plugin discovery and executable profile
 content are unsupported. A new owner outside a published universe requires a
@@ -60,8 +60,8 @@ untrusted B influence without endorsement; a later action sink still evaluates
 that influence against its own requirements. Unknown source resolution is
 never known untrusted input or a public/trusted bottom label.
 
-An encoding is adequate for an authored requirement only if it preserves the
-required distinctions through source resolution, derivation, independent
+An encoding is adequate for an authored requirement only if it preserves the required distinctions.
+It must preserve them through source resolution, derivation, independent
 release, memory and every required sink. All encoded permits must respect the
 authored prohibitions, and all required functional distinctions must remain
 realizable. A conservative refusal of every flow does not satisfy a requirement
@@ -82,8 +82,8 @@ theorem. This security specialization does not narrow those other domains.
 <!-- vale RAES.HeadingCase = NO -->
 ## IFC-03 — propagation and Release
 
-Every opaque summary, parse, redaction, trusted edit, argument/control choice,
-retained memory, shared state, handoff and participant/episode crossing carries
+Every opaque summary, parse, redaction, trusted edit, and argument/control choice carries the conservative join of every possible input.
+Every retained memory, shared state, handoff and participant/episode crossing also carries
 the conservative join of every possible input. Missing coverage is unresolved,
 not an empty input set. Exclusion needs the published non-influence relation
 and its evidence. All historical labels and source/influence refs are immutable.
@@ -123,8 +123,8 @@ At apparatus admission and the relevant exact cut, establish in order:
    Establish IFC-02 expressibility, source/default semantics and IFC-03 release
    authority. Unknown identities, tokens, revisions, mappings or ambiguous
    interpretations are unsupported, regardless of schema validity.
-3. Resolve installed and effective realization for the required sources,
-   explicit data/control paths, memory/crossing scope, sinks, release operations,
+3. Resolve installed and effective realization for the required sources, explicit data/control paths, and memory/crossing scope.
+   Also resolve it for sinks, release operations,
    finite bounds and evidence. A declaration, configuration digest, method name
    or generic modular-control feature is insufficient.
 4. Apply CA-04 satisfaction to that coverage, guarantee, admissible loss and
@@ -144,8 +144,8 @@ a mandatory IFC operation or hide missing coverage.
 
 An admitted bounded guarantee is the guarantee the run promised, within its
 authored constraints. It is not an unexpected downgrade from an implicitly
-perfect implementation. Conversely, a later loss of promised coverage,
-enforcement, authority, freshness or evidence is weakening/failure even if an
+perfect implementation. Conversely, a later loss of promised coverage, enforcement, authority, freshness or evidence is weakening/failure.
+This is true even if an
 earlier minimum requirement would still have accepted the reduced capability.
 It must be recorded; it cannot silently redefine the admitted binding.
 
@@ -168,13 +168,14 @@ authority and finite causal budgets.
 <!-- vale RAES.HeadingCase = NO -->
 ## IFC-06 — governed publication and exact present limits
 
-A new finite profile publication must include its full IFC-01 contract,
-separating cases and bounds, conservative propagation and release evidence,
-semantic identity, compatibility/migration rules and claim limits. Portable
-adoption additionally needs coherent closed models, schemas, fixtures,
-allowlisted loaders, modular fact/selection dispatch, trusted context and
+A new finite profile publication must include its full IFC-01 contract, separating cases and bounds.
+It must include conservative propagation and release evidence,
+semantic identity, compatibility/migration rules and claim limits. Portable adoption additionally needs coherent closed models, schemas, fixtures, and allowlisted loaders.
+It needs modular fact/selection dispatch, trusted context and
 per-obligation authority validation, capability negotiation, runtime/history
-readers and conformance. Use ADR-009/061's existing publication ledger,
+readers and conformance.
+
+Use ADR-009/061's existing publication ledger,
 `schema_bundle()` parity and packaged corpus. A new JSON file or relaxed digest
 check alone is insufficient. Stable breaking contracts require a new contract
 identity; draft mutability never permits silent semantic reinterpretation.
@@ -192,8 +193,8 @@ identity; draft mutability never permits silent semantic reinterpretation.
 | Runtime/backend claims | Depend on the exact implemented profile and independently evidenced coverage. No new owner-aware realization, universal noninterference, covert-channel, opaque-internal or backend-equivalence claim is established here. |
 
 Thus the worked independent-owner cases require a new governed finite profile
-and corresponding consumers for direct portable representation; they remain
-unsupported by the current security vocabulary. A concrete contextual encoding
+and corresponding consumers for direct portable representation.
+They remain unsupported by the current security vocabulary. A concrete contextual encoding
 may be assessed under IFC-02, but none is certified by this delivery. Arbitrary
 cross-profile comparison and automatic conversion remain unsupported.
 

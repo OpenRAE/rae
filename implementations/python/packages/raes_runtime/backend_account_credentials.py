@@ -19,6 +19,8 @@ from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotE
 from raes_processor.planner import (
     plan_realization_requirements,
     planned_constraint_requirements,
+    portable_realization_plan,
+    portable_realization_value,
     realization_payload_projections,
 )
 
@@ -42,7 +44,8 @@ def plan_has_account_credentials(plan: ProvisioningPlan) -> bool:
     """Return whether a provisioning plan exercises credential bindings."""
 
     return any(
-        operation.resource_type == "account-placement" and account_placement_has_credential_bindings(operation.payload)
+        operation.resource_type == "account-placement"
+        and account_placement_has_credential_bindings(portable_realization_value(operation.payload))
         for operation in plan.operations
     )
 
@@ -73,6 +76,7 @@ def sanitize_account_credential_result(
 
     if not plan_has_account_credentials(plan):
         return result
+    plan = portable_realization_plan(plan)
     if result.details:
         raise InvalidInputError("credential-bearing backend results must not publish arbitrary details")
     diagnostics = value_free_backend_diagnostics(result.diagnostics)
@@ -152,7 +156,7 @@ def _closed_plan_payload(
 ) -> dict[str, object]:
     """Project only admitted evidence and canonical account credential posture."""
 
-    observed_payload = dict(entry.payload)
+    observed_payload = dict(portable_realization_value(entry.payload))
     evidence = {}
     if (
         operation.address in artifact_addresses

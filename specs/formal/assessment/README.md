@@ -23,8 +23,8 @@ See the [objective reference](../objectives/declarative-objective-semantics.md)
 and [truth-result algebra](../objectives/proposition-and-assertion-semantics.md).
 These corrections apply an existing decision; they add no new scoring or truth semantics.
 
-There is no condition→metric→evaluation→TLO→goal scoring chain, no score
-aggregation rule, no per-condition metric-exclusivity rule, and no
+There is no condition→metric→evaluation→TLO→goal scoring chain and no score aggregation rule in the SDL.
+There is no per-condition metric-exclusivity rule and no
 scoring-chain ordering/refresh derivation in the SDL.
 
 ## Where graded scoring now lives

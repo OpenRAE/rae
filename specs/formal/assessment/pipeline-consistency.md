@@ -20,10 +20,12 @@ of those consistency rules apply.
 A condition compiles onto a runtime `evaluation.condition.*` address.
 Each node-local binding resolves a declared condition template.
 Compilation reports `evaluation.condition-template-ref-unbound` if the template is missing.
+
 The former `evaluation.condition-ref-unbound` and `evaluation.condition-ref-ambiguous` diagnostics
 are not current compiler evidence.
 [ADR-079](../../../docs/decisions/adrs/adr-079-backend-neutral-proposition-and-truth-semantics.md)
 separates probe execution from backend-neutral truth.
+
 Objective success references invariant or postcondition assertions.
 Workflow predicates reference precondition assertions.
 The objective-success reference model is in
@@ -31,11 +33,11 @@ The objective-success reference model is in
 
 ## Where graded scoring now lives
 
-Graded scoring, reward, and evaluation outputs are an experiment/evaluator-plane
-concern — experiment-core contracts
+Graded scoring, reward, and evaluation outputs are an experiment/evaluator-plane concern, never authored SDL.
+The owners are the experiment-core contracts
 ([ADR-055](../../../docs/decisions/adrs/adr-055-experiment-core-contract-boundary.md)),
 the evidence/measure contracts
 ([ADR-064](../../../docs/decisions/adrs/adr-064-experiment-evidence-and-measure-contract-boundary.md)),
 and the backend Evaluator
 ([ADR-069](../../../docs/decisions/adrs/adr-069-cage-2-replication-architecture.md)
-§3) — never authored SDL.
+§3).

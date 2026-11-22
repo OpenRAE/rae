@@ -64,9 +64,24 @@ def advance_step(
 
 def phase_states(run: RuntimeRunContext, records: tuple[ControlPlaneOperationRecord, ...]) -> set[OperationState]:
     """A resolved unknown attempt remains failed; resolution never creates success."""
-    unresolved = set(unresolved_indeterminate_operation_ids_from_records(run._operations))
+    all_records = run._operations
+    unresolved = set(unresolved_indeterminate_operation_ids_from_records(all_records))
+    workflow_roots = {
+        item.receipt.operation_id
+        for item in all_records.values()
+        if item.workflow is not None and item.workflow.kind == "root"
+    }
+    workflow_unknown = {
+        item.status.context.parent_operation_id
+        for item in all_records.values()
+        if item.invocation is not None
+        and item.receipt.operation_id in unresolved
+        and item.status.context.parent_operation_id in workflow_roots
+    }
     return {
-        OperationState.FAILED
+        OperationState.INDETERMINATE
+        if record.receipt.operation_id in workflow_unknown
+        else OperationState.FAILED
         if record.status.state is OperationState.INDETERMINATE and record.receipt.operation_id not in unresolved
         else record.status.state
         for record in records

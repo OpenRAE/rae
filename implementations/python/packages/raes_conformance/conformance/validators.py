@@ -96,6 +96,7 @@ from raes_contracts.contracts.participant_execution import (
     ParticipantExecutionControlRequestModel,
     ParticipantExecutionServiceStateModel,
 )
+from raes_contracts.contracts.workflow_dispatch import WorkflowStepDispatch, WorkflowStepResponse
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import (
     DomainProfileAdmissionPolicyModel,
@@ -175,6 +176,8 @@ _MODEL_VALIDATORS = {
 
 
 _STRUCTURAL_ONLY_VALIDATORS = {
+    "workflow-step-dispatch-v1": WorkflowStepDispatch.model_validate,
+    "workflow-step-response-v1": WorkflowStepResponse.model_validate,
     "assigned-trial-v1": TrialAssignmentModel.model_validate,
     "assigned-trial-control-v1": TrialAssignmentControlModel.model_validate,
     "trial-outcome-v1": TrialOutcomeModel.model_validate,

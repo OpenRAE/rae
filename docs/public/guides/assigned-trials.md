@@ -8,6 +8,7 @@ Use RAES 11.0.2 on both hosts.
 Keep the original `TrialRealizationInputs`, processor commitments, and a separate store for each run.
 Install the selected target, settings, capture, execution, and cleanup owners on each host.
 Authorize the coordinator and worker identities through the host application.
+
 These steps change runtime state and can invoke native effects.
 Use an approved target with a verified cleanup procedure.
 The fragments require application-owned objects; they do not create a deployment.
@@ -25,6 +26,7 @@ The coordinator needs a `TrialOutcomeVerifier` to ingest remote facts.
 That verifier reads original native execution records and resolves evidence through authorized owners.
 It checks request commitments and checked state changes.
 It checks applied settings, cessation, capture, and cleanup.
+
 A matching digest or remote success assertion does not establish those facts.
 Verification returns `None` on success and raises on unavailable, changed, or unverified evidence.
 Other return values are refusals.
@@ -108,6 +110,7 @@ The worker does not allocate replacements.
 `binding.request` is a detached `TrialUnitRequest`.
 `binding.execute_trial(request, identity=...)` provides the existing in-process trial-unit handoff.
 The protocol form `binding.execute_trial(request)` uses the adapter's originally bound local identity.
+
 It returns a `TrialUnitResult` when execution and cleanup observations exist.
 It raises `TrialPending` when more evidence is needed.
 The caller must check the original ledger before a retry.
@@ -116,8 +119,10 @@ Neither that exception nor a lost reply authorizes another attempt.
 Each host uses the existing scoped runtime ledger and budgets.
 Native result checks and resource claims remain in force.
 Binding two entries to one shared target does not make their resources independent.
+
 After verified cleanup, `worker_runtime.retire_run("run:" + binding.request.run_id)` releases its target reservation.
 Later work on that target waits for this retirement.
+
 Durable hosts need a durable engine store and an explicit durable run-store factory.
 Recovery uses those original stores and installed owners.
 Redelivery reads the retained terminal decision after retirement or retry preparation.
@@ -129,6 +134,7 @@ Concurrent deliveries return the same fully attached binding.
 An incomplete outcome can have no execution or cleanup fact.
 It needs no fabricated receipt, end time, or successful result.
 The carrier keeps original timestamps and evidence.
+
 It also keeps checked snapshots, receipts, and operation states.
 It includes operations that are still running or indeterminate.
 The caller can read those facts while an advance waits for native work.
@@ -150,9 +156,11 @@ Ingestion checks the stored assignment first.
 It then calls the installed evidence verifier.
 It refuses another run, attempt, owner, configuration, or commitment.
 It checks the result and cleanup joins before it stores terminal facts.
+
 New reports can add facts.
 They cannot change accepted evidence or settled operations.
 Duplicate delivery reconciles the same cut.
+
 If the ledger changed, ingestion can return a conflict.
 The caller reads current progress and retries the same delivery.
 Evidence checks do not hold the lock for the whole plan.
@@ -160,6 +168,7 @@ Evidence checks do not hold the lock for the whole plan.
 Accepted facts feed `experiment_results()` and `experiment_records()`.
 Run and study records keep their existing content checks and fixed versions.
 The scientific eligibility rules still apply.
+
 Started work remains visible even without a result.
 Execution, capture, cleanup, and scientific outcomes stay separate.
 Incomplete capture keeps failed evidence validation visible in run and study records.
@@ -171,6 +180,7 @@ Completed execution with failed cleanup does not release occupied capacity.
 `cancel_experiment()` records intent and closes new assignment admission.
 It cannot deliver a network message to a remote host.
 The application reads `assigned_trial_control(experiment_id, assignment.content_digest, identity=...)`.
+
 It sends that carrier through its trusted transport.
 The host passes it as `binding.advance(control=control, identity=...)`.
 Cancellation is retained locally; a later stale control cannot undo it.
@@ -179,6 +189,7 @@ Stop acknowledgement does not establish cessation or permit cleanup to be report
 `advance_trial(experiment_id, plan_entry_id, identity=...)` advances only that entry's coordinator policy.
 It shares the existing terminal, retry, archive, and replacement rules.
 It never dispatches another entry's native phases.
+
 Required reset or compensation is requested through `control.prepare_retry`.
 The worker performs that preparation through the existing supervised lifecycle and returns its original evidence.
 Only the coordinator can then authorize a new attempt.
@@ -196,9 +207,11 @@ Host placement and its release remain downstream responsibilities.
 The composition publishes `assigned-trial/v1`, `assigned-trial-control/v1`, and `trial-outcome/v1`.
 Their schema IDs are `assigned-trial-v1`, `assigned-trial-control-v1`, and `trial-outcome-v1`.
 Child plans, snapshots, receipts, evidence, and cleanup carriers keep their existing versions.
+
 Unsupported versions and unknown fields are refused.
 Portable conformance checks the carrier shape and its internal joins.
 It makes no claim about live permission or native effects.
+
 JSON ingress refuses duplicate members and non-finite numbers.
 It also bounds nesting, total size, and collection size.
 The existing trial/runtime value limits apply before copying or hashing.

@@ -42,6 +42,7 @@ from .control_plane_store import (
 )
 from .control_plane_timeouts import _reconciliation_clock, workflow_timeout_update
 from .control_plane_workflows import maybe_apply_compensation
+from .workflow_checkpoints import retained_invocation_result
 
 _TERMINAL_WORKFLOW_STATUSES = {
     WorkflowStatus.SUCCEEDED,
@@ -246,6 +247,8 @@ class WorkflowControlMixin:
         run_id: str | None,
     ) -> WorkflowExecutionState | str:
         result = dict(self._snapshot.orchestration_results.get(workflow_address, {}))
+        if run_id and result.get("run_id") != run_id:
+            result = retained_invocation_result(self._operations, workflow_address, run_id) or result
         rejection = None
         normalized: WorkflowExecutionState | None = None
         if not result:
@@ -290,6 +293,9 @@ class WorkflowControlMixin:
                 event_type=WorkflowHistoryEventType.WORKFLOW_CANCELLED,
                 timestamp=submitted_at,
                 details={"reason": reason},
+                invocation_id=normalized.run_id
+                if any(event.get("invocation_id") == normalized.run_id for event in history)
+                else None,
             ).to_payload()
         )
         cancelled, history = maybe_apply_compensation(

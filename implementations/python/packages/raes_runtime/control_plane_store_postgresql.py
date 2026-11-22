@@ -1,4 +1,4 @@
-"""Optional single-owner PostgreSQL ledger; independent of Temporal's database."""
+"""Optional scope-bound PostgreSQL ledgers; independent of Temporal's database."""
 
 from __future__ import annotations
 
@@ -37,6 +37,7 @@ if TYPE_CHECKING:
     from .control_plane_store import AuditEvent, TerminalCommitMode
 
 _IDENTIFIER = re.compile(r"[A-Za-z][A-Za-z0-9_.-]{0,62}\Z")
+_NAMESPACE = re.compile(r"[a-z][a-z0-9_]{0,62}\Z")
 _OWNER_LOCK = int.from_bytes(sha256_bytes(b"raes.single-owner.ledger/v1")[:8], "big") & ((1 << 63) - 1)
 
 
@@ -51,8 +52,10 @@ class PostgreSQLStoreConfiguration:
     connect_timeout_ms: int = 2000
     statement_timeout_ms: int = 2000
     lock_timeout_ms: int = 1000
+    namespace: str | None = None
 
     def __post_init__(self) -> None:
+        self._require_namespace()
         if (
             not isinstance(self.host, str)
             or not self.host
@@ -61,6 +64,15 @@ class PostgreSQLStoreConfiguration:
         ):
             raise ValueError("PostgreSQL host is invalid")
         self._require_connection_configuration()
+
+    def _require_namespace(self) -> None:
+        if self.namespace is not None and (
+            not isinstance(self.namespace, str)
+            or not _NAMESPACE.fullmatch(self.namespace)
+            or self.namespace in {"public", "information_schema"}
+            or self.namespace.startswith("pg_")
+        ):
+            raise ValueError("PostgreSQL namespace must be a bounded non-system lowercase identifier")
 
     def _require_connection_configuration(self) -> None:
         if any(not isinstance(value, str) or not _IDENTIFIER.fullmatch(value) for value in (self.database, self.user)):
@@ -76,8 +88,11 @@ class PostgreSQLStoreConfiguration:
 
 
 class _PostgreSQLOwner:
-    def __init__(self, store: PostgreSQLControlPlaneStore, connection: Connection[tuple[object, ...]]) -> None:
+    def __init__(
+        self, store: PostgreSQLControlPlaneStore, connection: Connection[tuple[object, ...]], lock_key: int
+    ) -> None:
         self._store, self._connection = store, connection
+        self._lock_key = lock_key
         self._lock = Lock()
         self.closed = False
 
@@ -88,7 +103,7 @@ class _PostgreSQLOwner:
             row = self._connection.execute(
                 "SELECT EXISTS(SELECT 1 FROM pg_locks WHERE locktype='advisory' AND pid=pg_backend_pid() "
                 "AND classid::bigint=%s AND objid::bigint=%s AND objsubid=1)",
-                (_OWNER_LOCK >> 32, _OWNER_LOCK & 0xFFFFFFFF),
+                (self._lock_key >> 32, self._lock_key & 0xFFFFFFFF),
             ).fetchone()
             if row != (True,):
                 raise OperationalError("PostgreSQL runtime ownership has ended")
@@ -103,7 +118,7 @@ class _PostgreSQLOwner:
 
 
 class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
-    """One database, one target/run, one admitted owner; no P3/HA claim.
+    """One namespace, one target/run, one admitted owner; no P3/HA claim.
 
     initialize_schema() is a separate explicit bootstrap operation. Runtime
     admission never provisions services, silently migrates foreign databases,
@@ -129,6 +144,15 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
         if not isinstance(configuration, PostgreSQLStoreConfiguration):
             raise TypeError("PostgreSQL ledger requires typed configuration")
         self._configuration = configuration
+        self._owner_lock = (
+            _OWNER_LOCK
+            if configuration.namespace is None
+            else int.from_bytes(
+                sha256_bytes(b"raes.single-owner.namespace/v1\x00" + configuration.namespace.encode("ascii"))[:8],
+                "big",
+            )
+            & ((1 << 63) - 1)
+        )
         self._owner = None
         self._owner_generation = None
         self._scope = None
@@ -156,23 +180,46 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
         }
         if config.password is not None:
             options["password"] = config.password.get_secret_value()
-        return psycopg.connect(**options)
+        connection = psycopg.connect(**options)
+        try:
+            connection.execute(
+                psycopg.sql.SQL("SET search_path TO {}, pg_temp").format(
+                    psycopg.sql.Identifier(config.namespace or "public")
+                )
+            )
+            if not autocommit:
+                connection.commit()
+        except BaseException:
+            connection.close()
+            raise
+        return connection
 
     def initialize_schema(self) -> None:
         from .control_plane_store_postgresql_schema import initialize_schema, refuse_corrupted_ledger
 
         with refuse_corrupted_ledger(), self._connect() as connection:
-            initialize_schema(connection)
+            if connection.execute("SELECT pg_try_advisory_xact_lock(%s)", (self._owner_lock,)).fetchone() != (True,):
+                raise ConflictError("PostgreSQL ledger has a runtime owner or concurrent bootstrap")
+            if self._configuration.namespace is not None:
+                from psycopg import sql
+
+                connection.execute(
+                    sql.SQL("CREATE SCHEMA IF NOT EXISTS {}").format(sql.Identifier(self._configuration.namespace))
+                )
+            initialize_schema(connection, namespace=self._configuration.namespace)
 
     def admit_runtime(self, *, target_scope: str, run_scope: str) -> _PostgreSQLOwner:
+        if any(not isinstance(value, str) or not 1 <= len(value) <= 256 for value in (target_scope, run_scope)):
+            raise ValueError("PostgreSQL ledger admission requires bounded nonempty target and run scopes")
         if self._owner is not None:
             raise ConflictError("PostgreSQL ledger already has runtime admission")
         connection = self._connect(autocommit=True)
         try:
-            if connection.execute("SELECT pg_try_advisory_lock(%s)", (_OWNER_LOCK,)).fetchone() != (True,):
+            if connection.execute("SELECT pg_try_advisory_lock(%s)", (self._owner_lock,)).fetchone() != (True,):
                 raise ConflictError("PostgreSQL ledger already has a runtime owner")
-            owner = _PostgreSQLOwner(self, connection)
+            owner = _PostgreSQLOwner(self, connection, self._owner_lock)
             self._owner = owner
+            self._owner_generation = None
             self._closed = False
             self._scope = (target_scope, run_scope)
             with self._connection() as ledger:
@@ -182,13 +229,13 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
                 )
 
                 # A dropped table must be refused before a query reaches it.
-                require_ledger_tables(ledger, projection=False)
+                require_ledger_tables(ledger, projection=False, namespace=self._configuration.namespace)
                 metadata = dict(ledger.execute("SELECT key, value FROM raes_ledger_metadata FOR UPDATE").fetchall())
                 if metadata.get("schema-version") not in {"1", "2", "3", "4", POSTGRES_LEDGER_SCHEMA_VERSION}:
                     # A schema that this build cannot open conflicts with the ledger state.
                     raise ConflictError("PostgreSQL ledger schema is missing or unsupported")
                 if metadata.get("schema-version") == POSTGRES_LEDGER_SCHEMA_VERSION:
-                    require_ledger_tables(ledger, projection=True)
+                    require_ledger_tables(ledger, projection=True, namespace=self._configuration.namespace)
                 prior = (metadata.get("target-scope"), metadata.get("run-scope"))
                 if prior == (None, None):
                     with ledger.cursor() as cursor:
@@ -201,7 +248,7 @@ class PostgreSQLControlPlaneStore(SQLRuntimeDecisionStoreMixin):
                 if metadata.get("schema-version") != POSTGRES_LEDGER_SCHEMA_VERSION:
                     from .control_plane_store_postgresql_schema import initialize_projection_schema
 
-                    initialize_projection_schema(ledger)
+                    initialize_projection_schema(ledger, namespace=self._configuration.namespace)
                     ledger.execute(
                         "UPDATE raes_ledger_metadata SET value=%s WHERE key='schema-version'",
                         (POSTGRES_LEDGER_SCHEMA_VERSION,),

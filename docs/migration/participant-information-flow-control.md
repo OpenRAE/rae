@@ -13,6 +13,7 @@ Use RAES 11.0.2.
 Keep original manifests, snapshots, histories, and reader pins.
 The operator needs authority to select the profile.
 That authority must also permit installation of its trusted resolver.
+
 Changing the selection can change data release.
 It can also change native action admission.
 Do not expose administrative credentials or raw histories to participants.
@@ -87,6 +88,7 @@ participant adoption without global environment switches.
 Before the first governed write, rollback may restore the earlier
 manifest/profile/resolver selection and rerun the legacy fixtures. After a governed write, rollback is asymmetric.
 Stop or drain new governed work.
+
 Retain a resolver and schema-aware reader.
 Keep the append-only snapshot, operation, idempotency, crossing-history, and audit write set. Never delete crossing history.
 Never rewrite it as an incumbent carrier.

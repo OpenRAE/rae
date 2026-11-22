@@ -50,10 +50,10 @@ They grant no trigger authority and execute nothing.
 `schema-publication-manifest.json` is the stable index for the authoritative
 publication inventory. Each contract has an independent record under
 `schema-publication/entries/`, so concurrent changes to unrelated contracts do
-not rewrite one shared array. The contracts verification gate assembles those
-records deterministically and checks that every entry points at
-`contracts/schemas/`, every listed schema exists, every JSON Schema file is
-listed, and every entry records its stability class.
+not rewrite one shared array. The contracts verification gate assembles those records deterministically.
+It checks that every entry points at `contracts/schemas/` and that every listed schema exists.
+It also checks that every JSON Schema file is listed and that every entry records its stability class.
+
 Records contain `contract_id`, `schema_path`, and `stability`.
 They contain no `content_hash` or `last_change`.
 Git records schema history under the issue 1929 amendments to ADR-009 and ADR-061.
@@ -80,16 +80,19 @@ the `coverage` shape are documented in
 The published schemas under `contracts/schemas/` are the **hand-governed
 normative authority**. Contract changes start with a reviewed published-schema edit.
 The review compares the change with the SDL prose specification.
+
 The reference implementation consumes that authority.
 Its `raes_schemas.schema_bundle()` interface produces a comparison bundle.
 `tools/check_generated_schemas.py` generates that bundle into a temporary directory.
 It checks exact equality with the published schemas and never overwrites them.
-A new schema adds one record
-under `schema-publication/entries/`. A schema change does not edit its record:
-git holds the schema history, and the pull request review covers the change. A
+
+A new schema adds one record under `schema-publication/entries/`.
+A schema change does not edit its record.
+Git holds the schema history, and the pull request review covers the change. A
 schema **removal** adds an independent tombstone record (schema path + summary)
-under `schema-publication/tombstones/`. `tools/check_schema_publication.py
---base-rev` refuses an incompatible change to a `stable` schema and a removal
+under `schema-publication/tombstones/`.
+
+`tools/check_schema_publication.py --base-rev` refuses an incompatible change to a `stable` schema and a removal
 without a tombstone. This is the authority direction specified by ADR-009 §7.
 Optional generation of implementation bindings *from* the schemas is not implemented.
 
@@ -130,8 +133,8 @@ episode, state cut, projection, memory scope, and information guarantee. Strong
 claims resolve through the immutable
 `participant-information-reconstruction-profile-v1` corpus and preserve every
 visible occurrence as a typed source relation. Conformance, snapshot reload,
-and backend ingestion fail closed unless a trusted resolver supplies the
-occurrence history, typed sources, proof digest, exact-cut membership, and
+and backend ingestion fail closed unless a trusted resolver supplies the required inputs.
+These are the occurrence history, typed sources, proof digest, exact-cut membership, and
 projection/policy coordinates needed by the contextual invariant. The record
 is not a mutable fact map, hidden-world snapshot, or operational-holdings
 taxonomy; ACT-615 remains the owner of concrete holdings kinds and lifecycle.
@@ -139,33 +142,32 @@ taxonomy; ACT-615 remains the owner of concrete holdings kinds and lifecycle.
 The participant-runtime `runtime-fact-binding-plane-v1` contract defines typed
 run-local fact declarations, immutable versions, compiled late-bound action
 sinks, value-free binding provenance, and redacted participant/workflow
-projections. It permits facts to fill only declared action `input.*` fields;
-it does not permit runtime values to rewrite SDL variables, topology, workflow
+projections. It permits facts to fill only declared action `input.*` fields.
+It does not permit runtime values to rewrite SDL variables, topology, workflow
 structure, experiment factors, identities, or random streams.
-The reference runtime obtains sinks, candidates, time, and authority from a
-trusted per-action admission and delivers values through a one-shot dispatcher;
-caller requests cannot inject policy or receive protected values.
+The reference runtime obtains sinks, candidates, time, and authority from a trusted per-action admission.
+It delivers values through a one-shot dispatcher.
+Caller requests cannot inject policy or receive protected values.
 
 The published experiment-core contract family includes task, run,
 apparatus-context, study/collection, capture specification, raw evidence record,
 and derived measure schemas under `contracts/schemas/experiment-core/`. These
-contracts are archival design artifacts for scientific experiment records; they
-do not add runtime execution, capture, storage, scheduling, statistical engines,
+contracts are archival design artifacts for scientific experiment records.
+They do not add runtime execution, capture, storage, scheduling, statistical engines,
 or API behavior by themselves. Claim-bearing study and benchmark records bind
 their conclusions to `raes-behavioral-relations@rev1`, including population or
 case scope, measurement projection, evidence boundary, limitations, and
 explicit nonclaims.
 
-The published `scenario-satisfiability-evidence-v1` contract binds exact SDL
-source bytes, canonical authored semantics, a solver-neutral normalized model,
-the pinned solver configuration, and exactly one satisfiable witness,
+The published `scenario-satisfiability-evidence-v1` contract binds exact SDL source bytes, canonical authored semantics, and a solver-neutral normalized model.
+It also binds the pinned solver configuration and exactly one satisfiable witness,
 unsatisfiable core, or unsupported disclosure. Its claim is limited to the
 ADR-086 finite-domain profile; it is not backend-realization or runtime-success
 evidence.
 
-`experiment-run-v1` is the canonical run provenance record. It carries the
-task/run/apparatus context, result and evidence pointers, traceability links to
-capture specs, evidence records, derived measures, and claims, plus
+`experiment-run-v1` is the canonical run provenance record. It carries the task/run/apparatus context and result and evidence pointers.
+It carries traceability links to capture specs, evidence records, derived measures, and claims.
+It also carries
 realized-form disclosures for underspecified concerns resolved during a run.
 
 Within experiment-core contracts, identifier-bearing collections that require

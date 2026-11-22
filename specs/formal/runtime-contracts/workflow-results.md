@@ -61,10 +61,23 @@ When workflow compensation is configured, the history stream may also include:
 
 ## Validation boundary
 
-Backends may hold richer internal state, but the manager only accepts the
-portable envelope defined here. Validation is performed against the compiled
-workflow `result_contract` and `execution_contract`, not against incidental
-planner payload fields such as `control_steps`.
+The runtime produces the portable workflow result and history envelopes.
+It validates them against the compiled workflow `result_contract` and
+`execution_contract` before commit.
+The admitted compiled `control_steps` determine executable transitions.
+Backend step responses cannot replace the graph or workflow history.
 
-Python typed models may normalize valid payloads after validation, but they are
-not the backend-facing contract.
+
+Runtime-owned history correlates each invocation with `invocation_id`.
+A dispatch event is `step_started`, with `origin: runtime`.
+Its accepted response is `step_reported`, with `origin: backend`.
+Both events carry `dispatch_id` and a positive `attempt`.
+
+Control steps appear in history without becoming observable step results.
+The latest workflow-address result identifies its invocation through `run_id`.
+History validation uses that invocation's events and checks the ordered stream's timestamps.
+Legacy streams without invocation correlation remain readable.
+
+
+Python typed models normalize these payloads.
+Published JSON Schemas remain the wire-shape authority.

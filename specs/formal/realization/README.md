@@ -11,16 +11,14 @@ backend manifests carry `realization_support`.
 
 - the three-class taxonomy of author intent: exact declaration, constrained
   declaration, open realization
-- the rules that decide when realization is permitted, when an explicit
-  declaration must be honored, and when an unsupported exact requirement
-  must be rejected rather than silently approximated
-- the cross-stage gate that the SDL, processor, and backend layers must
-  pass for those rules to hold across authoring, validation, instantiation,
-  compilation, planning, execution, and observation
+- the rules that decide when realization is permitted and when an explicit declaration must be honored.
+  The rules also decide when an unsupported exact requirement must be rejected rather than silently approximated
+- the cross-stage gate that the SDL, processor, and backend layers must pass for those rules to hold.
+  The rules must hold across authoring, validation, instantiation, compilation, planning, execution, and observation
 - the capability-disclosure surface on **backend** manifests that
-  declares which exact-requirement-kinds and constraint-kinds the
-  backend supports, and the per-domain support mode that governs how
-  those kinds may be realized — processor manifests carry no
+  declares which exact-requirement-kinds and constraint-kinds the backend supports.
+  It also declares the per-domain support mode that governs how those kinds may be realized.
+  Processor manifests carry no
   `realization_support` because the processor layer does not realize
   underspecified concerns
 - the proposed realization-envelope semantics for issue #667: a
@@ -30,8 +28,8 @@ backend manifests carry `realization_support`.
 
 ## Out of scope
 
-- new SDL syntax for declaring exact, constrained, or open authoring
-  intent — the existing closed Pydantic SDL models, controlled
+- new SDL syntax for declaring exact, constrained, or open authoring intent.
+  The existing closed Pydantic SDL models, controlled
   vocabularies, semantic profiles, and apparatus manifests carry the
   necessary surfaces
 - enumerating every future exact-requirement-kind or constraint-kind;

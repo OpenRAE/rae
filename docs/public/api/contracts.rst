@@ -116,3 +116,12 @@ authority and do not execute an inject.
 
 .. automodule:: raes_contracts.contracts.inject_occurrence_outcome
    :members:
+
+Workflow step dispatch
+----------------------
+
+The runtime sends one command and accepts one bound response.
+The backend does not receive successor authority.
+
+.. automodule:: raes_contracts.contracts.workflow_dispatch
+   :members:

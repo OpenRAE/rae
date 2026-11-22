@@ -148,6 +148,10 @@ A failed check removes the pull request from the queue.
 `dev` does not require strict status checks, because the queue tests each pull request against the latest `dev`.
 Merges into `main` do not use a queue.
 
+When the queue removes an open pull request without a merge, the `Merge Queue Removed` workflow adds the `merge-queue-removed` label.
+The label shows that the pull request needs work.
+The workflow removes the label when the pull request enters the queue again or closes.
+
 `implementations/tooling/branch-merge-policy.json` declares the merge settings and the producer of each required context.
 The `policy / branch merge queue` stage runs `tools/check_merge_queue_policy.py`.
 It fails when a required `dev` producer does not run on every merge group.

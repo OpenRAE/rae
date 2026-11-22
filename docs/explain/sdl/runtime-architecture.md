@@ -6,10 +6,12 @@ RAE supplies the common execution engine for CTFs, experiments, product tests, a
 Each workload uses SDL processing, processor plans, shared runtime execution, and injected backend services.
 The admitted inputs select the needed modules.
 These drive workflows, participants, time, evaluation, and cleanup.
+
 An experiment adds selection, allocation, and run accounting to this common path.
 Ordinary SDL execution needs no experiment wrapper.
 The engine can keep a run open for later work.
 Each run keeps its own state and results.
+
 Finishing one run must not erase its history.
 Reusing its target needs proof that the target is safe to reuse.
 
@@ -17,6 +19,7 @@ The public controller owns shared execution services and a fixed default run.
 `open_run()` adds a fixed run context with a separate scope-bound store.
 Each context uses the same engine capacity and backend ownership.
 The [shared-runtime design](../../decisions/issue-1629-shared-runtime-design.md) contains component, lifecycle, and data flow diagrams.
+
 Its [remediation plan](../../decisions/issue-1629-runtime-remediation-plan.md) records the approved ownership refactor and acceptance tests.
 `admit_experiment()` installs experiment accounting inside this owner.
 `advance_experiment()` drives the selected runs through the shared plan phases.
@@ -25,28 +28,40 @@ Temporal is already available for individual remote operations.
 The runtime supplies operation and control workflows, scoped workers, and a PostgreSQL ledger.
 [ADR-113](../../decisions/adrs/adr-113-reusable-execution-machinery.md) places this machinery under RAE's execution rules.
 The `raes.run` and `raes.experiment` workflows drive the same progress functions as local callers.
+
 Their activities call the authenticated `/runtime/progress` state endpoint.
 Workflow payloads contain references and status; artifact owners retain plans and evidence.
 Temporal supplies durable progress and delivery.
 RAE still owns admission, run state, retry permission, and verified outcomes.
+
 Local execution needs no Temporal service, and the coordinated P3 profile remains unavailable.
 The sections below describe the existing processor and runtime path.
 
 ## Existing execution path
 
 This document describes the processor and runtime path that turns authored SDL
-into executable backend operations for a realized agentic environment. The
+into executable backend operations for a realized agentic environment.
+
+The
 authored scenario, compiled plans, backend realization, participant execution,
 observations, and evidence remain distinct phases; a realized environment is
-not identical to its SDL document. This is an SDL-native architecture built
-for the SDL itself and its backend contracts. See
+not identical to its SDL document.
+
+This is an SDL-native architecture built
+for the SDL itself and its backend contracts.
+
+See
 [ADR-004](../../decisions/adrs/adr-004-sdl-runtime-layer.md) and
 [ADR-036](../../decisions/adrs/adr-036-sdl-processor-runtime-module-boundaries.md)
 for the decision records.
 
 In the broader ecosystem architecture, this document focuses on the
-processor-runtime-backend path that is currently implemented in code. It does
-not attempt to fully specify every other apparatus surface. In particular, the
+processor-runtime-backend path that is currently implemented in code.
+
+It does
+not attempt to fully specify every other apparatus surface.
+
+In particular, the
 ecosystem distinguishes:
 
 - authored scenario meaning in SDL
@@ -61,28 +76,41 @@ The compile -> plan -> execute stack described here is therefore one important
 subset of the overall architecture rather than the whole experiment apparatus.
 
 Time is one of the clearest examples of why those broader apparatus boundaries
-matter. SDL can define timelines, deadlines, timeouts, and episode budgets.
+matter.
+
+SDL can define timelines, deadlines, timeouts, and episode budgets.
 Execution also depends on the chosen clock, time domain, pacing, and synchronization rules.
 The runtime and backend must establish the requested order of work.
 These choices affect experiment validity.
+
 Declare them and keep them in run provenance when comparing realizations.
 
-Autonomous participant execution follows the same separation. Compilation
+Autonomous participant execution follows the same separation.
+
+Compilation
 preserves exact action-to-target-service bindings; planning admits those
 relations against the backend manifest; and the runtime owns a typed,
-generation-fenced execution-service scope. Native calls may overlap within a
+generation-fenced execution-service scope.
+
+Native calls may overlap within a
 finite admitted bound, but portable snapshot/history commits are serialized
-with revision checks. Shared-clock pause, resume, and reset coordinate service
+with revision checks.
+
+Shared-clock pause, resume, and reset coordinate service
 readiness and generation, while pacing loss is published as degraded,
 not-ready state with an explicit deviation reference.
 
 Under the repository's [coding standards](../reference/coding-standards.md),
-this layer is where `FM2` and `FM3` work becomes most relevant. Formal work here targets the typed runtime model, plans, and execution contracts.
+this layer is where `FM2` and `FM3` work becomes most relevant.
+
+Formal work here targets the typed runtime model, plans, and execution contracts.
 It preserves meaning through validation, compile, plan, and backend execution.
 Raw YAML is outside that formal target.
 
 This layer also draws from a different precedent set than the author-facing SDL
-surface. OCR and CACAO still matter, but the strongest implementation models
+surface.
+
+OCR and CACAO still matter, but the strongest implementation models
 here come from mature workflow and distributed-runtime systems:
 
 - AWS Step Functions, Argo Workflows, and W3C SCXML for explicit control-flow
@@ -96,9 +124,12 @@ RAE is the shared product runtime driving the backends; backend ownership of
 concrete realization does not imply a separate scenario runtime per backend.
 The [operation supervision decision](../../decisions/issue-1348-operation-lifecycle.md)
 defines how authored guarantees, contextual refusal, cancellation and recovery
-compose. The runtime now bounds external calls and drain through shared execution adapters.
+compose.
+
+The runtime now bounds external calls and drain through shared execution adapters.
 A timed-out call keeps its physical slot until it exits.
 Durability does not imply interruption or permission to resume effects.
+
 Operational budgets remain separate from authored scenario clocks.
 Physical-OT protections apply only when the authored requirements select them.
 
@@ -137,18 +168,26 @@ A provider result grants no dispatch authority by itself.
 The committed operation and installed effect owner govern dispatch.
 World effects can exist without participants.
 Participant delivery requires its own authorized result join and policy cut.
+
 Its local carrier return does not establish participant observation.
 Mixed installations preserve separate bridge, time, delivery, and observation roles.
 The [execution model](../../migration/mixed-backend-execution.md#runtime-installation) defines their stage and settlement checks.
 The [runnable examples](../../examples/revised-control.md) exercise these boundaries through controlled test providers.
 
+
 ## Runtime stages
 
 Negotiated backends also return a distinct descriptive SDL phase after
-materialization hooks. The runtime admits it against the original source,
+materialization hooks.
+
+The runtime admits it against the original source,
 execution and complete scoped inventory, then publishes protected SDL bytes
-before persisting archive references. This does not replace realization
-authority, evidence acquisition or the original scenario snapshot. See
+before persisting archive references.
+
+This does not replace realization
+authority, evidence acquisition or the original scenario snapshot.
+
+See
 [materialization attestations](../reference/materialization-attestations.md).
 
 ### 1. Instantiate compile
@@ -168,7 +207,9 @@ It:
 - reruns semantic validation after substitution
 
 `compile_runtime_model(scenario)` then lowers the admitted instantiated scenario
-into runtime objects. A direct or JSON-deserialized `InstantiatedScenario`
+into runtime objects.
+
+A direct or JSON-deserialized `InstantiatedScenario`
 passes `admit_instantiated_scenario()` first; compiler callers cannot disable
 that semantic gate.
 
@@ -187,21 +228,30 @@ These compiled declarations and installed plans do not establish live inject
 execution. [ADR-112](../../decisions/adrs/adr-112-external-inject-triggering-and-execution.md)
 defines the accepted [external occurrence contract](../../../specs/sdl/external-injects.md):
 the shared runtime admits and drives an exact authored binding, and the backend
-supplies per-target effect evidence. Participant disclosure, delivery and
-observation remain separately authorized facts. Current bound/queued receipts
+supplies per-target effect evidence.
+
+Participant disclosure, delivery and
+observation remain separately authorized facts.
+
+Current bound/queued receipts
 retain their original meaning; executable support requires the coordinated
 [adoption boundary](external-inject-compatibility.md).
 
 The output is a `RuntimeModel` with canonical addresses for every runtime-owned
 object.
 
-Bound condition refs fail closed. An unqualified condition reference must
+Bound condition refs fail closed.
+
+An unqualified condition reference must
 resolve to exactly one bound runtime instance; zero matches and multiple matches
-are both compile-time diagnostics. Event inject refs resolve directly to
+are both compile-time diagnostics.
+
+Event inject refs resolve directly to
 top-level inject resources and fail if the named inject does not exist.
 Bound feature dependencies also fail closed.
 A feature binding may depend on another feature on the same node.
 If that feature is absent, the compiler emits a diagnostic.
+
 It does not drop the dependency.
 
 Compiled workflows preserve more than successor maps. `WorkflowRuntime`
@@ -231,6 +281,7 @@ The SDL keeps its own objective-based workflow surface.
 It follows proven patterns from mature systems.
 Branches and convergence have explicit rules.
 Observable state has a type.
+
 The runtime contract works across backends.
 
 ### 2. Plan
@@ -252,7 +303,9 @@ Each plan is provenance-bound to:
 - the backend manifest used for validation
 - the base snapshot it was reconciled against
 
-Direct planner output is unbound by default. Only `RuntimeManager.plan()` or an
+Direct planner output is unbound by default.
+
+Only `RuntimeManager.plan()` or an
 explicit `target_name=` bind a plan to a concrete runtime target for apply.
 
 Reconciliation actions are explicit:
@@ -264,10 +317,15 @@ Reconciliation actions are explicit:
 
 `raes processor reconcile <v1> <v2> --format json` shows this process.
 It plans `v1` and projects the plan into a snapshot.
-It then plans `v2` against that snapshot and reports each action. The worked pair is
+It then plans `v2` against that snapshot and reports each action.
+
+The worked pair is
 [`examples/scenarios/reconciliation-demo-v1.sdl.yaml`](../../../examples/scenarios/reconciliation-demo-v1.sdl.yaml)
-and its `-v2` counterpart. The projected snapshot is assumed state for inspection.
+and its `-v2` counterpart.
+
+The projected snapshot is assumed state for inspection.
 It is not backend readback, a durable checkpoint, or proof of realization.
+
 Durable snapshots belong to the runtime stores.
 
 Runtime resources carry two dependency sets:
@@ -285,24 +343,31 @@ diagnostics and invalidates the plan if a cycle survives into runtime planning.
 
 `raes_processor.reference.run_reference_processor(scenario, backend_manifest)`
 (and the `ReferenceProcessor` class) is the repository-owned reference
-implementation of the processing model. It combines the stages above in one call.
+implementation of the processing model.
+
+It combines the stages above in one call.
 Inputs can be SDL text, a file path, or a parsed scenario.
 It returns a `ReferenceProcessorResult` with the compiled model, plan, and diagnostics.
 `is_valid` is false when any diagnostic is an error. `ReferenceProcessor.manifest_payload()`
 exposes the published processor manifest through the canonical renderer.
 
+
 ADR-008 places the processor between SDL authoring and backend realization.
 The processor's work ends at the `ExecutionPlan`.
 It imports only SDL, processor, and contract layers.
 It never imports `raes_runtime`.
+
 `tools/policy/adr_policy.yaml` enforces that boundary.
 The reference runtime executes the plan.
 The live backend probe tests this path.
 RUN-313 tests exercise each contract version declared by the processor manifest.
 
+
 ## Runtime snapshot
 
-`RuntimeSnapshot` is the typed state model used by the planner and manager. Each
+`RuntimeSnapshot` is the typed state model used by the planner and manager.
+
+Each
 entry records:
 
 - canonical address
@@ -316,7 +381,9 @@ entry records:
 This gives the planner and manager a typed state model instead of an untyped
 `resources/status` map.
 
-The broader time model is only partly materialized in current contracts. The snapshot and control-plane schemas carry timestamps and timeout state.
+The broader time model is only partly materialized in current contracts.
+
+The snapshot and control-plane schemas carry timestamps and timeout state.
 They do not fully describe clock authority, time domain, synchronization rules, pacing, or realized time guarantees.
 Those concerns belong to the declared apparatus surface and to archival
 provenance when implementations compare different realizations.
@@ -345,13 +412,17 @@ Processor manifests preserve processor-specific capability blocks inside `capabi
 
 At the ecosystem level, backend manifests are only one declaration surface.
 The reference processor publishes the same shared envelope with processor-specific capabilities.
-Participant-implementation manifests are a distinct apparatus surface. They
+Participant-implementation manifests are a distinct apparatus surface.
+
+They
 publish `participant-implementation-manifest-v1`, which declares implementation
 identity, implementation kind, supported participant contracts, supported
 decision-surface modes, tool and affordance expectations, compatibility,
 concept bindings, and constraints.
 
-Validation is semantic, not section-only. Current checks include:
+Validation is semantic, not section-only.
+
+Current checks include:
 
 - node types
 - OS families
@@ -373,7 +444,9 @@ Validation is semantic, not section-only. Current checks include:
 - `supported_workflow_state_predicates`
 
 Both the backend and processor manifest surfaces also carry explicit
-`realization_support` declarations. These make constrained realization and its
+`realization_support` declarations.
+
+These make constrained realization and its
 required disclosures visible in the machine-readable apparatus boundary rather
 than leaving them implied by docs or implementation code.
 
@@ -388,17 +461,24 @@ The shared manifest envelope has rules beyond its shape:
   support, not empty concern shells
 
 The stub double, reference processor, and backend conformance profiles use
-the shared `v2` apparatus manifests. Legacy `v1` manifest schemas remain in the
+the shared `v2` apparatus manifests.
+
+Legacy `v1` manifest schemas remain in the
 repo as deprecated reference artifacts, not as the current conformance target.
 Participant implementations use `participant-implementation-manifest-v1`
 alongside the backend and processor surfaces rather than nesting inside either
 one.
 
-Capability validation operates on admitted concrete values. An authored finite domain can supply `nodes.os` or `infrastructure.count`.
+Capability validation operates on admitted concrete values.
+
+An authored finite domain can supply `nodes.os` or `infrastructure.count`.
 Portable SDL provenance keeps that domain.
 The compiler emits one typed `CompiledCapabilityConstraint`.
-The planner checks the whole domain against backend limits. It does not reconstruct variable
+The planner checks the whole domain against backend limits.
+
+It does not reconstruct variable
 definitions or pair private variable-spec/ref maps.
+
 
 ## Runtime target lifecycle
 
@@ -407,11 +487,13 @@ One `RuntimeControlPlane` instance directs the backend for the interaction.
 The owner keeps the operation ledger, snapshot, resource claim, and lifecycle.
 Apply, later evaluation, inventory, time control, and teardown use that owner.
 
+
 `runtime.evaluate(execution_plan, idempotency_key="evidence-2")` evaluates later
 evidence without applying provisioning or restarting orchestration.
 It replans the original compiled model with `refresh_evaluation=True`.
 The planner emits evaluation updates even when the declared resources are unchanged.
 The refresh preserves the original run and instantiation scope.
+
 Each fresh evaluation needs a fresh key.
 An exact retry uses its original key and returns the retained receipt.
 
@@ -419,9 +501,12 @@ Select optional target components before construction.
 `scenario_component_options()` derives the existing factory options from the compiled model.
 The stub factory also accepts `scenario=` for this selection.
 Required capability checks and manifest/component agreement remain in force.
+
 Participant scheduling starts only when the scenario requires autonomous execution.
 
-Targets must provide an explicit manifest. The registry separates capability
+Targets must provide an explicit manifest.
+
+The registry separates capability
 inspection from instantiation, and `create()` uses the manifest returned by
 `manifest()` as its single source of truth:
 
@@ -442,10 +527,13 @@ inspection from instantiation, and `create()` uses the manifest returned by
 The [runtime migration guide](../../migration/runtime-lifetime.md) covers run scope,
 fresh evaluation, and the existing failure and recovery rules.
 
-Participant implementations do not collapse into the backend boundary. The backend owns world realization and execution services.
+Participant implementations do not collapse into the backend boundary.
+
+The backend owns world realization and execution services.
 Participant implementations have their own identity, settings, and visible decision surface.
 Keep those facts in `participant-implementation-provenance-v1`.
 Do not infer them from backend state.
+
 
 The orchestration runtime contract includes:
 
@@ -456,21 +544,37 @@ The orchestration runtime contract includes:
 - control-plane operations for canceling running workflows and reconciling timeout expiry
 - explicit compensation status/history when a workflow declares rollback behavior
 
-Backends report portable execution envelopes rather than backend-native object
-identity. The manager validates raw backend payloads against the compiled
-contracts, not against incidental planner payload structure. Compiled workflow
-predicates are fully typed runtime data; orchestrators should not rely on raw
-SDL `spec` to execute workflow semantics.
+The runtime interprets the compiled workflow graph and dispatches each step.
+The backend executes only the current command and returns a bound response.
+Runtime history records dispatch and response separately.
+The runtime checks each response.
 
-Python typed workflow result models remain useful internally, but only as
-normalization helpers after boundary validation. They are not the backend
-protocol.
+It then selects the next step.
+It owns retries and decisions.
+It also owns barriers, calls, and end steps.
+It sets the compensation order.
 
-This is also why semantic modeling is split across processor and runtime
-contracts rather than parser code. The processor compiles backend-agnostic
-guarantees such as allowed transitions, result visibility, and portability of
-workflow state; the runtime validates live backend reports against those
-compiled contracts.
+The existing operation ledger records those transitions.
+The mutation owner serializes them.
+
+The runtime reads the compiled `control_steps`.
+These steps define the graph.
+The compiled result and execution contracts validate the resulting state and history.
+The runtime uses existing admitted evaluation and proposition-truth results for predicates.
+
+Missing or indeterminate evidence stops progress.
+It does not select a false branch.
+
+Typed continuations survive restart.
+They retain each invocation and branch arrival.
+The public workflow-address result shows the latest invocation.
+Correlated history retains overlapping calls and their dispatch attempts.
+
+Backend reports cannot choose successors or supply authoritative workflow history.
+The [backend migration guide](../../migration/runtime-workflow-step-dispatch.md)
+describes the negotiated command and response contracts.
+The [design](../../decisions/issue-2041-runtime-step-dispatch-design.md)
+records the trust boundaries and recovery decisions.
 
 This mirrors the contract style used by mature multi-runtime systems:
 
@@ -488,13 +592,18 @@ The evaluator follows the same contract rules.
 Observable evaluation resources carry compiled result and execution contracts.
 Backends report plain-data results and history.
 The runtime checks these reports against the compiled contracts.
+
 It rejects ad hoc result dictionaries.
 
-Objective `window` refs remain declarative scope/refresh inputs. They can force
+Objective `window` refs remain declarative scope/refresh inputs.
+
+They can force
 objective refresh when referenced orchestration state changes, but they do not
 create executor ordering edges across domains.
 
-Objective windows compile through one shared normalized semantic form. The compiler keeps resolved window refs beside the address sets.
+Objective windows compile through one shared normalized semantic form.
+
+The compiler keeps resolved window refs beside the address sets.
 Planner and runtime code can use these canonical identities.
 They do not need to parse the SDL strings again.
 
@@ -508,9 +617,13 @@ Planner FM2 semantics are explicit rather than incidental:
 Those rules are owned by `raes_processor.semantics.planner`, not by local planner
 algorithm shape.
 
-This phase is also intentionally composition-ready. Module/import expansion
+This phase is also intentionally composition-ready.
+
+Module/import expansion
 happens before semantic validation and compile, so the runtime layer operates
-only on canonical resolved identities rather than on source-file layout. That
+only on canonical resolved identities rather than on source-file layout.
+
+That
 same foundation is what makes namespaced reusable workflow calls portable.
 
 Composition is registry-ready as well:
@@ -523,44 +636,70 @@ Composition is registry-ready as well:
 - `raes sdl publish` packages a publishable SDL module as an OCI image layout
 
 OCI acquisition bounds the compressed response and the complete decoded tar
-stream before parsing any tar header. The decoded-stream limit includes PAX/GNU
-metadata and padding and has both absolute and expansion-ratio ceilings. Safe
+stream before parsing any tar header.
+
+The decoded-stream limit includes PAX/GNU
+metadata and padding and has both absolute and expansion-ratio ceilings.
+
+Safe
 extraction always uses the standard-library `data` filter.
 
 Resolved module caches and published layouts use immutable version directories
-under a logical slot plus one atomically replaced `.raes-current` pointer. A
+under a logical slot plus one atomically replaced `.raes-current` pointer.
+
+A
 cache hit streams a trusted expected inventory directly from the verified,
 bounded tar, then re-hashes the exact extracted tree against its canonical
-completion manifest. The comparison covers every path and entry type plus each
-file's filtered mode, size, and digest. The cache's own writable manifest is not
-its authority. A hit performs no extraction or version staging; only the
-bounded decoded-tar spool may spill beyond its memory threshold. Missing,
+completion manifest.
+
+The comparison covers every path and entry type plus each
+file's filtered mode, size, and digest.
+
+The cache's own writable manifest is not
+its authority.
+
+A hit performs no extraction or version staging; only the
+bounded decoded-tar spool may spill beyond its memory threshold.
+
+Missing,
 extra, linked, mode-changed, byte-changed, or coordinated tree-plus-manifest
 edits rebuild cleanly.
 Publication returns the selected immutable OCI-layout version path; a failed
-writer leaves the prior pointer and every extant reader path intact. Startup
+writer leaves the prior pointer and every extant reader path intact.
+
+Startup
 repair removes incomplete stages and can repoint to a complete validated orphan
 version left by process death.
 
 For publication, the stable `<module>-<version>.oci` name is the private logical
-slot, not a directly consumable OCI layout. CLI/API `layout_dir` points to the
+slot, not a directly consumable OCI layout.
+
+CLI/API `layout_dir` points to the
 selected immutable `versions/<id>` child, which contains the standard
-`oci-layout`, `index.json`, and `blobs/` inventory. Consumers should use that
-reported path rather than infer the slot. Each slot retains at most eight
+`oci-layout`, `index.json`, and `blobs/` inventory.
+
+Consumers should use that
+reported path rather than infer the slot.
+
+Each slot retains at most eight
 complete versions: current, the immediately prior pointer target, and the
-newest remaining versions. This window protects an in-flight prior reader but
+newest remaining versions.
+
+This window protects an in-flight prior reader but
 is not archival retention; push or copy layouts that must outlive later
 publications.
 
 An older root-level OCI layout at the stable slot name is not silently upgraded
-into a dual layout. Publication fails until that legacy output is moved or removed.
+into a dual layout.
+
+Publication fails until that legacy output is moved or removed.
 The error explains this required step.
 This prevents old readers from using stale root `index.json` and `blobs/` beside a new version child.
 
 Resolution and trust happen before instantiation and semantic validation.
-Planner/runtime semantics see one admitted concrete scenario; replay-relevant
-resolution and binding facts remain under its typed provenance rather than in
-live imports, variables, or Python-private side channels.
+Planner/runtime semantics see one admitted concrete scenario.
+Typed provenance retains the resolution and binding facts needed for replay.
+Those facts do not enter live imports, variables, or Python-private side channels.
 
 `RuntimeManager.apply()` requires the plan provenance to match the manager:
 
@@ -579,102 +718,173 @@ snapshot than the one it was reconciled against.
 - those methods must be invokable with the runtime's actual call shapes, not
   exist by name alone
 
-`RuntimeManager` also hardens the execution boundary at call time. Backend
+`RuntimeManager` also hardens the execution boundary at call time.
+
+Backend
 exceptions and invalid lifecycle return payloads are converted into structured
 runtime diagnostics instead of surfacing as unhandled crashes.
 
 The HTTP adapter defaults to a fail-closed security configuration: no trusted
-header identities and no bearer tokens are built in. Deployments that use
+header identities and no bearer tokens are built in.
+
+Deployments that use
 header identity must pass an explicit `ControlPlaneSecurityConfig`, set
 `trust_proxy_identity_headers=True`, and only trust those headers behind an
 authenticated proxy that strips caller-supplied identity headers.
 
 The local control-plane store persists snapshots, operations, idempotency
-claims, and audit events in a single SQLite WAL database. Full synchronous
+claims, and audit events in a single SQLite WAL database.
+
+Full synchronous
 transactions and a unique idempotency index make concurrent same-host writers
-and participant transition commits atomic. Each authoritative snapshot is
-paired with a non-negative logical revision. Each snapshot write must supply the revision it observed.
-Check CAS in the same lock or SQLite transaction as the snapshot, operation, and audit writes. A stale writer therefore changes none of them. An exact retry of an
+and participant transition commits atomic.
+
+Each authoritative snapshot is
+paired with a non-negative logical revision.
+
+Each snapshot write must supply the revision it observed.
+Check CAS in the same lock or SQLite transaction as the snapshot, operation, and audit writes.
+
+A stale writer therefore changes none of them.
+
+An exact retry of an
 already committed terminal operation returns the durable state without
-incrementing its revision. A backend claim is stored before execution, and its
+incrementing its revision.
+
+A backend claim is stored before execution, and its
 resulting snapshot and terminal operation record commit in one transaction.
 Startup checks each unfinished record without replay.
 A proven absent effect becomes `FAILED` or `CANCELLED`.
+
 A checked, observed effect becomes `SUCCEEDED`.
-An outcome that cannot be proved becomes `INDETERMINATE`. Retaining the idempotency claim prevents a retry from blindly
-repeating backend effects, and resolving an indeterminate outcome creates a
-linked operation instead of rewriting the original.
+An outcome that cannot be proved becomes `INDETERMINATE`.
+The retained idempotency claim prevents blind retries of backend effects.
+Resolution creates a linked operation.
+It does not rewrite the original.
 On first use, legacy JSON state is imported without deleting its source and is
-copied to a timestamped backup. Payload digests and SQLite integrity checks
-detect accidental durable-state corruption. Owned POSIX store directories are
+copied to a timestamped backup.
+
+Payload digests and SQLite integrity checks
+detect accidental durable-state corruption.
+
+Owned POSIX store directories are
 created or migrated to `0700` and the main SQLite database to `0600`. SQLite
 alone owns descriptors for the main database, WAL, shared-memory, and rollback
-journal. OpenRÆ uses descriptor-free metadata inspection and path-based mode
+journal.
+
+OpenRÆ uses descriptor-free metadata inspection and path-based mode
 tightening for type, owner, private-mode, and main-database same-file checks,
-so an independent `close()` cannot cancel SQLite's POSIX locks. Existing opens
+so an independent `close()` cannot cancel SQLite's POSIX locks.
+
+Existing opens
 use URI `mode=rw`; only first creation uses
 `mode=rwc`, preventing a disappeared database from being silently recreated.
 The initialized database identity remains pinned for the store lifetime, and
-hard-linked aliases are rejected. Unsafe symlink, reparse, type, owner, mode, or
-identity changes fail closed. Snapshot revision conflicts are known non-commits:
+hard-linked aliases are rejected.
+
+Unsafe symlink, reparse, type, owner, mode, or
+identity changes fail closed.
+
+Snapshot revision conflicts are known non-commits:
 the runtime rebuilds its derived caches and fails the caller without sealing a
-running operation. If a commit error leaves its outcome unknown, reload both durable caches.
+running operation.
+
+If a commit error leaves its outcome unknown, reload both durable caches.
+
 If that reload fails, poison the runtime until restart.
-Do not allow another write from stale state. Snapshot-based HTTP reads return `X-RAES-Snapshot-Revision`.
+Do not allow another write from stale state.
+
+Snapshot-based HTTP reads return `X-RAES-Snapshot-Revision`.
 Participant view source refs bind that same state cut.
-Nested reads and governed projections cannot bind the response to a later revision. A supplied base snapshot must match the state observed for the commit.
+Nested reads and governed projections cannot bind the response to a later revision.
+
+A supplied base snapshot must match the state observed for the commit.
+
 An exact retry of committed work returns its retained result.
-It does not attempt a new mutation. The provider-only revision is stored beside the durable snapshot and
+It does not attempt a new mutation.
+
+The provider-only revision is stored beside the durable snapshot and
 is not added to portable snapshot bodies, metadata, digests, or schemas.
 
-Built-in stores use the complete crash-atomic commit capability. Existing 3.x
+Built-in stores use the complete crash-atomic commit capability.
+
+Existing 3.x
 custom `ControlPlaneStore` adapters remain accepted when they implement the
 revision-aware structural contract, including paired snapshot reads and
-revision-checked snapshot writes. A centralized compatibility seam warns once
+revision-checked snapshot writes.
+
+A centralized compatibility seam warns once
 per runtime and uses lookup-then-save claims, ordered snapshot/record writes,
-and per-record recovery. Stores that cannot compare and swap an observed
-snapshot revision are rejected instead of synthesizing revision authority. The compatibility mode keeps legacy atomicity behavior.
+and per-record recovery.
+
+Stores that cannot compare and swap an observed
+snapshot revision are rejected instead of synthesizing revision authority.
+
+The compatibility mode keeps legacy atomicity behavior.
 It has known claim and terminal-write race and crash windows.
 Its removal is scheduled for version 4.
 Before upgrading, custom adapters should implement `claim_record` and both atomic terminal and recovery methods.
 
-The local runtime is deliberately single-process. Its logical revision prevents stale writes.
+
+The local runtime is deliberately single-process.
+
+Its logical revision prevents stale writes.
 It does not grant distributed ownership or availability.
 A non-blocking file lease admits one `RuntimeControlPlane` owner.
-It rejects other owners, including inherited post-fork use. POSIX runtimes also hold a
+It rejects other owners, including inherited post-fork use.
+
+POSIX runtimes also hold a
 store-directory guard so
-unlinking or replacing the owner-file path cannot admit a second owner. Close
+unlinking or replacing the owner-file path cannot admit a second owner.
+
+Close
 drains admitted composite calls, including their nested guarded work, before it
-releases authority. Run one ASGI worker with reload disabled. This is a
+releases authority.
+
+Run one ASGI worker with reload disabled.
+
+This is a
 single-host reference boundary, not a distributed queue, replication, or
 multi-host availability claim.
 
-The reference provider's operator procedures, including value-free health
-probes, shutdown ordering, recovery classification, and lease-admitted local
-store check/backup/restore commands, are documented in the
-[Control-Plane Recovery Operations runbook](control-plane-operations.md).
+
+The [Control-Plane Recovery Operations runbook](control-plane-operations.md) lists the reference provider procedures.
+These include value-free health probes, shutdown order, and recovery classes.
+They also include lease-admitted local store check, backup, and restore commands.
 Database restore does not establish equivalent external backend state.
 
 Bearer and verified-proxy authentication require the same exact target binding.
 Reject an identity with no target.
 Also reject a supplied bearer that is unknown, revoked, or bound to another target.
-A rejected bearer must not fall back to proxy headers. Request admission is bounded before FastAPI parses or dispatches a body.
+A rejected bearer must not fall back to proxy headers.
+
+Request admission is bounded before FastAPI parses or dispatches a body.
+
 A public ASGI wrapper checks one digits-only `Content-Length`.
 It reads at most the configured byte limit.
-It then replays one combined body message. This boundary does not rely on framework-private
+It then replays one combined body message.
+
+This boundary does not rely on framework-private
 request caches and returns a stable `413` before a route can run.
 
 The HTTP adapter offloads synchronous backend and store calls to AnyIO's
-bounded worker pool. An application-scoped async lock serializes target
+bounded worker pool.
+
+An application-scoped async lock serializes target
 mutations without occupying a worker while requests wait; independent reads
-remain responsive while a backend is slow. The pending mutation count is
+remain responsive while a backend is slow.
+
+The pending mutation count is
 bounded by `ControlPlaneSecurityConfig.max_pending_mutations` and overload
 returns `503` plus `Retry-After`. This in-process execution boundary neither
 replaces backend I/O timeouts nor claims durable or distributed job queuing.
 Request-size rejection also offloads audit persistence; an audit-store failure
-cannot admit an invalid body or replace the stable `400`/`413` response. These audits use a separate one-worker limiter and a bounded queue.
+cannot admit an invalid body or replace the stable `400`/`413` response.
+
+These audits use a separate one-worker limiter and a bounded queue.
 A flood of rejected requests cannot consume the AnyIO workers needed for authenticated reads.
 Excess audit records are dropped with an operational warning.
+
 
 ## Control-plane operating profiles
 
@@ -682,7 +892,9 @@ An embedder selects a profile explicitly through the typed
 `raes_runtime.ControlPlaneProfile` API. `profile_declaration()` returns the
 canonical immutable declaration for any of P0–P3, including the guarantees,
 nonclaims, required capability identifiers, target/run scope, and actor
-boundary. A selected profile fails construction if the store or composition
+boundary.
+
+A selected profile fails construction if the store or composition
 cannot supply its required facts; it never falls back to a weaker profile.
 Existing callers that omit selection continue to work, but their compositions
 make no named profile claim.
@@ -695,44 +907,74 @@ make no named profile claim.
 | P3 | none | future-coordination |
 
 P0 uses an in-memory store for one target and one run, with an actor supplied
-by the trusted embedding process. Its audit and idempotency guarantees last
-only as long as that process. P1 uses a transactional local store, one
+by the trusted embedding process.
+
+Its audit and idempotency guarantees last
+only as long as that process.
+
+P1 uses a transactional local store, one
 process-bound owner lease, revision checks, atomic terminal audit, and startup
-classification of interrupted operations. A backend recovery observer is
+classification of interrupted operations.
+
+A backend recovery observer is
 optional: when an effect cannot be established, the operation becomes
-`INDETERMINATE` without automatic replay. P2 is the reference HTTP adapter
-over an explicitly selected P1 core. It derives the actor from authenticated
-HTTP identity and keeps P1's one-target, one-run scope. A bare core cannot
+`INDETERMINATE` without automatic replay.
+
+P2 is the reference HTTP adapter
+over an explicitly selected P1 core.
+
+It derives the actor from authenticated
+HTTP identity and keeps P1's one-target, one-run scope.
+
+A bare core cannot
 claim P2, and P3 is inspectable but unavailable pending a future coordination
 decision.
 
 For an in-process P0 composition, pass `profile=ControlPlaneProfile.P0` to
 `RuntimeControlPlane`. For a durable local P1 composition, pass a
 `LocalControlPlaneStore` and `profile=ControlPlaneProfile.P1`; construction
-admits its owner lease. To serve that
+admits its owner lease.
+
+To serve that
 core, pass `profile=ControlPlaneProfile.P2` to `create_control_plane_app()`;
 the app exposes the same canonical declaration to its embedder through
 `app.state.control_plane_profile`. Store providers declare facts through
 `ControlPlaneStoreCapabilities`; they do not name or choose a profile.
 
 The library owns operation bookkeeping, receipts, snapshots, participant
-transitions, audit, and profile admission. The embedding application owns its
+transitions, audit, and profile admission.
+
+The embedding application owns its
 target/run selection, process lifecycle, actor source for P0/P1, and upgrade
-sequence. P2 deployment owns TLS termination, trusted-proxy header stripping,
+sequence.
+
+P2 deployment owns TLS termination, trusted-proxy header stripping,
 secret loading, worker configuration, service credentials, process supervision,
-and backup policy. Profile metadata is in-process discovery, not a health
+and backup policy.
+
+Profile metadata is in-process discovery, not a health
 signal, HTTP discovery endpoint, availability promise, or tenant-multiplexing
 contract.
 
 Participant clients access a trusted host application, which may embed P0/P1
-as an SDK or use the optional P2 HTTP adapter. The host keeps the SDK control-plane object or P2 identity private.
+as an SDK or use the optional P2 HTTP adapter.
+
+The host keeps the SDK control-plane object or P2 identity private.
 It binds each caller to a target, run, participant, exact episode, audience, and operation.
-Only then may it release a governed API-408 view. SDK calls have no HTTP role gate; a P2 identity with
-read access to participant views can also read the full snapshot. Neither
+Only then may it release a governed API-408 view.
+
+SDK calls have no HTTP role gate; a P2 identity with
+read access to participant views can also read the full snapshot.
+
+Neither
 path authenticates the host's end user or turns a legacy view without a
-configured crossing resolver into governed participant output. An
+configured crossing resolver into governed participant output.
+
+An
 organizational host owns organizational identity and policy; a local host
-applies its own caller boundary. The accepted
+applies its own caller boundary.
+
+The accepted
 [route and deployment boundary](../../decisions/issue-1356-control-plane-participant-access-preflight.md)
 also covers operation readback, histories, errors, caches and events.
 
@@ -741,7 +983,9 @@ administrative read, administrative mutation or operator resolution.
 `create_control_plane_app()` refuses a route with none or several, and exposes
 the `(method, path)` inventory as `app.state.control_plane_route_authority`.
 Participant, audience, controller and operation-actor checks follow in the
-core. Every response carries `Cache-Control: no-store`. The
+core.
+
+Every response carries `Cache-Control: no-store`. The
 [deployment guide](../../public/guides/control-plane.md) covers the host's
 duties.
 
@@ -760,7 +1004,9 @@ The current runtime scope includes:
 - tests and docs
 
 Real Docker/cloud/simulation backends are outside this repository's current
-implementation surface. Such backends would have to consume and satisfy these
+implementation surface.
+
+Such backends would have to consume and satisfy these
 contracts.
 
 ## Optional backend operation contracts
@@ -768,9 +1014,15 @@ contracts.
 The [operation-supervision family](../../../specs/formal/runtime-contracts/backend-operation-supervision.md)
 publishes the portable backend boundary for the accepted supervision design.
 It separates capability, willingness, acknowledgement, progress, control
-dispositions and scoped effect evidence. RAE retains native result validation
-and atomic terminal publication. The [migration guide](../reference/backend-operation-supervision.md)
-explains the additive profile and the limits of legacy conversions. These
+dispositions and scoped effect evidence.
+
+RAE retains native result validation
+and atomic terminal publication.
+
+The [migration guide](../reference/backend-operation-supervision.md)
+explains the additive profile and the limits of legacy conversions.
+
+These
 contracts do not enable a new RuntimeTarget provider or change P0–P3 guarantees.
 
 ## Complete experiment records
@@ -779,14 +1031,17 @@ Every started trial remains visible through its allocated run identity and disti
 The existing decision store retains live progress, failures, and unresolved effects.
 Run and study records preserve that history independently of scientific evidence acceptance.
 Partial records state which facts are unavailable; they do not invent completion, measurements, or cleanup success.
+
 Execution, capture, validation, and cleanup outcomes remain separate.
 Scientific outcomes come from explicit evaluation facts; successful execution does not establish scientific success.
 Export and archive publication do not grant permission to retry or reuse resources.
 Evidence-owner failures preserve records with a separate failed-check disposition.
+
 Proof limits do not truncate retained evidence history.
 Study membership and metric eligibility share the same replacement-aware population.
 Each archive write verifies the exact frozen version at the supplied destination.
 The record producer and replacement archive share version ownership across retained decisions.
+
 Both freeze candidates before external archive writes, including writes with uncertain acknowledgements.
 An additional accounting version can link to an exact scientific artifact without moving its proof.
 Study evaluation membership and returned validation records identify the original checked version.

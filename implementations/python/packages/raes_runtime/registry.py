@@ -17,6 +17,7 @@ from raes_contracts.contracts.participant_invocation_tools import (
 from raes_contracts.errors import NotFoundError
 from raes_contracts.observation_demand import ObservationBasis, ObservationLifecycleStage
 from raes_contracts.planning import BACKEND_PREPARATION_CONTRACT
+from raes_contracts.versions import WORKFLOW_DISPATCH_CONTRACTS
 
 from . import registry_scenario as _registry_scenario
 from . import time_coordinator as _time_coordinator
@@ -151,6 +152,13 @@ def _validate_runtime_target_shape(
     )
     validate_inventory_contract(manifest, components.provisioner, _require_invokable_method)
     _validate_orchestrator_methods(components.orchestrator, sample_plan, sample_snapshot)
+    if set(WORKFLOW_DISPATCH_CONTRACTS) <= set(manifest.supported_contract_versions):
+        _require_invokable_method(
+            components.orchestrator,
+            label="orchestrator",
+            method_name="dispatch_step",
+            invocation_args=(sample_request,),
+        )
     _validate_evaluator_methods(components.evaluator, sample_plan, sample_snapshot)
     _validate_participant_runtime_methods(
         components.participant_runtime,
