@@ -44,6 +44,12 @@ This token resolves to the manifest-pinned snapshot during formal validation,
 avoiding a self-reference in the hash-derived directory name. Other evidence
 references remain unchanged and their referenced files must be committed.
 Keep the resulting capture directory and its `capture-records` receipt; prepared input copies need not be committed.
+
+A fresh observation can produce new evidence files. To pin a new file in place
+of a template artifact, add `--artifact ARTIFACT_ID=PATH` for each artifact.
+The recorder keeps the artifact kind and pins the SHA-256 of the new file.
+This option requires `--snapshot` and `--analysis`.
+
 For an unchanged historical capture, omit `--snapshot` and `--analysis` to wrap
 its existing exact bytes. Repeating the same capture is idempotent. A different
 capture creates another directory, so parallel branches do not overwrite one
