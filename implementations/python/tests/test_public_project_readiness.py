@@ -30,6 +30,7 @@ def test_scorecard_workflow_is_pinned_least_privilege_and_publishes_sarif() -> N
             "CHANGELOG.md",
             ".release-please-manifest.json",
             "implementations/python/packages/raes/_version.py",
+            "implementations/go/processor/analysis/version.go",
         ],
     }
     assert triggers["branch_protection_rule"] is None
