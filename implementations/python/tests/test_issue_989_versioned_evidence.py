@@ -451,7 +451,7 @@ def test_current_cli_must_emit_the_complete_pinned_payload(monkeypatch):
 
     def omit_default(*args, **kwargs):
         payload = original(*args, **kwargs)
-        if payload["profile"] == "scenario-satisfiability-evidence/v1":
+        if payload["profile"] == "scenario-satisfiability-evidence/v2":
             assert payload["imports"] == []
             del payload["imports"]
         return payload
