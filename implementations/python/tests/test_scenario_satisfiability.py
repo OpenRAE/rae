@@ -20,8 +20,8 @@ from raes_contracts.satisfiability import (
     ConstraintSymbolModel,
     NormalizedConstraintModel,
     SatisfiabilityOutcome,
-    ScenarioSatisfiabilityEvidenceV2Model,
     ScenarioSatisfiabilityEvidenceModel,
+    ScenarioSatisfiabilityEvidenceV2Model,
 )
 from raes_processor.satisfiability import (
     SatisfiabilityEvidenceError,
