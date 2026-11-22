@@ -22,6 +22,7 @@ _LOGGER = get_logger(__name__)
 class ClockDriverOptions(TypedDict, total=False):
     publish_failure: Callable[[ApplyResult], None] | None
     mutation_scope: Callable[[], AbstractContextManager[object]]
+    release_pending: Callable[[RuntimeSnapshot], bool]
 
 
 @dataclass(frozen=True)
@@ -79,6 +80,7 @@ class ParticipantClockDriver:
         self._lock = lock
         self._publish_failure = options.pop("publish_failure", None)
         self._mutation_scope = options.pop("mutation_scope", nullcontext)
+        self._release_pending = options.pop("release_pending", lambda _snapshot: False)
         if options:
             raise TypeError("unsupported participant clock driver option")
         self._stop = threading.Event()
@@ -207,6 +209,9 @@ class ParticipantClockDriver:
             return self._next_transition_for_snapshot(snapshot)
 
     def _next_transition_for_snapshot(self, snapshot: RuntimeSnapshot) -> tuple[str, int, float] | None:
+        if self._rates and self._release_pending(snapshot):
+            # A committed truth result can release a waiting participant now (issue #2020).
+            return self._rates[0].clock_address, 0, 0.0
         candidates: list[tuple[float, str, int]] = []
         now = time.monotonic()
         active_keys: set[tuple[str, int, int, int]] = set()

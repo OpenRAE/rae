@@ -554,6 +554,7 @@ def _assert_fenced_work_is_not_dispatched_again(manager: RuntimeManager, runtime
         runtime,
         manager.snapshot,
         manager._participant_activity_controls,
+        release_assertions=manager._participant_release_assertions,
     )
     assert due.success, due.diagnostics
     assert due.snapshot == manager.snapshot
@@ -585,8 +586,8 @@ def test_cancelled_scheduler_pass_hands_its_settled_state_to_the_sink(
     batch = _batch(object())
     settled_snapshot = batch.run.working.with_entries({}, metadata={"settled": True})
 
-    def _settle_then_cancel(policy, time_model, participant_runtime, activity_controls, run):
-        del policy, time_model, participant_runtime, activity_controls
+    def _settle_then_cancel(policy, time_model, participant_runtime, activity_controls, release_assertions, run):
+        del policy, time_model, participant_runtime, activity_controls, release_assertions
         run.working = settled_snapshot
         scheduler_dispatch._unsupported_concurrency_failure(batch.policy, run)
         raise asyncio.CancelledError
@@ -600,6 +601,7 @@ def test_cancelled_scheduler_pass_hands_its_settled_state_to_the_sink(
             None,
             object(),
             batch.run.working,
+            release_assertions={},
             cancellation_sink=received.append if with_sink else None,
         )
 

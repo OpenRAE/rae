@@ -52,6 +52,25 @@ def _semantic_entry_diagnostics(
     return diagnostics
 
 
+def admitted_truth_result(
+    snapshot: RuntimeSnapshot, result_key: object, payload: object
+) -> tuple[PropositionTruthResultModel | None, list[Diagnostic]]:
+    """Admit one keyed truth result against the snapshot's semantic entries."""
+
+    if not isinstance(result_key, str) or not result_key:
+        return None, [_invalid(_RESULTS_ADDRESS, "Proposition truth result keys must be non-empty strings.")]
+    if not isinstance(payload, dict):
+        return None, [_invalid(result_key, "Proposition truth results must be mappings.")]
+    try:
+        result = PropositionTruthResultModel.model_validate(payload)
+    except ValidationError as exc:
+        return None, [_invalid(result_key, _validation_message(exc))]
+    if result_key != result.assertion_address:
+        return None, [_invalid(result_key, "Proposition truth result map key must equal assertion_address.")]
+    diagnostics = _semantic_entry_diagnostics(snapshot, result, result_key)
+    return (None if diagnostics else result), diagnostics
+
+
 def proposition_truth_contract_diagnostics(snapshot: RuntimeSnapshot) -> list[Diagnostic]:
     """Return fail-closed diagnostics for all truth results in a snapshot."""
 
@@ -59,23 +78,8 @@ def proposition_truth_contract_diagnostics(snapshot: RuntimeSnapshot) -> list[Di
         return [_invalid(_RESULTS_ADDRESS, "RuntimeSnapshot.proposition_truth_results must be a dict.")]
     diagnostics: list[Diagnostic] = []
     for result_key, payload in snapshot.proposition_truth_results.items():
-        address = result_key if isinstance(result_key, str) and result_key else _RESULTS_ADDRESS
-        if not isinstance(result_key, str) or not result_key:
-            diagnostics.append(_invalid(_RESULTS_ADDRESS, "Proposition truth result keys must be non-empty strings."))
-            continue
-        if not isinstance(payload, dict):
-            diagnostics.append(_invalid(address, "Proposition truth results must be mappings."))
-            continue
-        try:
-            result = PropositionTruthResultModel.model_validate(payload)
-        except ValidationError as exc:
-            diagnostics.append(_invalid(address, _validation_message(exc)))
-            continue
-        if result_key != result.assertion_address:
-            diagnostics.append(_invalid(address, "Proposition truth result map key must equal assertion_address."))
-            continue
-        diagnostics.extend(_semantic_entry_diagnostics(snapshot, result, address))
+        diagnostics.extend(admitted_truth_result(snapshot, result_key, payload)[1])
     return diagnostics
 
 
-__all__ = ["proposition_truth_contract_diagnostics"]
+__all__ = ["admitted_truth_result", "proposition_truth_contract_diagnostics"]

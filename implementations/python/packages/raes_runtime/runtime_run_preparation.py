@@ -12,6 +12,7 @@ from raes_processor.compiler.time_model import time_model_contract_model
 
 from .diagnostics import _has_error_diagnostic
 from .manager_augmentation import prepare_execution_augmentation
+from .participant_release import participant_release_assertions
 from .runtime_decisions import RunPreparationDecision
 
 if TYPE_CHECKING:
@@ -56,7 +57,9 @@ def prepare_run(
     return plan, prior
 
 
-def restore_run_modules(run: RuntimeRunContext, plan: ExecutionPlan, phases: dict[int, RunPhaseDecision]) -> None:
+def restore_run_modules(
+    run: RuntimeRunContext, plan: ExecutionPlan, phases: dict[int, RunPhaseDecision], *, start_phase: int
+) -> None:
     """Restore local bindings from the admitted plan; never initialize a backend."""
     if 1 in phases and phases[1].state == "succeeded":
         declaration = time_model_contract_model(plan.model.time_model)
@@ -69,6 +72,8 @@ def restore_run_modules(run: RuntimeRunContext, plan: ExecutionPlan, phases: dic
             for spec in plan.model.behavior_specifications.values()
             if spec.autonomous_execution is not None
         )
+        started = start_phase in phases and phases[start_phase].state == "succeeded"
+        run._participant_release_assertions = participant_release_assertions(plan.model) if started else {}
         run._participant_execution_time_model = plan.model.time_model
         if run._participant_execution_policies and run._participant_scheduler is None:
             from .participant_scheduler import ParticipantScheduler

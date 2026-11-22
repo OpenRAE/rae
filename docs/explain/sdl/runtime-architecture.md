@@ -450,6 +450,11 @@ Select optional target components before construction.
 The stub factory also accepts `scenario=` for this selection.
 Required capability checks and manifest/component agreement remain in force.
 Participant scheduling starts only when the scenario requires autonomous execution.
+An autonomous participant starts only when each of its `starting_assertions` has a `true` assertion outcome.
+The backend reports that outcome through its evaluator, collected by `runtime.evaluate()` after native preparation.
+Each scheduler pass releases ready participants before it runs due actions.
+A committed evaluation runs one scheduler pass, and a durable run stays `pending` until release.
+A waiting participant receives no native call; the pass reports `runtime.participant-release-waiting`.
 
 Targets must provide an explicit manifest. The registry separates capability
 inspection from instantiation, and `create()` uses the manifest returned by

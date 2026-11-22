@@ -41,6 +41,14 @@ from .participant_invocation_tool_claims import (
     TOOL_ADMISSION_STOPPED,
     TOOL_ADMISSION_UNRESOLVED,
 )
+from .participant_release import (
+    ReleaseDisposition,
+    participant_release_assertions,
+    released_participant_addresses,
+    setup_release_assertions,
+    waiting_participant_addresses,
+)
+from .participant_scheduler_release import release_pending, start_disposition
 
 if TYPE_CHECKING:
     from raes_processor.models import ExecutionPlan
@@ -278,6 +286,8 @@ class RuntimeParticipantExecutionMixin:
             if spec.autonomous_execution is not None
         )
         self._participant_execution_policies = policies
+        # No release before the participant start phase (issue #2020).
+        self._participant_release_assertions = {}
         self._participant_execution_time_model = execution_plan.model.time_model
         if not policies:
             return
@@ -300,6 +310,7 @@ class RuntimeParticipantExecutionMixin:
                 self._target.manifest.participant_runtime.resource_budgets
                 if self._target.manifest.participant_runtime is not None
                 else None,
+                release_assertions=setup_release_assertions(execution_plan.model),
             ),
             idempotency_key=state.phase_key,
             identity=state.identity,
@@ -315,6 +326,7 @@ class RuntimeParticipantExecutionMixin:
     ) -> bool:
         if not self._participant_execution_policies:
             return True
+        self._participant_release_assertions = participant_release_assertions(execution_plan.model)
         due = self._participant_scheduler_call(
             "start",
             state.working_snapshot,
@@ -324,6 +336,7 @@ class RuntimeParticipantExecutionMixin:
                 self._target.participant_runtime,
                 predecessor,
                 self._participant_activity_controls,
+                release_assertions=self._participant_release_assertions,
                 cancellation_sink=cancellation_sink,
                 invocation_tools=self._invocation_tool_configuration(operation),
                 wall_clock=self.wall_clock,
@@ -347,12 +360,40 @@ class RuntimeParticipantExecutionMixin:
                     self._target.participant_runtime,
                     predecessor,
                     self._participant_activity_controls,
+                    release_assertions=self._participant_release_assertions,
                     cancellation_sink=cancellation_sink,
                     invocation_tools=self._invocation_tool_configuration(operation),
                     wall_clock=self.wall_clock,
                 ),
             )
             return result
+
+    def _release_reported_participants(self, receipt: OperationReceipt) -> OperationReceipt:
+        """Run one scheduler pass after a truth report when participants wait for release."""
+        if not self._participant_release_pending(self._snapshot):
+            return receipt
+        released = self.run_due_participant_actions()
+        if released.success:
+            return receipt
+        return replace(receipt, diagnostics=[*receipt.diagnostics, *released.diagnostics])
+
+    def _participant_release_pending(self, snapshot: RuntimeSnapshot) -> bool:
+        """Return whether a scheduler pass can now release or refuse a waiting participant."""
+        return self._participant_scheduler is not None and release_pending(
+            self._participant_execution_policies, self._participant_release_assertions, snapshot
+        )
+
+    def _autonomous_release_refusal(self, participant_address: str) -> str | None:
+        """Refuse direct native initialization of an autonomous participant that waits for release."""
+        for policy in self._participant_execution_policies:
+            if participant_address not in waiting_participant_addresses(policy, self._snapshot):
+                continue
+            disposition = start_disposition(
+                policy, self._participant_release_assertions, self._snapshot, participant_address
+            )
+            if disposition is not ReleaseDisposition.RELEASED:
+                return "The autonomous participant waits until every starting assertion is true."
+        return None
 
     def _invocation_tool_configuration(self, operation: ComposedOperation) -> InvocationToolActionConfiguration | None:
         """Return the claimed tool-action composition for one enclosing due operation.
@@ -429,6 +470,7 @@ class RuntimeParticipantExecutionMixin:
             lock=self._participant_execution_lock,
             publish_failure=self._publish_participant_clock_driver_failure,
             mutation_scope=lambda: control_plane_mutation(self, OperationKind.COMPOSITION_PHASE),
+            release_pending=self._participant_release_pending,
         )
         self._participant_clock_driver.start()
         return True
@@ -480,7 +522,7 @@ class RuntimeParticipantExecutionMixin:
             participant_address
             for policy in self._participant_execution_policies
             if policy.clock_address == clock_address
-            for participant_address in policy.participant_addresses
+            for participant_address in released_participant_addresses(policy, self._snapshot)
         }
         return tuple(
             ParticipantEpisodeResetRequest(
@@ -566,6 +608,7 @@ class RuntimeParticipantExecutionMixin:
         self._participant_execution_lock = threading.RLock()
         self._participant_scheduler = None
         self._participant_execution_policies = ()
+        self._participant_release_assertions = {}
         self._participant_execution_time_model = None
         self._participant_clock_driver = None
 
