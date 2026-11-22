@@ -7,7 +7,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import pytest
-from raes.parser import parse_sdl_file
+from raes.parser import parse_sdl, parse_sdl_file
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.canonical import canonical_contract_digest
 from raes_contracts.contracts.participant_manifests import (
@@ -120,6 +120,30 @@ def test_disallowed_episode_operations_never_call_the_backend(operation, monkeyp
         assert plane.get_operation(receipt.operation_id).state.value == "failed"
         assert not calls
         assert plane.snapshot == before
+
+
+def test_a_policy_without_a_reset_policy_refuses_reset_and_restart_before_the_backend(monkeypatch):
+    source = FIXTURE.read_text(encoding="utf-8")
+    model = compile_runtime_model(parse_sdl(source[: source.index("      reset_policy:\n")]))
+    binding = ParticipantEpisodeRuntimeBinding(model=model, implementations=(implementation(),))
+    target = create_stub_target()
+    with RuntimeControlPlane(target, participant_episode=binding) as plane:
+        plane.initialize_participant_episode(PARTICIPANT)
+        calls = []
+        for method in ("reset", "restart"):
+            monkeypatch.setattr(target.participant_runtime, method, lambda *args: calls.append(args))
+        running = plane.snapshot
+        reset = plane.reset_participant_episode(PARTICIPANT)
+        assert plane.snapshot == running
+        plane.terminate_participant_episode(PARTICIPANT, terminal_reason=ParticipantEpisodeTerminalReason.TIMED_OUT)
+        terminal = plane.snapshot
+        restart = plane.restart_participant_episode(PARTICIPANT)
+        assert [plane.get_operation(receipt.operation_id).state.value for receipt in (reset, restart)] == [
+            "failed",
+            "failed",
+        ]
+        assert not calls
+        assert plane.snapshot == terminal
 
 
 def test_episode_binding_rejects_ambiguous_or_missing_implementation_selections():

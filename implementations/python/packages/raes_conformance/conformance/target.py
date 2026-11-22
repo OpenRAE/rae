@@ -27,7 +27,7 @@ from raes_processor.reference import ScenarioInput
 from raes_runtime.participant_episode_binding import ParticipantEpisodeRuntimeBinding
 from raes_runtime.registry import RuntimeTarget
 
-from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_failure_message
+from raes_conformance.conformance.diagnostics import conformance_diagnostic, sanitized_failure_message
 from raes_conformance.conformance.fixture_suite import run_fixture_suite
 from raes_conformance.conformance.modular_control import run_modular_control_conformance
 from raes_conformance.conformance.modular_control_types import ModularControlHarness
@@ -177,7 +177,7 @@ def _unknown_profile_report(
     profile_id = _to_profile_id(profile)
     diagnostics = (
         *fixture_report.diagnostics,
-        _diagnostic(
+        conformance_diagnostic(
             "conformance.profile-runtime-surface-unknown",
             profile_id,
             (
@@ -218,7 +218,7 @@ def _gap_diagnostics(
     diagnostics: list[Diagnostic] = []
     if contract_gaps:
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.unsupported-contract-declaration",
                 target.name,
                 f"Target does not declare required contracts for {_to_profile_id(profile)}: {', '.join(contract_gaps)}",
@@ -226,7 +226,7 @@ def _gap_diagnostics(
         )
     if surface_gaps:
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.unsupported-surface",
                 target.name,
                 "Target is missing required runtime surfaces: " + ", ".join(surface_gaps),
@@ -234,7 +234,7 @@ def _gap_diagnostics(
         )
     if claim_gaps:
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.unsupported-capability-claim",
                 target.name,
                 "Target declares capability claims without required contract surfaces: " + "; ".join(claim_gaps),
@@ -273,7 +273,7 @@ def _participant_feature_cases(
             except ConflictError as exc:
                 effective_support_level = None
                 diagnostics = (
-                    _diagnostic(
+                    conformance_diagnostic(
                         "conformance.participant-feature-support-invalid",
                         entry.feature,
                         sanitized_failure_message(exc),

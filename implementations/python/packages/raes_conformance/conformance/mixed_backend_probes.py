@@ -18,7 +18,7 @@ from raes_contracts.contracts import validate_mixed_backend_bindings
 from raes_contracts.errors import ConflictError, InvalidInputError, RaesError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
 
-from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_failure_message
+from raes_conformance.conformance.diagnostics import conformance_diagnostic, sanitized_failure_message
 from raes_conformance.conformance.mixed_backend_cases import (
     PROBE_REVISION,
     MixedBackendCase,
@@ -139,7 +139,7 @@ def _run_case(harness: object, case: MixedBackendCase, environment: str, set_dig
         if not isinstance(exc, RaesError):
             # Isolation of the harness and its installed services: a refusal category needs no record.
             _LOGGER.exception("mixed-backend probe case failed", exc_info=foreign_failure_record(exc))
-        failure = _diagnostic("conformance.mixed-case-error", case.case_id, sanitized_failure_message(exc))
+        failure = conformance_diagnostic("conformance.mixed-case-error", case.case_id, sanitized_failure_message(exc))
         verdict = Verdict("failed", diagnostics=(failure,))
     return _case_result(case, verdict, environment, set_digest)
 
@@ -147,7 +147,9 @@ def _run_case(harness: object, case: MixedBackendCase, environment: str, set_dig
 def _case_result(case: MixedBackendCase, verdict: Verdict, environment: str, set_digest: str) -> ConformanceCaseResult:
     diagnostics = list(verdict.diagnostics)
     if verdict.failures:
-        diagnostics.append(_diagnostic("conformance.mixed-case-failed", case.case_id, "; ".join(verdict.failures)))
+        diagnostics.append(
+            conformance_diagnostic("conformance.mixed-case-failed", case.case_id, "; ".join(verdict.failures))
+        )
     executed = verdict.binding is not None
     return ConformanceCaseResult(
         name=case.case_id,

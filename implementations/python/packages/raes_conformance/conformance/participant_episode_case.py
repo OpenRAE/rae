@@ -6,7 +6,7 @@ from raes_processor.models import RuntimeModel
 from raes_runtime.participant_episode_binding import EPISODE_CONTRACTS
 from raes_runtime.registry import RuntimeTarget
 
-from .diagnostics import diagnostic
+from .diagnostics import conformance_diagnostic
 from .participant_episode_structure import participant_episode_structure_conformance_diagnostics
 from .report import ConformanceCaseResult
 
@@ -42,7 +42,7 @@ def participant_episode_structure_case(
     }
     if snapshot is None or any(not snapshot.participant_episode_history.get(address) for address in participants):
         diagnostics.append(
-            diagnostic(
+            conformance_diagnostic(
                 "conformance.participant-episode-evidence-missing",
                 name,
                 "Recorded episode history is required for every governed participant.",
@@ -50,7 +50,7 @@ def participant_episode_structure_case(
         )
     else:
         diagnostics.extend(
-            diagnostic("conformance.participant-episode-snapshot-invalid", address, message)
+            conformance_diagnostic("conformance.participant-episode-snapshot-invalid", address, message)
             for address, message in iter_participant_episode_snapshot_violations(
                 snapshot.participant_episode_results, snapshot.participant_episode_history
             )

@@ -36,12 +36,14 @@ def participant_episode_history_policy_violations(
                 "only an interruption may end a governed episode without one",
             )
         action = event.control_action
-        if (
-            action in _RESET_ACTIONS
-            and policy.reset_control_actions
-            and action.value not in policy.reset_control_actions
-        ):
-            yield (index, f"control action {action.value!r} is not admitted by the reset policy of {policy.address!r}")
+        if action in _RESET_ACTIONS and action.value not in policy.reset_control_actions:
+            yield (index, _unadmitted_reset_message(policy, action))
+
+
+def _unadmitted_reset_message(policy: ParticipantEpisodePolicyRuntime, action: ParticipantEpisodeControlAction) -> str:
+    if not policy.reset_control_actions:
+        return f"control action {action.value!r} is not admitted: {policy.address!r} declares no reset policy"
+    return f"control action {action.value!r} is not admitted by the reset policy of {policy.address!r}"
 
 
 def _history_event(payload: object) -> ParticipantEpisodeHistoryEvent | None:

@@ -25,7 +25,7 @@ _SAFE_LOCATION_SEGMENT = re.compile(r"^[A-Za-z0-9_.-]{1,64}$")
 _REDACTED_LOCATION_SEGMENT = "<field>"
 
 
-def diagnostic(code: str, address: str, message: str) -> Diagnostic:
+def conformance_diagnostic(code: str, address: str, message: str) -> Diagnostic:
     """Return one error-severity conformance diagnostic."""
 
     return Diagnostic(
@@ -35,10 +35,6 @@ def diagnostic(code: str, address: str, message: str) -> Diagnostic:
         message=message,
         severity=Severity.ERROR,
     )
-
-
-# Existing callers retain their spelling while new callers use the public interface.
-_diagnostic = diagnostic
 
 
 def _safe_location(location: tuple[object, ...], *, error_type: str) -> str:

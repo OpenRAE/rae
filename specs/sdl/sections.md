@@ -347,7 +347,8 @@ Each selection must agree with its manifest identity, digest, decision mode, and
 A plan with episode policies is applied, authorized, or admitted only under a binding that holds the exact compiled model of that plan.
 
 The runtime admits only the reset actions of the reset policy, and only terminal reasons that an authored condition produces.
-An `interrupted` stop is always admitted. A policy without a `reset_policy` admits all resets and restarts.
+An `interrupted` stop is always admitted. A policy without a `reset_policy` admits no reset or restart,
+because every reset must declare its ADR-095 participant-memory scope.
 These bounds apply to operator and participant requests, mixed-control lifecycle requests, and autonomous clock resets.
 The runtime refuses returned or restored episode history that violates the policy.
 It preserves ADR-013 participant identity, generation, and append-only history.

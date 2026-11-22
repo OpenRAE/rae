@@ -122,7 +122,7 @@ class ParticipantEpisodeRuntimeBinding:
             action = "reset"
         elif isinstance(request, ParticipantEpisodeRestartRequest):
             action = "restart"
-        if action is not None and policy.reset_control_actions and action not in policy.reset_control_actions:
+        if action is not None and action not in policy.reset_control_actions:
             raise ConflictError("participant episode control action is not admitted by its authored policy")
         if isinstance(request, ParticipantEpisodeTerminateRequest):
             reasons = {condition.terminal_reason for condition in policy.conditions}

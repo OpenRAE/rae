@@ -34,7 +34,8 @@ It applies, authorizes, or admits a plan with policies only when the binding hol
 Before dispatch, the runtime checks each episode request against the policy:
 
 - A reset or restart must be one of the `reset_policy.control_actions`.
-  A policy without a `reset_policy` admits all resets and restarts.
+  A policy without a `reset_policy` admits no reset or restart.
+  Each reset must declare its ADR-095 participant-memory scope, and only a `reset_policy` declares it.
 - A terminal reason must come from an authored condition.
   An `interrupted` stop is always admitted.
 

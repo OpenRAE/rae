@@ -233,7 +233,7 @@ def test_recorded_episodes_that_contradict_their_structure_are_reported() -> Non
     ]
 
 
-def test_a_policy_without_a_reset_policy_admits_every_reset_and_restart() -> None:
+def test_a_policy_without_a_reset_policy_admits_no_reset_or_restart() -> None:
     source = STANDALONE_FIXTURE.read_text(encoding="utf-8")
     model = compile_runtime_model(parse_sdl(source[: source.index("      reset_policy:\n")]))
     history = _history(_recorded_replays(ParticipantEpisodeTerminalReason.TIMED_OUT))
@@ -243,7 +243,13 @@ def test_a_policy_without_a_reset_policy_admits_every_reset_and_restart() -> Non
         "reset",
         "restart",
     ]
-    assert participant_episode_structure_conformance_diagnostics(model.participant_episode_policies, history) == ()
+    assert _messages(
+        participant_episode_structure_conformance_diagnostics(model.participant_episode_policies, history)
+    ) == [
+        f"control action {action!r} is not admitted: "
+        "'participant.episode-policy.replay-episodes' declares no reset policy"
+        for action in ("reset", "restart")
+    ]
 
 
 @pytest.mark.parametrize(
@@ -282,3 +288,28 @@ def test_conformance_refuses_a_participant_with_two_compiled_structures() -> Non
         "participant is governed by more than one episode policy: "
         "participant.episode-policy.replay-copy, participant.episode-policy.replay-episodes"
     ]
+
+
+def test_module_composition_keeps_the_aggregate_attachment_and_its_binding(tmp_path: Path) -> None:
+    from raes_runtime.participant_episode_binding import ParticipantEpisodeRuntimeBinding
+    from test_issue_307_dsl_120_participant_episode_policy import _import_module, _source
+    from test_issue_309_episode_runtime_binding import implementation
+
+    model = compile_runtime_model(parse_sdl_file(_import_module(tmp_path, _source())))
+    aggregate_address = "participant.behavior-specification.shared.analyst-triage"
+    aggregate = model.behavior_specifications[aggregate_address]
+    policy = model.participant_episode_policies[aggregate.episode_policy_address]
+
+    assert aggregate.episode_policy_address == "participant.episode-policy.shared.analyst-triage"
+    assert policy.behavior_specification_address == aggregate_address
+    selections = []
+    for index, participant_address in enumerate(policy.participant_addresses):
+        admitted = implementation(mode=aggregate.behavior_mode, name=f"composed-{index}")
+        selection = admitted.selection.model_copy(update={"participant_address": participant_address})
+        selections.append(replace(admitted, selection=selection))
+    binding = ParticipantEpisodeRuntimeBinding(model=model, implementations=tuple(selections))
+
+    assert binding.admits_model(model)
+    assert {binding.policy(address).address for address in policy.participant_addresses} == {
+        aggregate.episode_policy_address
+    }

@@ -20,7 +20,7 @@ from raes_processor.models.participant_episode_validation import participant_epi
 
 from raes_conformance.conformance.diagnostics import (
     PARTICIPANT_EPISODE_STRUCTURE_INVALID_DIAGNOSTIC_CODE,
-    diagnostic,
+    conformance_diagnostic,
 )
 
 _HISTORY_KEY = "runtime.snapshot.participant-episode-history"
@@ -42,7 +42,7 @@ def participant_episode_structure_conformance_diagnostics(
         if len(governed_by) > 1:
             joined = ", ".join(sorted(policy.address for policy in governed_by))
             diagnostics.append(
-                diagnostic(
+                conformance_diagnostic(
                     PARTICIPANT_EPISODE_STRUCTURE_INVALID_DIAGNOSTIC_CODE,
                     address,
                     f"participant is governed by more than one episode policy: {joined}",
@@ -50,7 +50,9 @@ def participant_episode_structure_conformance_diagnostics(
             )
             continue
         diagnostics.extend(
-            diagnostic(PARTICIPANT_EPISODE_STRUCTURE_INVALID_DIAGNOSTIC_CODE, f"{address}[{index}]", message)
+            conformance_diagnostic(
+                PARTICIPANT_EPISODE_STRUCTURE_INVALID_DIAGNOSTIC_CODE, f"{address}[{index}]", message
+            )
             for index, message in participant_episode_history_policy_violations(
                 governed_by[0], participant_episode_history.get(participant_address)
             )

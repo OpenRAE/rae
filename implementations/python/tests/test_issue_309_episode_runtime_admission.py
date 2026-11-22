@@ -15,16 +15,22 @@ from test_dsl_437_benign_participant_execution import _autonomous_manifest, _Nat
 from test_issue_309_episode_runtime_binding import implementation
 
 
-def _governed_source(control_actions: list[str]) -> str:
+def _governed_source(control_actions: list[str] | None) -> str:
     payload = yaml.safe_load(_scenario_yaml())
-    payload["behavior_specifications"]["participant-behavior"]["episode_policy"] = {
-        "profile": "participant-episode-policy/v1",
-        "reset_policy": {
+    specification = payload["behavior_specifications"]["participant-behavior"]
+    policy: dict[str, object] = {"profile": "participant-episode-policy/v1"}
+    if control_actions is None:
+        policy["interaction_structure"] = {
+            "order_basis": "decision-epoch",
+            "action_contract_refs": specification["action_contract_refs"][:1],
+        }
+    else:
+        policy["reset_policy"] = {
             "control_actions": control_actions,
             "participant_memory_scope": "persistent_across_episodes",
             "evidence_requirement_refs": ["objective-truth-evidence"],
-        },
-    }
+        }
+    specification["episode_policy"] = policy
     return yaml.safe_dump(payload, sort_keys=False)
 
 
@@ -36,7 +42,7 @@ def _selection(participant_address: str, index: int):
     )
 
 
-def _governed_run(control_actions: list[str]):
+def _governed_run(control_actions: list[str] | None):
     scenario = parse_sdl(_governed_source(control_actions))
     target = replace(
         create_stub_target(),
@@ -74,8 +80,9 @@ def test_a_governed_plan_applies_only_under_its_exact_installed_binding():
     assert applied.success, applied.diagnostics
 
 
-def test_a_clock_reset_cannot_reset_an_episode_that_its_policy_does_not_admit():
-    target, plan, binding, clock = _governed_run(["restart"])
+@pytest.mark.parametrize("control_actions", [["restart"], None], ids=["restart-only", "no-reset-policy"])
+def test_a_clock_reset_cannot_reset_an_episode_that_its_policy_does_not_admit(control_actions):
+    target, plan, binding, clock = _governed_run(control_actions)
     calls = []
     reset = target.time_runtime.reset_with_participants
 

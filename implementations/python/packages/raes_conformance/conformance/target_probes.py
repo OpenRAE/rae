@@ -24,7 +24,7 @@ from raes_runtime.snapshot_contract import runtime_snapshot_contract_payload
 from raes_conformance._materialization_scope import materialization_probe_scope
 from raes_conformance.conformance.diagnostics import (
     _SEMANTIC_INVALID_DIAGNOSTIC_CODE,
-    _diagnostic,
+    conformance_diagnostic,
     sanitized_failure_message,
 )
 from raes_conformance.conformance.participant_execution_probes import (
@@ -108,7 +108,7 @@ def _participant_snapshot_consistency_case(
     final_diagnostics: list[Diagnostic] = []
     if not snapshot.participant_episode_results:
         final_diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.participant-runtime-empty",
                 f"runtime.snapshot.participant-episode-results.{participant_address}",
                 (
@@ -120,7 +120,7 @@ def _participant_snapshot_consistency_case(
         )
     if not snapshot.participant_episode_history:
         final_diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.participant-runtime-empty",
                 f"runtime.snapshot.participant-episode-history.{participant_address}",
                 (
@@ -134,7 +134,7 @@ def _participant_snapshot_consistency_case(
         snapshot.participant_episode_results,
         snapshot.participant_episode_history,
     ):
-        final_diagnostics.append(_diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message))
+        final_diagnostics.append(conformance_diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message))
     return ConformanceCaseResult(
         name="participant-snapshot-consistent",
         contract_name=contract_name,
@@ -192,7 +192,7 @@ def _drive_participant_episode_probe(
                     valid=True,
                     passed=False,
                     diagnostics=(
-                        _diagnostic(
+                        conformance_diagnostic(
                             "conformance.participant-runtime-failed",
                             f"runtime.control-plane.participant.{participant_address}",
                             f"{case_name} failed: {sanitized_failure_message(exc)}",
@@ -205,7 +205,7 @@ def _drive_participant_episode_probe(
         diagnostics: list[Diagnostic] = []
         if status is None:
             diagnostics.append(
-                _diagnostic(
+                conformance_diagnostic(
                     "conformance.participant-runtime-missing-status",
                     f"runtime.control-plane.participant.{participant_address}",
                     f"{case_name} did not produce an OperationStatus record",
@@ -213,7 +213,7 @@ def _drive_participant_episode_probe(
             )
         elif status.state.value not in {"succeeded"}:
             diagnostics.append(
-                _diagnostic(
+                conformance_diagnostic(
                     "conformance.participant-runtime-failed",
                     f"runtime.control-plane.participant.{participant_address}",
                     (
@@ -255,7 +255,7 @@ def _provisioning_probe_case(
     diagnostics: list[Diagnostic] = []
     if status is None:
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.provisioning-missing-status",
                 address,
                 "Provisioning submission did not produce an OperationStatus record.",
@@ -263,7 +263,7 @@ def _provisioning_probe_case(
         )
     elif status.state.value != "succeeded":
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.provisioning-failed",
                 address,
                 (
@@ -274,7 +274,7 @@ def _provisioning_probe_case(
         )
     elif not status.changed_addresses:
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.provisioning-empty",
                 address,
                 (
@@ -318,7 +318,7 @@ def _hermetic_snapshot_case(
     )
     if not has_provisioning_entry:
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.snapshot-not-mutated",
                 "runtime.snapshot.entries",
                 (
@@ -329,7 +329,7 @@ def _hermetic_snapshot_case(
         )
     if materialization_required and not control_plane.snapshot.materialization_attestations:
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.materialization-not-archived",
                 "runtime.snapshot.materialization_attestations",
                 (
@@ -353,23 +353,6 @@ class TargetAdapterRun:
 
     cases: tuple[ConformanceCaseResult, ...]
     model: RuntimeModel | None = None
-
-
-def _target_adapter_cases(
-    target: RuntimeTarget,
-    profile: BackendProfileSelector,
-    *,
-    reference_scenario: ScenarioInput | None = None,
-    participant_episode: ParticipantEpisodeRuntimeBinding | None = None,
-) -> tuple[ConformanceCaseResult, ...]:
-    """Return only the target-adapter probe cases."""
-
-    return target_adapter_run(
-        target,
-        profile,
-        reference_scenario=reference_scenario,
-        participant_episode=participant_episode,
-    ).cases
 
 
 def target_adapter_run(
@@ -419,7 +402,7 @@ def target_adapter_run(
                 valid=False,
                 passed=False,
                 diagnostics=(
-                    _diagnostic(
+                    conformance_diagnostic(
                         "conformance.provisioning-failed",
                         "runtime.control-plane.provisioning",
                         "Composite planning rejected the target probe before backend execution: "
@@ -439,7 +422,7 @@ def target_adapter_run(
                 passed=False,
                 outcome="unsupported",
                 diagnostics=(
-                    _diagnostic(
+                    conformance_diagnostic(
                         "conformance.participant-episode-binding-missing",
                         "target",
                         "The probe scenario requires its exact installed episode binding.",
