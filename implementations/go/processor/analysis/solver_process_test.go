@@ -19,7 +19,9 @@ func TestSolverChild(_ *testing.T) {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.Contains(line, "get-info") {
+		if strings.Contains(line, "get-info") && mode == "version" {
+			_, _ = fmt.Fprintln(os.Stdout, `(:version "0.0.0")`)
+		} else if strings.Contains(line, "get-info") {
 			_, _ = fmt.Fprintln(os.Stdout, `(:version "4.16.0")`)
 		}
 		if strings.Contains(line, "check-sat-assuming") {
@@ -53,5 +55,50 @@ func TestSolverProcessBoundAndCollection(t *testing.T) {
 				t.Fatal("child was not collected")
 			}
 		})
+	}
+}
+
+func TestSolverProcessStartRefusals(t *testing.T) {
+	if _, err := (*Solver)(nil).start(t.Context()); err == nil {
+		t.Fatal("got nil error, want a missing solver refused")
+	}
+	cancelled, cancel := context.WithCancel(t.Context())
+	cancel()
+	if _, err := (&Solver{path: "/missing"}).start(cancelled); err == nil {
+		t.Fatal("got nil error, want a cancelled start refused")
+	}
+	if _, err := (&Solver{path: "/missing"}).start(t.Context()); err == nil {
+		t.Fatal("got nil error, want an unadmitted executable refused")
+	}
+	child := func(mode string) *exec.Cmd {
+		cmd := exec.CommandContext(t.Context(), os.Args[0], "-test.run=^TestSolverChild$") //nolint:gosec // Runs only this test executable with a fixed helper selector.
+		cmd.Env = []string{"RAES_SOLVER_HELPER=" + mode}
+		return cmd
+	}
+	presetInput := child("version")
+	presetInput.Stdin = strings.NewReader("")
+	presetOutput := child("version")
+	presetOutput.Stdout = &strings.Builder{}
+	for name, cmd := range map[string]*exec.Cmd{
+		"wrong version":   child("version"),
+		"preset input":    presetInput,
+		"preset output":   presetOutput,
+		"missing program": exec.CommandContext(t.Context(), "/nonexistent/raes-solver"),
+	} {
+		t.Run(name, func(t *testing.T) {
+			_, cancel := context.WithCancel(t.Context())
+			_, err := startSolverCommand(cmd, cancel)
+			requireOperational(t, err)
+		})
+	}
+}
+
+func TestSolverDiagnosticsStayBounded(t *testing.T) {
+	sink := &boundedDiscard{remaining: 2}
+	if count, err := sink.Write([]byte("ab")); err != nil || count != 2 {
+		t.Fatalf("got %d, %v, want the bounded write accepted", count, err)
+	}
+	if _, err := sink.Write([]byte("c")); err == nil {
+		t.Fatal("got nil error, want the overflow refused")
 	}
 }

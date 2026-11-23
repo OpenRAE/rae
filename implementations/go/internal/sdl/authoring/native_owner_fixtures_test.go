@@ -97,3 +97,38 @@ func checkNativeOwnerFixture(t *testing.T, packaged fs.FS, schemas *validation.V
 		t.Fatal("admission changed the fixture bytes")
 	}
 }
+
+func TestSDLPhaseOwnerChecksTheRequestedPhase(t *testing.T) {
+	parser, err := New(source.DefaultLimits())
+	if err != nil {
+		t.Fatal(err)
+	}
+	authored := []byte("name: phase\nnodes:\n  host: {type: compute}\n")
+	got, err := parser.AdmitSDLPhase(admission.SDLPhaseRequest{ContractID: authoringContract, Source: authored})
+	if err != nil || got.ContractID != authoringContract || got.SourceSHA256 != digest.SHA256(authored) {
+		t.Fatalf("got %v, %v, want the authoring phase admitted", got, err)
+	}
+	if _, err = parser.AdmitSDLPhase(admission.SDLPhaseRequest{ContractID: materializedContract, Source: authored}); err == nil {
+		t.Fatal("got nil error, want an authoring source refused as a materialized phase")
+	}
+	for name, raw := range map[string]string{
+		"wrong profile":    `{"profile":"raes-sdl-instantiated-snapshot/v2","scenario":{}}`,
+		"extra member":     `{"profile":"raes-sdl-instantiated-snapshot/v3","scenario":{},"x":1}`,
+		"not instantiated": `{"profile":"raes-sdl-instantiated-snapshot/v3","scenario":{"name":"plain"}}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if _, err := parser.AdmitSDLPhase(admission.SDLPhaseRequest{ContractID: "instantiated-scenario-snapshot-v2", Source: []byte(raw)}); err == nil {
+				t.Fatal("got nil error, want the snapshot refused")
+			}
+		})
+	}
+}
+
+func TestProvenancePointersUseCanonicalArrayIndexes(t *testing.T) {
+	root := map[string]any{"items": []any{"a", "b"}}
+	for pointer, expected := range map[string]bool{"/items/1": true, "/items/01": false, "/items/-1": false, "/items/x": false, "/items/2": false, "/items/0/x": false, "/missing": false} {
+		if _, got := provenancePointer(root, pointer); got != expected {
+			t.Fatalf("pointer %q: got %v, want %v", pointer, got, expected)
+		}
+	}
+}
