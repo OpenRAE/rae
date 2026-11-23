@@ -37,6 +37,7 @@ from raes_runtime.participant_control_targets import _intent_target
 from raes_runtime.participant_crossing_records import _next_crossing_snapshot
 from raes_runtime.participant_flow_sink import _resolve_flow_sink_relation
 from raes_runtime.participant_inject_application import _resolve_delivery
+from raes_runtime.participant_release import participant_release_assertions
 from raes_runtime.participant_scheduler import ParticipantScheduler
 from raes_runtime.participant_scheduler_concurrent_dispatch import _execute_concurrent_batch
 from raes_runtime.time_coordinator import TimeCoordinator
@@ -100,9 +101,19 @@ def test_clock_driver_boundary_logs_one_value_free_record(caplog: pytest.LogCapt
     participant_runtime = _NativeParticipantRuntime()
     scheduler = ParticipantScheduler()
     snapshot = scheduler.initialize(
-        [policy], runtime_model.time_model, participant_runtime, TimeCoordinator(runtime_model.time_model).initialize()
+        [policy],
+        runtime_model.time_model,
+        participant_runtime,
+        TimeCoordinator(runtime_model.time_model).initialize(),
+        release_assertions=participant_release_assertions(runtime_model),
     ).snapshot
-    snapshot = scheduler.run_due([policy], runtime_model.time_model, participant_runtime, snapshot).snapshot
+    snapshot = scheduler.run_due(
+        [policy],
+        runtime_model.time_model,
+        participant_runtime,
+        snapshot,
+        release_assertions=participant_release_assertions(runtime_model),
+    ).snapshot
     driver = ParticipantClockDriver(
         [policy],
         runtime_model.time_model,

@@ -12,6 +12,7 @@ from raes_processor.compiler.time_model import time_model_contract_model
 
 from .diagnostics import _has_error_diagnostic
 from .manager_augmentation import prepare_execution_augmentation
+from .participant_release import participant_release_assertions
 from .runtime_decisions import RunPreparationDecision
 
 if TYPE_CHECKING:
@@ -56,7 +57,9 @@ def prepare_run(
     return plan, prior
 
 
-def restore_run_modules(run: RuntimeRunContext, plan: ExecutionPlan, phases: dict[int, RunPhaseDecision]) -> None:
+def restore_run_modules(
+    run: RuntimeRunContext, plan: ExecutionPlan, phases: dict[int, RunPhaseDecision], *, start_phase: int
+) -> None:
     """Restore local bindings from the admitted plan; never initialize a backend."""
     if 1 in phases and phases[1].state == "succeeded":
         declaration = time_model_contract_model(plan.model.time_model)
@@ -64,13 +67,20 @@ def restore_run_modules(run: RuntimeRunContext, plan: ExecutionPlan, phases: dic
             validate_time_runtime_state(declaration, run._snapshot.time_model_state)
         run._time_declaration = declaration
     if 2 in phases and phases[2].state == "succeeded":
-        run._participant_execution_policies = tuple(
-            spec.autonomous_execution
-            for spec in plan.model.behavior_specifications.values()
-            if spec.autonomous_execution is not None
-        )
-        run._participant_execution_time_model = plan.model.time_model
-        if run._participant_execution_policies and run._participant_scheduler is None:
-            from .participant_scheduler import ParticipantScheduler
+        started = start_phase in phases and phases[start_phase].state == "succeeded"
+        _restore_participant_modules(run, plan, started=started)
 
-            run._participant_scheduler = ParticipantScheduler()
+
+def _restore_participant_modules(run: RuntimeRunContext, plan: ExecutionPlan, *, started: bool) -> None:
+    """Restore participant scheduling; the release map exists only after the start phase."""
+    run._participant_execution_policies = tuple(
+        spec.autonomous_execution
+        for spec in plan.model.behavior_specifications.values()
+        if spec.autonomous_execution is not None
+    )
+    run._participant_release_assertions = participant_release_assertions(plan.model) if started else {}
+    run._participant_execution_time_model = plan.model.time_model
+    if run._participant_execution_policies and run._participant_scheduler is None:
+        from .participant_scheduler import ParticipantScheduler
+
+        run._participant_scheduler = ParticipantScheduler()

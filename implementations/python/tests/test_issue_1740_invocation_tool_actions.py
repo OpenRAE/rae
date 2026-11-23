@@ -961,7 +961,7 @@ def test_cancelled_outer_invocation_settles_tool_history_before_the_cancellation
         participant_address = FIRST
         key = port.scheduler_state_key
 
-    def due_policy(policy, time_model, participant_runtime, controls, run) -> None:
+    def due_policy(policy, time_model, participant_runtime, controls, release_assertions, run) -> None:
         run.tool_sessions.append(port)
         result = admit_outer_action(_Context(), port.outer, run.working, port, run)
         assert result is not None
@@ -971,7 +971,9 @@ def test_cancelled_outer_invocation_settles_tool_history_before_the_cancellation
     settled: list[ApplyResult] = []
 
     with pytest.raises(CancelledError):
-        ParticipantScheduler.run_due([object()], object(), object(), snapshot, cancellation_sink=settled.append)
+        ParticipantScheduler.run_due(
+            [object()], object(), object(), snapshot, release_assertions={}, cancellation_sink=settled.append
+        )
 
     assert port.closed
     (result,) = settled

@@ -2,7 +2,7 @@
 
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.errors import ConflictError, InvalidInputError
-from raes_contracts.planning import PlanScope
+from raes_contracts.planning import ChangeAction, EvaluationPlan, PlanScope
 from raes_contracts.runtime_state import OperationReceipt, RuntimeSnapshot
 from raes_contracts.vocabulary import Closure
 from raes_processor.models import CompiledRealizationRequirement, ExecutionPlan
@@ -23,7 +23,8 @@ class RuntimeInteractionEvaluationMixin:
         """Evaluate later evidence without applying or restarting other domains.
 
         Reuse an idempotency key only to retry the exact evaluation request.
-        Use a new key for each new evidence collection.
+        Use a new key for each new evidence collection. New truth results can
+        release autonomous participants that wait for their starting assertions.
         """
         execution = execution_plan or self._interaction_plan
         if execution is None or not execution.is_valid:
@@ -37,11 +38,13 @@ class RuntimeInteractionEvaluationMixin:
         options = {"idempotency_key": idempotency_key, "identity": identity, "request_identity": request_identity}
         request = evaluation_request(self, original.evaluation, **options)
         receipt = _existing_supervised_receipt(self, request)
-        if receipt is not None:
-            return receipt
-        refreshed = self._plan_evaluation_refresh(execution, self._snapshot)
-        self.register_planner_produced_plan(refreshed)
-        return execute_operation(self, evaluation_request(self, refreshed.evaluation, **options))
+        if receipt is None:
+            if not _evaluation_applied(original.evaluation, self._snapshot):
+                raise ConflictError("evaluation refresh requires the applied evaluation phase")
+            refreshed = self._plan_evaluation_refresh(execution, self._snapshot)
+            self.register_planner_produced_plan(refreshed)
+            receipt = execute_operation(self, evaluation_request(self, refreshed.evaluation, **options))
+        return self._release_reported_participants(receipt)
 
     def _plan_evaluation_refresh(self, execution: ExecutionPlan, snapshot: RuntimeSnapshot) -> ExecutionPlan:
         context = execution.planning_context
@@ -75,3 +78,11 @@ class RuntimeInteractionEvaluationMixin:
         if not refreshed.is_valid:
             raise ConflictError("evaluation refresh could not be planned")
         return refreshed
+
+
+def _evaluation_applied(evaluation: EvaluationPlan, snapshot: RuntimeSnapshot) -> bool:
+    """Return whether the run applied the evaluation phase that ``evaluation`` creates.
+
+    A refresh before that phase would create its entries early and break the phase.
+    """
+    return all(op.address in snapshot.entries for op in evaluation.operations if op.action is ChangeAction.CREATE)

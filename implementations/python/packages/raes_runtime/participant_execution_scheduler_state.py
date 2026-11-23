@@ -74,6 +74,14 @@ def execution_service_state(
     )
 
 
+# Drain, teardown, and failure are independent decisions; shared-clock changes keep them.
+_INDEPENDENT_LIFECYCLES = frozenset({"draining", "quiescent", "tearing_down", "terminated", "failed"})
+
+
+def _keeps_independent_lifecycle(service: ParticipantExecutionServiceStateModel) -> bool:
+    return service.observed_lifecycle in _INDEPENDENT_LIFECYCLES
+
+
 def reset_execution_service(
     snapshot: RuntimeSnapshot,
     policy_address: str,
@@ -87,15 +95,22 @@ def reset_execution_service(
     service = ParticipantExecutionServiceStateModel.model_validate(payload)
     generation = service.generation + 1
     evidence_ref = f"evidence:{policy_address}:shared-time-reset:generation-{generation}"
-    services[policy_address] = service.model_copy(
-        update={
+    admission = (
+        {}
+        if _keeps_independent_lifecycle(service)
+        else {
             "desired_lifecycle": "running",
             "observed_lifecycle": "running",
-            "generation": generation,
-            "observed_generation": generation,
             "readiness": "ready",
             "accepting_new_work": True,
             "draining": False,
+        }
+    )
+    services[policy_address] = service.model_copy(
+        update={
+            **admission,
+            "generation": generation,
+            "observed_generation": generation,
             "quiescent": True,
             "reserved": 0,
             "in_flight": 0,
@@ -116,13 +131,19 @@ def set_execution_clock_lifecycle(
     snapshot: RuntimeSnapshot,
     clock_address: str,
     lifecycle_state: str,
+    *,
+    waiting_policy_addresses: frozenset[str] = frozenset(),
 ) -> ApplyResult:
-    """Coordinate shared-clock lifecycle with scheduler and service readback."""
+    """Coordinate shared-clock lifecycle with scheduler and service readback.
+
+    A policy with participants that wait for release has no scheduler state for them,
+    so the caller names it in ``waiting_policy_addresses``.
+    """
 
     states = dict(snapshot.participant_autonomous_execution_states)
     services = dict(snapshot.participant_execution_services)
     changed: list[str] = []
-    affected_policies: set[str] = set()
+    affected_policies: set[str] = set(waiting_policy_addresses)
     for key, payload in list(states.items()):
         state = ParticipantAutonomousExecutionStateModel.model_validate(payload)
         if state.clock_address == clock_address and state.lifecycle_state not in {"completed", "failed"}:
@@ -134,6 +155,8 @@ def set_execution_clock_lifecycle(
         if service_payload is None:
             continue
         service = ParticipantExecutionServiceStateModel.model_validate(service_payload)
+        if _keeps_independent_lifecycle(service):
+            continue
         paused = lifecycle_state == "paused"
         evidence_ref = f"evidence:{policy_address}:shared-time-{lifecycle_state}:generation-{service.generation}"
         services[policy_address] = service.model_copy(

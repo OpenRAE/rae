@@ -777,7 +777,7 @@ def test_capacity_exhaustion_returns_explicit_failure_instead_of_silent_success(
     monkeypatch.setattr(participant_scheduler, "_cadence", lambda policy, time_model: (0, 1))
     monkeypatch.setattr(participant_scheduler, "_clock_tick", lambda snapshot, clock_address: 0)
 
-    participant_scheduler._run_due_policy(policy, None, object(), {}, batch.run)
+    participant_scheduler._run_due_policy(policy, None, object(), {}, {}, batch.run)
 
     assert batch.run.failure is not None
     assert batch.run.failure.diagnostics[0].code == "runtime.participant-execution-capacity-blocked"
@@ -1007,7 +1007,7 @@ def test_capacity_exhaustion_preserves_missed_cadence_failure(
     monkeypatch.setattr(participant_scheduler, "_cadence", lambda policy, time_model: (0, 1))
     monkeypatch.setattr(participant_scheduler, "_clock_tick", lambda snapshot, clock_address: 1)
 
-    participant_scheduler._run_due_policy(policy, None, object(), {}, batch.run)
+    participant_scheduler._run_due_policy(policy, None, object(), {}, {}, batch.run)
 
     assert batch.run.failure is not None
     assert batch.run.failure.diagnostics[0].code == "runtime.participant-autonomous-cadence-missed"
@@ -1032,7 +1032,7 @@ def test_capacity_exhaustion_is_not_a_new_failure_for_already_in_flight_work(
     monkeypatch.setattr(participant_scheduler, "_cadence", lambda policy, time_model: (0, 1))
     monkeypatch.setattr(participant_scheduler, "_clock_tick", lambda snapshot, clock_address: 0)
 
-    participant_scheduler._run_due_policy(policy, None, object(), {}, batch.run)
+    participant_scheduler._run_due_policy(policy, None, object(), {}, {}, batch.run)
 
     assert batch.run.failure is None
 

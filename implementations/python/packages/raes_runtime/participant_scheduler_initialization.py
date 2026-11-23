@@ -89,6 +89,13 @@ def _activity_control_unbound_result(
     )
 
 
+def _next_cadence_tick(start_tick: int, period: int, current_tick: int) -> int:
+    """Return the first authored cadence tick at or after ``current_tick``."""
+    if current_tick <= start_tick:
+        return start_tick
+    return start_tick + -(-(current_tick - start_tick) // period) * period
+
+
 def _initial_activity_schedule(
     policy: ParticipantAutonomousExecutionRuntime,
     time_model: CompiledTimeModel,
@@ -96,9 +103,13 @@ def _initial_activity_schedule(
     participant_address: str,
     segment: int,
     activity_control: ParticipantActivityRandomControl | None,
+    *,
+    delayed: bool,
 ) -> tuple[int | None, int, str]:
     if activity_control is None:
-        first_tick, _ = cadence(policy, time_model)
+        first_tick, period = cadence(policy, time_model)
+        if delayed:
+            first_tick = _next_cadence_tick(first_tick, period, clock_tick(snapshot, policy.clock_address))
         return first_tick, 1, "cadence"
     current_tick = clock_tick(snapshot, policy.clock_address)
     burst_size = draw_activity_integer(
@@ -132,6 +143,8 @@ def _initial_participant_state(
     participant_address: str,
     segment: int,
     activity_control: ParticipantActivityRandomControl | None,
+    *,
+    delayed: bool,
 ) -> ParticipantAutonomousExecutionStateModel:
     first_tick, burst_size, timing_disposition = _initial_activity_schedule(
         policy,
@@ -140,6 +153,7 @@ def _initial_participant_state(
         participant_address,
         segment,
         activity_control,
+        delayed=delayed,
     )
     return ParticipantAutonomousExecutionStateModel(
         policy_address=policy.address,
@@ -206,7 +220,13 @@ def initialize_participant(
     snapshot: RuntimeSnapshot,
     participant_address: str,
     activity_controls: dict[str, ParticipantActivityRandomControl],
+    *,
+    delayed: bool = False,
 ) -> ApplyResult:
+    """Start one released participant.
+
+    A delayed release starts a fixed-cadence policy at its next authored tick.
+    """
     episode_result = _ensure_participant_episode(participant_runtime, snapshot, participant_address)
     if not episode_result.success:
         return episode_result
@@ -230,6 +250,7 @@ def initialize_participant(
         participant_address,
         segment,
         activity_control,
+        delayed=delayed,
     )
     return _persist_initial_participant_state(policy, working, participant_address, expected, changed)
 

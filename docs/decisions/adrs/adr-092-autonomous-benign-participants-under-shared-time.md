@@ -284,6 +284,27 @@ The backend claims the composition with an explicit capability block and the
 `attach_invocation_tool_actions` protocol method. Without that claim, the
 scheduler behaves as before.
 
+### Release on starting assertions
+
+An autonomous participant starts only when each of its
+`agents.*.starting_assertions` has a `true` assertion outcome. The backend
+reports that outcome through its evaluator role. An agent without starting
+assertions starts as before. The runtime revalidates each truth result against
+the admitted proposition and assertion entries. A missing, `false`, `unknown`,
+or invalid result keeps the participant waiting, without native calls. An
+`unsupported` result refuses the scheduler pass.
+
+Each scheduler pass applies this gate before native episode initialization.
+No release occurs before the participant start phase. Every native start,
+including direct episode initialization, requires an accepting execution
+service and a released gate. A committed evaluation, or the wall-paced clock
+driver, runs one scheduler pass when a waiting participant can be released.
+Shared-clock pause, resume, and reset keep an independent drain, teardown, or
+failure. A durable run stays pending until every
+participant is released. A delayed v1 release starts at the next
+authored cadence tick. Release is a start precondition for the run, not a
+continuous invariant.
+
 ## Consequences
 
 - Human, AI, scripted, and benign simulated participants share one semantic and
@@ -324,3 +345,4 @@ scheduler behaves as before.
 | 2026-08-01 | #213 | Identified the existing autonomous-participant policy and execution path as the implementation of ACT-605 baseline behavior profiles. |
 | 2026-09-21 | #216 | Made backend features conditional and added explicit bounded deadline/dwell admission, evidence, and lifecycle rules. |
 | 2026-10-30 | #1740 | Added versioned participant tool actions hosted inside an active autonomous invocation. |
+| 2026-11-21 | #2020 | Released autonomous participants only when every starting assertion is true. |

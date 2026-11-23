@@ -95,7 +95,7 @@ def test_a_scheduler_pass_refuses_an_unknown_keyword():
     with pytest.raises(
         TypeError, match="^ParticipantScheduler.run_due\\(\\) got an unexpected keyword argument 'clock'$"
     ):
-        ParticipantScheduler.run_due([], None, None, snapshot, clock=utc_now)
+        ParticipantScheduler.run_due([], None, None, snapshot, release_assertions={}, clock=utc_now)
 
 
 def test_backend_participant_runtime_records_episode_time_from_its_clock():
