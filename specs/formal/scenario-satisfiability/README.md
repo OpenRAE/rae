@@ -1,10 +1,10 @@
-# Scenario Satisfiability
+# Scenario satisfiability
 
 This specification defines the normative v1 whole-scenario satisfiability
 boundary adopted by ADR-086. The keywords MUST, MUST NOT, SHALL, and SHOULD are
 normative.
 
-## Profile Identity And Phase
+## Profile identity and phase
 
 The analysis profile `raes-finite-domain-satisfiability-v1` SHALL mean exactly:
 
@@ -14,13 +14,13 @@ translation_profile = raes-sdl-authoring-translation/v1
 solver_profile      = raes-z3-finite-domain/v1
 ```
 
-The input SHALL be a successfully parsed and semantically validated, composed
-authoring `Scenario`, before variable instantiation and before planning or
-backend realization. The root source SHALL be read with `SDLParserLimits` before
-UTF-8 decoding. The analyzer SHALL bind both exact source bytes and canonical
-authored semantics.
+The input SHALL be a composed authoring `Scenario` that parsed successfully
+and passed semantic validation. Analysis SHALL occur before variable
+instantiation, planning, and backend realization. The root source SHALL be read
+with `SDLParserLimits` before UTF-8 decoding. The analyzer SHALL bind the exact
+source bytes and the canonical authored semantics.
 
-## Finite-Domain Model
+## Finite-domain model
 
 Let `S` be a finite, canonically ordered set of symbols. Each symbol `s` has one
 sort in `{string, integer, boolean}` and a finite domain `D(s)`.
@@ -44,7 +44,7 @@ Symbols, clauses, domains, and clause values MUST be unique and use canonical
 RFC 8785 scalar order. Bounds are 128 symbols, 256 domain members per symbol,
 and 512 clauses.
 
-## Translation Coverage
+## Translation coverage
 
 Required or referenced string and integer variables MUST declare finite
 `allowed_values`. A Boolean variable MAY omit `allowed_values`, in which case
@@ -59,31 +59,36 @@ The translation SHALL recognize only whole-token occurrences `${name}` at:
 | `/infrastructure/<id>/count` | integer | values greater than or equal to one |
 | `/infrastructure/<id>/properties/internal` | boolean | the declared Boolean domain |
 
-The translator SHALL recursively inspect every other authored scenario field
-after excluding the variable declarations, import declarations, module marker,
-and expansion-provenance carrier. An embedded occurrence, unsupported sort,
-unbounded domain, unrecognized address, missing symbol, or exceeded resource
-bound SHALL produce a stable `unsupported` diagnostic. No occurrence may be
-silently dropped.
+The translator SHALL recursively inspect every other authored scenario field.
+It excludes the variable declarations, import declarations, module marker, and
+expansion-provenance carrier. The translator SHALL produce a stable
+`unsupported` diagnostic for each of these conditions: an embedded occurrence,
+an unsupported sort, an unbounded domain, an unrecognized address, a missing
+symbol, or an exceeded resource bound. No occurrence may be silently dropped.
 
-## Solver Semantics
+## Solver semantics
 
-The v1 adapter SHALL use Z3 package `4.16.0.0`, engine `4.16.0`, `QF_LIA`, seed
-zero, operation timeout 5000 ms, one thread, automatic configuration disabled, and model
-and unsat-core production enabled. Scalar domain members SHALL be encoded as
-integer indices. The published solver configuration SHALL contain every one of
-these choices and be digest-bound.
+The v1 adapter SHALL use these settings:
+
+- Z3 package `4.16.0.0` and engine `4.16.0`;
+- logic `QF_LIA` and seed zero;
+- operation timeout 5000 ms and one thread;
+- automatic configuration disabled; and
+- model and unsat-core production enabled.
+
+Scalar domain members SHALL be encoded as integer indices. The published solver
+configuration SHALL contain each of these settings and be digest-bound.
 
 Every solver check MUST complete with `sat` or `unsat` before it contributes to
-a completed outcome, witness-selection claim, or core-reduction claim. Empty
-membership clauses MUST be asserted as false explicitly. The adapter MUST
-defensively reject duplicate clause ids before tracked-assumption construction,
-even though the normalized model contract independently forbids them.
+a completed outcome, a witness-selection claim, or a core-reduction claim. Empty
+membership clauses MUST be explicitly asserted as false. The adapter MUST reject
+duplicate clause ids before it constructs tracked assumptions. The normalized
+model contract also forbids them, but this check is a defensive measure.
 
 One analysis MUST construct one expression graph and query it incrementally.
 The 5000 ms monotonic deadline covers expression construction, all repeated
 checks, and deterministic witness or core selection. Each native check receives
-at most the remaining operation time, and a result returned after the deadline
+at most the remaining operation time. A result that returns after the deadline
 is an operational failure.
 
 For symbols `S`, domains `D(s)`, and clauses `C`, one analysis has the derived
@@ -93,29 +98,29 @@ check budget:
 B = 1 + max(|C|, sum(|D(s)| for s in S))
 ```
 
-The initial decision consumes one check. Only witness selection or core
-reduction then runs, so the former consumes at most one check per domain member
-and the latter at most one per clause. Exhausting this derived budget is an
-operational failure. The reference implementation SHALL preserve phase, check
-count, check budget, 5000 ms operation timeout, and bounded solver reason on its
-operational-error boundary; it SHALL NOT emit partial evidence.
+The initial decision consumes one check. Then only witness selection or core
+reduction runs. Witness selection consumes at most one check per domain member.
+Core reduction consumes at most one check per clause. Exhausting this derived
+budget is an operational failure. On its operational-error boundary, the
+reference implementation SHALL preserve the phase, check count, check budget,
+5000 ms operation timeout, and bounded solver reason. It SHALL NOT emit partial
+evidence.
 
 For a satisfiable model, the witness SHALL select the first feasible value for
-each symbol in canonical symbol and domain order while preserving previous
-choices. The resulting binding SHALL pass normal scenario instantiation and
-admission and SHALL be published as the canonical instantiated-scenario
-snapshot and digest.
+each symbol in canonical symbol and domain order. It keeps the previous choices.
+The resulting binding SHALL pass normal scenario instantiation and admission. It
+SHALL be published as the canonical instantiated-scenario snapshot and digest.
 
 For an unsatisfiable model, the adapter SHALL start from all canonical clause
-ids and remove a clause in sorted order whenever the remainder stays
+ids. In sorted order, it SHALL remove each clause if the remainder stays
 unsatisfiable. The final sorted set is subset-minimal under that deletion
-procedure. It MUST be named an unsatisfiable core, not a proof certificate or a
-globally minimum core.
+procedure. It MUST be named an unsatisfiable core. It is not a proof certificate
+or a globally minimum core.
 
 Solver `unknown`, timeout, package/profile mismatch, and internal failure SHALL
 be operational failures. They MUST NOT be labelled `unsupported`.
 
-## Evidence And Replay
+## Evidence and replay
 
 The published `scenario-satisfiability-evidence-v1` contract SHALL bind:
 
@@ -126,23 +131,30 @@ The published `scenario-satisfiability-evidence-v1` contract SHALL bind:
 5. exactly one of a witness, unsatisfiable core, or unsupported disclosure; and
 6. stable, value-free diagnostics.
 
-Replay SHALL verify the exact source-byte digest and then recompute the entire
-evidence envelope with the evidence's analysis profile. Any mismatch SHALL
-fail. Evidence models SHALL reject unknown fields and inconsistent cross-object
-joins.
+Replay SHALL verify the exact source-byte digest. Then it SHALL recompute the
+full evidence envelope with the analysis profile of the evidence. Any mismatch
+SHALL fail. Evidence models SHALL reject unknown fields and inconsistent
+cross-object joins.
 
-## Claims And Nonclaims
+## Claims and nonclaims
 
 The executable corpus contains satisfiable, unsatisfiable, and unsupported
 controls. Passing replay demonstrates the implementation's result for this
 finite profile and the pinned artifacts only.
 
-It does not demonstrate arbitrary-SDL satisfiability, translation completeness
-outside the table, backend realizability, execution success, exploit-path
-validity, temporal properties, uniqueness, optimality, independent Z3 proof
-verification, or universal soundness/completeness. New sorts, targets, theories,
-encodings, solver versions, witness orders, core algorithms, or evidence meaning
-require a new governed profile/version.
+It does not demonstrate these properties:
+
+- satisfiability of arbitrary SDL;
+- translation completeness outside the table;
+- backend realizability or execution success;
+- exploit-path validity or temporal properties;
+- uniqueness or optimality;
+- independent verification of Z3 proofs; or
+- universal soundness or completeness.
+
+A change to any of these items requires a new governed profile or version:
+sorts, targets, theories, encodings, solver versions, witness orders, core
+algorithms, or evidence meaning.
 
 ## Evidence v2
 

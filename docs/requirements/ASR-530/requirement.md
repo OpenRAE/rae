@@ -9,15 +9,26 @@ created_at: 2026-05-18T02:22:07.827366Z
 updated_at: 2026-09-16T00:00:00Z
 ---
 
-# ASR-530 — Claim Falsification And Evidence Gate
+# ASR-530 — Claim falsification and evidence gate
 
 ## Statement
 
-The ecosystem shall treat major architecture and maturity claims as unproven until each claim has an explicit falsification protocol, objective pass/fail criteria, named evidence artifacts, and a recorded evidence status that distinguishes demonstrated, partially demonstrated, untested, and refuted claims.
+The ecosystem shall treat major architecture and maturity claims as unproven until each claim has these items:
+
+- an explicit falsification protocol;
+- objective pass/fail criteria;
+- named evidence artifacts; and
+- a recorded evidence status.
+
+The evidence status shall distinguish demonstrated, partially demonstrated, untested, and refuted claims.
 
 ## Rationale
 
-Agent-assisted development can produce internally coherent code and documentation that still overstates real ecosystem maturity. RAES needs a ruthless credibility gate so claims such as backend agnosticism, independent backend implementability, conformance honesty, backend substitution, provenance separation, and processor artifact portability are evaluated through pre-registered tests and evidence rather than architectural confidence or reference-code self-consistency.
+Agent-assisted development can produce code and documentation that are internally coherent but overstate the real maturity of the ecosystem.
+RAES needs a strict credibility gate for claims such as these:
+backend agnosticism, independent backend implementability, conformance honesty, backend substitution, provenance separation, and processor artifact portability.
+Pre-registered tests and evidence evaluate these claims.
+Architectural confidence and reference-code self-consistency do not.
 
 ## Traceability
 

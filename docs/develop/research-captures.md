@@ -37,13 +37,14 @@ python -m tools.research_capture record specification-coverage \
   --analysis docs/research/prepared-specification-analysis.json
 ```
 
-The command prints a new manifest path. It copies the snapshot without relabeling its observations and derives the
-directory from the document pins. If the analysis references the prepared
-snapshot path, the recorder replaces just that reference with `@snapshot`.
-This token resolves to the manifest-pinned snapshot during formal validation,
-avoiding a self-reference in the hash-derived directory name. Other evidence
-references remain unchanged and their referenced files must be committed.
-Keep the resulting capture directory and its `capture-records` receipt; prepared input copies need not be committed.
+The command prints a new manifest path. It copies the snapshot without a change
+to its observations. It derives the directory name from the document pins.
+If the analysis refers to the prepared snapshot path, the recorder changes only
+that reference to `@snapshot`. Formal validation reads this token as the snapshot
+that the manifest pins. Thus the directory name, which is a hash, does not refer
+to itself. Other evidence references stay the same, and you must commit their files.
+Keep the new capture directory and its `capture-records` receipt. You do not
+need to commit the prepared input copies.
 
 A fresh observation can produce new evidence files. To pin a new file in place
 of a template artifact, add `--artifact ARTIFACT_ID=PATH` for each artifact.
