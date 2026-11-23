@@ -1999,15 +1999,11 @@ infrastructure rule.
 
 `starting_assertions` lists precondition assertions, giving the authoring
 surface a declarative hook for participant-relevant starting state without
-equating a probe command with truth. For an autonomous participant, these
-assertions are also its release condition. The runtime starts the participant
-only when each assertion has a `true` assertion outcome from the backend
-evaluator. See [ADR-092](../../decisions/adrs/adr-092-autonomous-benign-participants-under-shared-time.md).
-`authority_anchors`
-references any declared scenario element, such as entities, relationships,
-content, or nodes. Each anchor states what the participant is allowed or
-expected to do in scenario meaning. These anchors are SDL-level anchors, not
-control-plane authentication or bearer-token identity. `operating_scope` references
+equating a probe command with truth. `authority_anchors`
+references any declared scenario element (entities, relationships, content,
+nodes, …) that anchors what the participant is allowed or expected to do in
+scenario meaning — these are SDL-level anchors, not control-plane
+authentication or bearer-token identity. `operating_scope` references
 targetable named scenario elements (subnets, hosts, services, content) that
 define the boundary of where the participant may act or observe; it
 generalises `allowed_subnets`, which remains restricted to switch-backed

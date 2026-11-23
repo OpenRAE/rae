@@ -176,7 +176,7 @@ ADR-079 keeps its truth semantics unchanged.
 The Go architecture model has no change, because no Go code changes.
 No published schema changes, so the schema publication manifest has no change.
 No policy-as-code gate changes.
-The runtime architecture and SDL section documents describe the release rule.
+ADR-092 and the runtime architecture document describe the release rule.
 
 Sources:
 
