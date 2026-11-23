@@ -308,6 +308,7 @@ Rules:
 - `episode_policy` declares episode structure intent under
   [DSL-120](../../sdl/sections.md#participant-episode-structure).
   It does not assert observed episode state or history.
+  It is a first-class member for every behavior mode (ACT-623).
 - Offensive (ACT-609) and defensive (ACT-610) behavior classifications are not
   aggregate fields. They use generic concept bindings against the exact
   behavior specification. SDL parsing rejects the retired

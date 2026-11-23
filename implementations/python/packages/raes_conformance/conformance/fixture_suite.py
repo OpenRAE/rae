@@ -11,7 +11,7 @@ from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.digests import sha256_digest
 from raes_contracts.errors import OperationalError
 
-from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_failure_message
+from raes_conformance.conformance.diagnostics import conformance_diagnostic, sanitized_failure_message
 from raes_conformance.conformance.profiles import (
     BackendProfileSelector,
     _fixture_contract_root,
@@ -44,7 +44,7 @@ def _read_fixture(path: Path) -> bytes:
 def _payload_invalid(contract_name: str, reason: str) -> Diagnostic:
     """Return the refusal that a fixture payload which fails contract validation gets."""
 
-    return _diagnostic(
+    return conformance_diagnostic(
         _SCHEMA_INVALID_DIAGNOSTIC_CODE,
         contract_name,
         f"{contract_name} failed contract validation: {reason}",
@@ -111,7 +111,7 @@ def run_fixture_suite(
         valid_paths = sorted(valid_dir.glob("*.json"))
         if not valid_paths:
             diagnostics.append(
-                _diagnostic(
+                conformance_diagnostic(
                     "conformance.fixture-missing",
                     contract_name,
                     f"Missing valid fixture directory for {contract_name}.",

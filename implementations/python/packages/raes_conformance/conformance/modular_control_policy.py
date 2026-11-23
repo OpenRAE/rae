@@ -12,7 +12,7 @@ from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan
 from raes_runtime.registry import RuntimeTarget
 
-from .diagnostics import _diagnostic, sanitized_failure_message
+from .diagnostics import conformance_diagnostic, sanitized_failure_message
 from .modular_control_types import ModularControlEvidence
 from .report import ConformanceCaseResult
 
@@ -79,7 +79,9 @@ def authored_recovery_case(
             # Boundary of the recovery check: an unexpected failure is logged once, then reported.
             _LOGGER.exception("authored recovery probe failed")
         diagnostics.append(
-            _diagnostic("conformance.modular-recovery-policy", "authored-recovery", sanitized_failure_message(exc))
+            conformance_diagnostic(
+                "conformance.modular-recovery-policy", "authored-recovery", sanitized_failure_message(exc)
+            )
         )
     return ConformanceCaseResult(
         name="authored-recovery",

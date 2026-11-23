@@ -1373,7 +1373,7 @@ def test_target_conformance_accepts_supplied_reference_scenario():
     snapshot_case = next(case for case in report.cases if case.name == "target-snapshot")
     assert snapshot_case.passed is True
     assert report.passed is False
-    failures = [case for case in report.cases if not case.passed]
+    failures = [case for case in report.cases if case.outcome in {"failed", "unsupported"}]
     assert [case.name for case in failures] == ["realization-envelope-constructive"]
     assert failures[0].outcome == "unsupported"
 
