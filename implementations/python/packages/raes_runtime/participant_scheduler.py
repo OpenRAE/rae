@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from asyncio import CancelledError
 from collections.abc import Callable, Iterable, Mapping
+from dataclasses import dataclass
 from typing import TypedDict, Unpack
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
@@ -137,31 +138,84 @@ def _run_serial_due(
             break
 
 
+@dataclass(frozen=True)
+class _StartContext:
+    policy: ParticipantAutonomousExecutionRuntime
+    time_model: CompiledTimeModel
+    participant_runtime: object
+    activity_controls: dict[str, ParticipantActivityRandomControl]
+
+
+def _start_or_hold(
+    context: _StartContext,
+    snapshot: RuntimeSnapshot,
+    dispositions: Iterable[tuple[str, ReleaseDisposition]],
+    *,
+    delayed: bool,
+) -> ApplyResult:
+    """Start each released participant; report each held one; refuse an unsupported one."""
+    working = snapshot
+    changed: list[str] = []
+    diagnostics: list[Diagnostic] = []
+    for participant_address, disposition in dispositions:
+        if disposition is ReleaseDisposition.RELEASED:
+            started = _initialize_participant(
+                context.policy,
+                context.time_model,
+                context.participant_runtime,
+                working,
+                participant_address,
+                context.activity_controls,
+                delayed=delayed,
+            )
+            if not started.success:
+                return started
+            working = started.snapshot
+            changed.extend(started.changed_addresses)
+            continue
+        diagnostic = release_diagnostic(disposition, context.policy.address, participant_address)
+        if disposition is ReleaseDisposition.UNSUPPORTED:
+            return ApplyResult(success=False, snapshot=working, diagnostics=[diagnostic])
+        diagnostics.append(diagnostic)
+    return ApplyResult(success=True, snapshot=working, diagnostics=diagnostics, changed_addresses=changed)
+
+
 def _release_waiting_participants(
-    policy: ParticipantAutonomousExecutionRuntime,
-    time_model: CompiledTimeModel,
-    participant_runtime: object,
-    activity_controls: dict[str, ParticipantActivityRandomControl],
+    context: _StartContext,
     release_assertions: Mapping[str, tuple[str, ...]],
     run: SchedulerRunState,
 ) -> None:
-    for participant_address in waiting_participant_addresses(policy, run.working):
-        disposition = participant_disposition(release_assertions, run.working, participant_address)
-        if disposition is not ReleaseDisposition.RELEASED:
-            diagnostic = release_diagnostic(disposition, policy.address, participant_address)
-            if disposition is ReleaseDisposition.UNSUPPORTED:
-                run.failure = ApplyResult(success=False, snapshot=run.working, diagnostics=[diagnostic])
-                return
-            run.diagnostics.append(diagnostic)
-            continue
-        started = _initialize_participant(
-            policy, time_model, participant_runtime, run.working, participant_address, activity_controls, delayed=True
+    waiting = waiting_participant_addresses(context.policy, run.working)
+    result = _start_or_hold(
+        context,
+        run.working,
+        ((address, participant_disposition(release_assertions, run.working, address)) for address in waiting),
+        delayed=True,
+    )
+    if not result.success:
+        run.failure = result
+        return
+    run.working = result.snapshot
+    run.changed.extend(result.changed_addresses)
+    run.diagnostics.extend(result.diagnostics)
+
+
+def _run_released_due(
+    context: _StartContext,
+    service: ParticipantExecutionServiceStateModel,
+    run: SchedulerRunState,
+) -> None:
+    policy, time_model = context.policy, context.time_model
+    cadence_ticks = _cadence(policy, time_model)[1] if policy.profile == "participant-autonomous-execution/v1" else 0
+    current_tick = _clock_tick(run.working, policy.clock_address)
+    if not _execution_service_has_capacity(service):
+        run.failure = _capacity_blocked_due_result(policy, current_tick, run)
+    elif not run_policy_due_concurrently(
+        policy, time_model, context.participant_runtime, current_tick, cadence_ticks, run
+    ):
+        _run_serial_due(
+            policy, time_model, context.participant_runtime, current_tick, cadence_ticks, context.activity_controls, run
         )
-        if not started.success:
-            run.failure = started
-            return
-        run.working = started.snapshot
-        run.changed.extend(started.changed_addresses)
 
 
 def _run_due_policy(
@@ -177,18 +231,11 @@ def _run_due_policy(
         run.failure = _missing_execution_service_result(policy, run)
         return
     service = ParticipantExecutionServiceStateModel.model_validate(service_payload)
-    if not execution_service_accepts_work(service):
-        return
-    _release_waiting_participants(policy, time_model, participant_runtime, activity_controls, release_assertions, run)
-    if run.failure is not None:
-        return
-    cadence_ticks = _cadence(policy, time_model)[1] if policy.profile == "participant-autonomous-execution/v1" else 0
-    current_tick = _clock_tick(run.working, policy.clock_address)
-    if not _execution_service_has_capacity(service):
-        run.failure = _capacity_blocked_due_result(policy, current_tick, run)
-        return
-    if not run_policy_due_concurrently(policy, time_model, participant_runtime, current_tick, cadence_ticks, run):
-        _run_serial_due(policy, time_model, participant_runtime, current_tick, cadence_ticks, activity_controls, run)
+    if execution_service_accepts_work(service):
+        context = _StartContext(policy, time_model, participant_runtime, activity_controls)
+        _release_waiting_participants(context, release_assertions, run)
+        if run.failure is None:
+            _run_released_due(context, service, run)
 
 
 def _initialize_governed_resources(
@@ -228,37 +275,25 @@ def _initialize_policy(
     activity_controls: dict[str, ParticipantActivityRandomControl],
     release_assertions: Mapping[str, tuple[str, ...]],
 ) -> ApplyResult:
-    working = snapshot
-    changed: list[str] = []
-    diagnostics: list[Diagnostic] = []
-    failure = None
     released = set(released_participant_addresses(policy, snapshot))
-    for participant_address in policy.participant_addresses:
-        disposition = (
-            ReleaseDisposition.RELEASED
-            if participant_address in released
-            else participant_disposition(release_assertions, working, participant_address)
-        )
-        if disposition is not ReleaseDisposition.RELEASED:
-            diagnostic = release_diagnostic(disposition, policy.address, participant_address)
-            if disposition is ReleaseDisposition.UNSUPPORTED:
-                failure = ApplyResult(success=False, snapshot=working, diagnostics=[diagnostic])
-                break
-            diagnostics.append(diagnostic)
-            continue
-        participant_result = _initialize_participant(
-            policy,
-            time_model,
-            participant_runtime,
-            working,
-            participant_address,
-            activity_controls,
-        )
-        if not participant_result.success:
-            failure = participant_result
-            break
-        working = participant_result.snapshot
-        changed.extend(participant_result.changed_addresses)
+    participants = _start_or_hold(
+        _StartContext(policy, time_model, participant_runtime, activity_controls),
+        snapshot,
+        (
+            (
+                address,
+                ReleaseDisposition.RELEASED
+                if address in released
+                else participant_disposition(release_assertions, snapshot, address),
+            )
+            for address in policy.participant_addresses
+        ),
+        delayed=False,
+    )
+    working = participants.snapshot
+    changed = list(participants.changed_addresses)
+    diagnostics = list(participants.diagnostics)
+    failure = None if participants.success else participants
     if failure is None:
         services = dict(working.participant_execution_services)
         expected_service = execution_service_state(

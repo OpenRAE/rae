@@ -206,12 +206,12 @@ class ParticipantClockDriver:
             snapshot = self._snapshot()
             if snapshot.time_model_state is None:
                 return None
+            if self._rates and self._release_pending(snapshot):
+                # A committed truth result can release a waiting participant now (issue #2020).
+                return self._rates[0].clock_address, 0, 0.0
             return self._next_transition_for_snapshot(snapshot)
 
     def _next_transition_for_snapshot(self, snapshot: RuntimeSnapshot) -> tuple[str, int, float] | None:
-        if self._rates and self._release_pending(snapshot):
-            # A committed truth result can release a waiting participant now (issue #2020).
-            return self._rates[0].clock_address, 0, 0.0
         candidates: list[tuple[float, str, int]] = []
         now = time.monotonic()
         active_keys: set[tuple[str, int, int, int]] = set()

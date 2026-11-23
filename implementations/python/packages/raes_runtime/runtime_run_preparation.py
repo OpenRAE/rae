@@ -67,15 +67,20 @@ def restore_run_modules(
             validate_time_runtime_state(declaration, run._snapshot.time_model_state)
         run._time_declaration = declaration
     if 2 in phases and phases[2].state == "succeeded":
-        run._participant_execution_policies = tuple(
-            spec.autonomous_execution
-            for spec in plan.model.behavior_specifications.values()
-            if spec.autonomous_execution is not None
-        )
         started = start_phase in phases and phases[start_phase].state == "succeeded"
-        run._participant_release_assertions = participant_release_assertions(plan.model) if started else {}
-        run._participant_execution_time_model = plan.model.time_model
-        if run._participant_execution_policies and run._participant_scheduler is None:
-            from .participant_scheduler import ParticipantScheduler
+        _restore_participant_modules(run, plan, started=started)
 
-            run._participant_scheduler = ParticipantScheduler()
+
+def _restore_participant_modules(run: RuntimeRunContext, plan: ExecutionPlan, *, started: bool) -> None:
+    """Restore participant scheduling; the release map exists only after the start phase."""
+    run._participant_execution_policies = tuple(
+        spec.autonomous_execution
+        for spec in plan.model.behavior_specifications.values()
+        if spec.autonomous_execution is not None
+    )
+    run._participant_release_assertions = participant_release_assertions(plan.model) if started else {}
+    run._participant_execution_time_model = plan.model.time_model
+    if run._participant_execution_policies and run._participant_scheduler is None:
+        from .participant_scheduler import ParticipantScheduler
+
+        run._participant_scheduler = ParticipantScheduler()

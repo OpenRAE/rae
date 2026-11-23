@@ -59,16 +59,22 @@ def admitted_truth_result(
 
     if not isinstance(result_key, str) or not result_key:
         return None, [_invalid(_RESULTS_ADDRESS, "Proposition truth result keys must be non-empty strings.")]
-    if not isinstance(payload, dict):
-        return None, [_invalid(result_key, "Proposition truth results must be mappings.")]
-    try:
-        result = PropositionTruthResultModel.model_validate(payload)
-    except ValidationError as exc:
-        return None, [_invalid(result_key, _validation_message(exc))]
-    if result_key != result.assertion_address:
-        return None, [_invalid(result_key, "Proposition truth result map key must equal assertion_address.")]
-    diagnostics = _semantic_entry_diagnostics(snapshot, result, result_key)
+    result, message = _validated_truth_result(payload)
+    if result is not None and result_key != result.assertion_address:
+        result, message = None, "Proposition truth result map key must equal assertion_address."
+    diagnostics = (
+        [_invalid(result_key, message)] if result is None else _semantic_entry_diagnostics(snapshot, result, result_key)
+    )
     return (None if diagnostics else result), diagnostics
+
+
+def _validated_truth_result(payload: object) -> tuple[PropositionTruthResultModel | None, str]:
+    if not isinstance(payload, dict):
+        return None, "Proposition truth results must be mappings."
+    try:
+        return PropositionTruthResultModel.model_validate(payload), ""
+    except ValidationError as exc:
+        return None, _validation_message(exc)
 
 
 def proposition_truth_contract_diagnostics(snapshot: RuntimeSnapshot) -> list[Diagnostic]:

@@ -142,35 +142,32 @@ def _finalize_run(run: RuntimeRunContext, execution_id: str, phases: dict[int, R
             )
             run._store.claim_runtime_decision(failed)
             return _progress(failed)
-    released = _release_waiting_participants(run, execution_id)
-    if released is not None:
-        return released
-    return RunProgress(
+    return _release_progress(run, execution_id) or RunProgress(
         execution_id=execution_id, run_scope=run._run_scope, phase=len(APPLICATION_PHASES), state="succeeded"
     )
 
 
-def _release_waiting_participants(run: RuntimeRunContext, execution_id: str) -> RunProgress | None:
-    """Keep the run pending while autonomous participants wait for their starting assertions."""
+def _participants_waiting(run: RuntimeRunContext) -> bool:
+    return run._participant_scheduler is not None and any(
+        waiting_participant_addresses(policy, run.snapshot) for policy in run._participant_execution_policies
+    )
 
-    def waiting() -> bool:
-        return any(
-            waiting_participant_addresses(policy, run.snapshot) for policy in run._participant_execution_policies
-        )
 
-    if run._participant_scheduler is None or not waiting():
+def _release_progress(run: RuntimeRunContext, execution_id: str) -> RunProgress | None:
+    """Keep the run pending while autonomous participants wait for their starting assertions.
+
+    Each call runs one release pass when a waiting participant can be released.
+    """
+    if not _participants_waiting(run):
         return None
     phase = len(APPLICATION_PHASES)
-    if not run._participant_release_pending(run.snapshot):
-        return RunProgress(execution_id=execution_id, run_scope=run._run_scope, phase=phase, state="pending")
-    released = run.run_due_participant_actions()
-    if not released.success:
+    released = run.run_due_participant_actions() if run._participant_release_pending(run.snapshot) else None
+    if released is not None and not released.success:
         failed = RunPhaseDecision(run_scope=run._run_scope, execution_id=execution_id, phase=phase, state="failed")
         run._store.claim_runtime_decision(failed)
         return _progress(failed)
-    if waiting():
-        return RunProgress(execution_id=execution_id, run_scope=run._run_scope, phase=phase, state="pending")
-    return None
+    pending = RunProgress(execution_id=execution_id, run_scope=run._run_scope, phase=phase, state="pending")
+    return pending if _participants_waiting(run) else None
 
 
 def _advance_phase(

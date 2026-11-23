@@ -375,7 +375,7 @@ class RuntimeParticipantExecutionMixin:
         released = self.run_due_participant_actions()
         if released.success:
             return receipt
-        return replace(receipt, diagnostics=[*receipt.diagnostics, *released.diagnostics])
+        return cast(OperationReceipt, replace(receipt, diagnostics=[*receipt.diagnostics, *released.diagnostics]))
 
     def _participant_release_pending(self, snapshot: RuntimeSnapshot) -> bool:
         """Return whether a scheduler pass can now release or refuse a waiting participant."""
