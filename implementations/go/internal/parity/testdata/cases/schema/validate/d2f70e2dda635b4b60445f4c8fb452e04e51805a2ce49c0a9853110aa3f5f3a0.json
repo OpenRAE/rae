@@ -1,0 +1,14 @@
+{
+  "args": [
+    "scenario-satisfiability-evidence-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:9d99e91d73516bc16ca52bb893b78208afc8f3cfd1855fd98c037e0e4b83e8fb"
+  },
+  "name": "scenario-satisfiability-evidence-v2/routed/contracts/fixtures/satisfiability/scenario-satisfiability-evidence-v2/valid/reconciliation-workflow.json",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}
