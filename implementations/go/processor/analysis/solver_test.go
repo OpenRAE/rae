@@ -16,7 +16,7 @@ import (
 func requireOperational(t *testing.T, err error) {
 	t.Helper()
 	if category, ok := fault.CategoryOf(err); !ok || category != fault.Operational {
-		t.Fatalf("want operational error, got %v", err)
+		t.Fatalf("got %v, want an operational error", err)
 	}
 }
 
