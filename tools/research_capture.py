@@ -84,6 +84,13 @@ def _prepare_capture_documents(
         _normalize_snapshot_reference(manifest, documents, snapshot_path)
 
 
+def _fresh_artifact_sha256(root: Path, relative: str) -> str:
+    path = safe_repo_path(root, relative)
+    if path is None or not path.is_file() or path.is_symlink() or path.stat().st_size > 2 * 1024 * 1024:
+        raise InvalidInputError("replacement artifact path is unsafe, missing, or oversized")
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def _replace_artifact_pins(root: Path, manifest: dict[str, object], artifact_paths: Mapping[str, str]) -> None:
     """Point named template artifacts at fresh files and pin their exact bytes."""
     artifacts = manifest.get("artifacts")
@@ -95,13 +102,9 @@ def _replace_artifact_pins(root: Path, manifest: dict[str, object], artifact_pat
     replaced = []
     for item in artifacts:
         relative = artifact_paths.get(item.get("artifact_id"))
-        if relative is None:
-            replaced.append(item)
-            continue
-        path = safe_repo_path(root, relative)
-        if path is None or not path.is_file() or path.is_symlink() or path.stat().st_size > 2 * 1024 * 1024:
-            raise InvalidInputError("replacement artifact path is unsafe, missing, or oversized")
-        replaced.append({**item, "path": relative, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
+        if relative is not None:
+            item = {**item, "path": relative, "sha256": _fresh_artifact_sha256(root, relative)}
+        replaced.append(item)
     manifest["artifacts"] = replaced
 
 

@@ -39,6 +39,7 @@ const (
 const (
 	termAnalysisBoundExceeded                  = "analysis-bound-exceeded"
 	termAnalysisCancelled                      = "analysis-cancelled"
+	termAnalysisReplay                         = "analysis-replay"
 	termArtifactRelation                       = "artifact_relation"
 	termAssertionIDs                           = "assertion_ids"
 	termAssumptions                            = "assumptions"

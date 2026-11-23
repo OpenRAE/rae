@@ -37,15 +37,17 @@ def archive(entries):
 def test_zip_materializes_only_verified_manifest():
     raw = archive([("release/bin/z3", b"solver"), ("release/unused", b"unused")])
     assert installation.materialize_zip(raw, selection()) == {"release/bin/z3": b"solver"}
+    different = selection(b"different")
     with pytest.raises(installation.ToolInstallationError, match="installed-manifest-mismatch"):
-        installation.materialize_zip(raw, selection(b"different"))
+        installation.materialize_zip(raw, different)
 
 
 @pytest.mark.parametrize("name", ["../escape", "/absolute", "C:/escape", "bad\\name", "a//b", "a/../b"])
 def test_zip_rejects_unselected_unsafe_path(name):
     raw = archive([("release/bin/z3", b"solver"), (name, b"unselected")])
+    selected = selection()
     with pytest.raises(installation.ToolInstallationError, match="unsafe-archive-member"):
-        installation.materialize_zip(raw, selection())
+        installation.materialize_zip(raw, selected)
 
 
 def test_zip_rejects_duplicates_links_and_file_parent():
@@ -55,17 +57,19 @@ def test_zip_rejects_duplicates_links_and_file_parent():
     for entries in [[("a", b""), ("a", b"")], [(link, b"target")], [("a/b", b""), ("a", b"")]]:
         with pytest.warns(UserWarning) if entries[0][0] == "a" else nullcontext():
             raw = archive([("release/bin/z3", b"solver"), *entries])
+        selected = selection()
         with pytest.raises(installation.ToolInstallationError, match="unsafe-archive-member"):
-            installation.materialize_zip(raw, selection())
+            installation.materialize_zip(raw, selected)
 
 
 def test_zip_limits_and_corruption(monkeypatch):
     raw = archive([("release/bin/z3", b"solver")])
     monkeypatch.setattr(installation, "MAX_ARCHIVE_MEMBER_BYTES", 5)
+    selected = selection()
     with pytest.raises(installation.ToolInstallationError, match="archive-size-limit"):
-        installation.materialize_zip(raw, selection())
+        installation.materialize_zip(raw, selected)
     with pytest.raises(installation.ToolInstallationError, match="unsafe-archive"):
-        installation.materialize_zip(b"not a zip", selection())
+        installation.materialize_zip(b"not a zip", selected)
 
 
 def test_z3_installer_uses_locked_acquisition_and_verified_tree(tmp_path, monkeypatch):

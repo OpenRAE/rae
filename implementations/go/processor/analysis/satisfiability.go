@@ -143,7 +143,7 @@ func completeSatisfiability(ctx context.Context, solver *Solver, scenario sdl.Sc
 	return nil
 }
 
-func satisfiabilityWitness(scenario sdl.Scenario, assignment map[string]any, document map[string]any) error {
+func satisfiabilityWitness(scenario sdl.Scenario, assignment, document map[string]any) error {
 	instance, err := sdl.InstantiateWithProfile(scenario, assignment, satisfiabilityProfile)
 	if err != nil {
 		return err

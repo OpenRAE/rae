@@ -43,7 +43,7 @@ func decodeObject(raw []byte, limit int) (map[string]any, error) {
 	}
 	return object(v), nil
 }
-func admitOutput(id string, document any, context any) (Result, error) {
+func admitOutput(id string, document, context any) (Result, error) {
 	raw, err := canonical(document)
 	if err != nil {
 		return Result{}, err
@@ -137,7 +137,7 @@ func ReplayContext(ctx context.Context, request Request, evidence validation.Val
 		admissionContext = witnessPhaseOwner{ctx: ctx}
 	}
 	if _, err = owner.Validate(evidence.ContractID(), evidence.JSON(), ingress.Limits{MaxBytes: 16 << 20, MaxDepth: 128}, admissionContext); err != nil {
-		return Result{}, fault.New(fault.EvidenceIntegrity, "analysis-replay", nil)
+		return Result{}, fault.New(fault.EvidenceIntegrity, termAnalysisReplay, nil)
 	}
 	request, err = bindReplaySource(request, evidence.JSON())
 	if err != nil {
@@ -153,7 +153,7 @@ func ReplayContext(ctx context.Context, request Request, evidence validation.Val
 	}
 	expected, err := canonjson.JCS(evidence.JSON())
 	if err != nil || !bytes.Equal(actual, expected) {
-		return Result{}, fault.New(fault.EvidenceIntegrity, "analysis-replay", nil)
+		return Result{}, fault.New(fault.EvidenceIntegrity, termAnalysisReplay, nil)
 	}
 	return result, nil
 }
@@ -203,7 +203,7 @@ func bindReplaySource(request Request, evidence []byte) (Request, error) {
 		return request, err
 	}
 	if object(document[fieldSource])["byte_digest"] != digest.SHA256(raw) {
-		return request, fault.New(fault.EvidenceIntegrity, "analysis-replay", nil)
+		return request, fault.New(fault.EvidenceIntegrity, termAnalysisReplay, nil)
 	}
 	return request, nil
 }
