@@ -90,6 +90,11 @@ TOOLING_TEST_TRIGGER_PREFIXES = (
 EXCLUDED_PREFIXES = ("research/",)
 PRIVATE_KEY_EXCLUDE_PREFIXES = ("implementations/python/tests/",)
 MAX_LARGE_FILE_KB = "500"
+# Self-contained generated schema revisions approved in issue #1789.
+LARGE_FILE_LIMIT_EXCEPTIONS = {
+    "contracts/schemas/satisfiability/scenario-satisfiability-evidence-v2.json": "750",
+    "contracts/schemas/sdl/instantiated-scenario-snapshot-v2.json": "750",
+}
 VERIFY_PROJECT_SYNCED_ENV = "RAES_VERIFY_PROJECT_SYNCED"
 VERIFY_COVERAGE_FILE_ENV = "RAES_VERIFY_COVERAGE_FILE"
 JSON_SCHEMA_WORKERS_ENV = "RAES_JSON_SCHEMA_WORKERS"

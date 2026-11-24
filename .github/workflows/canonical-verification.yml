@@ -601,7 +601,7 @@ jobs:
           - {module: product, group: shared, path: implementations/go, packages: './backend/... ./base/... ./contract/... ./internal/base/... ./internal/contract/... ./internal/sdl/source/...'}
           - {module: product, group: authoring, path: implementations/go, packages: './internal/sdl/authoring/...'}
           - {module: product, group: parity, path: implementations/go, packages: './internal/parity/...'}
-          - {module: product, group: processor, path: implementations/go, packages: './processor ./processor/comparison/... ./processor/planning/... ./processor/realization/... ./sdl/...'}
+          - {module: product, group: processor, path: implementations/go, packages: './processor ./processor/analysis/... ./processor/comparison/... ./processor/planning/... ./processor/realization/... ./sdl/...'}
           - {module: product, group: trial, path: implementations/go, packages: './processor/trial/...'}
           - {module: product, group: runtime, path: implementations/go, packages: './runtime/...'}
           - {module: tooling, group: tooling, path: implementations/tooling/go, packages: './...'}
@@ -632,6 +632,12 @@ jobs:
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
             -m tools.bootstrap_profile install-go public-ubuntu-24.04-x86_64 "${kit}" --go-artifact-id go > "${kit}/go.json"
           echo "${kit}/$(jq -r .path "${kit}/go.json")/bin" >> "${GITHUB_PATH}"
+      - name: Install the locked analysis solver
+        if: matrix.group == 'processor' || matrix.group == 'parity'
+        run: |
+          solver_path=$(uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -c 'from tools.z3_tool import ensure_z3; print(ensure_z3())')
+          echo "RAES_TEST_Z3=${solver_path}" >> "${GITHUB_ENV}"
       - name: Prepare pinned product dependencies for offline consumer API tests
         if: matrix.module == 'tooling'
         run: go -C implementations/go mod download
@@ -734,6 +740,12 @@ jobs:
           uv run --project implementations/tooling/python --frozen --no-default-groups python \
             -m tools.bootstrap_profile install-go public-ubuntu-24.04-x86_64 "${kit}" --go-artifact-id go > "${kit}/go.json"
           echo "${kit}/$(jq -r .path "${kit}/go.json")/bin" >> "${GITHUB_PATH}"
+      - name: Install the locked analysis solver
+        if: matrix.name == 'product'
+        run: |
+          solver_path=$(uv run --project implementations/tooling/python --frozen --no-default-groups python \
+            -c 'from tools.z3_tool import ensure_z3; print(ensure_z3())')
+          echo "RAES_TEST_Z3=${solver_path}" >> "${GITHUB_ENV}"
       - name: Build the locked Go tools
         run: |
           go -C implementations/tooling/go build -o "${RUNNER_TEMP}/go-tools/" \

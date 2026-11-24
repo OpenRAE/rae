@@ -13,6 +13,7 @@ import (
 	"path"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/OpenRAE/rae/implementations/go/base/fault"
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
@@ -74,11 +75,27 @@ type layout struct {
 	FactoryDefaults      map[string]json.RawMessage `json:"factory_defaults"`
 }
 
-// New loads the packaged contracts and checks presentation metadata against them.
+// The packaged contracts, schema views and presentation metadata do not depend
+// on input ceilings. Load and check them once; each parser keeps its own limits.
+var packagedAuthority = sync.OnceValues(loadPackagedAuthority) //nolint:gochecknoglobals // The packaged authority is immutable after its single load.
+
+// New returns a parser with the given ceilings over the packaged contracts.
 func New(limits source.Limits) (*Parser, error) {
 	if err := limits.Validate(); err != nil {
 		return nil, err
 	}
+	shared, err := packagedAuthority()
+	if err != nil {
+		return nil, err
+	}
+	p := *shared
+	p.limits = limits
+	return &p, nil
+}
+
+// loadPackagedAuthority loads the packaged contracts and checks presentation
+// metadata against them.
+func loadPackagedAuthority() (*Parser, error) {
 	compiled, err := validation.New(nil)
 	if err != nil {
 		return nil, err
@@ -95,7 +112,7 @@ func New(limits source.Limits) (*Parser, error) {
 	if err != nil {
 		return nil, err
 	}
-	p := &Parser{limits: limits, models: models, authority: authority, schemas: map[string]map[string]any{}}
+	p := &Parser{models: models, authority: authority, schemas: map[string]map[string]any{}}
 	p.evidenceContracts, err = manifestEvidenceContracts(packaged)
 	if err != nil {
 		return nil, err
@@ -154,6 +171,9 @@ func (d *Document) JSON() []byte { return slices.Clone(d.data) }
 func (d *Document) ModelJSON() []byte {
 	if !d.Validated() {
 		return nil
+	}
+	if d.expanded != nil {
+		return slices.Clone(d.expanded.modelBytes())
 	}
 	return slices.Clone(d.modelBytes())
 }

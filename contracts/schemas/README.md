@@ -56,7 +56,7 @@ provenance relations, reference resolution, and graph semantics remain the
 normative model/semantic-admission layer; schema validity alone does not assert
 that provenance is truthful or that an artifact is compiler-admitted.
 
-## Participant Execution Control
+## Participant execution control
 
 The participant-runtime family publishes three issue #898 contracts:
 
@@ -105,7 +105,7 @@ Only the shared-apparatus `v2` backend and processor manifests are published;
 no `v1` backend or processor manifest schema is checked in. The reference
 stack, contract tests, and conformance profiles use `v2`.
 
-## Concept Authority Catalog
+## Concept authority catalog
 
 The `concept-families-v1` schema publishes the machine-readable shared concept
 authority catalog. Catalog entries distinguish adopted, adapted, and
@@ -118,7 +118,7 @@ instead they must declare non-empty `extension_scope`, `relation_rules`, and
 provenance, and governance concepts explicit without letting them silently fork
 shared cyber-domain concepts.
 
-## Behavioral-Relation Authority
+## Behavioral-relation authority
 
 The `behavioral-relations-v1` schema publishes the closed, revisioned relation
 catalog used by validation, SDL transformations, backend realization and
@@ -132,7 +132,7 @@ The canonical catalog lives at
 the shared `BehavioralClaimBindingModel` rather than copying relation meaning.
 Finite evidence cannot be bound to a universal quantifier.
 
-## UCO Alignment Evidence
+## UCO alignment evidence
 
 The `uco-alignment-v1` schema publishes the machine-readable UCO alignment
 evidence catalog. It pins the reviewed UCO version and maps each adopted and
@@ -146,7 +146,7 @@ and does not fetch the UCO ontology; semantic checks beyond JSON Schema enforce
 coverage, provenance agreement with `concept-families-v1`, canonical UCO IRIs,
 and the adapted-family divergence rule.
 
-## Semantic Profiles
+## Semantic profiles
 
 The `semantic-profile-v1` schema publishes shared semantic profile documents.
 Each profile declares the compatible concept, contract, and behavior
@@ -167,21 +167,25 @@ The `validation-basis-disclosure-v1` schema publishes the ASR-515 record of
 the validation/admission basis used for one concrete subject, joined to the
 `validation-profile-catalog-v1` authority by `(profile_id, profile_version,
 subject_kind)`. It carries the achieved strength, gate-result rows,
-limitations, and safe evidence/producer/diagnostic references; scenario and
-scenario-snapshot subjects are referenced (never re-modeled), and experiment
-task/run/study contracts embed it as an optional `validation_basis_disclosures`
-list. It does not execute gates, does not replace the ASR-511 catalog, and
+limitations, and safe evidence/producer/diagnostic references. It refers to
+scenario and scenario-snapshot subjects and never models them again.
+Experiment task/run/study contracts embed it as an optional
+`validation_basis_disclosures` list. It does not execute gates, does not replace the ASR-511 catalog, and
 does not add an admission, endpoint, or persistence surface.
 
-## Semantic Projection Reports
+## Semantic projection reports
 
 The `semantic-projection-report-v1` schema publishes scheme-neutral,
 evidence-bounded reports over `external-concept-bindings/v1`. Each report
-embeds a complete canonical-digest-bound frame: exact scheme revision and
-source digest, explicit concept inclusion set, native subject scope, one
-governed predicate profile and producer, perspective, configuration/state
-coordinates, quantifier, evidence/freshness boundary, binding-set digest, and
-transformation versions.
+embeds a complete frame that a canonical digest binds. The frame contains these
+items:
+
+- exact scheme revision and source digest;
+- explicit concept inclusion set and native subject scope;
+- one governed predicate profile and producer;
+- perspective and configuration/state coordinates;
+- quantifier and evidence/freshness boundary; and
+- binding-set digest and transformation versions.
 
 Rows form an exact partition of the pinned scheme snapshot into witnesses,
 gaps, unknowns, ambiguous concepts, and excluded concepts. A gap requires a
@@ -209,7 +213,7 @@ an SDL validation-strength profile or a backend capability declaration.
 Its processing and execution phases also declare required concept bindings for
 the governed apparatus-manifest vocabulary surfaces introduced by GOV-918.
 
-## Shared Reference Models
+## Shared reference models
 
 The `reference-models-v1` schema publishes shared reference model catalogs.
 Each catalog entry binds a recurrent object model to an authoritative concept
@@ -221,7 +225,7 @@ The initial catalog lives at
 recurrent SDL object slice for nodes, accounts, relationships, conditions,
 events, and content to the shared concept-authority layer.
 
-## Controlled Vocabularies And Enumerations
+## Controlled vocabularies and enumerations
 
 The `controlled-vocabularies-v1` schema publishes controlled-vocabulary
 catalogs for stable portable term sets.
@@ -240,7 +244,7 @@ runtime validation both treat the catalog as normative. Values must either be
 declared terms or valid governed extensions; closed enumerations reject
 extensions.
 
-## Cross-Artifact Concept Binding
+## Cross-artifact concept binding
 
 Apparatus manifests (`v2`) require a `concept_bindings` section that binds
 vocabulary fields to canonical concept families from the concept-authority
@@ -263,7 +267,7 @@ governed vocabulary field that is actually declared in the manifest.
 Generation or sync helpers may exist under `tools/`, but those helpers are
 supporting repo machinery, not the authority boundary.
 
-## Experiment Core
+## Experiment core
 
 The `experiment-core` schema family publishes:
 
@@ -287,9 +291,9 @@ disclosures.
 
 Schema-expressible invariants are encoded in the published schemas. In
 particular, task/run reference-kind constraints and invalidated-run
-requirements are part of `experiment-task-v1` and `experiment-run-v1`, while
-identifier uniqueness for metrics, apparatus components, result summaries,
-study members, and study factors is represented with keyed object maps.
+requirements are part of `experiment-task-v1` and `experiment-run-v1`.
+Keyed object maps represent identifier uniqueness for metrics, apparatus
+components, result summaries, study members, and study factors.
 Run traceability and realized-form disclosure invariants keep claims grounded
 in evidence/derived-measure refs and keep realized choices distinct from
 authored scenario meaning and result values.
@@ -317,7 +321,7 @@ observation/evidence collection support. Backends that declare it must also
 declare the published capture-spec, evidence-record, and derived-measure
 contracts that make the claim inspectable.
 
-## Shared Time
+## Shared time
 
 The `time` schema family publishes:
 
@@ -331,3 +335,12 @@ The `time` schema family publishes:
 limit against that declaration. `runtime-snapshot-v1` carries the typed state,
 and `experiment-run-v1` carries the realized model. ADR-090 defines the shared
 time semantics; ADR-091 defines this portable contract and conformance boundary.
+
+
+## Satisfiability evidence v2
+
+New satisfiability results use `satisfiability/scenario-satisfiability-evidence-v2.json`.
+Their snapshots use profile `raes-sdl-instantiated-snapshot/v3` and public SDL
+workflow names. The standalone schema is `sdl/instantiated-scenario-snapshot-v2.json`.
+This is a breaking correction to Python output. Existing v1 schemas remain.
+See [the migration guide](../../docs/decisions/issue-1789-evidence-v2-migration.md).

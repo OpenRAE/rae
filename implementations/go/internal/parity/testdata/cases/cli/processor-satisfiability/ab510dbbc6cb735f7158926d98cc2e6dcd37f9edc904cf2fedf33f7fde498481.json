@@ -35,7 +35,7 @@
       },
       "normalized_model_digest": "sha256:1ab70eb7d01b5c3e5de2cc0304ffeeeb0be2b46284297c86ffe88e5381dbfe80",
       "outcome": "satisfiable",
-      "profile": "scenario-satisfiability-evidence/v1",
+      "profile": "scenario-satisfiability-evidence/v2",
       "solver_configuration": {
         "auto_config": false,
         "core_reduction": "sorted-deletion-subset-minimal/v1",
@@ -60,9 +60,9 @@
       "unsat_core": null,
       "unsupported": null,
       "witness": {
-        "profile": "raes-satisfiability-witness/v1",
+        "profile": "raes-satisfiability-witness/v2",
         "snapshot": {
-          "profile": "raes-sdl-instantiated-snapshot/v2",
+          "profile": "raes-sdl-instantiated-snapshot/v3",
           "scenario": {
             "accounts": {},
             "action_contracts": {},
@@ -1199,9 +1199,9 @@
                     "capability_refs": [],
                     "cases": [],
                     "compensate_with": "",
-                    "default_step": "",
+                    "default": "",
                     "description": "",
-                    "else_step": "finish",
+                    "else": "finish",
                     "execution_mode": "scripted",
                     "fact_binding_refs": [],
                     "join": "",
@@ -1213,7 +1213,7 @@
                     "on_success": "",
                     "procedure_ref": "",
                     "scaffold_refs": [],
-                    "then_step": "finish",
+                    "then": "finish",
                     "tool_affordance_refs": [],
                     "type": "decision",
                     "when": {
@@ -1231,9 +1231,9 @@
                     "capability_refs": [],
                     "cases": [],
                     "compensate_with": "",
-                    "default_step": "",
+                    "default": "",
                     "description": "",
-                    "else_step": "",
+                    "else": "",
                     "execution_mode": "scripted",
                     "fact_binding_refs": [],
                     "join": "",
@@ -1245,7 +1245,7 @@
                     "on_success": "",
                     "procedure_ref": "",
                     "scaffold_refs": [],
-                    "then_step": "",
+                    "then": "",
                     "tool_affordance_refs": [],
                     "type": "end",
                     "when": null,
@@ -1257,7 +1257,7 @@
             }
           }
         },
-        "snapshot_digest": "sha256:66d8de7298a9aabf45a21b2817d9eaea279c00d8f2ef1c1d9ae5238aa1ff41ce"
+        "snapshot_digest": "sha256:848e5d238b9580ff1b14b0655280dd528ef3e0acf0d0f75f5d7b14005a1023d6"
       }
     }
   },

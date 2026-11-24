@@ -67,23 +67,6 @@ type d2ef6ac826b676760d8aadc struct {
 	Severity Field[d2ef6ac826b093478cbbb3b] "json:\"severity,omitzero\""
 }
 
-type d2ef6ac826b67dde5ec5ec4 struct {
-	AutoConfig       Field[bool]        "json:\"auto_config,omitzero\""
-	CoreReduction    Field[string]      "json:\"core_reduction,omitzero\""
-	Engine           Field[string]      "json:\"engine,omitzero\""
-	EngineVersion    Field[string]      "json:\"engine_version,omitzero\""
-	Logic            Field[string]      "json:\"logic,omitzero\""
-	Model            Field[bool]        "json:\"model,omitzero\""
-	Package          Field[string]      "json:\"package,omitzero\""
-	PackageVersion   Field[string]      "json:\"package_version,omitzero\""
-	Profile          Field[string]      "json:\"profile,omitzero\""
-	RandomSeed       Field[json.Number] "json:\"random_seed,omitzero\""
-	Threads          Field[json.Number] "json:\"threads,omitzero\""
-	TimeoutMs        Field[json.Number] "json:\"timeout_ms,omitzero\""
-	UnsatCore        Field[bool]        "json:\"unsat_core,omitzero\""
-	WitnessSelection Field[string]      "json:\"witness_selection,omitzero\""
-}
-
 type d2ef6ac826b765c75f0ba2f struct {
 	Domain   Field[[]json.RawMessage]       "json:\"domain,omitzero\""
 	Sort     Field[d2ef6ac826be6ae1626473b] "json:\"sort,omitzero\""
@@ -118,7 +101,24 @@ type d2ef6ac826b92770f0ae3da struct {
 	SymbolId      Field[string]                  "json:\"symbol_id,omitzero\""
 }
 
-type d2ef6ac826bbd3514f8da90 d2ef6ac826b67dde5ec5ec4
+type d2ef6ac826bab45b117f11c struct {
+	AutoConfig       Field[bool]        "json:\"auto_config,omitzero\""
+	CoreReduction    Field[string]      "json:\"core_reduction,omitzero\""
+	Engine           Field[string]      "json:\"engine,omitzero\""
+	EngineVersion    Field[string]      "json:\"engine_version,omitzero\""
+	Logic            Field[string]      "json:\"logic,omitzero\""
+	Model            Field[bool]        "json:\"model,omitzero\""
+	Package          Field[string]      "json:\"package,omitzero\""
+	PackageVersion   Field[string]      "json:\"package_version,omitzero\""
+	Profile          Field[string]      "json:\"profile,omitzero\""
+	RandomSeed       Field[json.Number] "json:\"random_seed,omitzero\""
+	Threads          Field[json.Number] "json:\"threads,omitzero\""
+	TimeoutMs        Field[json.Number] "json:\"timeout_ms,omitzero\""
+	UnsatCore        Field[bool]        "json:\"unsat_core,omitzero\""
+	WitnessSelection Field[string]      "json:\"witness_selection,omitzero\""
+}
+
+type d2ef6ac826bbd3514f8da90 d2ef6ac826bab45b117f11c
 
 type d2ef6ac826be6ae1626473b string
 

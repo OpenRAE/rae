@@ -249,11 +249,18 @@ func Validate(scenario Scenario) ([]diagnostic.Diagnostic, error) {
 //
 //nolint:ireturn // The declared consumer API returns an opaque handle from its native owner.
 func Instantiate(scenario Scenario, parameters map[string]any) (InstantiatedScenario, error) {
+	return InstantiateWithProfile(scenario, parameters, "")
+}
+
+// InstantiateWithProfile records an explicit profile through the native owner.
+//
+//nolint:ireturn // The declared consumer API returns an opaque native handle.
+func InstantiateWithProfile(scenario Scenario, parameters map[string]any, profile string) (InstantiatedScenario, error) {
 	s, err := nativeScenario(scenario)
 	if err != nil {
 		return nil, err
 	}
-	document, err := s.parser.Instantiate(s.document, parameters, "")
+	document, err := s.parser.Instantiate(s.document, parameters, profile)
 	if err != nil {
 		return nil, err
 	}

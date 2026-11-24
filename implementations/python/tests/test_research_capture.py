@@ -351,3 +351,83 @@ def test_capture_defects_are_not_reported_as_refusals(monkeypatch):
 
     with pytest.raises(RuntimeError, match="seeded defect"):
         research_capture.main()
+
+
+FORMAL_FOLDER = Path("docs/research/formal-semantic-validation")
+FORMAL_TEMPLATE = (FORMAL_FOLDER / "bundles/retest-v76.json").as_posix()
+FORMAL_EVIDENCE_ID = "finite-domain-satisfiable-v2-evidence"
+
+
+@pytest.fixture(scope="module")
+def formal_capture_source(tmp_path_factory):
+    source = tmp_path_factory.mktemp("formal-source")
+    shutil.copytree(ROOT / FORMAL_FOLDER, source / FORMAL_FOLDER)
+    return source
+
+
+@pytest.fixture
+def formal_capture_repo(formal_capture_source, tmp_path):
+    shutil.copytree(formal_capture_source / FORMAL_FOLDER, tmp_path / FORMAL_FOLDER)
+    template = json.loads((tmp_path / FORMAL_TEMPLATE).read_text())
+    (tmp_path / "prepared-snapshot.json").write_bytes((tmp_path / template["snapshot_path"]).read_bytes())
+    (tmp_path / "prepared-analysis.json").write_bytes((tmp_path / template["analysis_path"]).read_bytes())
+    (tmp_path / FORMAL_FOLDER / "evidence/fresh.json").write_text('{"fresh": true}\n')
+    return tmp_path
+
+
+def test_fresh_capture_pins_replacement_artifacts(formal_capture_repo):
+    root = formal_capture_repo
+    template_bytes = (root / FORMAL_TEMPLATE).read_bytes()
+    fresh = (FORMAL_FOLDER / "evidence/fresh.json").as_posix()
+    path = record_capture(
+        root,
+        "formal-semantic-validation",
+        FORMAL_TEMPLATE,
+        snapshot_path="prepared-snapshot.json",
+        analysis_path="prepared-analysis.json",
+        artifact_paths={FORMAL_EVIDENCE_ID: fresh},
+    )
+    manifest = json.loads((root / path).read_text())
+    template = json.loads(template_bytes)
+    replaced = {item["artifact_id"]: item for item in manifest["artifacts"]}
+    assert replaced[FORMAL_EVIDENCE_ID] == {
+        **next(item for item in template["artifacts"] if item["artifact_id"] == FORMAL_EVIDENCE_ID),
+        "path": fresh,
+        "sha256": hashlib.sha256((root / fresh).read_bytes()).hexdigest(),
+    }
+    assert [item for item in manifest["artifacts"] if item["artifact_id"] != FORMAL_EVIDENCE_ID] == [
+        item for item in template["artifacts"] if item["artifact_id"] != FORMAL_EVIDENCE_ID
+    ]
+    assert manifest["revision"] == capture_identity(manifest)
+    assert (root / FORMAL_TEMPLATE).read_bytes() == template_bytes
+
+
+def test_replacement_artifacts_require_a_fresh_observation(formal_capture_repo):
+    fresh = (FORMAL_FOLDER / "evidence/fresh.json").as_posix()
+    with pytest.raises(InvalidInputError, match="fresh snapshot"):
+        record_capture(
+            formal_capture_repo,
+            "formal-semantic-validation",
+            FORMAL_TEMPLATE,
+            artifact_paths={FORMAL_EVIDENCE_ID: fresh},
+        )
+
+
+@pytest.mark.parametrize(
+    ("artifact_id", "relative"),
+    [
+        ("unknown-evidence", (FORMAL_FOLDER / "evidence/fresh.json").as_posix()),
+        (FORMAL_EVIDENCE_ID, "../outside.json"),
+        (FORMAL_EVIDENCE_ID, (FORMAL_FOLDER / "evidence/missing.json").as_posix()),
+    ],
+)
+def test_replacement_artifact_must_name_a_pin_and_a_safe_file(formal_capture_repo, artifact_id, relative):
+    with pytest.raises(InvalidInputError):
+        record_capture(
+            formal_capture_repo,
+            "formal-semantic-validation",
+            FORMAL_TEMPLATE,
+            snapshot_path="prepared-snapshot.json",
+            analysis_path="prepared-analysis.json",
+            artifact_paths={artifact_id: relative},
+        )

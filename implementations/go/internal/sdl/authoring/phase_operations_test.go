@@ -62,6 +62,37 @@ func TestConcretePhaseAdmissionPreservesSuppliedFields(t *testing.T) {
 	}
 }
 
+func TestSnapshotSchemaVersionsCannotBeMixed(t *testing.T) {
+	p := operationParser(t)
+	instance, err := p.Instantiate(operationDocument(t, p, "name: versioned\n"), nil, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	legacy, err := instance.Snapshot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	current := bytes.ReplaceAll(legacy, []byte(snapshotProfile), []byte("raes-sdl-instantiated-snapshot/v3"))
+	for _, tc := range []struct {
+		contract string
+		data     []byte
+		valid    bool
+	}{
+		{snapshotContract, legacy, true},
+		{"instantiated-scenario-snapshot-v2", current, true},
+		{snapshotContract, current, false},
+		{"instantiated-scenario-snapshot-v2", legacy, false},
+	} {
+		got, refusal := p.AdmitSDLPhase(admission.SDLPhaseRequest{ContractID: tc.contract, Source: tc.data})
+		if (refusal == nil) != tc.valid {
+			t.Fatalf("contract=%s valid=%v: %v", tc.contract, tc.valid, refusal)
+		}
+		if tc.valid && (got.ContractID != tc.contract || got.SourceSHA256 != digest.SHA256(tc.data) || !bytes.Equal(got.Document, tc.data)) {
+			t.Fatal("versioned snapshot identity changed")
+		}
+	}
+}
+
 func TestFamilyAdmissionOwnsPhaseAndReadsNoAmbientSources(t *testing.T) {
 	parser := operationParser(t)
 	original := operationDocument(t, parser, "name: family\n")

@@ -6,7 +6,7 @@ from copy import deepcopy
 from functools import cache
 from typing import Any
 
-from raes.canonical import InstantiatedScenarioSnapshot
+from raes.canonical import InstantiatedScenarioSnapshot, InstantiatedScenarioSnapshotV3
 from raes.materialization import MaterializedScenario
 from raes.scenario import InstantiatedScenario, Scenario
 
@@ -187,7 +187,7 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
         ParticipantOpacityModelCheckInputModel,
     )
     from ..realization_profiles import PlanProfileAuthority
-    from ..satisfiability import ScenarioSatisfiabilityEvidenceModel
+    from ..satisfiability import ScenarioSatisfiabilityEvidenceModel, ScenarioSatisfiabilityEvidenceV2Model
     from ..sdl_semantic_migration import SDLSemanticMigrationContext
     from .backend_preparation import BackendPreparationResponseModel
 
@@ -202,6 +202,7 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
         "backend-augmentation-scope-v1": AugmentationPreparation.model_json_schema(),
         "materialization-archive-record-v1": MaterializationArchiveRecord.model_json_schema(),
         "instantiated-scenario-snapshot-v1": InstantiatedScenarioSnapshot.model_json_schema(),
+        "instantiated-scenario-snapshot-v2": InstantiatedScenarioSnapshotV3.model_json_schema(),
         "scenario-instantiation-request-v1": InstantiationRequestModel.model_json_schema(),
         "artifact-requirement-v1": ArtifactRequirementContractModel.model_json_schema(),
         **_domain_profile_schema_bundle(),
@@ -213,6 +214,7 @@ def _core_schema_bundle() -> dict[str, dict[str, Any]]:
         "authoring-adapter-comparison-v1": AuthoringAdapterComparisonModel.model_json_schema(),
         "exploit-path-analysis-evidence-v1": ExploitPathAnalysisEvidenceModel.model_json_schema(),
         "scenario-satisfiability-evidence-v1": ScenarioSatisfiabilityEvidenceModel.model_json_schema(),
+        "scenario-satisfiability-evidence-v2": ScenarioSatisfiabilityEvidenceV2Model.model_json_schema(),
         "backend-manifest-v2": BackendManifestV2Model.model_json_schema(),
         "realization-envelope-v1": BackendRealizationEnvelopeModel.model_json_schema(),
         "recursive-realization-constraint-v1": RealizationConstraintDocument.model_json_schema(),

@@ -32461,7 +32461,38 @@
     },
     "SolverConfigurationModel": {
       "additionalProperties": false,
-      "description": "Complete output-affecting configuration for the pinned v1 Z3 adapter.",
+      "allOf": [
+        {
+          "else": {
+            "properties": {
+              "package": {
+                "const": "raes-go-z3-smtlib"
+              },
+              "package_version": {
+                "const": "1.0.0"
+              }
+            }
+          },
+          "if": {
+            "properties": {
+              "profile": {
+                "const": "raes-z3-finite-domain/v1"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "package": {
+                "const": "z3-solver"
+              },
+              "package_version": {
+                "const": "4.16.0.0"
+              }
+            }
+          }
+        }
+      ],
+      "description": "Complete configuration for the separately pinned Python and Go adapters.",
       "properties": {
         "auto_config": {
           "const": false,
@@ -32494,17 +32525,26 @@
           "type": "boolean"
         },
         "package": {
-          "const": "z3-solver",
+          "enum": [
+            "z3-solver",
+            "raes-go-z3-smtlib"
+          ],
           "title": "Package",
           "type": "string"
         },
         "package_version": {
-          "const": "4.16.0.0",
+          "enum": [
+            "4.16.0.0",
+            "1.0.0"
+          ],
           "title": "Package Version",
           "type": "string"
         },
         "profile": {
-          "const": "raes-z3-finite-domain/v1",
+          "enum": [
+            "raes-z3-finite-domain/v1",
+            "raes-z3-finite-domain/v2"
+          ],
           "title": "Profile",
           "type": "string"
         },

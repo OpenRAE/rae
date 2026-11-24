@@ -12,6 +12,17 @@ import (
 // nonce of a new immutable version directory. Validate that coordinate before
 // projecting the nonce out of both observations. The runner never sees the oracle.
 func compareCaseResults(c Case, want, got json.RawMessage) (string, error) {
+	if c.Key() == "cli processor satisfiability" {
+		expected, err := solverIdentityComparison(want, false)
+		if err != nil {
+			return "", err
+		}
+		actual, err := solverIdentityComparison(got, true)
+		if err != nil {
+			return "", err
+		}
+		return compareResults(expected, actual)
+	}
 	if c.Key() != "cli sdl publish" {
 		return compareResults(want, got)
 	}

@@ -18,6 +18,7 @@ import sys
 import tarfile
 import tempfile
 import uuid
+import zipfile
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from contextlib import contextmanager, suppress
 from pathlib import Path, PurePosixPath
@@ -32,6 +33,8 @@ for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
 from raes_contracts.errors import OperationalError  # noqa: E402
 
 INSTALLATION_POLICY_ID = "install-v1"
+_UNSAFE_ARCHIVE_MEMBER = "tool-installation: unsafe-archive-member"
+_ARCHIVE_SIZE_LIMIT = "tool-installation: archive-size-limit"
 MAX_ARCHIVE_MEMBERS = 1024
 MAX_ARCHIVE_PATH_BYTES = 1024
 MAX_ARCHIVE_PATH_DEPTH = 16
@@ -87,7 +90,7 @@ def _portable_path(value: str) -> PurePosixPath:
         or len(path.parts) > MAX_ARCHIVE_PATH_DEPTH
         or any(part in {"", ".", ".."} for part in path.parts)
     ):
-        raise ToolInstallationError("tool-installation: unsafe-archive-member")
+        raise ToolInstallationError(_UNSAFE_ARCHIVE_MEMBER)
     return path
 
 
@@ -196,12 +199,8 @@ def _validate_archive_shape(
     for member in members:
         path = _archive_member_path(member, seen, files)
         if not (member.isfile() or member.isdir()) or getattr(member, "sparse", None):
-            raise ToolInstallationError("tool-installation: unsafe-archive-member")
-        if member.size < 0 or member.size > MAX_ARCHIVE_MEMBER_BYTES:
-            raise ToolInstallationError("tool-installation: archive-size-limit")
-        total += member.size
-        if total > MAX_ARCHIVE_EXPANDED_BYTES:
-            raise ToolInstallationError("tool-installation: archive-size-limit")
+            raise ToolInstallationError(_UNSAFE_ARCHIVE_MEMBER)
+        total = _bounded_expanded_total(total, member.size)
         if member.isfile():
             files.add(path)
         seen.add(path)
@@ -243,6 +242,70 @@ def materialize_tar_gz(raw_bytes: bytes, selection: ArtifactSelection) -> dict[s
     except ToolInstallationError:
         raise
     except (OSError, tarfile.TarError, UnicodeError) as exc:
+        raise ToolInstallationError("tool-installation: unsafe-archive") from exc
+    return _validate_materialized(materialized, selection.installed_manifest)
+
+
+def _bounded_expanded_total(total: int, size: int) -> int:
+    """Add one member size, refusing a member or archive over its expansion bound."""
+
+    if size < 0 or size > MAX_ARCHIVE_MEMBER_BYTES:
+        raise ToolInstallationError(_ARCHIVE_SIZE_LIMIT)
+    total += size
+    if total > MAX_ARCHIVE_EXPANDED_BYTES:
+        raise ToolInstallationError(_ARCHIVE_SIZE_LIMIT)
+    return total
+
+
+def _zip_member_path(member: zipfile.ZipInfo, paths: Mapping[PurePosixPath, bool]) -> tuple[str, PurePosixPath]:
+    directory = member.is_dir()
+    name = member.filename[:-1] if directory else member.filename
+    path = _portable_path(name)
+    kind = stat.S_IFMT(member.external_attr >> 16)
+    if (
+        path in paths
+        or member.flag_bits & 1
+        or member.compress_type not in {zipfile.ZIP_STORED, zipfile.ZIP_DEFLATED}
+        or kind not in {0, stat.S_IFDIR if directory else stat.S_IFREG}
+    ):
+        raise ToolInstallationError(_UNSAFE_ARCHIVE_MEMBER)
+    return name, path
+
+
+def _zip_members(archive: zipfile.ZipFile) -> dict[str, zipfile.ZipInfo]:
+    members = archive.infolist()
+    if len(members) > MAX_ARCHIVE_MEMBERS:
+        raise ToolInstallationError("tool-installation: archive-member-limit")
+    paths: dict[PurePosixPath, bool] = {}
+    by_path: dict[str, zipfile.ZipInfo] = {}
+    total = 0
+    for member in members:
+        name, path = _zip_member_path(member, paths)
+        total = _bounded_expanded_total(total, member.file_size)
+        paths[path] = member.is_dir()
+        by_path[name] = member
+    for path in paths:
+        if any(parent in paths and not paths[parent] for parent in path.parents):
+            raise ToolInstallationError(_UNSAFE_ARCHIVE_MEMBER)
+    return by_path
+
+
+def materialize_zip(raw_bytes: bytes, selection: ArtifactSelection) -> dict[str, bytes]:
+    """Admit ZIP metadata before reading only the bounded installed manifest."""
+
+    try:
+        with zipfile.ZipFile(io.BytesIO(raw_bytes)) as archive:
+            by_path = _zip_members(archive)
+            materialized: dict[str, bytes] = {}
+            for entry in selection.installed_manifest:
+                member = by_path.get(entry.path)
+                if member is None or member.is_dir() or member.file_size != entry.size:
+                    raise ToolInstallationError("tool-installation: installed-manifest-mismatch")
+                with archive.open(member) as stream:
+                    materialized[entry.path] = stream.read(entry.size + 1)
+    except ToolInstallationError:
+        raise
+    except (OSError, ValueError, zipfile.BadZipFile) as exc:
         raise ToolInstallationError("tool-installation: unsafe-archive") from exc
     return _validate_materialized(materialized, selection.installed_manifest)
 

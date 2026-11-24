@@ -451,7 +451,7 @@ def test_current_cli_must_emit_the_complete_pinned_payload(monkeypatch):
 
     def omit_default(*args, **kwargs):
         payload = original(*args, **kwargs)
-        if payload["profile"] == "scenario-satisfiability-evidence/v1":
+        if payload["profile"] == "scenario-satisfiability-evidence/v2":
             assert payload["imports"] == []
             del payload["imports"]
         return payload
@@ -655,7 +655,10 @@ def test_release_managed_version_source_is_the_file_release_please_rewrites():
 
     config = json.loads((ROOT / "release-please-config.json").read_text(encoding="utf-8"))
     extra_files = config["packages"]["."]["extra-files"]
-    assert extra_files == [{"type": "generic", "path": RELEASE_MANAGED_VERSION_SOURCE}]
+    assert extra_files == [
+        {"type": "generic", "path": RELEASE_MANAGED_VERSION_SOURCE},
+        {"type": "generic", "path": "implementations/go/processor/analysis/version.go"},
+    ]
 
 
 def test_current_capture_requires_the_release_stable_source_profile():

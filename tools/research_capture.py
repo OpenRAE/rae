@@ -8,6 +8,7 @@ import hashlib
 import json
 import subprocess
 import sys
+from collections.abc import Mapping
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -83,6 +84,30 @@ def _prepare_capture_documents(
         _normalize_snapshot_reference(manifest, documents, snapshot_path)
 
 
+def _fresh_artifact_sha256(root: Path, relative: str) -> str:
+    path = safe_repo_path(root, relative)
+    if path is None or not path.is_file() or path.is_symlink() or path.stat().st_size > 2 * 1024 * 1024:
+        raise InvalidInputError("replacement artifact path is unsafe, missing, or oversized")
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _replace_artifact_pins(root: Path, manifest: dict[str, object], artifact_paths: Mapping[str, str]) -> None:
+    """Point named template artifacts at fresh files and pin their exact bytes."""
+    artifacts = manifest.get("artifacts")
+    if not isinstance(artifacts, list):
+        raise InvalidInputError("capture template has no artifact pins to replace")
+    by_id = {item.get("artifact_id"): item for item in artifacts if isinstance(item, dict)}
+    if len(by_id) != len(artifacts) or not set(artifact_paths) <= set(by_id):
+        raise InvalidInputError("a replacement artifact must name one unique template artifact")
+    replaced = []
+    for item in artifacts:
+        relative = artifact_paths.get(item.get("artifact_id"))
+        if relative is not None:
+            item = {**item, "path": relative, "sha256": _fresh_artifact_sha256(root, relative)}
+        replaced.append(item)
+    manifest["artifacts"] = replaced
+
+
 def _normalize_snapshot_reference(manifest: dict[str, object], documents: dict[str, bytes], snapshot_path: str) -> None:
     try:
         analysis = json.loads(documents["analysis"])
@@ -132,13 +157,22 @@ def record_capture(
     *,
     snapshot_path: str | None = None,
     analysis_path: str | None = None,
+    artifact_paths: Mapping[str, str] | None = None,
 ) -> str:
-    """Copy a digest-pinned capture without relabeling its immutable observations."""
+    """Copy a digest-pinned capture without relabeling its immutable observations.
+
+    Replacement artifacts belong to a fresh observation, so they require a
+    fresh snapshot and analysis.
+    """
     records = _records(root, family)
     if template_path not in dict(records):
         raise InvalidInputError("capture template must be an indexed, admitted evidence manifest")
     manifest = dict(dict(records)[template_path])
     documents = _pinned_capture_documents(root, manifest)
+    if artifact_paths:
+        if snapshot_path is None:
+            raise InvalidInputError("replacement artifacts require a fresh snapshot and analysis")
+        _replace_artifact_pins(root, manifest, artifact_paths)
     _prepare_capture_documents(root, manifest, documents, snapshot_path, analysis_path)
     identity = capture_identity(manifest)
     prefix = f"docs/research/{family}/captures/{identity}"
@@ -242,10 +276,23 @@ def main() -> int:
     parser.add_argument("--template")
     parser.add_argument("--snapshot")
     parser.add_argument("--analysis")
+    parser.add_argument(
+        "--artifact",
+        action="append",
+        default=[],
+        metavar="ARTIFACT_ID=PATH",
+        help="replace one template artifact pin with a fresh file (repeatable)",
+    )
     args = parser.parse_args()
     root = REPO_ROOT
     if args.action == "record" and args.template is None:
         parser.error("record requires --template")
+    artifact_paths: dict[str, str] = {}
+    for value in args.artifact:
+        artifact_id, separator, relative = value.partition("=")
+        if not separator or not artifact_id or not relative or artifact_id in artifact_paths:
+            parser.error("--artifact requires one unique ARTIFACT_ID=PATH")
+        artifact_paths[artifact_id] = relative
     try:
         if args.action == "record":
             path = record_capture(
@@ -254,6 +301,7 @@ def main() -> int:
                 args.template,
                 snapshot_path=args.snapshot,
                 analysis_path=args.analysis,
+                artifact_paths=artifact_paths,
             )
         else:
             path = publish_capture(root, args.family)

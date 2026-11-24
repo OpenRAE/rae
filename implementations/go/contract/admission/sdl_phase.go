@@ -30,7 +30,7 @@ type SDLPhaseOwner interface {
 }
 
 func sdlPhaseContract(id string) bool {
-	return id == termSdlAuthoringInputV1 || id == termInstantiatedScenarioV1 || id == termMaterializedScenarioV1 || id == "instantiated-scenario-snapshot-v1"
+	return id == termSdlAuthoringInputV1 || id == termInstantiatedScenarioV1 || id == termMaterializedScenarioV1 || id == "instantiated-scenario-snapshot-v1" || id == "instantiated-scenario-snapshot-v2"
 }
 
 func (e *Validator) checkSDLPhase(id string, data []byte, limits ingress.Limits, context any) (err error) {

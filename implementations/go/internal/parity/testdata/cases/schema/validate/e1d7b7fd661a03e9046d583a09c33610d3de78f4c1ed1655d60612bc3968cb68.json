@@ -1,0 +1,14 @@
+{
+  "args": [
+    "instantiated-scenario-snapshot-v2"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:25dc8fe7725397bea63625e50db259053e168859417fe0b16384c3d14404df0f"
+  },
+  "name": "contracts/fixtures/sdl/instantiated-scenario-snapshot-v2/valid/reconciliation-workflow",
+  "result": {
+    "valid": true
+  },
+  "surface": "schema"
+}

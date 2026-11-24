@@ -17,16 +17,25 @@ import (
 // Defaulted checks the original bounded input and returns a fresh JSON value
 // with published default annotations applied. This is a digest-owner view,
 // not model normalization or semantic admission. Families own serializer
-// omissions. Output is bounded by MaxBytes, 64 levels and 100,000 visits.
+// omissions. Output is bounded by MaxBytes and 64 levels. Opacity contracts
+// use a schema-derived visit bound; other contracts allow 100,000 visits.
 func (v *Validator) Defaulted(id string, data []byte, limits ingress.Limits) (any, error) {
 	original, err := v.parse(id, data, limits)
 	if err != nil {
 		return nil, err
 	}
-	return defaultedSchema(v.contracts[id].schema, original, limits)
+	entry := v.contracts[id]
+	bound := 100000
+	if opacityWorkBound(id) {
+		bound = entry.walkBound(limits.MaxBytes)
+	}
+	return defaultedSchemaBound(entry.schema, original, limits, bound)
 }
 
 func defaultedSchema(schema *jsonschema.Schema, original any, limits ingress.Limits) (any, error) {
+	return defaultedSchemaBound(schema, original, limits, 100000)
+}
+func defaultedSchemaBound(schema *jsonschema.Schema, original any, limits ingress.Limits, bound int) (any, error) {
 	encoded, err := json.Marshal(original)
 	if err != nil {
 		return nil, failure(fault.InvalidInput, codeContractDefaultsLimit)
@@ -42,7 +51,7 @@ func defaultedSchema(schema *jsonschema.Schema, original any, limits ingress.Lim
 	if limits.MaxDepth > 0 {
 		depth = min(depth, limits.MaxDepth)
 	}
-	state := defaultWalk{target: target, remaining: limits.MaxBytes - len(encoded), depth: depth, assigned: map[string][]byte{}}
+	state := defaultWalk{target: target, remaining: limits.MaxBytes - len(encoded), depth: depth, bound: bound, assigned: map[string][]byte{}}
 	if err := state.walk(visit{schema, original, ""}); err != nil {
 		return nil, err
 	}
@@ -53,9 +62,9 @@ func defaultedSchema(schema *jsonschema.Schema, original any, limits ingress.Lim
 }
 
 type defaultWalk struct {
-	target           any
-	remaining, depth int
-	assigned         map[string][]byte
+	target                  any
+	remaining, depth, bound int
+	assigned                map[string][]byte
 }
 
 func copyJSON(encoded []byte) (any, error) {
@@ -72,7 +81,7 @@ func (w *defaultWalk) walk(root visit) error {
 	stack := []visit{root}
 	seen := map[visitIdentity]bool{}
 	for work := 0; len(stack) > 0; work++ {
-		if work >= 100000 {
+		if work >= w.bound {
 			return failure(fault.InvalidInput, codeContractDefaultsLimit)
 		}
 		current := stack[len(stack)-1]

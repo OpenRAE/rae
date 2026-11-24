@@ -98,7 +98,7 @@ func TestCandidateSchemaReference(t *testing.T) {
 	}
 }
 
-// These exact unchanged published schemas contain syntax Go cannot compile.
+// These exact published schemas contain syntax Go cannot compile.
 func unsupportedRepositorySchemas() []string {
 	return []string{
 		"contracts/schemas/artifact-requirements/artifact-requirement-v1.json",
@@ -107,7 +107,9 @@ func unsupportedRepositorySchemas() []string {
 		"contracts/schemas/plans/orchestration-plan-v1.json",
 		"contracts/schemas/plans/provisioning-plan-v1.json",
 		"contracts/schemas/satisfiability/scenario-satisfiability-evidence-v1.json",
+		"contracts/schemas/satisfiability/scenario-satisfiability-evidence-v2.json",
 		"contracts/schemas/sdl/instantiated-scenario-snapshot-v1.json",
+		"contracts/schemas/sdl/instantiated-scenario-snapshot-v2.json",
 		"contracts/schemas/sdl/instantiated-scenario-v1.json",
 		"contracts/schemas/sdl/materialized-scenario-v1.json",
 		"contracts/schemas/sdl/sdl-authoring-input-v1.json",

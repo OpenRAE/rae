@@ -1,7 +1,11 @@
 package admission
 
 func (e *Validator) satisfiabilityModel(root any) error {
-	v, err := e.defaulted("scenario-satisfiability-evidence-v1", root)
+	id := satisfiabilityEvidenceID
+	if stringAt(root, "profile") == "scenario-satisfiability-evidence/v2" {
+		id = satisfiabilityEvidenceV2ID
+	}
+	v, err := e.defaulted(id, root)
 	if err != nil {
 		return err
 	}

@@ -1,5 +1,5 @@
 {
-  "reference": "17bf4515bf12747af69c8598a2fc82d73e9651b9",
+  "reference": "e5d8f6c1b10adaa66bb15b415e9f9a7263bd44f8",
   "cases": [
     {"name":"RuntimeSecurityMonitoringListener.service-empty","pointer":"#/$defs/RuntimeSecurityMonitoringListener","accepted":true,"changes":[{"path":["service"],"value":""}]},
     {"name":"RuntimeSecurityMonitoringListener.service-blank","pointer":"#/$defs/RuntimeSecurityMonitoringListener","accepted":true,"changes":[{"path":["service"],"value":" "}]},

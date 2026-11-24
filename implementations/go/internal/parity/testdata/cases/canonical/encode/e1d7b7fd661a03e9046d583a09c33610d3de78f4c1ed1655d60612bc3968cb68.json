@@ -1,0 +1,14 @@
+{
+  "args": [],
+  "command": "encode",
+  "files": {
+    "value.json": "sha256:25dc8fe7725397bea63625e50db259053e168859417fe0b16384c3d14404df0f"
+  },
+  "name": "contracts/fixtures/sdl/instantiated-scenario-snapshot-v2/valid/reconciliation-workflow",
+  "result": {
+    "jcs": "sha256:69400b12cd66ccdcdb919a71c9662eb870cc3dd631b5fd8d486532f591d818b8",
+    "sorted_ascii": "sha256:de5b11f256f85013ec053c7579635c5179b1074d9f729f755f5437fbb8070070",
+    "sorted_unicode": "sha256:de5b11f256f85013ec053c7579635c5179b1074d9f729f755f5437fbb8070070"
+  },
+  "surface": "canonical"
+}
