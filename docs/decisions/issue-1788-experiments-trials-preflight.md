@@ -50,10 +50,10 @@ The existing declarations are necessary, but do not cover the complete issue con
 - Distinguish supplied `validation.Value` contract IDs and `admission.Fragment` profiles at each entry. Check native handle origin and reject zero or substituted handles. Go interfaces and field types alone do not prove the expected phase or profile.
 
 Before coding, declare actual packages, imports, exported names and exact typed APIs in the existing model.
-Bind their owning designs and API digests; pass `archcheck -design` under ADR-122.
+Bind their owning designs and API digests; pass `archcheck -design` under ADR-124.
 Keep downstream signatures importable through public `rae` packages, including runtime tests.
 This preflight changes no API/model commitments and does not approve an undeclared design.
-ADR-121 and the existing ADRs suffice; no new architecture decision is needed for these boundaries.
+ADR-123 and the existing ADRs suffice; no new architecture decision is needed for these boundaries.
 
 ## Gates through the complete data path
 
@@ -220,7 +220,7 @@ Include tampering, forged handles, owner mutation, allocation ordering, concurre
 Preserve serial/partition/reversed/map-order plan and draw equivalence.
 Shared mechanics tests alone cannot replace trial-specific provenance and recovery tests.
 
-Use `.ground-control.yaml`, `.gc/plan-rules.md`, `tools/policy/adr_policy.yaml`, the existing architecture model and ADR-121/122 checks.
+Use `.ground-control.yaml`, `.gc/plan-rules.md`, `tools/policy/adr_policy.yaml`, the existing architecture model and ADR-123/122 checks.
 Keep `implementations/.golangci.yml`, `implementations/.gremlins.yaml`, module/tool locks, `.pre-commit-config.yaml` and canonical verification workflows.
 Local checks select explicit tests or changed-path policy/prose checks.
 CI owns full suites, race/coverage, mutation, fuzz, regression and corpus verification through the configured lanes.

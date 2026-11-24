@@ -75,9 +75,9 @@ but it still passes through these gates:
   point under `contracts/schemas/`.
 - Schema authority direction (ADR-009 §7): the published schemas under
   `contracts/schemas/` are the hand-governed normative authority. A contract
-  change is an edit to the published schema plus a contract-facing change-ledger
-  record under `contracts/schema-publication/` (`last_change` for an added or
-  modified schema; an independent tombstone record for a deletion);
+  change is an edit to the published schema. A new schema also adds its record
+  under `contracts/schema-publication/entries/`, and a deletion adds an
+  independent tombstone record;
   `tools/check_generated_schemas.py` proves the reference implementation
   (`schema_bundle()`) still generates an identical bundle (into a throwaway
   directory — it never overwrites the published authority).
@@ -118,10 +118,9 @@ Avoid:
 - collapsing concept authority, artifact schema authority, backend capability
   profiles, and semantic profiles into one generic "profile" or "runtime"
   bucket
-- changing or removing a published schema under `contracts/schemas/` without
-  updating its contract-facing publication record (`last_change`, or an
-  independent tombstone record for a deletion) under
-  `contracts/schema-publication/`, or treating a generator/Python
+- removing a published schema under `contracts/schemas/` without an
+  independent tombstone record under `contracts/schema-publication/`, or
+  treating a generator/Python
   edit as authorization for a schema change (the published schema is the
   authority; the generator only proves compatibility)
 - adding new authority-bearing artifacts anywhere other than `specs/` (for

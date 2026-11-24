@@ -1,14 +1,16 @@
 {
   "schema_version": "realized-time-model/v1",
   "run_id": "run-001",
-  "declaration_digest": "sha256:527b135c4222b629a8f71fc743481269864eaaf6888ac6d0f15807375cab87f1",
   "declared_model": {
     "schema_version": "time-model/v1",
     "domains": {
       "time.domain.logical": {
         "address": "time.domain.logical",
         "kind": "logical",
-        "tick_period_seconds": {"numerator": 1, "denominator": 1},
+        "tick_period_seconds": {
+          "numerator": 1,
+          "denominator": 1
+        },
         "epoch": "unanchored",
         "visibility": "runtime_only",
         "description": "logical ticks"
@@ -37,7 +39,10 @@
       "time.domain.logical": {
         "address": "time.domain.logical",
         "kind": "logical",
-        "tick_period_seconds": {"numerator": 1, "denominator": 1},
+        "tick_period_seconds": {
+          "numerator": 1,
+          "denominator": 1
+        },
         "epoch": "unanchored",
         "visibility": "runtime_only",
         "description": "logical ticks"
@@ -65,12 +70,18 @@
       "address": "time.clock.logical",
       "component_ref": "apparatus.time-runtime",
       "realization_kind": "runtime_managed",
-      "evidence_refs": ["evidence:time-readback"],
+      "evidence_refs": [
+        "evidence:time-readback"
+      ],
       "limitations": []
     }
   },
-  "synchronization_assumptions": ["single runtime authority"],
+  "synchronization_assumptions": [
+    "single runtime authority"
+  ],
   "timing_limits": [],
   "deviations": [],
-  "evidence_refs": ["evidence:time-readback"]
+  "evidence_refs": [
+    "evidence:time-readback"
+  ]
 }

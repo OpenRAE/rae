@@ -7,6 +7,7 @@ They return the values or findings shown in each signature.
 They do not apply the resulting changes to a backend.
 
 SDL-language rules remain in :doc:`sdl-semantics`.
+Shared workflow step types, branch closure and step-result checks are in ``raes_contracts.workflow.semantics`` (ADR-121).
 The public planning boundary and its diagnostic behavior are in :doc:`processor`.
 
 .. currentmodule:: raes_processor.semantics

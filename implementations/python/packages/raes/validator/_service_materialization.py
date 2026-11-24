@@ -1,9 +1,9 @@
 """Semantic validation for service-owned content materialization."""
 
 from raes_contracts.domain_profiles import DomainProfileBindingModel
+from raes_contracts.propositions import AssertionRole, PropositionBasis
 
 from ..deployment_tenancy import StateOwner
-from ..propositions import AssertionRole, PropositionBasis
 from ..relationships import RelationshipType
 
 

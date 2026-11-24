@@ -5,8 +5,9 @@ from typing import Any
 
 from pydantic import BaseModel
 from raes_contracts.json_pointer import escape_token, pointer_tokens
-from raes_contracts.sdl_semantic_migration import SDLSentinelDecision
 from raes_contracts.vocabulary import Closure
+
+from raes.semantic_migration_context import SDLSentinelDecision
 
 from .realization_designation import RealizationDesignationRecord, designation_records, resolve_realization_designation
 from .scenario import Scenario

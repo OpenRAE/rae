@@ -1,11 +1,14 @@
-# Catalog 3 — Variable and Instantiation Catalog
+<!-- vale RAES.HeadingCase = NO -->
+# Catalog 3 — variable and instantiation catalog
 
-This catalog defines SDL variables — their types, defaults, and constraints —
-the `${…}` substitution syntax, the instantiation algorithm, and what an
+This catalog defines SDL variables, with their types, defaults, and constraints.
+It also defines the `${…}` substitution syntax, the instantiation algorithm, and what an
 instantiated document is no longer permitted to contain. Variables and
 instantiation are the SDL's parameterisation seam under
 [ADR-001](../../docs/decisions/adrs/adr-001-scenario-description-language.md) and
 [ADR-003](../../docs/decisions/adrs/adr-003-workflows-targetable-subobjects-and-enum-variables.md).
+
+<!-- vale RAES.HeadingCase = YES -->
 
 ## 1. Variable definitions
 
@@ -108,8 +111,8 @@ An instantiated document is concrete. It **MUST NOT** contain:
 4. a `module` member, even a null one; or
 5. a `realization` member, even a null one.
 
-This is the authoring → instantiated distinction: a value that exists only to
-be substituted (a `${…}` reference) and the machinery that substitutes it (the
+This is the authoring → instantiated distinction.
+A value that exists only to be substituted (a `${…}` reference) and the machinery that substitutes it (the
 `variables` definitions) do not survive into the instantiated form. `module`
 is packaging metadata, `imports` are composition instructions, and `realization`
 is an authoring designation block. Verified resolution facts and normalized
@@ -146,13 +149,13 @@ digest are resolution evidence, not a replacement for a signature or an
 independently chosen trust policy.
 
 Realization designation identities are unique by namespace and field pointer.
-They preserve the authored cascade across expansion and instantiation but do not
-claim that downstream realization occurred or turn the authoring block into
+They preserve the authored cascade across expansion and instantiation.
+They do not claim that downstream realization occurred or turn the authoring block into
 executable scenario content.
 
 The provenance supplies selected inputs and verification anchors for replay. It
-does not make replay self-contained or prove that the described transformation
-ran: repeated resolution still depends on source availability, source bytes,
+does not make replay self-contained or prove that the described transformation ran.
+Repeated resolution still depends on source availability, source bytes,
 and current trust policy. Tools **MUST NOT** duplicate binding values into
 summaries, diagnostics, logs, or operation metadata merely because they are
 present in the artifact.
@@ -178,8 +181,7 @@ value is known.
 
 ## Extending the variable model
 
-New variable types or constraint kinds are added by extending the variable
-model and the published schema, adding the type/constraint to this catalog, and
-updating the instantiation checks (§3) and tests. The four-step instantiation
+To add new variable types or constraint kinds, extend the variable model and the published schema.
+Then add the type/constraint to this catalog, and update the instantiation checks (§3) and tests. The four-step instantiation
 contract — choose, type-check, constraint-check, substitute-and-revalidate —
 is the stable seam; new constraints slot into the check phase.

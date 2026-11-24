@@ -1009,7 +1009,7 @@ def test_backend_manifest_v2_rejects_below_exact_feature_support_without_disclos
 
 
 def test_backend_manifest_v2_schema_publishes_feature_support_disclosure_rule():
-    from raes_contracts.contracts import schema_bundle
+    from raes_schemas import schema_bundle
 
     schema = schema_bundle()["backend-manifest-v2"]
     feature_support_schema = schema["$defs"]["ParticipantFeatureSupportModel"]

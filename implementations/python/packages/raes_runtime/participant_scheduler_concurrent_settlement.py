@@ -8,10 +8,10 @@ from itertools import islice
 from typing import TYPE_CHECKING
 
 from raes_contracts.contracts import ParticipantAutonomousExecutionStateModel
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import ConflictError
 from raes_contracts.operational_logging import get_logger
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 from .participant_scheduler_concurrent_state import (

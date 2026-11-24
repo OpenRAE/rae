@@ -12,9 +12,14 @@ import nox
 from raes_contracts.errors import InvalidInputError, OperationalError
 from yaml import YAMLError
 
+from tools.check_adr_immutability import ADR_DIR, _coerce_manifest
 from tools.check_adr_immutability import MANIFEST_PATH as ADR_PIN_PATH
-from tools.check_adr_immutability import _coerce_manifest
 from tools.check_identity_cutover import _load_historical_records
+from tools.documentation_tools import (
+    ensure_doc_tools,
+    ensure_ste,
+    sync_doc_tools_styles,
+)
 from tools.nox_support.config import (
     DEFAULT_SUITE_EXPRESSION,
     DOCS_BUILD_ROOT,
@@ -43,6 +48,7 @@ from tools.osv_scanner_tool import (
     ensure_osv_scanner,
     run_osv_scanner,
 )
+from tools.policy.adr import parse_adr_file
 from tools.policy.common import YAML_CONTENT_FAILURES, load_yaml, safe_repo_path
 from tools.pytest_shard import ShardManifestError, read_manifest, verify_shard_partition
 from tools.vale_tool import ensure_vale
@@ -211,7 +217,17 @@ def _run_coverage_reduce(
 
     def _combine_and_report() -> None:
         with session.chdir(PROJECT_ROOT):
-            _run(session, "uv", "run", "--frozen", "coverage", "combine", "--keep", str(reduce_dir), env=coverage_env)
+            _run(
+                session,
+                "uv",
+                "run",
+                "--frozen",
+                "coverage",
+                "combine",
+                "--keep",
+                str(reduce_dir),
+                env=coverage_env,
+            )
             _write_and_check_coverage(session, coverage_env)
 
     reporter.run(
@@ -288,7 +304,20 @@ def _selected_prose_paths(posargs: list[str]) -> list[str]:
     return selected
 
 
-def _protected_prose_paths() -> set[str]:
+def _frozen_adr_paths(selected: list[str]) -> set[str]:
+    """Return selected ADRs that ADR-059 froze when they left the accepted manifest."""
+    frozen: set[str] = set()
+    for path in selected:
+        candidate = Path(path)
+        if candidate.parent.as_posix() != ADR_DIR or not candidate.name.startswith("adr-"):
+            continue
+        status = parse_adr_file(REPO_ROOT / path)[2]
+        if status == "deprecated" or status.startswith("superseded by "):
+            frozen.add(path)
+    return frozen
+
+
+def _protected_prose_paths(selected: list[str]) -> set[str]:
     """Read exact protected identities through the existing catalog validators."""
     try:
         adrs, failures = _coerce_manifest(load_yaml(REPO_ROOT / ADR_PIN_PATH), ADR_PIN_PATH)
@@ -301,6 +330,7 @@ def _protected_prose_paths() -> set[str]:
         raise InvalidInputError("protected historical prose catalog is invalid")
     protected = {"CHANGELOG.md", "THIRD_PARTY_NOTICES.md", *records, *generated}
     protected.update(entry["path"] for entry in adrs)
+    protected.update(_frozen_adr_paths([path for path in selected if path not in protected]))
     return protected
 
 
@@ -310,7 +340,7 @@ def _run_docs_prose(session: nox.Session, reporter: SessionReporter) -> None:
     if not selected:
         reporter.skip("docs / Vale changed prose", "no Markdown or reStructuredText selected")
         return
-    protected = _protected_prose_paths()
+    protected = _protected_prose_paths(selected)
     excluded = [path for path in selected if path in protected]
     if excluded:
         reporter.skip(
@@ -321,7 +351,9 @@ def _run_docs_prose(session: nox.Session, reporter: SessionReporter) -> None:
     if not maintained:
         return
 
-    binary = str(ensure_vale(REPO_ROOT))
+    binary = ensure_vale(REPO_ROOT)
+    package = ensure_doc_tools(REPO_ROOT)
+    sync_doc_tools_styles(REPO_ROOT, binary, package)
     project_environment = Path(os.environ.get("UV_PROJECT_ENVIRONMENT", str(PROJECT_ROOT / ".venv")))
     if not project_environment.is_absolute():
         project_environment = PROJECT_ROOT / project_environment
@@ -331,7 +363,7 @@ def _run_docs_prose(session: nox.Session, reporter: SessionReporter) -> None:
         for batch in _chunked(maintained):
             _run(
                 session,
-                binary,
+                str(binary),
                 "--no-global",
                 f"--config={REPO_ROOT / '.vale.ini'}",
                 "--glob=*.{md,rst}",
@@ -342,6 +374,31 @@ def _run_docs_prose(session: nox.Session, reporter: SessionReporter) -> None:
 
     reporter.run("docs / Vale changed prose", lint, detail=f"{len(maintained)} maintained files")
 
+    markdown = [path for path in maintained if Path(path).suffix == ".md"]
+    if markdown:
+        ste = ensure_ste(REPO_ROOT)
+
+        def lint_ste() -> None:
+            for batch in _chunked(markdown):
+                _run(
+                    session,
+                    str(ste),
+                    "lint",
+                    "--config",
+                    str(package / ".ste.yml"),
+                    "--no-baseline",
+                    "--fail-over",
+                    "0",
+                    "--",
+                    *(str(REPO_ROOT / path) for path in batch),
+                )
+
+        reporter.run(
+            "docs / shared STE changed Markdown",
+            lint_ste,
+            detail=f"{len(markdown)} maintained files",
+        )
+
 
 def _run_docs(
     session: nox.Session,
@@ -351,6 +408,7 @@ def _run_docs(
 ) -> None:
     _sync_project(session)
     _run_docs_prose(session, reporter)
+    sync_doc_tools_styles(REPO_ROOT, ensure_vale(REPO_ROOT), ensure_doc_tools(REPO_ROOT))
     html_dir = DOCS_BUILD_ROOT / "html"
     linkcheck_dir = DOCS_BUILD_ROOT / "linkcheck"
 
@@ -381,9 +439,14 @@ def _run_docs(
         "docs / Vale reader style",
         lambda: _run(
             session,
+            "uv",
+            "run",
+            "--project",
+            str(PROJECT_ROOT),
+            "--frozen",
             str(ensure_vale(REPO_ROOT)),
             "--config=.vale.ini",
-            "--glob=*.md",
+            "--glob=*.{md,rst}",
             *PUBLIC_DOCS_ENTRYPOINTS,
             str(PUBLIC_DOCS_ROOT),
         ),
@@ -475,7 +538,13 @@ def _run_installation_qualification(
         try:
             reporter.run(
                 f"qualification / {name}",
-                lambda: _run(session, sys.executable, str(REPO_ROOT / harness), str(root), *posargs),
+                lambda: _run(
+                    session,
+                    sys.executable,
+                    str(REPO_ROOT / harness),
+                    str(root),
+                    *posargs,
+                ),
                 detail=detail,
             )
         finally:

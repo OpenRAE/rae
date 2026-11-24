@@ -24,7 +24,7 @@ from raes_backend_protocols.capability_admission import participant_autonomous_e
 from raes_backend_protocols.manifest import backend_manifest_from_v2_model, backend_manifest_v2_model
 from raes_backend_stubs.stubs import create_stub_target
 from raes_conformance.conformance.profiles import BackendCapabilityProfile
-from raes_conformance.conformance.target_probes import _target_adapter_cases
+from raes_conformance.conformance.target_probes import target_adapter_run
 from raes_contracts.contracts.participant_execution import ParticipantExecutionControlRequestModel
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.compiler import compile_runtime_model
@@ -130,7 +130,7 @@ def test_conformance_probes_serial_execution_without_unclaimed_controls() -> Non
     )
     manifest = replace(manifest, capabilities=replace(manifest.capabilities, participant_runtime=capability))
     target = replace(create_stub_target(), manifest=manifest, participant_runtime=_NativeParticipantRuntime())
-    cases = _target_adapter_cases(target, BackendCapabilityProfile.FULL_REMOTE_CONTROL_PLANE)
+    cases = target_adapter_run(target, BackendCapabilityProfile.FULL_REMOTE_CONTROL_PLANE).cases
     execution_cases = [case for case in cases if case.name.startswith("participant-execution-")]
     assert [case.name for case in execution_cases] == ["participant-execution-bounded-native-actions"]
     assert all(case.passed for case in execution_cases)
@@ -144,7 +144,7 @@ def test_conformance_can_probe_one_claimed_control_without_requiring_the_others(
     capability = replace(manifest.participant_runtime, supported_execution_control_actions=frozenset({action}))
     manifest = replace(manifest, capabilities=replace(manifest.capabilities, participant_runtime=capability))
     target = replace(create_stub_target(), manifest=manifest, participant_runtime=_NativeParticipantRuntime())
-    cases = _target_adapter_cases(target, BackendCapabilityProfile.FULL_REMOTE_CONTROL_PLANE)
+    cases = target_adapter_run(target, BackendCapabilityProfile.FULL_REMOTE_CONTROL_PLANE).cases
     control_cases = [
         case
         for case in cases

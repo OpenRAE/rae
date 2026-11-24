@@ -1,10 +1,5 @@
 {
   "contract_id": "behavioral-relation-profile-v1",
   "schema_path": "contracts/schemas/profiles/behavioral-relation-profile-v1.json",
-  "stability": "draft",
-  "content_hash": "7304f3cb98b55797fc5c9c6807c76e35e7e7e9db4caac270161e94ecba4929a5",
-  "last_change": {
-    "content_hash": "7304f3cb98b55797fc5c9c6807c76e35e7e7e9db4caac270161e94ecba4929a5",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

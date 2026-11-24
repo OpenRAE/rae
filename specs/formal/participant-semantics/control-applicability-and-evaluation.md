@@ -12,14 +12,17 @@ schema or an installed provider protocol. Executable adoption follows the
 MPC-04's domains, SEM-233, visibility, fresh identity, causal bounds and the
 separate admission/authority/realization boundaries remain binding.
 
-## CA-01 — Apparatus and obligation coverage
+<!-- vale RAES.HeadingCase = NO -->
+## CA-01 — apparatus and obligation coverage
 
-Let B be the immutable admitted apparatus: exact profile and mechanism
-instances, implementations, configurations, protocol and semantic revisions,
+Let B be the immutable admitted apparatus.
+It has exact profile and mechanism instances, implementations, configurations, protocol and semantic revisions,
 authorities, support requirements, state scopes and finite bounds. Let K be the
 complete MPC-03 context, including B's identity, subject/crossing/sink/phase,
 participant/episode, policies, input identities, expected history heads and
 provider-state versions. A different sink at a different K does not change B.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Each selected required profile publishes a finite, typed obligation relation.
 Its obligations are derived from the profile and admitted configuration before
@@ -41,8 +44,8 @@ such zero-result discharge. Coverage maps preserve all selecting profiles and
 all conjunctions: one shared result cannot erase another owner's conditions.
 
 The applicable invocation subset A(B,K) consists of admitted slots relevant to
-this crossing plus their declared input dependencies. It refers into B; it is
-not a replacement selection whose digest must equal B. Record both identities
+this crossing plus their declared input dependencies. It refers into B.
+It is not a replacement selection that must have the same digest as B does. Record both identities
 and the derivation of A. A dependency outside its admitted input applicability
 is unsatisfied, not permission to invoke elsewhere. Providers absent from A
 are not failures merely because they serve a different sink. An empty A is
@@ -55,7 +58,8 @@ evaluation; this preserves all ordinary gates. An installed apparatus requiring
 evaluation cannot use that disposition to hide resolution failure. A change
 to B requires its own authorized admission transition, never subset filtering.
 
-## CA-02 — Invocation and predecessor inputs
+<!-- vale RAES.HeadingCase = NO -->
+## CA-02 — invocation and predecessor inputs
 
 The evaluation unit is a declared **slot or finite stage of slots**, not one
 unqualified call per provider. The admitted typed dependency graph is finite
@@ -64,12 +68,13 @@ input and required satisfaction relation. Unknown edges, type mismatches,
 duplicate identities and cycles are inadmissible. A.fact → B.assessment →
 A.rule is valid when its slot graph is acyclic, even though a provider recurs.
 
+<!-- vale RAES.HeadingCase = YES -->
+
 Before invoking a stage, resolve every required predecessor and validate its
 typed content, originating invocation, instance/configuration, B, K, state
 version, status and evidence. The dependent invocation carries detached,
 immutable predecessor results or content-bound references that resolve to
-those exact results. Its output binds the invocation identity, requested slots
-and complete predecessor-input identity as well as K. Sharing K alone does
+those exact results. Its output binds K, the invocation identity, requested slots and complete predecessor-input identity. Sharing K alone does
 not prove that the provider consumed the required result.
 
 Only the declared disclosure-authorized projection is provided. An edge does
@@ -88,7 +93,8 @@ bytes, attempts and external computation before invocation/iteration. Provider
 construction remains operator/backend-owned; no scenario-selected code or
 general workflow interpreter is introduced.
 
-## CA-03 — Mandatory closure and optional contributions
+<!-- vale RAES.HeadingCase = NO -->
+## CA-03 — mandatory closure and optional contributions
 
 Let R be the roots required by applicable profile obligations and mandatory
 decision/rule slots. Let M be their transitive **required-input** closure in the
@@ -96,9 +102,13 @@ admitted graph. Every input in M must meet its typed satisfaction and support
 relation. Admission explicitly records that closure; execution cannot silently
 upgrade an optional dependency to required or drop it to preserve success.
 
+<!-- vale RAES.HeadingCase = YES -->
+
 Availability and decision authority are distinct. A mandatory fact must be a
 valid fact. Required advice must be a valid assessment, even if its opinion is
-negative. A mandatory decision must permit. Only an admitted decision rule
+negative.
+
+A mandatory decision must permit. Only an admitted decision rule
 interprets advice into a parent decision. Deny/withhold cannot be supplied by
 an optional advisory score itself. Mandatory abstention remains unsatisfied.
 
@@ -123,18 +133,21 @@ An optional provider cannot write mandatory shared state through an undeclared
 path. Invalid apparatus, forged shared context or unresolved required coverage
 remains an admission failure, regardless of claimed optionality.
 
-## CA-04 — Support is relative to the requirement
+<!-- vale RAES.HeadingCase = NO -->
+## CA-04 — support is relative to the requirement
 
 Each obligation and required input pins its required semantic coverage,
 strength, admissible loss/constraints and evidence basis. Reuse API-407's
 effective-support resolution and API-424's support bindings. The satisfaction
-relation is evaluated at K over those dimensions; a name such as exact or
-bounded, a manifest declaration or a numeric rank alone is insufficient.
+relation is evaluated at K over those dimensions.
+A name such as exact or bounded, a manifest declaration or a numeric rank alone is insufficient.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Bounded support is usable when its independently resolved coverage and bounds
 satisfy the already admitted requirement. For example, a published requirement
-allowing an evidenced error bound of at most two units can accept a compatible
-one-unit realization, while an exact requirement cannot. This example defines
+allowing an evidenced error bound of at most two units can accept a compatible one-unit realization.
+An exact requirement cannot accept it. This example defines
 no universal loss unit or strength ordering. Unknown, incomparable or
 insufficient evidence leaves the obligation unsatisfied.
 
@@ -144,7 +157,8 @@ authorization and disclosed claim limits. Other profiles' obligations remain
 unchanged. Unsupported optional advice is lost advice; unsupported required
 input or prerequisite prevents the release it was needed for.
 
-## CA-05 — Scoped state and atomic evaluation commit
+<!-- vale RAES.HeadingCase = NO -->
+## CA-05 — scoped state and atomic evaluation commit
 
 Provider state has its own admitted scope: mechanism instance, configuration,
 authority and explicitly selected run/participant/episode sharing domain.
@@ -152,6 +166,8 @@ Profile identity and participant memory scope are not state-store keys by
 themselves. A reset does not imply cleared influence or a fresh causal budget.
 Sharing across participants or profiles requires explicit authority, isolation
 and disclosure rules, exact state identity and common concurrency coverage.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 All invocations begin from pinned immutable state versions. A next-state
 reference is speculative. Shared-instance deduplication requires identical
@@ -168,9 +184,8 @@ mutate either their own committed state or mandatory state.
 The admitted transition rule distinguishes evaluation-state updates (for
 example, recording an observation) from updates conditional on parent release.
 A refused parent may commit the former only when explicitly authorized. It
-cannot commit action-success state or discarded candidate state. All accepted
-updates, the complete decision/reasons, coverage and result bindings, authorized
-effect intents, logical claims and consumed budgets commit in one expected-head
+cannot commit action-success state or discarded candidate state. All accepted updates, the complete decision/reasons, and coverage and result bindings commit in one transaction.
+Authorized effect intents, logical claims and consumed budgets also commit in one expected-head
 and state-version transaction under the incumbent ADR-104 store authority.
 Every shared scope must participate; unsupported cross-store atomicity is
 unsupported support, never best-effort success.
@@ -180,7 +195,8 @@ Retry resolves a fresh K within the admitted attempt budget. Commit alone
 proves no world effect. Final invocation retains current authority/capability,
 target/policy checks and generation fencing or an equivalent dispatch lease.
 
-## CA-06 — Parent decisions and effect targets
+<!-- vale RAES.HeadingCase = NO -->
+## CA-06 — parent decisions and effect targets
 
 A **parent decision** concerns the exact crossing/proposal being evaluated.
 Permit means only that this decision does not block it; deny refuses it;
@@ -188,6 +204,8 @@ withhold keeps it pending with a bounded resumption/expiry condition. These
 decisions are settled before release, with every mandatory reason retained.
 Deny is never reduced to withhold merely because another prerequisite exists.
 Permit cannot override deny/withhold or an incumbent gate.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 The revised contract represents parent decisions as unscheduled decisions,
 separate from executable effect requests. An old-shaped parent-targeted
@@ -202,13 +220,16 @@ A decision about another target belongs to that target's admission context;
 it is not permission to mutate its history from this evaluation. Effect target,
 parent relationship and execution order must be represented separately.
 
-## CA-07 — Prerequisites, consequences and order
+<!-- vale RAES.HeadingCase = NO -->
+## CA-07 — prerequisites, consequences and order
 
 | Relation | Parent meaning and execution condition |
 | --- | --- |
 | Required predecessor | Parent remains withheld until the exact prerequisite owner outcome is satisfied. Commit the withhold and independently admitted prerequisite. Reevaluate the parent at a fresh K after completion. Completion does not erase any other blocker. |
 | Success-dependent consequence | Execute only after evidence of the declared parent outcome, such as application. A committed intent, dispatch attempt or accepted receipt does not establish application. Consequence failure does not undo an applied parent. |
 | Independent consequence | An admitted rule may request an audit/review for specified parent dispositions, including deny/withhold. The committed decision is the trigger; the consequence has its own authority, support, target, admission and outcome. It cannot release or resurrect the parent. |
+
+<!-- vale RAES.HeadingCase = YES -->
 
 A consequence intentionally dependent on admission rather than application
 must name that admission event as its prerequisite; it cannot claim a
@@ -217,7 +238,7 @@ parent blockers are exactly the prerequisites they can satisfy. Work for a
 denied parent requires a separately admitted independent-consequence rule.
 
 Check the combined graph of parent release/outcome events and effect
-prerequisites, not just the provider DAG or each phase separately. A
+prerequisites, not the provider DAG alone or each phase separately. A
 prerequisite waiting on its own parent's success is cyclic and inadmissible.
 Every prerequisite receipt binds exact logical intent, target, owner outcome
 and its validity relation at the fresh cut. Stale, mismatched, failed,
@@ -226,18 +247,21 @@ unsupported and indeterminate outcomes authorize no dependent dispatch.
 MPC-07's target compatibility still applies: order cannot repair conflicting
 replacements, routes, handoffs or lifecycle outcomes. A shutdown cannot precede
 an operation requiring that target live. A transform withholds/supersedes the
-old candidate and creates a fresh candidate with lineage and ordinary gates;
-it cannot both release the original and replace it. Disjoint operations may
+old candidate and creates a fresh candidate with lineage and ordinary gates.
+It cannot both release the original and replace it. Disjoint operations may
 remain unordered only with admitted independence. All-or-nothing external
 plans require evidenced backend transaction support.
 
-## CA-08 — Complete composition and evidence
+<!-- vale RAES.HeadingCase = NO -->
+## CA-08 — complete composition and evidence
 
 Parent eligibility conjoins incumbent gates, total required coverage, every
 typed satisfaction/support relation in M, conflict-free required state/effects,
 and satisfied required predecessor outcomes. Release additionally requires the
 atomic commit and final-invocation guards. Eligibility, authorization, committed
 intent, attempted execution, application, delivery and observation stay distinct.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Preserve all contributor and safe failure records in canonical instance/slot
 order, all required blockers and all discarded optional contributions. A
@@ -255,7 +279,8 @@ provider again or dispatch an uncertain effect. An indeterminate effect needs
 exact owner reconciliation; local commit is not distributed exactly-once
 execution. Unpublished domains or effect variants remain unsupported.
 
-## CA-09 — Publication and claim boundary
+<!-- vale RAES.HeadingCase = NO -->
+## CA-09 — publication and claim boundary
 
 The [worked cases and verification map](../../../docs/research/control-applicability/cases.md)
 bind each decision to bounded counterexamples. Existing SEM-235 domain,
@@ -263,6 +288,8 @@ freshness, authority, budget and recovery witnesses retain their original
 scope. This publication supplies no new schema, production scheduler, provider,
 storage engine, runtime adoption, external cancellation, delivery guarantee,
 backend parity, unbounded liveness or noninterference proof.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Producer, protocol, reader, retained history and capability admission must adopt
 the new meaning coherently under the migration contract. Semantic acceptance

@@ -10,13 +10,13 @@ import re
 
 from raes import ReferencePurpose
 from raes.participant_behavior_specification import ParticipantBehaviorSpecification
-from raes.participant_inject_delivery import ParticipantInjectDelivery
 from raes.participant_mixed_control_policy import (
     MIXED_CONTROL_POLICY_SEMANTICS,
     MixedControlPolicy,
 )
 from raes.scenario import InstantiatedScenario
 from raes_contracts.contracts import ParticipantControlOccurrencePolicyModel
+from raes_contracts.participant_inject_delivery import ParticipantInjectDelivery
 
 from ..models import (
     Diagnostic,

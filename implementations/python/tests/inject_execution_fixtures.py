@@ -15,7 +15,7 @@ from raes_contracts.contracts import (
     InjectTriggerRequestModel,
     inject_occurrence_reference,
 )
-from raes_contracts.plan_projection import runtime_plan_digest
+from raes_contracts.contracts.plan_projection import runtime_plan_digest
 from raes_contracts.versions import INJECT_OCCURRENCE_BACKEND_CONTRACT_IDS
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.planner import plan

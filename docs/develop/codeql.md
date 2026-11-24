@@ -4,6 +4,7 @@ The CodeQL workflow replaces CodeQL default setup.
 Main, dev and Go cutover contain the release helper's JavaScript source.
 Actions, Python and JavaScript scans run on all three branches.
 The rulesets of the three branches require each of these scan results.
+The workflow also runs on each `dev` merge group, because default setup does not (#2026).
 The current Go compiler, analyzer, Sonar and OSV checks stay required.
 Update this language matrix as part of the hard cutover.
 

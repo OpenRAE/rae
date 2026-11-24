@@ -18,6 +18,7 @@ from .adr import (
 from .common import PolicyFailure, load_yaml, parse_python_source, path_matches_prefix, read_repository_text
 from .common import safe_repo_path as _safe_repo_path
 from .conftest_tool import run_conftest_policy
+from .import_boundaries import boundary_violation
 from .structural_ratchet import evaluate_structural_ratchet
 
 StructuralPolicyRunner = Callable[[dict], list[PolicyFailure]]
@@ -79,16 +80,33 @@ def evaluate_repo_policy(
     assert policy is not None
 
     failures: list[PolicyFailure] = []
-    if check_set == "full":
+    if check_set in ("full", "structural"):
         # The structural ratchets are global (ADR-117): they run for every full check, also
         # when the change list is empty or holds only deletions.
-        if ratchet_runner is None:
+        failures.extend(_ratchet_failures(repo_root, policy, base_rev, ratchet_runner))
+    if check_set != "structural":
+        # The design structural check runs only the ADR-117 checks. The by-file checks
+        # stay in the full set, which CI runs.
+        failures.extend(_by_file_failures(repo_root, policy, changed, check_set, structural_runner))
+    return failures
 
-            def ratchet_runner(loaded_policy: dict[str, object]) -> list[PolicyFailure]:
-                return evaluate_structural_ratchet(repo_root, loaded_policy, base_rev=base_rev)
 
-        failures.extend(ratchet_runner(policy))
+def _ratchet_failures(
+    repo_root: Path, policy: dict[str, object], base_rev: str | None, ratchet_runner: RatchetRunner | None
+) -> list[PolicyFailure]:
+    if ratchet_runner is not None:
+        return ratchet_runner(policy)
+    return evaluate_structural_ratchet(repo_root, policy, base_rev=base_rev)
 
+
+def _by_file_failures(
+    repo_root: Path,
+    policy: dict[str, object],
+    changed: list[str],
+    check_set: str,
+    structural_runner: StructuralPolicyRunner | None,
+) -> list[PolicyFailure]:
+    failures: list[PolicyFailure] = []
     # Drop any changed path that escapes the repository root (absolute,
     # parent-traversal, or a planted symlink that resolves outside the
     # tree) BEFORE any checker reads it. This is a single chokepoint:
@@ -728,51 +746,12 @@ def _check_module_imports(
     known_modules: frozenset[str],
     tree: ast.Module,
 ) -> list[PolicyFailure]:
-    failures: list[PolicyFailure] = []
-    for imported in _imported_names(tree):
-        top_level = imported.split(".", 1)[0]
-        if top_level == rule["id"] or top_level not in known_modules:
-            continue
-        if _matches_any_import_prefix(imported, rule["forbidden_import_prefixes"]):
-            failures.append(
-                PolicyFailure(
-                    "module-boundary-import",
-                    (
-                        f"{rule['id']} must not import {imported!r}; "
-                        "module-boundary rules are defined by module_boundaries"
-                    ),
-                    rel_path,
-                )
-            )
-            continue
-        if _uses_private_module_path(imported):
-            failures.append(
-                PolicyFailure(
-                    "module-boundary-private-import",
-                    f"{rule['id']} must not import private/internal module path {imported!r}",
-                    rel_path,
-                )
-            )
-            continue
-        public_prefixes = rule["public_import_prefixes"].get(top_level)
-        if public_prefixes and not _matches_any_import_prefix(imported, public_prefixes):
-            failures.append(
-                PolicyFailure(
-                    "module-boundary-public-api",
-                    f"{rule['id']} may import {top_level} only through public prefixes {sorted(public_prefixes)!r}",
-                    rel_path,
-                )
-            )
-            continue
-        if top_level not in rule["allowed_top_level_imports"]:
-            failures.append(
-                PolicyFailure(
-                    "module-boundary-import",
-                    f"{rule['id']} may not import {top_level}; add an ADR-backed module-boundary allowance first",
-                    rel_path,
-                )
-            )
-    return failures
+    return [
+        PolicyFailure(rule_id, message, rel_path)
+        for imported in _imported_names(tree)
+        if (violation := boundary_violation(rule, known_modules, imported)) is not None
+        for rule_id, message in (violation,)
+    ]
 
 
 def _imported_names(tree: ast.Module) -> list[str]:
@@ -790,15 +769,6 @@ def _imported_names(tree: ast.Module) -> list[str]:
                     continue
                 names.append(f"{node.module}.{alias.name}")
     return names
-
-
-def _matches_any_import_prefix(imported: str, prefixes: tuple[str, ...]) -> bool:
-    return any(imported == prefix or imported.startswith(f"{prefix}.") for prefix in prefixes)
-
-
-def _uses_private_module_path(imported: str) -> bool:
-    parts = imported.split(".")
-    return any(part.startswith("_") for part in parts[1:])
 
 
 def _check_backend_protocol_contract_annotations(rel_path: str, tree: ast.Module) -> list[PolicyFailure]:

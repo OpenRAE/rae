@@ -52,9 +52,7 @@ The publication has no combined score, confidence interval, or population robust
 
 The [retained collection](../../research/adversarial-participant-control/evaluations/sha256-bdd6f06782b169c8e0d853b2e1a936f22eb670601e07e3dce00f1de3420fb401.json)
 contains the seven executed results and safe conformance reports.
-Its [shared source inventory](../../../specs/formal/participant-semantics/runtime-mapping/capture-c2e5461790d60587b41ec2be5a8872c167d79bb12c2c444c3848f23c7e1e3e59/manifest.json)
-pins the exact source content.
-Earlier committed captures retain their original source identities.
+The runtime-mapping export builds its shared source inventory from the current sources on each run.
 
 Run from the source checkout with its frozen Python 3.14 dependency environment.
 The collector uses synthetic fixtures and local files only.

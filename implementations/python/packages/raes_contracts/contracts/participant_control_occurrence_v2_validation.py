@@ -12,7 +12,10 @@ from __future__ import annotations
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field, replace
 
-from raes.participant_mixed_control_vocabulary import MixedControlTransitionKind, ParticipantControlTargetKind
+from raes_contracts.participant_mixed_control_vocabulary import (
+    MixedControlTransitionKind,
+    ParticipantControlTargetKind,
+)
 
 from .participant_control import ParticipantControlDeclarationModel, ParticipantControlTargetContextModel
 from .participant_control_history_verifiability import (

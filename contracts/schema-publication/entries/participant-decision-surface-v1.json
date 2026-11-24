@@ -1,10 +1,5 @@
 {
   "contract_id": "participant-decision-surface-v1",
   "schema_path": "contracts/schemas/control-plane/participant-decision-surface-v1.json",
-  "stability": "draft",
-  "content_hash": "05e4f6a7df6a1dda463a9f553c7a31ef527fb323f58f232f697d4e0226525208",
-  "last_change": {
-    "content_hash": "05e4f6a7df6a1dda463a9f553c7a31ef527fb323f58f232f697d4e0226525208",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

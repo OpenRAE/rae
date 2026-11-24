@@ -2,29 +2,29 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from types import SimpleNamespace
 
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import RaesError
 from raes_contracts.manifest_authority import PARTICIPANT_RUNTIME_POLICY_FEATURES
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
-from raes_contracts.participant_episode import (
-    ParticipantEpisodeTerminalReason,
-    iter_participant_episode_snapshot_violations,
-)
+from raes_contracts.participant_episode import ParticipantEpisodeTerminalReason
+from raes_contracts.participant_episode_snapshot import iter_participant_episode_snapshot_violations
 from raes_contracts.planning import PlanScope, ProvisioningPlan, RuntimeDomain
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
-from raes_processor.models import ExecutionPlan
+from raes_processor.models import ExecutionPlan, RuntimeModel
 from raes_processor.reference import ScenarioInput
 from raes_runtime.control_plane import RuntimeControlPlane
+from raes_runtime.participant_episode_binding import ParticipantEpisodeRuntimeBinding
 from raes_runtime.registry import RuntimeTarget
 from raes_runtime.snapshot_contract import runtime_snapshot_contract_payload
 
 from raes_conformance._materialization_scope import materialization_probe_scope
 from raes_conformance.conformance.diagnostics import (
     _SEMANTIC_INVALID_DIAGNOSTIC_CODE,
-    _diagnostic,
+    conformance_diagnostic,
     sanitized_failure_message,
 )
 from raes_conformance.conformance.participant_execution_probes import (
@@ -108,7 +108,7 @@ def _participant_snapshot_consistency_case(
     final_diagnostics: list[Diagnostic] = []
     if not snapshot.participant_episode_results:
         final_diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.participant-runtime-empty",
                 f"runtime.snapshot.participant-episode-results.{participant_address}",
                 (
@@ -120,7 +120,7 @@ def _participant_snapshot_consistency_case(
         )
     if not snapshot.participant_episode_history:
         final_diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.participant-runtime-empty",
                 f"runtime.snapshot.participant-episode-history.{participant_address}",
                 (
@@ -134,7 +134,7 @@ def _participant_snapshot_consistency_case(
         snapshot.participant_episode_results,
         snapshot.participant_episode_history,
     ):
-        final_diagnostics.append(_diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message))
+        final_diagnostics.append(conformance_diagnostic(_SEMANTIC_INVALID_DIAGNOSTIC_CODE, address, message))
     return ConformanceCaseResult(
         name="participant-snapshot-consistent",
         contract_name=contract_name,
@@ -192,7 +192,7 @@ def _drive_participant_episode_probe(
                     valid=True,
                     passed=False,
                     diagnostics=(
-                        _diagnostic(
+                        conformance_diagnostic(
                             "conformance.participant-runtime-failed",
                             f"runtime.control-plane.participant.{participant_address}",
                             f"{case_name} failed: {sanitized_failure_message(exc)}",
@@ -205,7 +205,7 @@ def _drive_participant_episode_probe(
         diagnostics: list[Diagnostic] = []
         if status is None:
             diagnostics.append(
-                _diagnostic(
+                conformance_diagnostic(
                     "conformance.participant-runtime-missing-status",
                     f"runtime.control-plane.participant.{participant_address}",
                     f"{case_name} did not produce an OperationStatus record",
@@ -213,7 +213,7 @@ def _drive_participant_episode_probe(
             )
         elif status.state.value not in {"succeeded"}:
             diagnostics.append(
-                _diagnostic(
+                conformance_diagnostic(
                     "conformance.participant-runtime-failed",
                     f"runtime.control-plane.participant.{participant_address}",
                     (
@@ -255,7 +255,7 @@ def _provisioning_probe_case(
     diagnostics: list[Diagnostic] = []
     if status is None:
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.provisioning-missing-status",
                 address,
                 "Provisioning submission did not produce an OperationStatus record.",
@@ -263,7 +263,7 @@ def _provisioning_probe_case(
         )
     elif status.state.value != "succeeded":
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.provisioning-failed",
                 address,
                 (
@@ -274,7 +274,7 @@ def _provisioning_probe_case(
         )
     elif not status.changed_addresses:
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.provisioning-empty",
                 address,
                 (
@@ -318,7 +318,7 @@ def _hermetic_snapshot_case(
     )
     if not has_provisioning_entry:
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.snapshot-not-mutated",
                 "runtime.snapshot.entries",
                 (
@@ -329,7 +329,7 @@ def _hermetic_snapshot_case(
         )
     if materialization_required and not control_plane.snapshot.materialization_attestations:
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.materialization-not-archived",
                 "runtime.snapshot.materialization_attestations",
                 (
@@ -347,12 +347,21 @@ def _hermetic_snapshot_case(
     )
 
 
-def _target_adapter_cases(
+@dataclass(frozen=True)
+class TargetAdapterRun:
+    """Target-adapter probe cases and the compiled model of the probe scenario, when one was planned."""
+
+    cases: tuple[ConformanceCaseResult, ...]
+    model: RuntimeModel | None = None
+
+
+def target_adapter_run(
     target: RuntimeTarget,
     profile: BackendProfileSelector,
     *,
     reference_scenario: ScenarioInput | None = None,
-) -> tuple[ConformanceCaseResult, ...]:
+    participant_episode: ParticipantEpisodeRuntimeBinding | None = None,
+) -> TargetAdapterRun:
     """Run target-adapter probes appropriate for known runtime surfaces only.
 
     Every known profile requires a provisioner, so target conformance always
@@ -374,7 +383,7 @@ def _target_adapter_cases(
     cases = [target_manifest_case(target)]
     known = _to_known_profile(profile)
     if not cases[0].valid or known is None:
-        return tuple(cases)
+        return TargetAdapterRun(tuple(cases))
 
     scenario = DEFAULT_TARGET_CONFORMANCE_SCENARIO if reference_scenario is None else reference_scenario
     scope = materialization_probe_scope(target)
@@ -393,7 +402,7 @@ def _target_adapter_cases(
                 valid=False,
                 passed=False,
                 diagnostics=(
-                    _diagnostic(
+                    conformance_diagnostic(
                         "conformance.provisioning-failed",
                         "runtime.control-plane.provisioning",
                         "Composite planning rejected the target probe before backend execution: "
@@ -402,9 +411,28 @@ def _target_adapter_cases(
                 ),
             )
         )
+    elif execution_plan.model.participant_episode_policies and (
+        participant_episode is None or not participant_episode.admits_model(execution_plan.model)
+    ):
+        cases.append(
+            ConformanceCaseResult(
+                name="target-episode-binding",
+                contract_name="participant-episode-state-envelope-v1",
+                valid=False,
+                passed=False,
+                outcome="unsupported",
+                diagnostics=(
+                    conformance_diagnostic(
+                        "conformance.participant-episode-binding-missing",
+                        "target",
+                        "The probe scenario requires its exact installed episode binding.",
+                    ),
+                ),
+            )
+        )
     else:
-        cases.extend(_target_runtime_cases(target, known, execution_plan, scope))
-    return tuple(cases)
+        cases.extend(_target_runtime_cases(target, known, execution_plan, scope, participant_episode))
+    return TargetAdapterRun(tuple(cases), execution_plan.model)
 
 
 def _target_runtime_cases(
@@ -412,12 +440,13 @@ def _target_runtime_cases(
     known: BackendCapabilityProfile,
     execution_plan: ExecutionPlan,
     scope: PlanScope | None = None,
+    participant_episode: ParticipantEpisodeRuntimeBinding | None = None,
 ) -> tuple[ConformanceCaseResult, ...]:
     """Drive the runtime surfaces that are valid for one known backend profile."""
 
     owner = ProbeRuntimeOwner(scope)
     try:
-        return _target_runtime_probe_cases(target, known, execution_plan, owner)
+        return _target_runtime_probe_cases(target, known, execution_plan, owner, participant_episode)
     finally:
         owner.close()
 
@@ -427,6 +456,7 @@ def _target_runtime_probe_cases(
     known: BackendCapabilityProfile,
     execution_plan: ExecutionPlan,
     owner: ProbeRuntimeOwner,
+    participant_episode: ParticipantEpisodeRuntimeBinding | None = None,
 ) -> tuple[ConformanceCaseResult, ...]:
     cases: list[ConformanceCaseResult] = []
     materialization_required = owner.materialization_required
@@ -437,6 +467,7 @@ def _target_runtime_probe_cases(
         initial_snapshot=_participant_execution_probe_snapshot(target),
         crossing_policy_resolver=_conformance_crossing_policy_resolver(target),
         enforce_final_sink_flow_control=False,
+        participant_episode=participant_episode,
     )
     controls = frozenset()
     with control_plane:

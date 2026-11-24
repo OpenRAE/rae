@@ -25,8 +25,8 @@ independent derivation. The mandatory pre-publish construction review examines
 these authorities. Construction is not an equivalence check or an independent
 reproduction of a positive theorem.
 
-The [manifest](../../../specs/formal/participant-semantics/crossing-models/multi-rev1/manifest.json)
-records exact state/semantic-transition/projected-transition/initial counts,
+The manifest that
+`python -m implementations.formal.participant_crossing --profile multi` builds from the current sources records exact state/semantic-transition/projected-transition/initial counts,
 all domain cardinalities, identity mapping, profile/catalog/projection pins,
 runtime/contract source inventory and artifact digests. Both graphs are complete
 reachable fixed points, with unlimited visible retry cycles and a fixed fresh

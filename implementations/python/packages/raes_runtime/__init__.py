@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from importlib import import_module
 
-_EXPORT_MODULES = {
-    "control_plane": ("RuntimeControlPlane",),
-    "control_plane_profiles": (
+_LAZY_EXPORTS = {
+    "raes_runtime.control_plane": ("RuntimeControlPlane",),
+    "raes_runtime.control_plane_profiles": (
         "ControlPlaneActorBoundary",
         "ControlPlaneCapability",
         "ControlPlaneClaim",
@@ -20,7 +20,7 @@ _EXPORT_MODULES = {
         "RecoveryObservationRequirement",
         "profile_declaration",
     ),
-    "experiment_records": (
+    "raes_runtime.experiment_records": (
         "ExperimentRunMetadata",
         "ExperimentRecordBundle",
         "ExperimentRecordSource",
@@ -28,11 +28,11 @@ _EXPORT_MODULES = {
         "ExperimentRecordArchive",
         "ExperimentEvidenceReader",
     ),
-    "manager": ("RuntimeManager",),
-    "mixed_runtime": ("MixedPhaseTransitionEvaluation", "MixedRuntimeBinding", "MixedRuntimeComponent"),
-    "mixed_backend_installation": ("MixedBackendInstallation", "MixedBackendService"),
-    "registry": ("BackendRegistry", "RuntimeTarget", "RuntimeTargetComponents", "RuntimeTargetDescriptor"),
-    "runtime_fact_bindings": (
+    "raes_runtime.manager": ("RuntimeManager",),
+    "raes_runtime.mixed_runtime": ("MixedPhaseTransitionEvaluation", "MixedRuntimeBinding", "MixedRuntimeComponent"),
+    "raes_runtime.mixed_backend_installation": ("MixedBackendInstallation", "MixedBackendService"),
+    "raes_runtime.registry": ("BackendRegistry", "RuntimeTarget", "RuntimeTargetComponents", "RuntimeTargetDescriptor"),
+    "raes_runtime.runtime_fact_bindings": (
         "RuntimeFactActionDisposition",
         "RuntimeFactBindingAdmission",
         "RuntimeFactBindingPlane",
@@ -43,9 +43,9 @@ _EXPORT_MODULES = {
 
 
 def __getattr__(name: str) -> object:
-    for module, names in _EXPORT_MODULES.items():
+    for module, names in _LAZY_EXPORTS.items():
         if name in names:
-            value = getattr(import_module(f".{module}", __name__), name)
+            value = getattr(import_module(module), name)
             globals()[name] = value
             return value
     raise AttributeError(name)

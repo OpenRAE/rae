@@ -50,7 +50,7 @@ Neither `backend`, `backend/stub`, nor `contract/runtime` has an implemented pac
 Declare packages and imports in `implementations/architecture.json` before code.
 Declare exported names and typed API commitments there too.
 Keep the planned declarations, hashes and [system overview](../develop/go-architecture.md) aligned through the existing architecture tooling.
-Pass `archcheck -design` on that completed design before code, as ADR-122 requires.
+Pass `archcheck -design` on that completed design before code, as ADR-124 requires.
 This preflight changes no model or API commitments.
 
 ## Validation and security through the complete path
@@ -170,7 +170,7 @@ Retain refusal-without-state-change and secret-sentinel cases, not only valid fi
 Use existing independent reference fixtures in `contract/admission/testdata/`; do not replace those tests with self-consistency checks.
 
 Repository-wide gates remain in `.ground-control.yaml`, `.gc/plan-rules.md`, `implementations/architecture.json` and `.github/workflows/canonical-verification.yml`.
-ADR-121, `implementations/.golangci.yml`, `.gremlins.yaml` and the existing tooling module govern Go checks.
+ADR-123, `implementations/.golangci.yml`, `.gremlins.yaml` and the existing tooling module govern Go checks.
 Use file-scoped policy, documentation checks and explicit test cases locally.
 Full tests, integration, fuzz, mutation, coverage and regression gates remain in CI/CD.
 Keep `GOTOOLCHAIN=local` and read-only module resolution.

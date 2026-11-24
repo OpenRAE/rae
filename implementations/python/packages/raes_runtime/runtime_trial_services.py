@@ -2,18 +2,30 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, Protocol
+from typing import TYPE_CHECKING, Protocol
 
-from pydantic import BaseModel, ConfigDict, Field
-from raes_contracts.contracts import (
-    CleanupObligationResultModel,
-    ExperimentEvidenceRecordModel,
-    ParticipantConfigurationResultModel,
-    TrialCleanupReceiptModel,
-)
+from raes_contracts.assigned_trial import TrialOutcomeModel
 from raes_contracts.errors import RaesError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
+from raes_contracts.trial_observations import (
+    TrialCaptureObservation as TrialCaptureObservation,
+)
+from raes_contracts.trial_observations import (
+    TrialCleanupObservation as TrialCleanupObservation,
+)
+from raes_contracts.trial_observations import (
+    TrialConfigurationObservation as TrialConfigurationObservation,
+)
+from raes_contracts.trial_observations import (
+    TrialExecutionObservation as TrialExecutionObservation,
+)
+from raes_contracts.trial_observations import (
+    TrialObservation as TrialObservation,
+)
+from raes_contracts.trial_observations import (
+    TrialRetryObservation as TrialRetryObservation,
+)
 from raes_contracts.trial_unit import TrialUnitRequest
 
 from .errors import RuntimeBudgetExhaustedError
@@ -24,6 +36,13 @@ if TYPE_CHECKING:
     from .operation_execution_adapter import LocalExecutionAdapter
 
 _LOGGER = get_logger(__name__)
+
+
+def require_trial_services(services: TrialRuntimeServices) -> None:
+    """Check every installed lifecycle owner before a trial can have effects."""
+    required = ("admit", "configure", "observe", "capture", "cleanup", "stop", "verify")
+    if services is None or not all(callable(getattr(services, name, None)) for name in required):
+        raise ValueError("trial requires installed trial services")
 
 
 def call_installed_owner[T](
@@ -55,58 +74,6 @@ def call_installed_owner[T](
     raise refusal
 
 
-class TrialConfigurationObservation(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-    kind: Literal["configuration"] = "configuration"
-    configurations: tuple[ParticipantConfigurationResultModel, ...] = Field(max_length=4096)
-    evidence: tuple[ExperimentEvidenceRecordModel, ...] = Field(max_length=4096)
-
-
-class TrialExecutionObservation(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-    kind: Literal["execution"] = "execution"
-    state: Literal["running", "succeeded", "failed", "cancelled", "timed-out", "aborted"]
-    ceased: bool
-    effects_absent: bool = False
-    evidence: tuple[ExperimentEvidenceRecordModel, ...] = Field(max_length=4096)
-
-
-class TrialCaptureObservation(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-    kind: Literal["capture"] = "capture"
-    complete: bool
-    evidence: tuple[ExperimentEvidenceRecordModel, ...] = Field(max_length=4096)
-
-
-class TrialCleanupObservation(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-    kind: Literal["cleanup"] = "cleanup"
-    receipt: TrialCleanupReceiptModel
-    evidence: tuple[ExperimentEvidenceRecordModel, ...] = Field(max_length=4096)
-    idempotent_effects: bool = False
-    verified_compensations: tuple[str, ...] = Field(default=(), max_length=4096)
-
-
-class TrialRetryObservation(BaseModel):
-    """Nonterminal retry obligations are separate from the terminal cleanup receipt."""
-
-    model_config = ConfigDict(extra="forbid", frozen=True)
-    kind: Literal["retry"] = "retry"
-    ready: bool
-    obligation_results: dict[str, CleanupObligationResultModel] = Field(default_factory=dict, max_length=4096)
-    verified_compensations: tuple[str, ...] = Field(default=(), max_length=4096)
-    evidence: tuple[ExperimentEvidenceRecordModel, ...] = Field(max_length=4096)
-
-
-TrialObservation = (
-    TrialConfigurationObservation
-    | TrialExecutionObservation
-    | TrialCaptureObservation
-    | TrialCleanupObservation
-    | TrialRetryObservation
-)
-
-
 class TrialRuntimeServices(Protocol):
     """Trusted composition, analogous to installed operation evidence owners.
 
@@ -135,3 +102,17 @@ class TrialRuntimeServices(Protocol):
     def prepare_retry(
         self, request: TrialUnitRequest, snapshot: RuntimeSnapshot
     ) -> tuple[ApplyResult, TrialRetryObservation]: ...
+
+
+class TrialOutcomeVerifier(Protocol):
+    """Installed authorized reader, never a worker-supplied assertion.
+
+    Verify original native execution records and their request/predecessor/result
+    commitments against the request. Resolve original evidence through its owners.
+    Establish configuration, cessation, capture and cleanup facts, including their
+    native validation provenance. Reuse OperationEvidenceResolver and the original
+    runtime's checked records. Mere carrier equality or a claimed digest cannot
+    establish physical truth. Raise on missing, changed or unverified evidence.
+    """
+
+    def verify_outcome(self, request: TrialUnitRequest, outcome: TrialOutcomeModel) -> None: ...

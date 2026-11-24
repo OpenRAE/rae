@@ -23,10 +23,10 @@ if TYPE_CHECKING:
     from .control_plane import RuntimeControlPlane
 
 
-from raes_contracts.contracts.participant_control import ParticipantControlTargetKind
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_control_occurrence_v2 import parse_participant_control_occurrence
 from raes_contracts.errors import ConflictError
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
+from raes_contracts.participant_mixed_control_vocabulary import ParticipantControlTargetKind
 
 from .participant_control_runtime import CONTROL_CUT_REFUSALS, admitted_policy, resolve_owner_cut
 from .participant_control_targets import archived_control_targets

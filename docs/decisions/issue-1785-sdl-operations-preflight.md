@@ -155,7 +155,7 @@ Two planned API gaps require resolution in the implementation design:
 ## Evidence, gate and non-goals
 
 Before code, record exact package owners, imports, exported identifiers and typed APIs in `implementations/architecture.json`.
-Bind the owning design/API commitments and pass `archcheck -design` under ADR-122.
+Bind the owning design/API commitments and pass `archcheck -design` under ADR-124.
 This preflight does not change the model or claim that the forthcoming design has passed.
 Review `docs/develop/go-architecture.md` with its existing source/view commitments when that design changes them.
 Reuse `.ground-control.yaml`, `.gc/plan-rules.md`, `implementations/.golangci.yml`, `implementations/.gremlins.yaml` and `.github/workflows/canonical-verification.yml`.

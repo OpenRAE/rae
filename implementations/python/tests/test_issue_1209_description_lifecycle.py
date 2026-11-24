@@ -5,12 +5,8 @@ from dataclasses import replace
 import pytest
 from raes_backend_stubs.stubs import create_stub_target
 from raes_contracts.contracts.realization_descriptions import TypedRealizationDescriptionModel
-from raes_contracts.observation_demand import (
-    AchievedObservationValue,
-    ObservationBasis,
-    ObservationLifecycleStage,
-    ObservationSelector,
-)
+from raes_contracts.observation_demand import ObservationBasis, ObservationLifecycleStage, ObservationSelector
+from raes_contracts.observation_reporting import AchievedObservationValue
 from raes_contracts.planning import ProvisioningPlan
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_store import InMemoryControlPlaneStore
@@ -145,7 +141,7 @@ def test_protection_applies_to_typed_values_before_the_retention_transaction():
 
 def test_typed_evidence_does_not_replace_required_emitted_bytes():
     from raes_contracts.contracts import ExperimentEvidenceRecordModel
-    from raes_contracts.evidence_satisfaction import validate_experiment_run_evidence
+    from raes_contracts.contracts.evidence_satisfaction import validate_experiment_run_evidence
     from test_issue_1112_capture_admission import _evidence_bundle
 
     task, run, spec, record, _payload = _evidence_bundle()
@@ -163,7 +159,8 @@ def test_typed_evidence_does_not_replace_required_emitted_bytes():
 
 
 def test_protection_cannot_restore_unrequested_fact_depth():
-    from raes_contracts.observation_demand import ObservationDemandResolution, realization_description_report
+    from raes_contracts.observation_demand import ObservationDemandResolution
+    from raes_contracts.observation_reporting import realization_description_report
 
     selector = ObservationSelector(semantic_scope="/nodes/a", data_kind="field", names=("family",))
     demands = _demands(selector, purpose="realization-description", required=True)

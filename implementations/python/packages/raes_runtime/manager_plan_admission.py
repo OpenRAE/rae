@@ -8,6 +8,7 @@ from raes_processor.planner import descriptor_profile_diagnostics, participant_t
 from .diagnostics import _failure_diagnostic
 from .mixed_control_admission import reference_mixed_control_diagnostics
 from .observation_execution import observation_submission_diagnostic
+from .participant_episode_binding import ParticipantEpisodeRuntimeBinding
 from .registry import RuntimeTarget
 
 _RUNTIME_APPLY_ADDRESS = "runtime.apply"
@@ -19,9 +20,22 @@ def runtime_plan_precondition_diagnostics(
     snapshot: RuntimeSnapshot,
     *,
     durable_lifecycle_available: bool = False,
+    delivery_actions: frozenset[str] = frozenset(),
+    participant_episode: ParticipantEpisodeRuntimeBinding | None = None,
 ) -> list[Diagnostic]:
-    """Return every deterministic plan-admission failure for a manager apply."""
+    """Return every deterministic plan-admission failure for a runtime apply."""
     diagnostics = _provenance_diagnostics(execution_plan, target, snapshot)
+    if execution_plan.model.participant_episode_policies and (
+        participant_episode is None or not participant_episode.admits_model(execution_plan.model)
+    ):
+        diagnostics.append(
+            Diagnostic(
+                code="runtime.participant-episode-binding-unavailable",
+                domain="participant",
+                address=_RUNTIME_APPLY_ADDRESS,
+                message="Authored episode policies require the exact installed episode runtime binding.",
+            )
+        )
     context = execution_plan.planning_context
     processor = None if context is None else context.processor_manifest
     diagnostics.extend(participant_tool_support_diagnostics(execution_plan.model, target.manifest, processor))
@@ -33,7 +47,9 @@ def runtime_plan_precondition_diagnostics(
     )
     diagnostics.extend(
         diagnostic
-        for diagnostic in reference_participant_driver_diagnostics(execution_plan.model)
+        for diagnostic in reference_participant_driver_diagnostics(
+            execution_plan.model, delivery_actions=delivery_actions
+        )
         if diagnostic not in execution_plan.diagnostics
     )
     phase_plans = {
@@ -52,13 +68,17 @@ def runtime_plan_precondition_diagnostics(
     return diagnostics
 
 
-def reference_participant_driver_diagnostics(model: RuntimeModel) -> list[Diagnostic]:
+def reference_participant_driver_diagnostics(
+    model: RuntimeModel,
+    *,
+    delivery_actions: frozenset[str] = frozenset(),
+) -> list[Diagnostic]:
     """Reference-driver limits are execution admission, never SDL validity."""
 
     clocks = {clock.address: clock for clock in model.time_model.clocks}
     progressions = {policy.address: policy for policy in model.time_model.progression_policies}
     diagnostics = []
-    driven_actions = set()
+    driven_actions = set(delivery_actions)
     for specification in model.behavior_specifications.values():
         policy = specification.autonomous_execution
         if policy is None:
@@ -89,11 +109,7 @@ def reference_participant_driver_diagnostics(model: RuntimeModel) -> list[Diagno
                     code="runtime.participant-temporal-driver-unsupported",
                     domain="participant",
                     address=action.address,
-                    message=(
-                        "The reference runtime enforces explicit shared-time action bindings through autonomous "
-                        "policies; "
-                        "this manual action requires another execution driver."
-                    ),
+                    message=("This shared-time action requires an installed execution driver with its exact binding."),
                 )
             )
     diagnostics.extend(reference_mixed_control_diagnostics(model))

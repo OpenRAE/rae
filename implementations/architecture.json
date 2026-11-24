@@ -243,7 +243,7 @@
         },
         {
           "path": "golang.org/x/tools/go/analysis",
-          "reason": "The go/analysis framework, its unitchecker, and its analysistest for the repository analyzers (ADR-121)."
+          "reason": "The go/analysis framework, its unitchecker, and its analysistest for the repository analyzers (ADR-123)."
         },
         {
           "path": "golang.org/x/tools/go/ast/inspector",
@@ -13859,7 +13859,7 @@
     "docs/decisions/issue-1778-parity-corpus-design.md": "c3197d51b64c8b2684096ad8d4ed4df223457b2e811a16e68bf31e9babc15830",
     "docs/decisions/issue-1859-go-architecture-contract-design.md": "df0610aa609edb15eec1327d3efef5e61f730e4da468b5c9f035ac08c0d1659a",
     "contracts/schemas/experiment-core/materialization-archive-record-v1.json": "fb61b1d9bb70ffedf7fec94325c3751a29ef7db7f6e8bea8fc96c064d101ba90",
-    "docs/decisions/adrs/adr-122-go-architecture-model.md": "80b64aac8e4e646f56d129c2c997c19583ecfb0f0b0b571fa46e09a3103ca45c",
+    "docs/decisions/adrs/adr-124-go-architecture-model.md": "80b64aac8e4e646f56d129c2c997c19583ecfb0f0b0b571fa46e09a3103ca45c",
     "docs/decisions/issue-1775-go-architecture-model-design.md": "d12f71c98e4bcad11f42db41338d2d93e9d9ed21731e5e4a1b9ed6fbbba1d2c8",
     "docs/decisions/issue-1779-shared-primitives-completion.md": "53b8dcd5ef5e1ad44ca2948eca10fff0d180028b807a496ddbe82e61e9e573ed",
     "docs/decisions/issue-1780-contract-validation-design.md": "f26e848f8998353626fc2783d1f5aad8caa2c7769699de30b84ea5e3b6651311",

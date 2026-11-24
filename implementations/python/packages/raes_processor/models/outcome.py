@@ -4,7 +4,10 @@ from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
-from raes.participant_outcome_semantics import OutcomeInterpretationSourceLayer, OutcomeInterpretationTargetLayer
+from raes_contracts.participant_outcome_semantics import (
+    OutcomeInterpretationSourceLayer,
+    OutcomeInterpretationTargetLayer,
+)
 
 from .behavior_resources import (
     _optional_payload_string,

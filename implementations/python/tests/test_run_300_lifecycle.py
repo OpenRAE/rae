@@ -329,9 +329,9 @@ class TestRun300Lifecycle:
                 f"state_schema_version per workflow-results.md; got "
                 f"{state.get('state_schema_version')!r}."
             )
-            assert state.get("workflow_status") == "running", (
-                f"Stub orchestrator must publish workflow_status='running' "
-                f"on the live envelope immediately after start; got "
+            assert state.get("workflow_status") == "succeeded", (
+                f"Runtime dispatch through the synchronous stub must complete the workflow "
+                f"and publish workflow_status='succeeded'; got "
                 f"{state.get('workflow_status')!r}."
             )
 

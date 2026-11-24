@@ -1,4 +1,4 @@
-# Operation Supervision and Recovery Semantics
+# Operation supervision and recovery semantics
 
 Status: design authority under ADR-104, issue #1348 and API-404.
 Classification: FM3. This specification defines obligations for implementation;
@@ -9,7 +9,8 @@ The [operation model](README.md) owns the persisted state matrix and atomic
 store invariants. The [decision](../../../docs/decisions/issue-1348-operation-lifecycle.md)
 records canonical requirement dispositions and current implementation gaps.
 
-## S1 — Authority and admission
+<!-- vale RAES.HeadingCase = NO -->
+## S1 — authority and admission
 
 RAE is the shared product runtime driving backend execution. Authors select
 required semantics through the owning workflow, time, realization and trial
@@ -17,12 +18,14 @@ contracts. The processor preserves them in admitted plans; the runtime admits,
 drives, supervises and classifies operations. Backends own concrete realization,
 effect observation and contextual willingness. Embedders own process deployment.
 
-For an operation, let `R` be its exact admitted requirements, `C` the effective
-capabilities of the installed backend for that operation kind and context, and
-`W` its current willingness. Admission requires `C satisfies R` and `W`.
+<!-- vale RAES.HeadingCase = YES -->
+
+For an operation, let `R` be its exact admitted requirements and `W` its current willingness.
+Let `C` be the effective capabilities of the installed backend for that operation kind and context. Admission requires `C satisfies R` and `W`.
 Manifest declarations, installed protocol support, willingness and evidence of
-satisfaction are independent facts. Recheck context after queueing and before
-dispatch; prior willingness is not an irrevocable promise. Missing, unsupported,
+satisfaction are independent facts.
+
+Recheck context after queueing and before dispatch; prior willingness is not an irrevocable promise. Missing, unsupported,
 contradictory or refused required guarantees prevent invocation. Never silently
 shorten a required duration, weaken a requirement, substitute another backend,
 or interpret absence of support as best effort. An authored alternative needs
@@ -32,7 +35,8 @@ Admission and supervision use existing authentication, role/subject checks,
 bounded request admission, closed value/config/manifest validators and safe
 diagnostics. The original actor, target/run, kind and request commitment remain
 immutable. Every supervisor is independently authorized for the exact operation
-and records its own actor and request identity; it cannot replace the original
+and records its own actor and request identity.
+It cannot replace the original
 actor or widen scope. Operational audit, participant observation and archival
 evidence retain their existing authorities. No credentials, raw input, native
 exception text, process arguments or environment dumps enter these records.
@@ -57,8 +61,8 @@ against current state, never blind snapshot merge or backend re-invocation.
 Use target/run-wide exclusion unless narrower independence is established by
 the admitted contract. Reads and bounded supervisory requests remain serviceable
 while an external invocation is blocked. Reserve bounded control capacity across
-HTTP admission, workers and audit queues, as well as the core authority; putting
-a cancel request behind a saturated effect queue does not satisfy supervision.
+HTTP admission, workers and audit queues, as well as the core authority.
+Putting a cancel request behind a saturated effect queue does not satisfy supervision.
 Control overload has a bounded, explicit rejection and cannot silently discard
 an acknowledged request. No callback gains authority to mutate the store.
 
@@ -110,10 +114,13 @@ operation completion and verified cleanup are distinct outcomes. A successful
 operation that records a workflow cancellation proves only its admitted action.
 A disconnect, cancelled future or killed local process proves no remote cessation.
 
-## S4 — Deadlines and shutdown
+<!-- vale RAES.HeadingCase = NO -->
+## S4 — deadlines and shutdown
 
 Operational budgets use local apparatus monotonic elapsed time. Each admitted
 budget is positive, finite, validated and bound to its stage and origin:
+
+<!-- vale RAES.HeadingCase = YES -->
 
 | Budget | Starts | Expiry consequence |
 | --- | --- | --- |
@@ -124,8 +131,8 @@ budget is positive, finite, validated and bound to its stage and origin:
 | Drain/close | Stop-admission boundary | Escalate to the embedder with unresolved operations and retained exclusion; never report successful shutdown solely because the budget expired. |
 
 Nested calls consume the remaining enclosing budget; bounded retries or fan-out
-cannot renew it. Store waits and audit publication are covered too: if the
-single state authority itself cannot make progress, supervision reports inability
+cannot renew it. Store waits and audit publication are covered too.
+If the single state authority itself cannot make progress, supervision reports inability
 to establish settlement rather than claiming a persisted terminal outcome.
 Liveness is conditional on the admitted store/control/backend capabilities;
 there is no universal hard real-time claim.
@@ -145,7 +152,8 @@ Keep existing strict workflow timestamp validation and inclusive expiry rules.
 Shutdown stops admission, requests supported cessation, settles or quarantines
 operations, closes the store provider, then releases the owner lease. If store
 close is unconfirmed, retain the lease while the process lives. If the embedder
-must terminate the process, that is a declared loss boundary: a restart acquires
+must end the process, that is a declared loss boundary.
+A restart acquires
 the store lease but remains unready until external work is reconciled. Local
 lease release or process death is never an external fence. Restore obeys the
 same rule because the database can be older than backend effects.
@@ -196,11 +204,14 @@ it does not establish cessation, retry safety, a clean range or scientific
 validity. Quarantine is discharged only by the required effect/cessation evidence
 and applicable admission rules, not by the existence of the child receipt.
 
-## S6 — Author-directed subsequent work
+<!-- vale RAES.HeadingCase = NO -->
+## S6 — author-directed subsequent work
 
 Use the existing authored policies and their normative defaults. Durability adds
 none of the permissions below. Fresh authorization and current backend
 willingness are required whenever subsequent work can produce effects.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 | Action | Authority and necessary evidence |
 | --- | --- |
@@ -208,12 +219,12 @@ willingness are required whenever subsequent work can produce effects.
 | Workflow retry | SEM-203's retry graph, attempt bounds, guards and history. It is not a store-recovery retry loop. |
 | Another trial execution attempt | SCE-007 `ExecutionRetryPolicyModel`: remaining attempts, selected after-effect posture, and established idempotence or required reset/compensation evidence. New `execution_attempt_id`, same admitted entry and archival `run_id`. |
 | Resume | Explicit permitted continuation, a compatible checkpoint/continuation boundary, reconciled effects, preserved workflow/participant/time state and valid inputs/authority. Same run and preserved history; any new control operation links to the original. A snapshot alone is insufficient. |
-| Terminate | Authorized policy ends the relevant control flow and closes admission; separately report backend cessation, episode outcome, cleanup and trial validity. Emergency administrative stop can contain work but cannot silently change authored success/validity criteria. |
+| `Terminate` | Authorized policy ends the relevant control flow and closes admission; separately report backend cessation, episode outcome, cleanup and trial validity. Emergency administrative stop can contain work but cannot silently change authored success/validity criteria. |
 | New trial | Authorized allocation under EXP-706/SCE-002, distinct admitted trial coordinate/run identity, clean or declared reusable initial state and SCE-006/007 isolation/cleanup evidence. Preserve the failed/interrupted trial and its invalidation evidence. |
 
 No resumed or repeated effects enter a quarantined scope. An independently
-isolated new trial may be admitted only with evidence that old work cannot reach
-its resources; changing an operation id, run id, backend name or store path is
+isolated new trial may be admitted only with evidence that old work cannot reach its resources.
+Changing an operation id, run id, backend name or store path is
 not isolation. If required cleanup fails, deny reuse and preserve its independent
 failed/partial/unverified result. Failure requiring a new trial cannot be
 converted into continuation, and permission for a new trial does not allocate it
@@ -263,6 +274,7 @@ admission refusal, cancellation/completion order, 64 effect-evidence
 combinations, late/stale completion, atomic publication uncertainty, monotonic
 expiry and continuation counterexamples. Evidence booleans are assumptions
 supplied by the modeled boundary; they do not implement or prove those witnesses.
+
 The model covers one operation and one conflicting-effect scope. It is not a
 thread scheduler, storage implementation, wire codec, unbounded proof or runtime
 refinement. Existing lifecycle/profile and cleanup contract tests retain their

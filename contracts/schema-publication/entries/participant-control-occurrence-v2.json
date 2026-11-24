@@ -1,10 +1,5 @@
 {
   "contract_id": "participant-control-occurrence-v2",
   "schema_path": "contracts/schemas/participant-runtime/participant-control-occurrence-v2.json",
-  "stability": "draft",
-  "content_hash": "9716c94bd3291f12614201914ab29c2fce61d40d27cf35a46ef251d7bc100c59",
-  "last_change": {
-    "content_hash": "9716c94bd3291f12614201914ab29c2fce61d40d27cf35a46ef251d7bc100c59",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

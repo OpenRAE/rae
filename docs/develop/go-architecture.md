@@ -2,7 +2,7 @@
 
 This is the current system view for the Go port.
 [The model](../../implementations/architecture.json) owns package placement, dependencies, build contexts and intended interfaces.
-[ADR-122](../decisions/adrs/adr-122-go-architecture-model.md) owns the checking rules.
+[ADR-124](../decisions/adrs/adr-124-go-architecture-model.md) owns the checking rules.
 The generated view lists the code that exists now.
 An empty layer is planned, not implemented.
 Python remains the behavioral reference for components not yet ported.
@@ -139,7 +139,7 @@ flowchart LR
 | Uncertain effects and corrupt state | Backend admission, atomic terminal commits, CAS and leases | ADR-104 and ADR-113; Go runtime remains planned |
 | Secret disclosure | Logical secret references; native credentials stay in the host | ADR-115 and ADR-116; future adapter redaction tests |
 | Audit confusion | Operational logs carry no values and cannot replace evidence or audit | ADR-066 and ADR-116 |
-| Architectural drift | Exact typed API, package graph, design commitments and source-bound view checks | ADR-122; arch and archcheck negative tests |
+| Architectural drift | Exact typed API, package graph, design commitments and source-bound view checks | ADR-124; arch and archcheck negative tests |
 
 Snapshots prove structural consistency. They do not prove semantic equivalence or service readiness.
 Review checks these trust explanations whenever bound evidence changes.
@@ -393,7 +393,7 @@ flowchart BT
 | `docs/decisions/adrs/adr-115-concrete-backends-owned-outside-raes.md` | `e7994a017f64937bfa48edfb8600b933e2acca330a2d5ebaef8a6ae95fcc91be` |
 | `docs/decisions/adrs/adr-116-shared-exceptions-and-operational-logging.md` | `a4e20904762d23ff25162b910ab91032fdaac84b38ef727401c7fe501dde6ffa` |
 | `docs/decisions/adrs/adr-119-consumer-parse-of-supplied-sdl-sources.md` | `b29df4c1c6dcb690d540532011f498a0a1afbe794877ec38e5b80d8cb66b5442` |
-| `docs/decisions/adrs/adr-122-go-architecture-model.md` | `80b64aac8e4e646f56d129c2c997c19583ecfb0f0b0b571fa46e09a3103ca45c` |
+| `docs/decisions/adrs/adr-124-go-architecture-model.md` | `80b64aac8e4e646f56d129c2c997c19583ecfb0f0b0b571fa46e09a3103ca45c` |
 | `docs/decisions/issue-1775-go-architecture-model-design.md` | `d12f71c98e4bcad11f42db41338d2d93e9d9ed21731e5e4a1b9ed6fbbba1d2c8` |
 | `docs/decisions/issue-1778-parity-corpus-design.md` | `c3197d51b64c8b2684096ad8d4ed4df223457b2e811a16e68bf31e9babc15830` |
 | `docs/decisions/issue-1779-canonical-json-design.md` | `28f5cff66fdc26e01392d143e5ad52ba23072c2bd6010a35fb4f1e0c0162e8f0` |

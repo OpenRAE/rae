@@ -10,6 +10,7 @@ from raes_contracts.diagnostics import Diagnostic, Severity
 
 _SEMANTIC_INVALID_DIAGNOSTIC_CODE = "conformance.semantic-invalid"
 _OBSERVABILITY_EVIDENCE_INVALID_DIAGNOSTIC_CODE = "conformance.observability-evidence-invalid"
+PARTICIPANT_EPISODE_STRUCTURE_INVALID_DIAGNOSTIC_CODE = "conformance.participant-episode-structure-invalid"
 
 _MAX_REPORTED_VALIDATION_ERRORS = 5
 
@@ -24,7 +25,9 @@ _SAFE_LOCATION_SEGMENT = re.compile(r"^[A-Za-z0-9_.-]{1,64}$")
 _REDACTED_LOCATION_SEGMENT = "<field>"
 
 
-def _diagnostic(code: str, address: str, message: str) -> Diagnostic:
+def conformance_diagnostic(code: str, address: str, message: str) -> Diagnostic:
+    """Return one error-severity conformance diagnostic."""
+
     return Diagnostic(
         code=code,
         domain="conformance",

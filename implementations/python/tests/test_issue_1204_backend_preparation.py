@@ -12,7 +12,7 @@ from test_issue_1200_mixed_runtime_constraints import _fixture, _returned
 def _request(*, offered_engine=None, closed_offer=False):
     from raes_backend_protocols.manifest import backend_manifest_v2_model
     from raes_contracts.canonical import canonical_json_digest
-    from raes_contracts.realization_preparation import RealizationPreparationAuthority
+    from raes_contracts.planning import RealizationPreparationAuthority
 
     _, plan, manifest = _fixture(
         {"database_services": [{"database_service_id": "db"}]},
@@ -65,7 +65,7 @@ class _PreparingBackend:
         self.applies = 0
 
     def prepare(self, plan, snapshot):
-        from raes_contracts.realization_preparation import RealizationPreparation
+        from raes_contracts.contracts.realization_preparation import RealizationPreparation
 
         self.prepares += 1
         operations = deepcopy(plan.operations)
@@ -157,6 +157,30 @@ def test_successful_delivery_must_match_the_admitted_completion():
     assert not result.success
     assert result.snapshot == previous
     assert result.diagnostics[0].code == "runtime.backend-contract-invalid"
+
+
+def test_only_a_selected_value_is_a_delivery_obligation():
+    from raes_processor.planner import prepared_delivery_violation
+
+    backend = _PreparingBackend()
+    _, result = _apply(backend)
+    assert result.success, result.diagnostics
+    request, _ = _request()
+    selected = _selected_completion(request, backend)
+    assert prepared_delivery_violation(selected, result.snapshot) is None
+    unselected = deepcopy(selected)
+    del unselected.operations[0].payload["spec"]["node"]["runtime"]["database_services"]
+    assert prepared_delivery_violation(unselected, result.snapshot) is None
+    delivered = deepcopy(result.snapshot)
+    entry = next(iter(delivered.entries.values()))
+    del entry.payload["spec"]["node"]["runtime"]["database_services"]
+    assert prepared_delivery_violation(selected, delivered) is not None
+
+
+def _selected_completion(request, backend):
+    from raes_contracts.runtime_state import RuntimeSnapshot
+
+    return replace(request, operations=list(backend.prepare(request, RuntimeSnapshot()).operations))
 
 
 def test_selected_values_must_pass_the_backend_validation_before_apply():

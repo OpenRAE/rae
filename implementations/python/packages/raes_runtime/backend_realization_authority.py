@@ -9,9 +9,9 @@ from uuid import uuid4
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.augmentation_preparation import AugmentationPreparation
+from raes_contracts.contracts.plan_projection import runtime_plan_digest
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.materialization_inventory import RUNTIME_DESCENDANTS_CONTRACT
-from raes_contracts.plan_projection import runtime_plan_digest
 from raes_contracts.planning import (
     EvaluationPlan,
     OrchestrationPlan,

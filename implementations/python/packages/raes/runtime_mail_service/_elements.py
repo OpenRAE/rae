@@ -9,12 +9,21 @@ import re
 from typing import ClassVar
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import (
+    RuntimeSensitivityClassification,
+    absolute_path_or_var,
+    coerce_string_list,
+    enforce_observed_value_redaction,
+    parse_runtime_enum_or_var,
+    require_non_empty,
+    require_symbol,
+)
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import is_variable_ref, parse_int_or_var
 
 from raes.runtime_filesystem import redacted_raw_value_schema
-from raes.runtime_vocabulary import GovernedVocabulary
 
-from .._base import SDLModel, is_variable_ref, parse_int_or_var
-from ..runtime_filesystem import RuntimeSensitivityClassification
 from ..runtime_mail_vocab import (
     RuntimeMailAuthMechanism,
     RuntimeMailComponentKind,
@@ -30,14 +39,6 @@ from ..runtime_mail_vocab import (
     RuntimeMailRoutingKind,
     RuntimeMailSettingProvenance,
     RuntimeMailTlsMode,
-)
-from ..runtime_values import (
-    absolute_path_or_var,
-    coerce_string_list,
-    enforce_observed_value_redaction,
-    parse_runtime_enum_or_var,
-    require_non_empty,
-    require_symbol,
 )
 
 _EMAIL_ADDRESS = re.compile(r"^[^@\s]+@[^@\s]+$")

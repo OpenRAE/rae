@@ -18,7 +18,7 @@ from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.corpus import FIXTURES, corpus_family_root
 from raes_contracts.diagnostics import Diagnostic
 
-from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_failure_message
+from raes_conformance.conformance.diagnostics import conformance_diagnostic, sanitized_failure_message
 
 
 class BackendCapabilityProfile(str, Enum):
@@ -176,7 +176,7 @@ def _resolve_required_contracts(
     # decode or validate, RecursionError beyond the decoder nesting depth, and its own identity refusal.
     except (OSError, ValueError, RecursionError, BackendProfileIdentityError) as exc:
         return frozenset(), (
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.profile-load-failed",
                 profile_id,
                 f"Failed to load published backend profile {profile_id!r}: {_sanitize_load_error(exc)}",

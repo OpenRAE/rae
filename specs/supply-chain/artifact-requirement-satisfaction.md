@@ -1,4 +1,4 @@
-# Portable Artifact Requirement Satisfaction
+# Portable artifact requirement satisfaction
 
 Status: normative
 
@@ -123,8 +123,8 @@ Planning admits a requirement only when:
   materialization alternatives are declared.
 
 Operational fact inputs MUST be partitioned by canonical compiled address.
-Candidate ids, constraint ids, and locked-input ids are local to one
-`ArtifactRequirement`; a fact admitted for one address MUST NOT satisfy a
+Candidate ids, constraint ids, and locked-input ids are local to one `ArtifactRequirement`.
+A fact admitted for one address MUST NOT satisfy a
 same-named declaration at another address. The processor-owned availability
 context also carries the integrity, authenticity, admission, provenance, and
 evidence references that its trust boundaries have independently verified.
@@ -155,8 +155,8 @@ Before accepting a returned snapshot, the processor MUST parse
 - an exact artifact equals the authored immutable identity;
 - a disclosed candidate resolves to its declared immutable artifact and was
   available for this compiled address;
-- a materialization selection resolves to a declared specification, uses that
-  specification's digest-bound mechanism profile, discloses its exact authored
+- a materialization selection resolves to a declared specification and uses that specification's digest-bound mechanism profile.
+  It discloses its exact authored
   specification digest, and discloses exactly its locked inputs;
 - every disclosed constraint and locked-input id was independently admitted
   for this compiled address;
@@ -177,8 +177,8 @@ admitted constrained or open surface is `backend-realized`.
 
 The disclosure may carry authenticity, admission, provenance, and evidence
 references. It MUST NOT carry location or channel fields. Backend-provided
-reference strings do not prove authenticity or integrity: the runtime gate
-accepts them only when they resolve through the processor-owned verification
+reference strings do not prove authenticity or integrity.
+The runtime gate accepts them only when they resolve through the processor-owned verification
 context established by the applicable trust and evidence contracts.
 
 ## 6. Security and conformance

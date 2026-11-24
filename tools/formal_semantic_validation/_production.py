@@ -159,21 +159,20 @@ def _replay_production_evidence(
     if not replay_current:
         return _historical_production_replay(stored_payload, observation, replay_mode, repo_root=repo_root)
     if replay_mode == "satisfiability":
-        from raes_contracts.satisfiability import ScenarioSatisfiabilityEvidenceModel
         from raes_processor.satisfiability import analyze_scenario_file, replay_satisfiability_evidence
+        from raes_processor.satisfiability.evidence import ScenarioSatisfiabilityEvidenceModel
 
         evidence_model = ScenarioSatisfiabilityEvidenceModel
     else:
-        from raes_contracts.exploit_path import ExploitPathAnalysisEvidenceModel
         from raes_processor.exploit_path import analyze_exploit_path_file, replay_exploit_path_evidence
+        from raes_processor.exploit_path.evidence import ExploitPathAnalysisEvidenceModel
 
         evidence_model = ExploitPathAnalysisEvidenceModel
     try:
         stored = evidence_model.model_validate(stored_payload)
     except ValidationError as exc:
         raise EvidenceIntegrityError("stored production evidence does not satisfy its contract") from exc
-    from raes_contracts.canonical import canonical_json_digest
-    from raes_contracts.satisfiability import canonical_contract_digest
+    from raes_contracts.canonical import canonical_contract_digest, canonical_json_digest
 
     stored_artifact_matches = canonical_json_digest(stored_payload) == observation.get("evidence_digest")
     if replay_mode == "satisfiability":

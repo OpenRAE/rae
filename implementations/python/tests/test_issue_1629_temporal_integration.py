@@ -3,13 +3,88 @@
 import asyncio
 import os
 import socket
-from contextlib import ExitStack
+from contextlib import asynccontextmanager
+from dataclasses import replace
 from pathlib import Path
 from threading import Thread
+from time import monotonic
 
 import pytest
 
 pytestmark = pytest.mark.integration
+
+
+async def _until(predicate, *, timeout=15):
+    deadline = monotonic() + timeout
+    while not await asyncio.to_thread(predicate):
+        if monotonic() >= deadline:
+            raise TimeoutError("integration witness did not arrive")
+        await asyncio.sleep(0.02)
+
+
+# A hosted runner can need more than the 5 seconds that the Temporal SDK core
+# allows its ephemeral dev server to start, and the SDK has no option to change
+# that limit. The test owns the dev server process and waits for a client.
+TEMPORAL_START_SECONDS = 60
+
+
+def _free_port():
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        return probe.getsockname()[1]
+
+
+@asynccontextmanager
+async def local_temporal(cli, directory):
+    """Start the Temporal CLI dev server and yield a client of its default namespace."""
+
+    from temporalio.client import Client
+    from temporalio.service import RPCError
+
+    address = f"127.0.0.1:{_free_port()}"
+    log_path = directory / "temporal-dev-server.log"
+    with log_path.open("wb") as log:
+        process = await asyncio.create_subprocess_exec(
+            str(cli),
+            "server",
+            "start-dev",
+            "--ip",
+            "127.0.0.1",
+            "--port",
+            address.rsplit(":", 1)[1],
+            "--namespace",
+            "default",
+            "--db-filename",
+            str(directory / "history.sqlite3"),
+            "--headless",
+            "--log-format",
+            "pretty",
+            "--log-level",
+            "warn",
+            stdout=log,
+            stderr=asyncio.subprocess.STDOUT,
+        )
+    try:
+        deadline = monotonic() + TEMPORAL_START_SECONDS
+        while True:
+            if process.returncode is not None:
+                raise RuntimeError(f"Temporal dev server exited: {log_path.read_text(errors='replace')[-2000:]}")
+            try:
+                client = await Client.connect(address, namespace="default")
+                break
+            except RuntimeError, RPCError:
+                if monotonic() >= deadline:
+                    raise
+                await asyncio.sleep(0.25)
+        yield client
+    finally:
+        if process.returncode is None:
+            process.terminate()
+            try:
+                await asyncio.wait_for(process.wait(), 10)
+            except TimeoutError:
+                process.kill()
+                await process.wait()
 
 
 @pytest.mark.parametrize("kind", ["run", "experiment"])
@@ -18,12 +93,11 @@ def test_real_sequence_delivery_retains_runtime_authority(kind, tmp_path):
         pytest.skip("requires the hosted runtime-execution integration composition")
     from postgresql_ledger_fixtures import disposable_ledger_database
 
-    with ExitStack() as databases:
-        owned = [databases.enter_context(disposable_ledger_database()) for _ in range(3 if kind == "experiment" else 1)]
-        asyncio.run(exercise(kind, tmp_path, owned))
+    with disposable_ledger_database() as database:
+        asyncio.run(exercise(kind, tmp_path, database))
 
 
-async def exercise(kind, tmp_path, databases):
+async def exercise(kind, tmp_path, database):
     import uvicorn
     from issue_1629_trial_fixture import TrialServices, factorial_inputs
     from postgresql_ledger_fixtures import ledger_configuration
@@ -41,11 +115,12 @@ async def exercise(kind, tmp_path, databases):
     from temporalio.client import Client
     from temporalio.testing import WorkflowEnvironment
     from temporalio.worker import Worker
-    from test_issue_1362_distributed_integration import _until
     from test_issue_1629_temporal_runtime import worker
     from test_runtime_manager import _full_scenario
 
-    store = PostgreSQLControlPlaneStore(ledger_configuration(databases[0]))
+    configuration = ledger_configuration(database)
+    engine_configuration = replace(configuration, namespace="engine")
+    store = PostgreSQLControlPlaneStore(engine_configuration)
     await asyncio.to_thread(store.initialize_schema)
     services = None
     if kind == "run":
@@ -88,8 +163,8 @@ async def exercise(kind, tmp_path, databases):
         services = TrialServices(target)
         services.pending = True
         run_stores = {}
-        for entry, database in zip(inputs.plan.entries.values(), databases[1:], strict=True):
-            run_store = PostgreSQLControlPlaneStore(ledger_configuration(database))
+        for index, entry in enumerate(inputs.plan.entries.values()):
+            run_store = PostgreSQLControlPlaneStore(replace(configuration, namespace=f"trial_{index}"))
             await asyncio.to_thread(run_store.initialize_schema)
             run_stores[entry.run_id] = run_store
         experiment = plane.admit_experiment(inputs, services=services, store_factory=run_stores.__getitem__)
@@ -118,9 +193,10 @@ async def exercise(kind, tmp_path, databases):
     try:
         await _until(lambda: server.started)
         cli = Path(os.environ["RAES_TEMPORAL_CLI"]).resolve(strict=True)
-        async with await WorkflowEnvironment.start_local(
-            dev_server_existing_path=str(cli), dev_server_database_filename=str(tmp_path / "history.sqlite3")
-        ) as environment:
+        async with (
+            local_temporal(cli, tmp_path) as client,
+            WorkflowEnvironment.from_client(client) as environment,
+        ):
             address = environment.client.service_client.config.target_host
 
             async def connected():
@@ -163,6 +239,10 @@ async def exercise(kind, tmp_path, databases):
                         assert [phase for _, phase in services.events].count("configure") == 2
                     retained = plane._store.load_runtime_decisions()
                     assert retained
+                    if services is not None:
+                        retained_run_snapshots = {
+                            run_id: plane.get_run("run:" + run_id).snapshot for run_id in run_stores
+                        }
     finally:
         if delivery is not None:
             await asyncio.to_thread(delivery.close)
@@ -173,5 +253,11 @@ async def exercise(kind, tmp_path, databases):
         plane.close()
     # The owner process can reopen the committed decisions; engine history is
     # never used as a substitute for the RAE ledger.
-    with RuntimeControlPlane(target, store=PostgreSQLControlPlaneStore(ledger_configuration(databases[0]))) as reopened:
+    with RuntimeControlPlane(target, store=PostgreSQLControlPlaneStore(engine_configuration)) as reopened:
         assert reopened._store.load_runtime_decisions() == retained
+        if kind == "experiment":
+            for run_id, prior in run_stores.items():
+                run = reopened.open_run(
+                    run_scope="run:" + run_id, store=PostgreSQLControlPlaneStore(prior._configuration)
+                )
+                assert run.snapshot == retained_run_snapshots[run_id]

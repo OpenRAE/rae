@@ -105,7 +105,7 @@ Reference cases and the behavior list address those risks.
 The model declares the changed shared interface before code changes.
 Both callers already use `internal/contract/sdlrules`.
 No new package, external dependency, import direction, schema, ADR, service, or policy gate is needed.
-ADR-121, ADR-122, ADR-116, and the runtime-family decisions govern this change.
+ADR-123, ADR-124, ADR-116, and the runtime-family decisions govern this change.
 Existing CI checks retain their coverage, race, mutation, regression, and parity responsibilities.
 The current architecture view binds the changed shared interface.
 This issue has no requirement UID.

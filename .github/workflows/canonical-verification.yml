@@ -45,6 +45,16 @@ on:
         required: false
         default: false
         type: boolean
+      sonar-pull-request:
+        description: Queued pull request number; set only for a merge group
+        required: false
+        default: ""
+        type: string
+      sonar-pull-request-branch:
+        description: Head branch of the queued pull request; set only for a merge group
+        required: false
+        default: ""
+        type: string
     secrets:
       sonar_token:
         description: SonarCloud token; only consumed by the internally trust-gated sonar job
@@ -130,7 +140,7 @@ jobs:
           python-version: "3.14.7"
       - name: Install uv
         if: steps.isabelle-cache.outputs.cache-hit != 'true'
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: false
           version: "0.13.4"
@@ -163,7 +173,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: false
           version: "0.13.4"
@@ -229,7 +239,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: false
           version: "0.13.4"
@@ -277,7 +287,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: false
           version: "0.13.4"
@@ -334,7 +344,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: false
           version: "0.13.4"
@@ -418,7 +428,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: false
           version: "0.13.4"
@@ -477,7 +487,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: false
           version: "0.13.4"
@@ -542,7 +552,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: false
           version: "0.13.4"
@@ -582,7 +592,7 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
-  # The Go lanes of each Go module (ADR-121): tidy and verified dependencies,
+  # The Go lanes of each Go module (ADR-123): tidy and verified dependencies,
   # strict lint, the repository analyzers, race-checked tests with the coverage
   # floor and the regression-test check. Exhaustive mutation diagnostics are
   # opt-in; the separate scheduled sweep is delivered by issue #1898.
@@ -618,7 +628,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: false
           version: "0.13.4"
@@ -719,7 +729,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: false
           version: "0.13.4"
@@ -868,7 +878,7 @@ jobs:
           diff -u "${RUNNER_TEMP}/expected-go-statements.txt" "${RUNNER_TEMP}/actual-go-statements.txt"
           total="$(go tool cover -func=cover.out | awk '/^total:/ { sub(/%/, "", $3); print $3 }')"
           if ! awk -v total="${total}" 'BEGIN { exit !(total >= 90) }'; then
-            echo "Go statement coverage ${total}% is below the 90% floor (ADR-121)" >&2
+            echo "Go statement coverage ${total}% is below the 90% floor (ADR-123)" >&2
             exit 1
           fi
           echo "Go module statement coverage ${total}%"
@@ -969,7 +979,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: false
           version: "0.13.4"
@@ -1069,7 +1079,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: false
           version: "0.13.4"
@@ -1124,8 +1134,8 @@ jobs:
           path: ${{ runner.temp }}/parity-corpus
           if-no-files-found: ignore
 
-  # The architecture check of the Go code (ADR-122). It runs once from the
-  # repository root and checks the model, the ADR-122 rule table, and the code
+  # The architecture check of the Go code (ADR-124). It runs once from the
+  # repository root and checks the model, the ADR-124 rule table, and the code
   # of every Go module. Product fuzz checks reuse its toolchain and run beside
   # the race/coverage job; both checks remain in the required aggregate.
   go-architecture:
@@ -1144,7 +1154,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: false
           version: "0.13.4"
@@ -1188,6 +1198,7 @@ jobs:
       inputs.sonar-enabled
       && ((github.event_name == 'push'
       && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'))
+      || github.event_name == 'merge_group'
       || (github.event_name == 'pull_request'
       && github.event.pull_request.head.repo.full_name == github.repository
       && github.actor != 'dependabot[bot]'))
@@ -1211,10 +1222,38 @@ jobs:
         with:
           name: go-coverage-tooling-${{ inputs.ref }}
           path: implementations/tooling/go/
+      # SonarCloud has no merge queue support. A merge group runs the same
+      # pull request analysis and quality gate for the queued pull request
+      # against `dev`, on the merge group commit (#2026). The workflow fails
+      # closed when a merge group does not name its pull request.
+      - name: Resolve the analysis target
+        id: target
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PULL_REQUEST: ${{ inputs.sonar-pull-request }}
+          PULL_REQUEST_BRANCH: ${{ inputs.sonar-pull-request-branch }}
+        run: |
+          set -euo pipefail
+          if [ "${EVENT_NAME}" != "merge_group" ]; then
+            echo "args=" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+          if ! printf '%s\n' "${PULL_REQUEST}" | grep -Eq '^[0-9]+$' || [ -z "${PULL_REQUEST_BRANCH}" ]; then
+            echo "A merge group analysis requires the queued pull request number and branch" >&2
+            exit 1
+          fi
+          if ! printf '%s\n' "${PULL_REQUEST_BRANCH}" | grep -Eq '^[A-Za-z0-9._/-]+$'; then
+            echo "Queued pull request branch '${PULL_REQUEST_BRANCH}' is not a plain ref name" >&2
+            exit 1
+          fi
+          printf 'args=-Dsonar.pullrequest.key=%s -Dsonar.pullrequest.branch=%s -Dsonar.pullrequest.base=dev\n' \
+            "${PULL_REQUEST}" "${PULL_REQUEST_BRANCH}" >> "${GITHUB_OUTPUT}"
       - name: SonarCloud Scan
         id: scan
         continue-on-error: true
-        uses: SonarSource/sonarqube-scan-action@d209202bc7d53ff1cc128f7f907dac145c9d6ae9 # v8
+        uses: SonarSource/sonarqube-scan-action@59202af334b4ba7b5db01b701b8e79f8b3bef0f4 # v8
+        with:
+          args: ${{ steps.target.outputs.args }}
         env:
           SONAR_TOKEN: ${{ secrets.sonar_token }}
       - name: Record quality-gate outcome
@@ -1238,7 +1277,7 @@ jobs:
         with:
           python-version: "3.14.7"
       - name: Install uv
-        uses: astral-sh/setup-uv@18d369b23da25a81e9458561248e1aafff6a70fa # v10.3.1
+        uses: astral-sh/setup-uv@1db35dd8eee11c5894872e0b383ae6c406cf738d # v10.4.0
         with:
           enable-cache: false
           version: "0.13.4"

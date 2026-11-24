@@ -6,7 +6,8 @@ from copy import deepcopy
 
 import pytest
 from pydantic import ValidationError
-from raes_contracts.contracts import PropositionTruthResultModel, schema_bundle
+from raes_contracts.contracts import PropositionTruthResultModel
+from raes_schemas import schema_bundle
 
 
 def _observed_result() -> dict[str, object]:

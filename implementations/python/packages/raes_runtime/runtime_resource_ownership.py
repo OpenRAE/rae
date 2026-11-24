@@ -24,7 +24,9 @@ def ledger_identity(store: object) -> tuple[str, tuple[object, ...]]:
         return ("local-ledger", (str(path.resolve()),))
     config = getattr(raw, "_configuration", None)
     if config is not None and hasattr(config, "database"):
-        return ("postgresql-ledger", (config.host, config.port, config.database, config.user))
+        identity = (config.host, config.port, config.database, config.user)
+        namespace = getattr(config, "namespace", None)
+        return ("postgresql-ledger", identity if namespace is None else (*identity, namespace))
     return ("in-memory-ledger", (raw,))
 
 

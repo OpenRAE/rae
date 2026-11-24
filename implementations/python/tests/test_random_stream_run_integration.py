@@ -119,7 +119,7 @@ class TestExperimentRunModelStochasticDraws:
         assert run.stochastic_draws[0].control_id == "task-seed"
 
     def test_run_schema_publishes_stochastic_draws_surface(self) -> None:
-        from raes_contracts.contracts import schema_bundle
+        from raes_schemas import schema_bundle
 
         schema = schema_bundle()["experiment-run-v1"]
         assert "stochastic_draws" in schema["properties"]

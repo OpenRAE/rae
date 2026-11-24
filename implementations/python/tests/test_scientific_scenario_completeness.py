@@ -8,6 +8,7 @@ from copy import deepcopy
 from pathlib import Path
 
 import pytest
+from contract_fixtures import load_contract_fixture
 from pydantic import ValidationError
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -20,7 +21,6 @@ from raes_conformance.conformance import (  # noqa: E402
     validate_contract_payload,
 )
 from raes_contracts import scientific_completeness  # noqa: E402
-from raes_contracts.contracts import schema_bundle  # noqa: E402
 from raes_contracts.errors import NotFoundError, OperationalError  # noqa: E402
 from raes_contracts.scientific_completeness import (  # noqa: E402
     CURRENT_ASSESSMENT_REVISION,
@@ -32,6 +32,7 @@ from raes_contracts.scientific_completeness import (  # noqa: E402
     load_scientific_completeness_assessment,
     load_scientific_completeness_taxonomy,
 )
+from raes_schemas import schema_bundle
 from tools.check_scientific_scenario_completeness import (  # noqa: E402
     _validate_contract_evidence,
     _validate_evidence_paths,
@@ -50,11 +51,11 @@ ASSESSMENT_PATH = REPO_ROOT / "contracts/profiles/scientific-completeness/delive
 
 
 def _taxonomy_payload() -> dict[str, object]:
-    return json.loads(TAXONOMY_PATH.read_text(encoding="utf-8"))
+    return json.loads((TAXONOMY_PATH).read_text(encoding="utf-8"))
 
 
 def _assessment_payload() -> dict[str, object]:
-    return json.loads(ASSESSMENT_PATH.read_text(encoding="utf-8"))
+    return json.loads((ASSESSMENT_PATH).read_text(encoding="utf-8"))
 
 
 def test_rev1_taxonomy_and_assessment_are_valid_and_join_exactly() -> None:
@@ -108,7 +109,7 @@ def test_published_completeness_fixtures_exercise_semantic_validation(
     valid: bool,
 ) -> None:
     path = REPO_ROOT / "contracts/fixtures/profiles" / contract_id / fixture
-    diagnostics = _fixture_case_diagnostics(contract_id, json.loads(path.read_text(encoding="utf-8")))
+    diagnostics = _fixture_case_diagnostics(contract_id, load_contract_fixture(path))
     assert (not diagnostics) is valid
 
 
@@ -234,7 +235,7 @@ def test_external_contract_witnesses_are_exactly_bound_and_conforming() -> None:
             continue
         assert set(item.satisfiability_witness_refs) == set(item.external_contract_refs)
         for contract_id, witness_ref in item.satisfiability_witness_refs.items():
-            payload = json.loads((REPO_ROOT / witness_ref).read_text(encoding="utf-8"))
+            payload = load_contract_fixture(REPO_ROOT / witness_ref)
             assert validate_contract_payload(contract_id, payload) == ()
 
 

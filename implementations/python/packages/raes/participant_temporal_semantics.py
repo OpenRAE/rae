@@ -4,33 +4,11 @@ from enum import Enum
 from typing import Literal
 
 from pydantic import Field, field_validator, model_validator
-
-from ._base import SDLModel
-
-
-class ParticipantTimeDomain(str, Enum):
-    """Distinct SEM-213 time domains."""
-
-    EPISODE_STEP = "episode_step"
-    SCENARIO_TIME = "scenario_time"
-    SIMULATION_TIME = "simulation_time"
-    BACKEND_TIME = "backend_time"
-    WALL_CLOCK_TIME = "wall_clock_time"
-
-
-class ParticipantTemporalEventPoint(str, Enum):
-    """Named participant event points used by temporal contracts."""
-
-    SUBMIT = "submit"
-    START = "start"
-    END = "end"
-    OBSERVED = "observed"
-    EFFECTIVE = "effective"
-    DEADLINE = "deadline"
-    WINDOW_OPEN = "window_open"
-    WINDOW_CLOSE = "window_close"
-    RESET = "reset"
-    REPLAY = "replay"
+from raes_contracts.participant_temporal_vocabulary import (
+    ParticipantTemporalEventPoint as _ParticipantTemporalEventPoint,
+)
+from raes_contracts.participant_temporal_vocabulary import ParticipantTimeDomain as _ParticipantTimeDomain
+from raes_contracts.sdl_model import SDLModel
 
 
 class ParticipantTemporalContractKind(str, Enum):
@@ -122,46 +100,46 @@ _REPEATED_OR_STUDY_LEVEL_KINDS = frozenset(
 
 _SCHEDULE_ELIGIBILITY_POINTS = frozenset(
     {
-        ParticipantTemporalEventPoint.SUBMIT,
-        ParticipantTemporalEventPoint.START,
+        _ParticipantTemporalEventPoint.SUBMIT,
+        _ParticipantTemporalEventPoint.START,
     }
 )
 
 _TIME_WINDOW_POINTS = frozenset(
     {
-        ParticipantTemporalEventPoint.WINDOW_OPEN,
-        ParticipantTemporalEventPoint.WINDOW_CLOSE,
+        _ParticipantTemporalEventPoint.WINDOW_OPEN,
+        _ParticipantTemporalEventPoint.WINDOW_CLOSE,
     }
 )
 
 _DEADLINE_OUTCOME_POINTS = frozenset(
     {
-        ParticipantTemporalEventPoint.END,
-        ParticipantTemporalEventPoint.OBSERVED,
-        ParticipantTemporalEventPoint.EFFECTIVE,
+        _ParticipantTemporalEventPoint.END,
+        _ParticipantTemporalEventPoint.OBSERVED,
+        _ParticipantTemporalEventPoint.EFFECTIVE,
     }
 )
 
 _DWELL_START_POINTS = frozenset(
     {
-        ParticipantTemporalEventPoint.START,
-        ParticipantTemporalEventPoint.WINDOW_OPEN,
+        _ParticipantTemporalEventPoint.START,
+        _ParticipantTemporalEventPoint.WINDOW_OPEN,
     }
 )
 
 _DWELL_END_POINTS = frozenset(
     {
-        ParticipantTemporalEventPoint.END,
-        ParticipantTemporalEventPoint.WINDOW_CLOSE,
+        _ParticipantTemporalEventPoint.END,
+        _ParticipantTemporalEventPoint.WINDOW_CLOSE,
     }
 )
 
 _CADENCE_CONSTRAINED_POINTS = frozenset(
     {
-        ParticipantTemporalEventPoint.SUBMIT,
-        ParticipantTemporalEventPoint.START,
-        ParticipantTemporalEventPoint.OBSERVED,
-        ParticipantTemporalEventPoint.EFFECTIVE,
+        _ParticipantTemporalEventPoint.SUBMIT,
+        _ParticipantTemporalEventPoint.START,
+        _ParticipantTemporalEventPoint.OBSERVED,
+        _ParticipantTemporalEventPoint.EFFECTIVE,
     }
 )
 
@@ -192,9 +170,9 @@ class ParticipantTemporalContract(SDLModel):
 
     temporal_id: str
     temporal_kind: ParticipantTemporalContractKind
-    time_domain: ParticipantTimeDomain
+    time_domain: _ParticipantTimeDomain
     clock_authority: str
-    event_points: list[ParticipantTemporalEventPoint] = Field(min_length=1)
+    event_points: list[_ParticipantTemporalEventPoint] = Field(min_length=1)
     description: str
     window_ref: str | None = None
     duration_ref: str | None = None
@@ -236,8 +214,8 @@ class ParticipantTemporalContract(SDLModel):
     @classmethod
     def _require_unique_event_points(
         cls,
-        values: list[ParticipantTemporalEventPoint],
-    ) -> list[ParticipantTemporalEventPoint]:
+        values: list[_ParticipantTemporalEventPoint],
+    ) -> list[_ParticipantTemporalEventPoint]:
         if len(set(values)) != len(values):
             raise ValueError("participant temporal contract event_points must be unique")
         return values
@@ -279,11 +257,11 @@ class ParticipantTemporalContract(SDLModel):
         if self.temporal_kind == ParticipantTemporalContractKind.DEADLINE:
             if len(self.event_points) < 2:
                 raise ValueError("deadline temporal contracts require at least two event_points")
-            if ParticipantTemporalEventPoint.DEADLINE not in event_points:
+            if _ParticipantTemporalEventPoint.DEADLINE not in event_points:
                 raise ValueError("deadline temporal contracts require a deadline event_point")
             allowed_outcomes = _DEADLINE_OUTCOME_POINTS
             if self.shared_time_binding is not None:
-                allowed_outcomes = allowed_outcomes | {ParticipantTemporalEventPoint.START}
+                allowed_outcomes = allowed_outcomes | {_ParticipantTemporalEventPoint.START}
             if not (event_points & allowed_outcomes):
                 raise ValueError("deadline temporal contracts require end, observed, or effective event_points")
         if self.temporal_kind == ParticipantTemporalContractKind.DWELL:

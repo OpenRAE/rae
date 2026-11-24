@@ -6,21 +6,39 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 
 from ..json_pointer import pointer_from_tokens
-from ._common import RelationBudget
+from ._common import RealizationRelationResult, RelationBudget, relation_result
 from ._models import (
+    DEFAULT_REALIZATION_CONSTRAINT_LIMITS,
     RealizationAllOf,
     RealizationCollectionProfile,
     RealizationConstraintDocument,
+    RealizationConstraintLimits,
     RealizationDefinitionReference,
     RealizationDomainValue,
     RealizationGraphReference,
     RealizationKeyedCollectionConstraint,
     RealizationLiteral,
     RealizationRecordConstraint,
+    RealizationRelationStatus,
     RealizationScope,
     RealizationSequenceConstraint,
     RecursiveRealizationStructure,
 )
+
+
+def validate_realization_constraint_document(
+    document: RealizationConstraintDocument,
+    *,
+    limits: RealizationConstraintLimits = DEFAULT_REALIZATION_CONSTRAINT_LIMITS,
+) -> RealizationRelationResult:
+    """Admit recursive authority without evaluating or granting a selected value."""
+
+    violation = admit_constraint_document(document, RelationBudget(limits))
+    return (
+        relation_result(RealizationRelationStatus.LIMIT_EXCEEDED, violation.pointer, violation.message)
+        if violation is not None
+        else RealizationRelationResult(RealizationRelationStatus.CONFORMANT)
+    )
 
 
 @dataclass(frozen=True)
@@ -105,16 +123,12 @@ def _admit_node(
     if exhausted := budget.spend_node(depth):
         violation = LimitViolation(pointer_from_tokens(path), f"Constraint admission exceeded {exhausted}.")
     else:
-        violation = _admit_metadata(
-            {
-                "kind": node.kind,
-                "presence": getattr(node.presence, "value", node.presence),
-                "origin": getattr(node.origin, "value", node.origin),
-            },
-            (*path, "$header"),
-            0,
-            budget,
-        )
+        # Admit supplied values directly; fixed internal keys need no admission.
+        for name in ("kind", "presence", "origin"):
+            value = getattr(node, name)
+            violation = _admit_metadata(getattr(value, "value", value), (*path, "$header", name), 0, budget)
+            if violation is not None:
+                break
     if violation is None:
         handler = _NODE_ADMITTERS.get(type(node), _admit_empty_node)
         violation = handler(node, path, depth, budget)
@@ -391,12 +405,10 @@ def _admit_origins(
 ) -> LimitViolation | None:
     violation = None
     for address, origin in origins.items():
-        violation = _admit_metadata(
-            {"address": address, "origin": str(origin)},
-            ("$metadata", "origins", address),
-            0,
-            budget,
-        )
+        path = ("$metadata", "origins", address)
+        violation = _admit_metadata(address, (*path, "address"), 0, budget)
+        if violation is None:
+            violation = _admit_metadata(str(origin), (*path, "origin"), 0, budget)
         if violation is not None:
             break
     return violation

@@ -7,12 +7,9 @@ from typing import cast
 
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_contracts.augmentation_scope import AUGMENTATION_SCOPE_CONTRACT
+from raes_contracts.contracts.materialization_attestation import MaterializationArchive
 from raes_contracts.errors import InvalidInputError, RaesError
-from raes_contracts.materialization import (
-    MATERIALIZATION_ATTESTATION_CONTRACT,
-    MaterializationArchive,
-    MaterializationSource,
-)
+from raes_contracts.materialization import MATERIALIZATION_ATTESTATION_CONTRACT, MaterializationSource
 from raes_contracts.materialization_inventory import RUNTIME_DESCENDANTS_CONTRACT
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
@@ -114,7 +111,12 @@ def finalize_materialization(
         return finalize_runtime_inventory(raw, accepted, context, previous, archive)
     accepted = cast(ApplyResult, replace(accepted, materialization_attestation=None))
     source = getattr(context.operation_plan, "materialization_source", None)
-    if accepted.success and (source is not None or raw.materialization_attestation is not None):
+    required = source is not None and (
+        source.reporting_scope == "all-phases"
+        or isinstance(context.operation_plan, ProvisioningPlan)
+        or (context.augmentation is not None and bool(context.augmentation.preparation.effects))
+    )
+    if accepted.success and (required or raw.materialization_attestation is not None):
         accepted = _finalize_legacy_materialization(raw, accepted, context, previous, archive)
     return accepted
 

@@ -49,9 +49,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--json", action="store_true", help="Emit JSON failures.")
     parser.add_argument(
         "--check-set",
-        choices=("full", "file-local"),
+        choices=("full", "file-local", "structural"),
         default="full",
-        help="Run the full policy set or only file-local edit guards.",
+        help="Run the full policy set, only file-local edit guards, or only the ADR-117 structural checks.",
     )
     parser.add_argument("paths", nargs="*", help="Explicit repo-relative paths to check.")
     return parser.parse_args()

@@ -143,7 +143,7 @@ No new ADR, schema, package, external dependency, or exported API is required by
 `implementations/architecture.json` remains the sole Go architecture model.
 This guidance changes no model declaration or source-bound architecture evidence.
 The implementation design must declare changed packages, imports, and APIs before coding.
-It must then pass `archcheck -design` under ADR-122.
+It must then pass `archcheck -design` under ADR-124.
 Review private-only changes against the existing owners too.
 A passing model does not prove behavioral coverage.
 The planned public SDL consumer API does not make `internal/sdl/authoring` externally importable.
@@ -167,7 +167,7 @@ Do not delete fixtures, rewrite expected failures, or weaken checks to manufactu
 Pin the reference revision and retain independent expected results.
 
 The canonical workflow is `.github/workflows/canonical-verification.yml`.
-Keep ADR-121's lint, architecture, coverage, mutation, race, regression, and parity gates.
+Keep ADR-123's lint, architecture, coverage, mutation, race, regression, and parity gates.
 Local checks select explicit cases or existing file-scoped checks; full suites remain in CI.
 Use `.ground-control.yaml` and `.gc/plan-rules.md` for the integration branch and workflow commands.
 This requirement-free issue does not justify inventing a requirement UID.

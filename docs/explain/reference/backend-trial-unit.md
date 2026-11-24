@@ -7,6 +7,13 @@ They do not install an executor or certify a backend.
 The public types are in `raes_contracts.trial_unit`.
 The protocol is in `raes_backend_protocols.trial_unit`.
 
+The [assigned-trial composition](../../public/guides/assigned-trials.md) adds selected execution across processes.
+The original coordinator admits the experiment once and owns attempt and replacement decisions.
+Execution hosts bind an assigned entry through `RuntimeControlPlane.bind_assigned_trial()`.
+That binding exposes the existing request/result handoff without another worker experiment.
+Versioned assignment, control, and lifecycle-outcome carriers reuse the released child contracts.
+They do not change `BackendTrialUnit` into a transport or authentication protocol.
+
 ## Composition and ownership
 
 An embedder constructs the adapter with an explicit `RuntimeTarget`.

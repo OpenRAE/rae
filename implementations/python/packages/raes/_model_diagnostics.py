@@ -11,6 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from pydantic import ValidationError
+from raes_contracts.identifiers import IDENTIFIER_INVALID_CODE
 from raes_contracts.json_pointer import pointer_from_tokens
 
 from ._classification_guard import CLASSIFICATION_MIGRATION_CODE
@@ -20,7 +21,6 @@ from ._errors import (
     SDLSourcePosition,
     SDLSourceRange,
 )
-from ._identifiers import IDENTIFIER_INVALID_CODE
 
 # Validators set these error types at the raise site; each type is also the diagnostic code.
 _TYPED_DIAGNOSTIC_CODES = frozenset({CLASSIFICATION_MIGRATION_CODE, IDENTIFIER_INVALID_CODE})
@@ -86,10 +86,12 @@ def _model_parse_error(
     *,
     path: Path | None,
     source_ranges: dict[str, SDLSourceRange],
+    location_prefix: tuple[object, ...] = (),
 ) -> SDLParseError:
+    """Render a model error; ``location_prefix`` anchors a model validated apart from its document."""
     diagnostics: list[SDLParseDiagnostic] = []
     for item in error.errors():
-        pointer = _pointer_from_location(tuple(item.get("loc", ())))
+        pointer = _pointer_from_location((*location_prefix, *item.get("loc", ())))
         message = _bounded_model_message(str(item.get("msg", "")))
         error_type = item.get("type")
         code = error_type if error_type in _TYPED_DIAGNOSTIC_CODES else "sdl.model.invalid"

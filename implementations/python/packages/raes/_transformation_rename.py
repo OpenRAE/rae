@@ -16,10 +16,10 @@ from raes_contracts.contracts import (
     PreservationOutcome,
     TransformationCheckOutcome,
 )
+from raes_contracts.identifiers import QualifiedName
 
 from ._declarations import Declaration, DeclarationIndex, build_declaration_index
 from ._errors import SDLError, SDLParseError
-from ._identifiers import QualifiedName
 from ._module_symbols import FORWARDING_AGENTS_SECTION, nested_declaration_aliases, symbol_index
 from ._transformation_bindings import _retarget_binding_documents
 from ._transformation_support import (

@@ -6,7 +6,7 @@ from typing import Any
 
 from .mixed_backend_binding import MixedBackendExecutionBindingModel
 from .mixed_backend_stages import MixedBackendStageReportModel
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 _BINDING = "mixed-backend-execution-binding-v1"
 _STAGE_REPORT = "mixed-backend-stage-report-v1"
@@ -28,14 +28,14 @@ def mixed_backend_schema_bundle() -> dict[str, dict[str, Any]]:
     schemas = {}
     for contract_id, model in _MODELS.items():
         schema = model.model_json_schema()
-        _add_raes_invariant(
+        add_raes_invariant(
             schema,
             "mixed-backend-local-consistency",
             _LOCAL_CONSISTENCY[contract_id],
             inputs=_inputs(contract_id),
         )
         schemas[contract_id] = schema
-    _add_raes_invariant(
+    add_raes_invariant(
         schemas[_BINDING],
         "mixed-backend-binding-profile-join",
         "Require exactly one matching binding per active edge and one-to-one component-changing transition of the "
@@ -43,7 +43,7 @@ def mixed_backend_schema_bundle() -> dict[str, dict[str, Any]]:
         "admitted temporal coupling.",
         inputs=_inputs("mixed-participant-composition-profile-v1", _BINDING),
     )
-    _add_raes_invariant(
+    add_raes_invariant(
         schemas[_BINDING],
         "mixed-backend-contextual-admission",
         "Before invocation require the shared request to commit to this binding, its operation kind and its "
@@ -55,7 +55,7 @@ def mixed_backend_schema_bundle() -> dict[str, dict[str, Any]]:
             "backend-operation-response-v1",
         ),
     )
-    _add_raes_invariant(
+    add_raes_invariant(
         schemas[_STAGE_REPORT],
         "mixed-backend-stage-transcript",
         "Require exact invocation binding and commitment, a trusted time model resolved under the binding's "

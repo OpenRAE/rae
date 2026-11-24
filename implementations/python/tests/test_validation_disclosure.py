@@ -18,18 +18,14 @@ from raes.canonical import (
 from raes.instantiate import instantiate_scenario
 from raes.parser import parse_sdl
 from raes_conformance.conformance import _fixture_case_diagnostics
-from raes_contracts.contracts import (
-    ExperimentRunModel,
-    ExperimentStudyModel,
-    ExperimentTaskModel,
-    schema_bundle,
-)
+from raes_contracts.contracts import ExperimentRunModel, ExperimentStudyModel, ExperimentTaskModel
 from raes_contracts.contracts.validation_disclosure import (
     ValidationBasisDisclosureDocumentModel,
     ValidationBasisDisclosureModel,
     ValidationGateResultModel,
     ValidationSubjectReferenceModel,
 )
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 FIXTURES_ROOT = REPO_ROOT / "contracts/fixtures/profiles/validation-basis-disclosure-v1"

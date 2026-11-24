@@ -4,11 +4,9 @@ import re
 from dataclasses import asdict, dataclass
 from enum import Enum
 
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_contracts.behavioral_relations import validate_behavioral_claim_binding
-from raes_contracts.contracts import (
-    BehavioralClaimBindingModel,
-    PropositionTruthOutcome,
-)
+from raes_contracts.contracts import PropositionTruthOutcome
 from raes_contracts.diagnostics import Diagnostic, Severity
 from raes_contracts.json_serialization import sorted_json_digest
 

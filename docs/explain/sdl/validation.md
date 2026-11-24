@@ -79,7 +79,9 @@ validation passes. See the [migration guide](../../migration/external-classifica
 
 Pydantic structural validation also enforces model-local node rules before
 these semantic passes run. Switch nodes reject compute-only fields, including
-`runtime`. Runtime mount, dependency-manifest, and software-component manifest
+`runtime`. A switch can state a compute-only field only with its empty value
+(`null`, an empty string, or an empty collection). Realization authority treats
+that value as an omitted field. Runtime mount, dependency-manifest, and software-component manifest
 paths must be absolute paths or variable references. Runtime software-component
 `installed_paths`, filesystem inventory paths, container masked paths,
 container read-only paths, and device host/container paths must also be

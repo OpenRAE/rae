@@ -323,9 +323,8 @@ Avoid:
   profile artifacts exist
 - accepting `backend-manifest-v1` or legacy conformance paths as current
   defaults
-- changing `contracts/schemas/` without the
-  `contracts/schema-publication-manifest.json` change ledger, or changing only
-  reference implementation models and not the published schema authority
+- changing only reference implementation models and not the published schema
+  authority under `contracts/schemas/`
 - validating fixtures with ad hoc JSON key checks when contract models already
   exist
 - adding a conformance-specific exception hierarchy, logging stack, schema

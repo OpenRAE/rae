@@ -18,7 +18,7 @@ from raes_contracts.contracts import (
     ParticipantImplementationSelectionModel,
     ParticipantStatusViewModel,
 )
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.planning import (
     ChangeAction,
     PlanScope,
@@ -663,7 +663,7 @@ workflows:
     assert status is not None
     assert status.state == OperationState.SUCCEEDED
     workflow_result = next(iter(snapshot.snapshot.orchestration_results.values()))
-    assert workflow_result["workflow_status"] == "running"
+    assert workflow_result["workflow_status"] == "succeeded"
     assert "run_id" in workflow_result
     assert snapshot.snapshot.orchestration_history
 

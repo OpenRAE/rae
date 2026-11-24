@@ -78,10 +78,13 @@ class RealizationClosure(StructureModel):
                         "properties": {"posture": {"enum": ["open", "closed"]}},
                         "required": ["posture"],
                     },
-                    "then": {"required": ["universe", "profile"]},
+                    "then": {
+                        "required": ["universe", "profile"],
+                        "properties": {"universe": {"type": "string"}, "profile": {"type": "string"}},
+                    },
                 },
                 {
-                    "if": {"properties": {"posture": {"const": "undefined"}}, "required": ["posture"]},
+                    "if": {"properties": {"posture": {"const": "undefined"}}},
                     "then": {"properties": {"universe": {"type": "null"}, "profile": {"type": "null"}}},
                 },
             ]
@@ -95,7 +98,7 @@ class RealizationClosure(StructureModel):
     @model_validator(mode="after")
     def _validate_named_posture(self) -> RealizationClosure:
         defined = self.posture is not RealizationClosurePosture.UNDEFINED
-        if defined != (self.universe is not None and self.profile is not None):
+        if (self.universe is not None, self.profile is not None) != (defined, defined):
             raise ValueError("defined closure requires both universe and profile; undefined closure requires neither")
         return self
 

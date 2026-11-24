@@ -8,9 +8,9 @@ from dataclasses import dataclass, replace
 from fractions import Fraction
 from functools import partial
 
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.time_model import TimeRuntimeStateModel, validate_time_runtime_state
 from raes_contracts.errors import ConflictError, EvidenceIntegrityError
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 from .mixed_runtime_edge import (

@@ -132,7 +132,7 @@ Consumers must not hard-code nine shards or cap the family at 824 cases.
 Keep stable case names so additions need no runner branches or renumbering of existing cases.
 A changed fixture format requires an explicit version decision, not heuristic shape detection.
 
-`implementations/architecture.json`, ADR-122, and `docs/develop/go-architecture.md` govern package and import changes, including test imports.
+`implementations/architecture.json`, ADR-124, and `docs/develop/go-architecture.md` govern package and import changes, including test imports.
 The existing model already permits the SDL owner to consume the corpus.
 This guidance introduces no package, import, or public API, so it requires no model change.
 Any implementation that changes those boundaries must declare and check its design first.

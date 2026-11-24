@@ -26,11 +26,11 @@ for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
         sys.path.insert(0, str(_source_root))
 
 from pydantic import ValidationError  # noqa: E402
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_contracts.behavioral_relations import (
     BehavioralRelationCatalogModel,
     validate_behavioral_claim_binding,
 )  # noqa: E402
-from raes_contracts.contracts import BehavioralClaimBindingModel  # noqa: E402
 from raes_contracts.errors import InvalidInputError
 from raes_contracts.operational_logging import run_application
 

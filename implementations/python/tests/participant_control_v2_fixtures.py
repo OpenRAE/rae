@@ -313,8 +313,8 @@ class Provider:
 
 
 def binding(resolver=None, *, serial=False):
-    from raes_contracts.contracts import schema_bundle
     from raes_runtime.participant_control_binding import ParticipantControlStageBinding
+    from raes_schemas import schema_bundle
 
     owner = resolver or Resolver()
     stages = {

@@ -12,8 +12,8 @@ from pydantic import ConfigDict, model_validator
 from raes_contracts.canonical import canonical_json_bytes, canonical_json_digest
 from raes_contracts.digests import sha256_digest
 from raes_contracts.json_pointer import escape_token
+from raes_contracts.sdl_model import SDLModel
 
-from ._base import SDLModel
 from ._errors import SDLError, SDLParseError
 from ._source_profile import DEFAULT_PARSER_LIMITS, SDL_CANONICAL_PROFILE
 from .materialization import MaterializedScenario, admit_materialized_scenario

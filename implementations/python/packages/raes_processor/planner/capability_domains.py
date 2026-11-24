@@ -3,9 +3,9 @@
 from raes.architectures import normalize_architecture
 from raes.infrastructure import MINIMUM_NODE_COUNT
 from raes.nodes import OSFamily
-from raes.runtime_values import parse_runtime_enum_identity
-from raes.value_parsing import extract_variable_name, parse_int_or_var
 from raes_backend_protocols.account_features import provisioner_account_features
+from raes_contracts.runtime_values import parse_runtime_enum_identity
+from raes_contracts.variable_references import extract_variable_name, parse_int_or_var
 
 from ..models import CompiledCapabilityConstraint, Diagnostic, NodeRuntime, ResolvedResource, RuntimeModel
 

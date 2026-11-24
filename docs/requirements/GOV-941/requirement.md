@@ -23,7 +23,7 @@ Review finding ADR-1 (issue #481): docs/decisions/adrs/README.md claims ADRs are
 
 - IMPLEMENTS → CODE_FILE `tools/check_adr_immutability.py` (ADR acceptance-content pin gate checker)
 - IMPLEMENTS → ADR `docs/decisions/adrs/adr-059-adr-amendment-policy-and-pin-gate.md` (ADR-059 amendment policy)
-- IMPLEMENTS → CONFIG `docs/decisions/adrs/adr-index.yaml` (ADR acceptance-content pin manifest)
+- IMPLEMENTS → CONFIG `docs/decisions/adrs/adr-index.yaml` (Accepted-ADR manifest and amendment refs)
 - IMPLEMENTS → CODE_FILE `tools/policy/adr.py` (Shared ADR parsers)
 - IMPLEMENTS → CONFIG `tools/policy/requirement_order.yaml` (decision-record-governance phase mapping)
 - TESTS → TEST `implementations/python/tests/test_repo_policy_tools.py` (ADR pin gate tests)

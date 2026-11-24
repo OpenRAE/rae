@@ -7,8 +7,8 @@ import pytest
 from raes_backend_protocols.manifest import backend_manifest_v2_model
 from raes_backend_stubs.stubs import StubProvisioner
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.plan_projection import runtime_plan_digest
-from raes_contracts.realization_preparation import preparation_snapshot_digest
+from raes_contracts.contracts.plan_projection import runtime_plan_digest
+from raes_contracts.contracts.realization_preparation import preparation_snapshot_digest
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_operations.run_artifacts import RunMaterializationArchive
 from raes_runtime.backend_calls import _BackendCallContext, _call_backend_apply, _RealizationApplyContext

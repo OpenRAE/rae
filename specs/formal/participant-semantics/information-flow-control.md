@@ -1,12 +1,15 @@
-# SEM-230 Participant Information-Flow And Control Semantics
+<!-- vale RAES.HeadingCase = NO -->
+# SEM-230 participant information-flow and control semantics
 
 Classification: FM3.
+
+<!-- vale RAES.HeadingCase = YES -->
 
 Requirement: `SEM-230`.
 
 Authority revision: `sem-230/rev2`.
 
-## Scope And Authority
+## Scope and authority
 
 This specification defines the participant-relative information-flow and
 control semantics adopted by ADR-085. It composes the existing participant and
@@ -25,20 +28,17 @@ This document is definition authority. The executable cases in
 bounded falsification evidence. Neither artifact is production enforcement or
 a universal proof.
 
-Revision `sem-230/rev2`, adopted by ADR-095, makes decision-surface output a
-first-class low observation, binds policy decisions to exact state cuts, and
-quantifies the baseline over adaptive participant strategies. Revision
+Revision `sem-230/rev2`, adopted by ADR-095, makes decision-surface output a first-class low observation.
+It binds policy decisions to exact state cuts and quantifies the baseline over adaptive participant strategies. Revision
 `sem-230/rev1` remains the historical open-loop formulation; its
 `observation/order` scalar must not be reused as a v2 decision epoch or
 state-cut identity.
 
-## Prior-Art Adaptation Rule
+## Prior-art adaptation rule
 
-SEM-230 does not rename settled formal concepts and present them as RAES
-inventions. It imports the strongest clearly applicable prior definition,
-instantiates it over existing RAES carriers, and adds an RAES-specific
-coordinate only where the prior formulation does not carry information needed
-by participant/runtime governance.
+SEM-230 does not rename settled formal concepts as RAES inventions.
+It imports the strongest clearly applicable prior definition and applies it to existing RAES carriers.
+It adds an RAES-specific coordinate only when the prior formulation lacks information needed by participant/runtime governance.
 
 | Semantic element | Formal lineage reused | RAES adaptation | Necessary extension, not reinvention |
 | --- | --- | --- | --- |
@@ -49,13 +49,14 @@ by participant/runtime governance.
 | visible history and knowledge persistence | interpreted systems and the existing ADR-054 constructive visible-history/perfect-recall treatment | disclosure appends a stable visible occurrence to `H`; later concealment or revocation changes future projection | RAES preserves evidence/provenance and visible-order identity across rollback and supersession |
 | causal and partial ordering | Lamport happened-before plus the Winskel event-structure and Mazurkiewicz trace-theory lineage already adopted by ADR-054 | SEM-230 reuses the existing `R_c`, visible partial order, and simultaneity groups | policy decisions and declassification events are located at exact cuts; no new clock or concurrency formalism is introduced |
 
-The indirect derivations in the final two rows are intentional: SEM-230 reuses
+The indirect derivations in the final two rows are intentional.
+SEM-230 reuses
 the accepted participant-runtime authority and its formal sources instead of
 copying or forking those definitions. Timed, probabilistic, divergence-sensitive,
 or proof-bearing variants must extend the catalog with the corresponding prior
 art and stronger evidence rather than silently strengthening this baseline.
 
-## Existing Objects And State
+## Existing objects and state
 
 For participant `p`, episode `e`, trace `tr`, policy sequence `rho`, and exact
 state cut `c`, SEM-230 reuses:
@@ -85,7 +86,7 @@ decision. These coordinates remain distinct. In particular, `W_c` is not a
 participant observation, `X_c` is not participant egress, and control-plane
 caller authorization is not participant authority.
 
-## Revisioned Crossing Relation
+## Revisioned crossing relation
 
 A crossing decision is evaluated over:
 
@@ -142,7 +143,7 @@ Retries preserve their idempotency identity only while policy, controller,
 authority, subject, marking, and relevant state coordinates remain equal. A
 change to any of those coordinates requires a fresh decision.
 
-## Distinct Operations
+## Distinct operations
 
 The following operations are not synonyms and cannot be collapsed into one
 Boolean or disposition:
@@ -168,7 +169,7 @@ admission, attempt, result, disclosure, delivery, observation, and archival
 retention are separate transition facts. Audit retention is an evidence
 audience, not participant egress.
 
-## Labelled Transitions
+## Labelled transitions
 
 The closed semantic alphabet for revision `sem-230/rev2` is:
 
@@ -191,7 +192,7 @@ Let `Q -l-> Q'` mean a valid transition carrying one label from this table and
 its owned evidence. Labels are semantic classes; they do not authorize a new
 implementation-local enum or wire field in issue #796.
 
-## Participant-Relative Projection And Hiding
+## Participant-relative projection and hiding
 
 For participant `p`, audience `a`, policy decision `r_c`, and state cut `c`,
 define a revisioned projection:
@@ -222,7 +223,7 @@ Concealment, revocation, rollback, supersession, redaction, and later policy
 change alter future projection or append new visible occurrences. They never
 delete or mutate an occurrence already present in `H_{tr,rho}(p,e,c)`.
 
-## Low Equivalence, Dynamic Purge, And Declassification
+## Low equivalence, dynamic purge, and declassification
 
 Fix participant `p`, episode scope `e`, audience `a`, policy sequence `rho`,
 and initial state cut `c0`.
@@ -259,16 +260,15 @@ purge[p,e,a,rho](alpha) =
 
 Purge is dynamic: each occurrence is evaluated against the authoritative
 policy decision at its exact state cut. A later or incomparable policy decision
-cannot cause an earlier high input to be retained. A permitted declassification
-event records at least the released dimensions, participant/audience,
-actor/controller/authority basis, policy identity/revision/decision, exact
+cannot cause an earlier high input to be retained. A permitted declassification event records at least the released dimensions, participant/audience, and actor/controller/authority basis.
+It also records policy identity/revision/decision, exact
 state-cut ref, markings, evidence, and provenance.
 
 Two declassification schedules are equal only when those governed coordinates
 and their visible order are equal. Merely releasing equal values is
 insufficient.
 
-## Baseline Reactive Policy-Noninterference Obligation
+## Baseline reactive policy-noninterference obligation
 
 Fix:
 
@@ -325,7 +325,7 @@ defines another claim instance. A probabilistic strategy requires a governed
 probability kernel and measure-sensitive relation; support-set equality alone
 does not establish probabilistic noninterference.
 
-### Assumption Boundary
+### Assumption boundary
 
 - **Nondeterminism:** the obligation compares complete declared support sets of
   projected histories. One trace, one scheduler sample, or equality of sampled
@@ -345,7 +345,7 @@ does not establish probabilistic noninterference.
 - **Environment and scheduler:** both classes are named and fixed. No result
   universalizes to an omitted environment or scheduler.
 
-## Bounded Executable Evidence
+## Bounded executable evidence
 
 The test-local model exercises these falsification cases:
 
@@ -373,7 +373,7 @@ the bounded model when an invariant is broken. They do not establish the
 universal obligation above, and they do not establish production or backend
 realization.
 
-## Clause-To-Artifact-To-Assurance Matrix
+## Clause-to-artifact-to-assurance matrix
 
 | SEM-230 clause | Normative / machine-readable artifact | Executable or policy evidence | Assurance status and nonclaim |
 | --- | --- | --- | --- |
@@ -384,7 +384,7 @@ realization.
 | claims bind through the relation catalog with evidence status and nonclaims | behavioral-relation catalog revision `rev8` and claim surface `participant-information-flow-policy` | `tools/check_behavioral_relation_claims.py` and catalog/claim tests | catalog implemented and tested; no claim truth inferred from a valid binding |
 | intellectual lineage and exact RAES mappings | `docs/explain/sdl/lineage.md`, lineage ledger, and source audit | SDL-lineage policy gate | reviewed derivation record; no source syntax or compatibility claim |
 
-## Follow-On Ownership And Nonclaims
+## Follow-on ownership and nonclaims
 
 SEM-230 owns the semantic coordinates and relation definition. It leaves these
 extension points explicit for:
@@ -405,7 +405,7 @@ inclusion/equivalence, simulation, refinement, strong/weak bisimulation,
 epistemic indistinguishability, timed-security, probabilistic-security, or
 erasure claim.
 
-## Primary Sources
+## Primary sources
 
 - Goguen and Meseguer, “Security Policies and Security Models” (1982), DOI
   `10.1109/SP.1982.10014`.

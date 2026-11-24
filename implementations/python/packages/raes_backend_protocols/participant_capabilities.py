@@ -8,6 +8,8 @@ from raes_contracts.contracts.feature_support import ParticipantFeatureSupportMo
 from raes_contracts.contracts.participant_execution import ParticipantExecutionBindingModel
 from raes_contracts.contracts.participant_invocation_tools import (
     ParticipantInvocationToolActionCapabilitiesModel,
+    delivery_tool_actions_enabled,
+    validate_delivery_tool_bindings,
     validate_invocation_tool_action_claim,
 )
 from raes_contracts.contracts.participant_tool_support import (
@@ -256,6 +258,7 @@ class ParticipantRuntimeCapabilities:
             supports_tool_affordances=profiles is not None,
         )
         object.__setattr__(self, "invocation_tool_actions", claim)
+        validate_delivery_tool_bindings(claim, self.execution_bindings)
 
     def _validate_required_vocabularies(self) -> None:
         for field_name, values in (
@@ -388,6 +391,8 @@ class ParticipantRuntimeCapabilities:
         )
         for binding in self.execution_bindings:
             if binding.action_contract_address not in self.supported_autonomous_action_contracts:
+                if delivery_tool_actions_enabled(self.invocation_tool_actions):
+                    continue
                 raise ValueError("execution binding action is not declared supported")
             if not set(binding.target_addresses).issubset(self.supported_autonomous_target_addresses):
                 raise ValueError("execution binding target is not declared supported")
@@ -424,7 +429,7 @@ class ParticipantRuntimeCapabilities:
                 self.supported_autonomous_policy_profiles,
                 self.supported_autonomous_activity_features,
                 self.supported_autonomous_random_stream_profiles,
-                self.execution_bindings,
+                self.execution_bindings and not delivery_tool_actions_enabled(self.invocation_tool_actions),
                 self.supports_execution_control,
                 self.supported_execution_control_actions,
                 self.supports_bounded_concurrency,

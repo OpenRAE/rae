@@ -6,14 +6,15 @@ from raes import build_declaration_index
 from raes.descriptor_profiles import authored_descriptor_profiles
 from raes.instantiate import admit_instantiated_scenario, instantiate_scenario
 from raes.materialization import MaterializedScenario, admit_materialized_scenario
+from raes.observation_scope import resolve_safe_states
 from raes.scenario import ExpandedScenario, InstantiatedScenario, Scenario
 from raes.semantics.domain_topology import (
     analyze_domain_topology,
 )
-from raes.value_parsing import is_variable_ref
 from raes_contracts.errors import InvalidInputError
 from raes_contracts.realization_profiles import PlanProfileAuthority
 from raes_contracts.realization_structure import validate_realization_value
+from raes_contracts.variable_references import is_variable_ref
 
 from ..capture_admission import compile_scenario_capture_demands
 from ..models import (
@@ -42,6 +43,7 @@ from .participant_contracts import (
     _compile_observation_boundaries,
     _compile_outcome_interpretation_rules,
 )
+from .participant_episode_policies import compile_participant_episode_policies
 from .participant_inject_deliveries import _compile_participant_inject_deliveries
 from .placement import (
     _compile_account_placements,
@@ -167,6 +169,7 @@ def _compiled_behavior_parts(
         "behavior_specifications": with_invocation_tool_bindings(scenario, behavior_specifications, tool_affordances),
         "tool_affordances": tool_affordances,
         "participant_inject_deliveries": _compile_participant_inject_deliveries(scenario, diagnostics),
+        "participant_episode_policies": compile_participant_episode_policies(scenario, declaration_index),
         "events": _compile_events(
             scenario, assertions, structure["injects"], structure["inject_bindings"], diagnostics
         ),
@@ -223,6 +226,7 @@ def compile_runtime_model(
     )
     return RuntimeModel(
         scenario_name=scenario.name,
+        safe_states=resolve_safe_states(scenario),
         execution_policies=compile_execution_policies(scenario, {**structure, **behavior}),
         profile_authority=authority,
         descriptor_profile_bindings=authored_descriptor_profiles(scenario),

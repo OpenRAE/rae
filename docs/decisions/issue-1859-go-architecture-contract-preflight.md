@@ -2,7 +2,7 @@
 
 [Issue #1859](https://github.com/OpenRAE/rae/issues/1859) defines this work.
 This note guides the design. It does not claim that checks already exist.
-[ADR-122](adrs/adr-122-go-architecture-model.md) remains the decision owner.
+[ADR-124](adrs/adr-124-go-architecture-model.md) remains the decision owner.
 
 ## Current state
 
@@ -116,7 +116,7 @@ The #1778 parity harness owns behavioral evidence. API snapshots do not replace 
 Keep the existing toolchain locks, lint settings, mutation setup and CI graph.
 Do not add a second workflow. Keep `GOTOOLCHAIN=local` and read-only module flags in CI.
 No runtime schema or release/version changes are needed.
-An ADR-122 edit needs an amendment and a matching ADR index pin.
+An ADR-124 edit needs an amendment and a matching ADR index pin.
 Update the rule registry and its fixtures with the rule table.
 Use MOD-001 and maintain code/test trace links.
 

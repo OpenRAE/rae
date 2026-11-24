@@ -291,7 +291,7 @@ The package-only CI profile reported both files at zero.
 Native `covdata merge` and `textfmt` retained those executed statements.
 These probes selected the comparison projection and software refinement tests only.
 
-ADR-121 requires 25-minute normal Go jobs and 90-percent coverage of each module.
+ADR-123 requires 25-minute normal Go jobs and 90-percent coverage of each module.
 The workflow now uses four product test groups and one tooling group.
 An explicit inventory check proves that every module package occurs exactly once.
 The package timeout remains 20 minutes.

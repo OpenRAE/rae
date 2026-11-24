@@ -1,0 +1,74 @@
+{
+  "assertions": {
+    "safe": {
+      "proposition": "safe",
+      "role": "postcondition"
+    }
+  },
+  "evidence_requirements": {
+    "readback": {
+      "channel": "api_response",
+      "integrity": "checksum",
+      "loss_disclosure": "required",
+      "redaction": "none",
+      "retention": "run_lifetime",
+      "scope_refs": [
+        "nodes.first",
+        "nodes.second",
+        "nodes.first.services.api"
+      ],
+      "sensitivity": "plain",
+      "source_refs": [
+        "nodes.first",
+        "nodes.second",
+        "nodes.first.services.api"
+      ],
+      "window": "safe-state-verification"
+    }
+  },
+  "name": "safe-state",
+  "nodes": {
+    "first": {
+      "os": "linux",
+      "services": [
+        {
+          "name": "api",
+          "port": 443
+        }
+      ],
+      "type": "compute"
+    },
+    "second": {
+      "os": "linux",
+      "type": "compute"
+    }
+  },
+  "propositions": {
+    "safe": {
+      "basis": "observed_state",
+      "description": "The admitted safe-state condition holds.",
+      "evidence_requirements": [
+        "readback"
+      ],
+      "predicate": {
+        "expected": true,
+        "kind": "boolean",
+        "property": "safe",
+        "semantic_ref": "urn:example:safe"
+      },
+      "subjects": [
+        "nodes.first",
+        "nodes.second",
+        "nodes.first.services.api"
+      ]
+    }
+  },
+  "safe_state": {
+    "default": {
+      "assertion_refs": [
+        "safe"
+      ],
+      "kind": "safe-hold"
+    }
+  }
+}

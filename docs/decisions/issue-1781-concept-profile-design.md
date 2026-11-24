@@ -4,7 +4,7 @@ Issue [#1781](https://github.com/OpenRAE/rae/issues/1781) ports the concept-auth
 It also ports the domain-profile resolution, admission and validation.
 The [consumer API reference](issue-1825-public-go-api.md) assigns two more admission operations to this issue: `AdmitFragment` and `ValidateExperimentBindingTargets`.
 The maintainer decided on 2026-11-06 that this issue delivers both operations.
-ADR-012, ADR-062, ADR-072, ADR-081, ADR-121 and ADR-122 govern the work.
+ADR-012, ADR-062, ADR-072, ADR-081, ADR-123 and ADR-124 govern the work.
 The published schemas, the catalogs, the profiles, the vocabulary snapshots and the Python code stay unchanged.
 
 ## Starting point
@@ -407,6 +407,6 @@ Each input limit, security check, error case and defect case in the Python tests
 - [ADR-062](adrs/adr-062-concept-authority-catalog-governance-gate.md)
 - [ADR-072](adrs/adr-072-validation-and-admission-profiles.md)
 - [ADR-081](adrs/adr-081-behavioral-relation-taxonomy-and-claim-discipline.md)
-- [ADR-122](adrs/adr-122-go-architecture-model.md)
+- [ADR-124](adrs/adr-124-go-architecture-model.md)
 
 Issue #1787 adds `AdmitComparisonProfile` to re-admit a copied profile through the same closed decoder and normalized digest owner before analysis.

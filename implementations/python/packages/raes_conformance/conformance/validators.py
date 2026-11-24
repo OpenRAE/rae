@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pydantic import ValidationError
 from raes.materialization import MaterializedScenario
+from raes_contracts.assigned_trial import TrialAssignmentControlModel, TrialAssignmentModel, TrialOutcomeModel
 from raes_contracts.augmentation_preparation import AugmentationPreparation
 from raes_contracts.authoring_adapters import (
     AuthoringAdapterComparisonModel,
@@ -95,6 +96,7 @@ from raes_contracts.contracts.participant_execution import (
     ParticipantExecutionControlRequestModel,
     ParticipantExecutionServiceStateModel,
 )
+from raes_contracts.contracts.workflow_dispatch import WorkflowStepDispatch, WorkflowStepResponse
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import (
     DomainProfileAdmissionPolicyModel,
@@ -121,7 +123,7 @@ from raes_contracts.scientific_completeness import (
 from raes_contracts.validation_profiles import ValidationProfileCatalogModel
 
 from raes_conformance.conformance.control_context_assets import _control_context_asset_diagnostics
-from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_failure_message
+from raes_conformance.conformance.diagnostics import conformance_diagnostic, sanitized_failure_message
 
 _SCHEMA_INVALID_DIAGNOSTIC_CODE = "conformance.schema-invalid"
 _SEMANTIC_CONTEXT_REQUIRED_DIAGNOSTIC_CODE = "conformance.semantic-context-required"
@@ -174,6 +176,11 @@ _MODEL_VALIDATORS = {
 
 
 _STRUCTURAL_ONLY_VALIDATORS = {
+    "workflow-step-dispatch-v1": WorkflowStepDispatch.model_validate,
+    "workflow-step-response-v1": WorkflowStepResponse.model_validate,
+    "assigned-trial-v1": TrialAssignmentModel.model_validate,
+    "assigned-trial-control-v1": TrialAssignmentControlModel.model_validate,
+    "trial-outcome-v1": TrialOutcomeModel.model_validate,
     "participant-control-teaching-profile-v1": ParticipantControlTeachingProfileModel.model_validate,
     "participant-control-selection-v1": ParticipantControlSelectionModel.model_validate,
     "participant-control-evaluation-v1": ParticipantControlEvaluationModel.model_validate,
@@ -267,7 +274,7 @@ def _validate_event_stream(
 
     if not isinstance(payload, list):
         return [
-            _diagnostic(
+            conformance_diagnostic(
                 _SCHEMA_INVALID_DIAGNOSTIC_CODE,
                 contract_name,
                 f"{event_label} history payload must be a list",
@@ -279,7 +286,7 @@ def _validate_event_stream(
             model_cls.model_validate(event)
         except ValidationError as exc:
             diagnostics.append(
-                _diagnostic(
+                conformance_diagnostic(
                     _SCHEMA_INVALID_DIAGNOSTIC_CODE,
                     f"{contract_name}[{index}]",
                     f"{event_label} history event is invalid: {sanitized_failure_message(exc)}",
@@ -296,7 +303,7 @@ def _validate_payload(contract_name: str, payload: object) -> list[Diagnostic]:
             validator(payload)
         except ValidationError as exc:
             diagnostics.append(
-                _diagnostic(
+                conformance_diagnostic(
                     _SCHEMA_INVALID_DIAGNOSTIC_CODE,
                     contract_name,
                     f"{contract_name} failed contract validation: {sanitized_failure_message(exc)}",
@@ -314,7 +321,7 @@ def _validate_payload(contract_name: str, payload: object) -> list[Diagnostic]:
         )
     else:
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.contract-unknown",
                 contract_name,
                 f"No conformance validator is registered for {contract_name}.",
@@ -331,7 +338,7 @@ def _information_state_context_diagnostics(
     diagnostics: list[Diagnostic] = []
     if information_state_context_resolver is None:
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 _SEMANTIC_CONTEXT_REQUIRED_DIAGNOSTIC_CODE,
                 contract_name,
                 "participant information-state context resolver is required",
@@ -347,7 +354,7 @@ def _information_state_context_diagnostics(
             )
         except (TypeError, ValueError) as exc:
             diagnostics.append(
-                _diagnostic(
+                conformance_diagnostic(
                     _SEMANTIC_INVALID_DIAGNOSTIC_CODE,
                     contract_name,
                     "participant information-state context is invalid: " + sanitized_failure_message(exc),
@@ -363,7 +370,7 @@ def _flow_control_context_diagnostics(
     contract_name = "participant-flow-control-relation-v1"
     if flow_control_context_resolver is None:
         return [
-            _diagnostic(
+            conformance_diagnostic(
                 _SEMANTIC_CONTEXT_REQUIRED_DIAGNOSTIC_CODE,
                 contract_name,
                 "participant flow-control context resolver is required",
@@ -378,7 +385,7 @@ def _flow_control_context_diagnostics(
         )
     except (TypeError, ValueError) as exc:
         return [
-            _diagnostic(
+            conformance_diagnostic(
                 _SEMANTIC_INVALID_DIAGNOSTIC_CODE,
                 contract_name,
                 "participant flow-control context is invalid: " + sanitized_failure_message(exc),
@@ -394,7 +401,7 @@ def _mixed_composition_context_diagnostics(
     contract_name = "mixed-participant-composition-profile-v1"
     if context is None:
         return [
-            _diagnostic(
+            conformance_diagnostic(
                 _SEMANTIC_CONTEXT_REQUIRED_DIAGNOSTIC_CODE,
                 contract_name,
                 "mixed composition trusted resolution context is required",
@@ -405,7 +412,7 @@ def _mixed_composition_context_diagnostics(
         validate_mixed_composition_context(profile, context)
     except (TypeError, ValueError) as exc:
         return [
-            _diagnostic(
+            conformance_diagnostic(
                 _SEMANTIC_INVALID_DIAGNOSTIC_CODE,
                 contract_name,
                 "mixed composition context is invalid: " + sanitized_failure_message(exc),
@@ -421,7 +428,7 @@ def _control_context_diagnostics(
 ) -> list[Diagnostic]:
     if resolver is None:
         return [
-            _diagnostic(
+            conformance_diagnostic(
                 _SEMANTIC_CONTEXT_REQUIRED_DIAGNOSTIC_CODE,
                 contract_name,
                 "participant control trusted context resolver is required",
@@ -436,7 +443,7 @@ def _control_context_diagnostics(
             validate_participant_control_resolved_context(record, resolver)
     except TypeError, ValueError:
         return [
-            _diagnostic(
+            conformance_diagnostic(
                 _SEMANTIC_INVALID_DIAGNOSTIC_CODE, contract_name, "participant control trusted context is invalid"
             )
         ]

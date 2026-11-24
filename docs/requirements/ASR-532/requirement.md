@@ -6,15 +6,15 @@ type: NON_FUNCTIONAL
 priority: MUST
 wave: 2
 created_at: 2026-05-18T04:25:47.598518Z
-updated_at: 2026-10-21T00:00:00Z
+updated_at: 2026-11-06T00:00:00Z
 ---
 
-# ASR-532 — Runtime Backend Result Integrity
+# `ASR-532` runtime backend result integrity
 
 ## Statement
 
-The runtime shall validate backend results at the execution boundary and reject
-or sanitize results that violate RAE-owned portable contracts, plan authority,
+The runtime shall validate backend results at the execution boundary.
+It shall reject or sanitize results that violate RAE-owned portable contracts, plan authority,
 runtime-domain ownership, or snapshot-transition invariants. Rejections shall
 preserve the trusted predecessor state and identify the violated invariant with
 structured diagnostics.
@@ -23,12 +23,25 @@ structured diagnostics.
 
 ADR-004 and ADR-036 assign backend invocation and result validation to the RAE
 runtime. Issue #158 characterizes that boundary with controlled result
-perturbations. Certification of external backend implementations, verification
-of backend manifest truthfulness, infrastructure observation, malicious-backend
-containment, and comprehensive backend acceptance testing remain outside this
-requirement.
+perturbations. Certification of external backend implementations and verification of backend manifest truthfulness remain outside this requirement.
+Infrastructure observation and malicious-backend containment also remain outside it.
+Backend acceptance tests for every supported capability also remain outside this requirement.
 
 ## Traceability
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/workflow_dispatch.py` (Bind each report to its exact dispatch.)
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_runtime/workflow_evidence.py` (Resolve governed success against accepted truth.)
+- TESTS → TEST `implementations/python/tests/test_issue_2041_runtime_step_dispatch.py` (Reject foreign reports and forged truth references.)
+
+- IMPLEMENTS → GITHUB_ISSUE `1958` (Finite recursive verification work for unchanged large secret plans)
+- TESTS → TEST `implementations/python/tests/test_issue_1885_cloud_authority_budget.py` (2,048-secret completion, changed selections, and planning-time evaluation exhaustion)
+- TESTS → TEST `implementations/python/tests/test_issue_1885_binding_limits.py` (Finite binding admission and escaped value and carrier failure addresses)
+- TESTS → TEST `implementations/python/tests/cloud_authority_budget_fixtures.py` (Native and logical secret identity mutations across execution boundaries)
+- DOCUMENTS → SPEC `specs/sdl/recursive-realization-constraints.md` (Shared finite authority profile and compiler evaluation admission)
+
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/materialization.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/materialization.py`
+- TESTS → TEST `implementations/python/tests/test_issue_1914_materialization_source_budget.py`
 
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_processor/planner/realization_cleanup.py` (Original authority is validated before cleanup comparison)
 - TESTS → TEST `implementations/python/tests/test_issue_1805_open_concern_disclosure.py` (Reject unsupported success and preserve trusted or recoverable inventory)
@@ -95,21 +108,21 @@ requirement.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_domain_profile_schema_identity.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_domain_profile_schema_registry.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_domain_profile_validation.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/_planning_validation.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/compute_substrate.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/backend_preparation.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/base.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/bundle.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/schema_contributions.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/participant_manifests.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_plans.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/schema_constraints.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/schema_contributions.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/snapshot_entry.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/manifest_authority.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/plan_effects.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/plan_projection.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/plan_projection.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/planning.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_collections.py`
-- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_preparation.py`
+- IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/realization_preparation.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_profiles.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/__init__.py`
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/realization_structure/_binding.py`

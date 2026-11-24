@@ -7,7 +7,7 @@ It first repeats every required corpus check.
 Only then can it admit a positive model-check binding.
 It supplies no proof certificate, runtime-realization result, or independent reproduction.
 The [machine-check design](../../../specs/formal/participant-semantics/participant-crossing-machine-check.md)
-defines the evidence and publication boundary.
+defines the evidence boundary.
 
 After the existing acquisition and Python environment setup, run offline verification:
 
@@ -19,52 +19,11 @@ The nox session never synchronizes dependencies or acquires missing tools.
 Missing inputs fail the check.
 Routine verification runs the current graphs and fixed negative controls.
 It requires the expected positive baseline decision.
-It does not require a new publication after a source edit.
 
-The separately reviewed `machine-check/pin.json` selects an immutable research result.
-Use `record` only when collecting a new source-bound research claim.
-It does not overwrite the pin or historical evidence.
-Explicit publication uses `-- --publish` with the same nox session.
-Publication requires exact native replay and a qualified hosted execution record.
-Public and scientific claims require their separate reproduction and publication work.
+Each run builds the models and the corpus from the current sources.
+No result, capture, or pin is committed, so a source edit never needs a new record.
 The manifest binds only subject sources.
 Each run checks the apparatus sources for stability.
-Public and scientific claims cite only the admitted reproduction record.
-
-## Fresh reproduction measurement
-
-The reproducer starts a fresh Python worker with no network or ambient environment.
-It copies declared source and data files without compiled caches or producer results.
-The worker repeats the complete native decision and negative corpus.
-Every output byte must match the separately selected reviewed capture.
-
-After the existing tool acquisition and Python setup, run:
-
-```sh
-PYTHONPATH=implementations/python/packages:. implementations/python/.venv/bin/python -m implementations.formal.participant_crossing.reproduction --expected-manifest "$(jq -r .manifest_digest specs/formal/participant-semantics/machine-check/pin.json)"
-```
-
-A local run writes its measurement under `.cache/raes-sdl/`.
-It is not a qualified record.
-A different digest, missing input, or unavailable sandbox fails the command.
-The command never downloads tools or dependencies.
-The `--qualified` option requires the existing hosted execution profile.
-It stages measurement and allowlisted execution provenance for the canonical CI artifact.
-
-A measurement does not authenticate a reviewer or establish independent acceptance.
-The reviewer must select and review its exact digest and corpus review subject.
-They must supply an attributable review record and state their separation from production.
-Place the qualified `measurement.json`, `execution.json`, and the `review.json` in one repository-relative staging directory.
-Then retain the admitted capture:
-
-```sh
-PYTHONPATH=implementations/python/packages:. implementations/python/.venv/bin/python -m implementations.formal.participant_crossing.reproduction_record --expected-manifest "$(jq -r .manifest_digest specs/formal/participant-semantics/machine-check/pin.json)" --staging .cache/raes-sdl/reproduction-staging
-```
-
-The command refuses a self-approved, detached, or stale record.
-A reviewed change then moves `reproduction/pin.json`.
-The [reproduction design](../../../specs/formal/participant-semantics/participant-crossing-reproduction.md)
-defines the execution, review, and claim boundaries.
 
 ## Negative corpus
 
@@ -108,39 +67,26 @@ The Debian reader exposes package files without installing the package or runnin
 The upstream package's `usr/share/doc/mcrl2/copyright` contains the Boost Software License 1.0.
 The complete admitted tree retains that license and the package's libraries.
 
-Check retained evidence without executing the native checker:
+Build the corpus from the current sources and admit it against the expectations in code:
 
 ```sh
 PYTHONPATH=implementations/python/packages:. implementations/python/.venv/bin/python -m implementations.formal.participant_crossing.counterexample_corpus check
 ```
 
-Recompute every comparison and require identical retained bytes:
-
-```sh
-PYTHONPATH=implementations/python/packages:. implementations/python/.venv/bin/python -m implementations.formal.participant_crossing.counterexample_corpus replay
-```
-
-Replay never downloads a missing checker. It verifies the installed tree before use.
+The check never downloads a missing checker. It verifies the installed tree before use.
 Full test and integration suites run in CI. Local tests select explicit relevant modules or cases.
 
 ## Evidence and review
 
-The reviewed `specs/formal/participant-semantics/counterexamples/pin.json` selects the immutable capture.
-The manifest binds the model, profile, and catalog.
-It binds the historical mapping, source, and tool.
+The manifest binds the model, profile, catalog, source, and tool.
 It also binds each mutation, result, and witness.
 Raw file checksums and canonical JSON subject digests have different meanings.
 The corpus is unsigned. A consumer requiring authenticity must reject it.
 No candidate field can replace the consumer's selected trust policy.
 
 `cases.json` contains semantic selectors and the exact reversible edge changes.
-Its canonical digest fixes the mutation review subject.
-Independent review must name that digest and cover every required case.
-Source checks and producer-written approval fields cannot substitute for that review.
-
-After an intentional source change, `record` writes a new content-addressed capture.
-Review its results and update the separate pin in the same delivery diff.
-Historical captures retain their bytes. The pinned rev1 runtime mapping remains historical evidence.
+The expected decision of each mutation and calibration is defined in code.
+Each run recomputes every comparison and refuses an unexpected decision.
 Fresh runtime observations use the separate mapping exporter.
 They keep its known mismatches and gaps.
 

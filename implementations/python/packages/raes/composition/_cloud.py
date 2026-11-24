@@ -16,6 +16,8 @@ def rewrite_cloud_runtime(runtime: dict[str, Any], symbols: dict[str, Any]) -> N
 def _rewrite_authority(authority: dict[str, Any], named: dict[str, str]) -> None:
     for scope in authority.get("resource_scopes", []):
         _refs(scope, named, "parent_ref")
+        for audit_log in scope.get("audit_logs", []):
+            _ref_list(audit_log, named, "exempted_principal_refs")
     for subject in authority.get("subjects", []):
         _refs(subject, named, "resource_scope_ref")
     for use in authority.get("identity_uses", []):

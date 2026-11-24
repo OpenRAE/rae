@@ -1,1 +1,12 @@
-exceptions: []
+exceptions:
+  - rule_id: adr-amendment-unrecorded
+    paths:
+      - docs/decisions/adrs/adr-121-strict-package-layers.md
+    expires_at: 2026-12-31
+    rationale: >-
+      False positive for the dev to go-cutover sync. The check compares each ADR
+      identifier with the base revision. On go-cutover, ADR-121 named the Go
+      engineering standards; dev and main released a different ADR-121. The
+      merged ADR-121 file is byte-identical to dev and main, so no accepted ADR
+      text changed. The former Go ADR-121 is now ADR-123 with a recorded
+      amendment. The finding ends when go-cutover carries this sync.

@@ -265,7 +265,7 @@ Do not restrict supported Go constructs merely to satisfy old compatibility test
 Retain recorded Python verdicts as evidence; update native expectations for intentional divergences without rewriting the reference tools.
 Reuse the existing native-refusal handling where applicable, with precise case-level expectations rather than broad parity skips.
 Check unchanged repository schemas and locked source selections, plus worker, IDN, authority and curl regressions affected by shared helpers.
-Local verification selects explicit cases; CI owns full parity, race, coverage, fuzz and mutation verification under ADR-121.
+Local verification selects explicit cases; CI owns full parity, race, coverage, fuzz and mutation verification under ADR-123.
 Keep `.ground-control.yaml`, `.gc/plan-rules.md`, `noxfile.py` and `.github/workflows/canonical-verification.yml` as the workflow owners.
 The existing `archcheck -design` checks the declared design. `.vale.ini` and the `docs-prose` lane check changed prose.
 This change needs no new workflow, check runner or requirement record.
@@ -362,8 +362,8 @@ This restores Go 1.27 call analysis; artifact hashes and sizes remain enforced f
 - [ADR-009](adrs/adr-009-normative-artifact-authority-and-repository-structure.md)
 - [ADR-059](adrs/adr-059-adr-amendment-policy-and-pin-gate.md)
 - [ADR-096](adrs/adr-096-identity-cutover-and-historical-record-boundary.md)
-- [ADR-121](adrs/adr-121-go-engineering-standards.md)
-- [ADR-122](adrs/adr-122-go-architecture-model.md)
+- [ADR-123](adrs/adr-123-go-engineering-standards.md)
+- [ADR-124](adrs/adr-124-go-architecture-model.md)
 - [Public package delivery](issue-1892-public-go-packages-design.md)
 - [Runtime ownership](issue-1891-runtime-repository-boundary.md)
 - [Contained filesystems](https://pkg.go.dev/os#Root)

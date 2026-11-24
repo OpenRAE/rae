@@ -1,10 +1,5 @@
 {
   "contract_id": "participant-control-selection-v2",
   "schema_path": "contracts/schemas/participant-runtime/participant-control-selection-v2.json",
-  "stability": "draft",
-  "content_hash": "3bd04daea14c39d82c87fe542ae733bf6383a39b274d44a27e5ff7722a46d606",
-  "last_change": {
-    "content_hash": "3bd04daea14c39d82c87fe542ae733bf6383a39b274d44a27e5ff7722a46d606",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

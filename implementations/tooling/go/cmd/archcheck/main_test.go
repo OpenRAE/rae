@@ -12,7 +12,7 @@ import (
 )
 
 // rulesADR is an ADR whose rule table maps each rule to its check.
-const rulesADR = `# ADR-122
+const rulesADR = `# ADR-124
 
 | Rule | Statement | Check |
 | --- | --- | --- |
@@ -61,7 +61,7 @@ func TestRunRejectsBadUsage(t *testing.T) {
 func TestRunReportsNoFindingsWhenTheModelAndTheCodeAgree(t *testing.T) {
 	repository(t, map[string]string{
 		"implementations/architecture.json":                    model(""),
-		"docs/decisions/adrs/adr-122-go-architecture-model.md": rulesADR,
+		"docs/decisions/adrs/adr-124-go-architecture-model.md": rulesADR,
 		"m/go.mod": "module example.com/m\n\ngo 1.27\n",
 		"m/p/p.go": "package p\n",
 	})
@@ -91,16 +91,16 @@ func TestRunReportsEachFinding(t *testing.T) {
 		"rule table": {
 			files: map[string]string{
 				"implementations/architecture.json":                    model(""),
-				"docs/decisions/adrs/adr-122-go-architecture-model.md": strings.ReplaceAll(rulesADR, "| ARCH-012", "| ARCH-099"),
+				"docs/decisions/adrs/adr-124-go-architecture-model.md": strings.ReplaceAll(rulesADR, "| ARCH-012", "| ARCH-099"),
 				"m/go.mod": "module example.com/m\n\ngo 1.27\n",
 				"m/p/p.go": "package p\n",
 			},
-			want: "archcheck: ARCH-009 docs/decisions/adrs/adr-122-go-architecture-model.md:",
+			want: "archcheck: ARCH-009 docs/decisions/adrs/adr-124-go-architecture-model.md:",
 		},
 		"code": {
 			files: map[string]string{
 				"implementations/architecture.json":                    model(""),
-				"docs/decisions/adrs/adr-122-go-architecture-model.md": rulesADR,
+				"docs/decisions/adrs/adr-124-go-architecture-model.md": rulesADR,
 				"m/go.mod":  "module example.com/m\n\ngo 1.27\n",
 				"m/p/p.go":  "package p\n",
 				"m/q/q.go":  "package q\n",
@@ -127,7 +127,7 @@ func TestRunReportsAnError(t *testing.T) {
 		"missing ADR":   {"implementations/architecture.json": model("")},
 		"package error": {
 			"implementations/architecture.json":                    model(""),
-			"docs/decisions/adrs/adr-122-go-architecture-model.md": rulesADR,
+			"docs/decisions/adrs/adr-124-go-architecture-model.md": rulesADR,
 			"m/go.mod": "module example.com/m\n\ngo 1.27\n",
 			"m/p/p.go": "package p\n\nimport (\n",
 		},

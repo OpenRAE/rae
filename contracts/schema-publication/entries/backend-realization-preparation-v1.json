@@ -1,10 +1,5 @@
 {
   "contract_id": "backend-realization-preparation-v1",
   "schema_path": "contracts/schemas/plans/backend-realization-preparation-v1.json",
-  "stability": "draft",
-  "content_hash": "e882dc8b4d5599a37c70509137c18475ff48d77fb28e3a989d852761a27986f0",
-  "last_change": {
-    "content_hash": "e882dc8b4d5599a37c70509137c18475ff48d77fb28e3a989d852761a27986f0",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

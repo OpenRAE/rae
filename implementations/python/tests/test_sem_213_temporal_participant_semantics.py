@@ -7,13 +7,13 @@ import textwrap
 import pytest
 from raes._errors import SDLParseError
 from raes.parser import parse_sdl
-from raes.participant_behavior import ParticipantEffectClass, ParticipantPreconditionClass
-from raes.participant_temporal_semantics import (
-    ParticipantTemporalContractKind,
+from raes.participant_temporal_semantics import ParticipantTemporalContractKind
+from raes_contracts.contracts import ParticipantBehaviorHistoryEventModel
+from raes_contracts.participant_action_semantics import ParticipantEffectClass, ParticipantPreconditionClass
+from raes_contracts.participant_temporal_vocabulary import (
     ParticipantTemporalEventPoint,
     ParticipantTimeDomain,
 )
-from raes_contracts.contracts import ParticipantBehaviorHistoryEventModel
 from raes_processor.compiler import compile_runtime_model
 from raes_processor.models import (
     ParticipantActionEffectResult,

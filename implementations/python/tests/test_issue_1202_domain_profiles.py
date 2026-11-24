@@ -8,10 +8,10 @@ import urllib.request
 from pathlib import Path
 
 import pytest
+from contract_fixtures import load_contract_fixture
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes_conformance.conformance import _fixture_case_diagnostics
-from raes_contracts.contracts import schema_bundle
 from raes_contracts.domain_profiles import (
     SAFE_DOMAIN_PROFILE_SCHEMA_KEYWORDS,
     AdmittedDomainProfileDefinitionModel,
@@ -39,6 +39,7 @@ from raes_contracts.domain_profiles import (
     seal_domain_profile_definition,
 )
 from raes_contracts.json_ingress import StrictJsonIngressError
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 _PUBLISHED_DOMAIN_PROFILE_FIXTURES = (
@@ -256,7 +257,7 @@ def test_published_domain_profile_fixtures_use_the_canonical_conformance_path(
     valid: bool,
 ) -> None:
     path = REPO_ROOT / "contracts/fixtures/profiles" / contract_id / fixture
-    diagnostics = _fixture_case_diagnostics(contract_id, json.loads(path.read_text(encoding="utf-8")))
+    diagnostics = _fixture_case_diagnostics(contract_id, load_contract_fixture(path))
 
     assert (not diagnostics) is valid
 
@@ -272,8 +273,8 @@ def test_published_domain_profile_schemas_enforce_fixture_contracts(
 ) -> None:
     fixture_path = REPO_ROOT / "contracts/fixtures/profiles" / contract_id / fixture
     schema_path = REPO_ROOT / "contracts/schemas/profiles" / f"{contract_id}.json"
-    payload = json.loads(fixture_path.read_text(encoding="utf-8"))
-    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    payload = load_contract_fixture(fixture_path)
+    schema = json.loads((schema_path).read_text(encoding="utf-8"))
 
     Draft202012Validator.check_schema(schema)
     assert Draft202012Validator(schema).is_valid(payload) is valid

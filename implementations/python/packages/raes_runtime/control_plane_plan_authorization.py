@@ -6,10 +6,10 @@ from copy import deepcopy
 from dataclasses import replace
 from threading import RLock
 
+from raes_contracts.contracts.plan_projection import runtime_plan_digest
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import ConflictError
 from raes_contracts.plan_effects import plan_can_mutate
-from raes_contracts.plan_projection import runtime_plan_digest
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
 from raes_contracts.runtime_state import OperationReceipt, RuntimeSnapshot
 from raes_processor.models import ExecutionPlan, RuntimeModel
@@ -33,6 +33,7 @@ class RuntimePlanAuthorizationMixin:
             raise TypeError("planner authorization requires a composite ExecutionPlan")
         if not plan.is_valid:
             raise ValueError("invalid composite execution plans cannot be authorized")
+        self._require_episode_planning_model(plan.model)
         from raes_processor.planner.mixed_control_admission import mixed_control_policy_addresses
 
         if mixed_control_policy_addresses(
@@ -50,6 +51,12 @@ class RuntimePlanAuthorizationMixin:
                 self._trusted_orchestration_models[digests[1]] = deepcopy(plan.model)
             self._trusted_runtime_plan_digests.update(digests)
         return digests[0]
+
+    def _require_episode_planning_model(self, model: RuntimeModel) -> None:
+        if model.participant_episode_policies and (
+            self._participant_episode is None or not self._participant_episode.admits_model(model)
+        ):
+            raise ConflictError("episode plan requires its exact installed runtime binding")
 
     def _require_mixed_control_planning_model(self, model: RuntimeModel) -> None:
         controlled_deliveries = any(item.control is not None for item in model.participant_inject_deliveries.values())

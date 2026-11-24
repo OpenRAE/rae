@@ -1,4 +1,4 @@
-# Portable External Concept Bindings
+# Portable external concept bindings
 
 ## Scope
 
@@ -14,7 +14,7 @@ An external concept binding is an authored assertion about native RAES
 meaning. It is not an executable SDL construct and does not acquire authority
 merely because an external scheme is named.
 
-## Published Contract
+## Published contract
 
 The normative JSON Schema is:
 
@@ -25,7 +25,7 @@ A document has a stable `binding_set_id`, an authored
 equal the assertion's `binding_id`. Two assertions with different ids must not
 duplicate the same semantic identity.
 
-## Exact RAES Subject Coordinate
+## Exact RAES subject coordinate
 
 Every assertion identifies its RAES subject with all of:
 
@@ -41,11 +41,10 @@ SDL authoring and instantiated subjects use canonical declaration addresses
 from the collision-preserving declaration index and the canonical digest for
 their lifecycle phase.
 
-The lifecycle phase is explicit because a normalized authoring declaration,
-an expanded declaration, an instantiated declaration, a compiled object, and
-a realized or observed object are not interchangeable subjects.
+The lifecycle phase is explicit because these subjects are not interchangeable.
+The subjects are a normalized authoring declaration, an expanded declaration, and an instantiated declaration, a compiled object, and a realized or observed object.
 
-## External Scheme Coordinate
+## External scheme coordinate
 
 Every assertion identifies the external concept independently with:
 
@@ -61,7 +60,7 @@ must not use `file:` or `data:`, and must not contain fragments or
 secret-bearing query parameters. Parsing and admission never dereference a
 locator.
 
-## Assertion Dimensions
+## Assertion dimensions
 
 The contract keeps the following dimensions separate:
 
@@ -87,7 +86,7 @@ The contract keeps the following dimensions separate:
 These fields must not be collapsed into a mapping string or an unconstrained
 metadata object.
 
-### Relationship Kinds
+### Relationship kinds
 
 The closed relationship vocabulary is:
 
@@ -99,7 +98,7 @@ The closed relationship vocabulary is:
 
 The direction is always RAES subject to external concept.
 
-### Semantic Effects
+### Semantic effects
 
 The `semantic_effect` field reuses the closed SEM-217 vocabulary:
 `annotates`, `constrains`, `refines`, and `aligns`.
@@ -111,7 +110,7 @@ governed RAES validator or profile already owns that constraint. `refines` and
 review; they do not make the external scheme authoritative over RAES by
 themselves.
 
-## Participant Availability
+## Participant availability
 
 Participant scope is optional and has one permitted posture:
 `eligibility-only`.
@@ -123,15 +122,14 @@ Actual availability remains governed by the existing information-flow,
 participant-view, admission, and delivery contracts. Values such as
 `delivered`, `visible`, or `disclosed` are invalid on this surface.
 
-## Offline Semantic Admission
+## Offline semantic admission
 
 Structural validation is independent of contextual resolution. A structurally
 valid assertion remains parseable when its external scheme is unavailable, but
 it is inactive until resolved against explicit local inputs.
 
-The canonical conformance registry admits the document structurally through
-`external-concept-bindings-v1` and reports
-`conformance.semantic-context-required` when the generic fixture boundary has
+The canonical conformance registry admits the document structurally through `external-concept-bindings-v1`.
+It reports `conformance.semantic-context-required` when the generic fixture boundary has
 not been supplied the exact subjects and pinned snapshots needed below. This
 prevents the model and resolver from becoming a parallel validation path.
 The normative schema expresses local conditions with Draft 2020-12 keywords
@@ -163,7 +161,7 @@ Resolution is deterministic:
 Diagnostics are bounded and must not echo attacker-controlled concept
 identifiers.
 
-## Relationship to Other RAES Surfaces
+## Relationship to other RAES surfaces
 
 ### Native `ConceptBinding`
 
@@ -175,14 +173,14 @@ participant-manifest surfaces.
 artifact subject and an arbitrary external concept. It complements, but does
 not widen or replace, native `ConceptBinding`.
 
-### Propositions and Outcomes
+### Propositions and outcomes
 
 A binding is neither a proposition nor an outcome assertion. It does not make
 a proposition true, satisfy a success criterion, establish a behavioral
 relation, or record an observed result. Those claims continue to use their
 owned proposition, outcome, observation, and truth-result contracts.
 
-### Realization Envelopes
+### Realization envelopes
 
 A binding does not request, authorize, prove, or change realization. It cannot
 grant processor, backend, or participant capabilities; change the transition
@@ -190,15 +188,15 @@ system; bypass admission; or modify a realization envelope. A realized or
 observed object may be an exact subject only when its owning contract and
 lifecycle-specific digest coordinate are independently available.
 
-### Evidence Records
+### Evidence records
 
-Typed evidence references support review of an assertion, but the binding is
-not an evidence record and does not prove that referenced evidence exists,
+Typed evidence references support review of an assertion.
+But the binding is not an evidence record and does not prove that referenced evidence exists,
 was captured, or satisfies an experiment requirement. Evidence identity,
 capture, integrity, access, and interpretation remain governed by the existing
 evidence contracts.
 
-## Scheme Adapters
+## Scheme adapters
 
 Authority-specific source artifacts may be adapted into the neutral local
 snapshot model. ATT&CK Enterprise tactics and NIST CSF defensive categories
@@ -219,16 +217,15 @@ unknown, one match resolves, and multiple matches are ambiguous. An adapter
 does not add branches to the portable authored contract or fetch an authority
 at admission time.
 
-## Semantic Projection Reports
+## Semantic projection reports
 
 `semantic-projection-report/v1` derives evidence-bounded concept views from
-this contract without widening binding authority. It reruns the exact offline
-admission path, uses an explicit pinned-snapshot inclusion set as its sole
-denominator, and preserves binding resolution, approximation, loss,
+this contract without widening binding authority. It reruns the exact offline admission path and uses an explicit pinned-snapshot inclusion set as its sole denominator.
+It preserves binding resolution, approximation, loss,
 limitations, and review as independent facts.
 
 The reporting contract is specified in
-[Semantic Projection Reports](./semantic-projection-reports.md). A report
-selects one governed native predicate and may classify a concept as a witness,
+[Semantic Projection Reports](./semantic-projection-reports.md). A report selects one governed native predicate.
+It may classify a concept as a witness,
 gap, unknown, ambiguous, or excluded only within its complete digest-bound
 frame. A binding never supplies native predicate truth by itself.

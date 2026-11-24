@@ -3,7 +3,7 @@
 Issue #1780 applies to checkout `ffb54d246`.
 This note gives design constraints.
 It is not an implementation plan.
-ADR-009, ADR-061, ADR-121 and ADR-122 govern the work.
+ADR-009, ADR-061, ADR-123 and ADR-124 govern the work.
 No new ADR is needed.
 Python code and published schemas must stay unchanged.
 

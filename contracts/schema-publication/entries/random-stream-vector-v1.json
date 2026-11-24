@@ -1,10 +1,5 @@
 {
   "contract_id": "random-stream-vector-v1",
   "schema_path": "contracts/schemas/profiles/random-stream-vector-v1.json",
-  "stability": "draft",
-  "content_hash": "324f19397faef31483f12491932448d3d81e8180ad355f3bf53365e7c81f2592",
-  "last_change": {
-    "content_hash": "324f19397faef31483f12491932448d3d81e8180ad355f3bf53365e7c81f2592",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

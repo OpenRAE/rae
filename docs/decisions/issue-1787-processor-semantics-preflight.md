@@ -61,7 +61,7 @@ Resolve these gaps in the owning design and machine-readable model before implem
 Keep private implementation details private, but make every downstream signature usable without `internal` imports.
 Sealed handles mark admitted phases and planner origin. They do not authenticate callers or grant cryptographic authority.
 Declare changed packages, imports, exported identifiers and typed API commitments in `implementations/architecture.json`.
-Pass `archcheck -design` before code, under ADR-122.
+Pass `archcheck -design` before code, under ADR-124.
 Update the existing system views when the design changes their parts or trust boundaries.
 This preflight changes neither the model nor its commitments and does not certify the forthcoming design.
 

@@ -1,16 +1,16 @@
-"""The landing pages run as written and say the same thing (issue 938).
+"""The landing pages route readers and say the same thing (issues 938, 1932).
 
-``README.md``, the hosted front page, and the hosted quickstart each show the
-same validation command followed by the output it prints. These tests run that
-command the way a reader does, against the checked-in quickstart scenario, and
-compare the result with what each page promises.
+``docs/public/quickstart.md`` owns the first exercise. This test runs its
+validation command the way a reader does, against the checked-in quickstart
+scenario, and compares the result with what the page promises.
 
-The README is also the PyPI description, so it links hosted URLs where the
-front page links relative paths. Apart from that link form, each page's title,
-the README badges, how each page shows the scenario, and the front page's
-toctree, the two pages share their text and links. Both embed the ecosystem
-diagram with alt text, and the diagram itself carries an accessible name and
-description.
+``README.md`` and the hosted front page are routing pages. The README is also
+the PyPI description, so it links hosted URLs where the front page links
+relative paths. Apart from that link form, each page's title, the README
+badges, and the front page's toctree, the two pages share their text and links.
+Both embed the ecosystem diagram with alt text, and the diagram itself carries
+an accessible name and description. ``docs/index.md`` and ``docs/README.md``
+route repository readers to the same first exercise and research explanation.
 """
 
 from __future__ import annotations
@@ -29,6 +29,22 @@ ECOSYSTEM_DIAGRAM = REPO_ROOT / "docs" / "public" / "_static" / "raes-ecosystem.
 LANDING_PAGES = ("README.md", "docs/public/index.md")
 HOSTED_DOCS = "https://openrae.github.io/rae/"
 SVG = "{http://www.w3.org/2000/svg}"
+READER_PURPOSES = (
+    "Tutorials (learn)",
+    "How-to guides (do a task)",
+    "Reference (look up facts)",
+    "Explanation (understand)",
+)
+FIRST_ROUTE_PAGES = ("quickstart", "research", "citation")
+STABLE_HEADINGS = (
+    "What RAES provides",
+    "Validate your first scenario",
+    "Run a scenario on a backend",
+    "Package and share scenarios",
+    "Choose your route",
+    "Know the limits",
+    "Cite RAES",
+)
 
 # A console block that feeds a script to `python -` through a heredoc, then the
 # first text block after it, which shows what the command prints.
@@ -36,14 +52,13 @@ _COMMAND_AND_OUTPUT = re.compile(
     r"```console\npython - <<'PY'\n(?P<script>.*?)\nPY\n```.*?```text\n(?P<output>.*?)\n```",
     re.DOTALL,
 )
-# The parts of a landing page that are not shared: the title, the README
-# badges, the scenario block (inline in the README, included from a file on the
-# front page), and the front page's toctree.
+# The parts of a landing page that are not shared: the title (the single H1
+# line, which can follow a lead line), the README badges, and the front page's
+# toctree.
 _PAGE_SPECIFIC = re.compile(
-    r"\A# [^\n]*$"
+    r"^# [^\n]*$"
     r"|^\[!\[[^\n]*$"
-    r"|<!-- quickstart-sdl:start -->.*?<!-- quickstart-sdl:end -->"
-    r"|^```\{(?:literalinclude|toctree)\}.*?^```$",
+    r"|^```\{toctree\}.*?^```$",
     re.DOTALL | re.MULTILINE,
 )
 _LINK_TARGET = re.compile(r"\]\(([^)\s]+)\)")
@@ -69,8 +84,8 @@ def _hosted_url(target: str) -> str:
     return f"{HOSTED_DOCS}{path.with_suffix('.html')}"
 
 
-@pytest.mark.parametrize("page", [*LANDING_PAGES, "docs/public/quickstart.md"])
-def test_quickstart_prints_the_output_each_page_shows(page: str, tmp_path: Path) -> None:
+def test_quickstart_prints_the_output_the_page_shows(tmp_path: Path) -> None:
+    page = "docs/public/quickstart.md"
     match = _COMMAND_AND_OUTPUT.search((REPO_ROOT / page).read_text(encoding="utf-8"))
     assert match is not None, f"{page} has no quickstart command followed by its output"
     (tmp_path / QUICKSTART_SCENARIO.name).write_bytes(QUICKSTART_SCENARIO.read_bytes())
@@ -90,11 +105,55 @@ def test_quickstart_prints_the_output_each_page_shows(page: str, tmp_path: Path)
 
 
 def test_readme_and_front_page_share_their_text_and_links() -> None:
+    for page in LANDING_PAGES:
+        titles = re.findall(r"^# ", (REPO_ROOT / page).read_text(encoding="utf-8"), re.MULTILINE)
+        assert len(titles) == 1, f"{page} must have exactly one H1 title line"
     readme_prose, readme_targets = _shared_text("README.md")
     front_prose, front_targets = _shared_text("docs/public/index.md")
 
     assert readme_prose == front_prose
     assert readme_targets == [_hosted_url(target) for target in front_targets]
+
+
+def test_hosted_front_page_starts_with_its_title() -> None:
+    first_line = (REPO_ROOT / "docs/public/index.md").read_text(encoding="utf-8").splitlines()[0]
+
+    assert first_line.startswith("# ")
+
+
+@pytest.mark.parametrize("page", LANDING_PAGES)
+def test_landing_page_routes_to_the_first_exercise_and_research(page: str) -> None:
+    text = (REPO_ROOT / page).read_text(encoding="utf-8")
+    first_route = text.partition("## Validate your first scenario\n")[2].partition("\n## ")[0]
+
+    for label in READER_PURPOSES:
+        assert label in text, f"{page} has no {label} route"
+    for destination in FIRST_ROUTE_PAGES:
+        assert any(destination in target for target in _LINK_TARGET.findall(first_route)), destination
+
+
+@pytest.mark.parametrize("page", LANDING_PAGES)
+def test_landing_page_keeps_task_steps_at_their_destinations(page: str) -> None:
+    text = (REPO_ROOT / page).read_text(encoding="utf-8")
+
+    assert "```console" not in text
+    assert "```yaml" not in text
+    assert not re.search(r"git clone|uv sync|pip install", text)
+
+
+@pytest.mark.parametrize("page", LANDING_PAGES)
+def test_landing_page_keeps_its_heading_links(page: str) -> None:
+    headings = re.findall(r"^## (.+)$", (REPO_ROOT / page).read_text(encoding="utf-8"), re.MULTILINE)
+
+    assert set(STABLE_HEADINGS) <= set(headings)
+
+
+@pytest.mark.parametrize("page", ["docs/index.md", "docs/README.md"])
+def test_repository_entry_page_routes_to_the_first_exercise_and_research(page: str) -> None:
+    targets = _LINK_TARGET.findall((REPO_ROOT / page).read_text(encoding="utf-8"))
+
+    for destination in ("public/quickstart.md", "public/research.md", "public/citation.md"):
+        assert destination in targets, f"{page} has no route to {destination}"
 
 
 @pytest.mark.parametrize("page", LANDING_PAGES)

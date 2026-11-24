@@ -17,6 +17,7 @@ from raes_contracts.errors import InvalidInputError, OperationalError
 
 from tools.gitleaks_tool import ensure_gitleaks
 from tools.nox_support.config import (
+    CHANGED_MODULE_PYTEST_CODES,
     COVERAGE_JSON_PATH,
     COVERAGE_XML_PATH,
     EXCLUDED_PREFIXES,
@@ -26,6 +27,7 @@ from tools.nox_support.config import (
     RUFF_CONFIG,
     VERIFY_PROJECT_SYNCED_ENV,
 )
+from tools.policy.common import git_paths
 from tools.policy.requirement_scope import RequirementScopeError
 from tools.python_closure_profiles import frozen_tool_command
 from tools.requirement_context import current_requirement_branch, resolve_requirement_context
@@ -89,22 +91,13 @@ def _run(
     *args: str,
     silent: bool = False,
     env: dict[str, str] | None = None,
+    success_codes: Sequence[int] | None = None,
 ) -> None:
-    session.run(*args, external=True, silent=silent, env=env)
+    session.run(*args, external=True, silent=silent, env=env, success_codes=success_codes)
 
 
-def _git_lines(*args: str) -> list[str]:
-    proc = subprocess.run(
-        ["git", *args],
-        cwd=REPO_ROOT,
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-    if proc.returncode != 0:
-        # Name only the subcommand: git output and the command line stay out of the message.
-        raise OperationalError(f"git {args[0]} failed with exit code {proc.returncode}")
-    return [line.strip() for line in proc.stdout.splitlines() if line.strip()]
+def _git_paths(command: str, *options: str) -> list[str]:
+    return git_paths(command, *options, repo_root=REPO_ROOT)
 
 
 _EXCLUDE_DELETED_FILTER = "--diff-filter=d"
@@ -112,10 +105,10 @@ _EXCLUDE_DELETED_FILTER = "--diff-filter=d"
 
 def _changed_paths(*, staged: bool = False, base_rev: str | None = None) -> list[str]:
     if staged:
-        return _normalize_paths(_git_lines("diff", "--name-only", _EXCLUDE_DELETED_FILTER, "--cached"))
+        return _normalize_paths(_git_paths("diff", "--name-only", _EXCLUDE_DELETED_FILTER, "--cached"))
     if base_rev:
-        return _normalize_paths(_git_lines("diff", "--name-only", _EXCLUDE_DELETED_FILTER, base_rev, "HEAD"))
-    return _normalize_paths(_git_lines("diff", "--name-only", _EXCLUDE_DELETED_FILTER, "HEAD"))
+        return _normalize_paths(_git_paths("diff", "--name-only", _EXCLUDE_DELETED_FILTER, base_rev, "HEAD"))
+    return _normalize_paths(_git_paths("diff", "--name-only", _EXCLUDE_DELETED_FILTER, "HEAD"))
 
 
 def _sync_project(session: nox.Session) -> None:
@@ -172,6 +165,32 @@ def _run_ruff(session: nox.Session, *args: str, project_relative: bool = False) 
     _run(session, *command, "--config", str(RUFF_CONFIG), *args)
 
 
+_PYTEST_COMMAND = ("uv", "run", "--frozen", "python", "-m", "pytest")
+
+
+def _project_test_args(args: Sequence[str]) -> list[str]:
+    """Make repository-relative test paths relative to the Python project."""
+
+    return [
+        str((REPO_ROOT / arg).relative_to(PROJECT_ROOT)) if arg.startswith("implementations/python/") else arg
+        for arg in args
+    ]
+
+
+def _run_changed_test_modules(session: nox.Session, modules: Sequence[str]) -> None:
+    """Run directly changed test modules, accepting a module whose tests all belong to another lane."""
+
+    _sync_project(session)
+    with session.chdir(PROJECT_ROOT):
+        _run(
+            session,
+            *_PYTEST_COMMAND,
+            *_project_test_args(modules),
+            "-q",
+            success_codes=CHANGED_MODULE_PYTEST_CODES,
+        )
+
+
 def _run_pytest(
     session: nox.Session,
     *args: str,
@@ -184,11 +203,8 @@ def _run_pytest(
     """Run pytest in the project; `xdist` names the worker distribution, None runs one process."""
 
     _sync_project(session)
-    normalized_args = [
-        str((REPO_ROOT / arg).relative_to(PROJECT_ROOT)) if arg.startswith("implementations/python/") else arg
-        for arg in args
-    ]
-    command = ["uv", "run", "--frozen", "python", "-m", "pytest"]
+    normalized_args = _project_test_args(args)
+    command = list(_PYTEST_COMMAND)
     if xdist is not None:
         command.extend(["-n", "auto", "--maxprocesses=8", f"--dist={xdist}"])
     coverage_env: dict[str, str] | None = dict(extra_env) if extra_env else None
@@ -306,7 +322,7 @@ def _parse_hygiene_posargs(posargs: Sequence[str], *, default_all_files: bool) -
 
 
 def _tracked_repo_paths() -> list[str]:
-    return _normalize_paths(_git_lines("ls-files", "--cached", "--others", "--exclude-standard"))
+    return _normalize_paths(_git_paths("ls-files", "--cached", "--others", "--exclude-standard"))
 
 
 def _normalize_paths(paths: Iterable[str]) -> list[str]:

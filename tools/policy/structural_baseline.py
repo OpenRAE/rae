@@ -7,8 +7,10 @@ and the deep classes, with the adoption commit and the analysis record.
 
 from __future__ import annotations
 
+import io
 import re
 import subprocess
+import tarfile
 import tomllib
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -26,6 +28,10 @@ LAYERS_CONTRACT_ID = "raes-package-layers"
 CYCLES_CONTRACT_ID = "raes-sibling-cycles"
 MAX_ARTIFACT_BYTES = 4 * 1024 * 1024
 ANALYSIS_KEYS = ("exclude_type_checking_imports", "grimp", "import-linter", "max_repository_ancestors", "sibling_depth")
+# The analysis keys and the finding families that #1711 added. A baseline at a base revision before
+# #1711 does not have them; the current baseline must have them.
+ADDED_ANALYSIS_KEYS = ("ruff",)
+FAMILY_KEYS = ("private_member_accesses", "function_imports")
 
 _DOTTED = r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*"
 _IMPORT_EXPRESSION = re.compile(rf"^({_DOTTED}) -> ({_DOTTED})\Z", re.ASCII)
@@ -65,6 +71,8 @@ class StructuralBaseline:
     cycle_components: Mapping[str, tuple[tuple[str, ...], ...]]
     private_imports: Mapping[ImportPair, int]
     deep_classes: Mapping[str, int]
+    # ``None`` when the baseline does not record the family (a baseline before #1711).
+    families: Mapping[str, Mapping[ImportPair, int] | None]
 
 
 class BaseRevision(Protocol):
@@ -77,6 +85,8 @@ class BaseRevision(Protocol):
     def sources_changed(self, roots: Sequence[str]) -> bool: ...
 
     def adoption(self, roots: Sequence[str]) -> BaseRevision | None: ...
+
+    def extract(self, roots: Sequence[str], destination: Path) -> None: ...
 
 
 class GitBaseRevision:
@@ -95,6 +105,9 @@ class GitBaseRevision:
     def adoption(self, roots: Sequence[str]) -> GitBaseRevision | None:
         commit = adoption_commit(self._repo_root, roots)
         return None if commit is None else GitBaseRevision(self._repo_root, commit)
+
+    def extract(self, roots: Sequence[str], destination: Path) -> None:
+        extract_base_sources(self._repo_root, self.revision, roots, destination)
 
 
 def validate_git_revision(value: str) -> str:
@@ -137,6 +150,23 @@ def read_base_artifact(repo_root: Path, base_rev: str, rel_path: str) -> str | N
         return _git(repo_root, ["show", f"{commit}:{rel_path}"])
     except UnicodeDecodeError as exc:
         raise InvalidInputError(f"{rel_path} at the base revision is not UTF-8 text") from exc
+
+
+def extract_base_sources(repo_root: Path, base_rev: str, roots: Sequence[str], destination: Path) -> None:
+    """Write the files under ``roots`` at ``base_rev`` into ``destination`` (ADR-117 I10)."""
+
+    revision = validate_git_revision(base_rev)
+    try:
+        archive = subprocess.run(
+            ["git", "archive", "--format=tar", revision, "--", *roots],
+            cwd=repo_root,
+            capture_output=True,
+            check=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        raise OperationalError(f"git archive failed while reading the base revision {revision!r}") from exc
+    with tarfile.open(fileobj=io.BytesIO(archive.stdout), mode="r:") as tar:
+        tar.extractall(destination, filter="data")
 
 
 def package_sources_changed(repo_root: Path, base_rev: str, roots: Sequence[str]) -> bool:
@@ -232,23 +262,29 @@ def _contracts_by_id(contracts: object, source: str) -> dict[str, dict[str, obje
 
 def parse_structural_baseline(text: str, source: str) -> StructuralBaseline:
     payload = parse_bounded_json_object(text, source)
-    expected = {"schema", "adopted_commit", "analysis", "cycle_components", "private_imports", "deep_classes"}
-    if set(payload) != expected:
-        raise InvalidInputError(f"{source} keys must be {sorted(expected)}")
+    required = {"schema", "adopted_commit", "analysis", "cycle_components", "private_imports", "deep_classes"}
+    if not required <= set(payload) <= required | set(FAMILY_KEYS):
+        raise InvalidInputError(f"{source} keys must be {sorted(required)} and optionally {list(FAMILY_KEYS)}")
     if payload["schema"] != BASELINE_SCHEMA:
         raise InvalidInputError(f"{source}: schema must be {BASELINE_SCHEMA!r}")
     commit = payload["adopted_commit"]
     if not isinstance(commit, str) or not _COMMIT.match(commit):
         raise InvalidInputError(f"{source}: adopted_commit must be a 40-character commit id")
     analysis = payload["analysis"]
-    if not isinstance(analysis, dict) or set(analysis) != set(ANALYSIS_KEYS):
-        raise InvalidInputError(f"{source}: analysis keys must be {list(ANALYSIS_KEYS)}")
+    if not isinstance(analysis, dict) or not set(ANALYSIS_KEYS) <= set(analysis) <= {
+        *ANALYSIS_KEYS,
+        *ADDED_ANALYSIS_KEYS,
+    }:
+        raise InvalidInputError(
+            f"{source}: analysis keys must be {list(ANALYSIS_KEYS)} and optionally {list(ADDED_ANALYSIS_KEYS)}"
+        )
     return StructuralBaseline(
         adopted_commit=commit,
         analysis=analysis,
         cycle_components=_components(payload["cycle_components"], source),
         private_imports=_private_imports(payload["private_imports"], source),
         deep_classes=_deep_classes(payload["deep_classes"], source),
+        families={key: (_counted_pairs(payload[key], source, key) if key in payload else None) for key in FAMILY_KEYS},
     )
 
 
@@ -305,16 +341,22 @@ def _is_component(package: str, component: object) -> bool:
 
 
 def _private_imports(value: object, source: str) -> dict[ImportPair, int]:
+    return _counted_pairs(value, source, "private_imports")
+
+
+def _counted_pairs(value: object, source: str, label: str) -> dict[ImportPair, int]:
+    """Read a ``{module: {name: count}}`` family of exact findings with positive counts."""
+
     if not isinstance(value, dict):
-        raise InvalidInputError(f"{source}: private_imports must be an object")
+        raise InvalidInputError(f"{source}: {label} must be an object")
     result: dict[ImportPair, int] = {}
-    for importer, targets in value.items():
-        if not _DOTTED_NAME.match(importer) or not isinstance(targets, dict) or not targets:
-            raise InvalidInputError(f"{source}: private_imports[{importer!r}] must be a non-empty object")
-        for target, count in targets.items():
-            if not _DOTTED_NAME.match(target) or not _positive(count):
-                raise InvalidInputError(f"{source}: private_imports[{importer!r}][{target!r}] must be a positive count")
-            result[(importer, target)] = count
+    for owner, names in value.items():
+        if not _DOTTED_NAME.match(owner) or not isinstance(names, dict) or not names:
+            raise InvalidInputError(f"{source}: {label}[{owner!r}] must be a non-empty object")
+        for name, count in names.items():
+            if not _DOTTED_NAME.match(name) or not _positive(count):
+                raise InvalidInputError(f"{source}: {label}[{owner!r}][{name!r}] must be a positive count")
+            result[(owner, name)] = count
     return result
 
 

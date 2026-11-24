@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.errors import ConflictError
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import OperationReceipt
 from raes_processor.models import ParticipantBehaviorRuntime

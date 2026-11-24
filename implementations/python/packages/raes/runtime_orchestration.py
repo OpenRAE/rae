@@ -19,11 +19,10 @@ access and a resolvable interface before mutation.
 from enum import Enum
 
 from pydantic import Field, field_validator, model_validator
-
-from raes.runtime_vocabulary import GovernedVocabulary
-
-from ._base import SDLModel, parse_int_or_var
-from .runtime_values import parse_runtime_enum_or_var, require_symbol
+from raes_contracts.governed_vocabulary import GovernedVocabulary
+from raes_contracts.runtime_values import parse_runtime_enum_or_var, require_symbol
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import parse_int_or_var
 
 __all__ = [
     "RuntimeOrchestrationAuthority",

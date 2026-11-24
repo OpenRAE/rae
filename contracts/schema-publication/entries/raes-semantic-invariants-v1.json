@@ -2,11 +2,6 @@
   "contract_id": "raes-semantic-invariants-v1",
   "schema_path": "contracts/schemas/profiles/raes-semantic-invariants-v1.json",
   "stability": "draft",
-  "content_hash": "cab11b74093414d9b91103f868fc239b19c906a4bb098c3ece1e22d96876d03b",
-  "last_change": {
-    "content_hash": "cab11b74093414d9b91103f868fc239b19c906a4bb098c3ece1e22d96876d03b",
-    "summary": "Remove the validator field from the invariant entry; the contract id of the host schema and the entry id identify each invariant (#1776)."
-  },
   "coverage": {
     "rationale": "This profile is realized as the x-raes-invariants entries and x-raes-semantic-profile references embedded in other published schemas, so it has no standalone document to route.",
     "sources": [

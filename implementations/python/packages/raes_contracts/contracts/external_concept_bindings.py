@@ -24,7 +24,7 @@ from .experiment_manifest_references import (
     ExperimentEvidenceReferenceModel,
 )
 from .experiment_references import ExperimentReferenceModel
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 
 def _string_branch(schema: JsonSchemaValue) -> JsonSchemaValue:
@@ -433,7 +433,7 @@ class ExternalConceptBindingDocumentModel(ContractModel):
             ),
         )
         for invariant_id, description in invariants:
-            _add_raes_invariant(
+            add_raes_invariant(
                 json_schema,
                 invariant_id,
                 description,

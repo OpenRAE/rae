@@ -312,8 +312,8 @@ def test_current_retest_requires_drift_disposition_for_production_evidence_cases
 
 
 def test_retest_production_evidence_contains_governed_payloads() -> None:
-    from raes_contracts.exploit_path import ExploitPathAnalysisEvidenceModel
-    from raes_contracts.satisfiability import ScenarioSatisfiabilityEvidenceModel
+    from raes_processor.exploit_path.evidence import ExploitPathAnalysisEvidenceModel
+    from raes_processor.satisfiability.evidence import ScenarioSatisfiabilityEvidenceModel
 
     _, _, _, snapshot, _ = copy_bundle(load_retest_bundle, REPO_ROOT)
     paths = {

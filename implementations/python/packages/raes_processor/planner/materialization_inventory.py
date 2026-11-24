@@ -3,16 +3,16 @@
 from dataclasses import replace
 
 from raes import MaterializedScenario, admit_instantiated_scenario, parse_sdl
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes.scenario import InstantiatedScenario
 from raes_backend_protocols.capabilities import BackendManifest
 from raes_backend_protocols.manifest import backend_manifest_v2_model
 from raes_contracts.augmentation_preparation import AugmentationEffect, AugmentationPreparation
+from raes_contracts.contracts.materialization_attestation import MaterializationArchive
 from raes_contracts.errors import ConflictError, InvalidInputError
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
 from raes_contracts.json_ingress import parse_bounded_json_object
 from raes_contracts.materialization import (
     MATERIALIZATION_MAX_BYTES,
-    MaterializationArchive,
     MaterializationSource,
     MaterializationSubmission,
 )

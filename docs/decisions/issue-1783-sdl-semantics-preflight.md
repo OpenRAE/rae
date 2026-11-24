@@ -146,7 +146,7 @@ Full corpus, race, coverage, mutation, fuzz and regression gates remain in CI un
 
 Before code, declare exact owners and imports in `implementations/architecture.json`.
 Declare exported identifiers and typed interfaces there too.
-Bind the owning design and API commitments, then pass `archcheck -design` under ADR-122.
+Bind the owning design and API commitments, then pass `archcheck -design` under ADR-124.
 This preflight does not select those package interfaces.
 It does not approve the implementation design.
 Reuse `.ground-control.yaml`, `.gc/plan-rules.md`, the existing policy tools, Go lint/mutation configurations and canonical verification workflow.

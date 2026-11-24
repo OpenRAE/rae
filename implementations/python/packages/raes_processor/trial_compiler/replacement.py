@@ -12,9 +12,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from raes_contracts.admitted_trial_plan_ingress import revalidate_admitted_trial_plan
 from raes_contracts.canonical import canonical_json_bytes, canonical_json_digest
 from raes_contracts.contracts import AdmittedTrialPlanModel, ExperimentRunModel, TrialCleanupReceiptModel
+from raes_contracts.contracts.admitted_trial_plan_ingress import revalidate_admitted_trial_plan
 from raes_contracts.contracts.trial_replacement import TrialReplacementOriginModel
 from raes_contracts.contracts.trial_replacement_archive import (
     build_superseded_trial_run as _supersede,

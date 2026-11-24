@@ -1,6 +1,7 @@
 """Semantic validation for ACT-617 mixed-control participant operation."""
 
 from raes_contracts.json_pointer import pointer_from_tokens
+from raes_contracts.participant_mixed_control_vocabulary import MixedControlAuthorityStatus
 
 from .._reference_targetability import ReferencePurpose
 from ..participant_behavior_specification import (
@@ -12,7 +13,6 @@ from ..participant_behavior_specification import (
     ParticipantBehaviorSpecification,
 )
 from ..participant_mixed_control_policy import MixedControlPolicy
-from ..participant_mixed_control_vocabulary import MixedControlAuthorityStatus
 
 
 def transition_pointer(spec_name: str, collection: str, transition_id: str) -> str:

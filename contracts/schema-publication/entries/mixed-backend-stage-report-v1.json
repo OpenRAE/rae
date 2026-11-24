@@ -1,10 +1,5 @@
 {
   "contract_id": "mixed-backend-stage-report-v1",
   "schema_path": "contracts/schemas/control-plane/mixed-backend-stage-report-v1.json",
-  "stability": "draft",
-  "content_hash": "020a24d745c05bb67b8440bee23652f0e8cd456384f341bec3193fc589c2fc4c",
-  "last_change": {
-    "content_hash": "020a24d745c05bb67b8440bee23652f0e8cd456384f341bec3193fc589c2fc4c",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

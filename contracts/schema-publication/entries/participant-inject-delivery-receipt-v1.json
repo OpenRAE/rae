@@ -1,10 +1,5 @@
 {
   "contract_id": "participant-inject-delivery-receipt-v1",
   "schema_path": "contracts/schemas/control-plane/participant-inject-delivery-receipt-v1.json",
-  "stability": "draft",
-  "content_hash": "873a26a12fc2d226d91c142805096acd751a4e611aa789c7f91f40dce8018c3c",
-  "last_change": {
-    "content_hash": "873a26a12fc2d226d91c142805096acd751a4e611aa789c7f91f40dce8018c3c",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

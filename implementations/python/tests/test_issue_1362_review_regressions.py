@@ -3,7 +3,6 @@
 import asyncio
 from threading import Event, Thread
 from time import monotonic
-from unittest.mock import patch
 
 import pytest
 from raes_contracts.errors import OperationalError
@@ -17,6 +16,25 @@ from raes_runtime.operation_supervision_configuration import OperationSupervisio
 from test_issue_1362_distributed_authority import Dispatcher, worker
 from test_issue_1362_provider_execution import Evidence, Provider, target
 from test_issue_1362_runtime_supervision import supervisor
+
+
+@pytest.fixture
+def deferred_deadline(monkeypatch):
+    def defer(plane):
+        registered = []
+        arm = plane._execution_adapter.arm_deadline
+        monkeypatch.setattr(
+            plane._execution_adapter, "arm_deadline", lambda *args, **kwargs: registered.append((args, kwargs))
+        )
+
+        def expire():
+            assert len(registered) == 1
+            args, kwargs = registered.pop()
+            arm(args[0], monotonic(), *args[2:], **kwargs)
+
+        return expire
+
+    return defer
 
 
 @pytest.mark.parametrize("asynchronous", [False, True])
@@ -90,17 +108,7 @@ def test_failed_reacquisition_does_not_grant_a_second_writer(asynchronous):
     assert queued_entered.is_set()
 
 
-def submit_with_due_deadline(plane):
-    """Arm the real callback after admission, independently of runner speed."""
-    with patch.object(plane._execution_adapter, "arm_deadline") as deadline:
-        receipt = plane.submit_provisioning(ProvisioningPlan())
-    deadline.assert_called_once()
-    key, _, callback, *args = deadline.call_args.args
-    plane._execution_adapter.arm_deadline(key, monotonic(), callback, *args, **deadline.call_args.kwargs)
-    return receipt
-
-
-def test_deadline_classification_can_use_the_single_store_slot():
+def test_deadline_classification_can_use_the_single_store_slot(deferred_deadline):
     provider, dispatcher = Provider(), Dispatcher()
     plane = RuntimeControlPlane(
         target(provider),
@@ -108,6 +116,7 @@ def test_deadline_classification_can_use_the_single_store_slot():
         distributed_execution=dispatcher,
         supervision=OperationSupervisionConfiguration(store_capacity=1),
     )
+    expire = deferred_deadline(plane)
     expired, failures = Event(), []
     original = plane._expire_backend_invocation
 
@@ -122,7 +131,9 @@ def test_deadline_classification_can_use_the_single_store_slot():
 
     plane._expire_backend_invocation = expiry
     try:
-        receipt = submit_with_due_deadline(plane)
+        receipt = plane.submit_provisioning(ProvisioningPlan())
+        assert receipt.accepted
+        expire()
         # The callback has a five-second admission budget of its own. Allow
         # that budget and runner scheduling time before checking settlement.
         assert expired.wait(10)
@@ -134,13 +145,14 @@ def test_deadline_classification_can_use_the_single_store_slot():
         plane.close()
 
 
-def test_failed_deadline_classification_closes_runtime_authority():
+def test_failed_deadline_classification_closes_runtime_authority(deferred_deadline):
     provider, dispatcher = Provider(), Dispatcher()
     plane = RuntimeControlPlane(
         target(provider),
         operation_evidence=Evidence(),
         distributed_execution=dispatcher,
     )
+    expire = deferred_deadline(plane)
     poisoned = Event()
     original = plane._poison_runtime_durability
 
@@ -154,7 +166,8 @@ def test_failed_deadline_classification_closes_runtime_authority():
     plane._poison_runtime_durability = poison
     plane._expire_backend_invocation = fail
     try:
-        submit_with_due_deadline(plane)
+        assert plane.submit_provisioning(ProvisioningPlan()).accepted
+        expire()
         assert poisoned.wait(10)
         assert plane._durability_poisoned
         rejected_plan = ProvisioningPlan()

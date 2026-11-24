@@ -6,12 +6,12 @@ from collections.abc import Collection, Iterator, Mapping
 from dataclasses import dataclass
 from typing import Any
 
+from raes_contracts.identifiers import QualifiedName
 from raes_contracts.json_pointer import pointer_from_tokens
 from yaml.nodes import MappingNode, Node, ScalarNode, SequenceNode
 
 from ._declarations import DeclarationIndex
 from ._errors import SDLParseError
-from ._identifiers import QualifiedName
 from ._language_context import EndpointPurposes, PurposeResolver
 from ._language_definitions import indexed_definitions
 from ._language_diagnostics import parse_error as _parse_error

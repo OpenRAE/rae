@@ -24,12 +24,12 @@ from .participant_flow_control import (
     ParticipantFlowReleaseKind,
     ParticipantFlowSinkKind,
 )
-from .participant_owner_flow import ParticipantFlowObligationAuthorityCoordinate, ParticipantOwnerFlowSinkResolution
 from .runtime_facts import RuntimeFactBindingPlaneModel
 
 if TYPE_CHECKING:
+    from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
+
     from ..participant_action_arguments import ParticipantValidatedActionSelection
-    from ..participant_binding import ParticipantActionAdmissionRequest
 
 FlowProfileKey = tuple[str, str]
 ActionSelectionKey = tuple[str, str]
@@ -55,6 +55,23 @@ class ParticipantFlowSinkCoordinate:
     sink_ref: str
     destination_ref: str
     audience_scope_ref: str
+
+
+@dataclass(frozen=True)
+class ParticipantFlowObligationAuthorityCoordinate:
+    """Independently authorized owner/clause for the complete exact release."""
+
+    release_digest: str
+    owner_ref: str
+    obligation_ref: str
+
+
+@dataclass(frozen=True)
+class ParticipantOwnerFlowSinkResolution:
+    """Trusted principal resolution and policy posture of one exact final sink."""
+
+    readers: frozenset[str]
+    accepts_untrusted_integrity: bool
 
 
 @dataclass(frozen=True)

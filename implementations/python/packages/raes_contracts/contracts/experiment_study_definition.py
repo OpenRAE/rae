@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, Any, TypedDict
+from typing import TYPE_CHECKING, TypedDict
 
 from ..canonical import canonical_json_digest
+from .experiment_evidence_refinement import AuthoredScenarioEvidence
+from .experiment_study_contract import ExperimentStudyModel
 
 if TYPE_CHECKING:
     from .experiment_capture import ExperimentCaptureSpecModel
@@ -15,7 +17,7 @@ if TYPE_CHECKING:
 class StudyRelationInputs(TypedDict, total=False):
     """Resolved artifacts used to validate inherited study evidence relations."""
 
-    relation_scenarios: Mapping[str, Any] | None
+    relation_scenarios: Mapping[str, AuthoredScenarioEvidence] | None
     relation_capture_specs: Mapping[str, ExperimentCaptureSpecModel] | None
 
 
@@ -25,7 +27,6 @@ def validate_study_definition(study: ExperimentStudyModel, definition: Experimen
         return
     if definition is None:
         raise ValueError("study snapshots require a resolved authored study definition")
-    from .experiment_study_contract import ExperimentStudyModel
 
     definition = ExperimentStudyModel.model_validate(definition.model_dump(mode="json", warnings=False))
     if definition.definition_ref is not None:

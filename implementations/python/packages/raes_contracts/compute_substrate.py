@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 from .bounded_domains import DomainDescriptor, EnumDomain, ExactDomain, GovernedReferenceDomain
+from .controlled_vocabularies import validate_controlled_vocabulary_value
 
 
 def validate_planned_substrate_targets(
@@ -44,7 +45,6 @@ def validate_compute_substrate_constraint(
 
     # Loading the catalog lazily avoids the schema-bundle import cycle through
     # raes_contracts.contracts.
-    from .controlled_vocabularies import validate_controlled_vocabulary_value
 
     for value in values:
         if not isinstance(value, str):

@@ -907,6 +907,39 @@ equal names do not imply a relation. Optional acquisition `refinements` carry
 pinned public profile definitions and bounded values through the existing plan
 host. The target must independently support their semantics before execution.
 
+`model` is an optional field on a software component.
+Use a name that includes a revision when the experiment needs that exact revision.
+The model can be set with a variable and a parameter variation point:
+
+```yaml
+name: model-comparison
+realization: {default: open}
+variables:
+  model_choice:
+    type: string
+    required: true
+    allowed_values: [vendor/model-a@revision-1, vendor/model-b@revision-2]
+nodes:
+  host:
+    type: compute
+    os: linux
+    runtime:
+      software_components:
+        - component_id: controller
+          name: controller
+          model: '${model_choice}'
+variation_points:
+  model-choice:
+    kind: parameter
+    target: {kind: variable, variable: model_choice}
+    domain: {kind: enum, values: [vendor/model-a@revision-1, vendor/model-b@revision-2]}
+```
+
+Each trial SDL keeps its chosen model. The trial admits only that choice.
+The backend cannot replace it with another choice from the source family.
+Omit `model` to let the backend choose it in an open software scope.
+Literal names fix an exact model. Variables follow the existing rules for constrained values.
+
 `runtime.repository_state` separately records shared repository and trust
 identities; component `repository_refs` and repository `trust_ref` resolve there.
 Use `presence: forbidden` for explicit final absence. An internal cache, private
@@ -1346,7 +1379,7 @@ shipping spine that the SIEM/security-monitoring *manager* half
 (`runtime.network_detection_engines`) cannot shape. Each entry is a
 `RuntimeForwardingAgent` with a stable `forwarding_agent_id`, an open
 `agent_kind` spine discriminator (`log_forwarder`, `content_sync`, `unknown`,
-`other`), and typed children: `sources` (tailed path, API pull, or queue inputs),
+`other`), and typed children: `sources` (tailed path, API pull, queue, or listening-socket inputs),
 `transforms` (`passthrough`/`parse`/`ioc_to_rule`), `ship_targets` (downstream
 event-ingest and/or enrollment endpoints), an optional `buffer_policy`
 (queue/back-pressure posture), `reload_channels` (downstream rule-reload sockets),

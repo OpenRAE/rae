@@ -158,7 +158,7 @@ Independent corpus and defect-case tests address that risk.
 
 ## Checks and supporting artifacts
 
-ADR-060, ADR-070, ADR-115, ADR-121, and ADR-122 retain their decisions.
+ADR-060, ADR-070, ADR-115, ADR-123, and ADR-124 retain their decisions.
 No new ADR is needed.
 The architecture model and planned API declarations change with this port.
 Existing policy, architecture, lint, parity, and CI gates apply.

@@ -23,17 +23,17 @@ from typing import cast
 
 from raes_backend_protocols.capabilities import ParticipantFeatureSupport, resolve_participant_feature_support
 from raes_backend_protocols.manifest import backend_manifest_payload
+from raes_contracts.behavioral_claims import BehavioralClaimBindingModel
 from raes_contracts.behavioral_relation_profiles import load_behavioral_relation_profile
 from raes_contracts.behavioral_relations import validate_behavioral_claim_binding
 from raes_contracts.canonical import canonical_json_digest
-from raes_contracts.contracts import BehavioralClaimBindingModel
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import InvalidInputError, RaesError
 from raes_contracts.operational_logging import foreign_failure_record, get_logger
 from raes_contracts.vocabulary import ParticipantFeatureSupportLevel
 from raes_runtime.registry import RuntimeTarget
 
-from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_failure_message
+from raes_conformance.conformance.diagnostics import conformance_diagnostic, sanitized_failure_message
 from raes_conformance.conformance.participant_opacity_execution import (
     _PointMeasurement,
     configuration_digest,
@@ -236,7 +236,7 @@ def _comparison_diagnostics(
     )
     if disagreement:
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.participant-opacity-transcript-disagreement",
                 case.name,
                 "The reported transcript disagrees with instrumented execution for: " + ", ".join(disagreement) + ".",
@@ -248,7 +248,7 @@ def _comparison_diagnostics(
         return diagnostics
     if observations[0] != observations[1] or visible_projection(measurements[0]) != visible_projection(measurements[1]):
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.participant-opacity-observation-mismatch",
                 case.name,
                 "The measured participant observation differs across the governed opacity points.",
@@ -257,7 +257,7 @@ def _comparison_diagnostics(
     normal_form = asdict(NORMAL_FORMS[(case.profile_id, case.profile_revision)])
     if any(observation != normal_form for observation in observations):
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.participant-opacity-normal-form-mismatch",
                 case.name,
                 "The measured transcript differs from the profile's runner-owned normal form.",
@@ -274,11 +274,13 @@ def _case_diagnostics(
     failures: list[str],
     owner: ParticipantOpacityRealizationOwner,
 ) -> tuple[Diagnostic, ...]:
-    diagnostics = [_diagnostic("conformance.participant-opacity-probe-rejected", case.name, item) for item in failures]
+    diagnostics = [
+        conformance_diagnostic("conformance.participant-opacity-probe-rejected", case.name, item) for item in failures
+    ]
     missing = missing_fields(observations)
     if missing:
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.participant-opacity-observation-missing",
                 case.name,
                 "Execution produced no measured basis for: " + ", ".join(missing) + ".",
@@ -287,7 +289,7 @@ def _case_diagnostics(
     diagnostics.extend(_comparison_diagnostics(case, measurements, observations, reported))
     if owner is ParticipantOpacityRealizationOwner.DECLARATION_ONLY:
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.participant-opacity-realization-unestablished",
                 case.name,
                 "No committed runtime-enforcement binding for the case profile and points established realization.",
@@ -383,7 +385,7 @@ def _harness_failure_case(
         ConformanceCaseResult,
         replace(
             case,
-            diagnostics=(_diagnostic(code, _FEATURE, message),),
+            diagnostics=(conformance_diagnostic(code, _FEATURE, message),),
             outcome=outcome,
         ),
     )

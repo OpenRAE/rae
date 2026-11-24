@@ -28,8 +28,8 @@ def test_control_subdomain_exports_preserve_public_facade():
 
 @pytest.mark.parametrize("contract,payload", [(ROOTS[0], selection_payload), (ROOTS[1], evaluation_payload)])
 def test_published_bundle_validates_closed_portable_fixtures(contract, payload):
-    from raes_contracts.contracts import schema_bundle
     from raes_contracts.corpus import corpus_family_root
+    from raes_schemas import schema_bundle
 
     schema = schema_bundle()[contract]
     Draft202012Validator.check_schema(schema)
@@ -80,7 +80,8 @@ def test_modular_capability_uses_governed_evidence_required_feature():
 
 
 def test_published_teaching_profile_is_closed_and_has_no_release():
-    from raes_contracts.contracts import load_teaching_influence_profile, schema_bundle
+    from raes_contracts.contracts import load_teaching_influence_profile
+    from raes_schemas import schema_bundle
 
     profile = load_teaching_influence_profile()
     Draft202012Validator(schema_bundle()["participant-control-teaching-profile-v1"]).validate(

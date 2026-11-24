@@ -430,7 +430,7 @@ Update the exact typed snapshots and owning-design commitments with the model.
 Review the generated system view and the authored trust explanation together.
 The existing architecture, policy, lint, contract, and regression gates still enforce these rules.
 No new policy gate or service is introduced.
-ADR-008, ADR-036, ADR-121, and ADR-122 already govern these changes.
+ADR-008, ADR-036, ADR-123, and ADR-124 already govern these changes.
 No new ADR is needed because ownership and published behavior remain unchanged.
 
 ## Verification boundary
@@ -454,7 +454,7 @@ Keep Python source, published schemas, and recorded expectations unchanged.
 - [Public Go API](issue-1825-public-go-api.md): fixed consumer declarations and delivery owners.
 - [Architecture preflight](issue-1787-processor-semantics-preflight.md): missing inputs and binding protections.
 - [ADR-008](adrs/adr-008-processor-layer-and-execution-artifact-boundaries.md): compilation and planning ownership.
-- [ADR-122](adrs/adr-122-go-architecture-model.md): design and architecture checks.
+- [ADR-124](adrs/adr-124-go-architecture-model.md): design and architecture checks.
 - [Effective Go](https://go.dev/doc/effective_go): explicit interfaces and error handling.
 - [Google Go best practices](https://google.github.io/styleguide/go/best-practices): small interfaces and direct dependencies.
 
@@ -992,7 +992,7 @@ Published and construction schemas keep separate indexes, and copied rule regist
 Each call still parses and validates fresh bounded input, applies the current rules and returns fresh values.
 The public API, package imports and trust boundaries do not change.
 
-Normal Go jobs have the 25-minute limit required by ADR-121.
+Normal Go jobs have the 25-minute limit required by ADR-123.
 Product race tests use four package groups: shared contracts and primitives, native authoring, parity adapters, and processor with public SDL.
 The tooling module has one test group.
 Each package keeps its 20-minute test timeout.

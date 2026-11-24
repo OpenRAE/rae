@@ -12,7 +12,6 @@ from raes_contracts.runtime_state import OperationKind, OperationState
 
 from .control_plane_operation_context import operation_actor_scope, operation_idempotency_fingerprint
 from .interaction import _RuntimeApplyState
-from .participant_release import waiting_participant_addresses
 from .runtime_decisions import DecisionIdentity, RunPhaseDecision, RunProgramDecision, RuntimeDecision
 from .runtime_module_step import phase_states
 from .runtime_run_preparation import prepare_run, restore_run_modules
@@ -27,6 +26,11 @@ APPLICATION_PHASES = (
     "_apply_orchestration_phase",
     "_apply_participant_start_phase",
 )
+
+
+def run_phase_key(admission: RunProgramDecision, phase: int) -> str:
+    """Canonical binding shared by dispatch and retained operation readers."""
+    return "run-phase:" + canonical_json_digest((admission.decision_id, phase)).removeprefix("sha256:")
 
 
 if TYPE_CHECKING:
@@ -133,41 +137,23 @@ def _finalize_run(run: RuntimeRunContext, execution_id: str, phases: dict[int, R
     finalization = phases.get(len(APPLICATION_PHASES))
     if finalization is not None and finalization.state != "succeeded":
         return _progress(finalization)
-    if run._participant_clock_driver is None:
-        state = _RuntimeApplyState(working_snapshot=run.snapshot, diagnostics=[], changed_addresses=[], details={})
-        run._finalize_participant_driver_apply(state)
-        if not state.failure.success:
-            failed = RunPhaseDecision(
-                run_scope=run._run_scope, execution_id=execution_id, phase=len(APPLICATION_PHASES), state="failed"
-            )
-            run._store.claim_runtime_decision(failed)
-            return _progress(failed)
-    return _release_progress(run, execution_id) or RunProgress(
-        execution_id=execution_id, run_scope=run._run_scope, phase=len(APPLICATION_PHASES), state="succeeded"
-    )
-
-
-def _participants_waiting(run: RuntimeRunContext) -> bool:
-    return run._participant_scheduler is not None and any(
-        waiting_participant_addresses(policy, run.snapshot) for policy in run._participant_execution_policies
-    )
-
-
-def _release_progress(run: RuntimeRunContext, execution_id: str) -> RunProgress | None:
-    """Keep the run pending while autonomous participants wait for their starting assertions.
-
-    Each call runs one release pass when a waiting participant can be released.
-    """
-    if not _participants_waiting(run):
-        return None
-    phase = len(APPLICATION_PHASES)
-    released = run.run_due_participant_actions() if run._participant_release_pending(run.snapshot) else None
-    if released is not None and not released.success:
-        failed = RunPhaseDecision(run_scope=run._run_scope, execution_id=execution_id, phase=phase, state="failed")
+    if not _participant_driver_started(run) or not run.release_waiting_participants():
+        failed = RunPhaseDecision(
+            run_scope=run._run_scope, execution_id=execution_id, phase=len(APPLICATION_PHASES), state="failed"
+        )
         run._store.claim_runtime_decision(failed)
         return _progress(failed)
-    pending = RunProgress(execution_id=execution_id, run_scope=run._run_scope, phase=phase, state="pending")
-    return pending if _participants_waiting(run) else None
+    # Autonomous participants that wait for their starting assertions keep the run pending.
+    state = "pending" if run.participants_waiting() else "succeeded"
+    return RunProgress(execution_id=execution_id, run_scope=run._run_scope, phase=len(APPLICATION_PHASES), state=state)
+
+
+def _participant_driver_started(run: RuntimeRunContext) -> bool:
+    if run._participant_clock_driver is not None:
+        return True
+    state = _RuntimeApplyState(working_snapshot=run.snapshot, diagnostics=[], changed_addresses=[], details={})
+    run._finalize_participant_driver_apply(state)
+    return state.failure.success
 
 
 def _advance_phase(
@@ -182,8 +168,11 @@ def _advance_phase(
         run_scope=run._run_scope, execution_id=admission.execution_id, phase=phase, state="started"
     )
     run._store.claim_runtime_decision(started)
-    key = "run-phase:" + canonical_json_digest((admission.decision_id, phase)).removeprefix("sha256:")
+    key = run_phase_key(admission, phase)
     records = _phase_records(run, admission, key)
+    if records and APPLICATION_PHASES[phase] == "_apply_orchestration_phase":
+        _resume_workflow_roots(run, records, identity)
+        records = _phase_records(run, admission, key)
     state = None
     if not records:
         state = _RuntimeApplyState(
@@ -252,3 +241,15 @@ def _progress(phase: RunPhaseDecision) -> RunProgress:
         state=phase.state,
         operation_ids=phase.operation_ids,
     )
+
+
+def _resume_workflow_roots(
+    run: RuntimeRunContext, records: tuple[ControlPlaneOperationRecord, ...], identity: object | None
+) -> None:
+    for record in records:
+        if (
+            record.workflow is not None
+            and record.workflow.kind == "root"
+            and record.status.state in {OperationState.ACCEPTED, OperationState.RUNNING}
+        ):
+            run.advance_orchestration(record.receipt.operation_id, identity=identity)

@@ -7,15 +7,27 @@ from collections.abc import Mapping, Sequence
 from pydantic import ValidationError
 
 from .contracts.participant_control_occurrence_v2 import parse_participant_control_occurrence
+from .immutable_history import EventHistory, HistoryFieldPolicy, HistoryIdentity, HistoryMap
+
+
+def _control_identity(participant: str, payload: Mapping[str, object], position: int) -> HistoryIdentity:
+    record = parse_participant_control_occurrence(payload)
+    if record.participant_address != participant:
+        raise ValueError("participant control history key must equal the embedded participant address")
+    if record.occurrence.occurrence_revision != position:
+        raise ValueError("participant control occurrence_revision must be contiguous and match append order")
+    return record.event_id
+
+
+CONTROL_HISTORY_POLICY = HistoryFieldPolicy(record_identity=_control_identity, retains_invalid_records=True)
 
 
 def iter_participant_control_history_snapshot_violations(
     history: Mapping[str, Sequence[dict[str, object]]],
 ) -> list[tuple[str, str]]:
     """Return value-safe violations for one complete control-history snapshot."""
-    from .immutable_history import HistoryMap
 
-    if type(history) is HistoryMap and history._field == "participant_control_history" and history._shape_valid:
+    if type(history) is HistoryMap and history.policy is CONTROL_HISTORY_POLICY and history.shape_valid:
         return []
 
     violations: list[tuple[str, str]] = []
@@ -68,7 +80,6 @@ def iter_participant_control_history_transition_violations(
     violations: list[tuple[str, str]] = []
     for participant_address, previous_events in previous.items():
         next_events = next_history.get(participant_address, ())
-        from .immutable_history import EventHistory
 
         if isinstance(previous_events, EventHistory) and isinstance(next_events, EventHistory):
             if len(next_events) >= len(previous_events) and next_events.prefix_digest(
@@ -86,6 +97,7 @@ def iter_participant_control_history_transition_violations(
 
 
 __all__ = (
+    "CONTROL_HISTORY_POLICY",
     "iter_participant_control_history_snapshot_violations",
     "iter_participant_control_history_transition_violations",
 )

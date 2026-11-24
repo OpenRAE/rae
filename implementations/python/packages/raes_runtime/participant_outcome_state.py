@@ -5,15 +5,15 @@ from typing import Literal
 from pydantic import Field, StrictInt
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.base import ContractModel, NonEmptyString
-from raes_contracts.contracts.participant_outcomes import ParticipantOutcomeReportV2Model
-from raes_contracts.errors import ConflictError
-from raes_contracts.participant_outcome_history import (
+from raes_contracts.contracts.participant_outcome_history import (
     outcome_history_digest,
     outcome_observations,
     outcome_projection,
     require_outcome_predecessor,
     validate_outcome_rule,
 )
+from raes_contracts.contracts.participant_outcomes import ParticipantOutcomeReportV2Model
+from raes_contracts.errors import ConflictError
 from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_processor.models import ParticipantOutcomeInterpretationRuleRuntime
 

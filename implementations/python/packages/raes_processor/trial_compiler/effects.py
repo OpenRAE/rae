@@ -89,7 +89,7 @@ def resolved_treatment_signature(entry: AdmittedTrialEntryModel, scenario: Insta
 
 def validate_factorial_distinctness(
     entries: Mapping[str, AdmittedTrialEntryModel],
-    resolved_signatures: Mapping[str, str],
+    resolved_signatures: Mapping[str, str | None],
 ) -> None:
     """Keep scalar comparison unchanged; typed designs compare selected effects."""
     conditions_by_signature = {}

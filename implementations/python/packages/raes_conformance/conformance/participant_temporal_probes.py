@@ -4,13 +4,13 @@ from collections.abc import Iterable
 
 from raes_contracts.contracts import ExperimentStochasticControlModel
 from raes_contracts.contracts.participant_temporal import ParticipantTemporalAssessmentModel
+from raes_contracts.contracts.participant_temporal_history import require_participant_temporal_history
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.errors import ConflictError, EvidenceIntegrityError, InvalidInputError, RaesError
 from raes_contracts.operational_logging import get_logger
-from raes_contracts.participant_temporal import require_participant_temporal_history
 from raes_runtime.registry import RuntimeTarget, participant_temporal_probe_manager
 
-from .diagnostics import _diagnostic, sanitized_failure_message
+from .diagnostics import conformance_diagnostic, sanitized_failure_message
 from .report import ConformanceCaseResult
 
 _LOGGER = get_logger(__name__)
@@ -21,7 +21,7 @@ class _TemporalProbeRefusal(RaesError):
 
 
 def _guarantee_failed(message: str) -> Diagnostic:
-    return _diagnostic("conformance.participant-temporal-guarantee-failed", "participant.temporal", message)
+    return conformance_diagnostic("conformance.participant-temporal-guarantee-failed", "participant.temporal", message)
 
 
 def _stop_probe_clock_driver(manager: object | None) -> bool:
@@ -70,7 +70,7 @@ def participant_temporal_scenario_case(
         driver_stopped = _stop_probe_clock_driver(manager)
     if not driver_stopped:
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.participant-clock-driver-stop-failed",
                 "participant.temporal",
                 (

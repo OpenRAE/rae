@@ -49,7 +49,6 @@ These show that the use of parameters is standard practice.
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/trial_replacement.py` (Define closed replacement policy and lineage. The experiment owns them.)
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes_contracts/contracts/trial_replacement_analysis.py` (Trace lineage across plans. Account for the original slot in analysis.)
 - TESTS → TEST `implementations/python/tests/test_issue_1396_trial_replacement.py` (Test fresh identity and cleanup refusal. Test bounds and duplicate decisions. Count each trial once in analysis.)
-- VERIFIES → SPEC `contracts/fixtures/plans/trial-compiler-replacement-v1/identity-vectors.json` (Check that replacement compiler identity conforms.)
 
 - IMPLEMENTS → GITHUB_ISSUE `OpenRAE/rae#1014` (Bring selected scenario authority into the portable mixed-composition profile.)
 - IMPLEMENTS → SPEC `contracts/schemas/plans/mixed-participant-composition-profile-v1.json` (Carry the scenario snapshot pinned by digest. Carry the compiled allocation.)

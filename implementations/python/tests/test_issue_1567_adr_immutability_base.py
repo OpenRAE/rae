@@ -15,7 +15,7 @@ from pathlib import Path
 import pytest
 import tools.check_adr_immutability as adr_gate
 import yaml
-from tools.check_adr_immutability import content_hash, evaluate_adr_immutability
+from tools.check_adr_immutability import evaluate_adr_immutability
 from tools.policy.common import PolicyFailure
 
 ADR_DIR = Path("docs/decisions/adrs")
@@ -50,11 +50,10 @@ def _write_adr(repo: Path, name: str, body: str, *, amended: bool = False, recor
     entry: dict[str, object] = {
         "id": "ADR-001",
         "path": recorded_path or (ADR_DIR / name).as_posix(),
-        "pin": content_hash(text),
     }
     if amended:
         entry["amendments"] = [{"date": "2026-10-12", "ref": AMENDMENT_REF, "summary": "rewrote the body"}]
-    manifest = {"hash_algorithm": "sha256", "adrs": [entry]}
+    manifest = {"adrs": [entry]}
     (repo / ADR_DIR / "adr-index.yaml").write_text(yaml.safe_dump(manifest, sort_keys=False), encoding="utf-8")
 
 
@@ -135,7 +134,7 @@ def test_cli_reports_unresolvable_base_rev(
         None,
         "adrs: [\n",
         "- not a mapping\n",
-        "hash_algorithm: sha256\nadrs: {}\n",
+        "adrs: {}\n",
         "adrs:\n- not-an-entry\n- {id: ADR-001}\n",
         "date: 2026-99-99\n",
         "value: !!bool unknown\n",

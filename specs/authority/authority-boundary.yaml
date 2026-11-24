@@ -1,20 +1,15 @@
-# Normative Artifact Authority Boundary (ASR-517)
+# Normative artifact authority boundary (ASR-517)
 #
-# Canonical machine-readable surface for the normative-artifact authority
-# decision. Required reading:
-#
+# This manifest records the authority boundary from ADR-009.
+# ADR-019 governs this machine-readable form.
+# Read these sources:
 #   docs/decisions/adrs/adr-009-normative-artifact-authority-and-repository-structure.md
-#     -- the authority decision itself (immutable; this YAML codifies it)
 #   docs/decisions/adrs/adr-019-normative-authority-boundary-manifest.md
-#     -- the canonical seam decision (governs THIS file)
 #   docs/explain/reference/normative-artifact-authority.md
-#     -- contributor-facing guardrails note
 #
-# Drift between this file and ADR-009, contracts/README.md, or specs/README.md
-# is guarded by tools/check_authority_boundary.py. ADR-009 supplies the
-# decision; this YAML is the canonical seam that lets a future normative
-# artifact family or root reclassification land in a single place rather than
-# requiring prose updates across the doc tree.
+# tools/check_authority_boundary.py compares this file with ADR-009,
+# contracts/README.md, and specs/README.md.
+# A new normative family or root classification uses this existing manifest.
 
 policy: normative-artifact-authority
 

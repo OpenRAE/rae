@@ -48,7 +48,7 @@ from .experiment_study import (
     ExperimentStudyFactorModel,
     _validate_condition_factor_levels,
 )
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 from .trial_replacement import TrialReplacementPolicyModel
 
 ExperimentStudyModel = _experiment_study_contract.ExperimentStudyModel
@@ -133,7 +133,7 @@ class ExperimentRunPlanModel(ContractModel):
                 {"properties": {"allocation": {"type": "null"}, "target_run_count": {"type": "null"}}},
             ]
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "run-plan-exactly-one-run-count-source",
             "A run plan must declare exactly one of allocation or target_run_count, and every red-variant "
@@ -287,14 +287,14 @@ class ExperimentSpecModel(ContractModel):
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
         _add_authoring_conditionals(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "experiment-spec-blocking-factors-declared",
             "When a run plan declares an allocation with blocking factors, every blocking factor must be a "
             "declared experiment-spec factor.",
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "experiment-spec-condition-factor-levels-declared",
             "In every binding posture, each condition assignment must reference a factor and level declared "
@@ -302,13 +302,13 @@ class ExperimentSpecModel(ContractModel):
             "no domain catalog is required.",
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "experiment-binding-source-joins-valid",
             "Explicit bindings must cover every compared condition and resolve exact declared factor levels.",
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "experiment-selection-policies-valid",
             "Selection policy ids, bounds, references, stochastic controls, and supported exact profiles must "
@@ -320,21 +320,21 @@ class ExperimentSpecModel(ContractModel):
                 }
             ],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "experiment-selection-factor-joins-valid",
             "Selection strata and binding references must resolve declared factors, levels, conditions, "
             "variation points, and allocation counts.",
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "experiment-factorial-generation-valid",
             "Factorial intent resolves exact declared levels, bounded Cartesian output, collision-free bindings, "
             "and matching supplied materializations before authoring admission.",
             inputs=[{"contract_id": "experiment-authoring-input-v1", "instance_path": "#"}],
         )
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "run-plan-evidence-requirement-relation-owner-valid",
             "Prospective run-scoped evidence requirement relations must identify this exact authoring input and "

@@ -1,4 +1,4 @@
-# Authored Identity-Domain Topology
+# Authored identity-domain topology
 
 Status: **normative**. This specification defines the SDL realization-intent
 surface established by
@@ -9,7 +9,7 @@ by ADR-032.
 ## 1. Domain declarations
 
 `identity_domains` is an optional map keyed by a portable SDL identifier. Each
-value is an `IdentityDomain` with these required fields:
+value declares a domain with these required fields:
 
 | Field | Meaning |
 | --- | --- |
@@ -59,7 +59,7 @@ name.
 The `authority_account_ref` on a domain is also an explicit domain binding. It
 MUST resolve to an account placed on one of that domain's controller nodes.
 
-## 4. Active Directory invariants
+## 4. Active directory invariants
 
 For the initial `active_directory` profile, semantic validation MUST reject:
 
@@ -85,8 +85,8 @@ references follow the resolution rules in [references.md](references.md).
 
 ## 6. Compiled realization contract
 
-Each participating node and domain-bound account compiles to a
-`DomainTopologyBinding` containing:
+Each participating node and domain-bound account compiles to a shared binding.
+The binding contains:
 
 - the normalized domain identifier and profile;
 - DNS and NetBIOS names;
@@ -99,15 +99,13 @@ They are not, by themselves, an instruction to bootstrap a controller.
 
 Each `domain_controller_for` node/domain fact MUST additionally compile to one
 `domain-controller-placement` provisioning resource. The placement MUST target
-that controller node and carry the same `DomainTopologyBinding`; it MUST NOT
+that controller node and carry the same binding. It MUST NOT
 copy the domain into a second payload shape. The placement is the portable
 instruction to establish the controller role and MUST order after its target
 node.
 
 Member node resources MUST order after the selected controllers' placement
-resources. Every account placement bound to the domain, including the logical
-authority account, MUST order after the domain's controller placements as well
-as its own target node. This preserves bootstrap order without making the
+resources. Every account placement bound to the domain MUST order after the domain's controller placements and its own target node. This includes the logical authority account. This preserves bootstrap order without making the
 controller placement depend on an account that cannot exist until the domain
 is established. Reverse deletion therefore removes domain accounts and members
 before their controller placement and node.

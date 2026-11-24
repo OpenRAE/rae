@@ -14,12 +14,12 @@ from raes_contracts.contracts import (
     ProvisioningPlanModel,
     RealizationEnvelopeIdentityModel,
 )
-from raes_contracts.diagnostics import Diagnostic, Severity
-from raes_contracts.plan_projection import (
+from raes_contracts.contracts.plan_projection import (
     evaluation_plan_model,
     orchestration_plan_model,
     provisioning_plan_model,
 )
+from raes_contracts.diagnostics import Diagnostic, Severity
 from raes_contracts.planning import ProvisioningPlan
 from raes_processor.reference import run_reference_processor
 

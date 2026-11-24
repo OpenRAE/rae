@@ -421,3 +421,11 @@ Literal values and callback types need no separate model narrative.
 .. autodata:: raes_conformance.conformance.MIXED_BACKEND_CASES
 
 .. autodata:: raes_conformance.conformance.BackendProfileSelector
+Workflow step dispatch
+----------------------
+
+The runtime sends one command and accepts one bound response.
+The backend does not receive successor authority.
+
+.. automodule:: raes_contracts.contracts.workflow_dispatch
+   :members:

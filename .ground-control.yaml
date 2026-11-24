@@ -12,7 +12,7 @@ workflow:
   # Schema 1 does not execute workflow.design. Preserve its native commands below.
   # canonical-verification.yml: go compiles and tests both modules, including
   # acceptance cases and architecture violation tests; go-architecture runs archcheck.
-  # Both jobs are required by gate. Inspect archcheck -view during design (ADR-122).
+  # Both jobs are required by gate. Inspect archcheck -view during design (ADR-124).
   # design:
   #   compile_command: go -C implementations/go build ./... && go -C implementations/tooling/go build ./...
   #   structural_command: d="$(mktemp -d)" && trap 'rm -rf "$d"' EXIT && go -C implementations/tooling/go build -o "$d/archcheck" ./cmd/archcheck && task_toolchain="$(go -C implementations/tooling/go env GOROOT)" && PATH="$task_toolchain/bin:$PATH" "$d/archcheck"
@@ -62,7 +62,7 @@ rules:
   plan_rules: .gc/plan-rules.md
 # Schema 1 does not read architecture.modules. Retain the original reference map.
 # The active Go model and design view remain implementations/architecture.json
-# and docs/develop/go-architecture.md (ADR-122).
+# and docs/develop/go-architecture.md (ADR-124).
 # architecture:
 #   modules:
 #     - path: .
@@ -89,8 +89,8 @@ rules:
 #         - implementations/tooling/go/arch/model.go
 #       adrs:
 #         - docs/decisions/adrs/adr-061-published-schema-evolution-policy.md
-#         - docs/decisions/adrs/adr-121-go-engineering-standards.md
-#         - docs/decisions/adrs/adr-122-go-architecture-model.md
+#         - docs/decisions/adrs/adr-123-go-engineering-standards.md
+#         - docs/decisions/adrs/adr-124-go-architecture-model.md
 #
 #     - path: implementations/tooling/go
 #       implementations:
@@ -100,5 +100,5 @@ rules:
 #       adrs:
 #         - docs/decisions/adrs/adr-059-adr-amendment-policy-and-pin-gate.md
 #         - docs/decisions/adrs/adr-096-identity-cutover-and-historical-record-boundary.md
-#         - docs/decisions/adrs/adr-121-go-engineering-standards.md
-#         - docs/decisions/adrs/adr-122-go-architecture-model.md
+#         - docs/decisions/adrs/adr-123-go-engineering-standards.md
+#         - docs/decisions/adrs/adr-124-go-architecture-model.md

@@ -22,8 +22,8 @@ from .backend_realization_authority import _RealizationApplyContext
 
 if TYPE_CHECKING:
     from raes_contracts.augmentation_preparation import AugmentationPreparation
+    from raes_contracts.contracts.materialization_attestation import MaterializationArchive
     from raes_contracts.diagnostics import Diagnostic
-    from raes_contracts.materialization import MaterializationArchive
     from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
     from raes_contracts.runtime_state import RuntimeSnapshot
     from raes_processor.models import ExecutionPlan

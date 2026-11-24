@@ -1,10 +1,5 @@
 {
   "contract_id": "backend-operation-response-v1",
   "schema_path": "contracts/schemas/control-plane/backend-operation-response-v1.json",
-  "stability": "draft",
-  "content_hash": "d644b5b01c1bb128f72da46ff037742897aed000784e907eb170fc154c719b4b",
-  "last_change": {
-    "content_hash": "d644b5b01c1bb128f72da46ff037742897aed000784e907eb170fc154c719b4b",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

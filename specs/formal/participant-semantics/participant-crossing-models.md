@@ -1,4 +1,4 @@
-# Executable Participant-Crossing Models
+# Executable participant-crossing models
 
 Requirement: SEM-232. Construction package: #971. Classification: FM3.
 
@@ -18,22 +18,28 @@ no runtime changes, mandatory author annotations, or request-time proof work.
 
 ## Complete environment
 
-The published profile declares every domain from the rev1 design, including
-the singleton participant, audience, controller, episode and request identity;
-cuts p0 and p1; all five input classes; all decision, replay and delivery
-values; and history heads h0 through h3. A fresh request is admitted only while
-no result has been recorded. It chooses one of the five input classes. The
-original input is retained in the terminal state's intent. Identity recycling
-and changed-input reuse are excluded environment actions, not unexamined input
-samples. Every declared request/cut choice is explored to a reachable fixed
-point. There is no depth or schedule bound.
+The published profile declares every domain from the rev1 design:
+
+- Singleton participant, audience, controller, episode, and request identity.
+- Cuts p0 and p1.
+- All five input classes.
+- All decision, replay, and delivery values.
+- History heads h0 through h3.
+
+A fresh request is admitted only while no result has been recorded.
+It chooses one of the five input classes.
+The original input remains in the terminal state's intent.
+Identity recycling and changed-input reuse are excluded environment actions, not unexamined input samples.
+Every declared request/cut choice is explored to a reachable fixed point.
+There is no depth or schedule bound.
 
 Policy advancement is enabled only at idle or terminal and changes p0 to p1
 once. At terminal the only request is a retry of the retained input. A retry
 at the recorded cut repeats the outcome observations without another logical
 commit. After policy advancement it emits request then replay rejection and
-preserves the recorded result. These labels describe the formal outcome
-protocol, not repeated backend execution. Mapping receipt replay and actual
+preserves the recorded result.
+
+These labels describe the formal outcome protocol, not repeated backend execution. Mapping receipt replay and actual
 delivery to that protocol requires #972 evidence. History advancement caused by
 other operations is absent here and must not be equated with policy advancement.
 
@@ -44,9 +50,8 @@ result. Intent is absent or `(request-0, input-class, requested-cut, replay)`;
 last is absent or `(request-0, recorded-cut, decision)`. Initial coordinates
 are `(idle, p0, none, none, none, none)`.
 
-The independent abstract authority is `abstract.py`. Its total policy table
-selects permit for plain, transform for transform, unsupported for unsupported,
-deny for forbidden, and deny/declassify for declassify at p0/p1 respectively.
+The independent abstract authority is `abstract.py`. Its total policy table selects permit for plain, transform for transform, and unsupported for unsupported.
+It selects deny for forbidden, and deny/declassify for declassify at p0/p1 respectively.
 
 1. A request enters offered, clears decision/delivery, and preserves last.
 2. A stale retry emits `crossing.replay.reject` and returns to terminal,
@@ -112,9 +117,9 @@ predicate is inferred from AUT or a sidecar. A missing outgoing edge is a
 structural deadlock and is not treated as success. The baseline graphs have no
 dead ends; faults introducing them remain observable in subsequent comparison.
 
-State numbers follow deterministic breadth-first discovery from ordinal zero;
-successors sort by label and the synthetic dataclass state representation,
-edges are unique and sorted by source, label, target. AUT is ASCII with LF and
+State numbers follow deterministic breadth-first discovery from ordinal zero.
+Successors sort by label and the synthetic dataclass state representation.
+Edges are unique and sorted by source, label, target. AUT is ASCII with LF and
 a final newline. Counts describe exactly the emitted graph. JSON identity uses
 the incumbent RFC 8785 canonicalizer; byte digests separately bind AUT and sources.
 

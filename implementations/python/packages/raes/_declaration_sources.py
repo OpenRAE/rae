@@ -9,10 +9,10 @@ from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 from raes_contracts.digests import sha256_digest
+from raes_contracts.identifiers import QualifiedName
 from raes_contracts.json_pointer import pointer_from_tokens
 
 from ._errors import SDLParseDiagnostic, SDLSourceRange, SDLValidationError
-from ._identifiers import QualifiedName
 
 if TYPE_CHECKING:
     from .scenario import ScenarioContent

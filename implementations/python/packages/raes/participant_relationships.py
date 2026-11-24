@@ -4,8 +4,7 @@ from enum import Enum
 from typing import Annotated
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
-
-from ._base import SDLModel
+from raes_contracts.sdl_model import SDLModel
 
 RelationshipReference = Annotated[str, Field(min_length=1, pattern=r"\S")]
 

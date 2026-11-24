@@ -1,10 +1,5 @@
 {
   "contract_id": "mixed-backend-execution-binding-v1",
   "schema_path": "contracts/schemas/control-plane/mixed-backend-execution-binding-v1.json",
-  "stability": "draft",
-  "content_hash": "dc9654613c21a92bb9929bb4c6da9c88b5c5dc5242e54d90d5add76aa3dd650d",
-  "last_change": {
-    "content_hash": "dc9654613c21a92bb9929bb4c6da9c88b5c5dc5242e54d90d5add76aa3dd650d",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

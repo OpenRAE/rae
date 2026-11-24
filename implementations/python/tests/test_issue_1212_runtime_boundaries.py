@@ -5,17 +5,17 @@ from dataclasses import replace
 import pytest
 from raes.parser import parse_sdl
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.contracts.plan_projection import evaluation_plan_model
 from raes_contracts.observation_demand import (
-    AchievedObservationValue,
     EffectiveObservationDemand,
     ObservationBasis,
     ObservationDemandDocument,
     ObservationDemandRule,
     ObservationLifecycleStage,
     ObservationSelector,
-    normalize_observation_demands,
 )
-from raes_contracts.plan_projection import evaluation_plan_model
+from raes_contracts.observation_demand_resolution import normalize_observation_demands
+from raes_contracts.observation_reporting import AchievedObservationValue
 from raes_contracts.planning import ProvisioningPlan
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.control_plane_api import create_control_plane_app

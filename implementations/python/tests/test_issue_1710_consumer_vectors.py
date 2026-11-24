@@ -13,8 +13,7 @@ import pytest
 
 
 def test_sorted_json_digests_of_record_consumers():
-    import raes_contracts.realization_envelope  # noqa: F401  (imports the carrier in its supported order)
-    from raes_contracts.realization_envelope_carrier import realization_envelope_digest
+    from raes_contracts.realization_envelope import realization_envelope_digest
     from raes_runtime.control_plane_store_local_codec import encode_payload
     from raes_runtime.participant_crossing_state_cut import canonical_crossing_digest
 
@@ -31,17 +30,17 @@ def test_sorted_json_digests_of_record_consumers():
 
 
 def test_history_prefix_digests_chain_the_finite_record_text():
-    from raes_contracts.immutable_history import HistoryMap
+    from raes_contracts.snapshot_histories import seal_history
 
-    history = HistoryMap("evaluation_history", {"run": [{"b": "é", "a": 1.5}, {"n": 2}]})["run"]
+    history = seal_history("evaluation_history", {"run": [{"b": "é", "a": 1.5}, {"n": 2}]})["run"]
     assert history.prefix_digest(1) == "89ccac4d48f160d06321e09fa58a74e5ce8fa3449200ceb6cd62ac73537eae74"
     assert history.prefix_digest(2) == "309992bef4a01e4c6ead01778702100f9c47e4ed373417364bbb0ae9704c340d"
     with pytest.raises(ValueError, match="Out of range float values are not JSON compliant"):
-        HistoryMap("evaluation_history", {"run": [{"x": float("nan")}]})
+        seal_history("evaluation_history", {"run": [{"x": float("nan")}]})
 
 
 def test_jcs_identities():
-    from raes_contracts.exploit_path import canonical_state_digest
+    from raes_processor.exploit_path.evidence import canonical_state_digest
     from raes_processor.trial_compiler.profiles import derive_identity
 
     assert canonical_state_digest(("b", "a")) == (

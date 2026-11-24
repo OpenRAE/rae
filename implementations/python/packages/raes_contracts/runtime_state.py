@@ -6,12 +6,21 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from raes.explicitness import ExplicitnessClass, ExplicitnessProvenance
-
-from raes_contracts._snapshot_updates import _snapshot_updates, _validate_snapshot_update_keys
 from raes_contracts.addressing import require_compiled_address
+from raes_contracts.contracts.materialization_attestation import require_materialization_records
+from raes_contracts.contracts.mixed_runtime_history import iter_mixed_runtime_snapshot_violations
+from raes_contracts.contracts.participant_outcome_history import require_outcome_history
+from raes_contracts.contracts.participant_resource_budgets import (
+    ParticipantResourceBudgetEventModel,
+    ParticipantResourceBudgetStateModel,
+    ParticipantResourcePoolStateModel,
+)
+from raes_contracts.contracts.realization_plans import RealizationEnvelopeIdentityModel
+from raes_contracts.contracts.time_model import TimeRuntimeStateModel
 from raes_contracts.diagnostics import Diagnostic, Severity, portable_diagnostic_payload
-from raes_contracts.materialization import MaterializationSubmission, require_materialization_records
+from raes_contracts.explicitness import ExplicitnessClass as _ExplicitnessClass
+from raes_contracts.explicitness import ExplicitnessProvenance as _ExplicitnessProvenance
+from raes_contracts.materialization import MaterializationSubmission
 from raes_contracts.operation_lifecycle import (
     OperationAdmissionContext,
     OperationKind,
@@ -25,13 +34,14 @@ from raes_contracts.operation_lifecycle import (
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_state_snapshot
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.realization_observation import RealizationObservationDisclosure
+from raes_contracts.snapshot_histories import seal_history
 from raes_contracts.versions import OPERATION_SCHEMA_VERSION, RUNTIME_SNAPSHOT_SCHEMA_VERSION
+
+from .immutable_history import HistoryMap
 
 if TYPE_CHECKING:
     from raes_contracts.artifact_requirements import ArtifactSatisfactionDisclosureModel
-    from raes_contracts.contracts import RealizationEnvelopeIdentityModel
     from raes_contracts.contracts.materialization_attestation import MaterializationArchiveRecord
-    from raes_contracts.contracts.time_model import TimeRuntimeStateModel
     from raes_contracts.domain_profiles import DomainProfileBindingModel
 
 
@@ -72,8 +82,8 @@ class RealizationProvenanceEntry:
     field_path: str
     domain: str
     requirement_kind: str
-    explicitness: ExplicitnessClass
-    provenance: ExplicitnessProvenance
+    explicitness: _ExplicitnessClass
+    provenance: _ExplicitnessProvenance
     governing_scope: str | None = None
     artifact_satisfaction: ArtifactSatisfactionDisclosureModel | None = None
 
@@ -118,9 +128,6 @@ class RuntimeSnapshot:
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
-        from .immutable_history import seal_history
-        from .mixed_runtime_history import iter_mixed_runtime_snapshot_violations
-        from .participant_outcome_history import require_outcome_history
 
         require_outcome_history(self.participant_outcome_history, self.participant_behavior_history)
         self.participant_control_evaluation_history = seal_history(
@@ -172,11 +179,6 @@ def _require_participant_resource_budget_snapshot(
     pools: Mapping[str, Mapping[str, Any]],
     events: Mapping[str, Mapping[str, Any]],
 ) -> None:
-    from raes_contracts.contracts.participant_resource_budgets import (
-        ParticipantResourceBudgetEventModel,
-        ParticipantResourceBudgetStateModel,
-        ParticipantResourcePoolStateModel,
-    )
 
     for state_ref, payload in states.items():
         state = ParticipantResourceBudgetStateModel.model_validate(payload)
@@ -290,23 +292,310 @@ class RuntimeSnapshotEnvelope:
     snapshot: RuntimeSnapshot = field(default_factory=RuntimeSnapshot)
 
 
-__all__ = (
+def _snapshot_result_updates(
+    snapshot: RuntimeSnapshot,
+    updates: Mapping[str, object],
+) -> dict[str, Any]:
+    return {
+        "orchestration_results": _mapping_update(
+            updates,
+            "orchestration_results",
+            snapshot.orchestration_results,
+        ),
+        "orchestration_history": _history_update(
+            updates,
+            "orchestration_history",
+            snapshot.orchestration_history,
+        ),
+        "evaluation_results": _mapping_update(updates, "evaluation_results", snapshot.evaluation_results),
+        "evaluation_history": _history_update(updates, "evaluation_history", snapshot.evaluation_history),
+        "proposition_truth_results": _mapping_update(
+            updates,
+            "proposition_truth_results",
+            snapshot.proposition_truth_results,
+        ),
+        "participant_episode_results": _mapping_update(
+            updates,
+            "participant_episode_results",
+            snapshot.participant_episode_results,
+        ),
+        "participant_episode_history": _history_update(
+            updates,
+            "participant_episode_history",
+            snapshot.participant_episode_history,
+        ),
+        "participant_episode_closure_records": _history_update(
+            updates,
+            "participant_episode_closure_records",
+            snapshot.participant_episode_closure_records,
+        ),
+        "participant_behavior_history": _history_update(
+            updates,
+            "participant_behavior_history",
+            snapshot.participant_behavior_history,
+        ),
+        "participant_control_history": _history_update(
+            updates,
+            "participant_control_history",
+            snapshot.participant_control_history,
+        ),
+        "participant_crossing_history": _history_update(
+            updates,
+            "participant_crossing_history",
+            snapshot.participant_crossing_history,
+        ),
+        "participant_control_evaluation_history": _history_update(
+            updates,
+            "participant_control_evaluation_history",
+            snapshot.participant_control_evaluation_history,
+        ),
+        "mixed_composition_states": _mapping_update(
+            updates, "mixed_composition_states", snapshot.mixed_composition_states
+        ),
+        "mixed_composition_history": _history_update(
+            updates, "mixed_composition_history", snapshot.mixed_composition_history
+        ),
+        "information_state_history": _history_update(
+            updates,
+            "information_state_history",
+            snapshot.information_state_history,
+        ),
+        "participant_outcome_history": _history_update(
+            updates,
+            "participant_outcome_history",
+            snapshot.participant_outcome_history,
+        ),
+    }
+
+
+def _snapshot_participant_updates(
+    snapshot: RuntimeSnapshot,
+    updates: Mapping[str, object],
+) -> dict[str, Any]:
+    return {
+        "participant_autonomous_execution_states": _mapping_update(
+            updates,
+            "participant_autonomous_execution_states",
+            snapshot.participant_autonomous_execution_states,
+        ),
+        "participant_execution_services": _mapping_update(
+            updates,
+            "participant_execution_services",
+            snapshot.participant_execution_services,
+        ),
+        "participant_resource_budget_states": _mapping_update(
+            updates,
+            "participant_resource_budget_states",
+            snapshot.participant_resource_budget_states,
+        ),
+        "participant_resource_pool_states": _mapping_update(
+            updates,
+            "participant_resource_pool_states",
+            snapshot.participant_resource_pool_states,
+        ),
+        "participant_resource_budget_events": _mapping_update(
+            updates,
+            "participant_resource_budget_events",
+            snapshot.participant_resource_budget_events,
+        ),
+        "shared_state_records": _mapping_update(
+            updates,
+            "shared_state_records",
+            snapshot.shared_state_records,
+        ),
+        "shared_state_history": _history_update(
+            updates,
+            "shared_state_history",
+            snapshot.shared_state_history,
+        ),
+        "joint_action_records": _mapping_update(
+            updates,
+            "joint_action_records",
+            snapshot.joint_action_records,
+        ),
+        "time_management_contexts": _mapping_update(
+            updates,
+            "time_management_contexts",
+            snapshot.time_management_contexts,
+        ),
+    }
+
+
+def _snapshot_updates(
+    snapshot: RuntimeSnapshot,
+    updates: Mapping[str, object],
+) -> dict[str, Any]:
+    return {
+        **_snapshot_result_updates(snapshot, updates),
+        "materialization_attestations": updates.get(
+            "materialization_attestations", snapshot.materialization_attestations
+        ),
+        **_snapshot_participant_updates(snapshot, updates),
+        "time_model_state": _time_model_state_update(
+            updates,
+            "time_model_state",
+            snapshot.time_model_state,
+        ),
+        "realization_provenance": _provenance_update(
+            updates,
+            "realization_provenance",
+            snapshot.realization_provenance,
+        ),
+        "realization_observations": _observation_disclosures_update(
+            updates,
+            "realization_observations",
+            snapshot.realization_observations,
+        ),
+        "realization_envelope": _identity_update(
+            updates,
+            "realization_envelope",
+            snapshot.realization_envelope,
+        ),
+        "metadata": _mapping_update(updates, "metadata", snapshot.metadata),
+    }
+
+
+_SNAPSHOT_UPDATE_KEYS = {
+    "materialization_attestations",
+    "orchestration_results",
+    "orchestration_history",
+    "evaluation_results",
+    "evaluation_history",
+    "proposition_truth_results",
+    "participant_episode_results",
+    "participant_episode_history",
+    "participant_episode_closure_records",
+    "participant_behavior_history",
+    "participant_control_history",
+    "participant_crossing_history",
+    "participant_control_evaluation_history",
+    "mixed_composition_states",
+    "mixed_composition_history",
+    "information_state_history",
+    "participant_outcome_history",
+    "participant_autonomous_execution_states",
+    "participant_execution_services",
+    "participant_resource_budget_states",
+    "participant_resource_pool_states",
+    "participant_resource_budget_events",
+    "shared_state_records",
+    "shared_state_history",
+    "joint_action_records",
+    "time_management_contexts",
+    "time_model_state",
+    "realization_provenance",
+    "realization_observations",
+    "realization_envelope",
+    "metadata",
+}
+
+
+def _validate_snapshot_update_keys(updates: Mapping[str, object]) -> None:
+    unknown = sorted(key for key in updates if key not in _SNAPSHOT_UPDATE_KEYS)
+    if unknown:
+        raise TypeError("unknown runtime snapshot update fields: " + ", ".join(unknown))
+
+
+def _mapping_update(
+    updates: Mapping[str, object],
+    key: str,
+    current: Mapping[str, Any],
+) -> dict[str, Any]:
+    raw = updates.get(key)
+    if raw is None:
+        return dict(current)
+    if not isinstance(raw, Mapping):
+        raise TypeError(f"{key} must be a mapping")
+    return dict(raw)
+
+
+def _history_update(
+    updates: Mapping[str, object],
+    key: str,
+    current: Mapping[str, list[dict[str, Any]]],
+) -> dict[str, list[dict[str, Any]]]:
+
+    raw = updates.get(key)
+    if isinstance(raw if raw is not None else current, HistoryMap):
+        return raw if raw is not None else current
+    if raw is None:
+        return {address: list(events) for address, events in current.items()}
+    if not isinstance(raw, Mapping):
+        raise TypeError(f"{key} must be a mapping")
+    return {str(address): list(events) for address, events in raw.items()}
+
+
+def _provenance_update(
+    updates: Mapping[str, object],
+    key: str,
+    current: tuple[RealizationProvenanceEntry, ...],
+) -> tuple[RealizationProvenanceEntry, ...]:
+    raw = updates.get(key)
+    if raw is None:
+        return tuple(current)
+    if not isinstance(raw, tuple) or any(not isinstance(entry, RealizationProvenanceEntry) for entry in raw):
+        raise TypeError(f"{key} must be a tuple of RealizationProvenanceEntry")
+    return raw
+
+
+def _observation_disclosures_update(
+    updates: Mapping[str, object],
+    key: str,
+    current: tuple[RealizationObservationDisclosure, ...],
+) -> tuple[RealizationObservationDisclosure, ...]:
+    raw = updates.get(key)
+    if raw is None:
+        return tuple(current)
+    if not isinstance(raw, tuple) or any(not isinstance(entry, RealizationObservationDisclosure) for entry in raw):
+        raise TypeError(f"{key} must be a tuple of RealizationObservationDisclosure")
+    return raw
+
+
+def _identity_update(
+    updates: Mapping[str, object],
+    key: str,
+    current: RealizationEnvelopeIdentityModel | None,
+) -> RealizationEnvelopeIdentityModel | None:
+
+    raw = updates.get(key)
+    if raw is None:
+        return current
+    if not isinstance(raw, RealizationEnvelopeIdentityModel):
+        raise TypeError(f"{key} must be a RealizationEnvelopeIdentityModel")
+    return raw
+
+
+def _time_model_state_update(
+    updates: Mapping[str, object],
+    key: str,
+    current: TimeRuntimeStateModel | None,
+) -> TimeRuntimeStateModel | None:
+
+    if key not in updates:
+        return current
+    raw = updates[key]
+    if raw is None:
+        return None
+    if not isinstance(raw, TimeRuntimeStateModel):
+        raise TypeError(f"{key} must be a TimeRuntimeStateModel")
+    return raw
+
+
+__all__ = [
     "ApplyResult",
-    "ExplicitnessClass",
-    "ExplicitnessProvenance",
-    "OperationReceipt",
     "OperationAdmissionContext",
     "OperationKind",
+    "OperationReceipt",
     "OperationState",
     "OperationStatus",
     "RealizationObservationDisclosure",
     "RealizationProvenanceEntry",
     "RuntimeSnapshot",
     "RuntimeSnapshotEnvelope",
-    "validate_changed_addresses",
     "SnapshotEntry",
     "is_operation_transition_allowed",
     "operation_terminal_diagnostic",
     "operation_terminal_diagnostics",
     "operation_transition_diagnostic",
-)
+    "validate_changed_addresses",
+]

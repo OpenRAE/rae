@@ -9,18 +9,25 @@ from typing import cast
 from raes_backend_protocols.manifest import BackendManifest, backend_manifest_v2_model
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts.backend_preparation import preparation_response_model
-from raes_contracts.diagnostics import Diagnostic
-from raes_contracts.errors import InvalidInputError, RaesError
-from raes_contracts.operational_logging import foreign_failure_record, get_logger
-from raes_contracts.plan_projection import runtime_plan_digest
-from raes_contracts.planning import ChangeAction, PlannedResource, ProvisioningPlan, ProvisionOp, RuntimeDomain
-from raes_contracts.realization_preparation import (
-    BACKEND_PREPARATION_CONTRACT,
+from raes_contracts.contracts.plan_projection import runtime_plan_digest
+from raes_contracts.contracts.realization_preparation import (
     RealizationPreparation,
     preparation_snapshot_digest,
 )
+from raes_contracts.diagnostics import Diagnostic
+from raes_contracts.errors import InvalidInputError, RaesError
+from raes_contracts.operational_logging import foreign_failure_record, get_logger
+from raes_contracts.planning import (
+    BACKEND_PREPARATION_CONTRACT,
+    ChangeAction,
+    PlannedResource,
+    ProvisioningPlan,
+    ProvisionOp,
+    RuntimeDomain,
+)
 from raes_contracts.realization_structure import validate_realization_value
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot, SnapshotEntry
+from raes_contracts.runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
 from raes_processor.planner import (
     prepared_node_capability_violation,
     prepared_node_collection_binding_violation,
@@ -64,7 +71,9 @@ def _is_admitted_operation(operation: object) -> bool:
         and isinstance(operation.payload, dict)
         and type(operation.ordering_dependencies) is tuple
         and type(operation.refresh_dependencies) is tuple
-        and validate_realization_value(operation.payload, python_carriers=True).conformant
+        and validate_realization_value(
+            operation.payload, limits=RUNTIME_SNAPSHOT_VALUE_LIMITS, python_carriers=True
+        ).conformant
     )
 
 

@@ -49,15 +49,17 @@
         "cpython-3.14",
         "cpython-3.14t",
         "devcontainer-base-image",
+        "doc-tools",
         "gitleaks",
         "go",
         "osv-scanner",
+        "postgresql-runtime-test",
         "scorecard-action-image",
         "sonar-scanner-cli",
+        "ste-cli",
+        "temporal-cli-runtime-test",
         "uv",
-        "vale",
-        "postgresql-runtime-test",
-        "temporal-cli-runtime-test"
+        "vale"
       ]
     },
     {
@@ -90,9 +92,11 @@
       "supported_artifact_ids": [
         "conftest",
         "cpython-3.14",
+        "doc-tools",
         "gitleaks",
         "go",
         "osv-scanner",
+        "ste-cli",
         "uv",
         "vale"
       ]
@@ -127,9 +131,11 @@
       "supported_artifact_ids": [
         "conftest",
         "cpython-3.14",
+        "doc-tools",
         "gitleaks",
         "go",
         "osv-scanner",
+        "ste-cli",
         "uv",
         "vale"
       ]
@@ -154,11 +160,6 @@
       "locator_classes": [
         {
           "locator_id": "official-isabelle-release",
-          "kind": "official-https",
-          "trust_root_ref": "system-ca"
-        },
-        {
-          "locator_id": "official-isabelle-cambridge-mirror",
           "kind": "official-https",
           "trust_root_ref": "system-ca"
         }

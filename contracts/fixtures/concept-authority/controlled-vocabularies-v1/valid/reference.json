@@ -3759,6 +3759,10 @@
           "title": "queue",
           "description": "Existing portable RuntimeForwardingSourceKind term; its owning SDL profile retains its defined semantics."
         },
+        "socket": {
+          "title": "socket",
+          "description": "Records arrive on a listening socket, for example the local syslog socket or a network syslog port."
+        },
         "unknown": {
           "title": "unknown",
           "description": "Legacy knowledge sentinel; not realization permission."

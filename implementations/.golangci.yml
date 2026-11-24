@@ -1,4 +1,4 @@
-# Strict lint configuration for all Go code in this repository (ADR-121).
+# Strict lint configuration for all Go code in this repository (ADR-123).
 # golangci-lint finds this file from each Go module below this directory.
 version: "2"
 
@@ -40,8 +40,8 @@ linters:
       rules:
         dependencies:
           # The architecture model lists the external packages that each layer
-          # may import (ADR-122). depguard denies the standard library packages
-          # that the standards replace (ADR-121).
+          # may import (ADR-124). depguard denies the standard library packages
+          # that the standards replace (ADR-123).
           list-mode: lax
           deny:
             - pkg: math/rand

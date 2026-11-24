@@ -21,7 +21,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 
-from raes_contracts.satisfiability import canonical_json_digest
+from raes_contracts.canonical import canonical_json_digest
 
 from .verification_authority import (
     VerificationBinding,

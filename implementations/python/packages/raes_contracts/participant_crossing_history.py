@@ -2,20 +2,29 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 
-from raes_contracts.contracts import ParticipantCrossingOccurrenceModel
+from raes_contracts.contracts.participant_crossing import ParticipantCrossingOccurrenceModel
 
-from .immutable_history import EventHistory, HistoryMap
+from .immutable_history import EventHistory, HistoryFieldPolicy, HistoryIdentity, HistoryMap
+
+
+def _crossing_identity(participant: str, payload: Mapping[str, object], position: int) -> HistoryIdentity:
+    record = ParticipantCrossingOccurrenceModel.model_validate(payload)
+    if record.participant_address != participant:
+        raise ValueError("participant crossing history map key must equal the embedded participant address")
+    return (participant, record.event_id)
+
+
+CROSSING_HISTORY_POLICY = HistoryFieldPolicy(record_identity=_crossing_identity, retains_invalid_records=True)
 
 
 def iter_participant_crossing_history_snapshot_violations(
     history: object,
 ) -> Iterator[tuple[str, str]]:
     """Yield closed-shape and participant-key violations."""
-    from .immutable_history import HistoryMap
 
-    if type(history) is HistoryMap and history._field == "participant_crossing_history" and history._shape_valid:
+    if type(history) is HistoryMap and history.policy is CROSSING_HISTORY_POLICY and history.shape_valid:
         return
 
     if not isinstance(history, (dict, HistoryMap)):
@@ -92,6 +101,7 @@ def _preserves_prefix(previous: object, current: object) -> bool:
 
 
 __all__ = (
+    "CROSSING_HISTORY_POLICY",
     "iter_participant_crossing_history_snapshot_violations",
     "iter_participant_crossing_history_transition_violations",
 )

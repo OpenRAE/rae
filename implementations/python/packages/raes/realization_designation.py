@@ -11,11 +11,10 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from raes_contracts.bounded_domains import DomainDescriptor
 from raes_contracts.compute_substrate import validate_compute_substrate_constraint
+from raes_contracts.identifiers import PortableIdentifier
 from raes_contracts.json_pointer import array_index, pointer_tokens
+from raes_contracts.sdl_model import SDLModel
 from raes_contracts.vocabulary import Closure
-
-from ._base import SDLModel
-from ._identifiers import PortableIdentifier
 
 _JSON_POINTER_PATTERN = r"^(?:/(?:[^~/]|~[01])*)*$"
 _JSON_POINTER_RE = re.compile(_JSON_POINTER_PATTERN)

@@ -10,9 +10,9 @@ from __future__ import annotations
 
 from dataclasses import replace
 
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.participant_binding import (
-    ParticipantActionAdmissionRequest,
     ParticipantActionApplyResult,
     ParticipantNativeActionExecution,
     participant_action_binding_events,

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Protocol
 from raes_contracts.contracts import (
     ParticipantTemporalRuntimeContextModel,
 )
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_control_composition import ParticipantControlRequestModel
 from raes_contracts.contracts.participant_control_invocation import (
     ControlInvocationV2Model,
@@ -17,9 +18,11 @@ from raes_contracts.contracts.participant_execution import (
     ParticipantExecutionControlRequestModel,
     ParticipantExecutionServiceStateModel,
 )
+from raes_contracts.contracts.realization_preparation import RealizationPreparation
+from raes_contracts.contracts.workflow_dispatch import WorkflowStepDispatch, WorkflowStepResponse
 from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.domain_profiles import DomainProfileResolutionContextModel
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest, ParticipantActionApplyResult
+from raes_contracts.participant_binding import ParticipantActionApplyResult
 from raes_contracts.participant_episode import (
     ParticipantEpisodeInitializeRequest,
     ParticipantEpisodeResetRequest,
@@ -27,7 +30,6 @@ from raes_contracts.participant_episode import (
     ParticipantEpisodeTerminateRequest,
 )
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
-from raes_contracts.realization_preparation import RealizationPreparation
 from raes_contracts.runtime_state import ApplyResult, RuntimeSnapshot
 
 if TYPE_CHECKING:
@@ -91,14 +93,18 @@ class ProfilePreparingProvisioner(PreparingProvisioner, Protocol):
 
 
 class Orchestrator(Protocol):
-    """Loads and starts the orchestration graph."""
+    """Installs non-workflow resources and executes one runtime-dispatched step."""
+
+    def dispatch_step(self, request: WorkflowStepDispatch) -> WorkflowStepResponse | dict[str, object]:
+        """Run only this step; never select a successor or another retry attempt."""
+        ...
 
     def start(
         self,
         plan: OrchestrationPlan,
         snapshot: RuntimeSnapshot,
     ) -> ApplyResult:
-        """Start or refresh orchestration state."""
+        """Install or refresh non-workflow orchestration resources."""
         ...
 
     def status(self) -> dict[str, object]:

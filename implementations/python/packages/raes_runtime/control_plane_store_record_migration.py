@@ -17,6 +17,7 @@ from raes_contracts.runtime_state import OperationState, operation_terminal_diag
 from raes_contracts.versions import OPERATION_SCHEMA_VERSION
 
 from .control_plane_store import AuditEvent, ControlPlaneOperationRecord
+from .control_plane_store_claim_columns import local_operation_claim_columns
 from .control_plane_store_records import _record_from_payload, _record_payload
 
 _MIGRATION_ID = "local-operation-record/v1-to-v2"
@@ -247,26 +248,15 @@ def _add_idempotency_claim_columns(
             legacy_request_commitment=bool(record.idempotency_key),
         )
         record_content, record_digest = encode_payload(_record_payload(migrated_record))
-        legacy_opaque = int(record.idempotency_key.startswith(("participant-control:", "participant-crossing:")))
+        # The migrated record marks its legacy request commitment. Thus its claim columns quarantine an opaque key.
         connection.execute(
             """
             UPDATE operations SET
-                actor_id=?, operation_kind=?, target_scope=?, run_scope=?, request_commitment=?,
-                legacy_opaque_claim=?, request_fingerprint=?, payload=?, digest=?
+                idempotency_key=?, actor_id=?, operation_kind=?, target_scope=?, run_scope=?,
+                request_commitment=?, legacy_opaque_claim=?, request_fingerprint=?, payload=?, digest=?
             WHERE operation_id=?
             """,
-            (
-                context.actor_id,
-                context.operation_kind.value,
-                context.target_scope,
-                context.run_scope,
-                context.request_commitment,
-                legacy_opaque,
-                context.request_commitment,
-                record_content,
-                record_digest,
-                operation_id,
-            ),
+            (*local_operation_claim_columns(migrated_record), record_content, record_digest, operation_id),
         )
     connection.execute("DROP INDEX IF EXISTS operations_idempotency_key")
 

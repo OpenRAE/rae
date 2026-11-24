@@ -234,7 +234,7 @@ Reject nonrepresentable integers and nonfinite numbers without truncation or rou
 Declare changed interfaces and imports in `implementations/architecture.json` before source changes.
 Keep dependencies within SDL, contract, and base layers.
 Update the current architecture view when declared dependencies change.
-ADR-121, ADR-122, ADR-116, and the existing SDL decisions supply the governing rules.
+ADR-123, ADR-124, ADR-116, and the existing SDL decisions supply the governing rules.
 No new ADR, authority catalog, schema, dependency, policy gate, or runtime permission is required.
 The existing architecture, policy, lint, regression, mutation, and parity gates remain authoritative.
 This issue has no requirement UID. Do not invent one for policy invocation.

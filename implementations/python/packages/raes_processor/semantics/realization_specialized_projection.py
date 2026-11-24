@@ -101,6 +101,8 @@ def _specialized_identity_key(kind: str, field: str) -> str | None:
 
     if kind == "runtime-software-components" and field == "repository_refs":
         key = "_identity"
+    elif kind == "runtime-applications" and field == "routes":
+        key = "route_id"
     elif kind == "runtime-repository-state":
         key = {"repositories": "repository_id", "trust_bindings": "trust_id"}.get(field)
     elif (kind == "linux-capabilities" and field in _CAPABILITY_IDENTITY_FIELDS) or (

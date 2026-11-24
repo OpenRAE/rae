@@ -1,7 +1,7 @@
 # Go engineering standards
 
 Issue #1774 sets the engineering standards of the Go code and enforces them in CI.
-[ADR-121](adrs/adr-121-go-engineering-standards.md) records the standards.
+[ADR-123](adrs/adr-123-go-engineering-standards.md) records the standards.
 This document describes the enforcement system and its threats.
 
 ## Problem
@@ -78,7 +78,7 @@ flowchart LR
 
 ## Supporting artifacts
 
-- [ADR-121](adrs/adr-121-go-engineering-standards.md)
+- [ADR-123](adrs/adr-123-go-engineering-standards.md)
 - `implementations/.golangci.yml` and `implementations/.gremlins.yaml`
 - `implementations/tooling/go/lint/` and `implementations/tooling/go/cmd/`
 - The `go` job in `.github/workflows/canonical-verification.yml`

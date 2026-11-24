@@ -262,7 +262,7 @@ Repository baseline: `17bf4515bf12747af69c8598a2fc82d73e9651b9`.
 The behavioral sources are the issue's Python operation owners and their CLI adapters.
 The published SDL schemas and specifications supply the normative rules.
 ADR-053, ADR-084, ADR-105, and ADR-119 also apply.
-ADR-121 and ADR-122 own Go standards and architecture checks.
+ADR-123 and ADR-124 own Go standards and architecture checks.
 The operation-specific [preflight](issue-1785-sdl-operations-preflight.md) supplies the binding guardrails.
 
 - [Effective Go](https://go.dev/doc/effective_go), Go 1.27.3: private state, errors, and interfaces.

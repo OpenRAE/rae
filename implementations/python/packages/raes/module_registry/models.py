@@ -11,8 +11,8 @@ import yaml
 from pydantic import Field, ValidationError
 from raes_contracts.json_ingress import StrictJsonIngressError, parse_bounded_json_object
 from raes_contracts.operational_logging import get_logger
+from raes_contracts.sdl_model import SDLModel
 
-from .._base import SDLModel
 from .._errors import (
     SDLImportError,
     SDLImportErrorCode,

@@ -121,3 +121,9 @@ plugin dispatcher, secret resolver, or second SDL binder.
 - [ADR-074](adr-074-experiment-authoring-input-contract-boundary.md)
 - [ADR-084](adr-084-scenario-variation-and-deterministic-trial-realization.md)
 - [Experiment binding contracts](../../explain/reference/experiment-binding-contracts.md)
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+|------|-----------|---------|
+| 2026-11-06 | #1929 | Per-contract `last_change` hashes are removed (ADR-061 amendment, #1929). In-line changes to the affected draft schemas are reviewed in their pull requests and recorded by git history. |

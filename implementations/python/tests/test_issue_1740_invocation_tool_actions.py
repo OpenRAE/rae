@@ -758,7 +758,7 @@ def test_replay_conflict_limits_and_state_refusals() -> None:
 
 
 def _direct_port(runtime_model, configuration, *, policy_update: dict[str, object] | None = None):
-    from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
+    from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
     from test_dsl_437_benign_participant_execution import _implementation_manifest, _selection
 
     policy = runtime_model.behavior_specifications[

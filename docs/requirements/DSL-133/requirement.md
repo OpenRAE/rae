@@ -31,3 +31,6 @@ The original SCN-010 design generalized directly from MISP, TheHive, Cortex, Shu
 - IMPLEMENTS → CODE_FILE `implementations/python/packages/raes/_runtime_service_family_registry.py` (Runtime service family reference registry)
 - IMPLEMENTS → GITHUB_ISSUE `956` (Issue #956)
 - IMPLEMENTS → ADR `docs/decisions/adrs/adr-049-platform-application-runtime-inventory.md` (ADR-049 Platform Application Runtime Inventory)
+
+- TESTS → TEST `implementations/python/tests/test_issue_1848_secret_replication.py` (Provider-qualified replication policy validation and published schemas)
+- TESTS → TEST `implementations/python/tests/test_issue_1848_replication_lifecycle.py` (Replication transport, unsupported execution and result conformance)

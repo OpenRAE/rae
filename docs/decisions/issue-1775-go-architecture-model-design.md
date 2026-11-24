@@ -1,7 +1,7 @@
 # Go architecture model
 
 Issue #1775 defines one machine-readable architecture model for the Go code of the repository.
-[ADR-122](adrs/adr-122-go-architecture-model.md) records the model, its rules, and the design step.
+[ADR-124](adrs/adr-124-go-architecture-model.md) records the model, its rules, and the design step.
 This document describes the check and its threats.
 
 ## Problem
@@ -19,7 +19,7 @@ Each layer lists the layers that it uses and the external import paths that it m
 The `arch` package in the tooling module loads the model and checks it.
 `archcheck -design` checks only the model, so the design step runs it before the code exists.
 `archcheck` without the flag also reads the imports of each Go file through `go/build`, whatever its build constraints.
-It then checks the code and the rule table of ADR-122.
+It then checks the code and the rule table of ADR-124.
 
 | Rule | Check |
 | --- | --- |
@@ -29,7 +29,7 @@ It then checks the code and the rule table of ADR-122.
 | ARCH-011 and ARCH-012: `internal` visibility and exported identifiers | `go build` |
 | ARCH-013 and ARCH-014: typed interface commitments and current system views | `archcheck` |
 
-[ADR-122](adrs/adr-122-go-architecture-model.md) compares go-arch-lint, depguard, and Bazel.
+[ADR-124](adrs/adr-124-go-architecture-model.md) compares go-arch-lint, depguard, and Bazel.
 go-arch-lint matches packages by directory globs.
 Thus a new package or a new import between permitted components changes no model, and no design can record it first.
 The tool also has no package visibility, and its messages state no fix.
@@ -44,7 +44,7 @@ The code of a pull request is untrusted until review.
 flowchart LR
     subgraph Repository
         Model[architecture.json]
-        ADR[ADR-122 rule table]
+        ADR[ADR-124 rule table]
         Code[Go modules and packages]
     end
     Code -->|go.mod files and the imports of each Go file| List[go/build reader]
@@ -68,7 +68,7 @@ flowchart LR
 
 ## Supporting artifacts
 
-- [ADR-122](adrs/adr-122-go-architecture-model.md)
+- [ADR-124](adrs/adr-124-go-architecture-model.md)
 - `implementations/architecture.json`
 - `implementations/tooling/go/arch/` and `implementations/tooling/go/cmd/archcheck/`
 - The design-step rule in `.gc/plan-rules.md`

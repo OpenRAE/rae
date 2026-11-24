@@ -8,10 +8,10 @@ dot-notation (e.g., ``blue-team.bob``).
 from enum import Enum
 
 from pydantic import Field, field_validator
+from raes_contracts.identifiers import PortableIdentifier
+from raes_contracts.variable_references import parse_enum_or_var
 
-from ._base import parse_enum_or_var
 from ._classification_guard import LegacyClassificationGuard
-from ._identifiers import PortableIdentifier
 
 
 class ExerciseRole(str, Enum):

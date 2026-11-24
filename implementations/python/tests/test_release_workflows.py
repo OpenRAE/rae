@@ -36,6 +36,7 @@ _FRESH_ATTACHMENT_CALLS = [
     "download",
 ]
 FULL_SHA_USE = re.compile(r"^[^@]+@[0-9a-f]{40}$")
+DIGEST_IMAGE_USE = re.compile(r"^docker://[^\s@]+@sha256:[0-9a-f]{64}$")
 DRAFT_RELEASE_STATE = re.compile(r"(?:\bisDraft\b|\.(?:isDraft|draft)\b|-F\s+draft=)")
 
 
@@ -488,7 +489,9 @@ def test_ci_uses_the_same_canonical_verifier_for_github_sha() -> None:
     assert canonical["uses"] == LOCAL_CANONICAL_WORKFLOW
     assert canonical["with"]["ref"] == "${{ github.sha }}"
     assert "github.event.pull_request.base.sha" in canonical["with"]["base-rev"]
-    assert canonical["with"]["requirement-branch"] == "${{ github.head_ref || github.ref_name }}"
+    assert canonical["with"]["requirement-branch"] == (
+        "${{ needs.queued-pull-request.outputs.head-ref || github.head_ref || github.ref_name }}"
+    )
     assert canonical["with"]["sonar-enabled"] is True
     assert canonical["secrets"]["sonar_token"] == "${{ secrets.SONAR_TOKEN }}"  # noqa: S105
 
@@ -1048,6 +1051,9 @@ def test_every_workflow_pins_every_third_party_action_to_a_full_sha() -> None:
         for action_ref in _uses(_load(path)):
             if action_ref.startswith("./"):
                 continue
+            if action_ref.startswith("docker://"):
+                assert DIGEST_IMAGE_USE.fullmatch(action_ref), f"{path.name}: unpinned image {action_ref!r}"
+                continue
             assert FULL_SHA_USE.fullmatch(action_ref), f"{path.name}: unpinned action {action_ref!r}"
 
 
@@ -1152,7 +1158,8 @@ def test_codeql_stays_inactive_until_rollout_is_enabled(enabled: str) -> None:
 
 def test_codeql_events_and_credentials_preserve_scan_boundaries() -> None:
     workflow = _load(WORKFLOWS / "codeql.yml")
-    assert set(workflow["on"]) == {"push", "pull_request", "schedule", "workflow_dispatch"}
+    assert set(workflow["on"]) == {"push", "pull_request", "merge_group", "schedule", "workflow_dispatch"}
+    assert workflow["on"]["merge_group"] == {"types": ["checks_requested"]}
     for event in ("push", "pull_request"):
         assert set(workflow["on"][event]["branches"]) == {"main", "dev", "go-cutover"}
         assert not set(workflow["on"][event]) & {"paths", "paths-ignore"}
@@ -1176,6 +1183,7 @@ _REVIEWED_JOB_WRITE_SCOPES = {
     ("codeql.yml", "analyze"): {"security-events"},
     ("docs.yml", "deploy"): {"pages", "id-token"},
     ("ground-control-phase-e.yml", "finalize"): {"issues"},
+    ("merge-queue-removed.yml", "label"): {"pull-requests"},
     ("release-please.yml", "release-please"): {"contents", "pull-requests"},
     ("release-please.yml", "resolve-release"): {"contents"},
     # Signing holds an OIDC and attestation identity only. It has no `contents`
@@ -1220,11 +1228,13 @@ def _release_managed_paths() -> list[str]:
 
 # Keep CodeQL's existing scan frequency; Release Please publishes and the Docs
 # push redeploys the release version when only release-managed files change.
+# The maintainer gate is a required check, so it runs on every pull request.
 _RELEASE_BOOKKEEPING_RUNS = {
     ("release-please.yml", "push"),
     ("docs.yml", "push"),
     ("codeql.yml", "push"),
     ("codeql.yml", "pull_request"),
+    ("maintainer-gate.yml", "pull_request"),
 }
 
 
@@ -1251,6 +1261,10 @@ def test_release_bookkeeping_changes_do_not_retrigger_check_workflows() -> None:
                 assert event == "pull_request"
                 assert triggers[event]["types"] == ["closed"]
                 continue
+            if path.name == "merge-queue-removed.yml":
+                assert event == "pull_request"
+                assert triggers[event]["types"] == ["enqueued", "dequeued", "closed"]
+                continue
             config = triggers[event] or {}
             if path.name == "bootstrap-qualification.yml":
                 assert config.get("paths")
@@ -1274,6 +1288,7 @@ def test_release_bookkeeping_changes_do_not_retrigger_check_workflows() -> None:
         ("pr-title-lint.yml", "pull_request"),
         ("release-classification.yml", "pull_request"),
         ("scorecard.yml", "push"),
+        ("secret-scan.yml", "pull_request"),
     }
 
 
@@ -1547,8 +1562,15 @@ def _run_pypi_reconciliation(
     *,
     status: str,
     body: str,
+    curl_exit: int = 0,
+    curl_error: str = "",
 ) -> subprocess.CompletedProcess[str]:
-    """Execute the PyPI destination reconciliation against a stubbed registry."""
+    """Execute the PyPI destination reconciliation against a stubbed registry.
+
+    A non-zero ``curl_exit`` is a transport failure as real curl reports one:
+    no body is written, ``--write-out`` still prints the status, the error goes
+    to stderr and curl exits with its own code.
+    """
 
     if shutil.which("bash") is None or shutil.which("jq") is None:
         pytest.skip("the PyPI reconciliation shell policy requires bash and jq")
@@ -1570,8 +1592,13 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 test -n "$destination"
-printf '%s' "$PYPI_BODY" > "$destination"
+if [ "$PYPI_CURL_EXIT" -eq 0 ]; then
+  printf '%s' "$PYPI_BODY" > "$destination"
+else
+  printf 'curl: (%s) %s\\n' "$PYPI_CURL_EXIT" "$PYPI_CURL_ERROR" >&2
+fi
 printf '%s' "$PYPI_STATUS"
+exit "$PYPI_CURL_EXIT"
 """,
         encoding="utf-8",
     )
@@ -1597,6 +1624,8 @@ printf '%s' "$PYPI_STATUS"
             "SDIST_SHA256": "2" * 64,
             "PYPI_STATUS": status,
             "PYPI_BODY": body,
+            "PYPI_CURL_EXIT": str(curl_exit),
+            "PYPI_CURL_ERROR": curl_error,
         },
     )
     return completed
@@ -1665,7 +1694,7 @@ def test_pypi_reconciliation_refuses_a_same_name_digest_mismatch(tmp_path: Path)
 
 
 @pytest.mark.integration
-@pytest.mark.parametrize("status", ["403", "500", "000"])
+@pytest.mark.parametrize("status", ["403", "500"])
 def test_pypi_reconciliation_refuses_an_uncertain_destination(tmp_path: Path, status: str) -> None:
     """An ambiguous destination answer is never read as "not published"."""
 
@@ -1673,6 +1702,30 @@ def test_pypi_reconciliation_refuses_an_uncertain_destination(tmp_path: Path, st
 
     assert result.returncode != 0
     assert f"HTTP {status}" in result.stderr
+    assert "pending" not in _pypi_outputs(tmp_path)
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    ("curl_exit", "curl_error"),
+    # The exit codes and message forms curl 8.7.1 printed for an unresolvable
+    # host, a refused connection and a connect timeout; host, port and elapsed
+    # time differ.
+    [
+        (6, "Could not resolve host: pypi.org"),
+        (7, "Failed to connect to pypi.org port 443 after 0 ms: Couldn't connect to server"),
+        (28, "Connection timed out after 60002 milliseconds"),
+    ],
+    ids=["resolve", "connect", "timeout"],
+)
+def test_pypi_reconciliation_stops_at_a_transport_failure(tmp_path: Path, curl_exit: int, curl_error: str) -> None:
+    """``set -e`` ends the step on curl's exit, so its ``000`` never reaches the status check."""
+
+    result = _run_pypi_reconciliation(tmp_path, status="000", body="", curl_exit=curl_exit, curl_error=curl_error)
+
+    assert result.returncode == curl_exit
+    assert f"curl: ({curl_exit}) {curl_error}" in result.stderr
+    assert "HTTP 000" not in result.stderr
     assert "pending" not in _pypi_outputs(tmp_path)
 
 
@@ -1819,7 +1872,7 @@ def test_github_attachment_refuses_preexisting_conflicting_evidence(tmp_path: Pa
 
 
 def test_go_lanes_enforce_each_go_engineering_standard() -> None:
-    """The ADR-121 gates stay in the canonical graph for each Go module."""
+    """The ADR-123 gates stay in the canonical graph for each Go module."""
 
     jobs = _load(CANONICAL_PATH)["jobs"]
     go = jobs["go"]
@@ -1980,7 +2033,7 @@ def test_go_coverage_reducer_handles_download_layouts_and_refuses_incomplete_dat
 
 
 def test_go_architecture_check_runs_once_from_the_repository_root() -> None:
-    """The ADR-122 check runs in the canonical graph, and the gate requires it."""
+    """The ADR-124 check runs in the canonical graph, and the gate requires it."""
 
     workflow = _load(CANONICAL_PATH)
     job = workflow["jobs"]["go-architecture"]

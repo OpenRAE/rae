@@ -46,8 +46,8 @@ Test the normal path without bypass rights.
 | Concern | Canonical incumbent and boundary |
 | --- | --- |
 | Verification composition | `.github/workflows/ci.yml` calls `canonical-verification.yml`; stable `verify` and `sonar` joins preserve distinct outcomes. ADR-014 and `noxfile.py` / `tools/nox_support/` own Python verification. |
-| Go standards | Target-branch ADR-121, `implementations/.golangci.yml`, `.gremlins.yaml`, and tooling Go module own lint, mutation thresholds, analyzers, and regression replay. Do not copy their commands into a protection workflow. |
-| Architecture | Target-branch ADR-122, `implementations/tooling/go/arch`, `cmd/archcheck`, and `docs/develop/go-architecture.md` own the model and checks. Enforcement adds no product packages or model nodes. |
+| Go standards | Target-branch ADR-123, `implementations/.golangci.yml`, `.gremlins.yaml`, and tooling Go module own lint, mutation thresholds, analyzers, and regression replay. Do not copy their commands into a protection workflow. |
+| Architecture | Target-branch ADR-124, `implementations/tooling/go/arch`, `cmd/archcheck`, and `docs/develop/go-architecture.md` own the model and checks. Enforcement adds no product packages or model nodes. |
 | Parity | Target-branch `tools/parity_corpus.py`, `parity_inputs.py`, `parity_storage.py`, and `implementations/go/internal/parity` own collection, comparison, completeness, and safe artifact handling. |
 | PR policy | `pr-title-lint.yml` / `tools/check_pr_title.py` and `pr-body-policy.yml` / `tools/check_pr_body.py` retain base-revision validators, event-file input, and read-only tokens. |
 | Workflow admission | `implementations/tooling/action_policy_yaml.py` and `tools/tooling_artifact_policy_actions.py` own workflow parsing, permissions, pins, secret boundaries, and reusable input contracts. ADR-106 tooling admission remains authoritative. |

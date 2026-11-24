@@ -10,8 +10,6 @@ import pytest
 from jsonschema import Draft202012Validator
 from pydantic import ValidationError
 from raes.observability_plane_semantics import (
-    ObservabilityEvidencePlane,
-    classify_contract_plane,
     classify_runtime_family,
     classify_sdl_section_plane,
     collect_scenario_native_observability_refs,
@@ -22,6 +20,7 @@ from raes_conformance.conformance import (
     run_fixture_suite,
 )
 from raes_contracts.contracts import ExperimentRunModel
+from raes_contracts.observability_planes import ObservabilityEvidencePlane, classify_contract_plane
 from raes_processor.compiler import compile_scenario_runtime_model
 
 REPO_ROOT = Path(__file__).resolve().parents[3]

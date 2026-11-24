@@ -218,7 +218,7 @@ The generated architecture view must match the checked model.
 
 Use existing policy, lint, contract, parity, regression, and documentation checks.
 No new gate, service, hosting destination, or dependency registry is required.
-ADR-121, ADR-122, and the experiment ADRs govern these owners.
+ADR-123, ADR-124, and the experiment ADRs govern these owners.
 No replacement ADR is proposed.
 
 Map each input limit and security check to its Go test.

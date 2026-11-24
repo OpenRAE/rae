@@ -142,4 +142,4 @@ CI runs the full Go suites, the mutation tests and the fuzz targets.
 
 - [Go module layout](https://go.dev/doc/modules/layout)
 - [Go module release workflow](https://go.dev/doc/modules/release-workflow)
-- [ADR-122](adrs/adr-122-go-architecture-model.md)
+- [ADR-124](adrs/adr-124-go-architecture-model.md)

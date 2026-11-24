@@ -5,7 +5,7 @@ from __future__ import annotations
 import hmac
 from typing import TYPE_CHECKING
 
-from raes_contracts.plan_projection import runtime_plan_digest
+from raes_contracts.contracts.plan_projection import runtime_plan_digest
 
 if TYPE_CHECKING:
     from .control_plane import RuntimeControlPlane

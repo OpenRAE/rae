@@ -25,7 +25,8 @@ from raes_contracts.contracts.participant_control_occurrence_v2 import parse_par
 from raes_contracts.contracts.participant_control_occurrence_v2_validation import (
     resolve_participant_control_episode_policy,
 )
-from raes_contracts.immutable_history import EventHistory, seal_history
+from raes_contracts.immutable_history import EventHistory
+from raes_contracts.snapshot_histories import seal_history
 
 ArchivePolicyKey = tuple[str, str, str, tuple[object, ...]]
 

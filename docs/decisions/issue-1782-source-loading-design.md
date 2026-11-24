@@ -112,7 +112,7 @@ Do not claim a formatted source is an admitted scenario.
 
 The maintainer authorized manual workflow execution and a rollback to Ground Control schema version 1.
 Remove unsupported `workflow.design` and `architecture.modules` from `.ground-control.yaml`.
-The architecture model, ADR-122 and CI retain the design rules.
+The architecture model, ADR-124 and CI retain the design rules.
 Manual checks are `archcheck -design`, `archcheck`, `archcheck -view`, package builds and the selected acceptance test.
 A model check is not proof of runtime behavior or formatter-command parity.
 

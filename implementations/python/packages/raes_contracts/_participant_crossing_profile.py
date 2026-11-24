@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Literal, Self
 
 from pydantic import Field, StrictInt, field_validator, model_validator
 
-from .contracts.base import ContractModel, PrefixedDigestString
+from raes_contracts._base import ContractModel, PrefixedDigestString
 
 if TYPE_CHECKING:
     from .behavioral_relation_profiles import BehavioralRelationProfileModel
@@ -58,7 +58,7 @@ class AbstractCrossingCarrierModel(ContractModel):
     model_id: Literal["sem-230-participant-crossing-abstract"]
     revision: Literal["rev2"]
     source_path: Literal["implementations/formal/participant_crossing/abstract.py"]
-    source_digest: PrefixedDigestString
+    source_digest: PrefixedDigestString | None = None
     initial_state_ordinal: StrictInt = Field(ge=0, le=0)
 
 
@@ -66,7 +66,7 @@ class ConcreteCrossingCarrierModel(ContractModel):
     model_id: Literal["api-423-run-319-crossing-kernel"]
     revision: Literal["rev2"]
     source_path: Literal["implementations/formal/participant_crossing/concrete.py"]
-    source_digest: PrefixedDigestString
+    source_digest: PrefixedDigestString | None = None
     initial_state_ordinal: StrictInt = Field(ge=0, le=0)
 
 
@@ -115,7 +115,7 @@ class ParticipantCrossingParametersModel(ContractModel):
 
     @model_validator(mode="after")
     def _independent_sources(self) -> Self:
-        if self.left.source_digest == self.right.source_digest:
+        if self.left.source_digest is not None and self.left.source_digest == self.right.source_digest:
             raise ValueError("crossing transition authorities must have independent source identities")
         return self
 

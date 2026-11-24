@@ -7,7 +7,8 @@ from typing import Annotated, Literal
 from pydantic import Field, GetJsonSchemaHandler, field_validator, model_validator
 from pydantic.json_schema import JsonSchemaValue
 from pydantic_core import CoreSchema
-from raes.participant_mixed_control_vocabulary import MixedControlTransitionKind
+
+from raes_contracts.participant_mixed_control_vocabulary import MixedControlTransitionKind
 
 from ..graphs import has_cycle
 from ..versions import PARTICIPANT_FLOW_CONTROL_RELATION_V1_SCHEMA_VERSION
@@ -43,7 +44,7 @@ from .participant_flow_control_semantics import (
     _require_canonical_refs,
     participant_flow_coordinate_disposition,
 )
-from .schema_invariants import _add_raes_invariant
+from .schema_invariants import add_raes_invariant
 
 
 class ParticipantFlowRelationTargetReferenceModel(ContractModel):
@@ -294,7 +295,7 @@ class ParticipantFlowControlRelationModel(ContractModel):
     ) -> JsonSchemaValue:
         json_schema = handler(core_schema)
         json_schema = handler.resolve_ref_schema(json_schema)
-        _add_raes_invariant(
+        add_raes_invariant(
             json_schema,
             "participant-flow-control-resolved-context",
             "Every label, derivation, release, sink decision, and carrier binding must resolve an exact SEM-233 "

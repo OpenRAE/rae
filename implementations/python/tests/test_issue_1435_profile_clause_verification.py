@@ -31,8 +31,8 @@ from control_plane_conformance_fixtures import (
     witness_events,
 )
 from raes_backend_stubs.stubs import create_stub_target
+from raes_contracts.contracts.plan_projection import evaluation_plan_model
 from raes_contracts.errors import ConflictError
-from raes_contracts.plan_projection import evaluation_plan_model
 from raes_contracts.planning import ChangeAction, EvaluationOp, EvaluationPlan
 from raes_runtime import control_plane_store_postgresql_mutations as ledger_mutations
 from raes_runtime.control_plane import RuntimeControlPlane
@@ -332,12 +332,20 @@ def test_postgresql_ledger_claims_stay_with_the_submitting_actor() -> None:
 
     with closing(sqlite3.connect(":memory:")) as connection, connection:
         connection.execute(
-            "CREATE TABLE raes_ledger_operations(actor_id, operation_kind, idempotency_key, payload, digest)"
+            "CREATE TABLE raes_ledger_operations("
+            "operation_id, actor_id, operation_kind, idempotency_key, payload, digest)"
         )
         content, digest = encode_payload(_record_payload(record))
         connection.execute(
-            "INSERT INTO raes_ledger_operations VALUES (?, ?, ?, ?, ?)",
-            (context.actor_id, context.operation_kind.value, record.idempotency_key, content, digest),
+            "INSERT INTO raes_ledger_operations VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                record.receipt.operation_id,
+                context.actor_id,
+                context.operation_kind.value,
+                record.idempotency_key,
+                content,
+                digest,
+            ),
         )
 
         class Parameters:

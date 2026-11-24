@@ -2,7 +2,7 @@
 
 ## Scope and ownership
 
-Issue #1859 extends ADR-122. The `arch` package owns all checks.
+Issue #1859 extends ADR-124. The `arch` package owns all checks.
 The `archcheck` command remains the public command interface.
 `Model.CheckDesign`, `Model.CheckDocuments`, and `Model.CheckAPI` separate the three checks.
 `LoadAPI` reads actual type information. `Model.View` renders the current model.

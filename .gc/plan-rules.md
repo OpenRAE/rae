@@ -1,4 +1,4 @@
-# raes-sdl plan rules
+# RAES SDL plan rules
 
 Mandatory constraints the `/implement` skill applies during plan phase.
 These encode the hard rules previously in `AGENTS.md` prose.
@@ -10,30 +10,31 @@ These encode the hard rules previously in `AGENTS.md` prose.
 - Local test and completion commands MUST remain targeted. Never select a full
   test, integration or fuzz suite locally, even on unknown changes, source edits,
   base synchronization or review repairs. Full verification is CI/CD only.
-- Plans MUST set `RAES_REQUIREMENT_UID` when the branch name does not
-  already contain a UID such as `GOV-918`.
+- Requirement-backed plans MUST set `RAES_REQUIREMENT_UID` when the branch name
+  does not contain an in-scope UID such as `GOV-918`.
+  Requirement-free plans MUST NOT invent a UID.
 - Plans MUST NOT add new authority-bearing artifacts outside `specs/`,
   `contracts/`, `docs/`, and `implementations/`.
 - Plans MUST name the module that owns each piece of new code. For Go code, the
   owner is a package that `implementations/architecture.json` declares. Plans
   MUST also name the public interface that other modules or packages use to
-  reach that code (ADR-117, ADR-122).
+  reach that code (ADR-117, ADR-124).
 - Before implementation starts, plans for Go code MUST declare their design in
   `implementations/architecture.json`. The design is each new or changed
   module, layer, package, import, and external entry. Plans MUST name the
   exported identifiers that each new or changed package adds or changes. The
   design check `archcheck -design` MUST pass on the changed model before
-  implementation starts (ADR-122).
-- The published schemas under `contracts/schemas/` are the hand-governed
-  normative authority (ADR-009 §7). A plan that changes a published schema MUST
-  record a contract-facing change-ledger entry in
-  `contracts/schema-publication-manifest.json`. The entry is `last_change`, with
-  a summary and a content hash. A plan that **removes** a published schema MUST
-  record a `removed_schemas` tombstone in the same manifest, with the schema
-  path and a summary. Plans MUST keep the reference implementation
-  (`schema_bundle()`) generating an identical bundle, so that
-  `tools/check_generated_schemas.py` passes. A generator or Python edit alone
-  does NOT authorize a schema change.
+  implementation starts (ADR-124).
+- Plans that add a published schema under `contracts/schemas/` (the
+  hand-governed normative authority per ADR-009 §7) MUST add its record under
+  `contracts/schema-publication/entries/`. A schema change does not edit its
+  record. A plan that **removes** a published schema MUST add a tombstone
+  record (schema path + summary) under `contracts/schema-publication/tombstones/`.
+  Plans MUST keep the reference implementation
+  (`schema_bundle()`) generating an identical bundle so
+  `tools/check_generated_schemas.py` passes. The published schema is the
+  authority; a generator/Python edit alone is NOT authorization for a schema
+  change.
 - Plans MUST keep concept-authority artifacts in the approved
   concept-authority surfaces.
 - Plans MUST keep IMPLEMENTS and TESTS traceability in Ground Control

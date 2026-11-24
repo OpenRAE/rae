@@ -39,22 +39,22 @@ from raes_contracts.contracts import (
     ParticipantFlowSinkKind,
     ParticipantFlowSubjectKind,
     RuntimeFactBindingPlaneModel,
-    schema_bundle,
     validate_participant_flow_control_resolved_context,
 )
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingPolicyReferenceModel,
     ParticipantCrossingSubjectReferenceModel,
 )
-from raes_contracts.controlled_vocabularies import load_controlled_vocabulary_catalog
-from raes_contracts.participant_action_arguments import ParticipantValidatedActionSelection
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
-from raes_contracts.participant_flow_policy_profiles import (
+from raes_contracts.contracts.participant_flow_policy_profiles import (
     PARTICIPANT_BOUNDARY_FLOW_POLICY_PROFILE_ID,
     load_participant_boundary_flow_policy_profile,
     load_participant_boundary_flow_policy_profile_from_path,
     load_participant_boundary_flow_policy_profile_revision,
 )
+from raes_contracts.controlled_vocabularies import load_controlled_vocabulary_catalog
+from raes_contracts.participant_action_arguments import ParticipantValidatedActionSelection
+from raes_schemas import schema_bundle
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 PROFILE_ID = "participant-boundary-flow-policy-v1"

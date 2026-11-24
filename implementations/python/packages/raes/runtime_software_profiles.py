@@ -4,12 +4,12 @@ from typing import Literal
 
 from pydantic import Field, JsonValue, field_validator
 from raes_contracts.domain_profiles import DomainProfileDefinitionModel
+from raes_contracts.identifiers import PortableIdentifier
 from raes_contracts.realization_structure import validate_realization_value
+from raes_contracts.runtime_values import require_symbol
+from raes_contracts.sdl_model import SDLModel
 
-from ._base import SDLModel
-from ._identifiers import PortableIdentifier
 from .architectures import PackageArchitectureString, normalize_architecture
-from .runtime_values import require_symbol
 
 
 class RuntimeSoftwareRefinement(SDLModel):

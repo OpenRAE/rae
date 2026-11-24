@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
+from raes_contracts.participant_mixed_control_vocabulary import ParticipantControlTargetKind
+
 from .participant_control import (
     ParticipantApprovalOccurrenceModel,
     ParticipantCancellationOccurrenceModel,
@@ -11,7 +13,6 @@ from .participant_control import (
     ParticipantControlDisposition,
     ParticipantControlOccurrenceModel,
     ParticipantControlTargetContextModel,
-    ParticipantControlTargetKind,
     ParticipantDenialOccurrenceModel,
     ParticipantExternalDirectionOccurrenceModel,
     ParticipantHandoffOccurrenceModel,

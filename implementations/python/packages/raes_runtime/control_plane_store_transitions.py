@@ -12,7 +12,14 @@ from raes_contracts.runtime_state import (
 
 from .operation_invocation_ledger import require_invocation_transition, require_record_invocation
 from .operation_reconciliation_ledger import InvocationReconciliation
+from .participant_delivery_invocation_records import (
+    delivery_invocation_binding,
+    delivery_tool_binding,
+    require_delivery_invocation_transition,
+    require_delivery_tool_transition,
+)
 from .record_immutability import immutable_value_error, is_immutable_value_error
+from .workflow_continuation import WorkflowOperationState
 
 if TYPE_CHECKING:
     from .control_plane_store import ControlPlaneOperationRecord
@@ -34,8 +41,12 @@ def _require_operation_record_identity(record: ControlPlaneOperationRecord) -> N
     if not record.receipt.accepted:
         raise ValueError("denied operation receipts cannot be persisted")
     require_record_invocation(record)
+    _require_workflow_record(record)
     require_inject_record(record)
     require_delivery_record(record)
+
+    delivery_invocation_binding(record)
+    delivery_tool_binding(record)
     from .participant_control_effect_evidence import require_effect_claim_payload
 
     require_effect_claim_payload(record)
@@ -43,6 +54,25 @@ def _require_operation_record_identity(record: ControlPlaneOperationRecord) -> N
         InvocationReconciliation.model_validate(record.reconciliation.model_dump(mode="json"))
         if record.status.context.parent_operation_id != record.reconciliation.request.binding.operation_id:
             raise ValueError("reconciliation parent binding mismatch")
+
+
+def _require_workflow_record(record: ControlPlaneOperationRecord) -> None:
+    if record.workflow is not None:
+        WorkflowOperationState.model_validate(record.workflow.model_dump(mode="json"))
+        if record.workflow.kind == "root" and record.workflow.root_operation_id != record.receipt.operation_id:
+            raise ValueError("workflow root identity does not match its operation")
+        if record.workflow.continuation is not None and (
+            record.workflow.continuation.root_operation_id != record.workflow.root_operation_id
+        ):
+            raise ValueError("workflow continuation belongs to another root")
+        if record.workflow.kind == "response":
+            if (
+                record.invocation is None
+                or record.invocation.request.workflow_step is None
+                or record.workflow.response is None
+            ):
+                raise ValueError("workflow response requires its original invocation")
+            record.workflow.response.require_dispatch(record.invocation.request.workflow_step)
 
 
 def _require_same_operation_identity(
@@ -54,12 +84,20 @@ def _require_same_operation_identity(
     _require_operation_record_identity(existing)
     _require_operation_record_identity(replacement)
     require_inject_transition(existing, replacement)
+
+    require_delivery_invocation_transition(existing, replacement)
+    require_delivery_tool_transition(existing, replacement)
     if (
         existing.inject_delivery != replacement.inject_delivery
         or existing.inject_delivery_control != replacement.inject_delivery_control
     ):
         raise immutable_value_error("inject delivery binding is immutable")
     require_invocation_transition(existing.invocation, replacement.invocation)
+    if existing.workflow is not None and (
+        replacement.workflow is None
+        or existing.workflow.model_dump(mode="json") != replacement.workflow.model_dump(mode="json")
+    ):
+        raise immutable_value_error("workflow operation facts are immutable")
     if existing.reconciliation is not None and existing.reconciliation != replacement.reconciliation:
         raise immutable_value_error("reconciliation evidence is immutable")
     if existing.receipt != replacement.receipt:
@@ -72,6 +110,7 @@ def _require_same_operation_identity(
         existing.status.context,
         existing.idempotency_key,
         existing.request_fingerprint,
+        existing.legacy_request_commitment,
     ) != (
         replacement.status.schema_version,
         replacement.status.operation_id,
@@ -80,6 +119,7 @@ def _require_same_operation_identity(
         replacement.status.context,
         replacement.idempotency_key,
         replacement.request_fingerprint,
+        replacement.legacy_request_commitment,
     ):
         raise immutable_value_error("operation identity is immutable after its durable claim")
 

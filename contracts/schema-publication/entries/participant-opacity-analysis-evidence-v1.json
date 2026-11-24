@@ -1,10 +1,5 @@
 {
   "contract_id": "participant-opacity-analysis-evidence-v1",
   "schema_path": "contracts/schemas/formal-analysis/participant-opacity-analysis-evidence-v1.json",
-  "stability": "draft",
-  "content_hash": "bdd191e7cb7b52b030553dbe0fa9ff63b880e376df534ae0153ba8eef2851653",
-  "last_change": {
-    "content_hash": "bdd191e7cb7b52b030553dbe0fa9ff63b880e376df534ae0153ba8eef2851653",
-    "summary": "Remove the Python validator paths from the semantic invariants (#1776)."
-  }
+  "stability": "draft"
 }

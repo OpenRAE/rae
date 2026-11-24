@@ -41,11 +41,11 @@ from raes_contracts.contracts import (
     ParticipantFlowSinkKind,
     RuntimeFactBindingPlaneModel,
 )
+from raes_contracts.contracts.participant_action_admission import ParticipantActionAdmissionRequest
 from raes_contracts.contracts.participant_crossing import (
     ParticipantCrossingSubjectReferenceModel,
 )
 from raes_contracts.participant_action_arguments import ParticipantValidatedActionSelection
-from raes_contracts.participant_binding import ParticipantActionAdmissionRequest
 from raes_runtime.participant_flow_sink import ParticipantFlowSinkResolution
 
 _TEMPLATE_PARTICIPANT = "participants.red.operator"

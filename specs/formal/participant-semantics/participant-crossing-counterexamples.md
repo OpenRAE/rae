@@ -1,4 +1,4 @@
-# Participant-Crossing Counterexample Corpus
+# Participant-crossing counterexample corpus
 
 Requirements: SEM-232, ASR-535, SEM-230, GOV-913. Classification: FM3.
 
@@ -49,11 +49,13 @@ Raw checker output remains private until result and witness admission completes.
 The publication boundary accepts no arbitrary diagnostic text.
 
 The corpus uses GOV-913's existing `evidence_artifact` role.
-Checksums establish byte integrity against an independently retained repository pin.
+Each run builds the corpus from the current sources; no capture or pin is committed.
 They do not establish authenticity, independent review, semantic correctness, or current runtime coverage.
+
 Review records bind the exact mutation and expectation digest.
 The [GOV-913 preflight boundary](../../../docs/decisions/issue-973-crossing-counterexample-preflight.md#gov-913-integrity-authenticity-and-review-authority)
 defines policy selection and separates raw-file checksums from canonical JSON identity.
+
 Unsigned evidence remains explicitly unsigned.
 A consumer requiring authenticity must refuse evidence without verified signatures under its selected signer policy.
 This corpus introduces no signing service or credentials.
@@ -63,6 +65,7 @@ This corpus introduces no signing service or credentials.
 The baseline exporter verifies closure before mutation.
 A mutation must change at least one reachable transition selected through the synthetic state map.
 An independent delta check permits only the declared changes.
+
 Each specimen retains the baseline state numbering.
 Additional states have explicit synthetic descriptions.
 The manifest distinguishes stored state counts from reachable state counts.
@@ -89,6 +92,7 @@ The four comparison modes are `bisim`, `weak-bisim`, `branching-bisim`, and `dpb
 Each invocation hides exactly `internal`.
 The result parser accepts the selected tool's Boolean output only after successful process completion.
 Missing tools, timeouts, resource failures, malformed output, and unsupported modes produce no decision.
+
 A process exit code alone is never an equivalence result.
 Error categories follow ADR-116.
 Command-line handlers report expected operational and evidence failures.
@@ -97,6 +101,7 @@ Programming defects reach the shared application boundary instead of becoming a 
 The selected release is mCRL2 `202607.0` for Linux x86_64.
 Its archive and complete installed tree belong in the existing tooling lock.
 Acquisition uses the maintained client and the existing verified installation transaction.
+
 The upstream Debian archive requires an additional admitted archive format.
 The standard `dpkg-deb --fsys-tarfile` command exposes its data archive without installing packages or executing maintainer scripts.
 The existing tree validator then checks every member, path, link, count, and byte limit.
@@ -112,6 +117,7 @@ The hosted replay uses Ubuntu 26.04 in the existing canonical verification workf
 GitHub publishes this runner as a supported image.
 The job installs standard native prerequisites from the signed distribution sources.
 It does not change AppArmor policy, namespace restrictions, or other host security controls.
+
 Replay must fail when the host cannot create the required sandbox.
 Ubuntu 22.04 lacks the selected binary's runtime-library baseline.
 Ubuntu 24.04 can restrict Bubblewrap through its default AppArmor policy.
@@ -120,6 +126,7 @@ The existing Isabelle job retains its separate host and prerequisites.
 The diagnostic parser accepts a closed, bounded Hennessy-Milner syntax and the declared labels.
 It checks truth in the first input and falsity in the second input after the declared hiding operation.
 It then renders canonical syntax without paths, payloads, or process details.
+
 A stronger-relation formula retains its actual comparison mode.
 It cannot replace the selected DPBB decision.
 An unsupported formula remains explicitly unsupported.
@@ -152,8 +159,7 @@ Independent mutation review remains necessary after automated checks pass.
 The corpus manifest binds subject sources only.
 These are the model sources, the mutation and witness modules, and the corpus module.
 Each run checks the tool-admission code, locks, and other apparatus for stability.
-Native replay must reproduce every artifact byte.
-The retained model construction record keeps its own historical source digests.
+Each run recomputes every comparison and refuses a decision that differs from the expectation in code.
 The [evidence identity design](../../../docs/decisions/issue-976-crossing-evidence-identity-design.md) records this split.
 
 ## Existing authorities

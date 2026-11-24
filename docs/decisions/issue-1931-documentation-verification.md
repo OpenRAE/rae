@@ -2,6 +2,8 @@
 
 This reference records the checks for issue #1931. It gives the source and
 review evidence for its delivery PR. It does not replace the style guide.
+The results below come from PR #1953, which merged into `go-cutover`.
+[Delivery to dev](#delivery-to-dev) gives the changes and results on `dev`.
 
 ## Revision and scope
 
@@ -123,8 +125,9 @@ Restored the original command after each mutation.
 
 The final focused prose module passed all 33 cases. Its pure CI wiring case
 runs in fast feedback. The 32 cases that need installed Vale or subprocess
-fixtures stay in the integration lane. The installer module
-`implementations/python/tests/test_vale_tool.py` passed all three cases.
+fixtures stay in the integration lane.
+
+The installer module `implementations/python/tests/test_vale_tool.py` passed all three cases.
 The existing nox tests and operational-binding consumer test passed 35 cases. File-local repository policy, Ruff and changed-document Vale
 also passed. Full documentation, policy and test lanes remain in CI.
 
@@ -134,10 +137,9 @@ The shared stage excludes root `CHANGELOG.md`, which release-please generates,
 and root `THIRD_PARTY_NOTICES.md`, which contains legal notices.
 It also reports exact protected paths from the ADR pin index and historical
 catalog. It does not exempt whole directories or operational bindings.
+
 Malformed catalogs and unsafe paths fail. Existing policy pin gates stay in force.
-The Ground Control configuration gained the required module mapping. Its
-operational-binding digest was updated to match that current configuration.
-The historical record digests and service project designations did not change.
+The service project designations did not change.
 For every reported protected file, new maintained passages need source/meaning
 review and a Vale stdin check. The PR must record each path, passage and result.
 No protected file changed in this delivery.
@@ -167,10 +169,12 @@ before implementation.
 The existing nox module owns selection and Vale execution. It reuses the common
 selector grammar, NUL-safe Git collection, catalog validators, and path guards.
 `docs-prose` gives targeted feedback. `docs-local` and `docs` call the same stage.
+
 Canonical CI passes the verified base through `docs-local`.
 No new analyzer, dependency, service, or publication destination was added.
 The actual `docs-prose` command passed on the five named Markdown and
 reStructuredText pages in the retained clean HOME and frozen environments.
+
 A protected ADR check reported the exact manual-review obligation. The guide's
 Vale stdin example passed separately. `UV_PROJECT_ENVIRONMENT` selects the
 docutils installation used by the linter.
@@ -190,7 +194,7 @@ record. No page was hosted or uploaded.
 | Text alternatives | No image or diagram changed. No custom control was added. |
 | Color | No meaning depends on color. Commands remain copyable text. |
 
-The browser observations cover repository-only prose. This PR changes no public
+The browser observations cover repository-only prose. PR #1953 changes no public
 page, site navigation, redirect, or publication workflow.
 
 ## Required corpus promotion
@@ -301,3 +305,18 @@ After merging `2f0edc0a35ab9cce48d9bbfae991a15cd93f37b3`, the generated
 corpus exactly matches the integration branch's complete snapshot. This removes
 the documentation PR's unnecessary generated-data changes. The snapshot usability
 command passes on the merged tree without collecting or rewriting inputs.
+
+## Delivery to dev
+
+Issue #1932 adds this work to `dev` at source revision
+`20dd892b97fb4e20af8a73c61dd04ef645dae307`.
+The delivery omits the parity changes of PR #1953, because `dev` has no parity tooling.
+It also omits the `architecture.modules` block, because the Ground Control server refuses it.
+
+The `dev` catalog has no `content_sha256` field, so one test fixture omits that field.
+The comparison example in the style guide names `origin/dev`.
+The `dev` delivery also reports superseded and deprecated ADRs for manual review,
+because ADR-059 freezes their text after they leave the pin index.
+
+The pinned Vale runs `rst2html` with `--no-file-insertion`. A test fails if that option stops.
+The PR for #1932 records the commands and results on `dev`.

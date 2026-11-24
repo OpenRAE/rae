@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from raes.explicitness import ExplicitnessRecord
 from raes.runtime_resource_limits import RuntimeProcessResourceLimit, process_resource_limit_identity_digest
 from raes.scenario import InstantiatedScenario
+from raes_contracts.diagnostics import Diagnostic
 from raes_contracts.json_pointer import array_index
 
 from ..semantics.realization_concerns import RegisteredRealizationConcern
@@ -39,7 +40,7 @@ class _ConcernStructure:
     structure: object | None = None
     constraint_document: object | None = None
     constraint_binding: str | None = None
-    structure_error: bool = False
+    structure_error: bool | Diagnostic = False
     recursive_pending: bool = False
     root_open: bool = False
 

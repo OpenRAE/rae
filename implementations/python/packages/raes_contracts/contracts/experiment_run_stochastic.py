@@ -13,6 +13,8 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
+from raes_contracts.contracts.random_stream_profiles import load_random_stream_profile
+
 if TYPE_CHECKING:
     from .experiment_apparatus import ExperimentStochasticControlModel
     from .experiment_run import ExperimentRunModel
@@ -102,7 +104,6 @@ def _validate_run_stochastic_draw_control_refs(run: ExperimentRunModel) -> None:
     # would create a circular import during ``contracts/__init__.py``'s own load. The same pattern is
     # used for the other corpus-backed loaders consumed from within ``contracts/*.py``
     # (``reusable_assets.py``, ``manifests.py``, ``validators.py``, ``experiment_spec.py``).
-    from ..random_stream_profiles import load_random_stream_profile
 
     controls_by_id = {control.control_id: control for control in run.stochastic_controls}
     _require_run_stochastic_draw_control_ids_resolve(run, controls_by_id)

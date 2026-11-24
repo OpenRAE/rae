@@ -1,7 +1,7 @@
 # Go contract bindings and validation
 
 Issue #1780 adds the shared contract boundary on `go-cutover`.
-ADR-009, ADR-061, ADR-121 and ADR-122 govern the work.
+ADR-009, ADR-061, ADR-123 and ADR-124 govern the work.
 The published schemas and Python code stay unchanged.
 
 The maintainer made two scope decisions on 2026-11-03.

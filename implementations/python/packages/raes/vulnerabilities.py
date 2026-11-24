@@ -8,8 +8,8 @@ native predicate, compiler template, or evidence of realized weakness.
 import re
 
 from pydantic import Field, field_validator
-
-from ._base import SDLModel, parse_bool_or_var
+from raes_contracts.sdl_model import SDLModel
+from raes_contracts.variable_references import parse_bool_or_var
 
 _CWE_PATTERN = re.compile(r"^CWE-\d+$")
 

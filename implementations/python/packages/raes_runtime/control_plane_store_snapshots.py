@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import fields
 from typing import Any
 
+from pydantic_core import to_jsonable_python
 from raes_contracts.account_credentials import (
     account_placement_has_credential_bindings,
     value_free_account_placement_payload,
@@ -14,17 +15,17 @@ from raes_contracts.contracts import RealizationEnvelopeIdentityModel
 from raes_contracts.contracts.time_model import TimeRuntimeStateModel
 from raes_contracts.domain_profiles import DomainProfileBindingModel
 from raes_contracts.errors import EvidenceIntegrityError
-from raes_contracts.immutable_history import HISTORY_FIELDS, HistoryMap
+from raes_contracts.explicitness import ExplicitnessClass, ExplicitnessProvenance
+from raes_contracts.immutable_history import HistoryMap, mutable_history_value
 from raes_contracts.participant_autonomous_state import require_participant_autonomous_runtime_snapshot
 from raes_contracts.planning import RuntimeDomain
 from raes_contracts.runtime_state import (
-    ExplicitnessClass,
-    ExplicitnessProvenance,
     RealizationProvenanceEntry,
     RuntimeSnapshot,
     RuntimeSnapshotEnvelope,
     SnapshotEntry,
 )
+from raes_contracts.snapshot_histories import HISTORY_FIELDS, is_sealed_history, seal_history
 
 from .control_plane_store_observations import realization_observation_from_payload
 from .control_plane_store_revision import SnapshotState
@@ -116,7 +117,7 @@ def _snapshot_payload(snapshot: RuntimeSnapshot, *, include_histories: bool = Tr
                 "address": entry.address,
                 "domain": RuntimeDomain(entry.domain).value,
                 "resource_type": entry.resource_type,
-                "payload": dict(entry.payload),
+                "payload": to_jsonable_python(entry.payload, fallback=mutable_history_value),
                 "ordering_dependencies": list(entry.ordering_dependencies),
                 "refresh_dependencies": list(entry.refresh_dependencies),
                 "status": entry.status,
@@ -162,8 +163,6 @@ def _snapshot_payload(snapshot: RuntimeSnapshot, *, include_histories: bool = Tr
         entry_payload = entry["payload"]
         if account_placement_has_credential_bindings(entry_payload):
             entry["payload"] = value_free_account_placement_payload(entry_payload)
-    from raes_contracts.immutable_history import mutable_history_value
-
     return mutable_history_value(payload)
 
 
@@ -346,18 +345,14 @@ __all__ = ("_snapshot_from_payload", "_snapshot_payload", "durable_snapshot_stat
 
 
 def _snapshot_history(payload: dict[str, Any], field: str) -> HistoryMap | dict[str, list[dict[str, object]]]:
-    from raes_contracts.immutable_history import HistoryMap
-
     history = payload.get(field, {})
-    if isinstance(history, HistoryMap) and history._field == field:
+    if is_sealed_history(field, history):
         return history
     return {address: list(events) for address, events in history.items()}
 
 
 def _canonical_snapshot(snapshot: RuntimeSnapshot) -> RuntimeSnapshot:
     """Normalize header fields while retaining separately validated JSON histories."""
-    from raes_contracts.immutable_history import HISTORY_FIELDS, seal_history
-
     payload = _snapshot_payload(snapshot, include_histories=False)
     payload.update({field: seal_history(field, getattr(snapshot, field)) for field in HISTORY_FIELDS})
     return _snapshot_from_payload(payload)

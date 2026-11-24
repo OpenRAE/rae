@@ -218,8 +218,6 @@ if __name__ == "__main__":
     from implementations.formal.participant_crossing import runtime_mapping_export
 
     parser = argparse.ArgumentParser(description="Run the bounded public-call mapping cases.")
-    parser.add_argument("--write", action="store_true", help="Publish a new mapping bundle; refuse existing drift.")
-    options = parser.parse_args()
-    reports = collect_cases()
-    (runtime_mapping_export.publish if options.write else runtime_mapping_export.check)(ROOT, reports)
+    parser.parse_args()
+    runtime_mapping_export.check(ROOT, collect_cases())
     print("Runtime mapping cases verified; no equivalence or complete realization result.")

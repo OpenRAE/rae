@@ -6,6 +6,9 @@ from typing import TYPE_CHECKING, Annotated, Literal
 
 from pydantic import ConfigDict, Field, model_validator
 
+from raes_contracts.contracts.plan_projection import runtime_plan_digest
+from raes_contracts.contracts.realization_preparation import preparation_snapshot_digest
+
 from ._base import ContractModel
 from .canonical import canonical_json_digest
 from .json_ingress import StrictJsonIngressError, parse_bounded_json_object
@@ -20,7 +23,8 @@ from .realization_structure import validate_realization_value
 from .runtime_value_limits import RUNTIME_SNAPSHOT_VALUE_LIMITS
 
 if TYPE_CHECKING:
-    from .contracts import BackendManifestV2Model
+    from raes_contracts.contracts.participant_manifests import BackendManifestV2Model
+
     from .planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
     from .runtime_state import RuntimeSnapshot
 
@@ -88,8 +92,6 @@ def augmentation_binding_digest(
     previous: RuntimeSnapshot,
 ) -> str:
     """Seal the whole plan, including source, run, operation and producer identity."""
-    from .plan_projection import runtime_plan_digest
-    from .realization_preparation import preparation_snapshot_digest
 
     if request.materialization_source is None or not request.operation_id or manifest.realization_envelope is None:
         raise ValueError("augmentation preparation requires bound source and execution identity")

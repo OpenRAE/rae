@@ -3,11 +3,11 @@
 import importlib
 
 import pytest
-from raes.runtime_values import parse_runtime_enum_or_var
 from raes_contracts.controlled_vocabularies import (
     controlled_vocabulary_id_for_scope,
     load_controlled_vocabulary_catalog,
 )
+from raes_contracts.runtime_values import parse_runtime_enum_or_var
 
 _IDENTITIES = (
     ("raes.runtime_app_authorization", "RuntimeAppAuthorizationResourceVocabulary"),

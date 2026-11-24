@@ -20,12 +20,12 @@ Use [`TEMPLATE.md`](TEMPLATE.md) when drafting a new ADR.
 
 ## Principles
 
-- An **accepted** ADR's content is **pinned** and citable. Its acceptance (or
-  last-amendment) content hash is recorded in
-  [`adr-index.yaml`](adr-index.yaml) and enforced by the `policy` nox session
-  (`tools/check_adr_immutability.py`). A substantive change to an accepted ADR
-  is legitimate only as a new **superseding** ADR, or as a recorded **amendment**
-  (a `## Amendments` row plus an updated pin, in the same change). Editorial-only
+- An **accepted** ADR's content is citable. The `policy` nox session
+  (`tools/check_adr_immutability.py`) compares each accepted ADR with the base
+  revision; [`adr-index.yaml`](adr-index.yaml) lists the accepted ADRs and stores
+  no content digest. A substantive change to an accepted ADR is legitimate only
+  as a new **superseding** ADR, or as a recorded **amendment** (a
+  `## Amendments` row in the same change). Editorial-only
   fixes (typos, formatting) also record a one-line amendment row — the gate
   cannot tell editorial from substantive, so every canonical-content change is
   recorded. See
@@ -284,5 +284,7 @@ adr-116-shared-exceptions-and-operational-logging
 | [118](adr-118-shared-primitives-and-injected-wall-clock.md) | Shared Primitives and an Injected Wall Clock | accepted | 2026-10-31 |
 | [119](adr-119-consumer-parse-of-supplied-sdl-sources.md) | Consumer Parse of Supplied SDL Sources | accepted | 2026-10-31 |
 | [120](adr-120-owned-and-admitted-typed-descriptor-profiles.md) | Owned and Admitted Typed Descriptor Profiles | accepted | 2026-10-31 |
-| [121](adr-121-go-engineering-standards.md) | Go Engineering Standards | accepted | 2026-10-31 |
-| [122](adr-122-go-architecture-model.md) | Go architecture model | accepted | 2026-10-31 |
+| [121](adr-121-strict-package-layers.md) | Strict Package Layers and a Schema Composition Root | accepted | 2026-10-31 |
+| [122](adr-122-dev-merge-queue.md) | Merge Queue for the Dev Branch | accepted | 2026-11-11 |
+| [123](adr-123-go-engineering-standards.md) | Go Engineering Standards | accepted | 2026-10-31 |
+| [124](adr-124-go-architecture-model.md) | Go architecture model | accepted | 2026-10-31 |

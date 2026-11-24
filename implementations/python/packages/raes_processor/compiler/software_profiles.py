@@ -7,7 +7,6 @@ resolution context and installed semantic validator still admit every use.
 from collections.abc import Iterator
 from dataclasses import dataclass
 
-from raes.explicitness import ExplicitnessClass
 from raes.runtime_software_profiles import RuntimeSoftwareRefinement
 from raes.scenario import InstantiatedScenario
 from raes_contracts.canonical import canonical_json_digest
@@ -19,6 +18,7 @@ from raes_contracts.domain_profiles import (
     DomainProfileDefinitionProvenanceModel,
 )
 from raes_contracts.errors import InvalidInputError
+from raes_contracts.explicitness import ExplicitnessClass
 from raes_contracts.json_pointer import escape_token
 from raes_contracts.realization_profiles import PLAN_PROFILE_CONTRACT, PlanProfileAuthority, ProfileBindingConstraint
 from raes_contracts.realization_structure import (

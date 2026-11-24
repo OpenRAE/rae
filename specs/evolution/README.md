@@ -1,7 +1,7 @@
-# Evolution Governance
+# Evolution governance
 
-This directory contains normative RAES ecosystem policy for artifact
-evolution: versioning, compatibility, deprecation, removal, and migration.
+Find the exact versioning, compatibility, deprecation, removal, and migration rules here.
+These references are normative RAES ecosystem policy.
 
 The governing decision is
 [ADR-075](../../docs/decisions/adrs/adr-075-ecosystem-versioning-deprecation-and-migration-governance.md).
@@ -17,3 +17,6 @@ The governing decision is
 
 - [`progressive-semantics.md`](progressive-semantics.md) defines explicit SDL
   revision selection and author-authorized migration for GOV-903.
+
+For operating steps, use the [migration guides](../../docs/migration/README.md).
+Keep a migration's original revision and evidence limits separate from current support.

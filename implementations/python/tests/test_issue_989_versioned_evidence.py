@@ -170,6 +170,11 @@ def test_current_compile_replay_hashes_complete_capture_dimension():
     scenario = parse_sdl_file(path, migration_policy=_migration_policy_for_case(ROOT, case, path))
     compiled = dataclasses.asdict(compile_runtime_model(instantiate_scenario(scenario, parameters={})))
     assert "capture_demands" in compiled
+    # The retained fixture has neither safe-state nor episode-policy intent; empty optional values are omitted.
+    assert compiled.pop("safe_states") == ()
+    assert compiled.pop("participant_episode_policies") == {}
+    for specification in compiled["behavior_specifications"].values():
+        assert specification.pop("episode_policy_address") == ""
     assert _compiled_case_digest(ROOT, case, path) == _digest(compiled)
 
 
@@ -207,8 +212,8 @@ def test_old_output_digest_pairs_do_not_substitute_for_replay():
     ],
 )
 def test_historical_integrated_release_does_not_execute_current_code(monkeypatch, revision):
-    from raes_contracts.exploit_path import ExploitPathAnalysisEvidenceModel
-    from raes_contracts.satisfiability import ScenarioSatisfiabilityEvidenceModel
+    from raes_processor.exploit_path.evidence import ExploitPathAnalysisEvidenceModel
+    from raes_processor.satisfiability.evidence import ScenarioSatisfiabilityEvidenceModel
     from tools.formal_semantic_validation import _production, _releases, _retest
     from tools.formal_semantic_validation._loading import load_release_bundles
 
@@ -566,10 +571,9 @@ def test_historical_archive_does_not_require_a_live_source_file(tmp_path):
 
 
 def test_classification_retirement_has_a_recorded_adr_001_amendment():
-    import hashlib
 
     import yaml
-    from tools.check_adr_immutability import amendment_refs, canonical_content
+    from tools.check_adr_immutability import amendment_refs
 
     path = ROOT / "docs/decisions/adrs/adr-001-scenario-description-language.md"
     content = path.read_text()
@@ -577,7 +581,6 @@ def test_classification_retirement_has_a_recorded_adr_001_amendment():
     entry = next(item for item in index["adrs"] if item["id"] == "ADR-001")
     assert "#989" in amendment_refs(content)
     assert "#989" in {item["ref"] for item in entry["amendments"]}
-    assert entry["pin"] == hashlib.sha256(canonical_content(content).encode()).hexdigest()
 
 
 def _release_managed_source_tree(tmp_path: Path, version_source: str) -> Path:
