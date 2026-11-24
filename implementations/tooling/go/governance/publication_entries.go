@@ -39,7 +39,10 @@ func (s *publicationInspection) record(value any, index int) error {
 		return nil //nolint:nilerr // Syntax failures are ordered publication findings.
 	}
 	entry.schema = schema
-	return s.recordContent(raw, entry)
+	if entry.valid {
+		s.entries = append(s.entries, entry)
+	}
+	return nil
 }
 
 func (s *publicationInspection) recordHeader(raw *mapping, index int) (publicationEntry, bool, error) {
@@ -62,11 +65,12 @@ func (s *publicationInspection) recordHeader(raw *mapping, index int) (publicati
 	if !stable {
 		s.messages = append(s.messages, manifestEntryPrefix+entry.id+" stability must be one of: draft, stable")
 	}
-	entry.digest, _ = raw.get("content_hash").(string)
-	if !publicationDigestShape(entry.digest) {
-		s.messages = append(s.messages, manifestEntryPrefix+entry.id+" content_hash must be a 64-character sha256 hex digest")
+	for _, key := range retiredEntryKeys {
+		if raw.has(key) {
+			s.messages = append(s.messages, manifestEntryPrefix+entry.id+" must not record "+key+"; git holds schema history")
+		}
 	}
-	entry.valid = stable && publicationDigestShape(entry.digest)
+	entry.valid = stable
 	s.recordIdentity(entry)
 	return entry, true, nil
 }
@@ -102,47 +106,4 @@ func (s *publicationInspection) schemaPath(name string) (string, bool) {
 		s.messages = append(s.messages, "schema manifest path resolves outside contracts/schemas/: "+name)
 	}
 	return "", false
-}
-
-func (s *publicationInspection) recordContent(raw *mapping, entry publicationEntry) error {
-	if publicationDigestShape(entry.digest) {
-		digest, err := publicationDigest(entry.schema)
-		if err != nil {
-			return err
-		}
-		if digest != entry.digest {
-			s.messages = append(s.messages, manifestEntryPrefix+entry.id+" content_hash "+entry.digest+" does not match canonical schema hash "+digest)
-		}
-		if raw.has("last_change") {
-			entry.lastChange = s.lastChange(entry, raw.get("last_change"))
-		}
-	}
-	if entry.valid {
-		s.entries = append(s.entries, entry)
-	}
-	return nil
-}
-
-func (s *publicationInspection) lastChange(entry publicationEntry, value any) *mapping {
-	raw := object(value)
-	prefix := manifestEntryPrefix + entry.id + " last_change"
-	if raw == nil {
-		s.messages = append(s.messages, prefix+" must be a JSON object")
-		return nil
-	}
-	before := len(s.messages)
-	if !nonemptyText(raw.get("summary")) {
-		s.messages = append(s.messages, prefix+".summary must be a non-empty string")
-	}
-	digest, _ := raw.get("content_hash").(string)
-	switch {
-	case !publicationDigestShape(digest):
-		s.messages = append(s.messages, prefix+".content_hash must be a 64-character sha256 hex digest")
-	case digest != entry.digest:
-		s.messages = append(s.messages, prefix+".content_hash "+digest+" does not match the schema content_hash "+entry.digest+"; record the ledger entry against the current schema content")
-	}
-	if len(s.messages) != before {
-		return nil
-	}
-	return raw
 }

@@ -3,7 +3,6 @@ package governance
 import (
 	"bytes"
 	"context"
-	"crypto/sha256"
 	"fmt"
 	"math/big"
 	"slices"
@@ -85,14 +84,6 @@ func identityBoundContent(record identityRecord, content []byte) []Finding {
 		}
 		boundary := len(content) - int(record.suffix.Int64())
 		head, content = content[:boundary], content[boundary:]
-	}
-	digest := fmt.Sprintf("%x", sha256.Sum256(content))
-	if digest != record.digest {
-		message := record.label + " content no longer matches its classified digest"
-		if record.suffix != nil {
-			message = "generated history record tail no longer matches its classified digest"
-		}
-		findings = append(findings, identityFailure(record.category+"-content", message, record.path))
 	}
 	count := len(identityMatches(string(content), true))
 	if record.occurrences.Cmp(big.NewInt(int64(count))) != 0 {

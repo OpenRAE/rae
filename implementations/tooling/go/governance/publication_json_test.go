@@ -6,8 +6,8 @@ import (
 
 func TestPublicationJSONReference(t *testing.T) {
 	for i, tc := range readReference[[]struct {
-		Source, Canonical, Digest string
-		Error                     bool
+		Source, Canonical string
+		Error             bool
 	}](t, "publication-json-reference") {
 		value, err := decodeJSON([]byte(tc.Source), 0, false)
 		if err != nil {
@@ -22,10 +22,6 @@ func TestPublicationJSONReference(t *testing.T) {
 		}
 		if string(data) != tc.Canonical {
 			t.Errorf("case %d canonical=%q want=%q", i, data, tc.Canonical)
-		}
-		digest, err := publicationDigest(value)
-		if err != nil || digest != tc.Digest {
-			t.Errorf("case %d digest=%q error=%v want=%q", i, digest, err, tc.Digest)
 		}
 	}
 }

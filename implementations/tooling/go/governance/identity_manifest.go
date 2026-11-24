@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"regexp"
 	"slices"
 )
 
@@ -14,8 +13,8 @@ const identityManifestLimit = 1_000_000
 const identityHistorical = "historical"
 
 type identityRecord struct {
-	path, category, label, digest string
-	occurrences, suffix           *big.Int
+	path, category, label string
+	occurrences, suffix   *big.Int
 }
 
 type identityGroup struct {
@@ -73,9 +72,6 @@ func identityManifestGroups(r *repository, raw *mapping, records map[string]iden
 	if raw.get("schema_version") != "historical-identity-records/v3" {
 		findings = append(findings, identityManifestFailure("schema_version must be 'historical-identity-records/v3'"))
 	}
-	if raw.get("hash_algorithm") != sha256Algorithm {
-		findings = append(findings, identityManifestFailure("hash_algorithm must be 'sha256'"))
-	}
 	groups := identityGroups()
 	for _, group := range groups {
 		if _, ok := raw.get(group.collection).([]any); !ok {
@@ -106,7 +102,7 @@ func identityManifestEntry(r *repository, value any, index int, group identityGr
 	if !ok {
 		return fail(location + " must be an object")
 	}
-	keys := []string{group.classKey, "content_sha256", "occurrences", "path", "rationale"}
+	keys := []string{group.classKey, "occurrences", "path", "rationale"}
 	if group.generated {
 		keys = append(keys, "classified_suffix_bytes")
 	}
@@ -153,10 +149,6 @@ func identityManifestContent(raw *mapping, location, name string, group identity
 	if !valid {
 		return fail(".occurrences must be a positive integer")
 	}
-	digest, ok := raw.get("content_sha256").(string)
-	if !ok || !regexp.MustCompile(`^[0-9a-f]{64}$`).MatchString(digest) {
-		return fail(".content_sha256 must be a lowercase sha256 digest")
-	}
 	var suffix *big.Int
 	if group.generated {
 		suffix, valid = positiveInteger(raw.get("classified_suffix_bytes"))
@@ -164,7 +156,7 @@ func identityManifestContent(raw *mapping, location, name string, group identity
 			return fail(".classified_suffix_bytes must be a positive integer")
 		}
 	}
-	return identityRecord{name, group.category, group.label, digest, occurrences, suffix}, nil
+	return identityRecord{name, group.category, group.label, occurrences, suffix}, nil
 }
 
 func positiveInteger(value any) (*big.Int, bool) {

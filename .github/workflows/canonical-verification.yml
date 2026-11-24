@@ -840,6 +840,8 @@ jobs:
           uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_runtime_experiment.py --check
           uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_governance_references.py --check
+          uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_authoring_vectors.py --check
           uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_authoring_vectors.py --selection --check

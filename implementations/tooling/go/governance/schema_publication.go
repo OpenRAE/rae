@@ -5,17 +5,21 @@ import (
 	"fmt"
 	"maps"
 	"slices"
-	"strings"
 )
 
 const schemaPublicationCheck = "schema-publication"
 const publicationStable = "stable"
 
+// Git holds schema history, so the catalog records no derived content digest.
+var (
+	retiredManifestKeys = []string{"hash_algorithm"}               //nolint:gochecknoglobals // Fixed reference vocabulary.
+	retiredEntryKeys    = []string{"content_hash", "last_change"} //nolint:gochecknoglobals // Fixed reference vocabulary.
+)
+
 type publicationEntry struct {
-	id, path, stability, digest string
-	schema                      any
-	lastChange                  *mapping
-	valid                       bool
+	id, path, stability string
+	schema              any
+	valid               bool
 }
 
 type publicationInspection struct {
@@ -90,8 +94,10 @@ func (s *publicationInspection) header(catalog *mapping) ([]any, error) {
 	if version != "schema-publication-manifest/v1" && version != "schema-publication-manifest/v2" {
 		s.messages = append(s.messages, "schema manifest schema_version must be 'schema-publication-manifest/v2' or 'schema-publication-manifest/v1'")
 	}
-	if catalog.get("hash_algorithm") != sha256Algorithm {
-		s.messages = append(s.messages, "schema manifest hash_algorithm must be 'sha256'")
+	for _, key := range retiredManifestKeys {
+		if catalog.has(key) {
+			s.messages = append(s.messages, "schema manifest must not record "+key+"; git holds schema history")
+		}
 	}
 	records, _ := catalog.get("schemas").([]any)
 	if len(records) == 0 {
@@ -152,9 +158,4 @@ func (s *publicationInspection) removals(value any) map[string]*mapping {
 		tombstones[name] = item
 	}
 	return tombstones
-}
-
-func publicationDigestShape(value string) bool {
-	value = strings.TrimSuffix(value, "\n") // Python's fixed '$' accepts one final LF.
-	return len(value) == 64 && strings.Trim(value, "0123456789abcdef") == ""
 }

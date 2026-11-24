@@ -2,9 +2,7 @@ package governance
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/json"
-	"fmt"
 	"math"
 	"strconv"
 	"unicode/utf8"
@@ -18,14 +16,6 @@ func publicationJSON(value any) ([]byte, error) {
 		return nil, err
 	}
 	return out.Bytes(), nil
-}
-
-func publicationDigest(value any) (string, error) {
-	data, err := publicationJSON(value)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%x", sha256.Sum256(data)), nil
 }
 
 // Containers use the reference's sorted Unicode keys and compact separators.
