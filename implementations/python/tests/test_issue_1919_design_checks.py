@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import subprocess
 import sys
 from collections import Counter
@@ -27,11 +28,16 @@ CASES = "implementations/python/tests/fixtures/design_acceptance/cases.py"
 COLLECTION_ERROR = "implementations/python/tests/fixtures/design_acceptance/collection_error.py"
 
 
+# The outer test harness configures these plugins; the adapter's own pytest session must not inherit them.
+HARNESS_ENVIRONMENT = ("PYTEST_PLUGINS", "RAES_PARITY_INPUT_DIR", "RAES_PARITY_SHARD_INDEX")
+
+
 def _run_adapter(stdin: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(  # noqa: S603 -- fixed interpreter and repository script.
         [sys.executable, str(ADAPTER)],
         input=stdin,
         cwd=REPO_ROOT,
+        env={name: value for name, value in os.environ.items() if name not in HARNESS_ENVIRONMENT},
         capture_output=True,
         text=True,
         timeout=120,
