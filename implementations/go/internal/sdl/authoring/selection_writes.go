@@ -278,6 +278,13 @@ func selectedValueKind(value any) string {
 func applySelectedWrite(payload map[string]any, write selectedWrite) error {
 	path := write.path
 	if len(path) == 2 && path[0] == variablesSection {
+		// A selected factor is fixed for the trial; the family keeps the complete domain.
+		variable := object(object(payload[variablesSection])[path[1]])
+		if variable == nil {
+			return selectionInvalid()
+		}
+		variable["allowed_values"] = []any{write.value}
+		variable["default"] = write.value
 		return nil
 	}
 	if len(path) < 3 {

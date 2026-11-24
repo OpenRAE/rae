@@ -178,6 +178,10 @@ func preparedOperatingSystemSupported(payload map[string]any, manifest binding.B
 		if !present {
 			continue
 		}
+		if value == nil && key == "os_distribution" {
+			// The offer checker compares an absent distribution as the empty string.
+			value = ""
+		}
 		text, ok := value.(string)
 		if !ok || text == "unknown" || text == "other" {
 			return false

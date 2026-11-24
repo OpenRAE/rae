@@ -1,5 +1,5 @@
 [
-{
+  {
     "name": "behavior_specifications_parse_validate_and_compile",
     "source": {
       "name": "sem-208",
@@ -1674,9 +1674,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -2194,6 +2194,7 @@
           ],
           "tool_affordance_addresses": [],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": [
             "x-acme:review-note"
@@ -2210,7 +2211,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "sem219_tool_affordance_parses_validates_and_compiles_typed_ir",
     "source": {
       "name": "sem-208",
@@ -3957,9 +3958,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -4527,6 +4528,7 @@
             "participant.behavior-specification.red-scan-behavior.tool-affordance.network-scanner"
           ],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -4583,7 +4585,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "sem219_one_tool_identity_can_bind_multiple_distinct_affordances",
     "source": {
       "name": "sem-208",
@@ -6648,9 +6650,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -7329,6 +7331,7 @@
             "participant.behavior-specification.red-scan-behavior.tool-affordance.package-inspection"
           ],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -7428,7 +7431,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "sem219_role_scoped_affordance_resolves_each_matching_participant",
     "source": {
       "name": "sem-208",
@@ -9182,9 +9185,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -9754,6 +9757,7 @@
             "participant.behavior-specification.red-scan-behavior.tool-affordance.network-scanner"
           ],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -9810,7 +9814,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "sem219_hidden_affordance_remains_authored_without_becoming_visible",
     "source": {
       "name": "sem-208",
@@ -11556,9 +11560,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -12123,6 +12127,7 @@
             "participant.behavior-specification.red-scan-behavior.tool-affordance.network-scanner"
           ],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },

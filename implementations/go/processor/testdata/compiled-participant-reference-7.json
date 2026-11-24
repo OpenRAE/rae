@@ -1,5 +1,5 @@
 [
-{
+  {
     "name": "external_direction_binds_a_compatible_control_transition",
     "source": {
       "name": "dsl-142",
@@ -2123,9 +2123,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -2821,6 +2821,7 @@
           "participant_inject_delivery_addresses": [
             "participant.behavior-specification.red-briefing.inject-delivery.briefing"
           ],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -3023,7 +3024,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "binding_is_a_typed_declaration_and_valid_temporal_subject",
     "source": {
       "name": "dsl-142",
@@ -4294,9 +4295,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -4579,6 +4580,7 @@
           "participant_inject_delivery_addresses": [
             "participant.behavior-specification.red-briefing.inject-delivery.briefing"
           ],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -4762,7 +4764,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "a_rev1_binding_joins_the_source_controller_and_compiles_to_a_typed_control_child",
     "source": {
       "name": "dsl-142",
@@ -6778,9 +6780,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -7514,6 +7516,7 @@
           "participant_inject_delivery_addresses": [
             "participant.behavior-specification.red-briefing.inject-delivery.briefing"
           ],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -7732,7 +7735,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "compiler_carries_typed_access_and_refresh_dependencies",
     "source": {
       "name": "participant-interactive-access",
@@ -8304,9 +8307,9 @@
           "node_name": "workstation",
           "node_kind": "compute",
           "os_family": "windows",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -8341,9 +8344,9 @@
           "node_name": "other-host",
           "node_kind": "compute",
           "os_family": "linux",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -8496,7 +8499,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "compiler_resolves_network_namespace_owner_and_dependencies",
     "source": {
       "name": "shared-network-namespace",
@@ -8782,9 +8785,9 @@
           "node_name": "owner",
           "node_kind": "compute",
           "os_family": "linux",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -8833,9 +8836,9 @@
           "node_name": "capture",
           "node_kind": "compute",
           "os_family": "linux",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "provision.node.owner",
           "domain_topology": null

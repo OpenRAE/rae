@@ -1,5 +1,5 @@
 [
-{
+  {
     "name": "sem219_optional_tool_identity_does_not_weaken_affordance_meaning",
     "source": {
       "name": "sem-208",
@@ -1739,9 +1739,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -2309,6 +2309,7 @@
             "participant.behavior-specification.red-scan-behavior.tool-affordance.network-scanner"
           ],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -2364,7 +2365,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "sem219_global_tool_identity_does_not_synthesize_participant_availability",
     "source": {
       "name": "sem-208",
@@ -3874,9 +3875,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -4342,7 +4343,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "sem219_backend_support_does_not_synthesize_participant_authority",
     "source": {
       "name": "sem-208",
@@ -5906,9 +5907,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -6403,6 +6404,7 @@
           "evidence_contract_refs": [],
           "tool_affordance_addresses": [],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -6415,7 +6417,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "sem219_constraints_and_failure_classes_remain_on_action_contract",
     "source": {
       "name": "sem-208",
@@ -8162,9 +8164,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null
@@ -8732,6 +8734,7 @@
             "participant.behavior-specification.red-scan-behavior.tool-affordance.network-scanner"
           ],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -8788,7 +8791,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "participant_behavior_runtime_carries_act607_authority_scope_metadata",
     "source": {
       "name": "act-607-authority-scope",
@@ -10257,9 +10260,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": 1,
           "network_namespace_target": "",
           "domain_topology": null
@@ -10732,6 +10735,7 @@
           "evidence_contract_refs": [],
           "tool_affordance_addresses": [],
           "participant_inject_delivery_addresses": [],
+          "episode_policy_address": "",
           "extension_policy": "governed-extension",
           "extension_keys": []
         },
@@ -10749,7 +10753,7 @@
     },
     "diagnostics": []
   },
-{
+  {
     "name": "participant_typed_authority_refs_ignore_global_alias_collisions",
     "source": {
       "name": "act-607-typed-ref-collisions",
@@ -11534,9 +11538,9 @@
           "node_name": "web",
           "node_kind": "compute",
           "os_family": "",
-          "os_distribution": "",
+          "os_distribution": null,
           "os_version": "",
-          "architecture": "",
+          "architecture": null,
           "count": null,
           "network_namespace_target": "",
           "domain_topology": null

@@ -834,6 +834,10 @@ jobs:
           uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_stub_manifest.py --check
           uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_compiled_resources.py --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_trial_compiler.py --check
+          uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_authoring_vectors.py --check
           uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_authoring_vectors.py --selection --check
