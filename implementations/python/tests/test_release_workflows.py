@@ -1824,7 +1824,8 @@ def test_go_lanes_enforce_each_go_engineering_standard() -> None:
     jobs = _load(CANONICAL_PATH)["jobs"]
     go = jobs["go"]
     tests = jobs["go-test"]
-    assert go["env"] == {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly"}
+    assert go["env"] == {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly", "GOWORK": "off"}
+    assert tests["env"] == {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly", "GOWORK": "off"}
     assert [entry["path"] for entry in go["strategy"]["matrix"]["include"]] == [
         "implementations/go",
         "implementations/tooling/go",
@@ -1834,7 +1835,8 @@ def test_go_lanes_enforce_each_go_engineering_standard() -> None:
         "install-go public-ubuntu-24.04-x86_64",
         "go mod tidy -diff",
         "go mod verify",
-        "golangci-lint run ./...",
+        'golangci-lint run --config "${GITHUB_WORKSPACE}/implementations/.golangci.yml" ./...',
+        "go build ./...",
         'go vet -vettool="$(command -v raesvet)" ./...',
         "go test -v",
         "test_flags=(-race)",
@@ -1984,7 +1986,7 @@ def test_go_architecture_check_runs_once_from_the_repository_root() -> None:
 
     workflow = _load(CANONICAL_PATH)
     job = workflow["jobs"]["go-architecture"]
-    assert job["env"] == {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly"}
+    assert job["env"] == {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly", "GOWORK": "off"}
     assert "strategy" not in job
     prepare = _named_step(job, "Prepare pinned dependencies for offline API inspection")
     assert "go -C implementations/go mod download" in prepare["run"]

@@ -608,6 +608,7 @@ jobs:
     env:
       GOTOOLCHAIN: local
       GOFLAGS: -mod=readonly
+      GOWORK: "off"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -709,6 +710,7 @@ jobs:
     env:
       GOTOOLCHAIN: local
       GOFLAGS: -mod=readonly
+      GOWORK: "off"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -746,9 +748,10 @@ jobs:
       - name: Check dependencies, lint, and analyzers
         working-directory: ${{ matrix.path }}
         run: |
+          go build ./...
           go mod tidy -diff
           go mod verify
-          golangci-lint run ./...
+          golangci-lint run --config "${GITHUB_WORKSPACE}/implementations/.golangci.yml" ./...
           go vet -vettool="$(command -v raesvet)" ./...
       - name: Check schema bindings, rule specifications, and embedded corpus
         if: matrix.name == 'product'
@@ -1135,6 +1138,7 @@ jobs:
     env:
       GOTOOLCHAIN: local
       GOFLAGS: -mod=readonly
+      GOWORK: "off"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -1165,6 +1169,12 @@ jobs:
         run: |
           go -C implementations/tooling/go build -o "${RUNNER_TEMP}/go-tools/" ./cmd/archcheck
           "${RUNNER_TEMP}/go-tools/archcheck"
+      - name: Check Go module verification inventories
+        run: uv run --project implementations/tooling/python --frozen --no-default-groups python -m tools.check_go_module_inventory
+      - name: Prove the compiler rejects a declared import cycle
+        env:
+          RAES_GO_COMPILER_GATE: required
+        run: uv run --project implementations/tooling/python --frozen --no-default-groups python -m pytest -q -o addopts= implementations/python/tests/test_issue_1858_go_inventory.py::test_declared_cycle_fails_the_compiler_gate
       - name: Fuzz each product fuzz target for a bounded time
         working-directory: implementations/go
         timeout-minutes: 6
