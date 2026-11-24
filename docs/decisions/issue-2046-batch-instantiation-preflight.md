@@ -124,25 +124,27 @@ Do not claim an optimized runtime batch unless that exact path is separately dem
 
 ## Runtime trial handoff
 
-The user extended this issue to the runtime trial handoff on 2026-11-23.
-`TrialUnitRequest` reconstructed the complete plan at construction and at each `replace()` custody check.
-Each trial phase also hashed the complete plan into its operation commitment.
-A batch of N entries did complete-plan work N times.
+On 2026-11-23 the user added the runtime trial handoff to this issue.
+`TrialUnitRequest` rebuilt the full plan when it was made.
+It rebuilt the plan again at each `replace()` check.
+Each trial phase also hashed the full plan into its operation commitment.
+So a batch of N entries did full-plan work N times.
 
-Check the complete plan once at each trust boundary.
-After that, share one read-only plan and check only entry-scoped values.
+Check the full plan once at each trust boundary.
+After that, share one read-only plan and check only entry values.
 
-- `raes_contracts.trial_unit.AdmittedTrialPlanView` owns one reconstructed plan.
-  Its reads return copies. It exposes no mutable alias.
-- `TrialUnitRequest.plan` is the view. A request built from a plan model creates its own view.
-- `RuntimeExperiment` builds one view for the batch. Each replacement child plan gets its own view.
-- An operation commitment encodes the view as its verified `plan_id` and `plan_digest`.
-  The view verified that seal over the complete plan.
+- `raes_contracts.trial_unit.AdmittedTrialPlanView` owns one rebuilt plan.
+  Each read returns a copy. No caller can change the plan.
+- `TrialUnitRequest.plan` is the view. A request made from a plan model makes its own view.
+- `RuntimeExperiment` makes one view for the batch. Each replacement child plan gets its own view.
+- An operation commitment holds the view as its `plan_id` and `plan_digest`.
+  The view checked that seal over the full plan.
 - Commitment digests for trial requests change.
-  An operation recorded before this change does not match after it.
+  An operation that was recorded before this change does not match after it.
 
-A remote worker still checks the complete assigned plan once, because it is a separate process.
+A remote worker still checks the full plan once, because it runs in a separate process.
 
+## Acceptance evidence and boundaries
 
 Use structural work counts rather than deployment timing thresholds.
 Count complete-plan work across multiple batch sizes and subset consumption.
