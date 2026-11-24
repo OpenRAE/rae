@@ -64,10 +64,12 @@ def test_request_rejects_invalid_entry_and_projection_handoffs(change):
     elif change == "inspection":
         changed = {"provisioning_plan": request.provisioning_plan.model_copy(update={"purpose": "inspection"})}
     else:
-        entry = request.plan.entries[request.plan_entry_id]
+        # The request exposes no mutable plan, so tamper with a caller-held plan copy.
+        plan = request.plan.snapshot()
+        entry = plan.entries[request.plan_entry_id]
         controls = entry.execution_controls.model_copy(update={"attempt_timeout_seconds": True})
-        request.plan.entries[request.plan_entry_id] = entry.model_copy(update={"execution_controls": controls})
-        changed = {}
+        plan.entries[request.plan_entry_id] = entry.model_copy(update={"execution_controls": controls})
+        changed = {"plan": plan}
     with pytest.raises(ValueError):
         replace(request, **changed)
 

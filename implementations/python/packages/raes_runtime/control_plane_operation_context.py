@@ -24,6 +24,7 @@ from raes_contracts.errors import ConflictError, InvalidInputError
 from raes_contracts.operation_lifecycle import OperationAdmissionContext, OperationKind
 from raes_contracts.planning import EvaluationPlan, OrchestrationPlan, ProvisioningPlan
 from raes_contracts.runtime_state import RuntimeSnapshot
+from raes_contracts.trial_unit import AdmittedTrialPlanView
 
 _MAX_CONTEXT_LENGTH = 256
 _EFFECT_PARENT: ContextVar[str | None] = ContextVar("raes_control_effect_parent", default=None)
@@ -241,6 +242,10 @@ def _json_value(value: object) -> JsonValue:
         payload: JsonValue = value
     elif isinstance(value, Enum):
         payload = _json_value(value.value)
+    elif isinstance(value, AdmittedTrialPlanView):
+        # The view verified this seal over the complete plan once. Commit to the
+        # seal so each operation does not hash the whole plan again (issue #2046).
+        payload = {"plan_id": value.plan_id, "plan_digest": value.plan_digest}
     elif isinstance(value, BaseModel):
         payload = _json_value(value.model_dump(mode="json", exclude_none=True))
     elif is_dataclass(value) and not isinstance(value, type):

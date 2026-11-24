@@ -141,7 +141,9 @@ def test_trial_realization_revalidates_relations_against_the_authoring_scenario(
 
     assert len(calls) == 1
     assert calls[0][2] == tuple(request.task.evidence_requirement_relations)
-    assert calls[0][3] is request.family
+    # The realizer checks relations against its owned copy of the authoring family (issue #2046).
+    assert calls[0][3] == request.family
+    assert calls[0][3] is not request.family
     assert [demand.address for demand in realized.execution_plan.model.capture_demands] == [
         "evidence_requirements.event-log",
         "capture_specs.capture-techvault-evidence-v1.capture_requirements.auth-log-evidence",
