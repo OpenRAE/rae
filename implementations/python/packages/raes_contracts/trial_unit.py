@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator, Mapping
 from copy import deepcopy
 from dataclasses import dataclass, field, replace
-from typing import Annotated
+from typing import Annotated, Any
 
 from pydantic import BaseModel, Field, StrictStr, TypeAdapter, ValidationError
 
-from raes_contracts.contracts.admitted_trial_plan import AdmittedTrialPlanModel
+from raes_contracts.contracts.admitted_trial_plan import AdmittedTrialEntryModel, AdmittedTrialPlanModel
 from raes_contracts.contracts.admitted_trial_plan_components import AdmittedExecutionControlModel
 from raes_contracts.contracts.admitted_trial_plan_ingress import (
     AdmittedTrialPlanIngressError,
@@ -52,16 +53,119 @@ def _reconstruct[Model: BaseModel](model_type: type[Model], value: Model) -> Mod
         raise ValueError("trial unit child contract validation failed") from None
 
 
+class _ReadOnlyCopies[Value](Mapping[str, Value]):
+    """Read one owned map without exposing its values; every lookup returns a copy."""
+
+    __slots__ = ("_values",)
+
+    def __init__(self, values: Mapping[str, Value]) -> None:
+        self._values = values
+
+    def __getitem__(self, key: str) -> Value:
+        return deepcopy(self._values[key])
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(tuple(self._values))
+
+    def __len__(self) -> int:
+        return len(self._values)
+
+
+class AdmittedTrialPlanView:
+    """One complete admitted plan, reconstructed once and shared read-only.
+
+    Construction bounds and reconstructs the complete plan once. Many single-entry
+    handoffs can then share the view without repeating complete-plan work
+    (issue #2046). The view owns its plan and exposes no mutable alias: every
+    field read returns a copy, and map fields return read-only maps whose lookups
+    return copies. ``snapshot()`` returns an independent plan model.
+    """
+
+    __slots__ = ("_plan",)
+
+    def __init__(self, plan: AdmittedTrialPlanModel) -> None:
+        if not isinstance(plan, AdmittedTrialPlanModel):
+            raise TypeError("trial unit requires typed contract values")
+        _require_bounded(plan)
+        try:
+            admitted = revalidate_admitted_trial_plan(plan)
+        except AdmittedTrialPlanIngressError as exc:
+            # Value-object checks raise ValueError (E3); the caller translates at its boundary.
+            raise ValueError("Admitted trial plan contract validation failed") from exc
+        object.__setattr__(self, "_plan", admitted)
+
+    def __setattr__(self, name: str, value: object) -> None:
+        raise AttributeError("admitted trial plan view is read-only")
+
+    def __delattr__(self, name: str) -> None:
+        raise AttributeError("admitted trial plan view is read-only")
+
+    def __getattr__(self, name: str) -> Any:
+        # Reached only for names that are not view members. Expose plan fields as copies.
+        if name.startswith("_") or name not in AdmittedTrialPlanModel.model_fields:
+            raise AttributeError(name)
+        value = getattr(self._plan, name)
+        if isinstance(value, dict):
+            return _ReadOnlyCopies(value)
+        return deepcopy(value)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, AdmittedTrialPlanView):
+            return NotImplemented
+        return self is other or self._plan == other._plan
+
+    __hash__ = None  # type: ignore[assignment]
+
+    def __copy__(self) -> AdmittedTrialPlanView:
+        return self
+
+    def __deepcopy__(self, memo: dict[int, object]) -> AdmittedTrialPlanView:
+        return self
+
+    def __reduce__(self) -> tuple[type[AdmittedTrialPlanView], tuple[AdmittedTrialPlanModel]]:
+        return AdmittedTrialPlanView, (self._plan,)
+
+    def __repr__(self) -> str:
+        return f"AdmittedTrialPlanView(plan_id={self._plan.plan_id!r}, plan_digest={self._plan.plan_digest!r})"
+
+    @property
+    def plan_id(self) -> str:
+        return self._plan.plan_id
+
+    @property
+    def plan_digest(self) -> str:
+        return self._plan.plan_digest
+
+    @property
+    def entries(self) -> Mapping[str, AdmittedTrialEntryModel]:
+        return _ReadOnlyCopies(self._plan.entries)
+
+    @property
+    def cleanup_plans(self) -> Mapping[str, TrialCleanupPlanModel]:
+        return _ReadOnlyCopies(self._plan.cleanup_plans)
+
+    def model_dump(self, **kwargs: Any) -> dict[str, Any]:
+        return self._plan.model_dump(**kwargs)
+
+    def snapshot(self) -> AdmittedTrialPlanModel:
+        """Return an independent copy of the complete admitted plan."""
+
+        return self._plan.model_copy(deep=True)
+
+
 @dataclass(frozen=True)
 class TrialUnitRequest:
     """One exact sealed entry and its trusted processor outputs.
 
-    Reconstruct again at dispatch if the caller retained mutable child values.
-    Projection validity does not prove derivation, target support or permission.
-    The adapter receives its RuntimeTarget through trusted composition.
+    ``plan`` accepts an ``AdmittedTrialPlanModel``, which construction bounds and
+    reconstructs completely, or a shared ``AdmittedTrialPlanView``, which already
+    did that once for a batch. The request stores the read-only view. Later
+    reconstruction, for example ``replace(request)``, repeats only entry-scoped
+    checks. Projection validity does not prove derivation, target support or
+    permission. The adapter receives its RuntimeTarget through trusted composition.
     """
 
-    plan: AdmittedTrialPlanModel = field(repr=False)
+    plan: AdmittedTrialPlanView = field(repr=False)
     plan_entry_id: str
     execution_attempt_id: str
     instantiated_sdl_digest: str
@@ -70,24 +174,33 @@ class TrialUnitRequest:
     evaluation_plan: EvaluationPlanModel = field(repr=False)
 
     def __post_init__(self) -> None:
-        _require_bounded(self)
         try:
             _IDENTITY.validate_python(self.plan_entry_id)
             _IDENTITY.validate_python(self.execution_attempt_id)
             _DIGEST.validate_python(self.instantiated_sdl_digest)
         except ValidationError:
             raise ValueError("trial unit identity or SDL digest is invalid") from None
+        view = self.plan if isinstance(self.plan, AdmittedTrialPlanView) else AdmittedTrialPlanView(self.plan)
+        # The view bounded the complete plan once; bound the entry-scoped values here.
+        _require_bounded(
+            (
+                self.plan_entry_id,
+                self.execution_attempt_id,
+                self.instantiated_sdl_digest,
+                self.provisioning_plan,
+                self.orchestration_plan,
+                self.evaluation_plan,
+            )
+        )
         try:
-            admitted = revalidate_admitted_trial_plan(self.plan)
-        except AdmittedTrialPlanIngressError as exc:
-            # Value-object checks raise ValueError (E3); the caller translates at its boundary.
-            raise ValueError("Admitted trial plan contract validation failed") from exc
-        entry = admitted.entries.get(self.plan_entry_id)
-        if entry is None:
-            raise ValueError("trial unit entry does not resolve in admitted plan")
-        if self.execution_attempt_id in {entry.run_id, entry.plan_entry_id, admitted.plan_id}:
+            entry = view.entries[self.plan_entry_id]
+        except KeyError:
+            raise ValueError("trial unit entry does not resolve in admitted plan") from None
+        if self.execution_attempt_id in {entry.run_id, entry.plan_entry_id, view.plan_id}:
             raise ValueError("trial unit attempt identity must remain distinct")
-        object.__setattr__(self, "plan", admitted)
+        object.__setattr__(self, "plan", view)
+        # An owned entry copy, not a dataclass field: equality and commitments use the plan seal.
+        object.__setattr__(self, "_entry", entry)
         for name, model_type in (
             ("provisioning_plan", ProvisioningPlanModel),
             ("orchestration_plan", OrchestrationPlanModel),
@@ -104,19 +217,19 @@ class TrialUnitRequest:
 
     @property
     def run_id(self) -> str:
-        return self.plan.entries[self.plan_entry_id].run_id
+        return self._entry.run_id
 
     @property
     def participant_configurations(self) -> tuple[ParticipantConfigurationResultModel, ...]:
-        return tuple(self.plan.entries[self.plan_entry_id].participant_configurations)
+        return tuple(deepcopy(self._entry.participant_configurations))
 
     @property
     def execution_controls(self) -> AdmittedExecutionControlModel:
-        return self.plan.entries[self.plan_entry_id].execution_controls
+        return self._entry.execution_controls.model_copy(deep=True)
 
     @property
     def cleanup_plan(self) -> TrialCleanupPlanModel:
-        return self.plan.cleanup_plans[self.execution_controls.cleanup_plan_ref]
+        return self.plan.cleanup_plans[self._entry.execution_controls.cleanup_plan_ref]
 
 
 @dataclass(frozen=True)
@@ -194,4 +307,4 @@ def validate_trial_unit_result(request: TrialUnitRequest, result: TrialUnitResul
         raise ValueError("trial unit cleanup evidence does not cover receipt references")
 
 
-__all__ = ["TrialUnitRequest", "TrialUnitResult", "validate_trial_unit_result"]
+__all__ = ["AdmittedTrialPlanView", "TrialUnitRequest", "TrialUnitResult", "validate_trial_unit_result"]

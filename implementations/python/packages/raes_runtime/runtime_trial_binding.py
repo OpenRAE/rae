@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from raes_contracts.trial_unit import TrialUnitRequest
+from raes_contracts.trial_unit import AdmittedTrialPlanView, TrialUnitRequest
 from raes_processor.trial_scheduler import AttemptOutcome, build_batch_execution_receipt
 
 from .runtime_trial_decisions import TrialTerminalDecision
@@ -34,11 +34,13 @@ class TrialSlot:
     entry: ScheduledEntry
     realization: TrialRealization
     root_entry_id: str
+    plan_view: AdmittedTrialPlanView
 
 
 def trial_request(
-    plan: AdmittedTrialPlanModel, entry_id: str, realization: TrialRealization, attempt_id: str
+    plan: AdmittedTrialPlanModel | AdmittedTrialPlanView, entry_id: str, realization: TrialRealization, attempt_id: str
 ) -> TrialUnitRequest:
+    # A shared view repeats no complete-plan work per entry; a model is reconstructed once here.
     return TrialUnitRequest(
         plan=plan,
         plan_entry_id=entry_id,

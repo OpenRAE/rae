@@ -850,6 +850,18 @@ It then calls the ordinary SDL selector and runtime compiler/planner.
 Its public processor-plan projections are provisioning, orchestration, and evaluation references bound by digest.
 The internal execution plan is not a portable authority.
 
+`admitted_trial_batch_realizer` and `admitted_trial_batch_instantiator` validate one complete plan once.
+Each returns a one-entry executor bound to that owned, reconstructed plan.
+Each executor call realizes or instantiates one `plan_entry_id` from the owned plan.
+The executor repeats no whole-plan reconstruction between entries.
+It keeps per-entry semantic admission, provenance, and digests.
+The single-entry functions call the same boundary for one entry.
+For a whole-plan traversal, iterate `canonical_entry_order(plan)` or use `dispatch_batch_schedule`.
+The executor owns its validated plan.
+It does not accept a replacement plan, family, or entry object with an entry ID.
+`RuntimeExperiment` builds one realizer and one read-only plan view for its schedule.
+Its trial requests share that view and repeat no complete-plan work.
+
 Optional node `os_distribution` and `architecture` retain JSON `null` when their typed source values are absent.
 Compilation, desired resources, operation payloads, and recursive commitments preserve the same values.
 Explicit supported values keep their canonical form.

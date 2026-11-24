@@ -157,32 +157,39 @@ def test_inconsistent_identity_is_refused_before_experiment_admission(monkeypatc
     import raes_runtime.runtime_experiment as experiment_module
 
     inputs, target, _ = _trial(_EXPLICIT_NULL)
-    original = experiment_module.realize_admitted_trial_entry
+    original = experiment_module.admitted_trial_batch_realizer
 
-    def substituted(**kwargs):
-        realized = original(**kwargs)
-        provisioning = deepcopy(realized.execution_plan.provisioning)
-        operation = next(operation for operation in provisioning.operations if operation.address == _ADDRESS)
-        if substitution == "binding":
-            provisioning = replace(
-                provisioning,
-                realization_authority=tuple(
-                    replace(item, constraint_binding="sha256:" + "0" * 64) if item.requirement_kind == kind else item
-                    for item in provisioning.realization_authority
-                ),
-            )
-        else:
-            operation.payload[field] = (
-                {"os_distribution": "ubuntu", "architecture": "aarch64"}[field]
-                if substitution == "supported"
-                else substitution
-            )
-        assert [diagnostic.code for diagnostic in realization_authority_diagnostics(provisioning)] == [
-            "realization.authority-selection-invalid"
-        ]
-        return replace(realized, execution_plan=replace(realized.execution_plan, provisioning=provisioning))
+    def batch_realizer(**kwargs):
+        realize_one = original(**kwargs)
 
-    monkeypatch.setattr(experiment_module, "realize_admitted_trial_entry", substituted)
+        def substituted(plan_entry_id):
+            realized = realize_one(plan_entry_id)
+            provisioning = deepcopy(realized.execution_plan.provisioning)
+            operation = next(operation for operation in provisioning.operations if operation.address == _ADDRESS)
+            if substitution == "binding":
+                provisioning = replace(
+                    provisioning,
+                    realization_authority=tuple(
+                        replace(item, constraint_binding="sha256:" + "0" * 64)
+                        if item.requirement_kind == kind
+                        else item
+                        for item in provisioning.realization_authority
+                    ),
+                )
+            else:
+                operation.payload[field] = (
+                    {"os_distribution": "ubuntu", "architecture": "aarch64"}[field]
+                    if substitution == "supported"
+                    else substitution
+                )
+            assert [diagnostic.code for diagnostic in realization_authority_diagnostics(provisioning)] == [
+                "realization.authority-selection-invalid"
+            ]
+            return replace(realized, execution_plan=replace(realized.execution_plan, provisioning=provisioning))
+
+        return substituted
+
+    monkeypatch.setattr(experiment_module, "admitted_trial_batch_realizer", batch_realizer)
     services = TrialServices(target)
     with RuntimeControlPlane(target) as runtime:
         with pytest.raises(ConflictError, match="realization.authority-selection-invalid"):

@@ -135,8 +135,9 @@ class AssignedTrial:
 
     @property
     def request(self) -> TrialUnitRequest:
+        # Reuse the bound request's read-only plan view; a detached request needs no new plan copy.
         return trial_request(
-            self._assignment.plan,
+            self._request.plan,
             self._assignment.plan_entry_id,
             self._realization,
             self._assignment.execution_attempt_id,

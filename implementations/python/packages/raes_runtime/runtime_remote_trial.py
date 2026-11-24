@@ -191,7 +191,7 @@ class RemoteTrialUnit:
         self.slot, self.attempt, self.assignment, self.store = slot, attempt, assignment, store
         self.realization = slot.realization
         self.request = TrialUnitRequest(
-            plan=slot.plan,
+            plan=slot.plan_view,
             plan_entry_id=slot.entry.plan_entry_id,
             execution_attempt_id=attempt.execution_attempt_id,
             instantiated_sdl_digest=slot.realization.snapshot_digest,

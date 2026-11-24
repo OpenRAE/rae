@@ -25,12 +25,16 @@ It does not interpret SDL itself.
 The processor calls `realize_admitted_trial_entry()` first.
 The caller passes three processor plans into `TrialUnitRequest`.
 The caller also passes the instantiated SDL digest.
-The request carries the complete admitted plan and exact entry ID.
-It also carries a distinct execution attempt ID.
-Request construction reconstructs the complete plan before entry lookup.
+The request carries the complete admitted plan as a read-only `AdmittedTrialPlanView`.
+It also carries the exact entry ID and a distinct execution attempt ID.
+The view bounds and reconstructs the complete plan once, before entry lookup.
+The caller can pass a plan model or a shared view.
+A runtime batch shares one view, so each request repeats only entry-scoped checks.
+Each view read returns a copy, and `snapshot()` returns an independent plan model.
 The request exposes the entry controls and bound cleanup plan.
 It also exposes the sealed participant configurations.
-There is no independently editable copy of these values.
+Each of these values is a copy, so a change to it does not change the request.
+An operation commitment binds the plan through its verified `plan_id` and `plan_digest`.
 
 The adapter checks the selected manifests and envelope against its injected target before effects.
 The provisioning and evaluation plans keep the admitted run and instantiation IDs.
