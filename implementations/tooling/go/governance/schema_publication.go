@@ -12,7 +12,7 @@ const publicationStable = "stable"
 
 // Git holds schema history, so the catalog records no derived content digest.
 var (
-	retiredManifestKeys = []string{"hash_algorithm"}               //nolint:gochecknoglobals // Fixed reference vocabulary.
+	retiredManifestKeys = []string{"hash_algorithm"}              //nolint:gochecknoglobals // Fixed reference vocabulary.
 	retiredEntryKeys    = []string{"content_hash", "last_change"} //nolint:gochecknoglobals // Fixed reference vocabulary.
 )
 
