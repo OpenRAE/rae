@@ -2,7 +2,6 @@ package admission
 
 import (
 	"encoding/json"
-	"maps"
 	"strings"
 
 	"github.com/OpenRAE/rae/implementations/go/base/ingress"
@@ -48,32 +47,37 @@ func trialProjection(v any) {
 }
 
 func (e *Validator) trialDigest(i validation.Invocation, field string) error {
-	raw, err := json.Marshal(i.Instance)
+	v, expected, err := e.expectedTrialDigest(i.Key.ContractID, i.Instance, field)
 	if err != nil {
-		return invalid()
+		return err
+	}
+	return require(stringAt(v, field) == expected)
+}
+
+// expectedTrialDigest returns the constructed owner view and the self-digest
+// that its field must carry. Entries use the containing contract's schema.
+func (e *Validator) expectedTrialDigest(contractID string, instance any, field string) (map[string]any, string, error) {
+	raw, err := json.Marshal(instance)
+	if err != nil {
+		return nil, "", invalid()
 	}
 	// This value already passed its caller's byte bound. Allow one bounded
 	// reconstruction copy for schema defaults that the serializer omits.
 	if len(raw) > int(^uint(0)>>1)/2 {
-		return invalid()
+		return nil, "", invalid()
 	}
 	limits := ingress.Limits{MaxBytes: max(32<<20, 2*len(raw)), MaxDepth: 64}
 	var v map[string]any
 	if field == "entry_digest" {
-		v, err = e.trialEntryProjection(i.Key.ContractID, raw, limits)
+		v, err = e.trialEntryProjection(contractID, raw, limits)
 	} else {
 		v, err = e.trialConstructed(raw, limits)
 	}
 	if err != nil {
-		return err
+		return nil, "", err
 	}
-	content := maps.Clone(object(v))
-	delete(content, field)
-	digest, err := jsonDigest(content)
-	if err != nil {
-		return err
-	}
-	return require(stringAt(v, field) == digest)
+	expected, err := selfDigest(v, field)
+	return v, expected, err
 }
 
 func (e *Validator) trialEntryProjection(id string, raw []byte, limits ingress.Limits) (map[string]any, error) {
@@ -227,6 +231,10 @@ func trialModelProjection(value map[string]any) {
 	if _, ok := value["entry_digest"]; ok && len(array(value["participant_configurations"])) == 0 {
 		delete(value, "participant_configurations")
 	}
+	if _, ok := value["entry_digest"]; ok && len(array(value["safe_states"])) == 0 {
+		delete(value, "safe_states")
+	}
+	trialParallelismProjection(value)
 	trialProfileProjection(value)
 	if _, ok := value["authoring_input_ref"]; ok && len(array(value["mixed_composition_profile_refs"])) == 0 {
 		delete(value, "mixed_composition_profile_refs")
@@ -238,6 +246,24 @@ func trialModelProjection(value map[string]any) {
 		delete(value, "participant_manifest_refs")
 	}
 	trialOptionalProjection(value)
+}
+
+// trialParallelismProjection omits the absent plan capacity and the absent
+// bounds of a constrained capacity, as the plan model serializes them.
+func trialParallelismProjection(value map[string]any) {
+	if _, ok := value["plan_digest"]; !ok {
+		return
+	}
+	capacity := object(value["trial_parallelism"])
+	if capacity == nil {
+		delete(value, "trial_parallelism")
+		return
+	}
+	for _, field := range []string{"minimum", "maximum"} {
+		if _, present := capacity[field]; present && capacity[field] == nil {
+			delete(capacity, field)
+		}
+	}
 }
 
 func trialProfileProjection(value map[string]any) {

@@ -113,6 +113,11 @@ func checkTrialSealingReference(t *testing.T, c trialSealingReferenceCase, owner
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Fixtures omit derived fields; seal nested owners before the plan constructor runs.
+	data, err = SealFixture(owner, trialPlanContract, fixtureKindValid, data, ingress.Limits{MaxBytes: 32 << 20, MaxDepth: 64})
+	if err != nil {
+		t.Fatal(err)
+	}
 	var fields map[string]any
 	if decodeExact(data, &fields) != nil {
 		t.Fatal("invalid fixture")

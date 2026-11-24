@@ -31,31 +31,57 @@ func (e *Validator) envelope(i validation.Invocation) error {
 	if checkErr := e.envelopeConcerns(v); checkErr != nil {
 		return checkErr
 	}
-	configuration := maps.Clone(object(at(v, termConfiguration)))
+	configuration := envelopeDigestConfiguration(at(v, termConfiguration))
+	actual, err := envelopeConfigurationDigest(configuration)
+	if err != nil {
+		return err
+	}
+	if actual != stringAt(configuration, "configuration_digest") {
+		return invalid()
+	}
+	expected, err := envelopeDigest(v)
+	if err != nil {
+		return err
+	}
+	return require(expected == stringAt(v, termDigest))
+}
+
+// envelopeDigestConfiguration is the material configuration projection that
+// the envelope digests cover.
+func envelopeDigestConfiguration(raw any) map[string]any {
+	configuration := maps.Clone(object(raw))
 	if at(configuration, "operating_systems") == nil {
 		configuration["operating_systems"] = []any{}
 	}
 	if len(array(configuration["process_resource_limits"])) == 0 {
 		delete(configuration, "process_resource_limits")
 	}
+	return configuration
+}
+
+// envelopeConfigurationDigest digests a material configuration projection
+// without its own digest.
+func envelopeConfigurationDigest(configuration map[string]any) (string, error) {
 	content := maps.Clone(configuration)
 	delete(content, "configuration_digest")
 	actual, err := envelopeSortedJSON(content)
 	if err != nil {
-		return err
+		return "", err
 	}
-	if digest.SHA256([]byte(actual)) != stringAt(configuration, "configuration_digest") {
-		return invalid()
-	}
+	return digest.SHA256([]byte(actual)), nil
+}
+
+// envelopeDigest digests a defaulted envelope without its self-digest.
+func envelopeDigest(v any) (string, error) {
 	payload := maps.Clone(object(v))
 	payload["expression"] = envelopeExpressionDigestView(at(v, "expression"))
-	payload[termConfiguration] = configuration
+	payload[termConfiguration] = envelopeDigestConfiguration(at(v, termConfiguration))
 	delete(payload, termDigest)
 	canonical, err := envelopeSortedJSON(payload)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return require(digest.SHA256([]byte(canonical)) == stringAt(v, termDigest))
+	return digest.SHA256([]byte(canonical)), nil
 }
 
 func envelopeExpressionDigestView(v any) any {

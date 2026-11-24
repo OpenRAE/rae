@@ -16,8 +16,7 @@
       "selection_policy_profile": "experiment-selection-v1",
       "random_stream_profile": "blake3-xof-v1",
       "execution_control_profile": "attempt-control-v1",
-      "cleanup_profile": "trial-cleanup-v1",
-      "isolation_profile": "scheduler-isolation-v1"
+      "cleanup_profile": "trial-cleanup-v1"
     },
     "input_refs": {
       "authoring_input_ref": {
@@ -191,7 +190,6 @@
         }
       }
     },
-    "isolation_proof": null,
     "replacement_policy": {
       "schema_version": "trial-replacement-policy/v1",
       "max_replacements": 2,
@@ -414,7 +412,7 @@
       "limitations": [],
       "diagnostics": []
     },
-    "plan_digest": "sha256:e19f7eb67472b96c26f258c332e8180c2f40ab0f55785625d4417d45e95622f2"
+    "plan_digest": "sha256:a4bde855fed020866480784efd44df38baa9e24b046709fcf5e7d6c8251a433b"
   },
   "study": {
     "schema_version": "experiment-study/v1",
@@ -783,7 +781,7 @@
       },
       "trial_provenance": {
         "plan_id": "trial-plan-c3b7990f58af47cc818ce493c3613be4162a02ad03a6935a6edb2154a668fddb",
-        "plan_digest": "sha256:e19f7eb67472b96c26f258c332e8180c2f40ab0f55785625d4417d45e95622f2",
+        "plan_digest": "sha256:a4bde855fed020866480784efd44df38baa9e24b046709fcf5e7d6c8251a433b",
         "plan_entry_id": "trial-entry-3d3e1ebcd32e7cd630a771b040152a63d970670966222eaff7470294f42bb46f",
         "entry_digest": "sha256:c2e09c3d23f30735ef075f1ca8e35d98c9522eeaab3bacc5394a152d24c2da8f",
         "admitted_run_id": "archival-run-5c7d0cc032789391bf6983190000bd2bad2ab89a68b14abd1150298798ca0d94",
@@ -1305,7 +1303,7 @@
       },
       "trial_provenance": {
         "plan_id": "trial-plan-c3b7990f58af47cc818ce493c3613be4162a02ad03a6935a6edb2154a668fddb",
-        "plan_digest": "sha256:e19f7eb67472b96c26f258c332e8180c2f40ab0f55785625d4417d45e95622f2",
+        "plan_digest": "sha256:a4bde855fed020866480784efd44df38baa9e24b046709fcf5e7d6c8251a433b",
         "plan_entry_id": "trial-entry-3d3e1ebcd32e7cd630a771b040152a63d970670966222eaff7470294f42bb46f",
         "entry_digest": "sha256:c2e09c3d23f30735ef075f1ca8e35d98c9522eeaab3bacc5394a152d24c2da8f",
         "admitted_run_id": "archival-run-5c7d0cc032789391bf6983190000bd2bad2ab89a68b14abd1150298798ca0d94",
@@ -1845,7 +1843,7 @@
       },
       "trial_provenance": {
         "plan_id": "replacement-plan-612f75fb1028e6294d6dafe5c4b6b56130f0636dbd101f4b1dfdfc5c848dc718",
-        "plan_digest": "sha256:27230b988b36b5e7e9f70cafcadd1a65ec4e0884111243a34742cb429088aacc",
+        "plan_digest": "sha256:a62b766ea5516f85922db10cda03af44d3e1f96135067ba7eeff0ed4fc77232a",
         "plan_entry_id": "trial-entry-17d82a4190e9fdc0533c1926c3c1037c2ce37e04c640ea2727a6a007d86b483f",
         "entry_digest": "sha256:505bfb72589d693ee61361d8affe8df54a753250ee8040f08f8be52bdb4a1b01",
         "admitted_run_id": "archival-run-bd2b3f630934daee079731a4b8e37dfe1b490dbcb5b50051fe5cd00531b14ba7",
@@ -2358,8 +2356,7 @@
         "selection_policy_profile": "experiment-selection-v1",
         "random_stream_profile": "blake3-xof-v1",
         "execution_control_profile": "attempt-control-v1",
-        "cleanup_profile": "trial-cleanup-v1",
-        "isolation_profile": "scheduler-isolation-v1"
+        "cleanup_profile": "trial-cleanup-v1"
       },
       "input_refs": {
         "authoring_input_ref": {
@@ -2476,7 +2473,6 @@
           }
         }
       },
-      "isolation_proof": null,
       "replacement_policy": {
         "schema_version": "trial-replacement-policy/v1",
         "max_replacements": 2,
@@ -2487,15 +2483,15 @@
       },
       "replacement_origin": {
         "root_plan_id": "trial-plan-c3b7990f58af47cc818ce493c3613be4162a02ad03a6935a6edb2154a668fddb",
-        "root_plan_digest": "sha256:e19f7eb67472b96c26f258c332e8180c2f40ab0f55785625d4417d45e95622f2",
+        "root_plan_digest": "sha256:a4bde855fed020866480784efd44df38baa9e24b046709fcf5e7d6c8251a433b",
         "root_entry_id": "trial-entry-3d3e1ebcd32e7cd630a771b040152a63d970670966222eaff7470294f42bb46f",
         "ordinal": 1,
         "parent_plan_id": "trial-plan-c3b7990f58af47cc818ce493c3613be4162a02ad03a6935a6edb2154a668fddb",
-        "parent_plan_digest": "sha256:e19f7eb67472b96c26f258c332e8180c2f40ab0f55785625d4417d45e95622f2",
+        "parent_plan_digest": "sha256:a4bde855fed020866480784efd44df38baa9e24b046709fcf5e7d6c8251a433b",
         "parent_entry_id": "trial-entry-3d3e1ebcd32e7cd630a771b040152a63d970670966222eaff7470294f42bb46f",
         "parent_run_id": "archival-run-5c7d0cc032789391bf6983190000bd2bad2ab89a68b14abd1150298798ca0d94",
         "parent_run_version": "1.0.0",
-        "parent_run_digest": "sha256:9acaea3298a8c51abae2ae7764cc11bf1ddaa5a3376446e1cbebf85e772208ca",
+        "parent_run_digest": "sha256:ab0447a86b8da2df7a919894a6429f6abac970eadac503e1031a958afa6c4d5d",
         "cleanup_receipt_ref": "cleanup:archival-run-5c7d0cc032789391bf6983190000bd2bad2ab89a68b14abd1150298798ca0d94"
       },
       "entries": {
@@ -2609,7 +2605,7 @@
         "limitations": [],
         "diagnostics": []
       },
-      "plan_digest": "sha256:27230b988b36b5e7e9f70cafcadd1a65ec4e0884111243a34742cb429088aacc"
+      "plan_digest": "sha256:a62b766ea5516f85922db10cda03af44d3e1f96135067ba7eeff0ed4fc77232a"
     }
   ],
   "receipts": [

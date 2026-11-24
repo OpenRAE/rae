@@ -68,7 +68,7 @@ type experimentConstructorReferenceCase struct {
 func checkExperimentConstructorReference(t *testing.T, c experimentConstructorReferenceCase, owner *Validator, structural *validation.Validator) {
 	t.Helper()
 
-	input, err := os.ReadFile("../../../../" + c.Path)
+	input, err := repoFixtureBytes(t, "../../../../"+c.Path)
 	if err != nil {
 		t.Fatal(err)
 	}

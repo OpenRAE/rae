@@ -27,7 +27,11 @@ func TestSDLConstructionStagePins(t *testing.T) {
 			}
 			if id == "materialized-scenario-v1" {
 				defs = maps.Clone(constructionObject(t, published.raw["$defs"]))
-				defs["_r221"] = map[string]any{}
+				name, found := materializedDistributionClause(constructionObject(t, defs["Node"])["allOf"])
+				if !found {
+					t.Fatal("materialized Node has no factored distribution clause")
+				}
+				defs[name] = map[string]any{}
 				altered.raw["$defs"] = defs
 				if _, err := compileSDLConstruction(id, altered); err == nil {
 					t.Fatal("changed referenced clause was accepted")

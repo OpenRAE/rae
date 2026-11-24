@@ -1,0 +1,14 @@
+{
+  "args": [
+    "admitted-trial-plan-v1"
+  ],
+  "command": "validate",
+  "files": {
+    "payload.json": "sha256:77ac7a8dba61f29e099996ab3c6c1d128c41505014a9c69804a55f3e9ce14e09"
+  },
+  "name": "retained/77ac7a8dba61f29e099996ab3c6c1d128c41505014a9c69804a55f3e9ce14e09",
+  "result": {
+    "valid": false
+  },
+  "surface": "schema"
+}

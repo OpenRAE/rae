@@ -27,14 +27,24 @@ func (e *Validator) runTimeModel(i validation.Invocation) error {
 			return checkErr
 		}
 	}
-	canonical, err := sortedJSON(declared)
+	expected, err := declarationDigest(declared)
 	if err != nil {
 		return err
 	}
-	if digest.SHA256([]byte(canonical)) != stringAt(v, "declaration_digest") {
+	if expected != stringAt(v, "declaration_digest") {
 		return invalid()
 	}
 	return timeProvenanceBindings(v, declared, realized)
+}
+
+// declarationDigest digests a declared time model that already carries its
+// factory defaults.
+func declarationDigest(declared any) (string, error) {
+	canonical, err := sortedJSON(declared)
+	if err != nil {
+		return "", err
+	}
+	return digest.SHA256([]byte(canonical)), nil
 }
 
 func timeProvenanceBindings(v, declared, realized any) error {

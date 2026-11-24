@@ -25,7 +25,8 @@ func sdlSecretConsumer(v any) error {
 	return require(basis != nil && (basis != basisObserved || len(evidence) > 0))
 }
 func sdlServiceSecret(v any) error {
-	if !fieldsUnique(v, "replica_locations") {
+	legacy := stringAt(v, "location") != "" || len(array(at(v, "replica_locations"))) > 0 || stringAt(v, "encryption_key_ref") != ""
+	if !fieldsUnique(v, "replica_locations") || at(v, "replication") != nil && legacy {
 		return invalid()
 	}
 	return sdlUniqueCollections([2]string{"versions", "version_id"}, [2]string{"consumers", "selection_id"})(v)

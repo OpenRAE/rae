@@ -2,7 +2,6 @@
   "cases": [
     {
       "path": "contracts/fixtures/plans/admitted-trial-plan-v1/valid/factorial-randomized.json",
-      "sha256": "e7ca61e55526fbe1d9e69b49c4f87a39b0c71921054f11d6b9c73fa46cabeb83",
       "result": {
         "schema_version": "admitted-trial-plan/v1",
         "plan_id": "trial-plan-1c3230b56b097c74093c08ce0b83f4522d6388014efa088235ad9cdd0bbccf90",
@@ -17,7 +16,6 @@
           "random_stream_profile": "blake3-xof-v1",
           "execution_control_profile": "attempt-control-v1",
           "cleanup_profile": "trial-cleanup-v1",
-          "isolation_profile": "scheduler-isolation-v1",
           "allocation_profile": "fisher-yates-allocation-v1"
         },
         "input_refs": {
@@ -540,7 +538,6 @@
             }
           }
         },
-        "isolation_proof": null,
         "allocation": {
           "policy": {
             "kind": "randomized",
@@ -2013,12 +2010,12 @@
           "limitations": [],
           "diagnostics": []
         },
-        "plan_digest": "sha256:1464781663a1617f9865103946fb94307124e4799ca18d46d24477467493bc99"
-      }
+        "plan_digest": "sha256:d777860096520f5f3748450978825ed48c7d996de5cbca6e83fed2514fbdfb4c"
+      },
+      "sha256": "2fd1823ce09a76d5817e517db0314e4bd65bf542c17d0d09c0f803b604fea34c"
     },
     {
       "path": "contracts/fixtures/plans/admitted-trial-plan-v1/valid/minimal.json",
-      "sha256": "bf592e8dc928ffb2936acbb36fa90bf961045d6f0459493d4bd5bca27d92b5da",
       "result": {
         "schema_version": "admitted-trial-plan/v1",
         "plan_id": "plan-a",
@@ -2032,8 +2029,7 @@
           "selection_policy_profile": "experiment-selection-v1",
           "random_stream_profile": "blake3-xof-v1",
           "execution_control_profile": "attempt-control-v1",
-          "cleanup_profile": "trial-cleanup-v1",
-          "isolation_profile": "scheduler-isolation-v1"
+          "cleanup_profile": "trial-cleanup-v1"
         },
         "input_refs": {
           "authoring_input_ref": {
@@ -2148,7 +2144,6 @@
             }
           }
         },
-        "isolation_proof": null,
         "entries": {
           "entry-a": {
             "plan_entry_id": "entry-a",
@@ -2272,12 +2267,12 @@
           "limitations": [],
           "diagnostics": []
         },
-        "plan_digest": "sha256:6cf259e1cd9d60745dec7ae118be964aca47a65606fed309a10db14cb52ba5db"
-      }
+        "plan_digest": "sha256:f6484bf975e1e7a2da23ddb1cc8a75964a0e21a992ca8be3b840eea906ecec73"
+      },
+      "sha256": "c2749dc91bc46f3f766cca6dac648145f05cfb1bd5658e376980596fdda70b18"
     },
     {
-      "path": "contracts/fixtures/plans/admitted-trial-plan-v1/valid/parallel-isolated.json",
-      "sha256": "da26f002c830f2e3755fe614f23d9ec678fc58c125d32743ad0122c40239ae6f",
+      "path": "contracts/fixtures/plans/admitted-trial-plan-v1/valid/two-entry.json",
       "result": {
         "schema_version": "admitted-trial-plan/v1",
         "plan_id": "plan-a",
@@ -2291,8 +2286,7 @@
           "selection_policy_profile": "experiment-selection-v1",
           "random_stream_profile": "blake3-xof-v1",
           "execution_control_profile": "attempt-control-v1",
-          "cleanup_profile": "trial-cleanup-v1",
-          "isolation_profile": "scheduler-isolation-v1"
+          "cleanup_profile": "trial-cleanup-v1"
         },
         "input_refs": {
           "authoring_input_ref": {
@@ -2463,66 +2457,6 @@
               "compensation_refs": []
             }
           }
-        },
-        "isolation_proof": {
-          "schema_version": "scheduler-isolation-proof/v1",
-          "proof_id": "proof-parallel",
-          "plan_entry_ids": [
-            "entry-a",
-            "entry-b"
-          ],
-          "requested_parallelism": 2,
-          "dimensions": [
-            {
-              "dimension": "range-instance",
-              "independent": true,
-              "evidence_refs": [
-                "evidence:range-instance"
-              ]
-            },
-            {
-              "dimension": "host-capacity",
-              "independent": true,
-              "evidence_refs": [
-                "evidence:host-capacity"
-              ]
-            },
-            {
-              "dimension": "ports",
-              "independent": true,
-              "evidence_refs": [
-                "evidence:ports"
-              ]
-            },
-            {
-              "dimension": "storage",
-              "independent": true,
-              "evidence_refs": [
-                "evidence:storage"
-              ]
-            },
-            {
-              "dimension": "control-plane-locks",
-              "independent": true,
-              "evidence_refs": [
-                "evidence:control-plane-locks"
-              ]
-            },
-            {
-              "dimension": "secret-scope",
-              "independent": true,
-              "evidence_refs": [
-                "evidence:secret-scope"
-              ]
-            },
-            {
-              "dimension": "cleanup",
-              "independent": true,
-              "evidence_refs": [
-                "evidence:cleanup"
-              ]
-            }
-          ]
         },
         "entries": {
           "entry-a": {
@@ -2762,12 +2696,12 @@
           "limitations": [],
           "diagnostics": []
         },
-        "plan_digest": "sha256:a8d7c3fa96d0d31ba986b634d3abba2831be4df4d8ce00f17c2a4cdec9c67069"
-      }
+        "plan_digest": "sha256:96528b6cd2a93ff8c2fe77964cdc2aabaea2efe92d9a503d6e7ae85e8abdd0cc"
+      },
+      "sha256": "97454c01798623442117cb388487f3737e04e9e4ea4fe6284b3727559d394224"
     },
     {
       "path": "contracts/fixtures/plans/admitted-trial-plan-v1/valid/typed-treatment.json",
-      "sha256": "c76f52dd2c8c05140cf2166f47536591dc626a1e155a122086eebfeddd528ab1",
       "result": {
         "schema_version": "admitted-trial-plan/v1",
         "plan_id": "plan-a",
@@ -2782,7 +2716,6 @@
           "random_stream_profile": "blake3-xof-v1",
           "execution_control_profile": "attempt-control-v1",
           "cleanup_profile": "trial-cleanup-v1",
-          "isolation_profile": "scheduler-isolation-v1",
           "treatment_profile": "factorial-treatments-v1"
         },
         "input_refs": {
@@ -2898,7 +2831,6 @@
             }
           }
         },
-        "isolation_proof": null,
         "entries": {
           "entry-a": {
             "plan_entry_id": "entry-a",
@@ -3018,8 +2950,9 @@
           "limitations": [],
           "diagnostics": []
         },
-        "plan_digest": "sha256:490f4c8cd6f033245406013b216a405eebda5a60f796fc3c5418c840b0e7963a"
-      }
+        "plan_digest": "sha256:5bbdfca84a0eb6670a9136dd4a07be8304c9641d89e0bdba72c72d3496b5f9c3"
+      },
+      "sha256": "656903f17d2bd6c79532c6fdb84eaa3fcb154080ec05852240a46765884c4898"
     }
   ]
 }

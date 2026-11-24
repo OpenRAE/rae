@@ -40,14 +40,19 @@ func TestAccountingInvalidatedRunRetainsFailedAttempt(t *testing.T) {
 	}
 }
 
-func TestParallelBatchRequiresLeaseEvidence(t *testing.T) {
-	v := decodeRuleObject(t, `{"execution_attempt_id":"attempt","run_id":"run","plan_entry_id":"entry","plan_id":"plan","effective_parallelism":2,"isolation_proof_ref":"proof","lease_evidence_refs":["lease"]}`)
+func TestBatchReceiptRequiresDistinctAttemptAndOperationRefs(t *testing.T) {
+	v := decodeRuleObject(t, `{"execution_attempt_id":"attempt","run_id":"run","plan_entry_id":"entry","plan_id":"plan","effective_parallelism":2,"operation_refs":["op-1","op-2"]}`)
 	if err := batchReceipt(validation.Invocation{Instance: v}); err != nil {
 		t.Fatal(err)
 	}
-	object(v)["lease_evidence_refs"] = []any{}
+	object(v)["operation_refs"] = []any{"op-1", "op-1"}
 	if err := batchReceipt(validation.Invocation{Instance: v}); err == nil {
-		t.Error("accepted parallel execution without lease evidence")
+		t.Error("accepted duplicate operation references")
+	}
+	object(v)["operation_refs"] = []any{}
+	object(v)["execution_attempt_id"] = "run"
+	if err := batchReceipt(validation.Invocation{Instance: v}); err == nil {
+		t.Error("accepted an attempt identity equal to its run identity")
 	}
 }
 

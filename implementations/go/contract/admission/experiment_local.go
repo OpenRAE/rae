@@ -243,7 +243,17 @@ func traceabilityRefs(i validation.Invocation) error {
 	return require(len(array(at(i.Instance, "claim_refs"))) == 0 || len(array(at(i.Instance, "derived_measure_refs"))) > 0)
 }
 func configurationDigest(i validation.Invocation) error {
-	configuration := maps.Clone(object(at(i.Instance, termConfiguration)))
+	expected, err := expectedConfigurationDigest(i.Instance)
+	if err != nil {
+		return err
+	}
+	return require(stringAt(i.Instance, "configuration_digest") == expected)
+}
+
+// expectedConfigurationDigest digests the configuration without absent
+// control-context selections.
+func expectedConfigurationDigest(instance any) (string, error) {
+	configuration := maps.Clone(object(at(instance, termConfiguration)))
 	values := make([]any, 0, len(array(configuration["values"])))
 	for _, raw := range array(configuration["values"]) {
 		value := maps.Clone(object(raw))
@@ -255,11 +265,11 @@ func configurationDigest(i validation.Invocation) error {
 	configuration["values"] = values
 	data, err := json.Marshal(configuration)
 	if err != nil {
-		return invalid()
+		return "", invalid()
 	}
 	canonical, err := canonjson.JCS(data)
 	if err != nil {
-		return invalid()
+		return "", invalid()
 	}
-	return require(stringAt(i.Instance, "configuration_digest") == digest.SHA256(canonical))
+	return digest.SHA256(canonical), nil
 }

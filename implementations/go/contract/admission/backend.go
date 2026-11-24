@@ -17,7 +17,7 @@ func backendLocal(i validation.Invocation) error {
 	v := i.Instance
 	switch i.Key.ContractID {
 	case termBackendOperationRequestV1:
-		if !uniqueValues(at(v, "requirement_refs")) || !fieldsUnique(v, "required_guarantees") {
+		if !uniqueValues(at(v, "requirement_refs")) || !fieldsUnique(v, "required_guarantees") || !workflowStepBinding(v) {
 			return invalid()
 		}
 	case termBackendOperationCapabilitiesV1:
@@ -43,6 +43,17 @@ func backendLocal(i validation.Invocation) error {
 		}
 	}
 	return backendBinding(at(v, "binding"))
+}
+
+// workflowStepBinding requires workflow step inputs exactly when the command
+// is a workflow step dispatch, bound to its orchestration parent operation.
+func workflowStepBinding(v any) bool {
+	step := at(v, "workflow_step")
+	if stringAt(v, "command", "contract_id") != "workflow-step-dispatch-v1" {
+		return step == nil
+	}
+	context := at(v, "binding", "context")
+	return step != nil && equal(at(v, "command", "artifact_id"), at(step, "dispatch_id")) && stringAt(context, "operation_kind") == "orchestration" && equal(at(context, "parent_operation_id"), at(step, "root_operation_id"))
 }
 
 func uniqueValues(values any) bool {

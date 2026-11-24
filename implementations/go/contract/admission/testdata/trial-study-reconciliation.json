@@ -12,8 +12,7 @@
       "selection_policy_profile": "experiment-selection-v1",
       "random_stream_profile": "blake3-xof-v1",
       "execution_control_profile": "attempt-control-v1",
-      "cleanup_profile": "trial-cleanup-v1",
-      "isolation_profile": "scheduler-isolation-v1"
+      "cleanup_profile": "trial-cleanup-v1"
     },
     "input_refs": {
       "authoring_input_ref": {
@@ -187,7 +186,6 @@
         }
       }
     },
-    "isolation_proof": null,
     "entries": {
       "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721": {
         "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
@@ -402,7 +400,7 @@
       "limitations": [],
       "diagnostics": []
     },
-    "plan_digest": "sha256:c681860c67250fc95612238e189ff0d1c082fa866989007b6b65e29dd52c8cbe"
+    "plan_digest": "sha256:6d247e8023c34d5c348d208c13654c84f586cb62c987f428991984d5d6b5d3e3"
   },
   "task": {
     "schema_version": "experiment-task/v1",
@@ -570,7 +568,7 @@
     },
     "trial_provenance": {
       "plan_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
-      "plan_digest": "sha256:c681860c67250fc95612238e189ff0d1c082fa866989007b6b65e29dd52c8cbe",
+      "plan_digest": "sha256:6d247e8023c34d5c348d208c13654c84f586cb62c987f428991984d5d6b5d3e3",
       "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
       "entry_digest": "sha256:de82d3b777ffd0d4d7595e42c6cf23737eaaf0259dc256cd2bbd86aff9aa03c1",
       "admitted_run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",

@@ -41,7 +41,7 @@ func recordedCatalogVerdicts(t *testing.T, e *Validator, id, file string, count 
 	}
 	for _, test := range recorded.Cases {
 		t.Run(test.Fixture, func(t *testing.T) {
-			raw, err := fs.ReadFile(source, test.Fixture)
+			raw, err := sealedFixtureBytes(t, source, test.Fixture)
 			if err != nil {
 				t.Fatal(err)
 			}

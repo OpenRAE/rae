@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/fs"
+	"os"
+	"strings"
 	"sync"
 	"testing"
 
@@ -21,7 +23,7 @@ func fixtureObject(t *testing.T, path string) map[string]any {
 	if err != nil {
 		t.Fatal(err)
 	}
-	read := sync.OnceValues(func() ([]byte, error) { return fs.ReadFile(source, path) })
+	read := sync.OnceValues(func() ([]byte, error) { return sealedFixtureBytes(t, source, path) })
 	cached, _ := sharedFixtureBytes.LoadOrStore(path, read)
 	load, ok := cached.(func() ([]byte, error))
 	if !ok {
@@ -38,6 +40,27 @@ func fixtureObject(t *testing.T, path string) map[string]any {
 		t.Fatal(err)
 	}
 	return value
+}
+
+// sealedFixtureBytes reads one corpus file. A valid or context-invalid contract
+// fixture gets its absent derived fields, as the reference readers seal it.
+func sealedFixtureBytes(t *testing.T, source fs.FS, path string) ([]byte, error) {
+	t.Helper()
+	raw, err := fs.ReadFile(source, path)
+	if err != nil {
+		return nil, err
+	}
+	parts := strings.Split(path, "/")
+	if len(parts) != 5 || parts[0] != "fixtures" {
+		return raw, nil
+	}
+	return SealFixture(boundTestOwner(t), parts[2], parts[3], raw, ingress.Limits{MaxBytes: 8 * 1048576, MaxDepth: 64})
+}
+
+// repoFixtureBytes reads a sealed fixture from the repository contract tree.
+func repoFixtureBytes(t *testing.T, path string) ([]byte, error) {
+	t.Helper()
+	return sealedFixtureBytes(t, os.DirFS("../../../../contracts"), strings.TrimPrefix(path, "../../../../contracts/"))
 }
 
 // Compile the immutable production registry once per test process. Requests and

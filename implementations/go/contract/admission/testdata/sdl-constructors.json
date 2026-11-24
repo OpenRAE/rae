@@ -18608,6 +18608,85 @@
         ]
       },
       "accepted": true
+    },
+    {
+      "name": "RuntimeSecretReplica.constructor-baseline",
+      "pointer": "#/$defs/RuntimeSecretReplica",
+      "accepted": true,
+      "data": {
+        "location": "us-east1"
+      }
+    },
+    {
+      "name": "RuntimeSecretReplica.same-location-key",
+      "pointer": "#/$defs/RuntimeSecretReplica",
+      "accepted": true,
+      "data": {
+        "location": "us-east1",
+        "kms_key_name": "projects/p/locations/us-east1/keyRings/r/cryptoKeys/k"
+      }
+    },
+    {
+      "name": "RuntimeSecretReplica.other-location-key",
+      "pointer": "#/$defs/RuntimeSecretReplica",
+      "accepted": false,
+      "data": {
+        "location": "us-east1",
+        "kms_key_name": "projects/p/locations/europe-west1/keyRings/r/cryptoKeys/k"
+      }
+    },
+    {
+      "name": "RuntimeServiceSecret.typed-replication",
+      "pointer": "#/$defs/RuntimeServiceSecret",
+      "accepted": true,
+      "data": {
+        "secret_id": "s",
+        "replication": {
+          "provider": "gcp-secret-manager",
+          "mode": "automatic"
+        }
+      }
+    },
+    {
+      "name": "RuntimeServiceSecret.typed-replication-with-location",
+      "pointer": "#/$defs/RuntimeServiceSecret",
+      "accepted": false,
+      "data": {
+        "secret_id": "s",
+        "location": "us-east1",
+        "replication": {
+          "provider": "gcp-secret-manager",
+          "mode": "automatic"
+        }
+      }
+    },
+    {
+      "name": "RuntimeServiceSecret.typed-replication-with-replica-locations",
+      "pointer": "#/$defs/RuntimeServiceSecret",
+      "accepted": false,
+      "data": {
+        "secret_id": "s",
+        "replica_locations": [
+          "us-east1"
+        ],
+        "replication": {
+          "provider": "gcp-secret-manager",
+          "mode": "automatic"
+        }
+      }
+    },
+    {
+      "name": "RuntimeServiceSecret.typed-replication-with-encryption-key",
+      "pointer": "#/$defs/RuntimeServiceSecret",
+      "accepted": false,
+      "data": {
+        "secret_id": "s",
+        "encryption_key_ref": "k",
+        "replication": {
+          "provider": "gcp-secret-manager",
+          "mode": "automatic"
+        }
+      }
     }
   ]
 }

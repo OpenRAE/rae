@@ -38,6 +38,8 @@ var experimentFactoryJSON = map[string]string{ //nolint:gochecknoglobals // Fixe
 	termExperimentEvidenceRequirementRelationModel: `{"provenance_refs":[],"refinement_dimensions":[]}`,
 	"ExperimentExecutionAccountingModel":           `{"participant_configurations":[]}`,
 	"ExperimentFactorLevelEffectsModel":            `{"bindings":[],"selections":[]}`,
+	"ExperimentFactorialDesignModel":               `{"excluded_combinations":[]}`,
+	"ExperimentFactorialTreatmentDesignModel":      `{"excluded_combinations":[]}`,
 	"ExperimentRunAllocationPlanModel":             `{"blocking_factors":[]}`,
 	modelExperimentRun:                             `{"augmentation_disclosures":[],"derived_from_refs":[],"deviations":[],"evidence_artifacts":[],"evidence_requirement_relations":[],"generated_refs":[],"materialization_attestations":[],"parameter_set":[],"realized_bindings":[],"realized_form_disclosures":[],"realized_selections":[],"result_summaries":{},"stochastic_controls":[],"stochastic_draws":[],"used_refs":[],"validation_basis_disclosures":[]}`,
 	modelExperimentRunPlan:                         `{"evidence_requirement_relations":[],"red_variant_selections":{},"selection_policies":{},"stochastic_controls":[]}`,

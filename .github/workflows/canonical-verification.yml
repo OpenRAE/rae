@@ -818,6 +818,18 @@ jobs:
           uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_sdl_constructors.py --runtime-constructors --check
           uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_contract_seals.py --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_capability_authority.py --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_experiment_factories.py --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_experiment_projections.py --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_trial_references.py --check
+          uv run --project implementations/python --frozen --no-default-groups python \
+            tools/parity_model_references.py --check
+          uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_authoring_vectors.py --check
           uv run --project implementations/python --frozen --no-default-groups python \
             tools/parity_authoring_vectors.py --selection --check

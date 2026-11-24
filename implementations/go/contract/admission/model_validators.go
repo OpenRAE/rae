@@ -189,7 +189,10 @@ func definitionRules() map[string]func(any) error {
 		"RuntimeSecretVersion": func(v any) error {
 			return require(stringAt(v, "state") != "destroyed" || stringAt(v, "payload_content_ref") == "")
 		},
-		"RuntimeServiceSecret":                         sdlServiceSecret,
+		"RuntimeServiceSecret": sdlServiceSecret,
+		"RuntimeSecretReplica": func(v any) error {
+			return require(keyLocationMatches(at(v, "kms_key_name"), stringAt(v, "location")))
+		},
 		"RuntimeIdentityAccessObservation":             sdlAccessObservation,
 		"RuntimeIdentityPermissionBinding":             sdlPermissionBinding,
 		"RuntimeIdentityResourceAccess":                sdlIdentityResourceAccess,
