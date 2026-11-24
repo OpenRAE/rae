@@ -1,18 +1,18 @@
 {
   "sources": {
     "implementations/python/packages/raes_runtime/runtime_record_assembly.py": "8bbd713012a70b8fa92464b0356e23068848f01592bcf32561f3b1e84a95d646",
-    "implementations/python/packages/raes_processor/trial_compiler/replacement.py": "ca7c8bba737179d907bf89a92da98179b135b99f7a6b2a57492b378419e349c0"
+    "implementations/python/packages/raes_processor/trial_compiler/replacement.py": "1fd9149e3db09abf53c323cfb4301ffc97ee2d9ff2456c2611b35f01fa920c74"
   },
   "child_case": {
     "name": "replacement-child",
     "attempts": [
       {
         "schema_version": "runtime-trial-attempt/v1",
-        "experiment_id": "trial-plan-984f620063a764e11756842ddd6a4980a6150f056874b0c316718af18cfcf81a",
-        "plan_entry_id": "trial-entry-2531f1e44320e4294c25fa3dbb54cca2ba2cb0ca70d23bc1c7a89f6787123b57",
-        "run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+        "experiment_id": "trial-plan-5e9936aed61b352a352424caea7bfe95531e0145c102c7218fa105c34aa0988a",
+        "plan_entry_id": "trial-entry-bdeae9adbbeaf239de515d1838a56cee2fed92d285e849f841ecd73ee99fc55f",
+        "run_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
         "attempt": 1,
-        "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+        "execution_attempt_id": "attempt:da56095c-a58d-5700-9525-31ff93a077ec",
         "started_at": "2026-11-15T10:00:00+00:00",
         "deadline": "2026-11-15T10:10:00+00:00"
       }
@@ -20,7 +20,7 @@
     "observations": [
       {
         "schema_version": "runtime-trial-observation/v1",
-        "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+        "execution_attempt_id": "attempt:da56095c-a58d-5700-9525-31ff93a077ec",
         "observation": {
           "kind": "capture",
           "complete": true,
@@ -38,7 +38,7 @@
               "output_contract": "participant-behavior-history-event-stream-v1",
               "run_ref": {
                 "ref_kind": "run",
-                "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+                "ref_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
                 "ref_version": "1",
                 "ref_digest": null,
                 "ref_path": null
@@ -92,16 +92,16 @@
       },
       {
         "schema_version": "runtime-trial-observation/v1",
-        "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+        "execution_attempt_id": "attempt:da56095c-a58d-5700-9525-31ff93a077ec",
         "observation": {
           "kind": "cleanup",
           "receipt": {
             "schema_version": "trial-cleanup-receipt/v1",
-            "receipt_id": "cleanup:attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
-            "cleanup_plan_ref": "trial-cleanup-2777b6cb3929eb169a5eaca0077a0d139f0b72a5d0c2271c835073249384ea50",
-            "plan_entry_id": "trial-entry-2531f1e44320e4294c25fa3dbb54cca2ba2cb0ca70d23bc1c7a89f6787123b57",
-            "run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
-            "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+            "receipt_id": "cleanup:attempt:da56095c-a58d-5700-9525-31ff93a077ec",
+            "cleanup_plan_ref": "trial-cleanup-9814002db0477cc18f6f17a16c617b87e10ff4a2f2ed49d4729f004d45caa539",
+            "plan_entry_id": "trial-entry-bdeae9adbbeaf239de515d1838a56cee2fed92d285e849f841ecd73ee99fc55f",
+            "run_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
+            "execution_attempt_id": "attempt:da56095c-a58d-5700-9525-31ff93a077ec",
             "trial_outcome": "failed",
             "cleanup_status": "succeeded",
             "obligation_results": {
@@ -138,7 +138,7 @@
               "output_contract": "participant-behavior-history-event-stream-v1",
               "run_ref": {
                 "ref_kind": "run",
-                "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+                "ref_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
                 "ref_version": "1",
                 "ref_digest": null,
                 "ref_path": null
@@ -198,7 +198,7 @@
               "output_contract": "participant-behavior-history-event-stream-v1",
               "run_ref": {
                 "ref_kind": "run",
-                "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+                "ref_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
                 "ref_version": "1",
                 "ref_digest": null,
                 "ref_path": null
@@ -254,7 +254,7 @@
       },
       {
         "schema_version": "runtime-trial-observation/v1",
-        "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+        "execution_attempt_id": "attempt:da56095c-a58d-5700-9525-31ff93a077ec",
         "observation": {
           "kind": "configuration",
           "configurations": [],
@@ -265,7 +265,7 @@
       },
       {
         "schema_version": "runtime-trial-observation/v1",
-        "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+        "execution_attempt_id": "attempt:da56095c-a58d-5700-9525-31ff93a077ec",
         "observation": {
           "kind": "execution",
           "state": "failed",
@@ -442,7 +442,7 @@
       },
       "participant_implementation_provenance": {
         "schema_version": "participant-implementation-provenance/v1",
-        "run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+        "run_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
         "participant_implementations": [
           {
             "participant_address": "participants.red",
@@ -548,13 +548,13 @@
     "run": {
       "schema_version": "experiment-run/v1",
       "execution_accounting": {
-        "plan_id": "replacement-plan-78a852879eb51074f832b32038141f10f3bb38c38b07c3241dc9b25f5ae4cc4a",
-        "plan_digest": "sha256:229f0ed33cb7fdf464ffe670b86356e1c93f14ceb6568afbac912e50a680184c",
-        "plan_entry_id": "trial-entry-2531f1e44320e4294c25fa3dbb54cca2ba2cb0ca70d23bc1c7a89f6787123b57",
-        "entry_digest": "sha256:fe88878d9d6dd23ab6dd51853cbd8f5874566392efe5198ca941631dbe7c3298",
+        "plan_id": "replacement-plan-b0def32d8cdf88ef48008c493a117daf86b399b71f60e77e9800ac1fe3703097",
+        "plan_digest": "sha256:84338159f60bd13501e6e8dadedf21961818401726c8b307d6aca3e5ebe322d4",
+        "plan_entry_id": "trial-entry-bdeae9adbbeaf239de515d1838a56cee2fed92d285e849f841ecd73ee99fc55f",
+        "entry_digest": "sha256:c43b39826e4a252721907f8e521daa002aaea7d636fb086704f064f3e1d92960",
         "attempts": [
           {
-            "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+            "execution_attempt_id": "attempt:da56095c-a58d-5700-9525-31ff93a077ec",
             "attempt": 1,
             "started_at": "2026-11-15T10:00:00+00:00",
             "ended_at": "2026-11-15T10:00:01+00:00",
@@ -564,11 +564,11 @@
             "cleanup_status": "succeeded",
             "cleanup_receipt": {
               "schema_version": "trial-cleanup-receipt/v1",
-              "receipt_id": "cleanup:attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
-              "cleanup_plan_ref": "trial-cleanup-2777b6cb3929eb169a5eaca0077a0d139f0b72a5d0c2271c835073249384ea50",
-              "plan_entry_id": "trial-entry-2531f1e44320e4294c25fa3dbb54cca2ba2cb0ca70d23bc1c7a89f6787123b57",
-              "run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
-              "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+              "receipt_id": "cleanup:attempt:da56095c-a58d-5700-9525-31ff93a077ec",
+              "cleanup_plan_ref": "trial-cleanup-9814002db0477cc18f6f17a16c617b87e10ff4a2f2ed49d4729f004d45caa539",
+              "plan_entry_id": "trial-entry-bdeae9adbbeaf239de515d1838a56cee2fed92d285e849f841ecd73ee99fc55f",
+              "run_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
+              "execution_attempt_id": "attempt:da56095c-a58d-5700-9525-31ff93a077ec",
               "trial_outcome": "failed",
               "cleanup_status": "succeeded",
               "obligation_results": {
@@ -623,7 +623,7 @@
                 "output_contract": "participant-behavior-history-event-stream-v1",
                 "run_ref": {
                   "ref_kind": "run",
-                  "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+                  "ref_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
                   "ref_version": "1",
                   "ref_digest": null,
                   "ref_path": null
@@ -683,7 +683,7 @@
                 "output_contract": "participant-behavior-history-event-stream-v1",
                 "run_ref": {
                   "ref_kind": "run",
-                  "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+                  "ref_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
                   "ref_version": "1",
                   "ref_digest": null,
                   "ref_path": null
@@ -743,7 +743,7 @@
                 "output_contract": "participant-behavior-history-event-stream-v1",
                 "run_ref": {
                   "ref_kind": "run",
-                  "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+                  "ref_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
                   "ref_version": "1",
                   "ref_digest": null,
                   "ref_path": null
@@ -795,7 +795,7 @@
         ],
         "participant_configurations": []
       },
-      "run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+      "run_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
       "run_version": "1",
       "task_ref": {
         "ref_kind": "task",
@@ -806,29 +806,29 @@
         "ref_kind": "scenario-snapshot",
         "ref_id": "compiler-family",
         "ref_version": "raes-sdl-instantiated-snapshot/v2",
-        "ref_digest": "sha256:01385a644e73e38bcfbd1ae1a25fb39aac32864b0be2d69c9f155145265ec87d",
+        "ref_digest": "sha256:201db8170b24339f927b6edb3d887aace89db899e9585ec704d438b81727f78d",
         "ref_path": null
       },
       "trial_provenance": {
-        "plan_id": "replacement-plan-78a852879eb51074f832b32038141f10f3bb38c38b07c3241dc9b25f5ae4cc4a",
-        "plan_digest": "sha256:229f0ed33cb7fdf464ffe670b86356e1c93f14ceb6568afbac912e50a680184c",
-        "plan_entry_id": "trial-entry-2531f1e44320e4294c25fa3dbb54cca2ba2cb0ca70d23bc1c7a89f6787123b57",
-        "entry_digest": "sha256:fe88878d9d6dd23ab6dd51853cbd8f5874566392efe5198ca941631dbe7c3298",
-        "admitted_run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+        "plan_id": "replacement-plan-b0def32d8cdf88ef48008c493a117daf86b399b71f60e77e9800ac1fe3703097",
+        "plan_digest": "sha256:84338159f60bd13501e6e8dadedf21961818401726c8b307d6aca3e5ebe322d4",
+        "plan_entry_id": "trial-entry-bdeae9adbbeaf239de515d1838a56cee2fed92d285e849f841ecd73ee99fc55f",
+        "entry_digest": "sha256:c43b39826e4a252721907f8e521daa002aaea7d636fb086704f064f3e1d92960",
+        "admitted_run_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
         "coordinate": {
           "condition_id": null,
           "block_id": null,
           "replicate_id": "replicate-000003"
         },
-        "instantiated_scenario_digest": "sha256:01385a644e73e38bcfbd1ae1a25fb39aac32864b0be2d69c9f155145265ec87d",
+        "instantiated_scenario_digest": "sha256:201db8170b24339f927b6edb3d887aace89db899e9585ec704d438b81727f78d",
         "processor_plan_refs": [
           {
             "plan_kind": "provisioning",
             "artifact_ref": {
               "ref_kind": "other",
-              "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9:provisioning",
+              "ref_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57:provisioning",
               "ref_version": "provisioning-plan-v1",
-              "ref_digest": "sha256:4d84caf5d07d971ac83f65eeb79f8c83c4ba0d144d52978f23e0a153816c4700",
+              "ref_digest": "sha256:e2ffe6339b842ca5b181deea7dae40597ae9b97d929684c084189be21dc378ef",
               "ref_path": null
             }
           },
@@ -836,7 +836,7 @@
             "plan_kind": "orchestration",
             "artifact_ref": {
               "ref_kind": "other",
-              "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9:orchestration",
+              "ref_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57:orchestration",
               "ref_version": "orchestration-plan-v1",
               "ref_digest": "sha256:d126d54f7b380d788b1fce28ebb28344a68f92b376ab673f36eed837fe3afa12",
               "ref_path": null
@@ -846,21 +846,21 @@
             "plan_kind": "evaluation",
             "artifact_ref": {
               "ref_kind": "other",
-              "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9:evaluation",
+              "ref_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57:evaluation",
               "ref_version": "evaluation-plan-v1",
-              "ref_digest": "sha256:17129719feab06b09d8d9f3434bf80364c3ab2dd9ddb0ecfc91a3dbb40d72a3d",
+              "ref_digest": "sha256:9e22dbf3f4f5801305ee5fe0f5664010520962eaf1741a05a09d91d927549a17",
               "ref_path": null
             }
           }
         ],
         "execution_attempts": [
           {
-            "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
-            "cleanup_receipt_ref": "cleanup:attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+            "execution_attempt_id": "attempt:da56095c-a58d-5700-9525-31ff93a077ec",
+            "cleanup_receipt_ref": "cleanup:attempt:da56095c-a58d-5700-9525-31ff93a077ec",
             "operation_refs": []
           }
         ],
-        "terminal_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23"
+        "terminal_attempt_id": "attempt:da56095c-a58d-5700-9525-31ff93a077ec"
       },
       "difficulty_provenance": null,
       "apparatus_context": {
@@ -1025,7 +1025,7 @@
       },
       "participant_implementation_provenance": {
         "schema_version": "participant-implementation-provenance/v1",
-        "run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+        "run_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
         "participant_implementations": [
           {
             "participant_address": "participants.red",
@@ -1198,7 +1198,7 @@
   },
   "second_child": {
     "schema_version": "admitted-trial-plan/v1",
-    "plan_id": "replacement-plan-9ceca3126b6ab203c224652968d4cf2ef76fa1433f3aa486a46ca58d24c5bf7e",
+    "plan_id": "replacement-plan-8f7aa70745d8d5243e3697d35ffde20b4284703165d90168b274a27a8af0fe0c",
     "profiles": {
       "coordinate_profile": "trial-coordinate-v1",
       "entry_identity_profile": "trial-entry-identity-v1",
@@ -1209,8 +1209,7 @@
       "selection_policy_profile": "experiment-selection-v1",
       "random_stream_profile": "blake3-xof-v1",
       "execution_control_profile": "attempt-control-v1",
-      "cleanup_profile": "trial-cleanup-v1",
-      "isolation_profile": "scheduler-isolation-v1"
+      "cleanup_profile": "trial-cleanup-v1"
     },
     "input_refs": {
       "authoring_input_ref": {
@@ -1269,11 +1268,11 @@
       }
     },
     "cleanup_plans": {
-      "trial-cleanup-18b3d2d0648fb56ba5259dfffc7cd899d205f3629fdc14460333b2caf7ca4b97": {
+      "trial-cleanup-21a9fa27168c11520f629dc138a38a59ffeffbbccaf6ed0f1d909d251773bb9e": {
         "schema_version": "trial-cleanup-plan/v1",
-        "plan_id": "trial-cleanup-18b3d2d0648fb56ba5259dfffc7cd899d205f3629fdc14460333b2caf7ca4b97",
-        "plan_entry_id": "trial-entry-47b528a0e86dfb9acfa0d6cddeb93c8b468e13e6ef1323a748fcda3071d70b75",
-        "run_id": "archival-run-b8bd3a3ee2dd84ae989cdc7e5db93969c705a27dad1696941a33ffc7b01789ff",
+        "plan_id": "trial-cleanup-21a9fa27168c11520f629dc138a38a59ffeffbbccaf6ed0f1d909d251773bb9e",
+        "plan_entry_id": "trial-entry-bca794b1a3c33b60e7a6e9bd4cef6ccbbcdcae0bbcbfe9e9a827b7ed76d0f4c6",
+        "run_id": "archival-run-548f2cbeb7880e8f438c0a85e17d00d07d9d3290339060004bc77d3962bb853f",
         "clean_state": {
           "mode": "fresh",
           "boundary_refs": [
@@ -1327,7 +1326,6 @@
         }
       }
     },
-    "isolation_proof": null,
     "replacement_policy": {
       "schema_version": "trial-replacement-policy/v1",
       "max_replacements": 2,
@@ -1336,27 +1334,27 @@
       ]
     },
     "replacement_origin": {
-      "root_plan_id": "trial-plan-984f620063a764e11756842ddd6a4980a6150f056874b0c316718af18cfcf81a",
-      "root_plan_digest": "sha256:0610be24a2f66c156304cc9a4acbb988747ccd5b5bd39dd76c4f803f2655eda6",
-      "root_entry_id": "trial-entry-216fee6652749ac47bf4825c2c159fe3185639b64206a3ec55a804c613aac517",
+      "root_plan_id": "trial-plan-5e9936aed61b352a352424caea7bfe95531e0145c102c7218fa105c34aa0988a",
+      "root_plan_digest": "sha256:c0f826f125471f1d8b8faf441b0f6d9d8336d22c024cd6676f0da1560e595926",
+      "root_entry_id": "trial-entry-f70901891758aaa3210908956179b940fce9d432be83978019a0ef30d4f13460",
       "ordinal": 2,
-      "parent_plan_id": "replacement-plan-78a852879eb51074f832b32038141f10f3bb38c38b07c3241dc9b25f5ae4cc4a",
-      "parent_plan_digest": "sha256:229f0ed33cb7fdf464ffe670b86356e1c93f14ceb6568afbac912e50a680184c",
-      "parent_entry_id": "trial-entry-2531f1e44320e4294c25fa3dbb54cca2ba2cb0ca70d23bc1c7a89f6787123b57",
-      "parent_run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+      "parent_plan_id": "replacement-plan-b0def32d8cdf88ef48008c493a117daf86b399b71f60e77e9800ac1fe3703097",
+      "parent_plan_digest": "sha256:84338159f60bd13501e6e8dadedf21961818401726c8b307d6aca3e5ebe322d4",
+      "parent_entry_id": "trial-entry-bdeae9adbbeaf239de515d1838a56cee2fed92d285e849f841ecd73ee99fc55f",
+      "parent_run_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
       "parent_run_version": "1",
-      "parent_run_digest": "sha256:ef8119c8f70d32496c0f9553940dc0423205597ecf321e1cd9643ce94b7a3a08",
-      "cleanup_receipt_ref": "cleanup:attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23"
+      "parent_run_digest": "sha256:249d631a6b9616ded17999bb6ae0eeb2901ceec2ad0e582f9b8417e7c0c9bf79",
+      "cleanup_receipt_ref": "cleanup:attempt:da56095c-a58d-5700-9525-31ff93a077ec"
     },
     "entries": {
-      "trial-entry-47b528a0e86dfb9acfa0d6cddeb93c8b468e13e6ef1323a748fcda3071d70b75": {
-        "plan_entry_id": "trial-entry-47b528a0e86dfb9acfa0d6cddeb93c8b468e13e6ef1323a748fcda3071d70b75",
+      "trial-entry-bca794b1a3c33b60e7a6e9bd4cef6ccbbcdcae0bbcbfe9e9a827b7ed76d0f4c6": {
+        "plan_entry_id": "trial-entry-bca794b1a3c33b60e7a6e9bd4cef6ccbbcdcae0bbcbfe9e9a827b7ed76d0f4c6",
         "coordinate": {
           "condition_id": null,
           "block_id": null,
           "replicate_id": "replicate-000004"
         },
-        "run_id": "archival-run-b8bd3a3ee2dd84ae989cdc7e5db93969c705a27dad1696941a33ffc7b01789ff",
+        "run_id": "archival-run-548f2cbeb7880e8f438c0a85e17d00d07d9d3290339060004bc77d3962bb853f",
         "selections": [
           {
             "variation_point_id": "payload-path",
@@ -1442,15 +1440,15 @@
           "attempt_timeout_seconds": 600,
           "on_timeout": "cleanup-and-fail",
           "on_cancellation": "cleanup-and-fail",
-          "cleanup_plan_ref": "trial-cleanup-18b3d2d0648fb56ba5259dfffc7cd899d205f3629fdc14460333b2caf7ca4b97"
+          "cleanup_plan_ref": "trial-cleanup-21a9fa27168c11520f629dc138a38a59ffeffbbccaf6ed0f1d909d251773bb9e"
         },
         "instantiation_provenance": {
-          "plan_id": "replacement-plan-9ceca3126b6ab203c224652968d4cf2ef76fa1433f3aa486a46ca58d24c5bf7e",
-          "plan_entry_id": "trial-entry-47b528a0e86dfb9acfa0d6cddeb93c8b468e13e6ef1323a748fcda3071d70b75",
-          "run_id": "archival-run-b8bd3a3ee2dd84ae989cdc7e5db93969c705a27dad1696941a33ffc7b01789ff",
+          "plan_id": "replacement-plan-8f7aa70745d8d5243e3697d35ffde20b4284703165d90168b274a27a8af0fe0c",
+          "plan_entry_id": "trial-entry-bca794b1a3c33b60e7a6e9bd4cef6ccbbcdcae0bbcbfe9e9a827b7ed76d0f4c6",
+          "run_id": "archival-run-548f2cbeb7880e8f438c0a85e17d00d07d9d3290339060004bc77d3962bb853f",
           "scenario_family_id": "compiler-family"
         },
-        "entry_digest": "sha256:d31b4dcecc3a38405723255fe90ae479c7948f0bbadf4cfc3c792359a228cdd8"
+        "entry_digest": "sha256:523156a9714e231f44d6279cb7ddde0c8303128019c5df5e1dbc223d8ff836e3"
       }
     },
     "admission": {
@@ -1459,18 +1457,18 @@
       "limitations": [],
       "diagnostics": []
     },
-    "plan_digest": "sha256:7ec2c4259eee10ee41df1c66519b430c9cc664448aa35448ace9d2cf98bee3cd"
+    "plan_digest": "sha256:ac2b9d9785c96cbbfe255a886ad26253a3219e58f6bb7412d26bb9a797b182fb"
   },
   "second_superseded_run": {
     "schema_version": "experiment-run/v1",
     "execution_accounting": {
-      "plan_id": "replacement-plan-78a852879eb51074f832b32038141f10f3bb38c38b07c3241dc9b25f5ae4cc4a",
-      "plan_digest": "sha256:229f0ed33cb7fdf464ffe670b86356e1c93f14ceb6568afbac912e50a680184c",
-      "plan_entry_id": "trial-entry-2531f1e44320e4294c25fa3dbb54cca2ba2cb0ca70d23bc1c7a89f6787123b57",
-      "entry_digest": "sha256:fe88878d9d6dd23ab6dd51853cbd8f5874566392efe5198ca941631dbe7c3298",
+      "plan_id": "replacement-plan-b0def32d8cdf88ef48008c493a117daf86b399b71f60e77e9800ac1fe3703097",
+      "plan_digest": "sha256:84338159f60bd13501e6e8dadedf21961818401726c8b307d6aca3e5ebe322d4",
+      "plan_entry_id": "trial-entry-bdeae9adbbeaf239de515d1838a56cee2fed92d285e849f841ecd73ee99fc55f",
+      "entry_digest": "sha256:c43b39826e4a252721907f8e521daa002aaea7d636fb086704f064f3e1d92960",
       "attempts": [
         {
-          "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+          "execution_attempt_id": "attempt:da56095c-a58d-5700-9525-31ff93a077ec",
           "attempt": 1,
           "started_at": "2026-11-15T10:00:00+00:00",
           "ended_at": "2026-11-15T10:00:01+00:00",
@@ -1480,11 +1478,11 @@
           "cleanup_status": "succeeded",
           "cleanup_receipt": {
             "schema_version": "trial-cleanup-receipt/v1",
-            "receipt_id": "cleanup:attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
-            "cleanup_plan_ref": "trial-cleanup-2777b6cb3929eb169a5eaca0077a0d139f0b72a5d0c2271c835073249384ea50",
-            "plan_entry_id": "trial-entry-2531f1e44320e4294c25fa3dbb54cca2ba2cb0ca70d23bc1c7a89f6787123b57",
-            "run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
-            "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+            "receipt_id": "cleanup:attempt:da56095c-a58d-5700-9525-31ff93a077ec",
+            "cleanup_plan_ref": "trial-cleanup-9814002db0477cc18f6f17a16c617b87e10ff4a2f2ed49d4729f004d45caa539",
+            "plan_entry_id": "trial-entry-bdeae9adbbeaf239de515d1838a56cee2fed92d285e849f841ecd73ee99fc55f",
+            "run_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
+            "execution_attempt_id": "attempt:da56095c-a58d-5700-9525-31ff93a077ec",
             "trial_outcome": "failed",
             "cleanup_status": "succeeded",
             "obligation_results": {
@@ -1539,7 +1537,7 @@
               "output_contract": "participant-behavior-history-event-stream-v1",
               "run_ref": {
                 "ref_kind": "run",
-                "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+                "ref_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
                 "ref_version": "1",
                 "ref_digest": null,
                 "ref_path": null
@@ -1599,7 +1597,7 @@
               "output_contract": "participant-behavior-history-event-stream-v1",
               "run_ref": {
                 "ref_kind": "run",
-                "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+                "ref_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
                 "ref_version": "1",
                 "ref_digest": null,
                 "ref_path": null
@@ -1659,7 +1657,7 @@
               "output_contract": "participant-behavior-history-event-stream-v1",
               "run_ref": {
                 "ref_kind": "run",
-                "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+                "ref_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
                 "ref_version": "1",
                 "ref_digest": null,
                 "ref_path": null
@@ -1711,7 +1709,7 @@
       ],
       "participant_configurations": []
     },
-    "run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+    "run_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
     "run_version": "1.superseded-2",
     "task_ref": {
       "ref_kind": "task",
@@ -1722,29 +1720,29 @@
       "ref_kind": "scenario-snapshot",
       "ref_id": "compiler-family",
       "ref_version": "raes-sdl-instantiated-snapshot/v2",
-      "ref_digest": "sha256:01385a644e73e38bcfbd1ae1a25fb39aac32864b0be2d69c9f155145265ec87d",
+      "ref_digest": "sha256:201db8170b24339f927b6edb3d887aace89db899e9585ec704d438b81727f78d",
       "ref_path": null
     },
     "trial_provenance": {
-      "plan_id": "replacement-plan-78a852879eb51074f832b32038141f10f3bb38c38b07c3241dc9b25f5ae4cc4a",
-      "plan_digest": "sha256:229f0ed33cb7fdf464ffe670b86356e1c93f14ceb6568afbac912e50a680184c",
-      "plan_entry_id": "trial-entry-2531f1e44320e4294c25fa3dbb54cca2ba2cb0ca70d23bc1c7a89f6787123b57",
-      "entry_digest": "sha256:fe88878d9d6dd23ab6dd51853cbd8f5874566392efe5198ca941631dbe7c3298",
-      "admitted_run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+      "plan_id": "replacement-plan-b0def32d8cdf88ef48008c493a117daf86b399b71f60e77e9800ac1fe3703097",
+      "plan_digest": "sha256:84338159f60bd13501e6e8dadedf21961818401726c8b307d6aca3e5ebe322d4",
+      "plan_entry_id": "trial-entry-bdeae9adbbeaf239de515d1838a56cee2fed92d285e849f841ecd73ee99fc55f",
+      "entry_digest": "sha256:c43b39826e4a252721907f8e521daa002aaea7d636fb086704f064f3e1d92960",
+      "admitted_run_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
       "coordinate": {
         "condition_id": null,
         "block_id": null,
         "replicate_id": "replicate-000003"
       },
-      "instantiated_scenario_digest": "sha256:01385a644e73e38bcfbd1ae1a25fb39aac32864b0be2d69c9f155145265ec87d",
+      "instantiated_scenario_digest": "sha256:201db8170b24339f927b6edb3d887aace89db899e9585ec704d438b81727f78d",
       "processor_plan_refs": [
         {
           "plan_kind": "provisioning",
           "artifact_ref": {
             "ref_kind": "other",
-            "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9:provisioning",
+            "ref_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57:provisioning",
             "ref_version": "provisioning-plan-v1",
-            "ref_digest": "sha256:4d84caf5d07d971ac83f65eeb79f8c83c4ba0d144d52978f23e0a153816c4700",
+            "ref_digest": "sha256:e2ffe6339b842ca5b181deea7dae40597ae9b97d929684c084189be21dc378ef",
             "ref_path": null
           }
         },
@@ -1752,7 +1750,7 @@
           "plan_kind": "orchestration",
           "artifact_ref": {
             "ref_kind": "other",
-            "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9:orchestration",
+            "ref_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57:orchestration",
             "ref_version": "orchestration-plan-v1",
             "ref_digest": "sha256:d126d54f7b380d788b1fce28ebb28344a68f92b376ab673f36eed837fe3afa12",
             "ref_path": null
@@ -1762,21 +1760,21 @@
           "plan_kind": "evaluation",
           "artifact_ref": {
             "ref_kind": "other",
-            "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9:evaluation",
+            "ref_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57:evaluation",
             "ref_version": "evaluation-plan-v1",
-            "ref_digest": "sha256:17129719feab06b09d8d9f3434bf80364c3ab2dd9ddb0ecfc91a3dbb40d72a3d",
+            "ref_digest": "sha256:9e22dbf3f4f5801305ee5fe0f5664010520962eaf1741a05a09d91d927549a17",
             "ref_path": null
           }
         }
       ],
       "execution_attempts": [
         {
-          "execution_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
-          "cleanup_receipt_ref": "cleanup:attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23",
+          "execution_attempt_id": "attempt:da56095c-a58d-5700-9525-31ff93a077ec",
+          "cleanup_receipt_ref": "cleanup:attempt:da56095c-a58d-5700-9525-31ff93a077ec",
           "operation_refs": []
         }
       ],
-      "terminal_attempt_id": "attempt:c075c5c1-1b15-5089-ac6e-fa9d48bb9c23"
+      "terminal_attempt_id": "attempt:da56095c-a58d-5700-9525-31ff93a077ec"
     },
     "difficulty_provenance": null,
     "apparatus_context": {
@@ -1941,7 +1939,7 @@
     },
     "participant_implementation_provenance": {
       "schema_version": "participant-implementation-provenance/v1",
-      "run_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+      "run_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
       "participant_implementations": [
         {
           "participant_address": "participants.red",
@@ -2109,7 +2107,7 @@
       "reason": "failed trial replaced under the admitted experiment policy",
       "superseded_by": {
         "ref_kind": "run",
-        "ref_id": "archival-run-b8bd3a3ee2dd84ae989cdc7e5db93969c705a27dad1696941a33ffc7b01789ff",
+        "ref_id": "archival-run-548f2cbeb7880e8f438c0a85e17d00d07d9d3290339060004bc77d3962bb853f",
         "ref_version": "1",
         "ref_digest": null,
         "ref_path": null
@@ -2120,7 +2118,7 @@
     "derived_from_refs": [
       {
         "ref_kind": "run",
-        "ref_id": "archival-run-a5de071da7a370515937ed786d4ee88b7db81df3bcedb6eb7916fb9310cb40f9",
+        "ref_id": "archival-run-0b7c7c5ad26c5a26ce38d8588acb4936f81c6204fa70f3ab3a08bc8bb63c7c57",
         "ref_version": "1",
         "ref_digest": null,
         "ref_path": null

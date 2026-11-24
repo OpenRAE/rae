@@ -272,16 +272,22 @@ func TestRuntimeCompletesAllEntriesAndRetainsCleanup(t *testing.T) {
 	}
 }
 func TestRuntimeAttemptIdentityMatchesReference(t *testing.T) {
-	want := "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e"
+	reference := recordReferences(t)
+	var first struct {
+		ExecutionAttemptID string `json:"execution_attempt_id"`
+	}
+	if json.Unmarshal(reference.Cases[0].Attempts[0], &first) != nil {
+		t.Fatal("bad attempt")
+	}
 	input := runtimeInputs(t)
 	view, _ := transportView(input.Plan)
 	schedule, err := trial.PlanBatchSchedule(input.Plan)
-	if err != nil {
-		t.Fatal(err)
+	if err != nil || schedule.Entries[0].PlanEntryID != reference.EntryID {
+		t.Fatal("reference entry is not first in dispatch order", err)
 	}
-	got := attemptID(text(view, termPlanID), schedule.Entries[0].PlanEntryID, 1)
-	if got != want {
-		t.Fatal(got, want)
+	got := attemptID(text(view, termPlanID), reference.EntryID, 1)
+	if got != first.ExecutionAttemptID {
+		t.Fatal(got, first.ExecutionAttemptID)
 	}
 }
 

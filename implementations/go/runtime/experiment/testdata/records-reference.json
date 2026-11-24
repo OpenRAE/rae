@@ -5,7 +5,7 @@
   ],
   "plan": {
     "schema_version": "admitted-trial-plan/v1",
-    "plan_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
+    "plan_id": "trial-plan-d8d00c2300be5f99e0cc64dbe27242aed4294be1bae5fd88bbae90aa3d886853",
     "profiles": {
       "coordinate_profile": "trial-coordinate-v1",
       "entry_identity_profile": "trial-entry-identity-v1",
@@ -16,8 +16,7 @@
       "selection_policy_profile": "experiment-selection-v1",
       "random_stream_profile": "blake3-xof-v1",
       "execution_control_profile": "attempt-control-v1",
-      "cleanup_profile": "trial-cleanup-v1",
-      "isolation_profile": "scheduler-isolation-v1"
+      "cleanup_profile": "trial-cleanup-v1"
     },
     "input_refs": {
       "authoring_input_ref": {
@@ -76,11 +75,11 @@
       }
     },
     "cleanup_plans": {
-      "trial-cleanup-f48fed6078cb1bc1a5de107987cd59423f43cdd6f9549c89f5fa9346f2873227": {
+      "trial-cleanup-783606b6a5e795dd51ce39103fa9ac7defe12e318be2940f3cfd733a61e9eac1": {
         "schema_version": "trial-cleanup-plan/v1",
-        "plan_id": "trial-cleanup-f48fed6078cb1bc1a5de107987cd59423f43cdd6f9549c89f5fa9346f2873227",
-        "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-        "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+        "plan_id": "trial-cleanup-783606b6a5e795dd51ce39103fa9ac7defe12e318be2940f3cfd733a61e9eac1",
+        "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+        "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
         "clean_state": {
           "mode": "fresh",
           "boundary_refs": [
@@ -133,11 +132,11 @@
           "compensation_refs": []
         }
       },
-      "trial-cleanup-df8203d7658ace60311e0670db52efc59ceb1e947d663be7bbc7a922b012073c": {
+      "trial-cleanup-978d87cef9172db457b2679af60c1b22383d629e25ca5ad784b7cd4c03e5b6c6": {
         "schema_version": "trial-cleanup-plan/v1",
-        "plan_id": "trial-cleanup-df8203d7658ace60311e0670db52efc59ceb1e947d663be7bbc7a922b012073c",
-        "plan_entry_id": "trial-entry-ba1e7d343dc12cc051c9a4608d95e2aa209e916687a1a0f8a824f01d78ea332d",
-        "run_id": "archival-run-cb7d74060229d9330b0150cd8649e62f45d8a215b772bf4c5d20da211590e4be",
+        "plan_id": "trial-cleanup-978d87cef9172db457b2679af60c1b22383d629e25ca5ad784b7cd4c03e5b6c6",
+        "plan_entry_id": "trial-entry-c379df3a9efdc1441f70571215abd02a20bb5b514375a5f9a89f442b5b49a217",
+        "run_id": "archival-run-e5ab83abfd9724f83c73c6befb860a7807a06239b9e118d911b9942aded7b6e7",
         "clean_state": {
           "mode": "fresh",
           "boundary_refs": [
@@ -191,16 +190,15 @@
         }
       }
     },
-    "isolation_proof": null,
     "entries": {
-      "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721": {
-        "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
+      "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f": {
+        "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
         "coordinate": {
           "condition_id": null,
           "block_id": null,
           "replicate_id": "replicate-000001"
         },
-        "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+        "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
         "selections": [
           {
             "variation_point_id": "payload-path",
@@ -286,24 +284,24 @@
           "attempt_timeout_seconds": 600,
           "on_timeout": "cleanup-and-fail",
           "on_cancellation": "cleanup-and-fail",
-          "cleanup_plan_ref": "trial-cleanup-f48fed6078cb1bc1a5de107987cd59423f43cdd6f9549c89f5fa9346f2873227"
+          "cleanup_plan_ref": "trial-cleanup-783606b6a5e795dd51ce39103fa9ac7defe12e318be2940f3cfd733a61e9eac1"
         },
         "instantiation_provenance": {
-          "plan_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
-          "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-          "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+          "plan_id": "trial-plan-d8d00c2300be5f99e0cc64dbe27242aed4294be1bae5fd88bbae90aa3d886853",
+          "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+          "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
           "scenario_family_id": "compiler-family"
         },
-        "entry_digest": "sha256:de82d3b777ffd0d4d7595e42c6cf23737eaaf0259dc256cd2bbd86aff9aa03c1"
+        "entry_digest": "sha256:4a08dad446bc2fd2d4af51a60d9fec0505b5e3bf1b15422f0100639387d517c1"
       },
-      "trial-entry-ba1e7d343dc12cc051c9a4608d95e2aa209e916687a1a0f8a824f01d78ea332d": {
-        "plan_entry_id": "trial-entry-ba1e7d343dc12cc051c9a4608d95e2aa209e916687a1a0f8a824f01d78ea332d",
+      "trial-entry-c379df3a9efdc1441f70571215abd02a20bb5b514375a5f9a89f442b5b49a217": {
+        "plan_entry_id": "trial-entry-c379df3a9efdc1441f70571215abd02a20bb5b514375a5f9a89f442b5b49a217",
         "coordinate": {
           "condition_id": null,
           "block_id": null,
           "replicate_id": "replicate-000002"
         },
-        "run_id": "archival-run-cb7d74060229d9330b0150cd8649e62f45d8a215b772bf4c5d20da211590e4be",
+        "run_id": "archival-run-e5ab83abfd9724f83c73c6befb860a7807a06239b9e118d911b9942aded7b6e7",
         "selections": [
           {
             "variation_point_id": "payload-path",
@@ -389,15 +387,15 @@
           "attempt_timeout_seconds": 600,
           "on_timeout": "cleanup-and-fail",
           "on_cancellation": "cleanup-and-fail",
-          "cleanup_plan_ref": "trial-cleanup-df8203d7658ace60311e0670db52efc59ceb1e947d663be7bbc7a922b012073c"
+          "cleanup_plan_ref": "trial-cleanup-978d87cef9172db457b2679af60c1b22383d629e25ca5ad784b7cd4c03e5b6c6"
         },
         "instantiation_provenance": {
-          "plan_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
-          "plan_entry_id": "trial-entry-ba1e7d343dc12cc051c9a4608d95e2aa209e916687a1a0f8a824f01d78ea332d",
-          "run_id": "archival-run-cb7d74060229d9330b0150cd8649e62f45d8a215b772bf4c5d20da211590e4be",
+          "plan_id": "trial-plan-d8d00c2300be5f99e0cc64dbe27242aed4294be1bae5fd88bbae90aa3d886853",
+          "plan_entry_id": "trial-entry-c379df3a9efdc1441f70571215abd02a20bb5b514375a5f9a89f442b5b49a217",
+          "run_id": "archival-run-e5ab83abfd9724f83c73c6befb860a7807a06239b9e118d911b9942aded7b6e7",
           "scenario_family_id": "compiler-family"
         },
-        "entry_digest": "sha256:35ed62457634bcf8a9d2f59affd77194ee371f38c090295a7b0c60f7e54428c9"
+        "entry_digest": "sha256:5155f8e722a5fc61b2fd7510998f671940ec0fca2b4e871dacd79d7718c334cd"
       }
     },
     "admission": {
@@ -406,3469 +404,20 @@
       "limitations": [],
       "diagnostics": []
     },
-    "plan_digest": "sha256:c681860c67250fc95612238e189ff0d1c082fa866989007b6b65e29dd52c8cbe"
+    "plan_digest": "sha256:b03f056f7dc617b734215df5ef4e5f8b37103f29501e2df412e58292b14b4a18"
   },
-  "entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-  "commitment": "sha256:2a6890ada0d2fb2e46a6164fe015d33776e76bf7228a759fedd712a8f4b3f06d",
-  "program": {
-    "domain": "raes.runtime.control-plane.composition-phase.exact-retry-proof/v1",
-    "request": {
-      "model": {
-        "scenario_name": "compiler-family",
-        "execution_policies": {},
-        "feature_templates": {},
-        "condition_templates": {},
-        "inject_templates": {},
-        "entity_specs": {},
-        "agent_specs": {},
-        "relationship_specs": {},
-        "time_model": {
-          "domains": [],
-          "clocks": [],
-          "mappings": [],
-          "progression_policies": [],
-          "constraints": []
-        },
-        "capability_constraints": [],
-        "capture_demands": [
-          {
-            "demand_id": "auth-log-evidence",
-            "address": "capture_specs.capture-techvault-evidence-v1.capture_requirements.auth-log-evidence",
-            "output_contract": "participant-behavior-history-event-stream-v1",
-            "field_selectors": [
-              "/0/action_contract_address"
-            ],
-            "artifact_roles": [
-              "observation"
-            ],
-            "media_types": [
-              "application/json"
-            ],
-            "capture_kind": "trace",
-            "source_classes": [],
-            "source_refs": [],
-            "scopes": [
-              "network"
-            ],
-            "scope_refs": [],
-            "channel_kinds": [],
-            "channel_refs": [
-              "evaluation-history-channel"
-            ],
-            "window_kinds": [
-              "run"
-            ],
-            "integrity_modes": [
-              "sha256-digest"
-            ],
-            "sensitivity": "internal",
-            "disclosure": "full",
-            "retention_policy_refs": [
-              "Retain raw evidence for the experiment review window."
-            ],
-            "export_policy": "not-required",
-            "redaction_policy": null,
-            "capture_spec_ref": "",
-            "capture_requirement_ref": ""
-          }
-        ],
-        "networks": {},
-        "node_deployments": {
-          "provision.node.primary": {
-            "address": "provision.node.primary",
-            "name": "primary",
-            "spec": {
-              "node": {
-                "type": "compute",
-                "description": "",
-                "source": null,
-                "resources": {
-                  "ram": 1073741824,
-                  "cpu": 1
-                },
-                "os": "linux",
-                "os_distribution": null,
-                "os_version": "",
-                "architecture": null,
-                "features": {},
-                "conditions": {},
-                "injects": {},
-                "roles": {},
-                "services": [],
-                "asset_value": null,
-                "endpoint_persona": null,
-                "runtime": null
-              },
-              "infrastructure": {}
-            },
-            "ordering_dependencies": [],
-            "refresh_dependencies": [],
-            "node_name": "primary",
-            "node_kind": "compute",
-            "os_family": "linux",
-            "os_distribution": "",
-            "os_version": "",
-            "architecture": "",
-            "count": null,
-            "network_namespace_target": "",
-            "domain_topology": null
-          }
-        },
-        "feature_bindings": {},
-        "propositions": {},
-        "assertions": {},
-        "condition_bindings": {},
-        "injects": {},
-        "inject_bindings": {},
-        "content_placements": {
-          "provision.content.payload": {
-            "address": "provision.content.payload",
-            "name": "payload",
-            "spec": {
-              "type": "file",
-              "description": "",
-              "target": "primary",
-              "path": "/opt/a",
-              "destination": "",
-              "text": null,
-              "source": null,
-              "format": "",
-              "items": [],
-              "sensitive": false,
-              "tags": [],
-              "service_materialization": null
-            },
-            "ordering_dependencies": [
-              "provision.node.primary"
-            ],
-            "refresh_dependencies": [
-              "provision.node.primary"
-            ],
-            "content_name": "payload",
-            "target_node": "primary",
-            "target_address": "provision.node.primary",
-            "service_materialization": null
-          }
-        },
-        "domain_controller_placements": {},
-        "account_placements": {},
-        "generated_artifacts": {},
-        "persistent_volumes": {},
-        "action_contracts": {},
-        "observation_boundaries": {},
-        "outcome_interpretation_rules": {},
-        "participant_behaviors": {},
-        "behavior_specifications": {},
-        "tool_affordances": {},
-        "participant_inject_deliveries": {},
-        "events": {},
-        "scripts": {},
-        "stories": {},
-        "workflows": {},
-        "objectives": {},
-        "diagnostics": [],
-        "realization_requirements": [
-          {
-            "field_path": "nodes.primary.realization.compute-substrate",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "compute-substrate",
-            "explicitness": "open",
-            "provenance": "author-declared",
-            "governing_scope": "#/nodes/primary",
-            "delegated": false,
-            "artifact_requirement": null,
-            "verification_scope": null,
-            "required_observation_strength": null,
-            "value_domain": null,
-            "constraint_provenance": "author-declared",
-            "value_constraints": [],
-            "process_resource_limits": [],
-            "structure": null,
-            "constraint_document": null,
-            "constraint_binding": null,
-            "structure_error": false,
-            "recursive_pending": false
-          },
-          {
-            "field_path": "nodes.primary.type",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "node-type",
-            "explicitness": "exact",
-            "provenance": "author-declared",
-            "governing_scope": "#/nodes/primary/type",
-            "delegated": false,
-            "artifact_requirement": null,
-            "verification_scope": null,
-            "required_observation_strength": null,
-            "value_domain": null,
-            "constraint_provenance": null,
-            "value_constraints": [],
-            "process_resource_limits": [],
-            "structure": null,
-            "constraint_document": {
-              "contract_id": "recursive-realization-constraint-v1",
-              "semantic_profile": "raes/node-type/v1",
-              "default_closure": {
-                "posture": "undefined"
-              },
-              "scopes": [],
-              "root": {
-                "presence": "required",
-                "origin": "author",
-                "kind": "literal",
-                "value": "compute"
-              },
-              "definitions": {}
-            },
-            "constraint_binding": "sha256:c05719378dbe6b888bd2e7a1956dc00d108dbe5778a8bf5fadf3c3861a778068",
-            "structure_error": false,
-            "recursive_pending": false
-          },
-          {
-            "field_path": "nodes.primary.os",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "os-family",
-            "explicitness": "exact",
-            "provenance": "author-declared",
-            "governing_scope": "#/nodes/primary/os",
-            "delegated": false,
-            "artifact_requirement": null,
-            "verification_scope": "presence",
-            "required_observation_strength": null,
-            "value_domain": null,
-            "constraint_provenance": null,
-            "value_constraints": [],
-            "process_resource_limits": [],
-            "structure": null,
-            "constraint_document": {
-              "contract_id": "recursive-realization-constraint-v1",
-              "semantic_profile": "raes/os-family/v1",
-              "default_closure": {
-                "posture": "undefined"
-              },
-              "scopes": [],
-              "root": {
-                "presence": "required",
-                "origin": "author",
-                "kind": "literal",
-                "value": "linux"
-              },
-              "definitions": {}
-            },
-            "constraint_binding": "sha256:fb35a1fb951547d7a2f77935809b7fdc8518f5008c1843e623da808c846d9b60",
-            "structure_error": false,
-            "recursive_pending": false
-          },
-          {
-            "field_path": "nodes.primary.os_distribution",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "os-distribution",
-            "explicitness": "exact",
-            "provenance": "author-declared",
-            "governing_scope": "#/nodes/primary/os_distribution",
-            "delegated": false,
-            "artifact_requirement": null,
-            "verification_scope": null,
-            "required_observation_strength": null,
-            "value_domain": null,
-            "constraint_provenance": null,
-            "value_constraints": [],
-            "process_resource_limits": [],
-            "structure": null,
-            "constraint_document": {
-              "contract_id": "recursive-realization-constraint-v1",
-              "semantic_profile": "raes/os-distribution/v1",
-              "default_closure": {
-                "posture": "undefined"
-              },
-              "scopes": [],
-              "root": {
-                "presence": "required",
-                "origin": "author",
-                "kind": "literal",
-                "value": null
-              },
-              "definitions": {}
-            },
-            "constraint_binding": "sha256:8f2e9afe5a2a05cfc3233f99bbdafdcb112ddbeba413a1967e03d05906aaba1d",
-            "structure_error": false,
-            "recursive_pending": false
-          },
-          {
-            "field_path": "nodes.primary.os_version",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "os-version",
-            "explicitness": "exact",
-            "provenance": "author-declared",
-            "governing_scope": "#/nodes/primary/os_version",
-            "delegated": false,
-            "artifact_requirement": null,
-            "verification_scope": null,
-            "required_observation_strength": null,
-            "value_domain": null,
-            "constraint_provenance": null,
-            "value_constraints": [],
-            "process_resource_limits": [],
-            "structure": null,
-            "constraint_document": {
-              "contract_id": "recursive-realization-constraint-v1",
-              "semantic_profile": "raes/os-version/v1",
-              "default_closure": {
-                "posture": "undefined"
-              },
-              "scopes": [],
-              "root": {
-                "presence": "required",
-                "origin": "author",
-                "kind": "literal",
-                "value": ""
-              },
-              "definitions": {}
-            },
-            "constraint_binding": "sha256:3287147eac246d584f1a4a20da11f54f6ecc599ff1aecc6950eec7cef8188abe",
-            "structure_error": false,
-            "recursive_pending": false
-          },
-          {
-            "field_path": "nodes.primary.architecture",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "node-architecture",
-            "explicitness": "exact",
-            "provenance": "author-declared",
-            "governing_scope": "#/nodes/primary/architecture",
-            "delegated": false,
-            "artifact_requirement": null,
-            "verification_scope": null,
-            "required_observation_strength": null,
-            "value_domain": null,
-            "constraint_provenance": null,
-            "value_constraints": [],
-            "process_resource_limits": [],
-            "structure": null,
-            "constraint_document": {
-              "contract_id": "recursive-realization-constraint-v1",
-              "semantic_profile": "raes/node-architecture/v1",
-              "default_closure": {
-                "posture": "undefined"
-              },
-              "scopes": [],
-              "root": {
-                "presence": "required",
-                "origin": "author",
-                "kind": "literal",
-                "value": null
-              },
-              "definitions": {}
-            },
-            "constraint_binding": "sha256:d0e5171a72c208169c23574ae877a4d9f24993c474518ea218a718f3765ebe8b",
-            "structure_error": false,
-            "recursive_pending": false
-          },
-          {
-            "field_path": "content.payload.type",
-            "address": "provision.content.payload",
-            "domain": "runtime-realization",
-            "requirement_kind": "content-type",
-            "explicitness": "exact",
-            "provenance": "author-declared",
-            "governing_scope": "#/content/payload/type",
-            "delegated": false,
-            "artifact_requirement": null,
-            "verification_scope": null,
-            "required_observation_strength": null,
-            "value_domain": null,
-            "constraint_provenance": null,
-            "value_constraints": [],
-            "process_resource_limits": [],
-            "structure": null,
-            "constraint_document": {
-              "contract_id": "recursive-realization-constraint-v1",
-              "semantic_profile": "raes/content-type/v1",
-              "default_closure": {
-                "posture": "undefined"
-              },
-              "scopes": [],
-              "root": {
-                "presence": "required",
-                "origin": "author",
-                "kind": "literal",
-                "value": "file"
-              },
-              "definitions": {}
-            },
-            "constraint_binding": "sha256:5a5a94bc51c054183e5732520cf1b70755561bdf60cf032d7f83b190fedc0776",
-            "structure_error": false,
-            "recursive_pending": false
-          }
-        ],
-        "realization_authority": [
-          {
-            "field_path": "nodes.primary.type",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "node-type",
-            "payload_path": [
-              "node_kind"
-            ],
-            "mode": "exact",
-            "source": "authored-leaf",
-            "provenance": "author-declared",
-            "governing_scope": "#/nodes/primary/type",
-            "delegated": false,
-            "verification_scope": null,
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.os",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "os-family",
-            "payload_path": [
-              "os_family"
-            ],
-            "mode": "exact",
-            "source": "authored-leaf",
-            "provenance": "author-declared",
-            "governing_scope": "#/nodes/primary/os",
-            "delegated": false,
-            "verification_scope": "presence",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.os_distribution",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "os-distribution",
-            "payload_path": [
-              "os_distribution"
-            ],
-            "mode": "exact",
-            "source": "authored-leaf",
-            "provenance": "author-declared",
-            "governing_scope": "#/nodes/primary/os_distribution",
-            "delegated": false,
-            "verification_scope": null,
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.os_version",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "os-version",
-            "payload_path": [
-              "os_version"
-            ],
-            "mode": "exact",
-            "source": "authored-leaf",
-            "provenance": "author-declared",
-            "governing_scope": "#/nodes/primary/os_version",
-            "delegated": false,
-            "verification_scope": null,
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.architecture",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "node-architecture",
-            "payload_path": [
-              "architecture"
-            ],
-            "mode": "exact",
-            "source": "authored-leaf",
-            "provenance": "author-declared",
-            "governing_scope": "#/nodes/primary/architecture",
-            "delegated": false,
-            "verification_scope": null,
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "content.payload.type",
-            "address": "provision.content.payload",
-            "domain": "runtime-realization",
-            "requirement_kind": "content-type",
-            "payload_path": [
-              "spec",
-              "type"
-            ],
-            "mode": "exact",
-            "source": "authored-leaf",
-            "provenance": "author-declared",
-            "governing_scope": "#/content/payload/type",
-            "delegated": false,
-            "verification_scope": null,
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.environment",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-environment",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "environment"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.mounts",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-mounts",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "mounts"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.linux_capabilities",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "linux-capabilities",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "linux_capabilities"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.operational_policy.resource_limits.process_limits",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "process-resource-limits",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "operational_policy",
-              "resource_limits",
-              "process_limits"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": "guest-observed"
-          },
-          {
-            "field_path": "nodes.primary.runtime.network.published_ports",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "published-ports",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "network",
-              "published_ports"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.forwarding_agents",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "forwarding-agents",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "forwarding_agents"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "presence",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.service_listeners",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "service-listeners",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "service_listeners"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.filesystem_inventory",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-filesystem-inventory",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "filesystem_inventory"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.local_control_interfaces",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-local-control-interfaces",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "local_control_interfaces"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.processes",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-processes",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "processes"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.operational_policy.restart",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-restart-policy",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "operational_policy",
-              "restart"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.operational_policy.resource_limits.memory",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-node-memory-limit",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "operational_policy",
-              "resource_limits",
-              "memory"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.operational_policy.resource_limits.memory_swap",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-node-memory-swap-limit",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "operational_policy",
-              "resource_limits",
-              "memory_swap"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.operational_policy.resource_limits.cpu",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-node-cpu-limit",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "operational_policy",
-              "resource_limits",
-              "cpu"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.operational_policy.resource_limits.pids",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-node-pids-limit",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "operational_policy",
-              "resource_limits",
-              "pids"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.entrypoint",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-entrypoint",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "entrypoint"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.command",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-command",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "command"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.log_driver",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-log-driver",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "log_driver"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.log_options",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-log-options",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "log_options"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.namespaces",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-namespaces",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "namespaces"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.privileged",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-privileged",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "privileged"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.read_only_rootfs",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-read-only-rootfs",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "read_only_rootfs"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.publish_all_ports",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-publish-all-ports",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "publish_all_ports"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.autoremove",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-autoremove",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "autoremove"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.shm_size",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-shm-size",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "shm_size"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.masked_paths",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-masked-paths",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "masked_paths"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.read_only_paths",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-read-only-paths",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "read_only_paths"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.cgroup_parent",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-cgroup-parent",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "cgroup_parent"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.runtime_name",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-runtime-name",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "runtime_name"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.init_process",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-init-process",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "init_process"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.devices",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-devices",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "devices"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.device_cgroup_rules",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-device-cgroup-rules",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "device_cgroup_rules"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.seccomp_profile",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-seccomp-profile",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "seccomp_profile"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.security_opt",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-security-opt",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "security_opt"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.extra_hosts",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-extra-hosts",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "extra_hosts"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.dns",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-dns",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "dns"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.dns_options",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-dns-options",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "dns_options"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.dns_search",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-dns-search",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "dns_search"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.container.group_add",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-group-add",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "container",
-              "group_add"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.local_identity",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-local-identity",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "local_identity"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.identity_authorities",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-identity-authorities",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "identity_authorities"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.file_services",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-file-services",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "file_services"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.mail_services",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-mail-services",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "mail_services"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.network.hostname",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-network-hostname",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "network",
-              "hostname"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.network.domainname",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-network-domainname",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "network",
-              "domainname"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.network.endpoints",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-network-endpoints",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "network",
-              "endpoints"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.applications",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-applications",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "applications"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.database_services",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-database-services",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "database_services"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.dns_services",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-dns-services",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "dns_services"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.network_sensors",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-network-sensors",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "network_sensors"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.network_detection_engines",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-network-detection-engines",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "network_detection_engines"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.security_monitoring_managers",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-security-monitoring-managers",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "security_monitoring_managers"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.ssh_servers",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-ssh-servers",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "ssh_servers"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.datastore_services",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-datastore-services",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "datastore_services"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.platform_applications",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-platform-applications",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "platform_applications"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.orchestration_authorities",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-orchestration-authorities",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "orchestration_authorities"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.app_authorizations",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-app-authorizations",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "app_authorizations"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.scheduled_jobs",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-scheduled-jobs",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "scheduled_jobs"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.service_manager_units",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-service-manager-units",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "service_manager_units"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.packages",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-packages",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "packages"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.repository_state",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-repository-state",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "repository_state"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": null,
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.software_components",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-software-components",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "software_components"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": null,
-            "required_observation_strength": null
-          },
-          {
-            "field_path": "nodes.primary.runtime.dependency_manifests",
-            "address": "provision.node.primary",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-dependency-manifests",
-            "payload_path": [
-              "spec",
-              "node",
-              "runtime",
-              "dependency_manifests"
-            ],
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "governing_scope": null,
-            "delegated": false,
-            "verification_scope": "configuration",
-            "required_observation_strength": null
-          }
-        ],
-        "realization_instance": {
-          "name": "compiler-family",
-          "version": "*",
-          "description": "",
-          "nodes": {
-            "primary": {
-              "type": "compute",
-              "description": "",
-              "resources": {
-                "ram": 1073741824,
-                "cpu": 1
-              },
-              "os": "linux",
-              "os_version": "",
-              "features": {},
-              "conditions": {},
-              "injects": {},
-              "roles": {},
-              "services": []
-            }
-          },
-          "infrastructure": {},
-          "features": {},
-          "conditions": {},
-          "propositions": {},
-          "assertions": {},
-          "entities": {},
-          "injects": {},
-          "events": {},
-          "scripts": {},
-          "stories": {},
-          "content": {
-            "payload": {
-              "type": "file",
-              "description": "",
-              "target": "primary",
-              "path": "/opt/a",
-              "destination": "",
-              "format": "",
-              "items": [],
-              "sensitive": false,
-              "tags": []
-            }
-          },
-          "generated_artifacts": {},
-          "persistent_volumes": {},
-          "accounts": {},
-          "identity_domains": {},
-          "identity_forests": {},
-          "identity_facades": {},
-          "deployment_tenants": {},
-          "deployment_cells": {},
-          "relationships": {},
-          "forwarding_agents": [],
-          "agents": {},
-          "action_contracts": {},
-          "observation_boundaries": {},
-          "outcome_interpretation_rules": {},
-          "behavior_specifications": {},
-          "evidence_requirements": {},
-          "time_domains": {},
-          "clocks": {},
-          "time_domain_mappings": {},
-          "time_progression_policies": {},
-          "temporal_constraints": {},
-          "objectives": {},
-          "workflows": {},
-          "instantiation_provenance": {
-            "authored_digest": {
-              "profile": "raes-sdl-semantic/v2",
-              "algorithm": "sha256",
-              "value": "sha256:dbd80520c841c9d212985c8f3b1a8f85b1b7371fb67d5947433c205435fcf3de"
-            },
-            "bindings": [
-              {
-                "parameter": [
-                  "payload_path"
-                ],
-                "origin": "provided",
-                "value": "/opt/a"
-              }
-            ],
-            "imports": [],
-            "capability_constraints": [],
-            "explicitness": [
-              {
-                "model_path": "name",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "version",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "description",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes.primary.type",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes.primary.description",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes.primary.source",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes.primary.resources.ram",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes.primary.resources.cpu",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes.primary.resources",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "derived from child declarations",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes.primary.os",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes.primary.os_distribution",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes.primary.os_version",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes.primary.architecture",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes.primary.features",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes.primary.conditions",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes.primary.injects",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes.primary.roles",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes.primary.services",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes.primary.asset_value",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes.primary.endpoint_persona",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes.primary.runtime",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes.primary",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "derived from child declarations",
-                "parameters": []
-              },
-              {
-                "model_path": "nodes",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "derived from child declarations",
-                "parameters": []
-              },
-              {
-                "model_path": "infrastructure",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "features",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "conditions",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "propositions",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "assertions",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "entities",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "injects",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "events",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "scripts",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "stories",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "content.payload.type",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "content.payload.description",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "content.payload.target",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "content.payload.path",
-                "classification": "constrained",
-                "provenance": "processor-derived",
-                "reason": "parameter/default substitution preserved authored explicitness class",
-                "parameters": [
-                  [
-                    "payload_path"
-                  ]
-                ]
-              },
-              {
-                "model_path": "content.payload.destination",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "content.payload.text",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "content.payload.source",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "content.payload.format",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "content.payload.items",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "content.payload.sensitive",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "content.payload.tags",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "content.payload.service_materialization",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored concrete value",
-                "parameters": []
-              },
-              {
-                "model_path": "content.payload",
-                "classification": "constrained",
-                "provenance": "processor-derived",
-                "reason": "parameter/default substitution preserved authored explicitness class",
-                "parameters": [
-                  [
-                    "payload_path"
-                  ]
-                ]
-              },
-              {
-                "model_path": "content",
-                "classification": "constrained",
-                "provenance": "processor-derived",
-                "reason": "parameter/default substitution preserved authored explicitness class",
-                "parameters": [
-                  [
-                    "payload_path"
-                  ]
-                ]
-              },
-              {
-                "model_path": "generated_artifacts",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "persistent_volumes",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "accounts",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "identity_domains",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "identity_forests",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "identity_facades",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "deployment_tenants",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "deployment_cells",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "relationships",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "forwarding_agents",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "agents",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "action_contracts",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "observation_boundaries",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "outcome_interpretation_rules",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "behavior_specifications",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "evidence_requirements",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "time_domains",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "clocks",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "time_domain_mappings",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "time_progression_policies",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "temporal_constraints",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "objectives",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "workflows",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              },
-              {
-                "model_path": "variables",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "derived from child declarations",
-                "parameters": []
-              },
-              {
-                "model_path": "variation_points",
-                "classification": "exact",
-                "provenance": "author-declared",
-                "reason": "authored empty structure",
-                "parameters": []
-              }
-            ],
-            "realization_designations": [],
-            "realization_constraints": [],
-            "trial": {
-              "scenario_family_id": "compiler-family",
-              "scenario_family_digest": "sha256:7c4fb8b018851aadf8cfdd66be8f8ec30bdfd85a0c8da60c800fa8c142886ff5",
-              "plan_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
-              "plan_digest": "sha256:c681860c67250fc95612238e189ff0d1c082fa866989007b6b65e29dd52c8cbe",
-              "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-              "entry_digest": "sha256:de82d3b777ffd0d4d7595e42c6cf23737eaaf0259dc256cd2bbd86aff9aa03c1",
-              "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
-              "coordinate": {
-                "replicate_id": "replicate-000001"
-              },
-              "selections": [
-                {
-                  "variation_point_id": "payload-path",
-                  "record_digest": "sha256:ae439a412e9cfef3b06f8c3c1a9b42d889aa5c2c99021f6bf797a50855693b37",
-                  "record": {
-                    "variation_point_id": "payload-path",
-                    "origin_policy_id": "sample-path",
-                    "origin_policy_kind": "sample",
-                    "outcome": {
-                      "kind": "literal",
-                      "value": "/opt/a"
-                    }
-                  }
-                }
-              ],
-              "bindings": []
-            }
-          }
-        },
-        "materialization_description": null,
-        "observation_demands": [],
-        "profile_authority": null,
-        "descriptor_profile_bindings": []
-      },
-      "provisioning": {
-        "operations": [
-          {
-            "action": "create",
-            "address": "provision.node.primary",
-            "resource_type": "node",
-            "payload": {
-              "name": "primary",
-              "spec": {
-                "node": {
-                  "type": "compute",
-                  "description": "",
-                  "source": null,
-                  "resources": {
-                    "ram": 1073741824,
-                    "cpu": 1
-                  },
-                  "os": "linux",
-                  "os_distribution": null,
-                  "os_version": "",
-                  "architecture": null,
-                  "features": {},
-                  "conditions": {},
-                  "injects": {},
-                  "roles": {},
-                  "services": [],
-                  "asset_value": null,
-                  "endpoint_persona": null,
-                  "runtime": null
-                },
-                "infrastructure": {}
-              },
-              "node_name": "primary",
-              "node_kind": "compute",
-              "os_family": "linux",
-              "os_distribution": "",
-              "os_version": "",
-              "architecture": "",
-              "count": null,
-              "network_namespace_target": "",
-              "domain_topology": null
-            },
-            "ordering_dependencies": [],
-            "refresh_dependencies": []
-          },
-          {
-            "action": "create",
-            "address": "provision.content.payload",
-            "resource_type": "content-placement",
-            "payload": {
-              "name": "payload",
-              "spec": {
-                "type": "file",
-                "description": "",
-                "target": "primary",
-                "path": "/opt/a",
-                "destination": "",
-                "text": null,
-                "source": null,
-                "format": "",
-                "items": [],
-                "sensitive": false,
-                "tags": [],
-                "service_materialization": null
-              },
-              "content_name": "payload",
-              "target_node": "primary",
-              "target_address": "provision.node.primary",
-              "service_materialization": null
-            },
-            "ordering_dependencies": [
-              "provision.node.primary"
-            ],
-            "refresh_dependencies": [
-              "provision.node.primary"
-            ]
-          }
-        ],
-        "diagnostics": [],
-        "realization_authority": [
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.type",
-            "domain": "runtime-realization",
-            "requirement_kind": "node-type",
-            "payload_pointer": "/node_kind",
-            "mode": "exact",
-            "source": "authored-leaf",
-            "provenance": "author-declared",
-            "governing_scope": "#/nodes/primary/type",
-            "bounds": [],
-            "constraint_document": {
-              "contract_id": "recursive-realization-constraint-v1",
-              "semantic_profile": "raes/node-type/v1",
-              "default_closure": {
-                "posture": "undefined"
-              },
-              "scopes": [],
-              "root": {
-                "presence": "required",
-                "origin": "author",
-                "kind": "literal",
-                "value": "compute"
-              },
-              "definitions": {}
-            },
-            "constraint_binding": "sha256:c05719378dbe6b888bd2e7a1956dc00d108dbe5778a8bf5fadf3c3861a778068"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.os",
-            "domain": "runtime-realization",
-            "requirement_kind": "os-family",
-            "payload_pointer": "/os_family",
-            "mode": "exact",
-            "source": "authored-leaf",
-            "provenance": "author-declared",
-            "governing_scope": "#/nodes/primary/os",
-            "bounds": [],
-            "verification_scope": "presence",
-            "constraint_document": {
-              "contract_id": "recursive-realization-constraint-v1",
-              "semantic_profile": "raes/os-family/v1",
-              "default_closure": {
-                "posture": "undefined"
-              },
-              "scopes": [],
-              "root": {
-                "presence": "required",
-                "origin": "author",
-                "kind": "literal",
-                "value": "linux"
-              },
-              "definitions": {}
-            },
-            "constraint_binding": "sha256:fb35a1fb951547d7a2f77935809b7fdc8518f5008c1843e623da808c846d9b60"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.os_distribution",
-            "domain": "runtime-realization",
-            "requirement_kind": "os-distribution",
-            "payload_pointer": "/os_distribution",
-            "mode": "exact",
-            "source": "authored-leaf",
-            "provenance": "author-declared",
-            "governing_scope": "#/nodes/primary/os_distribution",
-            "bounds": [],
-            "constraint_document": {
-              "contract_id": "recursive-realization-constraint-v1",
-              "semantic_profile": "raes/os-distribution/v1",
-              "default_closure": {
-                "posture": "undefined"
-              },
-              "scopes": [],
-              "root": {
-                "presence": "required",
-                "origin": "author",
-                "kind": "literal",
-                "value": null
-              },
-              "definitions": {}
-            },
-            "constraint_binding": "sha256:8f2e9afe5a2a05cfc3233f99bbdafdcb112ddbeba413a1967e03d05906aaba1d"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.os_version",
-            "domain": "runtime-realization",
-            "requirement_kind": "os-version",
-            "payload_pointer": "/os_version",
-            "mode": "exact",
-            "source": "authored-leaf",
-            "provenance": "author-declared",
-            "governing_scope": "#/nodes/primary/os_version",
-            "bounds": [],
-            "constraint_document": {
-              "contract_id": "recursive-realization-constraint-v1",
-              "semantic_profile": "raes/os-version/v1",
-              "default_closure": {
-                "posture": "undefined"
-              },
-              "scopes": [],
-              "root": {
-                "presence": "required",
-                "origin": "author",
-                "kind": "literal",
-                "value": ""
-              },
-              "definitions": {}
-            },
-            "constraint_binding": "sha256:3287147eac246d584f1a4a20da11f54f6ecc599ff1aecc6950eec7cef8188abe"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.architecture",
-            "domain": "runtime-realization",
-            "requirement_kind": "node-architecture",
-            "payload_pointer": "/architecture",
-            "mode": "exact",
-            "source": "authored-leaf",
-            "provenance": "author-declared",
-            "governing_scope": "#/nodes/primary/architecture",
-            "bounds": [],
-            "constraint_document": {
-              "contract_id": "recursive-realization-constraint-v1",
-              "semantic_profile": "raes/node-architecture/v1",
-              "default_closure": {
-                "posture": "undefined"
-              },
-              "scopes": [],
-              "root": {
-                "presence": "required",
-                "origin": "author",
-                "kind": "literal",
-                "value": null
-              },
-              "definitions": {}
-            },
-            "constraint_binding": "sha256:d0e5171a72c208169c23574ae877a4d9f24993c474518ea218a718f3765ebe8b"
-          },
-          {
-            "address": "provision.content.payload",
-            "field_path": "content.payload.type",
-            "domain": "runtime-realization",
-            "requirement_kind": "content-type",
-            "payload_pointer": "/spec/type",
-            "mode": "exact",
-            "source": "authored-leaf",
-            "provenance": "author-declared",
-            "governing_scope": "#/content/payload/type",
-            "bounds": [],
-            "constraint_document": {
-              "contract_id": "recursive-realization-constraint-v1",
-              "semantic_profile": "raes/content-type/v1",
-              "default_closure": {
-                "posture": "undefined"
-              },
-              "scopes": [],
-              "root": {
-                "presence": "required",
-                "origin": "author",
-                "kind": "literal",
-                "value": "file"
-              },
-              "definitions": {}
-            },
-            "constraint_binding": "sha256:5a5a94bc51c054183e5732520cf1b70755561bdf60cf032d7f83b190fedc0776"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.environment",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-environment",
-            "payload_pointer": "/spec/node/runtime/environment",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.mounts",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-mounts",
-            "payload_pointer": "/spec/node/runtime/mounts",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.linux_capabilities",
-            "domain": "runtime-realization",
-            "requirement_kind": "linux-capabilities",
-            "payload_pointer": "/spec/node/runtime/linux_capabilities",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.operational_policy.resource_limits.process_limits",
-            "domain": "runtime-realization",
-            "requirement_kind": "process-resource-limits",
-            "payload_pointer": "/spec/node/runtime/operational_policy/resource_limits/process_limits",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration",
-            "required_observation_strength": "guest-observed"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.network.published_ports",
-            "domain": "runtime-realization",
-            "requirement_kind": "published-ports",
-            "payload_pointer": "/spec/node/runtime/network/published_ports",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.forwarding_agents",
-            "domain": "runtime-realization",
-            "requirement_kind": "forwarding-agents",
-            "payload_pointer": "/spec/node/runtime/forwarding_agents",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "presence"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.service_listeners",
-            "domain": "runtime-realization",
-            "requirement_kind": "service-listeners",
-            "payload_pointer": "/spec/node/runtime/service_listeners",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.filesystem_inventory",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-filesystem-inventory",
-            "payload_pointer": "/spec/node/runtime/filesystem_inventory",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.local_control_interfaces",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-local-control-interfaces",
-            "payload_pointer": "/spec/node/runtime/local_control_interfaces",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.processes",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-processes",
-            "payload_pointer": "/spec/node/runtime/processes",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.operational_policy.restart",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-restart-policy",
-            "payload_pointer": "/spec/node/runtime/operational_policy/restart",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.operational_policy.resource_limits.memory",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-node-memory-limit",
-            "payload_pointer": "/spec/node/runtime/operational_policy/resource_limits/memory",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.operational_policy.resource_limits.memory_swap",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-node-memory-swap-limit",
-            "payload_pointer": "/spec/node/runtime/operational_policy/resource_limits/memory_swap",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.operational_policy.resource_limits.cpu",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-node-cpu-limit",
-            "payload_pointer": "/spec/node/runtime/operational_policy/resource_limits/cpu",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.operational_policy.resource_limits.pids",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-node-pids-limit",
-            "payload_pointer": "/spec/node/runtime/operational_policy/resource_limits/pids",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.entrypoint",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-entrypoint",
-            "payload_pointer": "/spec/node/runtime/container/entrypoint",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.command",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-command",
-            "payload_pointer": "/spec/node/runtime/container/command",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.log_driver",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-log-driver",
-            "payload_pointer": "/spec/node/runtime/container/log_driver",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.log_options",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-log-options",
-            "payload_pointer": "/spec/node/runtime/container/log_options",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.namespaces",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-namespaces",
-            "payload_pointer": "/spec/node/runtime/container/namespaces",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.privileged",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-privileged",
-            "payload_pointer": "/spec/node/runtime/container/privileged",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.read_only_rootfs",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-read-only-rootfs",
-            "payload_pointer": "/spec/node/runtime/container/read_only_rootfs",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.publish_all_ports",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-publish-all-ports",
-            "payload_pointer": "/spec/node/runtime/container/publish_all_ports",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.autoremove",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-autoremove",
-            "payload_pointer": "/spec/node/runtime/container/autoremove",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.shm_size",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-shm-size",
-            "payload_pointer": "/spec/node/runtime/container/shm_size",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.masked_paths",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-masked-paths",
-            "payload_pointer": "/spec/node/runtime/container/masked_paths",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.read_only_paths",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-read-only-paths",
-            "payload_pointer": "/spec/node/runtime/container/read_only_paths",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.cgroup_parent",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-cgroup-parent",
-            "payload_pointer": "/spec/node/runtime/container/cgroup_parent",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.runtime_name",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-runtime-name",
-            "payload_pointer": "/spec/node/runtime/container/runtime_name",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.init_process",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-init-process",
-            "payload_pointer": "/spec/node/runtime/container/init_process",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.devices",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-devices",
-            "payload_pointer": "/spec/node/runtime/container/devices",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.device_cgroup_rules",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-device-cgroup-rules",
-            "payload_pointer": "/spec/node/runtime/container/device_cgroup_rules",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.seccomp_profile",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-seccomp-profile",
-            "payload_pointer": "/spec/node/runtime/container/seccomp_profile",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.security_opt",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-security-opt",
-            "payload_pointer": "/spec/node/runtime/container/security_opt",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.extra_hosts",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-extra-hosts",
-            "payload_pointer": "/spec/node/runtime/container/extra_hosts",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.dns",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-dns",
-            "payload_pointer": "/spec/node/runtime/container/dns",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.dns_options",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-dns-options",
-            "payload_pointer": "/spec/node/runtime/container/dns_options",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.dns_search",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-dns-search",
-            "payload_pointer": "/spec/node/runtime/container/dns_search",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.container.group_add",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-container-group-add",
-            "payload_pointer": "/spec/node/runtime/container/group_add",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.local_identity",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-local-identity",
-            "payload_pointer": "/spec/node/runtime/local_identity",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.identity_authorities",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-identity-authorities",
-            "payload_pointer": "/spec/node/runtime/identity_authorities",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.file_services",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-file-services",
-            "payload_pointer": "/spec/node/runtime/file_services",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.mail_services",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-mail-services",
-            "payload_pointer": "/spec/node/runtime/mail_services",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.network.hostname",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-network-hostname",
-            "payload_pointer": "/spec/node/runtime/network/hostname",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.network.domainname",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-network-domainname",
-            "payload_pointer": "/spec/node/runtime/network/domainname",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.network.endpoints",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-network-endpoints",
-            "payload_pointer": "/spec/node/runtime/network/endpoints",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.applications",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-applications",
-            "payload_pointer": "/spec/node/runtime/applications",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.database_services",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-database-services",
-            "payload_pointer": "/spec/node/runtime/database_services",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.dns_services",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-dns-services",
-            "payload_pointer": "/spec/node/runtime/dns_services",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.network_sensors",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-network-sensors",
-            "payload_pointer": "/spec/node/runtime/network_sensors",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.network_detection_engines",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-network-detection-engines",
-            "payload_pointer": "/spec/node/runtime/network_detection_engines",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.security_monitoring_managers",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-security-monitoring-managers",
-            "payload_pointer": "/spec/node/runtime/security_monitoring_managers",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.ssh_servers",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-ssh-servers",
-            "payload_pointer": "/spec/node/runtime/ssh_servers",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.datastore_services",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-datastore-services",
-            "payload_pointer": "/spec/node/runtime/datastore_services",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.platform_applications",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-platform-applications",
-            "payload_pointer": "/spec/node/runtime/platform_applications",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.orchestration_authorities",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-orchestration-authorities",
-            "payload_pointer": "/spec/node/runtime/orchestration_authorities",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.app_authorizations",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-app-authorizations",
-            "payload_pointer": "/spec/node/runtime/app_authorizations",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.scheduled_jobs",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-scheduled-jobs",
-            "payload_pointer": "/spec/node/runtime/scheduled_jobs",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.service_manager_units",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-service-manager-units",
-            "payload_pointer": "/spec/node/runtime/service_manager_units",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.packages",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-packages",
-            "payload_pointer": "/spec/node/runtime/packages",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.repository_state",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-repository-state",
-            "payload_pointer": "/spec/node/runtime/repository_state",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": []
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.software_components",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-software-components",
-            "payload_pointer": "/spec/node/runtime/software_components",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": []
-          },
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.runtime.dependency_manifests",
-            "domain": "runtime-realization",
-            "requirement_kind": "runtime-dependency-manifests",
-            "payload_pointer": "/spec/node/runtime/dependency_manifests",
-            "mode": "closed",
-            "source": "legacy-default",
-            "provenance": "author-declared",
-            "bounds": [],
-            "verification_scope": "configuration"
-          }
-        ],
-        "realization_envelope": {
-          "contract_id": "realization-envelope-v1",
-          "envelope_id": "libvirt-qemu.generic.v1",
-          "schema_version": "realization-envelope/v1",
-          "digest": "sha256:1c768fa96dda900757ca48a66ddd741c62dbd5bd86e1356e75e3cc559ece92e0",
-          "configuration_digest": "sha256:cf7e5b0d28c25293d254c463a23958f66f92776579872fce8abbeb1227347b4b"
-        },
-        "realization_constraints": [
-          {
-            "address": "provision.node.primary",
-            "field_path": "nodes.primary.realization.compute-substrate",
-            "concern": "compute-substrate",
-            "posture": "open",
-            "governing_scope": "#/nodes/primary",
-            "provenance": "author-declared"
-          }
-        ],
-        "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
-        "instantiation_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-        "observation_demands": []
-      },
-      "evaluation": {
-        "operations": [],
-        "startup_order": [],
-        "diagnostics": [],
-        "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
-        "instantiation_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-        "observation_demands": []
-      },
-      "orchestration": {
-        "operations": [],
-        "startup_order": [],
-        "diagnostics": [],
-        "observation_demands": []
-      },
-      "observation_owner": "provisioning"
-    },
-    "base_snapshot": {
-      "entries": {},
-      "orchestration_results": {},
-      "orchestration_history": {},
-      "evaluation_results": {},
-      "evaluation_history": {},
-      "proposition_truth_results": {},
-      "participant_episode_results": {},
-      "participant_episode_history": {},
-      "participant_episode_closure_records": {},
-      "participant_behavior_history": {},
-      "participant_control_history": {},
-      "participant_crossing_history": {},
-      "participant_control_evaluation_history": {},
-      "mixed_composition_states": {},
-      "mixed_composition_history": {},
-      "information_state_history": {},
-      "participant_outcome_history": {},
-      "participant_autonomous_execution_states": {},
-      "participant_execution_services": {},
-      "participant_resource_budget_states": {},
-      "participant_resource_pool_states": {},
-      "participant_resource_budget_events": {},
-      "shared_state_records": {},
-      "shared_state_history": {},
-      "joint_action_records": {},
-      "time_management_contexts": {},
-      "time_model_state": null,
-      "realization_provenance": [],
-      "realization_observations": [],
-      "materialization_attestations": [],
-      "realization_envelope": null,
-      "metadata": {}
-    }
-  },
+  "entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
   "cases": [
     {
       "name": "started",
       "attempts": [
         {
           "schema_version": "runtime-trial-attempt/v1",
-          "experiment_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
-          "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-          "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+          "experiment_id": "trial-plan-d8d00c2300be5f99e0cc64dbe27242aed4294be1bae5fd88bbae90aa3d886853",
+          "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+          "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
           "attempt": 1,
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "started_at": "2026-11-15T10:00:00Z",
           "deadline": "2026-11-15T10:10:00Z"
         }
@@ -3901,13 +450,13 @@
         "schema_version": "experiment-run/v1",
         "record_state": "partial",
         "execution_accounting": {
-          "plan_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
-          "plan_digest": "sha256:c681860c67250fc95612238e189ff0d1c082fa866989007b6b65e29dd52c8cbe",
-          "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-          "entry_digest": "sha256:de82d3b777ffd0d4d7595e42c6cf23737eaaf0259dc256cd2bbd86aff9aa03c1",
+          "plan_id": "trial-plan-d8d00c2300be5f99e0cc64dbe27242aed4294be1bae5fd88bbae90aa3d886853",
+          "plan_digest": "sha256:b03f056f7dc617b734215df5ef4e5f8b37103f29501e2df412e58292b14b4a18",
+          "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+          "entry_digest": "sha256:4a08dad446bc2fd2d4af51a60d9fec0505b5e3bf1b15422f0100639387d517c1",
           "attempts": [
             {
-              "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+              "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
               "attempt": 1,
               "started_at": "2026-11-15T10:00:00Z",
               "ended_at": null,
@@ -3923,8 +472,8 @@
           ],
           "participant_configurations": []
         },
-        "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
-        "run_version": "partial-57fd2f92621c35b56f899273e43166b17f08dd996642b3d2380349facd18aedb",
+        "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
+        "run_version": "partial-43e09c54c4b677316b591cdf6a3255ec6f7c28729e8f2fd59b9a841386c9df69",
         "task_ref": {
           "ref_kind": "task",
           "ref_id": "task-techvault-red-team-v1",
@@ -3934,7 +483,7 @@
           "ref_kind": "scenario-snapshot",
           "ref_id": "compiler-family",
           "ref_version": "raes-sdl-instantiated-snapshot/v2",
-          "ref_digest": "sha256:916546ea9bf098d9cc51a96d9da070202c24e9005c8ca6d51570c0f09bb8658a",
+          "ref_digest": "sha256:0faa2e19a293c8874ab3f0d0232f53ec3d9864ae0d39698c80d45eaaea3617d0",
           "ref_path": null
         },
         "trial_provenance": null,
@@ -4032,11 +581,11 @@
       "attempts": [
         {
           "schema_version": "runtime-trial-attempt/v1",
-          "experiment_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
-          "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-          "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+          "experiment_id": "trial-plan-d8d00c2300be5f99e0cc64dbe27242aed4294be1bae5fd88bbae90aa3d886853",
+          "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+          "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
           "attempt": 1,
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "started_at": "2026-11-15T10:00:00Z",
           "deadline": "2026-11-15T10:10:00Z"
         }
@@ -4044,7 +593,7 @@
       "observations": [
         {
           "schema_version": "runtime-trial-observation/v1",
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "observation": {
             "kind": "configuration",
             "configurations": [],
@@ -4081,13 +630,13 @@
         "schema_version": "experiment-run/v1",
         "record_state": "partial",
         "execution_accounting": {
-          "plan_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
-          "plan_digest": "sha256:c681860c67250fc95612238e189ff0d1c082fa866989007b6b65e29dd52c8cbe",
-          "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-          "entry_digest": "sha256:de82d3b777ffd0d4d7595e42c6cf23737eaaf0259dc256cd2bbd86aff9aa03c1",
+          "plan_id": "trial-plan-d8d00c2300be5f99e0cc64dbe27242aed4294be1bae5fd88bbae90aa3d886853",
+          "plan_digest": "sha256:b03f056f7dc617b734215df5ef4e5f8b37103f29501e2df412e58292b14b4a18",
+          "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+          "entry_digest": "sha256:4a08dad446bc2fd2d4af51a60d9fec0505b5e3bf1b15422f0100639387d517c1",
           "attempts": [
             {
-              "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+              "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
               "attempt": 1,
               "started_at": "2026-11-15T10:00:00Z",
               "ended_at": null,
@@ -4103,8 +652,8 @@
           ],
           "participant_configurations": []
         },
-        "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
-        "run_version": "partial-5b471945e5c3ac2f70dc312f17148b7d5e5adcc3569111232059c69736f05c91",
+        "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
+        "run_version": "partial-c095f8aadbc8f13afffd21af6877b582689b853eceb804e78a700c709430e240",
         "task_ref": {
           "ref_kind": "task",
           "ref_id": "task-techvault-red-team-v1",
@@ -4114,7 +663,7 @@
           "ref_kind": "scenario-snapshot",
           "ref_id": "compiler-family",
           "ref_version": "raes-sdl-instantiated-snapshot/v2",
-          "ref_digest": "sha256:916546ea9bf098d9cc51a96d9da070202c24e9005c8ca6d51570c0f09bb8658a",
+          "ref_digest": "sha256:0faa2e19a293c8874ab3f0d0232f53ec3d9864ae0d39698c80d45eaaea3617d0",
           "ref_path": null
         },
         "trial_provenance": null,
@@ -4212,11 +761,11 @@
       "attempts": [
         {
           "schema_version": "runtime-trial-attempt/v1",
-          "experiment_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
-          "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-          "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+          "experiment_id": "trial-plan-d8d00c2300be5f99e0cc64dbe27242aed4294be1bae5fd88bbae90aa3d886853",
+          "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+          "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
           "attempt": 1,
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "started_at": "2026-11-15T10:00:00Z",
           "deadline": "2026-11-15T10:10:00Z"
         }
@@ -4224,7 +773,7 @@
       "observations": [
         {
           "schema_version": "runtime-trial-observation/v1",
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "observation": {
             "kind": "configuration",
             "configurations": [],
@@ -4235,7 +784,7 @@
         },
         {
           "schema_version": "runtime-trial-observation/v1",
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "observation": {
             "kind": "execution",
             "state": "succeeded",
@@ -4274,13 +823,13 @@
         "schema_version": "experiment-run/v1",
         "record_state": "partial",
         "execution_accounting": {
-          "plan_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
-          "plan_digest": "sha256:c681860c67250fc95612238e189ff0d1c082fa866989007b6b65e29dd52c8cbe",
-          "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-          "entry_digest": "sha256:de82d3b777ffd0d4d7595e42c6cf23737eaaf0259dc256cd2bbd86aff9aa03c1",
+          "plan_id": "trial-plan-d8d00c2300be5f99e0cc64dbe27242aed4294be1bae5fd88bbae90aa3d886853",
+          "plan_digest": "sha256:b03f056f7dc617b734215df5ef4e5f8b37103f29501e2df412e58292b14b4a18",
+          "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+          "entry_digest": "sha256:4a08dad446bc2fd2d4af51a60d9fec0505b5e3bf1b15422f0100639387d517c1",
           "attempts": [
             {
-              "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+              "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
               "attempt": 1,
               "started_at": "2026-11-15T10:00:00Z",
               "ended_at": "2026-11-15T10:00:01Z",
@@ -4296,8 +845,8 @@
           ],
           "participant_configurations": []
         },
-        "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
-        "run_version": "partial-a206e9b9a1664473092bb5a8ba797e307da015d02ba4251e7ed40b26926f6f5e",
+        "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
+        "run_version": "partial-69b47a0ece43a5ef2a1d284d430a9062ed40be2e3c73ff0041f444af8fadefb3",
         "task_ref": {
           "ref_kind": "task",
           "ref_id": "task-techvault-red-team-v1",
@@ -4307,7 +856,7 @@
           "ref_kind": "scenario-snapshot",
           "ref_id": "compiler-family",
           "ref_version": "raes-sdl-instantiated-snapshot/v2",
-          "ref_digest": "sha256:916546ea9bf098d9cc51a96d9da070202c24e9005c8ca6d51570c0f09bb8658a",
+          "ref_digest": "sha256:0faa2e19a293c8874ab3f0d0232f53ec3d9864ae0d39698c80d45eaaea3617d0",
           "ref_path": null
         },
         "trial_provenance": null,
@@ -4405,11 +954,11 @@
       "attempts": [
         {
           "schema_version": "runtime-trial-attempt/v1",
-          "experiment_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
-          "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-          "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+          "experiment_id": "trial-plan-d8d00c2300be5f99e0cc64dbe27242aed4294be1bae5fd88bbae90aa3d886853",
+          "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+          "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
           "attempt": 1,
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "started_at": "2026-11-15T10:00:00Z",
           "deadline": "2026-11-15T10:10:00Z"
         }
@@ -4417,7 +966,7 @@
       "observations": [
         {
           "schema_version": "runtime-trial-observation/v1",
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "observation": {
             "kind": "configuration",
             "configurations": [],
@@ -4428,7 +977,7 @@
         },
         {
           "schema_version": "runtime-trial-observation/v1",
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "observation": {
             "kind": "execution",
             "state": "succeeded",
@@ -4441,7 +990,7 @@
         },
         {
           "schema_version": "runtime-trial-observation/v1",
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "observation": {
             "kind": "capture",
             "complete": true,
@@ -4459,7 +1008,7 @@
                 "output_contract": "participant-behavior-history-event-stream-v1",
                 "run_ref": {
                   "ref_kind": "run",
-                  "ref_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+                  "ref_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
                   "ref_version": "1.0.0",
                   "ref_digest": null,
                   "ref_path": null
@@ -4539,13 +1088,13 @@
         "schema_version": "experiment-run/v1",
         "record_state": "partial",
         "execution_accounting": {
-          "plan_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
-          "plan_digest": "sha256:c681860c67250fc95612238e189ff0d1c082fa866989007b6b65e29dd52c8cbe",
-          "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-          "entry_digest": "sha256:de82d3b777ffd0d4d7595e42c6cf23737eaaf0259dc256cd2bbd86aff9aa03c1",
+          "plan_id": "trial-plan-d8d00c2300be5f99e0cc64dbe27242aed4294be1bae5fd88bbae90aa3d886853",
+          "plan_digest": "sha256:b03f056f7dc617b734215df5ef4e5f8b37103f29501e2df412e58292b14b4a18",
+          "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+          "entry_digest": "sha256:4a08dad446bc2fd2d4af51a60d9fec0505b5e3bf1b15422f0100639387d517c1",
           "attempts": [
             {
-              "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+              "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
               "attempt": 1,
               "started_at": "2026-11-15T10:00:00Z",
               "ended_at": "2026-11-15T10:00:01Z",
@@ -4576,7 +1125,7 @@
                   "output_contract": "participant-behavior-history-event-stream-v1",
                   "run_ref": {
                     "ref_kind": "run",
-                    "ref_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+                    "ref_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
                     "ref_version": "1.0.0",
                     "ref_digest": null,
                     "ref_path": null
@@ -4628,8 +1177,8 @@
           ],
           "participant_configurations": []
         },
-        "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
-        "run_version": "partial-8f99b6c37cb08b06a911557145211a1aa997fd26ecf274a63c3fb138b0d881ac",
+        "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
+        "run_version": "partial-92e4a0ceaf90d5942d0c591430cbc7af86f5f345da9d98df0791f77882365eef",
         "task_ref": {
           "ref_kind": "task",
           "ref_id": "task-techvault-red-team-v1",
@@ -4639,7 +1188,7 @@
           "ref_kind": "scenario-snapshot",
           "ref_id": "compiler-family",
           "ref_version": "raes-sdl-instantiated-snapshot/v2",
-          "ref_digest": "sha256:916546ea9bf098d9cc51a96d9da070202c24e9005c8ca6d51570c0f09bb8658a",
+          "ref_digest": "sha256:0faa2e19a293c8874ab3f0d0232f53ec3d9864ae0d39698c80d45eaaea3617d0",
           "ref_path": null
         },
         "trial_provenance": null,
@@ -4755,11 +1304,11 @@
       "attempts": [
         {
           "schema_version": "runtime-trial-attempt/v1",
-          "experiment_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
-          "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-          "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+          "experiment_id": "trial-plan-d8d00c2300be5f99e0cc64dbe27242aed4294be1bae5fd88bbae90aa3d886853",
+          "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+          "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
           "attempt": 1,
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "started_at": "2026-11-15T10:00:00Z",
           "deadline": "2026-11-15T10:10:00Z"
         }
@@ -4767,7 +1316,7 @@
       "observations": [
         {
           "schema_version": "runtime-trial-observation/v1",
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "observation": {
             "kind": "configuration",
             "configurations": [],
@@ -4778,7 +1327,7 @@
         },
         {
           "schema_version": "runtime-trial-observation/v1",
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "observation": {
             "kind": "execution",
             "state": "succeeded",
@@ -4791,7 +1340,7 @@
         },
         {
           "schema_version": "runtime-trial-observation/v1",
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "observation": {
             "kind": "capture",
             "complete": true,
@@ -4809,7 +1358,7 @@
                 "output_contract": "participant-behavior-history-event-stream-v1",
                 "run_ref": {
                   "ref_kind": "run",
-                  "ref_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+                  "ref_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
                   "ref_version": "1.0.0",
                   "ref_digest": null,
                   "ref_path": null
@@ -4863,16 +1412,16 @@
         },
         {
           "schema_version": "runtime-trial-observation/v1",
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "observation": {
             "kind": "cleanup",
             "receipt": {
               "schema_version": "trial-cleanup-receipt/v1",
               "receipt_id": "receipt-attempt-1",
-              "cleanup_plan_ref": "trial-cleanup-f48fed6078cb1bc1a5de107987cd59423f43cdd6f9549c89f5fa9346f2873227",
-              "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-              "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
-              "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+              "cleanup_plan_ref": "trial-cleanup-783606b6a5e795dd51ce39103fa9ac7defe12e318be2940f3cfd733a61e9eac1",
+              "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+              "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
+              "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
               "trial_outcome": "succeeded",
               "cleanup_status": "succeeded",
               "obligation_results": {
@@ -4930,13 +1479,13 @@
         "schema_version": "experiment-run/v1",
         "record_state": "partial",
         "execution_accounting": {
-          "plan_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
-          "plan_digest": "sha256:c681860c67250fc95612238e189ff0d1c082fa866989007b6b65e29dd52c8cbe",
-          "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-          "entry_digest": "sha256:de82d3b777ffd0d4d7595e42c6cf23737eaaf0259dc256cd2bbd86aff9aa03c1",
+          "plan_id": "trial-plan-d8d00c2300be5f99e0cc64dbe27242aed4294be1bae5fd88bbae90aa3d886853",
+          "plan_digest": "sha256:b03f056f7dc617b734215df5ef4e5f8b37103f29501e2df412e58292b14b4a18",
+          "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+          "entry_digest": "sha256:4a08dad446bc2fd2d4af51a60d9fec0505b5e3bf1b15422f0100639387d517c1",
           "attempts": [
             {
-              "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+              "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
               "attempt": 1,
               "started_at": "2026-11-15T10:00:00Z",
               "ended_at": "2026-11-15T10:00:01Z",
@@ -4947,10 +1496,10 @@
               "cleanup_receipt": {
                 "schema_version": "trial-cleanup-receipt/v1",
                 "receipt_id": "receipt-attempt-1",
-                "cleanup_plan_ref": "trial-cleanup-f48fed6078cb1bc1a5de107987cd59423f43cdd6f9549c89f5fa9346f2873227",
-                "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-                "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
-                "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+                "cleanup_plan_ref": "trial-cleanup-783606b6a5e795dd51ce39103fa9ac7defe12e318be2940f3cfd733a61e9eac1",
+                "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+                "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
+                "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
                 "trial_outcome": "succeeded",
                 "cleanup_status": "succeeded",
                 "obligation_results": {
@@ -4995,7 +1544,7 @@
                   "output_contract": "participant-behavior-history-event-stream-v1",
                   "run_ref": {
                     "ref_kind": "run",
-                    "ref_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+                    "ref_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
                     "ref_version": "1.0.0",
                     "ref_digest": null,
                     "ref_path": null
@@ -5047,8 +1596,8 @@
           ],
           "participant_configurations": []
         },
-        "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
-        "run_version": "partial-ba4afa7ef1c53b87466dacc6d9626d533288c49952da730e5384640b28d9d09a",
+        "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
+        "run_version": "partial-5b3c5d0866bacda38e0ecf6d0a5ff39f2ff23f3cda93c3dbef02e69c8891f451",
         "task_ref": {
           "ref_kind": "task",
           "ref_id": "task-techvault-red-team-v1",
@@ -5058,7 +1607,7 @@
           "ref_kind": "scenario-snapshot",
           "ref_id": "compiler-family",
           "ref_version": "raes-sdl-instantiated-snapshot/v2",
-          "ref_digest": "sha256:916546ea9bf098d9cc51a96d9da070202c24e9005c8ca6d51570c0f09bb8658a",
+          "ref_digest": "sha256:0faa2e19a293c8874ab3f0d0232f53ec3d9864ae0d39698c80d45eaaea3617d0",
           "ref_path": null
         },
         "trial_provenance": null,
@@ -5174,11 +1723,11 @@
       "attempts": [
         {
           "schema_version": "runtime-trial-attempt/v1",
-          "experiment_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
-          "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-          "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+          "experiment_id": "trial-plan-d8d00c2300be5f99e0cc64dbe27242aed4294be1bae5fd88bbae90aa3d886853",
+          "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+          "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
           "attempt": 1,
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "started_at": "2026-11-15T10:00:00Z",
           "deadline": "2026-11-15T10:10:00Z"
         }
@@ -5186,7 +1735,7 @@
       "observations": [
         {
           "schema_version": "runtime-trial-observation/v1",
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "observation": {
             "kind": "configuration",
             "configurations": [],
@@ -5197,7 +1746,7 @@
         },
         {
           "schema_version": "runtime-trial-observation/v1",
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "observation": {
             "kind": "execution",
             "state": "succeeded",
@@ -5210,7 +1759,7 @@
         },
         {
           "schema_version": "runtime-trial-observation/v1",
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "observation": {
             "kind": "capture",
             "complete": true,
@@ -5228,7 +1777,7 @@
                 "output_contract": "participant-behavior-history-event-stream-v1",
                 "run_ref": {
                   "ref_kind": "run",
-                  "ref_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+                  "ref_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
                   "ref_version": "1.0.0",
                   "ref_digest": null,
                   "ref_path": null
@@ -5282,16 +1831,16 @@
         },
         {
           "schema_version": "runtime-trial-observation/v1",
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "observation": {
             "kind": "cleanup",
             "receipt": {
               "schema_version": "trial-cleanup-receipt/v1",
               "receipt_id": "receipt-attempt-1",
-              "cleanup_plan_ref": "trial-cleanup-f48fed6078cb1bc1a5de107987cd59423f43cdd6f9549c89f5fa9346f2873227",
-              "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-              "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
-              "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+              "cleanup_plan_ref": "trial-cleanup-783606b6a5e795dd51ce39103fa9ac7defe12e318be2940f3cfd733a61e9eac1",
+              "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+              "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
+              "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
               "trial_outcome": "succeeded",
               "cleanup_status": "succeeded",
               "obligation_results": {
@@ -5345,19 +1894,19 @@
         "realized_form_disclosures": []
       },
       "phase_states": {
-        "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e:1": "failed"
+        "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00:1": "failed"
       },
       "run": {
         "schema_version": "experiment-run/v1",
         "record_state": "partial",
         "execution_accounting": {
-          "plan_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
-          "plan_digest": "sha256:c681860c67250fc95612238e189ff0d1c082fa866989007b6b65e29dd52c8cbe",
-          "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-          "entry_digest": "sha256:de82d3b777ffd0d4d7595e42c6cf23737eaaf0259dc256cd2bbd86aff9aa03c1",
+          "plan_id": "trial-plan-d8d00c2300be5f99e0cc64dbe27242aed4294be1bae5fd88bbae90aa3d886853",
+          "plan_digest": "sha256:b03f056f7dc617b734215df5ef4e5f8b37103f29501e2df412e58292b14b4a18",
+          "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+          "entry_digest": "sha256:4a08dad446bc2fd2d4af51a60d9fec0505b5e3bf1b15422f0100639387d517c1",
           "attempts": [
             {
-              "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+              "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
               "attempt": 1,
               "started_at": "2026-11-15T10:00:00Z",
               "ended_at": "2026-11-15T10:00:01Z",
@@ -5368,10 +1917,10 @@
               "cleanup_receipt": {
                 "schema_version": "trial-cleanup-receipt/v1",
                 "receipt_id": "receipt-attempt-1",
-                "cleanup_plan_ref": "trial-cleanup-f48fed6078cb1bc1a5de107987cd59423f43cdd6f9549c89f5fa9346f2873227",
-                "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-                "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
-                "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+                "cleanup_plan_ref": "trial-cleanup-783606b6a5e795dd51ce39103fa9ac7defe12e318be2940f3cfd733a61e9eac1",
+                "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+                "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
+                "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
                 "trial_outcome": "succeeded",
                 "cleanup_status": "succeeded",
                 "obligation_results": {
@@ -5416,7 +1965,7 @@
                   "output_contract": "participant-behavior-history-event-stream-v1",
                   "run_ref": {
                     "ref_kind": "run",
-                    "ref_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+                    "ref_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
                     "ref_version": "1.0.0",
                     "ref_digest": null,
                     "ref_path": null
@@ -5468,8 +2017,8 @@
           ],
           "participant_configurations": []
         },
-        "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
-        "run_version": "partial-df72b33f4bfdb305c00d01f057e6e0c7e2417b0ee1d118620afc7e3e0ed3d428",
+        "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
+        "run_version": "partial-a7fd7669f84c619a2b001faf453167a45099a5d311d63e12e1c51c6de01198a1",
         "task_ref": {
           "ref_kind": "task",
           "ref_id": "task-techvault-red-team-v1",
@@ -5479,7 +2028,7 @@
           "ref_kind": "scenario-snapshot",
           "ref_id": "compiler-family",
           "ref_version": "raes-sdl-instantiated-snapshot/v2",
-          "ref_digest": "sha256:916546ea9bf098d9cc51a96d9da070202c24e9005c8ca6d51570c0f09bb8658a",
+          "ref_digest": "sha256:0faa2e19a293c8874ab3f0d0232f53ec3d9864ae0d39698c80d45eaaea3617d0",
           "ref_path": null
         },
         "trial_provenance": null,
@@ -5595,11 +2144,11 @@
       "attempts": [
         {
           "schema_version": "runtime-trial-attempt/v1",
-          "experiment_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
-          "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-          "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+          "experiment_id": "trial-plan-d8d00c2300be5f99e0cc64dbe27242aed4294be1bae5fd88bbae90aa3d886853",
+          "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+          "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
           "attempt": 1,
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "started_at": "2026-11-15T10:00:00Z",
           "deadline": "2026-11-15T10:10:00Z"
         }
@@ -5607,7 +2156,7 @@
       "observations": [
         {
           "schema_version": "runtime-trial-observation/v1",
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "observation": {
             "kind": "configuration",
             "configurations": [],
@@ -5618,7 +2167,7 @@
         },
         {
           "schema_version": "runtime-trial-observation/v1",
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "observation": {
             "kind": "execution",
             "state": "succeeded",
@@ -5631,7 +2180,7 @@
         },
         {
           "schema_version": "runtime-trial-observation/v1",
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "observation": {
             "kind": "capture",
             "complete": true,
@@ -5649,7 +2198,7 @@
                 "output_contract": "participant-behavior-history-event-stream-v1",
                 "run_ref": {
                   "ref_kind": "run",
-                  "ref_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+                  "ref_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
                   "ref_version": "1.0.0",
                   "ref_digest": null,
                   "ref_path": null
@@ -5703,16 +2252,16 @@
         },
         {
           "schema_version": "runtime-trial-observation/v1",
-          "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+          "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
           "observation": {
             "kind": "cleanup",
             "receipt": {
               "schema_version": "trial-cleanup-receipt/v1",
               "receipt_id": "receipt-attempt-1",
-              "cleanup_plan_ref": "trial-cleanup-f48fed6078cb1bc1a5de107987cd59423f43cdd6f9549c89f5fa9346f2873227",
-              "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-              "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
-              "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+              "cleanup_plan_ref": "trial-cleanup-783606b6a5e795dd51ce39103fa9ac7defe12e318be2940f3cfd733a61e9eac1",
+              "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+              "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
+              "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
               "trial_outcome": "succeeded",
               "cleanup_status": "succeeded",
               "obligation_results": {
@@ -5946,7 +2495,7 @@
         },
         "participant_implementation_provenance": {
           "schema_version": "participant-implementation-provenance/v1",
-          "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+          "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
           "participant_implementations": [
             {
               "participant_address": "participants.red",
@@ -6034,13 +2583,13 @@
       "run": {
         "schema_version": "experiment-run/v1",
         "execution_accounting": {
-          "plan_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
-          "plan_digest": "sha256:c681860c67250fc95612238e189ff0d1c082fa866989007b6b65e29dd52c8cbe",
-          "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-          "entry_digest": "sha256:de82d3b777ffd0d4d7595e42c6cf23737eaaf0259dc256cd2bbd86aff9aa03c1",
+          "plan_id": "trial-plan-d8d00c2300be5f99e0cc64dbe27242aed4294be1bae5fd88bbae90aa3d886853",
+          "plan_digest": "sha256:b03f056f7dc617b734215df5ef4e5f8b37103f29501e2df412e58292b14b4a18",
+          "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+          "entry_digest": "sha256:4a08dad446bc2fd2d4af51a60d9fec0505b5e3bf1b15422f0100639387d517c1",
           "attempts": [
             {
-              "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+              "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
               "attempt": 1,
               "started_at": "2026-11-15T10:00:00Z",
               "ended_at": "2026-11-15T10:00:01Z",
@@ -6051,10 +2600,10 @@
               "cleanup_receipt": {
                 "schema_version": "trial-cleanup-receipt/v1",
                 "receipt_id": "receipt-attempt-1",
-                "cleanup_plan_ref": "trial-cleanup-f48fed6078cb1bc1a5de107987cd59423f43cdd6f9549c89f5fa9346f2873227",
-                "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-                "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
-                "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+                "cleanup_plan_ref": "trial-cleanup-783606b6a5e795dd51ce39103fa9ac7defe12e318be2940f3cfd733a61e9eac1",
+                "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+                "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
+                "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
                 "trial_outcome": "succeeded",
                 "cleanup_status": "succeeded",
                 "obligation_results": {
@@ -6099,7 +2648,7 @@
                   "output_contract": "participant-behavior-history-event-stream-v1",
                   "run_ref": {
                     "ref_kind": "run",
-                    "ref_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+                    "ref_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
                     "ref_version": "1.0.0",
                     "ref_digest": null,
                     "ref_path": null
@@ -6151,7 +2700,7 @@
           ],
           "participant_configurations": []
         },
-        "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+        "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
         "run_version": "1",
         "task_ref": {
           "ref_kind": "task",
@@ -6162,29 +2711,29 @@
           "ref_kind": "scenario-snapshot",
           "ref_id": "compiler-family",
           "ref_version": "raes-sdl-instantiated-snapshot/v2",
-          "ref_digest": "sha256:916546ea9bf098d9cc51a96d9da070202c24e9005c8ca6d51570c0f09bb8658a",
+          "ref_digest": "sha256:0faa2e19a293c8874ab3f0d0232f53ec3d9864ae0d39698c80d45eaaea3617d0",
           "ref_path": null
         },
         "trial_provenance": {
-          "plan_id": "trial-plan-0e7cbab062fefc275a9ba885b9f2266c01354034a5c9072b7fcf8dbaecb61f7e",
-          "plan_digest": "sha256:c681860c67250fc95612238e189ff0d1c082fa866989007b6b65e29dd52c8cbe",
-          "plan_entry_id": "trial-entry-929ac487b94e4306eba77717996db260284c7fd44e48527094f77b0b39187721",
-          "entry_digest": "sha256:de82d3b777ffd0d4d7595e42c6cf23737eaaf0259dc256cd2bbd86aff9aa03c1",
-          "admitted_run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+          "plan_id": "trial-plan-d8d00c2300be5f99e0cc64dbe27242aed4294be1bae5fd88bbae90aa3d886853",
+          "plan_digest": "sha256:b03f056f7dc617b734215df5ef4e5f8b37103f29501e2df412e58292b14b4a18",
+          "plan_entry_id": "trial-entry-5d2d71290126031ec67c39d760e93c82f0172d59956dc4543cddfe8692a6934f",
+          "entry_digest": "sha256:4a08dad446bc2fd2d4af51a60d9fec0505b5e3bf1b15422f0100639387d517c1",
+          "admitted_run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
           "coordinate": {
             "condition_id": null,
             "block_id": null,
             "replicate_id": "replicate-000001"
           },
-          "instantiated_scenario_digest": "sha256:916546ea9bf098d9cc51a96d9da070202c24e9005c8ca6d51570c0f09bb8658a",
+          "instantiated_scenario_digest": "sha256:0faa2e19a293c8874ab3f0d0232f53ec3d9864ae0d39698c80d45eaaea3617d0",
           "processor_plan_refs": [
             {
               "plan_kind": "provisioning",
               "artifact_ref": {
                 "ref_kind": "other",
-                "ref_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7:provisioning",
+                "ref_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2:provisioning",
                 "ref_version": "provisioning-plan-v1",
-                "ref_digest": "sha256:08fdb459f6ff311c532d8213e35a8fc13ab5f1bdd66d4ee986609eae4974dfea",
+                "ref_digest": "sha256:747f2d6772ae0fafdcf387af19f0d86c166896bf8c83855f80b86ba8eb3d42f7",
                 "ref_path": null
               }
             },
@@ -6192,7 +2741,7 @@
               "plan_kind": "orchestration",
               "artifact_ref": {
                 "ref_kind": "other",
-                "ref_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7:orchestration",
+                "ref_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2:orchestration",
                 "ref_version": "orchestration-plan-v1",
                 "ref_digest": "sha256:d126d54f7b380d788b1fce28ebb28344a68f92b376ab673f36eed837fe3afa12",
                 "ref_path": null
@@ -6202,21 +2751,21 @@
               "plan_kind": "evaluation",
               "artifact_ref": {
                 "ref_kind": "other",
-                "ref_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7:evaluation",
+                "ref_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2:evaluation",
                 "ref_version": "evaluation-plan-v1",
-                "ref_digest": "sha256:067238d54a8085e17025f4cc6e8935c753c77e56c3d2b52896e7dd2ebdac7543",
+                "ref_digest": "sha256:0b55248c1dceca93eb4dbc75a9d197a0ddc1ea6c45fc52deec76859528a69bc9",
                 "ref_path": null
               }
             }
           ],
           "execution_attempts": [
             {
-              "execution_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e",
+              "execution_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00",
               "cleanup_receipt_ref": "receipt-attempt-1",
               "operation_refs": []
             }
           ],
-          "terminal_attempt_id": "attempt:9fe2612c-f0f2-5e8e-b3da-0b798de44e7e"
+          "terminal_attempt_id": "attempt:f9cd75cd-a80e-58a4-8082-b1453f585f00"
         },
         "difficulty_provenance": null,
         "apparatus_context": {
@@ -6419,7 +2968,7 @@
         },
         "participant_implementation_provenance": {
           "schema_version": "participant-implementation-provenance/v1",
-          "run_id": "archival-run-693587326e3adbf0aa3952e57a6841354e2a3ff6cb6a8d72f0b9edd8a2c247a7",
+          "run_id": "archival-run-7fbcc76a910f9e12f36b43c2f95f11e3f150b167749c15d8936f13e4867b69b2",
           "participant_implementations": [
             {
               "participant_address": "participants.red",
