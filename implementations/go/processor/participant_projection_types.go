@@ -33,6 +33,7 @@ type participantSpecification struct {
 	EvidenceContractRefs               []string                  `json:"evidence_contract_refs"`
 	ToolAffordanceAddresses            []string                  `json:"tool_affordance_addresses"`
 	ParticipantInjectDeliveryAddresses []string                  `json:"participant_inject_delivery_addresses"`
+	EpisodePolicyAddress               string                    `json:"episode_policy_address"`
 	ExtensionPolicy                    string                    `json:"extension_policy"`
 	ExtensionKeys                      []string                  `json:"extension_keys"`
 }

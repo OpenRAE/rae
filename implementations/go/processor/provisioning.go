@@ -204,14 +204,15 @@ func (state *compilerState) compileComputeNode(resource *Resource, wire nodeWire
 		Count                  *json.Number `json:"count"`
 		NetworkNamespaceTarget string       `json:"network_namespace_target"`
 		DomainTopology         any          `json:"domain_topology"`
-	}{name, wire, name, kind, osFamily, state.suppliedIdentity(name, "os_distribution", distribution), version, state.suppliedIdentity(name, "architecture", architecture), count, namespaceTarget, topologyWire(resource.Topology)})
+	}{name, wire, name, kind, osFamily, state.suppliedIdentity(name, "os_distribution", fieldValue(node.OsDistribution)), version, state.suppliedIdentity(name, "architecture", fieldValue(node.Architecture)), count, namespaceTarget, topologyWire(resource.Topology)})
 }
 
-// suppliedIdentity keeps an absent optional node identity absent in the operation payload.
-func (state *compilerState) suppliedIdentity(name, field, value string) *string {
-	if !state.input.supplied[termNodesPrefix+name+"."+field] {
+// suppliedIdentity keeps an absent or null optional node identity null in the operation payload.
+func (state *compilerState) suppliedIdentity(name, field string, raw json.RawMessage) *string {
+	if !state.input.supplied[termNodesPrefix+name+"."+field] || len(raw) == 0 || string(raw) == "null" {
 		return nil
 	}
+	value := rawString(raw)
 	return &value
 }
 

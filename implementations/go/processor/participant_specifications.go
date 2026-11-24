@@ -40,6 +40,9 @@ func (state *compilerState) compileBehaviorSpecifications() {
 		for _, refs := range [][]string{actions, observations, outcomes, scope, mixed.dependencies} {
 			dependencies = append(dependencies, refs...)
 		}
+		if policy := fieldValue(source.EpisodePolicy); len(policy) > 0 && string(policy) != "null" {
+			output.EpisodePolicyAddress = state.address(termParticipant, "episode-policy", name)
+		}
 		state.specifications[address] = output
 		state.model.ParticipantResources = append(state.model.ParticipantResources, Resource{Address: address, Name: name, Domain: termParticipant, Kind: termBehaviorSpecification, OrderingDependencies: []string{}, RefreshDependencies: dedupe(dependencies), Payload: state.payload(output)})
 	}

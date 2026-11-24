@@ -151,6 +151,7 @@ func compileAdmitted(scenario sdl.Scenario, options CompileOptions, descriptive 
 	state.compileToolAffordances()
 	state.joinParticipantTools()
 	state.compileParticipantDeliveries()
+	state.compileEpisodePolicies()
 	state.compileEvents()
 	state.compileScripts()
 	state.compileStories()

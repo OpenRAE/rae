@@ -34,7 +34,7 @@ func TestCompiledResourcesKeepReferenceParticipantCases(t *testing.T) {
 		"testdata/compiled-participant-reference-3.json", "testdata/compiled-participant-reference-4.json",
 		"testdata/compiled-participant-reference-5.json", "testdata/compiled-participant-reference-6.json",
 		"testdata/compiled-participant-reference-7.json",
-	}, 39)
+	}, 41)
 }
 func referenceParts(t *testing.T, paths []string) [][]byte {
 	t.Helper()

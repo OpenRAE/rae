@@ -47,7 +47,7 @@ func canonical(key, scope string) string {
 func inWords(word, words string) bool { return strings.Contains(" "+words+" ", " "+word+" ") }
 
 const declarations = "nodes infrastructure features conditions propositions assertions entities injects events scripts stories content control_context_assets generated_artifacts persistent_volumes accounts identity_domains identity_forests identity_facades deployment_tenants deployment_cells relationships agents action_contracts observation_boundaries outcome_interpretation_rules behavior_specifications evidence_requirements time_domains clocks time_domain_mappings time_progression_policies temporal_constraints objectives workflows variables variation_points"
-const literalFields = "features conditions injects roles log_options labels driver_options ipam_options facts entities events steps extensions interactive_access control_context controller_states transitions permitted_transitions alternatives inventory members fixed_positions tool_affordances participant_inject_deliveries owners dimensions"
+const literalFields = "features conditions injects roles log_options labels driver_options ipam_options facts entities events steps extensions interactive_access control_context controller_states transitions permitted_transitions alternatives inventory members fixed_positions tool_affordances participant_inject_deliveries terminal_conditions truncation_conditions owners dimensions"
 
 var variableToken = regexp.MustCompile(`\$\{(?:(?:[a-z0-9][a-z0-9_-]{0,63}|__private)\.)*[a-z0-9][a-z0-9_-]{0,63}\}`)
 
