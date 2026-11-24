@@ -42,15 +42,11 @@ _UNIFORM_CONDITION = re.compile(r"\$\{\{\s*inputs\.[a-z0-9-]+\s*\}\}")
 _SAFE_NAME = re.compile(r"[a-z0-9-]+")
 
 
-def _require(
-    condition: bool, message: str, path: str = WORKFLOW
-) -> list[PolicyFailure]:
+def _require(condition: bool, message: str, path: str = WORKFLOW) -> list[PolicyFailure]:
     return [] if condition else [PolicyFailure(RULE, message, path)]
 
 
-def _equal(
-    actual: list[str], expected: list[str], consumer: str, path: str = WORKFLOW
-) -> list[PolicyFailure]:
+def _equal(actual: list[str], expected: list[str], consumer: str, path: str = WORKFLOW) -> list[PolicyFailure]:
     return _require(
         sorted(actual) == sorted(expected) and len(set(actual)) == len(actual),
         f"{consumer} must cover each architecture module exactly once",
@@ -69,18 +65,14 @@ def _get(value: Any, dotted: str, kind: type, source: str = WORKFLOW) -> Any:
     return value
 
 
-def _mappings(
-    values: list[Any], dotted: str, source: str = WORKFLOW
-) -> list[Mapping[str, Any]]:
+def _mappings(values: list[Any], dotted: str, source: str = WORKFLOW) -> list[Mapping[str, Any]]:
     if not all(isinstance(value, Mapping) for value in values):
         raise InvalidInputError(f"{source} has an invalid entry in {dotted}")
     return values
 
 
 def _module_directories(root: Path) -> list[str]:
-    model = load_bounded_json_object(
-        root, "implementations/architecture.json", max_bytes=ARCHITECTURE_MODEL_LIMIT
-    )
+    model = load_bounded_json_object(root, "implementations/architecture.json", max_bytes=ARCHITECTURE_MODEL_LIMIT)
     # archcheck validates the model before this adapter in the required job.
     modules = model.get("modules")
     if not isinstance(modules, list) or not modules:
@@ -88,11 +80,7 @@ def _module_directories(root: Path) -> list[str]:
     dirs = []
     for module in modules:
         directory = module.get("dir") if isinstance(module, dict) else None
-        if (
-            not isinstance(directory, str)
-            or not directory
-            or safe_repo_path(root, directory) is None
-        ):
+        if not isinstance(directory, str) or not directory or safe_repo_path(root, directory) is None:
             raise InvalidInputError("Go module inventory contains an unsafe directory")
         dirs.append(directory)
     return dirs
@@ -107,9 +95,7 @@ def _steps(job: Mapping[str, Any], job_name: str) -> list[Mapping[str, Any]]:
     return _mappings(_get(job, "steps", list), f"jobs.{job_name}.steps")
 
 
-def _selected_modules(
-    condition: object, key: str, modules: set[str]
-) -> set[str] | None:
+def _selected_modules(condition: object, key: str, modules: set[str]) -> set[str] | None:
     """Return the modules that a step condition admits, or None when unsupported."""
     if condition is None:
         return set(modules)
@@ -117,9 +103,7 @@ def _selected_modules(
     if _UNIFORM_CONDITION.fullmatch(text):
         # A workflow input gates the lane for every module alike.
         return set(modules)
-    match = re.fullmatch(
-        rf"(?:\$\{{\{{\s*)?matrix\.{key}\s*(==|!=)\s*'([a-z0-9-]+)'(?:\s*\}}\}})?", text
-    )
+    match = re.fullmatch(rf"(?:\$\{{\{{\s*)?matrix\.{key}\s*(==|!=)\s*'([a-z0-9-]+)'(?:\s*\}}\}})?", text)
     if match is None:
         return None
     operator, name = match.groups()
@@ -149,8 +133,7 @@ def _check_matrix(go: Mapping[str, Any], dirs: list[str]) -> list[PolicyFailure]
     failures = _equal([str(row.get("path")) for row in rows], dirs, "Go matrix")
     names = [row.get("name") for row in rows]
     failures += _require(
-        len(set(names)) == len(names)
-        and all(isinstance(n, str) and _SAFE_NAME.fullmatch(n) for n in names),
+        len(set(names)) == len(names) and all(isinstance(n, str) and _SAFE_NAME.fullmatch(n) for n in names),
         "Go matrix names must be unique safe artifact identifiers",
     )
     failures += _require(
@@ -160,9 +143,7 @@ def _check_matrix(go: Mapping[str, Any], dirs: list[str]) -> list[PolicyFailure]
     return failures
 
 
-def _check_test_groups(
-    go: Mapping[str, Any], tests: Mapping[str, Any]
-) -> list[PolicyFailure]:
+def _check_test_groups(go: Mapping[str, Any], tests: Mapping[str, Any]) -> list[PolicyFailure]:
     """Require each module's declared test groups, and only those groups."""
     modules = {row.get("name"): row for row in _rows(go, "go")}
     groups = _rows(tests, "go-test")
@@ -173,11 +154,7 @@ def _check_test_groups(
         "Go test groups must match the group axis exactly once",
     )
     failures += _require(
-        all(
-            row.get("module") in modules
-            and row.get("path") == modules[row["module"]].get("path")
-            for row in groups
-        ),
+        all(row.get("module") in modules and row.get("path") == modules[row["module"]].get("path") for row in groups),
         "Go test groups must name a matrix module and its path",
     )
     counts = Counter(row.get("module") for row in groups)
@@ -199,12 +176,7 @@ def _equivalent_step_elsewhere(
     jobs = _get(workflow, "jobs", Mapping)
     needs = _get(workflow, "jobs.gate.needs", list)
     for name, job in jobs.items():
-        if (
-            name == source_job
-            or name not in needs
-            or not isinstance(job, Mapping)
-            or "if" in job
-        ):
+        if name == source_job or name not in needs or not isinstance(job, Mapping) or "if" in job:
             continue
         for other in _steps(job, name):
             if (
@@ -217,9 +189,7 @@ def _equivalent_step_elsewhere(
     return False
 
 
-def _check_module_lanes(
-    workflow: Mapping[str, Any], job_name: str, key: str
-) -> list[PolicyFailure]:
+def _check_module_lanes(workflow: Mapping[str, Any], job_name: str, key: str) -> list[PolicyFailure]:
     """Require every module-directory step to reach every module in a required job."""
     job = _get(workflow, f"jobs.{job_name}", Mapping)
     paths = {row.get(key): row.get("path") for row in _rows(job, job_name)}
@@ -228,9 +198,7 @@ def _check_module_lanes(
         if step.get("working-directory") != MODULE_DIRECTORY:
             continue
         label = f"{job_name} step {step.get('name', '(unnamed)')!r}"
-        failures += _require(
-            not step.get("continue-on-error"), f"{label} must fail the job"
-        )
+        failures += _require(not step.get("continue-on-error"), f"{label} must fail the job")
         selected = _selected_modules(step.get("if"), key, set(paths))
         if selected is None:
             failures += _require(
@@ -262,14 +230,12 @@ def _check_coverage_upload(go: Mapping[str, Any]) -> list[PolicyFailure]:
     upload = [
         step
         for step in _steps(go, "go")
-        if isinstance(step.get("with"), Mapping)
-        and step["with"].get("path") == f"{MODULE_DIRECTORY}/cover.out"
+        if isinstance(step.get("with"), Mapping) and step["with"].get("path") == f"{MODULE_DIRECTORY}/cover.out"
     ]
     return _require(
         len(upload) == 1
         and upload[0]["with"].get("if-no-files-found") == "error"
-        and upload[0]["with"].get("name")
-        == "go-coverage-${{ matrix.name }}-${{ inputs.ref }}"
+        and upload[0]["with"].get("name") == "go-coverage-${{ matrix.name }}-${{ inputs.ref }}"
         and "if" not in upload[0]
         and not upload[0].get("continue-on-error"),
         "Go coverage artifact upload must be required for every module",
@@ -288,15 +254,12 @@ def _sonar_properties(root: Path) -> dict[str, str]:
     }
 
 
-def _check_sonar(
-    root: Path, workflow: Mapping[str, Any], dirs: list[str]
-) -> list[PolicyFailure]:
+def _check_sonar(root: Path, workflow: Mapping[str, Any], dirs: list[str]) -> list[PolicyFailure]:
     rows = _rows(_get(workflow, "jobs.go", Mapping), "go")
     downloads = [
         step["with"]
         for step in _steps(_get(workflow, "jobs.sonar", Mapping), "sonar")
-        if isinstance(step.get("with"), Mapping)
-        and str(step["with"].get("name", "")).startswith("go-coverage-")
+        if isinstance(step.get("with"), Mapping) and str(step["with"].get("name", "")).startswith("go-coverage-")
     ]
     failures = _equal(
         [str(d.get("path", "")).rstrip("/") for d in downloads],
@@ -305,10 +268,7 @@ def _check_sonar(
     )
     failures += _require(
         {(d.get("name"), str(d.get("path", "")).rstrip("/")) for d in downloads}
-        == {
-            (f"go-coverage-{row.get('name')}-${{{{ inputs.ref }}}}", row.get("path"))
-            for row in rows
-        },
+        == {(f"go-coverage-{row.get('name')}-${{{{ inputs.ref }}}}", row.get("path")) for row in rows},
         "Go coverage downloads must match producer identities",
     )
     properties = _sonar_properties(root)
@@ -334,17 +294,11 @@ def _check_scans(
     dirs: list[str],
     scan_targets: Sequence[tuple[str, Path, Path]],
 ) -> list[PolicyFailure]:
-    scan_modules = [
-        path.parent.relative_to(root).as_posix()
-        for _, path, _ in scan_targets
-        if path.name == "go.mod"
-    ]
+    scan_modules = [path.parent.relative_to(root).as_posix() for _, path, _ in scan_targets if path.name == "go.mod"]
     failures = _equal(scan_modules, dirs, "OSV Go targets", CI_WORKFLOW)
     uploads = [
         step.get("with")
-        for step in _steps(
-            _get(ci, "jobs.supply-chain", Mapping, CI_WORKFLOW), "supply-chain"
-        )
+        for step in _steps(_get(ci, "jobs.supply-chain", Mapping, CI_WORKFLOW), "supply-chain")
         if step.get("name") == "Upload OSV-scanner report"
     ]
     if len(uploads) != 1 or not isinstance(uploads[0], Mapping):
@@ -358,14 +312,10 @@ def _check_scans(
     return failures
 
 
-def check_inventory(
-    root: Path, scan_targets: Sequence[tuple[str, Path, Path]]
-) -> list[PolicyFailure]:
+def check_inventory(root: Path, scan_targets: Sequence[tuple[str, Path, Path]]) -> list[PolicyFailure]:
     """Require all consumers to cover each module once, with common gates."""
     dirs = _module_directories(root)
-    failures = _equal(
-        dirs, list(set(dirs)), "declared modules", "implementations/architecture.json"
-    )
+    failures = _equal(dirs, list(set(dirs)), "declared modules", "implementations/architecture.json")
     workflow, errors = parse_yaml_mapping(root, WORKFLOW)
     failures.extend(errors)
     ci, errors = parse_yaml_mapping(root, CI_WORKFLOW)
@@ -389,9 +339,7 @@ def check_inventory(
 def check_scan_reports(root: Path, targets: Sequence[tuple[str, Path, Path]]) -> None:
     """Require a nonempty JSON report for every scanned closure on success."""
     for _, _, report in targets:
-        load_bounded_json_object(
-            root, report.relative_to(root).as_posix(), max_bytes=50_000_000
-        )
+        load_bounded_json_object(root, report.relative_to(root).as_posix(), max_bytes=50_000_000)
 
 
 def main() -> int:
@@ -410,9 +358,7 @@ def main() -> int:
             return 0
         failures = check_inventory(REPO_ROOT, OSV_SCAN_TARGETS)
     except (InvalidInputError, OSError) as error:
-        print(
-            f"go-module-inventory: invalid or incomplete inventory configuration: {error}"
-        )
+        print(f"go-module-inventory: invalid or incomplete inventory configuration: {error}")
         return 1
     for failure in failures:
         print(failure.render())
