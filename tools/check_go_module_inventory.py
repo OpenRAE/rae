@@ -30,6 +30,7 @@ from tools.policy.common import PolicyFailure, load_bounded_json_object, safe_re
 
 WORKFLOW = ".github/workflows/canonical-verification.yml"
 CI_WORKFLOW = ".github/workflows/ci.yml"
+SONAR_PROPERTIES = "sonar-project.properties"
 RULE = "go-module-inventory"
 MODULE_DIRECTORY = "${{ matrix.path }}"
 GO_ENV = {"GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly", "GOWORK": "off"}
@@ -54,7 +55,7 @@ def _equal(actual: list[str], expected: list[str], consumer: str, path: str = WO
     )
 
 
-def _get(value: Any, dotted: str, kind: type, source: str = WORKFLOW) -> Any:
+def _get[T](value: object, dotted: str, kind: type[T], source: str = WORKFLOW) -> T:
     """Return a nested value, or name the missing or mistyped entry."""
     for key in dotted.split("."):
         if not isinstance(value, Mapping) or key not in value:
@@ -97,17 +98,14 @@ def _steps(job: Mapping[str, Any], job_name: str) -> list[Mapping[str, Any]]:
 
 def _selected_modules(condition: object, key: str, modules: set[str]) -> set[str] | None:
     """Return the modules that a step condition admits, or None when unsupported."""
-    if condition is None:
-        return set(modules)
-    text = str(condition).strip()
-    if _UNIFORM_CONDITION.fullmatch(text):
-        # A workflow input gates the lane for every module alike.
-        return set(modules)
+    text = "" if condition is None else str(condition).strip()
+    # No condition, or a workflow input, gates the lane for every module alike.
+    selected: set[str] | None = set(modules) if not text or _UNIFORM_CONDITION.fullmatch(text) else None
     match = re.fullmatch(rf"(?:\$\{{\{{\s*)?matrix\.{key}\s*(==|!=)\s*'([a-z0-9-]+)'(?:\s*\}}\}})?", text)
-    if match is None:
-        return None
-    operator, name = match.groups()
-    return {name} & modules if operator == "==" else modules - {name}
+    if match is not None:
+        operator, name = match.groups()
+        selected = {name} & modules if operator == "==" else modules - {name}
+    return selected
 
 
 def _required_jobs(workflow: Mapping[str, Any]) -> list[PolicyFailure]:
@@ -173,20 +171,24 @@ def _equivalent_step_elsewhere(
     directory: str,
 ) -> bool:
     """Find the same gate script run unconditionally for one module in another required job."""
-    jobs = _get(workflow, "jobs", Mapping)
     needs = _get(workflow, "jobs.gate.needs", list)
-    for name, job in jobs.items():
-        if name == source_job or name not in needs or not isinstance(job, Mapping) or "if" in job:
-            continue
-        for other in _steps(job, name):
-            if (
-                other.get("working-directory") == directory
-                and other.get("run") == step.get("run")
-                and "if" not in other
-                and not other.get("continue-on-error")
-            ):
-                return True
-    return False
+    required = [
+        (name, job)
+        for name, job in _get(workflow, "jobs", Mapping).items()
+        if name != source_job and name in needs and isinstance(job, Mapping) and "if" not in job
+    ]
+    return any(
+        _same_unconditional_step(other, step, directory) for name, job in required for other in _steps(job, name)
+    )
+
+
+def _same_unconditional_step(other: Mapping[str, Any], step: Mapping[str, Any], directory: str) -> bool:
+    return (
+        other.get("working-directory") == directory
+        and other.get("run") == step.get("run")
+        and "if" not in other
+        and not other.get("continue-on-error")
+    )
 
 
 def _check_module_lanes(workflow: Mapping[str, Any], job_name: str, key: str) -> list[PolicyFailure]:
@@ -243,7 +245,7 @@ def _check_coverage_upload(go: Mapping[str, Any]) -> list[PolicyFailure]:
 
 
 def _sonar_properties(root: Path) -> dict[str, str]:
-    path = safe_repo_path(root, "sonar-project.properties")
+    path = safe_repo_path(root, SONAR_PROPERTIES)
     if path is None or not path.is_file():
         raise InvalidInputError("missing or unsafe Sonar configuration")
     return {
@@ -276,14 +278,14 @@ def _check_sonar(root: Path, workflow: Mapping[str, Any], dirs: list[str]) -> li
         properties.get("sonar.go.coverage.reportPaths", "").split(","),
         [f"{d}/cover.out" for d in dirs],
         "Go coverage reports",
-        "sonar-project.properties",
+        SONAR_PROPERTIES,
     )
     for key in ("sonar.sources", "sonar.tests"):
         roots = properties.get(key, "").split(",")
         failures += _require(
             all(d in roots for d in dirs),
             f"{key} must analyze each Go module",
-            "sonar-project.properties",
+            SONAR_PROPERTIES,
         )
     return failures
 
