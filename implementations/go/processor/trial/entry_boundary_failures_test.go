@@ -94,7 +94,7 @@ func TestParallelScheduleAndAssignmentKeysRetainExactSealedAuthority(t *testing.
 		t.Fatal("parallel plan fixture")
 	}
 	schedule, err := PlanBatchSchedule(plan)
-	if err != nil || schedule.AdmittedParallelismCeiling != 2 || schedule.IsolationProofRef == nil || len(schedule.Entries) != 2 {
+	if err != nil || schedule.AdmittedParallelismCeiling != 2 || len(schedule.Entries) != 2 {
 		t.Fatal("sealed isolation ceiling lost", schedule, err)
 	}
 	owner, err := trialOwner()

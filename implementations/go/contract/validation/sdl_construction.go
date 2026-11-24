@@ -24,6 +24,49 @@ const (
 // clauses. The reference formatter performs construction without that stage.
 const nodeSemanticClauses = "3778bdc61d14bbcb0626bf210050815770870a81d2c19a742c05f3709f33d18f"
 
+// The materialized Node clauses refer to one factored os_distribution clause.
+const (
+	materializedNodeClauses        = "5cf9979baf4dde966fe23bff9c3b92d3daec2e75031fbfa2d14709227d6d8708"
+	materializedDistributionDigest = "1c6a3f6fa1a26b7c577915a3a7e4bb7af706c46260ad4e40ed2a37ac16dc8c34"
+)
+
+// materializedDistributionClause returns the factored definition name that the
+// first materialized Node clause requires.
+func materializedDistributionClause(clauses any) (string, bool) {
+	rows, _ := clauses.([]any)
+	if len(rows) == 0 {
+		return "", false
+	}
+	first, _ := rows[0].(map[string]any)
+	then, _ := first["then"].(map[string]any)
+	ref, _ := then["$ref"].(string)
+	name, found := strings.CutPrefix(ref, "#/$defs/")
+	return name, found && name != ""
+}
+
+// renamedReference returns a copy of value with each exact reference string replaced.
+func renamedReference(value any, from, to string) any {
+	switch typed := value.(type) {
+	case map[string]any:
+		result := make(map[string]any, len(typed))
+		for key, item := range typed {
+			result[key] = renamedReference(item, from, to)
+		}
+		return result
+	case []any:
+		result := make([]any, len(typed))
+		for index, item := range typed {
+			result[index] = renamedReference(item, from, to)
+		}
+		return result
+	case string:
+		if typed == from {
+			return to
+		}
+	}
+	return value
+}
+
 func (v *Validator) loadSDLConstruction() error {
 	v.construction = map[string]contract{}
 	for _, id := range []string{"sdl-authoring-input-v1", sdlMaterializedContract, "instantiated-scenario-v1"} {
@@ -45,14 +88,17 @@ func (v *Validator) loadSDLConstruction() error {
 func compileSDLConstruction(id string, published contract) (contract, error) {
 	defs, _ := published.raw["$defs"].(map[string]any)
 	node, _ := defs["Node"].(map[string]any)
-	expected := nodeSemanticClauses
+	clauses, expected := node["allOf"], nodeSemanticClauses
 	if id == sdlMaterializedContract {
-		expected = "0561d2939f767c14777c625fdf74ca9bc374203062b1d7f5e335799d560fa518"
-		if !stageDigestMatches(defs["_r221"], "1c6a3f6fa1a26b7c577915a3a7e4bb7af706c46260ad4e40ed2a37ac16dc8c34") {
+		// Schema factoring names the shared os_distribution clause by position, so
+		// resolve it through its reference and pin its content, not its name.
+		name, ok := materializedDistributionClause(clauses)
+		if !ok || !stageDigestMatches(defs[name], materializedDistributionDigest) {
 			return contract{}, failure(fault.Operational, constructionStageInvalidCode)
 		}
+		clauses, expected = renamedReference(clauses, "#/$defs/"+name, "#/$defs/os-distribution-required"), materializedNodeClauses
 	}
-	if !stageDigestMatches(node["allOf"], expected) {
+	if !stageDigestMatches(clauses, expected) {
 		return contract{}, failure(fault.Operational, constructionStageInvalidCode)
 	}
 	root := maps.Clone(published.raw)

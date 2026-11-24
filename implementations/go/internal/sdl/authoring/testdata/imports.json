@@ -521,7 +521,7 @@
     },
     "supplied": false,
     "accepted": false,
-    "error": "ValidationError"
+    "error": "SDLParseError"
   },
   {
     "name": "module-version-long",
@@ -531,7 +531,7 @@
     },
     "supplied": false,
     "accepted": false,
-    "error": "ValidationError"
+    "error": "SDLParseError"
   },
   {
     "name": "duplicate-empty-namespace",

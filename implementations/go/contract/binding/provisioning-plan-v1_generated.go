@@ -22,7 +22,10 @@ type ProvisioningPlanV1 struct {
 	RealizationConstraints    Field[[]d3bfe9001a70d04cc7bb39c]    "json:\"realization_constraints,omitzero\""
 	RealizationEnvelope       Field[json.RawMessage]              "json:\"realization_envelope,omitzero\""
 	RunId                     Field[json.RawMessage]              "json:\"run_id,omitzero\""
+	SafeStates                Field[[]d3bfe9001a7f91db0b9e699]    "json:\"safe_states,omitzero\""
 }
+
+type d3bfe9001a702f5efaa175b d3bfe9001a720d31644146a
 
 type d3bfe9001a70427301e3aac string
 
@@ -55,6 +58,13 @@ type d3bfe9001a719284fe19919 struct {
 	CompensationRefs    Field[[]string]    "json:\"compensation_refs,omitzero\""
 	MaxAttempts         Field[json.Number] "json:\"max_attempts,omitzero\""
 	ResetObligationRefs Field[[]string]    "json:\"reset_obligation_refs,omitzero\""
+}
+
+type d3bfe9001a720d31644146a struct {
+	AssertionRefs  Field[[]string]        "json:\"assertion_refs,omitzero\""
+	ContinuingMode Field[json.RawMessage] "json:\"continuing_mode,omitzero\""
+	Kind           Field[string]          "json:\"kind,omitzero\""
+	SchemaVersion  Field[string]          "json:\"schema_version,omitzero\""
 }
 
 type d3bfe9001a7215719d2c1e7 string
@@ -141,6 +151,15 @@ type d3bfe9001a75e65c47f1429 struct {
 	ProfileBindings       Field[[]d3bfe9001a79d2ed71cb85b]  "json:\"profile_bindings,omitzero\""
 	RefreshDependencies   Field[[]string]                   "json:\"refresh_dependencies,omitzero\""
 	ResourceType          Field[string]                     "json:\"resource_type,omitzero\""
+}
+
+type d3bfe9001a7682f932361fc struct {
+	GoverningScope Field[string]                     "json:\"governing_scope,omitzero\""
+	Namespace      Field[[]string]                   "json:\"namespace,omitzero\""
+	Proofs         Field[map[string]json.RawMessage] "json:\"proofs,omitzero\""
+	Scope          Field[string]                     "json:\"scope,omitzero\""
+	State          Field[d3bfe9001a702f5efaa175b]    "json:\"state,omitzero\""
+	TargetRef      Field[string]                     "json:\"target_ref,omitzero\""
 }
 
 type d3bfe9001a77161067a8a9e d3bfe9001a7c5df1447c4ce
@@ -238,5 +257,7 @@ type d3bfe9001a7f13f2eb8eaf3 struct {
 	ProfileId        Field[string] "json:\"profile_id,omitzero\""
 	Revision         Field[string] "json:\"revision,omitzero\""
 }
+
+type d3bfe9001a7f91db0b9e699 d3bfe9001a7682f932361fc
 
 var _ json.RawMessage

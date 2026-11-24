@@ -22,11 +22,11 @@ type BehavioralRelationProfileV1 struct {
 	TaxonomyRevision              Field[string]                    "json:\"taxonomy_revision,omitzero\""
 }
 
-type dfee871edf63cc10b13336e dfee871edf64ac6e598b5c3
-
-type dfee871edf64ac6e598b5c3 struct {
-	SourceDigest Field[string] "json:\"source_digest,omitzero\""
-	SourceRef    Field[string] "json:\"source_ref,omitzero\""
+type dfee871edf6373a59b6b9fe struct {
+	SourceDigest Field[json.RawMessage] "json:\"source_digest,omitzero\""
+	SourceRef    Field[string]          "json:\"source_ref,omitzero\""
 }
+
+type dfee871edf63cc10b13336e dfee871edf6373a59b6b9fe
 
 var _ json.RawMessage

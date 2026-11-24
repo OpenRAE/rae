@@ -1,6 +1,6 @@
 {
-  "reference": "17bf4515bf12747af69c8598a2fc82d73e9651b9",
-  "case_count": 4406,
+  "reference": "cd2203eb84244a741a05db753be9d0253af765d8",
+  "case_count": 4449,
   "models": {
     "#/$defs/ContainerImageBuildProvenance": "raes.image_provenance.ContainerImageBuildProvenance",
     "#/$defs/Database": "raes.runtime_database.Database",
@@ -22,7 +22,6 @@
     "#/$defs/DnsZone": "raes.runtime_dns.DnsZone",
     "#/$defs/DnsZoneTransferPolicy": "raes.runtime_dns.DnsZoneTransferPolicy",
     "#/$defs/DockerfileInstruction": "raes.image_provenance.DockerfileInstruction",
-    "#/$defs/GeneratedArtifactValueSource": "raes.runtime_generated_value.GeneratedArtifactValueSource",
     "#/$defs/ImageAttestation": "raes.image_provenance.ImageAttestation",
     "#/$defs/ImageBuildArg": "raes.image_provenance.ImageBuildArg",
     "#/$defs/ImageConfig": "raes.image_provenance.ImageConfig",
@@ -88,6 +87,7 @@
     "#/$defs/RuntimeForwardingTransform": "raes.runtime_forwarding_agent.RuntimeForwardingTransform",
     "#/$defs/RuntimeIdentityAccessObservation": "raes.runtime_identity_resources.RuntimeIdentityAccessObservation",
     "#/$defs/RuntimeIdentityAttribute": "raes.runtime_directory_identity.RuntimeIdentityAttribute",
+    "#/$defs/RuntimeIdentityAuditLog": "raes.runtime_identity_resources.RuntimeIdentityAuditLog",
     "#/$defs/RuntimeIdentityAuthority": "raes.runtime_directory_identity.RuntimeIdentityAuthority",
     "#/$defs/RuntimeIdentityAuthorityService": "raes.runtime_directory_identity.RuntimeIdentityAuthorityService",
     "#/$defs/RuntimeIdentityPermissionBinding": "raes.runtime_identity_resources.RuntimeIdentityPermissionBinding",
@@ -153,6 +153,8 @@
     "#/$defs/RuntimeScheduledJobRunState": "raes.runtime_scheduled_job.RuntimeScheduledJobRunState",
     "#/$defs/RuntimeScheduledJobSchedule": "raes.runtime_scheduled_job.RuntimeScheduledJobSchedule",
     "#/$defs/RuntimeSecretConsumer": "raes.runtime_secret_service.RuntimeSecretConsumer",
+    "#/$defs/RuntimeSecretReplica": "raes.runtime_secret_service.RuntimeSecretReplica",
+    "#/$defs/RuntimeSecretReplication": "raes.runtime_secret_service.RuntimeSecretReplication",
     "#/$defs/RuntimeSecretSelector": "raes.runtime_secret_service.RuntimeSecretSelector",
     "#/$defs/RuntimeSecretVersion": "raes.runtime_secret_service.RuntimeSecretVersion",
     "#/$defs/RuntimeSecurityMonitoringAgent": "raes.runtime_security_monitoring._models.RuntimeSecurityMonitoringAgent",
@@ -752,10 +754,6 @@
       "provenance": "unknown",
       "source": "",
       "description": ""
-    },
-    "#/$defs/GeneratedArtifactValueSource": {
-      "generated_artifact": "g",
-      "output": "o"
     },
     "#/$defs/RuntimeControlInterface": {
       "control_interface_id": "c",
@@ -2375,6 +2373,22 @@
         ]
       },
       "profile_value": {}
+    },
+    "#/$defs/RuntimeIdentityAuditLog": {
+      "audit_log_id": "audit",
+      "exempted_principal_refs": [],
+      "log_type": "ADMIN_READ",
+      "service": "iam.googleapis.com"
+    },
+    "#/$defs/RuntimeSecretReplica": {
+      "kms_key_name": null,
+      "location": "us-east1"
+    },
+    "#/$defs/RuntimeSecretReplication": {
+      "kms_key_name": null,
+      "mode": "automatic",
+      "provider": "gcp-secret-manager",
+      "replicas": []
     }
   }
 }

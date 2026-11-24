@@ -109,9 +109,6 @@ func (e *Validator) trialPlan(i validation.Invocation) error {
 	if err := trialCleanupJoins(v); err != nil {
 		return err
 	}
-	if err := trialIsolation(v); err != nil {
-		return err
-	}
 	if err := trialTreatments(v); err != nil {
 		return err
 	}
@@ -213,36 +210,6 @@ func trialEntryDraws(plan, entry any) error {
 		binding := at(plan, "stochastic_controls", stringAt(draw, "control_id"), "executable_binding")
 		if binding == nil || !equal(at(binding, termNamespace), at(draw, "address", termNamespace)) || !equal(at(entry, "coordinate"), at(draw, "address", "trial_coordinate")) {
 			return invalid()
-		}
-	}
-	return nil
-}
-
-func trialIsolation(v any) error {
-	proof := at(v, "isolation_proof")
-	if proof == nil {
-		return nil
-	}
-	if !subset(stringsOf(at(proof, "plan_entry_ids")), keySet(at(v, "entries"))) {
-		return invalid()
-	}
-	if !numericGreater(at(proof, "requested_parallelism"), jsonOne) {
-		return nil
-	}
-	owned := map[string]bool{}
-	for _, id := range stringsOf(at(proof, "plan_entry_ids")) {
-		cleanup := at(v, "cleanup_plans", stringAt(v, "entries", id, "execution_controls", "cleanup_plan_ref"))
-		resources := map[string]bool{}
-		for _, boundary := range object(at(cleanup, "resource_boundaries")) {
-			for _, ref := range stringsOf(at(boundary, "resource_refs")) {
-				resources[ref] = true
-			}
-		}
-		for ref := range resources {
-			if owned[ref] {
-				return invalid()
-			}
-			owned[ref] = true
 		}
 	}
 	return nil

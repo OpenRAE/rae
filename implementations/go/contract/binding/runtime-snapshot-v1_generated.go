@@ -163,7 +163,7 @@ type d466844cf002189fefe21a1 struct {
 
 type d466844cf00238c824c3d0f d466844cf0059467f88716b
 
-type d466844cf0024dbe88f2c01 d466844cf00f7a02854618b
+type d466844cf0024dbe88f2c01 d466844cf00b656b4aa718e
 
 type d466844cf002679954c411b struct {
 	Diagnostics           Field[[]string]                  "json:\"diagnostics,omitzero\""
@@ -331,38 +331,6 @@ type d466844cf003eeaf3a21afc struct {
 	StateRef             Field[string]          "json:\"state_ref,omitzero\""
 	Throttled            Field[json.Number]     "json:\"throttled,omitzero\""
 	Unit                 Field[string]          "json:\"unit,omitzero\""
-}
-
-type d466844cf0041321584a9cf struct {
-	ActionContractAddress      Field[json.RawMessage]           "json:\"action_contract_address,omitzero\""
-	ActionInstanceId           Field[string]                    "json:\"action_instance_id,omitzero\""
-	ActionResult               Field[json.RawMessage]           "json:\"action_result,omitzero\""
-	ActivityProvenance         Field[json.RawMessage]           "json:\"activity_provenance,omitzero\""
-	ActorProvenance            Field[json.RawMessage]           "json:\"actor_provenance,omitzero\""
-	AdmissionDisposition       Field[json.RawMessage]           "json:\"admission_disposition,omitzero\""
-	AttributionEdges           Field[[]d466844cf0088d6438cdd62] "json:\"attribution_edges,omitzero\""
-	Details                    Field[d466844cf00928e3ea896c0]   "json:\"details,omitzero\""
-	EpisodeId                  Field[string]                    "json:\"episode_id,omitzero\""
-	EventType                  Field[d466844cf00028436264f8f]   "json:\"event_type,omitzero\""
-	InteractionClass           Field[json.RawMessage]           "json:\"interaction_class,omitzero\""
-	InteractionRef             Field[json.RawMessage]           "json:\"interaction_ref,omitzero\""
-	InvocationToolContext      Field[json.RawMessage]           "json:\"invocation_tool_context,omitzero\""
-	JointActionSetId           Field[json.RawMessage]           "json:\"joint_action_set_id,omitzero\""
-	LifecyclePhase             Field[json.RawMessage]           "json:\"lifecycle_phase,omitzero\""
-	ObservationBoundaryAddress Field[json.RawMessage]           "json:\"observation_boundary_address,omitzero\""
-	ObservationStatus          Field[json.RawMessage]           "json:\"observation_status,omitzero\""
-	OperationRef               Field[json.RawMessage]           "json:\"operation_ref,omitzero\""
-	OperationState             Field[json.RawMessage]           "json:\"operation_state,omitzero\""
-	OutcomeInterpretations     Field[[]d466844cf004a9f803d49db] "json:\"outcome_interpretations,omitzero\""
-	ParticipantAddress         Field[string]                    "json:\"participant_address,omitzero\""
-	PhaseRealization           Field[json.RawMessage]           "json:\"phase_realization,omitzero\""
-	PostStateDigest            Field[json.RawMessage]           "json:\"post_state_digest,omitzero\""
-	RealizedOrder              Field[json.RawMessage]           "json:\"realized_order,omitzero\""
-	SharedStateRefs            Field[[]string]                  "json:\"shared_state_refs,omitzero\""
-	StateTransitionKind        Field[json.RawMessage]           "json:\"state_transition_kind,omitzero\""
-	TemporalAssessments        Field[[]d466844cf002928bf1e8a8e] "json:\"temporal_assessments,omitzero\""
-	TemporalContexts           Field[[]d466844cf00303e863ba36c] "json:\"temporal_contexts,omitzero\""
-	Timestamp                  Field[string]                    "json:\"timestamp,omitzero\""
 }
 
 type d466844cf0041db9b866d96 struct {
@@ -689,7 +657,7 @@ type d466844cf00a5c057000715 struct {
 
 type d466844cf00a6a869f6a6f5 d466844cf00e4e78c494742
 
-type d466844cf00a6c4d7854798 d466844cf0041321584a9cf
+type d466844cf00a6c4d7854798 d466844cf00ded32386553a
 
 type d466844cf00a879a9335210 d466844cf00893fe1a27124
 
@@ -772,6 +740,20 @@ type d466844cf00afff254483c3 d466844cf0079f62d488b7c
 type d466844cf00b152b34416e6 d466844cf002c26e73f1ee1
 
 type d466844cf00b5e4a069bd19 d466844cf002189fefe21a1
+
+type d466844cf00b656b4aa718e struct {
+	Attempt      Field[json.RawMessage]            "json:\"attempt,omitzero\""
+	BranchName   Field[json.RawMessage]            "json:\"branch_name,omitzero\""
+	Details      Field[map[string]json.RawMessage] "json:\"details,omitzero\""
+	DispatchId   Field[json.RawMessage]            "json:\"dispatch_id,omitzero\""
+	EventType    Field[string]                     "json:\"event_type,omitzero\""
+	InvocationId Field[json.RawMessage]            "json:\"invocation_id,omitzero\""
+	JoinStep     Field[json.RawMessage]            "json:\"join_step,omitzero\""
+	Origin       Field[json.RawMessage]            "json:\"origin,omitzero\""
+	Outcome      Field[json.RawMessage]            "json:\"outcome,omitzero\""
+	StepName     Field[json.RawMessage]            "json:\"step_name,omitzero\""
+	Timestamp    Field[string]                     "json:\"timestamp,omitzero\""
+}
 
 type d466844cf00b9ea885c73c7 d466844cf0041db9b866d96
 
@@ -928,6 +910,38 @@ type d466844cf00dcfbb3ca5773 struct {
 
 type d466844cf00dd69d260d7e6 d466844cf00cbbfb08ccc0e
 
+type d466844cf00ded32386553a struct {
+	ActionContractAddress      Field[json.RawMessage]           "json:\"action_contract_address,omitzero\""
+	ActionInstanceId           Field[string]                    "json:\"action_instance_id,omitzero\""
+	ActionResult               Field[json.RawMessage]           "json:\"action_result,omitzero\""
+	ActivityProvenance         Field[json.RawMessage]           "json:\"activity_provenance,omitzero\""
+	ActorProvenance            Field[json.RawMessage]           "json:\"actor_provenance,omitzero\""
+	AdmissionDisposition       Field[json.RawMessage]           "json:\"admission_disposition,omitzero\""
+	AttributionEdges           Field[[]d466844cf0088d6438cdd62] "json:\"attribution_edges,omitzero\""
+	Details                    Field[d466844cf00928e3ea896c0]   "json:\"details,omitzero\""
+	EpisodeId                  Field[string]                    "json:\"episode_id,omitzero\""
+	EventType                  Field[d466844cf00028436264f8f]   "json:\"event_type,omitzero\""
+	InteractionClass           Field[json.RawMessage]           "json:\"interaction_class,omitzero\""
+	InteractionRef             Field[json.RawMessage]           "json:\"interaction_ref,omitzero\""
+	InvocationToolContext      Field[json.RawMessage]           "json:\"invocation_tool_context,omitzero\""
+	JointActionSetId           Field[json.RawMessage]           "json:\"joint_action_set_id,omitzero\""
+	LifecyclePhase             Field[json.RawMessage]           "json:\"lifecycle_phase,omitzero\""
+	ObservationBoundaryAddress Field[json.RawMessage]           "json:\"observation_boundary_address,omitzero\""
+	ObservationStatus          Field[json.RawMessage]           "json:\"observation_status,omitzero\""
+	OperationRef               Field[json.RawMessage]           "json:\"operation_ref,omitzero\""
+	OperationState             Field[json.RawMessage]           "json:\"operation_state,omitzero\""
+	OutcomeInterpretations     Field[[]d466844cf004a9f803d49db] "json:\"outcome_interpretations,omitzero\""
+	ParticipantAddress         Field[string]                    "json:\"participant_address,omitzero\""
+	PhaseRealization           Field[json.RawMessage]           "json:\"phase_realization,omitzero\""
+	PostStateDigest            Field[json.RawMessage]           "json:\"post_state_digest,omitzero\""
+	RealizedOrder              Field[json.RawMessage]           "json:\"realized_order,omitzero\""
+	SharedStateRefs            Field[[]string]                  "json:\"shared_state_refs,omitzero\""
+	StateTransitionKind        Field[json.RawMessage]           "json:\"state_transition_kind,omitzero\""
+	TemporalAssessments        Field[[]d466844cf002928bf1e8a8e] "json:\"temporal_assessments,omitzero\""
+	TemporalContexts           Field[[]d466844cf00303e863ba36c] "json:\"temporal_contexts,omitzero\""
+	Timestamp                  Field[string]                    "json:\"timestamp,omitzero\""
+}
+
 type d466844cf00e0343f87dc68 struct {
 	EvidenceStreamRefs    Field[[]string] "json:\"evidence_stream_refs,omitzero\""
 	ExclusiveResourceRefs Field[[]string] "json:\"exclusive_resource_refs,omitzero\""
@@ -1038,16 +1052,6 @@ type d466844cf00f4cd3b632247 struct {
 	SharedTime            Field[json.RawMessage]           "json:\"shared_time,omitzero\""
 	TemporalContractId    Field[string]                    "json:\"temporal_contract_id,omitzero\""
 	TimeDomain            Field[d466844cf008efc254e3826]   "json:\"time_domain,omitzero\""
-}
-
-type d466844cf00f7a02854618b struct {
-	BranchName Field[json.RawMessage]            "json:\"branch_name,omitzero\""
-	Details    Field[map[string]json.RawMessage] "json:\"details,omitzero\""
-	EventType  Field[string]                     "json:\"event_type,omitzero\""
-	JoinStep   Field[json.RawMessage]            "json:\"join_step,omitzero\""
-	Outcome    Field[json.RawMessage]            "json:\"outcome,omitzero\""
-	StepName   Field[json.RawMessage]            "json:\"step_name,omitzero\""
-	Timestamp  Field[string]                     "json:\"timestamp,omitzero\""
 }
 
 type d466844cf00f83da3280ffa struct {

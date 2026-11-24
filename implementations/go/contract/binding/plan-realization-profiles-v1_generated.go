@@ -27,7 +27,7 @@ type d18a91bd15a12ad97cf442c string
 
 type d18a91bd15a223b5506f9b7 d18a91bd15a5435797940b4
 
-type d18a91bd15a3314ed68a86c d18a91bd15a5a01ae7475ab
+type d18a91bd15a3314ed68a86c d18a91bd15add5cf12aed79
 
 type d18a91bd15a34f1f01efda5 struct {
 	SourceDigest    Field[string] "json:\"source_digest,omitzero\""
@@ -51,12 +51,6 @@ type d18a91bd15a5435797940b4 struct {
 type d18a91bd15a564587e3f29b struct {
 	Definition Field[d18a91bd15af6e3e3a5fa42] "json:\"definition,omitzero\""
 	Provenance Field[d18a91bd15ae70afb1124c5] "json:\"provenance,omitzero\""
-}
-
-type d18a91bd15a5a01ae7475ab struct {
-	Posture  Field[d18a91bd15a4bd0c474c4c6] "json:\"posture,omitzero\""
-	Profile  Field[json.RawMessage]         "json:\"profile,omitzero\""
-	Universe Field[json.RawMessage]         "json:\"universe,omitzero\""
 }
 
 type d18a91bd15a7161067a8a9e d18a91bd15ac5df1447c4ce
@@ -102,6 +96,12 @@ type d18a91bd15ac5df1447c4ce struct {
 }
 
 type d18a91bd15acd20a219024f d18a91bd15af7939ee01ab1
+
+type d18a91bd15add5cf12aed79 struct {
+	Posture  Field[d18a91bd15a4bd0c474c4c6] "json:\"posture,omitzero\""
+	Profile  Field[json.RawMessage]         "json:\"profile,omitzero\""
+	Universe Field[json.RawMessage]         "json:\"universe,omitzero\""
+}
 
 type d18a91bd15ae6a64e17638d struct {
 	BindingId     Field[string]                    "json:\"binding_id,omitzero\""

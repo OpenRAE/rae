@@ -5,16 +5,20 @@ package binding
 import "encoding/json"
 
 // WorkflowHistoryEventStreamV1 is the transport representation of workflow-history-event-stream-v1.
-type WorkflowHistoryEventStreamV1 []dbe7261d800f7a02854618b
+type WorkflowHistoryEventStreamV1 []dbe7261d800b656b4aa718e
 
-type dbe7261d800f7a02854618b struct {
-	BranchName Field[json.RawMessage]            "json:\"branch_name,omitzero\""
-	Details    Field[map[string]json.RawMessage] "json:\"details,omitzero\""
-	EventType  Field[string]                     "json:\"event_type,omitzero\""
-	JoinStep   Field[json.RawMessage]            "json:\"join_step,omitzero\""
-	Outcome    Field[json.RawMessage]            "json:\"outcome,omitzero\""
-	StepName   Field[json.RawMessage]            "json:\"step_name,omitzero\""
-	Timestamp  Field[string]                     "json:\"timestamp,omitzero\""
+type dbe7261d800b656b4aa718e struct {
+	Attempt      Field[json.RawMessage]            "json:\"attempt,omitzero\""
+	BranchName   Field[json.RawMessage]            "json:\"branch_name,omitzero\""
+	Details      Field[map[string]json.RawMessage] "json:\"details,omitzero\""
+	DispatchId   Field[json.RawMessage]            "json:\"dispatch_id,omitzero\""
+	EventType    Field[string]                     "json:\"event_type,omitzero\""
+	InvocationId Field[json.RawMessage]            "json:\"invocation_id,omitzero\""
+	JoinStep     Field[json.RawMessage]            "json:\"join_step,omitzero\""
+	Origin       Field[json.RawMessage]            "json:\"origin,omitzero\""
+	Outcome      Field[json.RawMessage]            "json:\"outcome,omitzero\""
+	StepName     Field[json.RawMessage]            "json:\"step_name,omitzero\""
+	Timestamp    Field[string]                     "json:\"timestamp,omitzero\""
 }
 
 var _ json.RawMessage

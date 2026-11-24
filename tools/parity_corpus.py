@@ -44,9 +44,9 @@ for _source_root in (REPO_ROOT, RAES_PACKAGES_ROOT):
 from jsonschema import Draft202012Validator  # noqa: E402
 from raes_cli.main import app  # noqa: E402
 from raes_conformance.conformance import contract_payload_root  # noqa: E402
-from raes_contracts import random_stream_engine  # noqa: E402
+from raes_contracts.contracts import random_stream_engine  # noqa: E402
 from raes_contracts.canonical import canonical_json_bytes  # noqa: E402
-from raes_contracts.contracts import schema_bundle  # noqa: E402
+from raes_schemas.bundle import schema_bundle  # noqa: E402
 from raes_contracts.contracts.random_stream import (  # noqa: E402
     ParticipantStreamAddressModel,
     PublicSeedModel,

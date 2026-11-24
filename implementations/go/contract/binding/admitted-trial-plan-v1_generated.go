@@ -11,7 +11,6 @@ type AdmittedTrialPlanV1 struct {
 	CleanupPlans       Field[map[string]df8974a3a274640a818213a] "json:\"cleanup_plans,omitzero\""
 	Entries            Field[map[string]df8974a3a275462afa6d8fc] "json:\"entries,omitzero\""
 	InputRefs          Field[df8974a3a273ed6bcae30e9]            "json:\"input_refs,omitzero\""
-	IsolationProof     Field[json.RawMessage]                    "json:\"isolation_proof,omitzero\""
 	PlanDigest         Field[string]                             "json:\"plan_digest,omitzero\""
 	PlanId             Field[string]                             "json:\"plan_id,omitzero\""
 	Profiles           Field[df8974a3a2763080cbc2545]            "json:\"profiles,omitzero\""
@@ -19,7 +18,10 @@ type AdmittedTrialPlanV1 struct {
 	ReplacementPolicy  Field[json.RawMessage]                    "json:\"replacement_policy,omitzero\""
 	SchemaVersion      Field[string]                             "json:\"schema_version,omitzero\""
 	StochasticControls Field[map[string]df8974a3a27c1c341f8acbc] "json:\"stochastic_controls,omitzero\""
+	TrialParallelism   Field[json.RawMessage]                    "json:\"trial_parallelism,omitzero\""
 }
+
+type df8974a3a2702f5efaa175b df8974a3a2720d31644146a
 
 type df8974a3a270326f45103af struct {
 	CleanState         Field[df8974a3a27e88c45524b50]            "json:\"clean_state,omitzero\""
@@ -63,6 +65,21 @@ type df8974a3a27127329573c3d struct {
 	VariationPointId  Field[string]                  "json:\"variation_point_id,omitzero\""
 }
 
+type df8974a3a2712c65f3174c8 struct {
+	Apparatus                 Field[json.RawMessage]           "json:\"apparatus,omitzero\""
+	Bindings                  Field[[]df8974a3a277d8fd2950959] "json:\"bindings,omitzero\""
+	Coordinate                Field[df8974a3a27c833cbcc6e5d]   "json:\"coordinate,omitzero\""
+	EntryDigest               Field[string]                    "json:\"entry_digest,omitzero\""
+	ExecutionControls         Field[df8974a3a27fd9bb395ae45]   "json:\"execution_controls,omitzero\""
+	InstantiationProvenance   Field[df8974a3a270e1c12174614]   "json:\"instantiation_provenance,omitzero\""
+	ParticipantConfigurations Field[[]df8974a3a2781da83cdef90] "json:\"participant_configurations,omitzero\""
+	PlanEntryId               Field[string]                    "json:\"plan_entry_id,omitzero\""
+	RunId                     Field[string]                    "json:\"run_id,omitzero\""
+	SafeStates                Field[[]df8974a3a27f91db0b9e699] "json:\"safe_states,omitzero\""
+	Selections                Field[[]df8974a3a27283c46861917] "json:\"selections,omitzero\""
+	StochasticDraws           Field[[]df8974a3a27ac4f320b66d2] "json:\"stochastic_draws,omitzero\""
+}
+
 type df8974a3a2713ed5511fb02 df8974a3a27f9a66b99b909
 
 type df8974a3a2718bda5299122 df8974a3a27afa86401c862
@@ -75,6 +92,13 @@ type df8974a3a2719284fe19919 struct {
 }
 
 type df8974a3a271f581d7c68f3 df8974a3a27dc1a1136dd22
+
+type df8974a3a2720d31644146a struct {
+	AssertionRefs  Field[[]string]        "json:\"assertion_refs,omitzero\""
+	ContinuingMode Field[json.RawMessage] "json:\"continuing_mode,omitzero\""
+	Kind           Field[string]          "json:\"kind,omitzero\""
+	SchemaVersion  Field[string]          "json:\"schema_version,omitzero\""
+}
 
 type df8974a3a2724f73b66497e struct {
 	AdmittedAtStage Field[string]                    "json:\"admitted_at_stage,omitzero\""
@@ -151,40 +175,19 @@ type df8974a3a27519e2df926e3 struct {
 	ValueType               Field[df8974a3a27328cd633b368] "json:\"value_type,omitzero\""
 }
 
-type df8974a3a275462afa6d8fc df8974a3a27635209872823
+type df8974a3a275462afa6d8fc df8974a3a2712c65f3174c8
 
 type df8974a3a2755d73b9edecf df8974a3a27519e2df926e3
 
-type df8974a3a2763080cbc2545 df8974a3a2763dc0b450882
+type df8974a3a2763080cbc2545 df8974a3a27cb36c9582985
 
-type df8974a3a27635209872823 struct {
-	Apparatus                 Field[json.RawMessage]           "json:\"apparatus,omitzero\""
-	Bindings                  Field[[]df8974a3a277d8fd2950959] "json:\"bindings,omitzero\""
-	Coordinate                Field[df8974a3a27c833cbcc6e5d]   "json:\"coordinate,omitzero\""
-	EntryDigest               Field[string]                    "json:\"entry_digest,omitzero\""
-	ExecutionControls         Field[df8974a3a27fd9bb395ae45]   "json:\"execution_controls,omitzero\""
-	InstantiationProvenance   Field[df8974a3a270e1c12174614]   "json:\"instantiation_provenance,omitzero\""
-	ParticipantConfigurations Field[[]df8974a3a2781da83cdef90] "json:\"participant_configurations,omitzero\""
-	PlanEntryId               Field[string]                    "json:\"plan_entry_id,omitzero\""
-	RunId                     Field[string]                    "json:\"run_id,omitzero\""
-	Selections                Field[[]df8974a3a27283c46861917] "json:\"selections,omitzero\""
-	StochasticDraws           Field[[]df8974a3a27ac4f320b66d2] "json:\"stochastic_draws,omitzero\""
-}
-
-type df8974a3a2763dc0b450882 struct {
-	AllocationProfile       Field[string]          "json:\"allocation_profile,omitzero\""
-	CanonicalizationProfile Field[string]          "json:\"canonicalization_profile,omitzero\""
-	CleanupProfile          Field[string]          "json:\"cleanup_profile,omitzero\""
-	CompilerProfile         Field[string]          "json:\"compiler_profile,omitzero\""
-	CoordinateProfile       Field[string]          "json:\"coordinate_profile,omitzero\""
-	EntryIdentityProfile    Field[string]          "json:\"entry_identity_profile,omitzero\""
-	ExecutionControlProfile Field[string]          "json:\"execution_control_profile,omitzero\""
-	IntegrityProfile        Field[string]          "json:\"integrity_profile,omitzero\""
-	IsolationProfile        Field[string]          "json:\"isolation_profile,omitzero\""
-	RandomStreamProfile     Field[string]          "json:\"random_stream_profile,omitzero\""
-	RunIdentityProfile      Field[string]          "json:\"run_identity_profile,omitzero\""
-	SelectionPolicyProfile  Field[string]          "json:\"selection_policy_profile,omitzero\""
-	TreatmentProfile        Field[json.RawMessage] "json:\"treatment_profile,omitzero\""
+type df8974a3a27682f932361fc struct {
+	GoverningScope Field[string]                     "json:\"governing_scope,omitzero\""
+	Namespace      Field[[]string]                   "json:\"namespace,omitzero\""
+	Proofs         Field[map[string]json.RawMessage] "json:\"proofs,omitzero\""
+	Scope          Field[string]                     "json:\"scope,omitzero\""
+	State          Field[df8974a3a2702f5efaa175b]    "json:\"state,omitzero\""
+	TargetRef      Field[string]                     "json:\"target_ref,omitzero\""
 }
 
 type df8974a3a276eb63d15658f df8974a3a27c439dc9a096d
@@ -269,6 +272,21 @@ type df8974a3a27c66123d82ccc df8974a3a272cca71995d78
 
 type df8974a3a27c833cbcc6e5d df8974a3a277428cfcdce6b
 
+type df8974a3a27cb36c9582985 struct {
+	AllocationProfile       Field[string]          "json:\"allocation_profile,omitzero\""
+	CanonicalizationProfile Field[string]          "json:\"canonicalization_profile,omitzero\""
+	CleanupProfile          Field[string]          "json:\"cleanup_profile,omitzero\""
+	CompilerProfile         Field[string]          "json:\"compiler_profile,omitzero\""
+	CoordinateProfile       Field[string]          "json:\"coordinate_profile,omitzero\""
+	EntryIdentityProfile    Field[string]          "json:\"entry_identity_profile,omitzero\""
+	ExecutionControlProfile Field[string]          "json:\"execution_control_profile,omitzero\""
+	IntegrityProfile        Field[string]          "json:\"integrity_profile,omitzero\""
+	RandomStreamProfile     Field[string]          "json:\"random_stream_profile,omitzero\""
+	RunIdentityProfile      Field[string]          "json:\"run_identity_profile,omitzero\""
+	SelectionPolicyProfile  Field[string]          "json:\"selection_policy_profile,omitzero\""
+	TreatmentProfile        Field[json.RawMessage] "json:\"treatment_profile,omitzero\""
+}
+
 type df8974a3a27ccf4d82866db df8974a3a27127329573c3d
 
 type df8974a3a27d18f7288c16c struct {
@@ -301,6 +319,8 @@ type df8974a3a27f65047589cac struct {
 	Treatment        Field[json.RawMessage] "json:\"treatment,omitzero\""
 	VariationPointId Field[string]          "json:\"variation_point_id,omitzero\""
 }
+
+type df8974a3a27f91db0b9e699 df8974a3a27682f932361fc
 
 type df8974a3a27f9a66b99b909 struct {
 	ImplementationIdentity Field[df8974a3a27dee303cce754]   "json:\"implementation_identity,omitzero\""

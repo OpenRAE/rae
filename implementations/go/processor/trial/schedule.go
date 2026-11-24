@@ -81,22 +81,13 @@ func PlanBatchScheduleValue(plan validation.Value) (BatchSchedule, error) {
 	if decode(plan.JSON(), &document) != nil {
 		return BatchSchedule{}, trialInvalid()
 	}
-	schedule := BatchSchedule{PlanID: document.ID, PlanDigest: document.Digest, SchedulingPolicyID: "trial-coordinate-canonical-v1", AdmittedParallelismCeiling: 1, Entries: make([]ScheduledEntry, len(order))}
+	floor, ceiling, err := parallelismBounds(document.Parallelism, len(order))
+	if err != nil {
+		return BatchSchedule{}, err
+	}
+	schedule := BatchSchedule{PlanID: document.ID, PlanDigest: document.Digest, SchedulingPolicyID: "trial-coordinate-canonical-v1", AdmittedParallelismFloor: floor, AdmittedParallelismCeiling: ceiling, Entries: make([]ScheduledEntry, len(order))}
 	if !isNull(document.Allocation) {
 		schedule.SchedulingPolicyID = "experiment-recorded-allocation-v1"
-	}
-	if !isNull(document.Isolation) {
-		var proof struct {
-			ID          string `json:"proof_id"`
-			Parallelism int    `json:"requested_parallelism"`
-		}
-		if json.Unmarshal(document.Isolation, &proof) != nil {
-			return BatchSchedule{}, trialInvalid()
-		}
-		if proof.Parallelism > 1 {
-			schedule.AdmittedParallelismCeiling = min(proof.Parallelism, len(order))
-			schedule.IsolationProofRef = &proof.ID
-		}
 	}
 	for index, id := range order {
 		schedule.Entries[index] = ScheduledEntry{PlanEntryID: id, RunID: document.Entries[id].RunID, DispatchOrdinal: index}
@@ -129,4 +120,40 @@ func assignmentKey(raw []byte) (string, error) {
 	}
 	raw, err = canonical(c.projection())
 	return string(raw), err
+}
+
+// maxTrialParallelism is the published upper bound of an authored trial_parallelism count.
+const maxTrialParallelism = 4096
+
+// parallelismBounds returns the inclusive parallel-trial bounds that the author sets.
+// The upper bound is the exact count, the maximum, or the entry count (at most
+// maxTrialParallelism) when the value is open or has no maximum. Without a value,
+// trials run one at a time.
+func parallelismBounds(raw json.RawMessage, entries int) (int, int, error) {
+	if isNull(raw) {
+		return 1, 1, nil
+	}
+	var intent struct {
+		Posture string `json:"posture"`
+		Count   *int   `json:"count"`
+		Minimum *int   `json:"minimum"`
+		Maximum *int   `json:"maximum"`
+	}
+	if json.Unmarshal(raw, &intent) != nil {
+		return 0, 0, trialInvalid()
+	}
+	lower, upper := 1, min(entries, maxTrialParallelism)
+	if intent.Posture == "exact" && intent.Count != nil {
+		lower, upper = *intent.Count, *intent.Count
+	}
+	if intent.Posture == "constrained" && intent.Minimum != nil {
+		lower = *intent.Minimum
+	}
+	if intent.Posture == "constrained" && intent.Maximum != nil {
+		upper = *intent.Maximum
+	}
+	if lower > upper {
+		return 0, 0, trialInvalid()
+	}
+	return lower, upper, nil
 }

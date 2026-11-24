@@ -132,14 +132,7 @@ func batchReceipt(i validation.Invocation) error {
 			return invalid()
 		}
 	}
-	if !fieldsUnique(v, "lease_evidence_refs", "operation_refs") {
-		return invalid()
-	}
-	parallel := defaultMember(v, "effective_parallelism", jsonOne)
-	if numericEqual(parallel, jsonOne) {
-		return require(at(v, "isolation_proof_ref") == nil && len(array(at(v, "lease_evidence_refs"))) == 0)
-	}
-	return require(at(v, "isolation_proof_ref") != nil && len(array(at(v, "lease_evidence_refs"))) > 0)
+	return require(fieldsUnique(v, "operation_refs"))
 }
 
 func accountingAttemptTime(v, run any) error {

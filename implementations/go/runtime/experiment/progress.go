@@ -540,7 +540,7 @@ func (c *coordinator) recordTerminal(ctx context.Context, s trialSlot, t Trial, 
 		operationRefs = append(operationRefs, text(view, "operation_id"))
 	}
 	slices.Sort(operationRefs)
-	receipt := map[string]any{"schema_version": "batch-execution-receipt/v1", "receipt_id": "batch:" + t.ExecutionAttemptID, termPlanID: at(s.view, termPlanID), termPlanDigest: at(s.view, termPlanDigest), termPlanEntryID: t.PlanEntryID, termRunID: t.RunID, termExecutionAttemptID: t.ExecutionAttemptID, "dispatch_ordinal": s.entry.DispatchOrdinal, "scheduling_policy_id": c.schedule.SchedulingPolicyID, "effective_parallelism": 1, "isolation_proof_ref": nil, "lease_evidence_refs": []any{}, "attempt_deadline": t.Deadline, "trial_outcome": state, termOperationRefs: operationRefs, "cleanup_receipt_ref": at(cleanup, "receipt_id")}
+	receipt := map[string]any{"schema_version": "batch-execution-receipt/v1", "receipt_id": "batch:" + t.ExecutionAttemptID, termPlanID: at(s.view, termPlanID), termPlanDigest: at(s.view, termPlanDigest), termPlanEntryID: t.PlanEntryID, termRunID: t.RunID, termExecutionAttemptID: t.ExecutionAttemptID, "dispatch_ordinal": s.entry.DispatchOrdinal, "scheduling_policy_id": c.schedule.SchedulingPolicyID, "effective_parallelism": 1, "attempt_deadline": t.Deadline, "trial_outcome": state, termOperationRefs: operationRefs, "cleanup_receipt_ref": at(cleanup, "receipt_id")}
 	_, err := c.claim(ctx, terminalSchema, map[string]any{termExecutionAttemptID: t.ExecutionAttemptID, "receipt": receipt, termCaptureStatus: capture, "reusable": reusable(s, t, cleanup)})
 	if timer := c.deadlines[t.ExecutionAttemptID]; timer != nil {
 		timer.timer.Stop()

@@ -15,6 +15,7 @@ type EvaluationPlanV1 struct {
 	Operations                Field[[]d47e602691b4d25904e889e]    "json:\"operations,omitzero\""
 	Purpose                   Field[string]                       "json:\"purpose,omitzero\""
 	RunId                     Field[json.RawMessage]              "json:\"run_id,omitzero\""
+	SafeStates                Field[[]d47e602691bf91db0b9e699]    "json:\"safe_states,omitzero\""
 	StartupOrder              Field[[]string]                     "json:\"startup_order,omitzero\""
 }
 
@@ -30,6 +31,8 @@ type d47e602691b017a7f356007 struct {
 	ResourceType          Field[string]                     "json:\"resource_type,omitzero\""
 }
 
+type d47e602691b02f5efaa175b d47e602691b20d31644146a
+
 type d47e602691b064e54318238 string
 
 type d47e602691b12ad97cf442c string
@@ -39,6 +42,13 @@ type d47e602691b19284fe19919 struct {
 	CompensationRefs    Field[[]string]    "json:\"compensation_refs,omitzero\""
 	MaxAttempts         Field[json.Number] "json:\"max_attempts,omitzero\""
 	ResetObligationRefs Field[[]string]    "json:\"reset_obligation_refs,omitzero\""
+}
+
+type d47e602691b20d31644146a struct {
+	AssertionRefs  Field[[]string]        "json:\"assertion_refs,omitzero\""
+	ContinuingMode Field[json.RawMessage] "json:\"continuing_mode,omitzero\""
+	Kind           Field[string]          "json:\"kind,omitzero\""
+	SchemaVersion  Field[string]          "json:\"schema_version,omitzero\""
 }
 
 type d47e602691b215719d2c1e7 string
@@ -109,6 +119,15 @@ type d47e602691b5579b9f06d23 struct {
 	Names           Field[[]string]        "json:\"names,omitzero\""
 	SemanticScope   Field[string]          "json:\"semantic_scope,omitzero\""
 	WindowRefs      Field[[]string]        "json:\"window_refs,omitzero\""
+}
+
+type d47e602691b682f932361fc struct {
+	GoverningScope Field[string]                     "json:\"governing_scope,omitzero\""
+	Namespace      Field[[]string]                   "json:\"namespace,omitzero\""
+	Proofs         Field[map[string]json.RawMessage] "json:\"proofs,omitzero\""
+	Scope          Field[string]                     "json:\"scope,omitzero\""
+	State          Field[d47e602691b02f5efaa175b]    "json:\"state,omitzero\""
+	TargetRef      Field[string]                     "json:\"target_ref,omitzero\""
 }
 
 type d47e602691b7161067a8a9e d47e602691bc5df1447c4ce
@@ -186,5 +205,7 @@ type d47e602691bf13f2eb8eaf3 struct {
 	ProfileId        Field[string] "json:\"profile_id,omitzero\""
 	Revision         Field[string] "json:\"revision,omitzero\""
 }
+
+type d47e602691bf91db0b9e699 d47e602691b682f932361fc
 
 var _ json.RawMessage

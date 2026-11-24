@@ -15,9 +15,6 @@ func TestCleanupPlanAndIsolationRules(t *testing.T) {
 		{"trial-cleanup-plan-references-and-retry-safe", `{"clean_state":{"mode":"fresh","boundary_refs":["b"],"verification_probe_refs":["probe"]},"resource_boundaries":{"b":{"boundary_id":"b","resource_refs":["resource"]}},"cleanup_obligations":{"o":{"obligation_id":"o","boundary_refs":["b"],"action_kind":"destroy","requirement":"required","verification_probe_refs":["probe"],"idempotency":"idempotent"}},"retry_policy":{"max_attempts":1,"after_effect_policy":"disallow"}}`, true},
 		{"trial-cleanup-plan-references-and-retry-safe", `{"clean_state":{"mode":"fresh","boundary_refs":["missing"],"verification_probe_refs":["probe"]},"resource_boundaries":{},"cleanup_obligations":{},"retry_policy":{"max_attempts":1,"after_effect_policy":"disallow"}}`, false},
 		{"trial-cleanup-plan-references-and-retry-safe", `{"clean_state":{"mode":"fresh","verification_probe_refs":["probe"]},"cleanup_obligations":{"a":{"obligation_id":"a","depends_on":["b"]},"b":{"obligation_id":"b","depends_on":["a"]}},"retry_policy":{"max_attempts":1,"after_effect_policy":"disallow"}}`, false},
-		{"scheduler-isolation-serial-default-and-complete-parallel-proof", `{"plan_entry_ids":["e"]}`, true},
-		{"scheduler-isolation-serial-default-and-complete-parallel-proof", `{"plan_entry_ids":["e"],"requested_parallelism":2}`, false},
-		{"scheduler-isolation-serial-default-and-complete-parallel-proof", `{"plan_entry_ids":["e"],"requested_parallelism":1,"dimensions":[{"dimension":"storage","independent":true,"evidence_refs":["e"]}]}`, false},
 	} {
 		assertRule(t, test.id, test.raw, test.valid)
 	}

@@ -154,7 +154,7 @@ func (w *planCompilation) createPlan() error {
 			return err
 		}
 	}
-	w.plan = trialPlan{ID: planID, Profiles: intent.Profiles, Refs: w.input.refsJSON, Controls: map[string]json.RawMessage{}, Cleanup: map[string]json.RawMessage{}, Entries: map[string]trialEntry{}, ReplacementPolicy: w.input.spec.RunPlan.ReplacementPolicy}
+	w.plan = trialPlan{ID: planID, Profiles: intent.Profiles, Refs: w.input.refsJSON, Controls: map[string]json.RawMessage{}, Cleanup: map[string]json.RawMessage{}, Entries: map[string]trialEntry{}, ReplacementPolicy: w.input.spec.RunPlan.ReplacementPolicy, Parallelism: w.input.family.Parallelism}
 	if isNull(w.plan.ReplacementPolicy) {
 		w.plan.ReplacementPolicy = nil
 	}

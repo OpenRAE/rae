@@ -549,6 +549,12 @@
     "name": "nonblank",
     "values": "unique-nonblank"
   },
+  "RuntimeIdentityAuditLog": {
+    "audit_log_id": "portable",
+    "exempted_principal_refs": "list-nonblank",
+    "log_type": "nonblank",
+    "service": "nonblank"
+  },
   "RuntimeIdentityAuthority": {
     "identity_authority_id": "portable"
   },

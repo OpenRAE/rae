@@ -50,7 +50,6 @@ var experimentFactoryJSON = map[string]string{ //nolint:gochecknoglobals // Fixe
 	"ParticipantExposurePolicyModel":               `{"constraints":{},"disclosed_refs":[],"tool_affordance_refs":[],"visibility_scope_refs":[],"withheld_refs":[]}`,
 	"ParticipantImplementationProvenanceModel":     `{"metadata":{}}`,
 	"RealizedTimeModelProvenanceModel":             `{"deviations":[],"timing_limits":[]}`,
-	"SchedulerIsolationProofModel":                 `{"dimensions":[]}`,
 	"TimeApparatusBindingModel":                    `{"limitations":[]}`,
 	"TimeDomainMappingDeclarationModel":            `{"scale":{"denominator":1,"numerator":1}}`,
 	"TimeModelDeclarationModel":                    `{"mappings":{},"progression_policies":{},"temporal_constraints":{}}`,

@@ -12,6 +12,7 @@ type BackendOperationRequestV1 struct {
 	RequiredGuarantees Field[[]string]                  "json:\"required_guarantees,omitzero\""
 	RequirementRefs    Field[[]dbfd090c4024bbd7ba593e9] "json:\"requirement_refs,omitzero\""
 	SchemaVersion      Field[string]                    "json:\"schema_version,omitzero\""
+	WorkflowStep       Field[json.RawMessage]           "json:\"workflow_step,omitzero\""
 }
 
 type dbfd090c4024bbd7ba593e9 dbfd090c40253aae2df37ac

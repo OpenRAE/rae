@@ -54,8 +54,7 @@ func (e *Validator) flowAction(request FlowActionRequest) (any, error) {
 }
 
 func flowActionCompatibility(v any) error {
-	manifest, selection := at(v, "implementation_manifest"), at(v, "implementation_selection")
-	if !equal(at(selection, "participant_address"), at(v, "participant_address")) || !equal(at(manifest, termIdentity), at(selection, "implementation_identity")) || !subset(stringsOf(at(selection, "participant_contract_versions")), set(at(manifest, "capabilities", "supported_participant_contracts"))) || !set(at(manifest, "capabilities", "supported_decision_surface_modes"))[stringAt(selection, "selected_decision_surface_mode")] || !subset(stringsOf(at(selection, "exposure_policy", "exposure_policy_kinds")), set(at(manifest, "capabilities", "exposure_policy_kinds"))) {
+	if !implementationSelectionCompatible(at(v, "participant_address"), at(v, "implementation_manifest"), at(v, "implementation_selection")) {
 		return invalid()
 	}
 	result := at(v, "action_result")

@@ -168,7 +168,7 @@ type trialPlan struct {
 		Stage string `json:"admitted_at_stage"`
 		Count int    `json:"entry_count"`
 	} `json:"admission"`
-	Isolation json.RawMessage `json:"isolation_proof,omitempty"`
+	Parallelism json.RawMessage `json:"trial_parallelism,omitempty"`
 }
 
 func trialInvalid() error { return fault.New(fault.InvalidInput, "trial-input-invalid", nil) }

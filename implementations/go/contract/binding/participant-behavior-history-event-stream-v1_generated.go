@@ -5,7 +5,7 @@ package binding
 import "encoding/json"
 
 // ParticipantBehaviorHistoryEventStreamV1 is the transport representation of participant-behavior-history-event-stream-v1.
-type ParticipantBehaviorHistoryEventStreamV1 []dd578ce9c7e41321584a9cf
+type ParticipantBehaviorHistoryEventStreamV1 []dd578ce9c7eded32386553a
 
 type dd578ce9c7e028436264f8f string
 
@@ -75,38 +75,6 @@ type dd578ce9c7e3a3e13b6de14 struct {
 	ExecutionScopeRef   Field[string]                  "json:\"execution_scope_ref,omitzero\""
 	ParticipantAddress  Field[string]                  "json:\"participant_address,omitzero\""
 	SubmittedAt         Field[dd578ce9c7ecc03053f8fda] "json:\"submitted_at,omitzero\""
-}
-
-type dd578ce9c7e41321584a9cf struct {
-	ActionContractAddress      Field[json.RawMessage]           "json:\"action_contract_address,omitzero\""
-	ActionInstanceId           Field[string]                    "json:\"action_instance_id,omitzero\""
-	ActionResult               Field[json.RawMessage]           "json:\"action_result,omitzero\""
-	ActivityProvenance         Field[json.RawMessage]           "json:\"activity_provenance,omitzero\""
-	ActorProvenance            Field[json.RawMessage]           "json:\"actor_provenance,omitzero\""
-	AdmissionDisposition       Field[json.RawMessage]           "json:\"admission_disposition,omitzero\""
-	AttributionEdges           Field[[]dd578ce9c7e88d6438cdd62] "json:\"attribution_edges,omitzero\""
-	Details                    Field[dd578ce9c7e928e3ea896c0]   "json:\"details,omitzero\""
-	EpisodeId                  Field[string]                    "json:\"episode_id,omitzero\""
-	EventType                  Field[dd578ce9c7e028436264f8f]   "json:\"event_type,omitzero\""
-	InteractionClass           Field[json.RawMessage]           "json:\"interaction_class,omitzero\""
-	InteractionRef             Field[json.RawMessage]           "json:\"interaction_ref,omitzero\""
-	InvocationToolContext      Field[json.RawMessage]           "json:\"invocation_tool_context,omitzero\""
-	JointActionSetId           Field[json.RawMessage]           "json:\"joint_action_set_id,omitzero\""
-	LifecyclePhase             Field[json.RawMessage]           "json:\"lifecycle_phase,omitzero\""
-	ObservationBoundaryAddress Field[json.RawMessage]           "json:\"observation_boundary_address,omitzero\""
-	ObservationStatus          Field[json.RawMessage]           "json:\"observation_status,omitzero\""
-	OperationRef               Field[json.RawMessage]           "json:\"operation_ref,omitzero\""
-	OperationState             Field[json.RawMessage]           "json:\"operation_state,omitzero\""
-	OutcomeInterpretations     Field[[]dd578ce9c7e4a9f803d49db] "json:\"outcome_interpretations,omitzero\""
-	ParticipantAddress         Field[string]                    "json:\"participant_address,omitzero\""
-	PhaseRealization           Field[json.RawMessage]           "json:\"phase_realization,omitzero\""
-	PostStateDigest            Field[json.RawMessage]           "json:\"post_state_digest,omitzero\""
-	RealizedOrder              Field[json.RawMessage]           "json:\"realized_order,omitzero\""
-	SharedStateRefs            Field[[]string]                  "json:\"shared_state_refs,omitzero\""
-	StateTransitionKind        Field[json.RawMessage]           "json:\"state_transition_kind,omitzero\""
-	TemporalAssessments        Field[[]dd578ce9c7e2928bf1e8a8e] "json:\"temporal_assessments,omitzero\""
-	TemporalContexts           Field[[]dd578ce9c7e303e863ba36c] "json:\"temporal_contexts,omitzero\""
-	Timestamp                  Field[string]                    "json:\"timestamp,omitzero\""
 }
 
 type dd578ce9c7e4a9f803d49db dd578ce9c7ed1192edba057
@@ -199,6 +167,38 @@ type dd578ce9c7ed1baca1ceb59 struct {
 }
 
 type dd578ce9c7edb40fd71a0cb dd578ce9c7e8571290f4626
+
+type dd578ce9c7eded32386553a struct {
+	ActionContractAddress      Field[json.RawMessage]           "json:\"action_contract_address,omitzero\""
+	ActionInstanceId           Field[string]                    "json:\"action_instance_id,omitzero\""
+	ActionResult               Field[json.RawMessage]           "json:\"action_result,omitzero\""
+	ActivityProvenance         Field[json.RawMessage]           "json:\"activity_provenance,omitzero\""
+	ActorProvenance            Field[json.RawMessage]           "json:\"actor_provenance,omitzero\""
+	AdmissionDisposition       Field[json.RawMessage]           "json:\"admission_disposition,omitzero\""
+	AttributionEdges           Field[[]dd578ce9c7e88d6438cdd62] "json:\"attribution_edges,omitzero\""
+	Details                    Field[dd578ce9c7e928e3ea896c0]   "json:\"details,omitzero\""
+	EpisodeId                  Field[string]                    "json:\"episode_id,omitzero\""
+	EventType                  Field[dd578ce9c7e028436264f8f]   "json:\"event_type,omitzero\""
+	InteractionClass           Field[json.RawMessage]           "json:\"interaction_class,omitzero\""
+	InteractionRef             Field[json.RawMessage]           "json:\"interaction_ref,omitzero\""
+	InvocationToolContext      Field[json.RawMessage]           "json:\"invocation_tool_context,omitzero\""
+	JointActionSetId           Field[json.RawMessage]           "json:\"joint_action_set_id,omitzero\""
+	LifecyclePhase             Field[json.RawMessage]           "json:\"lifecycle_phase,omitzero\""
+	ObservationBoundaryAddress Field[json.RawMessage]           "json:\"observation_boundary_address,omitzero\""
+	ObservationStatus          Field[json.RawMessage]           "json:\"observation_status,omitzero\""
+	OperationRef               Field[json.RawMessage]           "json:\"operation_ref,omitzero\""
+	OperationState             Field[json.RawMessage]           "json:\"operation_state,omitzero\""
+	OutcomeInterpretations     Field[[]dd578ce9c7e4a9f803d49db] "json:\"outcome_interpretations,omitzero\""
+	ParticipantAddress         Field[string]                    "json:\"participant_address,omitzero\""
+	PhaseRealization           Field[json.RawMessage]           "json:\"phase_realization,omitzero\""
+	PostStateDigest            Field[json.RawMessage]           "json:\"post_state_digest,omitzero\""
+	RealizedOrder              Field[json.RawMessage]           "json:\"realized_order,omitzero\""
+	SharedStateRefs            Field[[]string]                  "json:\"shared_state_refs,omitzero\""
+	StateTransitionKind        Field[json.RawMessage]           "json:\"state_transition_kind,omitzero\""
+	TemporalAssessments        Field[[]dd578ce9c7e2928bf1e8a8e] "json:\"temporal_assessments,omitzero\""
+	TemporalContexts           Field[[]dd578ce9c7e303e863ba36c] "json:\"temporal_contexts,omitzero\""
+	Timestamp                  Field[string]                    "json:\"timestamp,omitzero\""
+}
 
 type dd578ce9c7eebafdbbcba8a string
 
