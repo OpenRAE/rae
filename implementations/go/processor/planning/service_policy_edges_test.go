@@ -2,7 +2,6 @@ package planning
 
 import (
 	"encoding/json"
-	"os"
 	"testing"
 
 	"github.com/OpenRAE/rae/implementations/go/base/canonjson"
@@ -38,7 +37,7 @@ func TestServiceMaterializationRequiresProfileExactSupportAndReadbackTogether(t 
 
 func privateServiceProfile(t *testing.T) binding.DomainProfileBindingV1 {
 	t.Helper()
-	raw, err := os.ReadFile("../../../../contracts/fixtures/plans/plan-realization-profiles-v1/valid/resource-label-authority.json")
+	raw, err := readSealedInternalFixture("../../../../contracts/fixtures/plans/plan-realization-profiles-v1/valid/resource-label-authority.json")
 	if err != nil {
 		t.Fatal(err)
 	}

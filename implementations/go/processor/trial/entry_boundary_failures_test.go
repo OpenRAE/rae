@@ -2,7 +2,6 @@ package trial
 
 import (
 	"encoding/json"
-	"os"
 	"testing"
 
 	"github.com/OpenRAE/rae/implementations/go/contract/admission"
@@ -85,7 +84,7 @@ func removeEntryCleanupCapability(t *testing.T, input *compilationInputs) {
 	}
 }
 func TestParallelScheduleAndAssignmentKeysRetainExactSealedAuthority(t *testing.T) {
-	raw, err := os.ReadFile("../../../../contracts/fixtures/plans/admitted-trial-plan-v1/valid/parallel-isolated.json")
+	raw, err := readSealedFixture("../../../../contracts/fixtures/plans/admitted-trial-plan-v1/valid/two-entry.json")
 	if err != nil {
 		t.Fatal(err)
 	}

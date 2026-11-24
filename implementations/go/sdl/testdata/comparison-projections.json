@@ -2471,6 +2471,7 @@
       },
       "propositions": {
         "health": {
+          "description": "declared runtime",
           "subjects": [
             "nodes.server"
           ],
@@ -2557,6 +2558,7 @@
           "subjects"
         ],
         "Semantic": {
+          "description": "declared runtime",
           "subjects": [
             "nodes.server"
           ],

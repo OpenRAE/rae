@@ -2,7 +2,6 @@ package planning_test
 
 import (
 	"encoding/json"
-	"os"
 	"testing"
 
 	"github.com/OpenRAE/rae/implementations/go/contract/binding"
@@ -51,7 +50,7 @@ func TestPlannerKeepsExactPhysicalSubstrateAuthority(t *testing.T) {
 	if constraint["posture"] != "exact" || requireType[map[string]any](t, constraint["value_domain"])["value"] != "physical-device" {
 		t.Fatal("physical substrate source constraint changed")
 	}
-	raw, err := os.ReadFile("../../../../contracts/fixtures/realization-envelope/realization-envelope-v1/valid/generic.json")
+	raw, err := readSealedFixture("../../../../contracts/fixtures/realization-envelope/realization-envelope-v1/valid/generic.json")
 	requireNoError(t, err)
 	var envelope binding.RealizationEnvelopeV1
 	requireNoError(t, json.Unmarshal(raw, &envelope))

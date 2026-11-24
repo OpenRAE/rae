@@ -3,7 +3,6 @@ package authoring
 import (
 	"bytes"
 	"encoding/json"
-	"os"
 	"strings"
 	"testing"
 
@@ -26,7 +25,7 @@ variation_points:
 	if err != nil {
 		t.Fatal(err)
 	}
-	raw, err := os.ReadFile("../../../../../contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/sample-selection.json")
+	raw, err := readSealedFixture("../../../../../contracts/fixtures/experiment-core/experiment-authoring-input-v1/valid/sample-selection.json")
 	if err != nil {
 		t.Fatal(err)
 	}

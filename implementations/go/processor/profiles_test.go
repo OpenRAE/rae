@@ -2,7 +2,6 @@ package processor_test
 
 import (
 	"encoding/json"
-	"os"
 	"testing"
 
 	"github.com/OpenRAE/rae/implementations/go/processor"
@@ -11,7 +10,7 @@ import (
 )
 
 func TestCompileRetainsAuthoredAccountProfile(t *testing.T) {
-	raw, err := os.ReadFile("../../../contracts/fixtures/plans/plan-realization-profiles-v1/valid/resource-label-authority.json")
+	raw, err := readSealedFixture("../../../contracts/fixtures/plans/plan-realization-profiles-v1/valid/resource-label-authority.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +44,7 @@ func TestCompileRetainsAuthoredAccountProfile(t *testing.T) {
 }
 
 func TestCompileSoftwareRefinementUsesExistingProfileHost(t *testing.T) {
-	raw, err := os.ReadFile("../../../contracts/fixtures/plans/plan-realization-profiles-v1/valid/resource-label-authority.json")
+	raw, err := readSealedFixture("../../../contracts/fixtures/plans/plan-realization-profiles-v1/valid/resource-label-authority.json")
 	if err != nil {
 		t.Fatal(err)
 	}

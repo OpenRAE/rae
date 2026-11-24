@@ -2,7 +2,6 @@ package planning_test
 
 import (
 	"encoding/json"
-	"os"
 	"strings"
 	"testing"
 
@@ -15,7 +14,7 @@ func TestAcceptedDescendantsRequireLifecycleDisposition(t *testing.T) {
 	requireNoError(t, err)
 	snapshot, err := planning.AssumedSnapshot(initial.Plan)
 	requireNoError(t, err)
-	archiveRaw, err := os.ReadFile("../../../../contracts/fixtures/experiment-core/materialization-archive-record-v1/valid/reference.json")
+	archiveRaw, err := readSealedFixture("../../../../contracts/fixtures/experiment-core/materialization-archive-record-v1/valid/reference.json")
 	requireNoError(t, err)
 	var archive map[string]any
 	requireNoError(t, json.Unmarshal(archiveRaw, &archive))

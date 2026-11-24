@@ -2,7 +2,6 @@ package planning_test
 
 import (
 	"encoding/json"
-	"os"
 	"testing"
 
 	"github.com/OpenRAE/rae/implementations/go/contract/admission"
@@ -13,7 +12,7 @@ import (
 )
 
 func TestPlanProfilesNeedPinnedIndependentTargetContext(t *testing.T) {
-	raw, err := os.ReadFile("../../../../contracts/fixtures/plans/plan-realization-profiles-v1/valid/resource-label-authority.json")
+	raw, err := readSealedFixture("../../../../contracts/fixtures/plans/plan-realization-profiles-v1/valid/resource-label-authority.json")
 	requireNoError(t, err)
 	var authority binding.PlanRealizationProfilesV1
 	requireNoError(t, json.Unmarshal(raw, &authority))

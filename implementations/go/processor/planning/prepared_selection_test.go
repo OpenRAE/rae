@@ -22,7 +22,7 @@ func preparedSelectionFixture(t *testing.T, source string) planning.ExecutionPla
 //nolint:ireturn // This fixture returns the actual planner-issued handle.
 func preparedSelectionTargetFixture(t *testing.T, source string, configure func(map[string]any)) planning.ExecutionPlan {
 	t.Helper()
-	raw, err := os.ReadFile("../../../../contracts/fixtures/realization-envelope/realization-envelope-v1/valid/generic.json")
+	raw, err := readSealedFixture("../../../../contracts/fixtures/realization-envelope/realization-envelope-v1/valid/generic.json")
 	requireNoError(t, err)
 	var envelope binding.RealizationEnvelopeV1
 	requireNoError(t, json.Unmarshal(raw, &envelope))
