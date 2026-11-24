@@ -34,6 +34,7 @@ The reference itself adds no generator, sampler, or trial compiler.
 It adds no scheduler, persistence service, API, environment pack, or adaptive policy.
 Follow-on work has delivered the typed run-local fact contract and in-process binding plane.
 It has also delivered deterministic trial compilation and sealed-entry realization.
+
 The remaining conceptual sketches retain their stated implementation boundaries.
 The reference does not guarantee the same backend behavior or artifact availability.
 It does not guarantee reconstruction of hidden state or exact replay from a seed alone.
@@ -157,6 +158,7 @@ The experiment spec states the intended design.
 The admitted plan describes a concrete finite set of trial entries.
 Each entry has been selected and validated.
 Each has been shown realizable against pinned apparatus claims.
+
 A scheduler queue states where and when work may run.
 A run states what happened.
 Combining any two would give mutable operational state authority over scientific intent or archival truth.
@@ -245,6 +247,7 @@ The reusable domain algebra belongs in a dependency-neutral `raes_contracts` lea
 That leaf imports neither SDL models nor schema-bundle machinery.
 Realization envelopes and scenario family declarations consume the same closed domain types and membership helpers.
 They may also re-export them.
+
 They must not copy the discriminated union or fork its validation.
 An SDL variation model must not depend on `RealizationEnvelopeModel`.
 Those choices would create competing schemas and an SDL/contracts import cycle.
@@ -312,6 +315,7 @@ The current authoring contract admits fixed selection and exhaustive enumeration
 It admits Cartesian product and equal stratification.
 It also admits bounded uniform sampling with replacement.
 Deterministic policies need no stochastic control.
+
 Uniform sampling resolves exactly one executable sampling/randomization control.
 It uses the accepted profile's bounded-integer transform.
 Weighted choice, sampling without replacement, permutation, and t-way coverage fail closed until exact versioned transforms are accepted.
@@ -365,6 +369,7 @@ The experiment's stochastic control combines the profile with a canonical root s
 It also includes an explicit, stable randomness namespace.
 The namespace does not derive from the experiment-spec ID, revision, or content digest.
 Keeping the namespace and seed across a controlled revision requests common random numbers at unchanged semantic addresses.
+
 An independent randomization mints a new namespace or changes the seed.
 Copying an experiment mints a new namespace by default.
 Deliberate reuse is recorded as provenance.
@@ -723,6 +728,7 @@ compiler carries the declaration into `admitted-trial-plan-v1`. The batch
 schedule reports its inclusive `admitted_parallelism_floor` and
 `admitted_parallelism_ceiling`. The ceiling is the exact count, the maximum, or
 the number of trials (at most 4096) when the value is open or has no maximum. A coordinator
+
 selects an effective capacity inside this interval. A minimum above the number
 of trials fails before dispatch. A serial executor
 refuses a minimum above one; use the assigned-trial API with an allocator grant.
@@ -856,6 +862,7 @@ Each executor call realizes or instantiates one `plan_entry_id` from the owned p
 The executor repeats no whole-plan reconstruction between entries.
 It keeps per-entry semantic admission, provenance, and digests.
 The single-entry functions call the same boundary for one entry.
+
 For a whole-plan traversal, iterate `canonical_entry_order(plan)` or use `dispatch_batch_schedule`.
 The executor owns its validated plan.
 It does not accept a replacement plan, family, or entry object with an entry ID.
@@ -866,6 +873,7 @@ Optional node `os_distribution` and `architecture` retain JSON `null` when their
 Compilation, desired resources, operation payloads, and recursive commitments preserve the same values.
 Explicit supported values keep their canonical form.
 An empty string cannot replace an absent identity in an admitted plan.
+
 Runtime admission rejects such a substitution before backend effects.
 Previously refused plans must be compiled again with the corrected processor.
 The `os_version` field retains its separate empty string default.
@@ -895,6 +903,7 @@ Declare adaptive difficulty in the experiment run plan.
 Do not declare it in mutable SDL or backend configuration.
 A difficulty registry names complete variants by reference.
 It supplies policy-local ordering and defines fixed, adaptive, and scaffolded policies.
+
 Its default policy must be fixed.
 Each study allocation condition explicitly records the condition.
 For a non-fixed condition, it also records the policy ID.
@@ -904,6 +913,7 @@ It declares admitted observation roles with versioned, digest-bound source defin
 It also declares ordered threshold rules and a closed action allowlist.
 It states cadence, cooldown, and intervention limits.
 The policy states its guardrails and validity effect.
+
 The reference resolver supports `adaptive-threshold-v1@1.0.0`.
 It consumes one exact state cut and the exact source definition admitted by the policy.
 It also consumes an evidence instance independently bound by version and digest.
@@ -943,6 +953,7 @@ It should record the assigned policy and realized path.
 It should explain stopping, cooldown, and missing-intervention handling.
 It should state whether follow-up runs use independent or intentionally common random streams.
 These records make the analysis auditable.
+
 They do not prove a universal difficulty scale or competence.
 They do not prove causal identification, policy optimality, or training benefit.
 The literature and simulation transfer is documented in
@@ -1121,6 +1132,7 @@ The compiler must not materialize an unbounded or accidental Cartesian product.
 It may evaluate independent logical coordinates in parallel.
 It may cache pure subresults by input/profile digest.
 Internal partitioning is invisible in the canonical output.
+
 Large plans may use bounded staging or content-addressed chunks.
 The portable admitted plan remains one sealed logical artifact.
 Its entry order is deterministic and its admission is all-or-nothing.

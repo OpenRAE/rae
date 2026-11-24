@@ -25,6 +25,7 @@ The public seam takes a plan, family, and entry selection for one batch.
 Keep entry selection independent of worker count, deployment configuration, and transport.
 A subset must retain each entry's existing identity and the complete plan digest.
 Do not create or reseal a smaller plan to represent a chunk.
+
 Use `admitted_trial_plan.canonical_entry_order()` when offering a whole-plan traversal.
 It preserves recorded allocation order when present; sorting coordinates alone does not.
 Document order, duplicate-request behavior, result ownership, and failure behavior for explicit entry selections.
@@ -42,6 +43,7 @@ Neither an entry digest nor a successful earlier parse replaces these checks.
 `ContractModel` has `extra="forbid"`; it does not freeze models or validate assignment.
 Plans, entries, families, and their nested collections can change after construction.
 A shallow copy, a frozen outer dataclass, or a mapping proxy alone does not protect nested values.
+
 Capture independent state, validate that state, then retain exclusive ownership throughout consumption.
 Do not expose mutable plan, family, entry, or provenance aliases through the public interface or returned scenarios.
 Mutation of one returned scenario must not affect later results.
@@ -50,6 +52,7 @@ Caller changes after capture cannot alter the batch's snapshot.
 Changed input supplied to a new batch must undergo full validation again.
 A retained batch must not accept replacement plans, families, or entry objects alongside its entry IDs.
 If iteration is lazy, state when capture and validation occur.
+
 No result can precede complete-plan validation.
 Caller mutation during capture is not a supported synchronization mechanism.
 Do not claim protection against hostile code inspecting private Python state or arbitrary concurrent writes.
@@ -58,6 +61,7 @@ Do not claim protection against hostile code inspecting private Python state or 
 Require an admitted `ExpandedScenario`, its exact name and `canonical_sdl_digest()`, and matching `trial_parallelism`.
 Compute identity from the same owned family used for selection.
 Preserve field presence, aliases, expansion provenance, and omitted-default mutation rejection.
+
 The canonical digest uses `exclude_unset=True`; a matching digest alone cannot certify changed omitted defaults.
 `select_scenario_family()` retains its public selection checks and whole-scenario semantic admission for every result.
 `ExpandedScenarioBindingTargetResolver.validate_selection()` retains typed treatment target and family checks.
@@ -67,6 +71,7 @@ Do not set a semantic-admission flag manually or rebuild an expanded family as a
 Reuse `TrialInstantiationProvenance`, coordinate provenance, and admitted selection and binding records.
 Keep plan ID/digest, entry ID/digest, preallocated `run_id`, family identity, and record digests unchanged.
 Reuse canonical helpers; do not substitute ordinary JSON hashing or list positions for canonical identity.
+
 A self-consistent seal proves content integrity, not trust in original experiment intent.
 `trial_compiler.readmit_admitted_trial_plan()` remains the source-aware replay boundary when independently trusted compilation inputs are required.
 Batch preparation does not replace that boundary or silently add recompilation to each entry.
@@ -101,6 +106,7 @@ Canonical sorting and allocation reconstruction retain their existing costs.
 Whole-scenario selection, family hashing within typed treatment checks, and actual realization remain entry work.
 Do not move a whole-plan copy, comparison, digest, or source scan inside the entry loop.
 Do not retain every realized scenario merely to keep the validated plan alive.
+
 Preserve the existing ingress and compiler limits without confusing their scopes.
 The compiler's default `max_coordinates=10_000` and runtime's 4,096-entry capacity are not interchangeable batch-instantiation limits.
 If results stream, document partial progress, error timing, and snapshot lifetime.
@@ -110,6 +116,7 @@ The extension seam is entry selection over one owned plan/family pair.
 It supports subsets and bounded result consumption without a global cache or scheduler dependency.
 Do not add a general validation-session framework for this issue.
 `raes/_incremental_reuse.py::ValidationSession` reuses SDL pass results under separate ownership preconditions; it does not certify admitted-plan integrity.
+
 `raes_contracts/immutable_history.py` owns append-only histories, not trial plans.
 Do not import their private helpers or reuse history commitments as plan digests.
 Use standard copying and encapsulation before introducing another immutable collection or parallel contract model.
@@ -118,6 +125,7 @@ The current full realizer reconstructs once directly and again through the singl
 Its typed-authoring path also scans the complete plan in `trial_compiler/sources.py::validate_authoring_selections()`.
 `RuntimeExperiment` invokes full realization for every scheduled entry.
 Wrapping that loop around a new instantiation API does not remove these other costs automatically.
+
 Any reuse inside full realization must retain experiment/task/capture pins, source joins, apparatus and envelope checks, and planning scope.
 Mixed-composition realization still fails closed.
 Do not claim an optimized runtime batch unless that exact path is separately demonstrated.
@@ -150,6 +158,7 @@ Use structural work counts rather than deployment timing thresholds.
 Count complete-plan work across multiple batch sizes and subset consumption.
 Keep scenario size controlled, and distinguish plan reconstruction from legitimate per-entry semantic admission.
 Assert equivalent instantiated content and full lineage against the existing single-entry path.
+
 Include an invalid unrequested entry, nested selection mutation, stale plan/entry seals, map-key mismatch, unknown ID, wrong family, and changed parallelism.
 Retain rejection of correctly resealed but semantically inconsistent treatment targets.
 Exercise input and output mutation between results, lazy capture timing if applicable, and independent batches with colliding IDs.
