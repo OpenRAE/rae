@@ -40,12 +40,15 @@ from raes_contracts.contracts import (  # noqa: E402
     AdmittedTrialPlanModel,
     ExperimentCaptureSpecModel,
     ExperimentReferenceModel,
+    ExperimentRunModel,
     ExperimentScenarioSelectionDescriptorModel,
     ExperimentSpecModel,
     ExperimentTaskModel,
     MixedParticipantCompositionProfileModel,
+    TrialCleanupReceiptModel,
     seal_mixed_composition_profile,
 )
+from raes_contracts.contracts.admitted_trial_plan import canonical_entry_order  # noqa: E402
 from raes_contracts.contracts.manifests import ProcessorManifestV2Model  # noqa: E402
 from raes_contracts.contracts.mixed_composition_resolution import (  # noqa: E402
     MixedCompositionResolutionContext,
@@ -59,12 +62,16 @@ from raes_contracts.contracts.participant_manifests import (  # noqa: E402
     ParticipantImplementationManifestModel,
 )
 from raes_contracts.contracts.time_model import TimeModelDeclarationModel  # noqa: E402
+from raes_contracts.contracts.trial_replacement import TrialReplacementOriginModel  # noqa: E402
 from raes_contracts.realization_envelope import BackendRealizationEnvelopeModel  # noqa: E402
 from raes_processor.trial_compiler import TrialCompilationRequest, compile_admitted_trial_plan  # noqa: E402
+from raes_processor.trial_compiler.compiler import _compile  # noqa: E402
 from raes_processor.trial_compiler.models import (  # noqa: E402
     TrialCompilationLimitsModel,
     TrialExecutionAuthorityModel,
 )
+from raes_processor.trial_compiler.replacement import TrialReplacementResult, compile_replacement_trial  # noqa: E402
+from raes_processor.trial_compiler.replacement_inputs import ReplacementCompilationContext  # noqa: E402
 from raes_processor.trial_realization import (  # noqa: E402
     TrialRealizationInputs,
     instantiate_admitted_trial_entry,
@@ -331,10 +338,9 @@ def _refresh_mixed(case: dict[str, Any]) -> dict[str, Any]:
     raise ValueError("mixed profile digests do not reach a fixed point")
 
 
-def mixed_case(case: dict[str, Any]) -> dict[str, Any]:
-    case = _refresh_mixed(copy.deepcopy(case))
+def _mixed_request(case: dict[str, Any]) -> tuple[TrialCompilationRequest, dict[str, Any]]:
     request, stored = build_request(case["request"])
-    request = replace(
+    return replace(
         request,
         realization_assignments={
             key: AdmittedMixedCompositionBindingModel.model_validate(value)
@@ -348,7 +354,12 @@ def mixed_case(case: dict[str, Any]) -> dict[str, Any]:
         mixed_realization_envelopes={
             key: BackendRealizationEnvelopeModel.model_validate(value) for key, value in case["envelopes"].items()
         },
-    )
+    ), stored
+
+
+def mixed_case(case: dict[str, Any]) -> dict[str, Any]:
+    case = _refresh_mixed(copy.deepcopy(case))
+    request, stored = _mixed_request(case)
     result = compile_admitted_trial_plan(request)
     if result.plan is None:
         raise ValueError(f"{case['name']} no longer compiles: {[item.code for item in result.diagnostics]}")
@@ -385,6 +396,196 @@ def typed_replay(reference: dict[str, Any]) -> dict[str, Any]:
 
 def mixed_reference(reference: dict[str, Any]) -> dict[str, Any]:
     return {**reference, "cases": [mixed_case(case) for case in reference["cases"]]}
+
+
+def mixed_replacement_case(case: dict[str, Any]) -> dict[str, Any]:
+    """Compile the first original slot's successor against its own freshly compiled root plan."""
+    case = _refresh_mixed(copy.deepcopy(case))
+    request, stored = _mixed_request(case)
+    root = compile_admitted_trial_plan(request).plan
+    if root is None:
+        raise ValueError(f"{case['name']} root no longer compiles")
+    root_entry = canonical_entry_order(root)[0]
+    origin = {
+        **case["origin"],
+        "root_plan_id": root.plan_id,
+        "root_plan_digest": root.plan_digest,
+        "root_entry_id": root_entry,
+        "parent_plan_id": root.plan_id,
+        "parent_plan_digest": root.plan_digest,
+        "parent_entry_id": root_entry,
+        "parent_run_id": root.entries[root_entry].run_id,
+    }
+    context = ReplacementCompilationContext(
+        origin=TrialReplacementOriginModel.model_validate(origin), coordinate_index=0
+    )
+    child = _compile(request, None, context)
+    return {**case, "request": stored, "plan": child.model_dump(mode="json"), "origin": origin}
+
+
+def mixed_replacement_reference(reference: dict[str, Any]) -> dict[str, Any]:
+    return {**reference, "cases": [mixed_replacement_case(case) for case in reference["cases"]]}
+
+
+RUN_FIXTURE = ROOT / "contracts/fixtures/experiment-core/experiment-run-v1/valid/reference.json"
+
+
+def _realized_refs(request: TrialCompilationRequest, plan: AdmittedTrialPlanModel, entry_id: str) -> list[Any]:
+    return _realization(plan, entry_id, request)["processor_plan_refs"]
+
+
+def _archive(
+    request: TrialCompilationRequest,
+    plan: AdmittedTrialPlanModel,
+    *,
+    cleanup_status: str = "succeeded",
+) -> tuple[ExperimentRunModel, TrialCleanupReceiptModel]:
+    """Archive the first entry as one failed trial, as the reference replacement scenario does."""
+    entry = next(iter(plan.entries.values()))
+    snapshot = instantiate_admitted_trial_entry(plan=plan, plan_entry_id=entry.plan_entry_id, family=request.family)
+    snapshot_digest = canonical_instantiated_sdl_digest(snapshot).value
+    cleanup = plan.cleanup_plans[entry.execution_controls.cleanup_plan_ref]
+    receipt = TrialCleanupReceiptModel(
+        receipt_id=f"cleanup:{entry.run_id}",
+        cleanup_plan_ref=cleanup.plan_id,
+        plan_entry_id=entry.plan_entry_id,
+        run_id=entry.run_id,
+        execution_attempt_id=f"attempt:{entry.run_id}",
+        trial_outcome="failed",
+        cleanup_status=cleanup_status,
+        obligation_results={
+            key: {
+                "obligation_id": key,
+                "status": "succeeded" if cleanup_status == "succeeded" else "failed",
+                "evidence_refs": ["evidence:cleanup"],
+            }
+            for key in cleanup.cleanup_obligations
+        },
+        clean_state_claim=(
+            {
+                "disposition": "verified-clean",
+                "boundary_refs": list(cleanup.resource_boundaries),
+                "evidence_refs": ["evidence:clean"],
+            }
+            if cleanup_status == "succeeded"
+            else None
+        ),
+    )
+    payload = json.loads(RUN_FIXTURE.read_text(encoding="utf-8"))
+    payload.update(
+        run_id=entry.run_id,
+        run_status="failed",
+        outcome_status="failed",
+        scenario_snapshot_ref={
+            "ref_kind": "scenario-snapshot",
+            "ref_id": request.family.name,
+            "ref_version": "raes-sdl-instantiated-snapshot/v2",
+            "ref_digest": snapshot_digest,
+        },
+        trial_provenance={
+            "plan_id": plan.plan_id,
+            "plan_digest": plan.plan_digest,
+            "plan_entry_id": entry.plan_entry_id,
+            "entry_digest": entry.entry_digest,
+            "admitted_run_id": entry.run_id,
+            "coordinate": entry.coordinate.model_dump(),
+            "instantiated_scenario_digest": snapshot_digest,
+            "processor_plan_refs": _realized_refs(request, plan, entry.plan_entry_id),
+            "execution_attempts": [
+                {"execution_attempt_id": receipt.execution_attempt_id, "cleanup_receipt_ref": receipt.receipt_id}
+            ],
+            "terminal_attempt_id": receipt.execution_attempt_id,
+        },
+        stochastic_controls=[control.model_dump() for control in plan.stochastic_controls.values()],
+        stochastic_draws=[draw.model_dump() for draw in entry.stochastic_draws],
+    )
+    if plan.replacement_origin is not None:
+        payload["run_version"] = "1"
+    if not payload["stochastic_controls"]:
+        payload["stochastic_controls"] = [{"control_id": "deterministic", "role": "other"}]
+    payload["participant_implementation_provenance"]["run_id"] = entry.run_id
+    return ExperimentRunModel.model_validate(payload), receipt
+
+
+def _replacement_wire(result: TrialReplacementResult) -> dict[str, Any]:
+    return {
+        "plan": None if result.plan is None else result.plan.model_dump(mode="json"),
+        "superseded_run": None if result.superseded_run is None else result.superseded_run.model_dump(mode="json"),
+        "parent_run": None if result.parent_run is None else result.parent_run.model_dump(mode="json"),
+        "cleanup_receipts": [item.model_dump(mode="json") for item in result.cleanup_receipts],
+        "diagnostics": [
+            {
+                "code": item.code,
+                "domain": item.domain,
+                "address": item.address,
+                "message": item.message,
+                "severity": str(getattr(item.severity, "value", item.severity)),
+            }
+            for item in result.diagnostics
+        ],
+    }
+
+
+def replacement_reference(reference: dict[str, Any]) -> dict[str, Any]:
+    """Re-run the reference replacement scenario that each retained case names."""
+    request, stored, root = _compiled(reference["request"], "replacement-root")
+    root_entry = next(iter(root.entries))
+
+    def allocate(run: ExperimentRunModel, receipt: TrialCleanupReceiptModel, history: tuple = ()) -> Any:
+        return compile_replacement_trial(
+            request,
+            original_plan=root,
+            root_entry_id=root_entry,
+            previous_allocations=history,
+            failed_run=run,
+            cleanup_receipts=[receipt],
+        )
+
+    run0, receipt0 = _archive(request, root)
+    first = allocate(run0, receipt0)
+    run1, receipt1 = _archive(request, first.plan)
+    second = allocate(run1, receipt1, (first,))
+    run2, receipt2 = _archive(request, second.plan)
+    changed = ExperimentRunModel.model_validate({**run0.model_dump(mode="json"), "run_version": "changed"})
+    scenarios: dict[str, tuple[ExperimentRunModel, TrialCleanupReceiptModel, tuple]] = {
+        "fresh": (run0, receipt0, ()),
+        "second": (run1, receipt1, (first,)),
+        "duplicate": (run0, receipt0, (first, second)),
+        "exhausted": (run2, receipt2, (first, second)),
+        "missing-prefix": (run1, receipt1, ()),
+        "conflict": (changed, receipt0, (first,)),
+    }
+    for status in ("failed", "partial", "unverified"):
+        run, receipt = _archive(request, root, cleanup_status=status)
+        scenarios[f"cleanup-{status}"] = (run, receipt, ())
+    for name, claim in (
+        ("not-reusable-9", None),
+        (
+            "not-reusable-10",
+            {"disposition": "fresh-range-required", "boundary_refs": ["range"], "evidence_refs": ["new-name"]},
+        ),
+    ):
+        receipt = TrialCleanupReceiptModel.model_validate({**receipt0.model_dump(), "clean_state_claim": claim})
+        scenarios[name] = (run0, receipt, ())
+    cases = []
+    for case in reference["cases"]:
+        run, receipt, history = scenarios[case["name"]]
+        cases.append(
+            {
+                "name": case["name"],
+                "parent_run": run.model_dump(mode="json"),
+                "cleanup_receipts": [receipt.model_dump(mode="json")],
+                "history": [_replacement_wire(item) for item in history],
+                "expected": _replacement_wire(allocate(run, receipt, history)),
+            }
+        )
+    return {
+        **reference,
+        "request": stored,
+        "root": root.model_dump(mode="json"),
+        "root_entry_id": root_entry,
+        "cases": cases,
+    }
 
 
 def _treatment_valid(family: Any, treatment: dict[str, Any]) -> bool:
@@ -424,6 +625,8 @@ RECORDS: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
     "mixed-reference.json.gz": mixed_reference,
     "manifest-defaults-reference.json": manifest_defaults,
     "typed-replay-reference.json": typed_replay,
+    "replacement-reference.json.gz": replacement_reference,
+    "mixed-replacement-reference.json.gz": mixed_replacement_reference,
 }
 
 
