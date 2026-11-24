@@ -5,21 +5,37 @@
 The module list in `implementations/architecture.json` is the authority.
 The existing `archcheck` reconciles this list with discovered `go.mod` directories.
 The inventory adapter reads declared module directories after that check succeeds.
+It reads the model with the same 4 MiB limit as `archcheck`.
 It adds no module discovery or architecture schema parser.
-It then requires equal module sets in the Go matrix and OSV scan targets.
-It requires one unique matrix name per module.
-Tooling and product modules keep their existing names and paths.
-Each matrix entry runs the same compiler, dependency, lint, analyzer, test, coverage, fuzz, mutation, and regression gates.
-The check also reconciles coverage uploads, Sonar downloads, and Sonar report paths.
+It requires equal module sets in the `go` matrix and the OSV scan targets.
+It requires one unique matrix name and at least one test group per module.
+Each module must have exactly its declared number of rows in the `go-test` matrix.
+Each test group row must name its module and the module path.
+
+The ADR-121 workflow tests own the gate commands.
+The adapter owns the reach of those commands.
+A module step runs in `${{ matrix.path }}` in the `go` or `go-test` job.
+Each module step must reach every module and fail the job on error.
+A condition on a workflow input applies to all modules alike.
+A condition on the matrix module can exclude a module.
+An excluded module then needs the same script in another required job, in its module directory.
+For example, product fuzzing runs in the `go-architecture` job.
+The adapter rejects any other step condition.
+Each module must run `go build ./...` in a module step.
+The compiler-cycle proof uses this command.
+
+The `go`, `go-test`, and `go-architecture` jobs must be required by the aggregate gate.
+Each of these jobs uses the admitted readonly toolchain without a workspace.
+The adapter also reconciles coverage uploads, Sonar downloads, and Sonar report paths.
 Missing coverage files fail artifact upload.
-The required `go-architecture` job runs this check after its architecture check.
-The aggregate gate requires both the architecture job and every matrix job.
+The required `go-architecture` job runs the adapter after its architecture check.
 
 The Python `tools.check_go_module_inventory` module owns the check.
 Its public interface is `check_inventory(root, scan_targets)` and its module command.
 It reuses the closed workflow parser and the existing OSV configuration.
-Small private functions check module paths, matrix settings, required commands, coverage, and scan targets.
+Small private functions check module paths, matrix settings, step reach, coverage, and scan targets.
 They return the same policy failures through the public inventory check.
+A missing or invalid workflow entry fails with the name of that entry.
 The command adds checkout package paths before it imports repository code.
 `--scan-reports` requires each expected OSV report after successful scans.
 No Go package, schema, architecture dependency, or runtime interface changes.
@@ -33,8 +49,6 @@ The equality check blocks this omission at the source configuration boundary.
 The common job uses the admitted toolchain, `GOTOOLCHAIN=local`, and readonly dependency resolution.
 The check reads repository files. It neither executes module contents nor sends data outside CI.
 Pull request code remains untrusted. Go and inventory jobs use read-only tokens.
-The separate CodeQL job can write scan results, under a narrow workflow policy boundary.
-Its [rollout guide](../develop/codeql.md) defines staging, activation and rollback.
 A reviewed workflow change can change the enforcement itself. Review and the workflow tests cover this residual risk.
 
 ```mermaid
@@ -59,7 +73,7 @@ flowchart LR
     Config -->|matrix and scan paths| Check
     Sonar -->|coverage paths| Check
     Check -->|failure or success| Gate
-    Config -->|module directories| Lanes
+    Config -->|module directories and test groups| Lanes
     Lanes -->|coverage profiles| Artifacts
     Lanes -->|job results| Gate
     Artifacts -->|required profiles| Sonar
@@ -76,11 +90,16 @@ Reset this value when the cutover branch returns to the normal integration path.
 ## Verification and references
 
 Focused fixture tests add a declared module without matrix or scan entries.
-Other tests remove coverage paths and required lanes.
+Other tests remove coverage paths, test groups, and module steps.
+Other tests add module conditions, unsupported conditions, and soft failures.
 The check also reconciles Sonar source roots and OSV report uploads.
 Explicit lint configuration supports module directories at different depths.
 `GOWORK=off` prevents a local workspace from changing dependency resolution.
-A two-package import cycle must fail the common compiler command.
+ADR-122 version 2 rejects declared package cycles in `archcheck`.
+A two-package code import cycle must fail the common compiler command.
+The `go-architecture` job runs that proof with `RAES_GO_COMPILER_GATE=required`.
+In that mode, a missing toolchain fails the proof instead of a skip.
+The fixture reads its Go version from the tooling module.
 Local runs use focused tests only. CI runs full module and mutation verification.
 
 - [Go Modules Reference](https://go.dev/ref/mod), Go 1.27: module roots and readonly build commands.
@@ -99,13 +118,3 @@ Import only a complete capture from the current source identity after its creden
 Keep the exact reproduction check and the Go comparison gates enabled.
 The next CI run must accept the frozen inputs and reproduce the imported cases.
 Issue #1872 removes the corpus and its migration harness after the hard cutover.
-
-## Mutation applicability
-
-Changed-line mutation testing runs when production Go files change within the module.
-Corpus-only and test-only changes have no production mutants to score.
-The workflow checks production Go paths before gremlins runs.
-Git comparison errors and gremlins failures still fail the job.
-The 99.99% mutation thresholds do not change.
-Focused workflow tests live in `implementations/tooling/python/tests/test_go_mutation_gate.py`.
-The common Go job runs those tests before its mutation step.

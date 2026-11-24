@@ -32,6 +32,7 @@ Do not add model fields for display names or lane exemptions.
 ## Required checks and consumers
 
 - Each module needs compiler, dependency, lint, analyzer, race test, coverage, fuzz, mutation, and regression checks.
+- A workflow input can make a check opt-in for all modules alike. It cannot exempt one module.
 - Keep the 90% coverage floor for each module.
 - Keep numeric mutation thresholds and module-relative diff paths.
 - Keep the existing regression replay and comparison-base checks.
@@ -89,10 +90,12 @@ The extension seam is the checked collection of module identities.
 A third module must reach every gate and artifact consumer.
 A retained consumer list must fail until it agrees with that collection.
 Keep one common lane policy without module exemptions.
+A module-specific step must have the same required step for each excluded module.
 
 Add negative fixtures for a new modeled module missing from CI or scanning.
 Test coverage omission, duplicate identities, unsafe paths, and missing lanes.
-A declared same-layer cycle must pass architecture checks, then fail compilation.
+ADR-122 version 2 rejects declared package cycles in `archcheck`.
+A code import cycle must fail the common compiler command of each module.
 A missing dependency or broken fixture does not prove cycle rejection.
 Keep fixtures in temporary repositories or `testdata`.
 Run focused tests locally. Full module, fuzz, and mutation verification stays in CI.

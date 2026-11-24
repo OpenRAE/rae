@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -90,79 +91,122 @@ def test_consumer_omission_fails(repo: Path, consumer: str) -> None:
     assert check_inventory(repo, scan)
 
 
-@pytest.mark.parametrize("change", ["duplicate", "extra", "skip", "compiler", "coverage", "toolchain"])
+def _step(job: dict, name: str) -> dict:
+    return next(step for step in job["steps"] if step.get("name") == name)
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        "duplicate",
+        "extra",
+        "skip",
+        "compiler",
+        "toolchain",
+        "test-workspace",
+        "module-condition",
+        "unsupported-condition",
+        "soft-failure",
+        "missing-group",
+        "group-count",
+        "foreign-group",
+        "relocated-fuzz",
+        "test-condition",
+    ],
+)
 def test_required_matrix_lane_cannot_be_weakened(repo: Path, change: str) -> None:
     path = repo / ".github/workflows/canonical-verification.yml"
     workflow = yaml.safe_load(path.read_text())
-    go = workflow["jobs"]["go"]
+    jobs = workflow["jobs"]
+    go, tests = jobs["go"], jobs["go-test"]
+    rows, groups = go["strategy"]["matrix"]["include"], tests["strategy"]["matrix"]["include"]
+    lint = _step(go, "Check dependencies, lint, and analyzers")
     if change in {"duplicate", "extra"}:
-        row = dict(go["strategy"]["matrix"]["include"][0])
-        if change == "extra":
-            row = {"name": "extra", "path": "extra"}
-        go["strategy"]["matrix"]["include"].append(row)
+        row = dict(rows[0]) if change == "duplicate" else {"name": "extra", "path": "extra", "shards": 1}
+        rows.append(row)
     elif change == "skip":
         go["if"] = "false"
+    elif change == "compiler":
+        lint["run"] = lint["run"].replace("go build ./...\n", "")
     elif change == "toolchain":
         go["env"]["GOTOOLCHAIN"] = "auto"
+    elif change == "test-workspace":
+        del tests["env"]["GOWORK"]
+    elif change == "module-condition":
+        lint["if"] = "matrix.name != 'tooling'"
+    elif change == "unsupported-condition":
+        lint["if"] = "always()"
+    elif change == "soft-failure":
+        lint["continue-on-error"] = True
+    elif change == "missing-group":
+        groups[:] = [group for group in groups if group["module"] != "tooling"]
+        tests["strategy"]["matrix"]["group"].remove("tooling")
+    elif change == "group-count":
+        next(row for row in rows if row["name"] == "product")["shards"] += 1
+    elif change == "foreign-group":
+        groups[-1]["path"] = "implementations/go"
+    elif change == "relocated-fuzz":
+        steps = jobs["go-architecture"]["steps"]
+        steps[:] = [step for step in steps if step.get("name") != "Fuzz each product fuzz target for a bounded time"]
     else:
-        token = "go build ./..." if change == "compiler" else "-coverprofile=cover.out"
-        for step in go["steps"]:
-            if "run" in step:
-                step["run"] = step["run"].replace(token, "")
+        _step(tests, "Run the package group")["if"] = "matrix.module == 'product'"
     path.write_text(yaml.safe_dump(workflow))
     assert check(repo)
 
 
+def test_missing_consumer_job_names_the_entry(repo: Path) -> None:
+    from raes_contracts.errors import InvalidInputError
+
+    path = repo / ".github/workflows/canonical-verification.yml"
+    workflow = yaml.safe_load(path.read_text())
+    del workflow["jobs"]["go-test"]
+    path.write_text(yaml.safe_dump(workflow))
+    with pytest.raises(InvalidInputError, match="jobs.go-test"):
+        check(repo)
+
+
+def _go_directive(go_mod: Path) -> str:
+    match = re.search(r"^go (\d+\.\d+(?:\.\d+)?)$", go_mod.read_text(encoding="utf-8"), re.MULTILINE)
+    assert match is not None, f"{go_mod} lacks a go directive"
+    return match.group(1)
+
+
+def _version_tuple(version: str) -> tuple[int, ...]:
+    match = re.match(r"(\d+)\.(\d+)(?:\.(\d+))?", version)
+    if match is None:
+        return (0,)
+    return tuple(int(part or 0) for part in match.groups())
+
+
 def test_declared_cycle_fails_the_compiler_gate(tmp_path: Path) -> None:
-    """Use exactly the compiler command required of every matrix module."""
+    """A cycle between packages fails the compiler command of every module gate.
+
+    ADR-122 version 2 rejects declared package cycles in archcheck. The compiler
+    still rejects cycles in the code itself. The inventory check requires this
+    exact command for each declared module, so a cycle fails that module's gate. The required
+    go-architecture job sets RAES_GO_COMPILER_GATE=required, so a missing Go
+    toolchain fails there. Other runs skip without a sufficient toolchain.
+    """
+    from tools.check_go_module_inventory import COMPILER_COMMAND
+
+    required = os.environ.get("RAES_GO_COMPILER_GATE") == "required"
+    directive = _go_directive(REPO_ROOT / "implementations/tooling/go/go.mod")
     go = shutil.which("go")
     if go is None:
+        if required:
+            pytest.fail("The required compiler gate has no Go toolchain")
         pytest.skip("The required go-architecture job supplies the admitted toolchain")
-    version = subprocess.run([go, "version"], capture_output=True, text=True, check=True)
-    if "go1.27.3 " not in version.stdout:
-        pytest.skip("The required go-architecture job supplies Go 1.27.3")
+    version = subprocess.run([go, "env", "GOVERSION"], capture_output=True, text=True, check=True).stdout
+    if not required and _version_tuple(version.strip().removeprefix("go")) < _version_tuple(directive):
+        pytest.skip(f"The required go-architecture job supplies Go {directive} or later")
     module_root = tmp_path / "m"
     module_root.mkdir()
-    (module_root / "go.mod").write_text("module example.com/cycle\n\ngo 1.27.3\n")
+    (module_root / "go.mod").write_text(f"module example.com/cycle\n\ngo {directive}\n")
     for name, other in (("a", "b"), ("b", "a")):
         (module_root / name).mkdir()
         (module_root / name / "code.go").write_text(f'package {name}\nimport _ "example.com/cycle/{other}"\n')
-    model_dir = tmp_path / "implementations"
-    model_dir.mkdir()
-    (model_dir / "architecture.json").write_text(
-        json.dumps(
-            {
-                "schema": "raes-go-architecture/v1",
-                "modules": [{"dir": "m", "path": "example.com/cycle"}],
-                "layers": [{"name": "cycle", "dir": "m", "doc": "Cycle fixture.", "uses": [], "external": []}],
-                "packages": [
-                    {
-                        "dir": "m/" + name,
-                        "layer": "cycle",
-                        "public": False,
-                        "doc": "Fixture package.",
-                        "imports": ["m/" + other],
-                    }
-                    for name, other in (("a", "b"), ("b", "a"))
-                ],
-            }
-        )
-    )
-    adr = tmp_path / "docs/decisions/adrs/adr-122-go-architecture-model.md"
-    adr.parent.mkdir(parents=True)
-    shutil.copyfile(REPO_ROOT / "docs/decisions/adrs/adr-122-go-architecture-model.md", adr)
-    binary = tmp_path / "archcheck"
-    env = {**os.environ, "GOTOOLCHAIN": "local", "GOFLAGS": "-mod=readonly", "GOWORK": "off"}
-    subprocess.run(
-        [go, "-C", str(REPO_ROOT / "implementations/tooling/go"), "build", "-o", str(binary), "./cmd/archcheck"],
-        env=env,
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    subprocess.run([str(binary)], cwd=tmp_path, env=env, capture_output=True, text=True, check=True)
     result = subprocess.run(
-        [go, "build", "./..."],
+        [go, *COMPILER_COMMAND.split()[1:]],
         cwd=module_root,
         capture_output=True,
         text=True,
@@ -181,7 +225,13 @@ def test_required_jobs_run_inventory_after_architecture_check() -> None:
         i for i, step in enumerate(steps) if '"${RUNNER_TEMP}/go-tools/archcheck"' in step.get("run", "")
     )
     inventory = next(i for i, step in enumerate(steps) if "-m tools.check_go_module_inventory" in step.get("run", ""))
+    cycle = next(
+        i for i, step in enumerate(steps) if "test_declared_cycle_fails_the_compiler_gate" in step.get("run", "")
+    )
     assert inventory > architecture
+    assert cycle > architecture
+    assert steps[cycle]["env"] == {"RAES_GO_COMPILER_GATE": "required"}
+    assert not steps[cycle].get("if")
     assert not steps[inventory].get("if")
     assert not steps[inventory].get("continue-on-error")
     assert not job.get("if")
