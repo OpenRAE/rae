@@ -100,7 +100,7 @@ class AdmittedTrialPlanView:
     def __delattr__(self, name: str) -> None:
         raise AttributeError("admitted trial plan view is read-only")
 
-    def __getattr__(self, name: str) -> Any:
+    def __getattr__(self, name: str) -> object:
         # Reached only for names that are not view members. Expose plan fields as copies.
         if name.startswith("_") or name not in AdmittedTrialPlanModel.model_fields:
             raise AttributeError(name)

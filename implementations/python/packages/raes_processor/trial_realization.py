@@ -22,6 +22,7 @@ from raes_contracts.artifact_requirements import ArtifactAvailabilityContext
 from raes_contracts.canonical import canonical_json_digest
 from raes_contracts.contracts import (
     AdmittedMixedCompositionBindingModel,
+    AdmittedTrialEntryModel,
     AdmittedTrialPlanModel,
     BackendManifestV2Model,
     EvaluationPlanModel,
@@ -331,6 +332,42 @@ def _processor_plan_reference(
     )
 
 
+def _trial_realization(
+    entry: AdmittedTrialEntryModel,
+    instantiated: InstantiatedScenario,
+    execution_plan: ExecutionPlan,
+) -> TrialRealization:
+    """Project one valid execution plan into the typed trial realization."""
+
+    if not execution_plan.is_valid:
+        raise InvalidInputError("admitted trial processor planning failed")
+    provisioning = provisioning_plan_model(execution_plan.provisioning)
+    orchestration = orchestration_plan_model(execution_plan.orchestration)
+    evaluation = evaluation_plan_model(execution_plan.evaluation)
+    references = tuple(
+        _processor_plan_reference(run_id=entry.run_id, plan_kind=plan_kind, model=model)
+        for plan_kind, model in (
+            ("provisioning", provisioning),
+            ("orchestration", orchestration),
+            ("evaluation", evaluation),
+        )
+    )
+    return TrialRealization(
+        instantiated=instantiated,
+        snapshot_digest=canonical_instantiated_sdl_digest(instantiated).value,
+        execution_plan=execution_plan,
+        provisioning_plan=provisioning,
+        orchestration_plan=orchestration,
+        evaluation_plan=evaluation,
+        processor_plan_refs=references,
+        # Return independent copies so a caller mutating one result cannot
+        # change the owned plan or a later result (issue #2046 review).
+        participant_configurations=tuple(
+            configuration.model_copy(deep=True) for configuration in entry.participant_configurations
+        ),
+    )
+
+
 def admitted_trial_batch_realizer(
     *,
     inputs: TrialRealizationInputs,
@@ -425,42 +462,7 @@ def admitted_trial_batch_realizer(
             scope=PlanScope(target_name=target_name, run_id=entry.run_id, instantiation_id=plan_entry_id),
             artifact_availability=deepcopy(owned_availability),
         )
-        if not execution_plan.is_valid:
-            raise InvalidInputError("admitted trial processor planning failed")
-        provisioning = provisioning_plan_model(execution_plan.provisioning)
-        orchestration = orchestration_plan_model(execution_plan.orchestration)
-        evaluation = evaluation_plan_model(execution_plan.evaluation)
-        references = (
-            _processor_plan_reference(
-                run_id=entry.run_id,
-                plan_kind="provisioning",
-                model=provisioning,
-            ),
-            _processor_plan_reference(
-                run_id=entry.run_id,
-                plan_kind="orchestration",
-                model=orchestration,
-            ),
-            _processor_plan_reference(
-                run_id=entry.run_id,
-                plan_kind="evaluation",
-                model=evaluation,
-            ),
-        )
-        return TrialRealization(
-            instantiated=instantiated,
-            snapshot_digest=canonical_instantiated_sdl_digest(instantiated).value,
-            execution_plan=execution_plan,
-            provisioning_plan=provisioning,
-            orchestration_plan=orchestration,
-            evaluation_plan=evaluation,
-            processor_plan_refs=references,
-            # Return independent copies so a caller mutating one result cannot
-            # change the owned plan or a later result (issue #2046 review).
-            participant_configurations=tuple(
-                configuration.model_copy(deep=True) for configuration in entry.participant_configurations
-            ),
-        )
+        return _trial_realization(entry, instantiated, execution_plan)
 
     return realize_one
 
