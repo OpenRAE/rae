@@ -17,8 +17,8 @@ import re
 import sys
 from collections.abc import Callable
 from io import BytesIO
-from types import SimpleNamespace
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -38,25 +38,25 @@ from raes_contracts.contracts import (  # noqa: E402
 )
 from raes_processor.compiler.scenario_references import authored_scenario_evidence  # noqa: E402
 from raes_processor.trial_compiler import compile_admitted_trial_plan  # noqa: E402
-from raes_processor.trial_compiler.replacement import (
+from raes_processor.trial_compiler.replacement import (  # noqa: E402
     TrialReplacementResult,
     compile_replacement_trial,
-)  # noqa: E402
-from raes_processor.trial_realization import (
+)
+from raes_processor.trial_realization import (  # noqa: E402
     TrialRealizationInputs,
     realize_admitted_trial_entry,
-)  # noqa: E402
-from raes_runtime.experiment_records import (
+)
+from raes_runtime.experiment_records import (  # noqa: E402
     ExperimentRecordSource,
     ExperimentRunMetadata,
-)  # noqa: E402
-from raes_runtime.runtime_record_assembly import assemble_run  # noqa: E402
+)
 from raes_runtime.runtime_decisions import validate_runtime_decision  # noqa: E402
 from raes_runtime.runtime_experiment_records import _run_metadata  # noqa: E402
-from raes_runtime.runtime_record_lineage import (
+from raes_runtime.runtime_record_assembly import assemble_run  # noqa: E402
+from raes_runtime.runtime_record_lineage import (  # noqa: E402
     accounting_validation_record,
     canonical_archival_runs,
-)  # noqa: E402
+)
 from raes_runtime.runtime_study_records import _authored_definition, _study_snapshot  # noqa: E402
 from raes_runtime.runtime_trial_decisions import (  # noqa: E402
     TrialArchiveCandidateDecision,
@@ -66,9 +66,7 @@ from raes_runtime.runtime_trial_decisions import (  # noqa: E402
 )
 
 TESTDATA = ROOT / "implementations/go/runtime/experiment/testdata"
-COMPILER = (
-    ROOT / "implementations/go/processor/trial/testdata/compiler-reference.json.gz"
-)
+COMPILER = ROOT / "implementations/go/processor/trial/testdata/compiler-reference.json.gz"
 TOKEN = re.compile(r"sha256:[0-9a-f]{64}|[a-z][a-z-]*-[0-9a-f]{64}")
 EMBEDDED = re.compile(
     r"sha256:[0-9a-f]{64}|[a-z][a-z-]*-[0-9a-f]{64}|attempt:[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}"
@@ -95,18 +93,12 @@ class Compilation:
         self.request, self.stored = build_request(request_payload)
         result = compile_admitted_trial_plan(self.request)
         if result.plan is None:
-            raise ValueError(
-                f"the retained request no longer compiles: {[item.code for item in result.diagnostics]}"
-            )
+            raise ValueError(f"the retained request no longer compiles: {[item.code for item in result.diagnostics]}")
         self.plan: AdmittedTrialPlanModel = result.plan
         self.wire = self.plan.model_dump(mode="json")
 
-    def realization(
-        self, entry_id: str, plan: AdmittedTrialPlanModel | None = None
-    ) -> Any:
-        backend = next(
-            key for key in self.request.apparatus_manifests if key[0] == "backend"
-        )
+    def realization(self, entry_id: str, plan: AdmittedTrialPlanModel | None = None) -> Any:
+        backend = next(key for key in self.request.apparatus_manifests if key[0] == "backend")
         return realize_admitted_trial_entry(
             inputs=TrialRealizationInputs(
                 plan=self.plan if plan is None else plan,
@@ -140,15 +132,10 @@ def _zip_tokens(old: Any, new: Any, tokens: dict[str, str]) -> None:
 
 
 def _entries_by_coordinate(plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
-    return {
-        json.dumps(entry["coordinate"], sort_keys=True): entry
-        for entry in plan["entries"].values()
-    }
+    return {json.dumps(entry["coordinate"], sort_keys=True): entry for entry in plan["entries"].values()}
 
 
-def plan_tokens(
-    old: dict[str, Any], new: dict[str, Any], experiments: tuple[str, str] | None = None
-) -> dict[str, str]:
+def plan_tokens(old: dict[str, Any], new: dict[str, Any], experiments: tuple[str, str] | None = None) -> dict[str, str]:
     """Return the identity moves from an old compiled plan to its recompilation.
 
     Attempt identities derive from the experiment, which is the root plan of a replacement chain.
@@ -157,14 +144,10 @@ def plan_tokens(
     tokens: dict[str, str] = {}
     old_entries, new_entries = _entries_by_coordinate(old), _entries_by_coordinate(new)
     if old_entries.keys() != new_entries.keys():
-        raise ValueError(
-            "the recompiled plan does not keep the retained trial coordinates"
-        )
+        raise ValueError("the recompiled plan does not keep the retained trial coordinates")
     for coordinate, entry in old_entries.items():
         _zip_tokens(entry, new_entries[coordinate], tokens)
-    _zip_tokens(
-        {key: value for key, value in old.items() if key != "entries"}, new, tokens
-    )
+    _zip_tokens({key: value for key, value in old.items() if key != "entries"}, new, tokens)
     for key, value in old["cleanup_plans"].items():
         moved = tokens.get(key, key)
         if moved in new["cleanup_plans"]:
@@ -173,18 +156,14 @@ def plan_tokens(
         fresh = new_entries[coordinate]
         for ordinal in range(1, 1001):
             before = trial_attempt_id(old_experiment, entry["plan_entry_id"], ordinal)
-            tokens[before] = trial_attempt_id(
-                new_experiment, fresh["plan_entry_id"], ordinal
-            )
+            tokens[before] = trial_attempt_id(new_experiment, fresh["plan_entry_id"], ordinal)
     return tokens
 
 
 def move(value: Any, tokens: dict[str, str]) -> Any:
     """Return the value with every retained identity moved to its new identity."""
     if isinstance(value, str):
-        return EMBEDDED.sub(
-            lambda match: tokens.get(match.group(0), match.group(0)), value
-        )
+        return EMBEDDED.sub(lambda match: tokens.get(match.group(0), match.group(0)), value)
     if isinstance(value, list):
         return [move(item, tokens) for item in value]
     if isinstance(value, dict):
@@ -199,12 +178,8 @@ def record_source(
 ) -> ExperimentRecordSource:
     """Return the protected record source of the retained trial facts."""
     plan = compilation.plan if plan is None else plan
-    attempts = tuple(
-        TrialAttemptDecision.model_validate(item) for item in case["attempts"]
-    )
-    observations = tuple(
-        TrialObservationDecision.model_validate(item) for item in case["observations"]
-    )
+    attempts = tuple(TrialAttemptDecision.model_validate(item) for item in case["attempts"])
+    observations = tuple(TrialObservationDecision.model_validate(item) for item in case["observations"])
     entry = plan.entries[attempts[0].plan_entry_id]
     return ExperimentRecordSource(
         run_id=entry.run_id,
@@ -237,11 +212,7 @@ def run_record(compilation: Compilation, case: dict[str, Any]) -> dict[str, Any]
 
 
 def _processor_realization() -> tuple[dict[str, Any], Compilation]:
-    case = next(
-        item
-        for item in _load(COMPILER)["cases"]
-        if item["name"] == "processor-realization"
-    )
+    case = next(item for item in _load(COMPILER)["cases"] if item["name"] == "processor-realization")
     return case, Compilation(case["request"])
 
 
@@ -251,9 +222,7 @@ def records_reference(reference: dict[str, Any]) -> dict[str, Any]:
     tokens = plan_tokens(reference["plan"], compilation.wire)
     cases = []
     for item in reference["cases"]:
-        moved = move(
-            {key: value for key, value in item.items() if key != "run"}, tokens
-        )
+        moved = move({key: value for key, value in item.items() if key != "run"}, tokens)
         cases.append({**moved, "run": run_record(compilation, moved)})
     return {
         "sources": reference["sources"],
@@ -263,9 +232,7 @@ def records_reference(reference: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _evidence(
-    compilation: Compilation, record: dict[str, Any], content: str
-) -> ExperimentRunEvidenceInputs:
+def _evidence(compilation: Compilation, record: dict[str, Any], content: str) -> ExperimentRunEvidenceInputs:
     evidence = ExperimentEvidenceRecordModel.model_validate(record)
     return ExperimentRunEvidenceInputs(
         capture_specs=compilation.request.capture_specs,
@@ -307,9 +274,7 @@ def science_chain() -> dict[str, Any]:
 def _science_run(chain: dict[str, Any], run_version: str) -> ExperimentRunModel:
     """Assemble the scientific run with the metadata that the reference runtime completes."""
     task = chain["compilation"].request.task
-    metadata = ExperimentRunMetadata.model_validate(
-        {**chain["case"]["metadata"], "run_version": run_version}
-    )
+    metadata = ExperimentRunMetadata.model_validate({**chain["case"]["metadata"], "run_version": run_version})
     run = assemble_run(
         chain["source"],
         _run_metadata(SimpleNamespace(inputs=SimpleNamespace(task=task)), metadata),
@@ -318,16 +283,12 @@ def _science_run(chain: dict[str, Any], run_version: str) -> ExperimentRunModel:
     return run
 
 
-def _science_study(
-    chain: dict[str, Any], run: ExperimentRunModel, checked: ExperimentRunModel
-) -> dict[str, Any]:
+def _science_study(chain: dict[str, Any], run: ExperimentRunModel, checked: ExperimentRunModel) -> dict[str, Any]:
     """Validate the evaluation evidence and return the study snapshot over the validated run."""
     compilation = chain["compilation"]
     task, family = compilation.request.task, compilation.request.family
     content = chain["reference"]["content"]
-    validate_experiment_run_against_task(
-        task, checked, evidence=_evidence(compilation, chain["record"], content)
-    )
+    validate_experiment_run_against_task(task, checked, evidence=_evidence(compilation, chain["record"], content))
     bundle = SimpleNamespace(
         sources=(chain["source"],),
         runs=(run,),
@@ -351,9 +312,7 @@ def _science_study(
 def science_reference(reference: dict[str, Any]) -> dict[str, Any]:
     """Record the validated run and the study snapshot of one scientific trial."""
     chain = science_chain()
-    run, checked = accounting_validation_record(
-        _science_run(chain, chain["case"]["metadata"]["run_version"]), None
-    )
+    run, checked = accounting_validation_record(_science_run(chain, chain["case"]["metadata"]["run_version"]), None)
     return {
         **reference,
         "request": chain["compilation"].stored,
@@ -368,16 +327,10 @@ def science_reference(reference: dict[str, Any]) -> dict[str, Any]:
 def scientific_accounting_reference(reference: dict[str, Any]) -> dict[str, Any]:
     """Record added accounting that links a later run version to the exact scientific original."""
     chain = science_chain()
-    original, _ = accounting_validation_record(
-        _science_run(chain, chain["case"]["metadata"]["run_version"]), None
-    )
-    candidate = TrialArchiveCandidateDecision(
-        experiment_id=chain["compilation"].plan.plan_id, run=original
-    )
+    original, _ = accounting_validation_record(_science_run(chain, chain["case"]["metadata"]["run_version"]), None)
+    candidate = TrialArchiveCandidateDecision(experiment_id=chain["compilation"].plan.plan_id, run=original)
     canonical = canonical_archival_runs((candidate,), candidate.experiment_id)
-    linked, checked = accounting_validation_record(
-        _science_run(chain, "2"), canonical.get(original.run_id)
-    )
+    linked, checked = accounting_validation_record(_science_run(chain, "2"), canonical.get(original.run_id))
     return {
         **reference,
         "linked": linked.model_dump(mode="json"),
@@ -387,11 +340,7 @@ def scientific_accounting_reference(reference: dict[str, Any]) -> dict[str, Any]
 
 
 def _receipts(run: ExperimentRunModel) -> tuple[Any, ...]:
-    return tuple(
-        item.cleanup_receipt
-        for item in run.execution_accounting.attempts
-        if item.cleanup_receipt is not None
-    )
+    return tuple(item.cleanup_receipt for item in run.execution_accounting.attempts if item.cleanup_receipt is not None)
 
 
 def _replace(
@@ -411,12 +360,8 @@ def _replace(
         cleanup_receipts=receipts,
     )
     if result.plan is None:
-        raise ValueError(
-            f"the replacement compiler refused: {[item.code for item in result.diagnostics]}"
-        )
-    return TrialReplacementResult(
-        result.plan, result.superseded_run, parent_run=run, cleanup_receipts=receipts
-    )
+        raise ValueError(f"the replacement compiler refused: {[item.code for item in result.diagnostics]}")
+    return TrialReplacementResult(result.plan, result.superseded_run, parent_run=run, cleanup_receipts=receipts)
 
 
 REPLACEMENT = "runtime-replacement-reference.json"
@@ -437,9 +382,7 @@ def replacement_chain() -> dict[str, Any]:
         run = assembled_run(compilation, case)
         first = _replace(compilation, entry_id, run, ())
         experiments = (reference["plan"]["plan_id"], compilation.plan.plan_id)
-        child_tokens = plan_tokens(
-            reference["child"], first.plan.model_dump(mode="json"), experiments
-        )
+        child_tokens = plan_tokens(reference["child"], first.plan.model_dump(mode="json"), experiments)
         _REPLACEMENT_CHAIN.update(
             reference=reference,
             compilation=compilation,
@@ -519,11 +462,7 @@ def _boundary_document(document: dict[str, Any]) -> dict[str, Any]:
             cleanup_receipts=first.cleanup_receipts,
         ).model_dump(mode="json")
     if document["schema_version"] == "runtime-trial-terminal/v1":
-        receipt = {
-            key: value
-            for key, value in document["receipt"].items()
-            if key not in REMOVED_RECEIPT_FIELDS
-        }
+        receipt = {key: value for key, value in document["receipt"].items() if key not in REMOVED_RECEIPT_FIELDS}
         document = {**document, "receipt": receipt}
     return validate_runtime_decision(document).model_dump(mode="json")
 
@@ -531,15 +470,11 @@ def _boundary_document(document: dict[str, Any]) -> dict[str, Any]:
 def _boundary_paths(document: dict[str, Any]) -> list[tuple[str, ...]]:
     paths = [(key,) for key in document if key != "schema_version"]
     if isinstance(document.get("observation"), dict):
-        paths += [
-            ("observation", key) for key in document["observation"] if key != "kind"
-        ]
+        paths += [("observation", key) for key in document["observation"] if key != "kind"]
     return [*paths, ("unexpected",)]
 
 
-def _mutated(
-    document: dict[str, Any], path: tuple[str, ...], delete: bool, value: Any
-) -> dict[str, Any] | None:
+def _mutated(document: dict[str, Any], path: tuple[str, ...], delete: bool, value: Any) -> dict[str, Any] | None:
     changed = copy.deepcopy(document)
     target = changed
     for part in path[:-1]:
@@ -607,9 +542,7 @@ def lineage_case(case: dict[str, Any], experiment_id: str) -> dict[str, Any]:
     records = [validate_runtime_decision(item) for item in case["records"]]
     current = ExperimentRunModel.model_validate(case["current"])
     canonical = canonical_archival_runs(records, experiment_id)
-    linked, checked = accounting_validation_record(
-        current, canonical.get(current.run_id)
-    )
+    linked, checked = accounting_validation_record(current, canonical.get(current.run_id))
     return {
         **case,
         "linked": linked.model_dump(mode="json"),
@@ -657,10 +590,7 @@ def _with_sources(reference: dict[str, Any]) -> dict[str, Any]:
     """Pin each named reference source to its current content."""
     sources = reference.get("sources")
     if isinstance(sources, dict):
-        reference["sources"] = {
-            name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest()
-            for name in sources
-        }
+        reference["sources"] = {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in sources}
     return reference
 
 

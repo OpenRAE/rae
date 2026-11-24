@@ -148,3 +148,9 @@ ADR-117 checks these rules.
 - R. C. Martin, *The Clean Architecture* (2012): the dependency rule and boundary data.
 - M. Seemann, *Composition Root* (2011).
 - [Issue 1711 design](../issue-1711-strict-layers-design.md).
+
+## Amendments
+
+| Date | Commit/PR | Summary |
+| --- | --- | --- |
+| 2026-11-25 | #2020 | On go-cutover, ADR-121 named the Go engineering standards, now ADR-123. The dev sync brought this released ADR; its decision is unchanged. |

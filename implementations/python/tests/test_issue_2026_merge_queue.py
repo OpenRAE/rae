@@ -310,7 +310,12 @@ def test_ci_runs_the_canonical_graph_after_the_resolver() -> None:
 def test_pull_request_guards_read_the_queued_pull_request(
     tmp_path: Path, workflow: str, ref: str, base: str, exit_code: int
 ) -> None:
-    (job,) = _load(workflow)["jobs"].values()
+    # The Go branch adds a native guard job; the Python guard owns merge-group resolution.
+    (job,) = [
+        job
+        for job in _load(workflow)["jobs"].values()
+        if any(step.get("name") == "Resolve the queued pull request" for step in job["steps"])
+    ]
     step = _step(job, "Resolve the queued pull request")
     assert step["if"] == "github.event_name == 'merge_group'"
     pull_request = {"number": 2026, "title": "fix: x", "body": "b", "base": {"ref": base}}

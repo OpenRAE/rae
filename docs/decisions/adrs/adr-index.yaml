@@ -679,6 +679,10 @@ adrs:
     path: docs/decisions/adrs/adr-120-owned-and-admitted-typed-descriptor-profiles.md
   - id: ADR-121
     path: docs/decisions/adrs/adr-121-strict-package-layers.md
+    amendments:
+      - date: 2026-11-25
+        ref: "#2020"
+        summary: "On go-cutover, ADR-121 named the Go engineering standards, now ADR-123. The dev sync brought this released ADR; its decision is unchanged."
   - id: ADR-122
     path: docs/decisions/adrs/adr-122-dev-merge-queue.md
     amendments:

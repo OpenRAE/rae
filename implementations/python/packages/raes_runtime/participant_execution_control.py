@@ -411,22 +411,26 @@ class RuntimeParticipantExecutionMixin:
         return cast(OperationReceipt, replace(receipt, diagnostics=[*receipt.diagnostics, *released.diagnostics]))
 
     @property
+    @runtime_owned
     def participant_execution_policies(self) -> tuple[ParticipantAutonomousExecutionRuntime, ...]:
         """Return the admitted autonomous execution policies of the current run."""
         return self._participant_execution_policies
 
+    @runtime_owned
     def participants_waiting(self) -> bool:
         """Return whether an autonomous participant still waits for its starting assertions."""
         return self._participant_scheduler is not None and any(
             waiting_participant_addresses(policy, self._snapshot) for policy in self._participant_execution_policies
         )
 
+    @runtime_owned
     def release_waiting_participants(self) -> bool:
         """Run one scheduler pass when a waiting participant can be released; return whether it succeeded."""
         if not self._participant_release_pending(self._snapshot):
             return True
         return self.run_due_participant_actions().success
 
+    @runtime_owned
     def restore_participant_release(self, model: RuntimeModel, *, started: bool) -> None:
         """Restore the release map; it exists only after the participant start phase."""
         self._participant_release_assertions = participant_release_assertions(model) if started else {}
