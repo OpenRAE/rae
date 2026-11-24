@@ -21,7 +21,7 @@ from raes_contracts.runtime_state import RuntimeSnapshot
 from raes_runtime.control_plane import RuntimeControlPlane
 from raes_runtime.registry import RuntimeTarget
 
-from raes_conformance.conformance.diagnostics import _diagnostic, sanitized_failure_message
+from raes_conformance.conformance.diagnostics import conformance_diagnostic, sanitized_failure_message
 from raes_conformance.conformance.report import ConformanceCaseResult
 
 _LOGGER = get_logger(__name__)
@@ -91,7 +91,7 @@ def _participant_execution_operation_case(
     diagnostics: list[Diagnostic] = []
     if status is None or status.state.value != "succeeded":
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.participant-execution-lifecycle-failed",
                 f"runtime.control-plane.participant-execution.{scope}",
                 f"Participant execution {action!r} did not complete successfully.",
@@ -106,7 +106,7 @@ def _participant_execution_operation_case(
             if not isinstance(exc, RaesError | ValidationError):
                 _LOGGER.exception("participant execution readback failed", exc_info=foreign_failure_record(exc))
             diagnostics.append(
-                _diagnostic(
+                conformance_diagnostic(
                     "conformance.participant-execution-readback-missing",
                     f"runtime.snapshot.participant-execution-services.{scope}",
                     f"Participant execution readback failed: {sanitized_failure_message(exc)}",
@@ -115,7 +115,7 @@ def _participant_execution_operation_case(
         else:
             if not state.evidence_refs or not state.last_transition_ref:
                 diagnostics.append(
-                    _diagnostic(
+                    conformance_diagnostic(
                         "conformance.participant-execution-evidence-missing",
                         f"runtime.snapshot.participant-execution-services.{scope}",
                         "Participant execution lifecycle readback lacks transition evidence.",
@@ -146,7 +146,7 @@ def _participant_execution_action_case(
     setup = _participant_execution_action_setup(runtime, capability)
     if setup is None:
         diagnostics.append(
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.participant-execution-binding-missing",
                 "capabilities.participant_runtime.execution_bindings",
                 "Autonomous execution requires at least one executable binding.",
@@ -163,7 +163,7 @@ def _participant_execution_action_case(
                 # Isolation of the participant runtime: a refusal category needs no record.
                 _LOGGER.exception("participant execution probe action failed", exc_info=foreign_failure_record(exc))
             diagnostics.append(
-                _diagnostic(
+                conformance_diagnostic(
                     "conformance.participant-execution-action-failed",
                     f"runtime.participant-execution.{scope}",
                     f"Bounded native action execution failed: {sanitized_failure_message(exc)}",
@@ -172,7 +172,7 @@ def _participant_execution_action_case(
         else:
             if _participant_execution_results_are_inert(requests, results, action_count):
                 diagnostics.append(
-                    _diagnostic(
+                    conformance_diagnostic(
                         "conformance.participant-execution-action-inert",
                         f"runtime.participant-execution.{scope}",
                         (

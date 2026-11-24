@@ -25,7 +25,7 @@ from ..models.participant_episode_resources import (
     ParticipantEpisodeConditionRuntime,
     ParticipantEpisodePolicyRuntime,
 )
-from .addresses import section_ref_name
+from .addresses import participant_episode_policy_address, section_ref_name
 
 _assertion_address = partial(render_compiled_address, "evaluation", "assertion")
 
@@ -170,7 +170,7 @@ def _compile_policy(
     reset_evidence = _evidence_addresses(scenario, reset.evidence_requirement_refs if reset is not None else ())
     conditions = _compile_conditions(scenario, policy)
     return ParticipantEpisodePolicyRuntime(
-        address=render_compiled_address("participant", "episode-policy", spec_name),
+        address=participant_episode_policy_address(spec_name),
         name=spec_name,
         spec=policy.model_dump(mode="json", by_alias=True),
         refresh_dependencies=tuple(

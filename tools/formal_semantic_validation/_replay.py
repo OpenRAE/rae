@@ -97,6 +97,9 @@ def _compiled_case_digest(repo_root: Path, case: Mapping[str, object], path: Pat
         compiled.pop("safe_states")
     if compiled["participant_episode_policies"] == {}:
         compiled.pop("participant_episode_policies")
+    for specification in compiled["behavior_specifications"].values():
+        if specification["episode_policy_address"] == "":
+            specification.pop("episode_policy_address")
     return _digest(compiled)
 
 

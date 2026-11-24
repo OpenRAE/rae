@@ -14,7 +14,7 @@ from raes_contracts.participant_control_context import (
     validate_control_context_record,
 )
 
-from .diagnostics import _diagnostic
+from .diagnostics import conformance_diagnostic
 
 _LOGGER = get_logger(__name__)
 
@@ -26,7 +26,7 @@ def _control_context_asset_diagnostics(
 ) -> list[Diagnostic]:
     if context is None or (contract_name == "participant-control-context-asset-v1" and context.content_binding is None):
         return [
-            _diagnostic(
+            conformance_diagnostic(
                 "conformance.semantic-context-required", contract_name, "Trusted control-context inputs are required"
             )
         ]
@@ -58,5 +58,7 @@ def _control_context_asset_diagnostics(
             exc_info=foreign_failure_record(exc),
         )
         return [
-            _diagnostic("conformance.context-resolution-failed", contract_name, "Control-context validation failed")
+            conformance_diagnostic(
+                "conformance.context-resolution-failed", contract_name, "Control-context validation failed"
+            )
         ]

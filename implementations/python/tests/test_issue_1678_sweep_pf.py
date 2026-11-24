@@ -159,7 +159,7 @@ def test_failing_participant_execution_readback_is_a_sanitized_diagnostic(caplog
     )
     from raes_backend_stubs.stubs import create_stub_target
     from raes_conformance.conformance.profiles import BackendCapabilityProfile
-    from raes_conformance.conformance.target_probes import _target_adapter_cases
+    from raes_conformance.conformance.target_probes import target_adapter_run
     from raes_processor.compiler import compile_runtime_model
 
     class _FailingReadbackRuntime(_NativeParticipantRuntime):
@@ -173,7 +173,7 @@ def test_failing_participant_execution_readback_is_a_sanitized_diagnostic(caplog
     )
 
     with caplog.at_level(logging.ERROR, logger="raes_conformance"):
-        cases = _target_adapter_cases(target, BackendCapabilityProfile.FULL_REMOTE_CONTROL_PLANE)
+        cases = target_adapter_run(target, BackendCapabilityProfile.FULL_REMOTE_CONTROL_PLANE).cases
 
     start = next(case for case in cases if case.name == "participant-execution-start")
     assert start.passed is False
